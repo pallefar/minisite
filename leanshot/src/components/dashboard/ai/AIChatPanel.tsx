@@ -1,0 +1,222 @@
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Send, Sparkles, Trash2 } from 'lucide-react';
+import { Button, IconButton } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Input';
+import { AIAvatar } from '@/illustrations/AIAvatar';
+import { useStore } from '@/lib/store';
+import { callAnthropic, MissingAPIKeyError } from '@/lib/ai';
+import { cn } from '@/lib/helpers';
+
+interface AIChatPanelProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const KEYWORDS_FOR_DATA_REF = [
+  'protein', 'weight', 'dose', 'shot', 'injection', 'sleep', 'mood', 'side effect',
+  'symptom', 'streak', 'plateau', 'hunger', 'meal',
+];
+
+function detectDataRef(text: string): boolean {
+  const t = text.toLowerCase();
+  return KEYWORDS_FOR_DATA_REF.some((k) => t.includes(k));
+}
+
+export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
+  const u = useStore((s) => s.user!);
+  const history = useStore((s) => s.aiHistory);
+  const append = useStore((s) => s.appendAI);
+  const clear = useStore((s) => s.clearAI);
+  const weights = useStore((s) => s.weights);
+  const symptoms = useStore((s) => s.symptoms);
+
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const wU = u.units === 'metric' ? 'kg' : 'lb';
+  const latest = weights[weights.length - 1];
+  const lost = latest ? u.startWeight - latest.weight : 0;
+  const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
+  const recentSx = symptoms.slice(0, 5).map((s) => `${s.symptom} (${s.severity}/5)`).join(', ');
+  const ctx = `User context: Name: ${u.name}. On ${u.medication} at ${u.dose}${u.doseUnit}, weekly. Started ${u.startDate} (week ${weeks}). Starting weight ${u.startWeight}${wU}, current ${latest?.weight ?? '?'}${wU}, goal ${u.goalWeight}${wU}, lost ${lost.toFixed(1)}${wU}. Goal type: ${u.goal}. Lifting: ${u.liftingLevel}. Recent symptoms: ${recentSx || 'none'}. Protein target: ${u.proteinTarget}g/day.`;
+
+  // Adaptive prompt suggestions based on context
+  const suggestions: string[] = [];
+  if (recentSx) suggestions.push("Why might I be feeling these symptoms?");
+  if (weeks >= 8 && weeks < 16) suggestions.push('Should I bump my dose this week?');
+  if (lost < 0 || (weeks >= 6 && lost < 2)) suggestions.push('Why have I plateaued?');
+  if (u.liftingLevel === 'none') suggestions.push("What's a beginner lifting routine for me?");
+  suggestions.push('How do I hit my protein on tough nausea days?');
+  while (suggestions.length < 3) suggestions.push('Tell me about my titration phase');
+
+  useEffect(() => {
+    if (!open) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [history, open, busy]);
+
+  const send = async (text: string): Promise<void> => {
+    if (!text.trim() || busy) return;
+    setInput('');
+    append({ role: 'user', content: text.trim() });
+    setBusy(true);
+    try {
+      const reply = await callAnthropic({
+        maxTokens: 1000,
+        system:
+          `You are an expert GLP-1 medication coach inside the LeanShot tracking app. ${ctx}\n\nGuidelines:\n- Be warm, concise, and practical. Talk like a knowledgeable friend.\n- Use the user's data to personalize answers when relevant.\n- Always remind users you're not a substitute for their prescriber when discussing dosing or symptoms.\n- Focus on actionable advice. Use short paragraphs and bullet points where helpful.\n- Never recommend specific dose changes; defer to their doctor.`,
+        messages: [...history, { role: 'user', content: text.trim() }],
+      });
+      append({ role: 'assistant', content: reply || "Sorry, I had trouble responding.", hasDataReference: detectDataRef(reply) });
+    } catch (e) {
+      if (e instanceof MissingAPIKeyError) {
+        append({ role: 'assistant', content: "I need an Anthropic API key to chat. Open Settings → AI to add one. It stores locally and is only used to talk to Claude on your behalf." });
+      } else {
+        append({ role: 'assistant', content: "I couldn't reach the API. Check your connection and key, then try again." });
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[110] bg-[var(--color-surface-overlay)] backdrop-blur-md flex items-stretch md:items-center md:justify-end md:p-6"
+          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-label="LeanShot AI coach"
+        >
+          <motion.div
+            initial={{ x: 40, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 40, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 md:flex-none md:w-[480px] bg-[var(--color-surface)] border border-[var(--color-border)] md:rounded-card shadow-2xl flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 p-4 md:p-5 border-b border-[var(--color-border)]">
+              <AIAvatar size={42} thinking={busy} />
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-bold tracking-tight">LeanShot AI</p>
+                <p className="text-[12px] text-[var(--color-text-secondary)] truncate">
+                  {busy ? 'Thinking…' : `Knows your ${weeks}-week journey on ${u.medication}.`}
+                </p>
+              </div>
+              <IconButton aria-label="Clear conversation" variant="ghost" size="sm" onClick={() => {
+                if (confirm('Clear conversation history?')) clear();
+              }}>
+                <Trash2 className="size-4" />
+              </IconButton>
+              <IconButton aria-label="Close" variant="ghost" size="sm" onClick={onClose}>
+                <X className="size-5" />
+              </IconButton>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 md:px-5 py-4 space-y-3">
+              {history.length === 0 && (
+                <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-4 py-3.5">
+                  <p className="text-[13px] leading-relaxed text-[var(--color-text)]">
+                    Hi <strong>{u.name}</strong>. I'm your coach — I have context on your medication, dose, and progress.
+                    Ask me anything about side effects, nutrition, dosing, muscle preservation, or how to read your data.
+                  </p>
+                </div>
+              )}
+              {history.map((m, i) => (
+                <Bubble key={i} role={m.role} content={m.content} hasRef={m.hasDataReference} />
+              ))}
+              {busy && <ThinkingBubble />}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Suggestions */}
+            {history.length === 0 && (
+              <div className="px-4 md:px-5 pb-2 flex flex-wrap gap-1.5">
+                {suggestions.slice(0, 3).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="px-3 py-1.5 rounded-pill bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[12px] font-semibold hover:bg-[var(--color-primary)] hover:text-[var(--color-primary-foreground)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                  >
+                    <Sparkles className="inline size-3 mr-1 -mt-0.5" />
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Input */}
+            <div className="p-3 md:p-4 border-t border-[var(--color-border)] safe-bottom">
+              <div className="flex items-end gap-2">
+                <Textarea
+                  rows={1}
+                  placeholder="Ask anything about your GLP-1 journey…"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      send(input);
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button onClick={() => send(input)} disabled={!input.trim()} loading={busy} aria-label="Send">
+                  <Send className="size-4" />
+                </Button>
+              </div>
+              <p className="text-[10px] text-[var(--color-text-tertiary)] text-center mt-2">
+                AI guidance — not medical advice. Consult your prescriber.
+              </p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Bubble({ role, content, hasRef }: { role: 'user' | 'assistant'; content: string; hasRef?: boolean }) {
+  return (
+    <div className={cn('flex', role === 'user' && 'justify-end')}>
+      <div
+        className={cn(
+          'max-w-[88%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap',
+          role === 'user'
+            ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] rounded-br-md'
+            : 'bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text)] rounded-bl-md',
+        )}
+      >
+        {hasRef && role === 'assistant' && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 rounded-pill bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[10px] font-bold uppercase tracking-[0.06em]">
+            <Sparkles className="size-3" /> Personalized
+          </span>
+        )}
+        {hasRef && <br />}
+        {content}
+      </div>
+    </div>
+  );
+}
+
+function ThinkingBubble() {
+  return (
+    <div className="flex">
+      <div className="rounded-2xl rounded-bl-md bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-4 py-3.5">
+        <div className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-[var(--color-primary)]" style={{ animation: 'thinking 1.4s ease-in-out infinite', animationDelay: '0ms' }} />
+          <span className="size-2 rounded-full bg-[var(--color-primary)]" style={{ animation: 'thinking 1.4s ease-in-out infinite', animationDelay: '160ms' }} />
+          <span className="size-2 rounded-full bg-[var(--color-primary)]" style={{ animation: 'thinking 1.4s ease-in-out infinite', animationDelay: '320ms' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
