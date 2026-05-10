@@ -19,10 +19,7 @@ export interface Streaks {
  * from `today`) the predicate returns true for. Today's miss is allowed but
  * a miss on any prior day breaks the streak.
  */
-export function calcStreak(
-  predicate: (ds: string) => boolean,
-  today: Date = new Date(),
-): number {
+export function calcStreak(predicate: (ds: string) => boolean, today: Date = new Date()): number {
   let streak = 0;
   for (let i = 0; i < 365; i++) {
     const d = new Date(today);
