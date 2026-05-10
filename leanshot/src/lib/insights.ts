@@ -4,6 +4,7 @@
  * to consume the typed store.
  */
 import type { PersistedState } from './storage';
+import type { TabId } from '@/types';
 import { todayStr } from './helpers';
 import { SUPPS_DEFAULT, SYMPTOMS_LIST } from './constants';
 
@@ -14,7 +15,7 @@ export interface Insight {
   body: string;
   /** Tone influences the surface color used by the InsightCard. */
   tone: 'info' | 'warning' | 'success' | 'neutral';
-  cta?: { label: string; tab: string };
+  cta?: { label: string; tab: TabId };
 }
 
 export function generateInsights(s: PersistedState): Insight[] {
@@ -138,7 +139,7 @@ export function generateInsights(s: PersistedState): Insight[] {
 export function pickFocus(s: PersistedState): {
   title: string;
   body: string;
-  cta: { label: string; tab: string };
+  cta: { label: string; tab: TabId };
   icon: string;
 } {
   const u = s.user;

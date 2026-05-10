@@ -63,7 +63,7 @@ export function SupplementsTab() {
                     {isTaken ? 'Undo' : 'Logged'}
                   </Button>
                   <a
-                    href={`https://www.amazon.com/s?k=${s.search}&tag=YOURTAG-20`}
+                    href={`https://www.amazon.com/s?k=${s.search}`}
                     target="_blank"
                     rel="noopener"
                     className="inline-flex items-center justify-center h-8 px-3 rounded-pill bg-transparent border border-[var(--color-border-strong)] text-[13px] font-semibold hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"

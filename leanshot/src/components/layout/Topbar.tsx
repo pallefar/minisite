@@ -4,6 +4,12 @@ import { Button, IconButton } from '@/components/ui/Button';
 import { useStore } from '@/lib/store';
 import { useTheme } from '@/hooks/useTheme';
 import { TAB_TITLES } from '@/lib/constants';
+import type { TabId } from '@/types';
+
+const TAB_VALUES = new Set<string>([
+  'home', 'medication', 'symptoms', 'body', 'nutrition',
+  'activity', 'supplements', 'mood', 'insights',
+]);
 
 interface TopbarProps {
   onLogDose: () => void;
@@ -33,7 +39,9 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI }: TopbarProps) {
     if (!key) return;
     for (const [k, tab] of Object.entries(map)) {
       if (key.includes(k)) {
-        setTab(tab as never);
+        if (TAB_VALUES.has(tab)) {
+          setTab(tab as TabId);
+        }
         setSearch('');
         return;
       }
