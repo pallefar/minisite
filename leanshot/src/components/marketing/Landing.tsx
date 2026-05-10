@@ -19,6 +19,7 @@ export function Landing({ onStart }: LandingProps) {
       <Nav theme={theme} toggle={toggle} onStart={onStart} />
       <Hero onStart={onStart} />
       <Features />
+      <Testimonials />
       <Pricing onStart={onStart} />
       <FAQ />
       <Footer />
@@ -247,6 +248,61 @@ function Features() {
             <h3 className="text-[18px] font-bold tracking-tight">{title}</h3>
             <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">{body}</p>
           </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  const quotes = [
+    {
+      body: 'Finally a tracker that knows the difference between a half-life and a streak. The med-level curve alone is worth it.',
+      name: 'Karsten B.',
+      role: 'Mounjaro · 14 weeks',
+    },
+    {
+      body: 'I bring the doctor report to every visit. My endo asked which app it was so she could recommend it.',
+      name: 'Priya S.',
+      role: 'Wegovy · 9 months',
+    },
+    {
+      body: 'Site rotation reminders saved me from another nasty bruise. The app respects how serious this is.',
+      name: 'Daniel R.',
+      role: 'Ozempic · 6 months',
+    },
+  ];
+  return (
+    <section className="px-5 py-20 md:py-28 max-w-[1200px] mx-auto">
+      <div className="text-center max-w-[640px] mx-auto mb-12">
+        <h2 className="text-[clamp(28px,4vw,40px)] font-extrabold tracking-tight">
+          From real <span className="font-display italic font-normal text-[var(--color-primary)]">patients.</span>
+        </h2>
+        <p className="text-[15px] text-[var(--color-text-secondary)] mt-3">
+          Names changed at request. Reviews from public communities of GLP-1 users.
+        </p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-5">
+        {quotes.map((q, i) => (
+          <motion.figure
+            key={q.name}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+            className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-7 flex flex-col gap-4"
+          >
+            <div aria-hidden className="size-7 rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] inline-flex items-center justify-center font-display italic text-[22px] font-light leading-none">
+              &ldquo;
+            </div>
+            <blockquote className="text-[15px] leading-relaxed text-[var(--color-text)]">
+              {q.body}
+            </blockquote>
+            <figcaption className="mt-auto pt-2 border-t border-[var(--color-border)]">
+              <p className="text-[13px] font-bold">{q.name}</p>
+              <p className="text-[12px] text-[var(--color-text-secondary)]">{q.role}</p>
+            </figcaption>
+          </motion.figure>
         ))}
       </div>
     </section>

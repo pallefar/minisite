@@ -13,7 +13,7 @@ export function SymptomCard() {
   const recent = symptoms.filter((s) => Date.now() - new Date(s.date).getTime() < 7 * 86_400_000).slice(0, 3);
 
   return (
-    <Card span={4} variant="default">
+    <Card span={4} variant="default" data-tour="symptoms">
       <CardHeader
         title="Side effects"
         icon={<ShieldAlert className="size-4" />}

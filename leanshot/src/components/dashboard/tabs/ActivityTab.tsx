@@ -4,6 +4,7 @@ import { Card, CardHeader, StatTile } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ConnectData } from '@/illustrations/ConnectData';
 import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
@@ -159,7 +160,11 @@ export function ActivityTab() {
       <Card span={12}>
         <CardHeader title="Workout history" icon={<ListChecks className="size-4" />} />
         {workouts.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">No workouts. Resistance training preserves muscle.</p>
+          <EmptyState
+            inline
+            title="No workouts logged"
+            body="Resistance training preserves muscle on GLP-1. Even two sessions a week meaningfully changes the lean-vs-fat split."
+          />
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-[13px]">

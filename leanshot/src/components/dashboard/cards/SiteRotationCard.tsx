@@ -29,7 +29,7 @@ export function SiteRotationCard() {
     : 'var(--color-border-strong)';
 
   return (
-    <Card span={4} variant="default">
+    <Card span={4} variant="default" data-tour="sites">
       <CardHeader
         title="Injection site"
         icon={<Syringe className="size-4" />}

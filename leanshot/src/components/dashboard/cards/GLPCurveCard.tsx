@@ -73,7 +73,7 @@ export function GLPCurveCard() {
   }, [lastInj, halfLife, injections]);
 
   return (
-    <Card span={5} variant="default" className="min-h-[360px] flex flex-col">
+    <Card span={5} variant="default" className="min-h-[360px] flex flex-col" data-tour="glp">
       <CardHeader
         title="GLP-1 level"
         icon={<ChartLine className="size-4" />}

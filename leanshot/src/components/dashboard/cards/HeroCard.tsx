@@ -50,7 +50,7 @@ export function HeroCard() {
   const titList = TITRATION[u.medication];
 
   return (
-    <Card span={7} variant="hero" padding="none" className="relative overflow-hidden bg-[var(--color-hero-bg)] text-white shadow-hero min-h-[360px] border-0 group">
+    <Card span={7} variant="hero" padding="none" className="relative overflow-hidden bg-[var(--color-hero-bg)] text-white shadow-hero min-h-[360px] border-0 group" data-tour="hero">
       {/* Animated mesh gradient */}
       <Mesh reduced={reduced} />
       <HeroOrbital className="absolute -right-12 -bottom-16 w-[360px] h-[360px] opacity-50 pointer-events-none select-none" />

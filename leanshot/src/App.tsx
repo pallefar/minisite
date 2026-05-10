@@ -22,6 +22,7 @@ const Marketing = lazy(() => import('@/components/marketing/Landing').then((m) =
 const AIChatPanel = lazy(() => import('@/components/dashboard/ai/AIChatPanel').then((m) => ({ default: m.AIChatPanel })));
 const SettingsPage = lazy(() => import('@/components/dashboard/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const DoctorReport = lazy(() => import('@/components/dashboard/modals/DoctorReport').then((m) => ({ default: m.DoctorReport })));
+const GuidedTour = lazy(() => import('@/components/dashboard/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })));
 
 type View = 'marketing' | 'onboarding' | 'dashboard';
 
@@ -35,12 +36,35 @@ export function App() {
   const [aiOpen, setAIOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
 
   // Keep view aligned to user state once hydrated changes settle.
   useEffect(() => {
     if (user && view !== 'dashboard') setView('dashboard');
     if (!user && view === 'dashboard') setView('marketing');
   }, [user, view]);
+
+  // First visit to dashboard → auto-launch tour after a beat.
+  useEffect(() => {
+    if (view !== 'dashboard') return;
+    let cancelled = false;
+    void import('@/components/dashboard/tour/GuidedTour').then(({ shouldShowTour }) => {
+      if (cancelled || !shouldShowTour()) return;
+      window.setTimeout(() => {
+        if (!cancelled) setTourOpen(true);
+      }, 900);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [view]);
+
+  // Listen for the global "replay-tour" event the Settings page dispatches.
+  useEffect(() => {
+    const onReplay = (): void => setTourOpen(true);
+    window.addEventListener('leanshot:replay-tour', onReplay);
+    return () => window.removeEventListener('leanshot:replay-tour', onReplay);
+  }, []);
 
   if (view === 'marketing') {
     return (
@@ -88,6 +112,7 @@ export function App() {
         {aiOpen && <AIChatPanel open={aiOpen} onClose={() => setAIOpen(false)} />}
         {settingsOpen && <SettingsPage open={settingsOpen} onClose={() => setSettingsOpen(false)} />}
         {reportOpen && <DoctorReport open={reportOpen} onClose={() => setReportOpen(false)} />}
+        {tourOpen && <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />}
       </Suspense>
     </>
   );

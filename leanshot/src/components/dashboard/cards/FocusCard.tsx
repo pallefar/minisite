@@ -25,7 +25,7 @@ export function FocusCard() {
   const Icon = (ICON_MAP as Record<string, typeof Sparkles>)[focus.icon] ?? Sparkles;
 
   return (
-    <Card span={12} variant="elevated" className="bg-[var(--color-primary-soft)] border-[var(--color-primary-soft)]">
+    <Card span={12} variant="elevated" className="bg-[var(--color-primary-soft)] border-[var(--color-primary-soft)]" data-tour="focus">
       <div className="flex items-start gap-4">
         <motion.span
           initial={{ scale: 0.7, opacity: 0 }}

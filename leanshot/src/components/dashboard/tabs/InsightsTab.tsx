@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FileText, Sparkles, Trophy, Star, Lightbulb, ChartLine, X, BookOpen } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { EmptyState as EmptyStateInline } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ShareCardModal } from '@/components/dashboard/share/ShareCardModal';
@@ -77,7 +78,11 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       <Card span={6}>
         <CardHeader title="Your wins" icon={<Star className="size-4" />} />
         {nsvs.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">No wins logged yet.</p>
+          <EmptyStateInline
+            inline
+            title="No wins yet"
+            body="Save your first non-scale victory above. They compound."
+          />
         ) : (
           <ul className="space-y-2">
             {nsvs.slice(0, 8).map((n, i) => (

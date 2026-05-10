@@ -32,7 +32,7 @@ export function Sidebar({ onOpenAI, onOpenSettings }: SidebarProps) {
   const { theme, toggle } = useTheme();
 
   return (
-    <aside className="hidden md:flex fixed top-0 left-0 bottom-0 z-30 w-[80px] flex-col items-center py-5 bg-[var(--color-surface)] border-r border-[var(--color-border)] safe-top">
+    <aside data-tour="nav" className="hidden md:flex fixed top-0 left-0 bottom-0 z-30 w-[80px] flex-col items-center py-5 bg-[var(--color-surface)] border-r border-[var(--color-border)] safe-top">
       <button
         onClick={() => setTab('home')}
         aria-label="LeanShot home"

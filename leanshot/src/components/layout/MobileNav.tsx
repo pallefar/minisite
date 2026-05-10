@@ -32,7 +32,7 @@ export function MobileNav() {
       aria-label="Primary navigation"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-[max(8px,env(safe-area-inset-bottom))] pt-2"
     >
-      <div className="glass border border-[var(--color-border)] rounded-[28px] shadow-lg overflow-x-auto scrollbar-none">
+      <div data-tour="mobile-nav" className="glass border border-[var(--color-border)] rounded-[28px] shadow-lg overflow-x-auto scrollbar-none">
         <div className="flex justify-between min-w-full px-2 py-1.5">
           {TABS.map(({ id, short, Icon, label }) => {
             const active = currentTab === id;

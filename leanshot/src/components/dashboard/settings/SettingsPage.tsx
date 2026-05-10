@@ -199,7 +199,17 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               <Button variant="ghost" leadingIcon={<Download className="size-4" />} onClick={exportData}>
                 Export JSON
               </Button>
-              <Button variant="ghost" leadingIcon={<GraduationCap className="size-4" />} onClick={() => toast('Replay tour from the home dashboard.', 'info')}>
+              <Button
+                variant="ghost"
+                leadingIcon={<GraduationCap className="size-4" />}
+                onClick={() => {
+                  onClose();
+                  void import('@/components/dashboard/tour/GuidedTour').then(({ clearTourSeen }) => {
+                    clearTourSeen();
+                    window.dispatchEvent(new Event('leanshot:replay-tour'));
+                  });
+                }}
+              >
                 Replay guided tour
               </Button>
               <Button variant="destructive" leadingIcon={<Trash2 className="size-4" />} onClick={reset}>
