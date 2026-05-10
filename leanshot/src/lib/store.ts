@@ -4,6 +4,7 @@
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { track } from '@/lib/analytics';
 import type {
   AIMessage,
   Cost,
@@ -99,7 +100,10 @@ export const useStore = create<Store>()(
       currentTab: 'home',
       toast: null,
 
-      setTab: (tab) => set({ currentTab: tab }),
+      setTab: (tab) => {
+        set({ currentTab: tab });
+        track('tab_viewed', { tab });
+      },
       showToast: (message, kind = 'success') => set({ toast: { message, kind, id: ++toastId } }),
       dismissToast: () => set({ toast: null }),
 
