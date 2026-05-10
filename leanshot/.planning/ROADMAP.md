@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 01-02-PLAN.md — useConfirm hook + ConfirmModal + 3 native-dialog migrations (Wave 1)
 - [x] 01-03-PLAN.md — ESLint flat-config + Prettier + npm scripts (Wave 2)
 - [x] 01-04-PLAN.md — Vitest + RTL + foundational tests (helpers, useStreaks, storage, OnboardingFlow) (Wave 2)
-- [ ] 01-05-PLAN.md — Sentry beforeSend + PostHog cookieless + main.tsx wiring + Settings dev trigger + .env.example (Wave 2)
+- [x] 01-05-PLAN.md — Sentry beforeSend + PostHog cookieless + main.tsx wiring + Settings dev trigger + .env.example (Wave 2)
 - [ ] 01-06-PLAN.md — Playwright config + onboarding e2e + GitHub Actions CI 5-job pipeline + manual checkpoint (Wave 3)
 
 ### Phase 2: Visible Compliance & Public Deploy
