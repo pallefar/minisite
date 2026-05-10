@@ -37,8 +37,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. CI lint pass surfaces and fixes the existing `// eslint-disable-next-line` comment in `BaseChart.tsx` that has no underlying ESLint config (CONCERNS.md tech debt entry resolved)
   5. ESLint + Prettier configs are committed and `npm run lint`/`npm run format` succeed against the v2 codebase as-is
 **Plans:** 6 plans
-- [ ] 01-01-PLAN.md — Type/lint cleanup: 5x as-never casts, BaseChart eslint-disable doc, claude-sonnet-4-6 model ID, YOURTAG-20 affiliate (Wave 1)
-- [ ] 01-02-PLAN.md — useConfirm hook + ConfirmModal + 3 native-dialog migrations (Wave 1)
+- [x] 01-01-PLAN.md — Type/lint cleanup: 5x as-never casts, BaseChart eslint-disable doc, claude-sonnet-4-6 model ID, YOURTAG-20 affiliate (Wave 1)
+- [x] 01-02-PLAN.md — useConfirm hook + ConfirmModal + 3 native-dialog migrations (Wave 1)
 - [ ] 01-03-PLAN.md — ESLint flat-config + Prettier + npm scripts (Wave 2)
 - [ ] 01-04-PLAN.md — Vitest + RTL + foundational tests (helpers, useStreaks, storage, OnboardingFlow) (Wave 2)
 - [ ] 01-05-PLAN.md — Sentry beforeSend + PostHog cookieless + main.tsx wiring + Settings dev trigger + .env.example (Wave 2)
