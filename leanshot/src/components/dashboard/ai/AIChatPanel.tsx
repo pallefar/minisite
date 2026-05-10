@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { Button, IconButton } from '@/components/ui/Button';
+import { ConfirmModal } from '@/components/ui/Confirm';
 import { Textarea } from '@/components/ui/Input';
 import { AIAvatar } from '@/illustrations/AIAvatar';
 import { useStore } from '@/lib/store';
 import { callAnthropic, MissingAPIKeyError } from '@/lib/ai';
+import { useConfirm } from '@/hooks/useConfirm';
 import { cn } from '@/lib/helpers';
 
 interface AIChatPanelProps {
@@ -30,6 +32,18 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   const clear = useStore((s) => s.clearAI);
   const weights = useStore((s) => s.weights);
   const symptoms = useStore((s) => s.symptoms);
+
+  const {
+    confirm,
+    open: confirmOpen,
+    message: confirmMessage,
+    title: confirmTitle,
+    confirmLabel,
+    cancelLabel,
+    destructive: confirmDestructive,
+    handleConfirm,
+    handleCancel,
+  } = useConfirm();
 
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -81,6 +95,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   };
 
   return (
+    <>
     <AnimatePresence>
       {open && (
         <motion.div
@@ -111,7 +126,15 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                 </p>
               </div>
               <IconButton aria-label="Clear conversation" variant="ghost" size="sm" onClick={() => {
-                if (confirm('Clear conversation history?')) clear();
+                void (async () => {
+                  const ok = await confirm('Clear conversation history?', {
+                    title: 'Clear history',
+                    confirmLabel: 'Clear',
+                    destructive: true,
+                  });
+                  if (!ok) return;
+                  clear();
+                })();
               }}>
                 <Trash2 className="size-4" />
               </IconButton>
@@ -181,6 +204,17 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
         </motion.div>
       )}
     </AnimatePresence>
+    <ConfirmModal
+      open={confirmOpen}
+      message={confirmMessage}
+      title={confirmTitle}
+      confirmLabel={confirmLabel}
+      cancelLabel={cancelLabel}
+      destructive={confirmDestructive}
+      onConfirm={handleConfirm}
+      onCancel={handleCancel}
+    />
+    </>
   );
 }
 

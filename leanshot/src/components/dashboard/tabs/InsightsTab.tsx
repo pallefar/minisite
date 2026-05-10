@@ -153,12 +153,9 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
           </span>
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-[18px] font-bold tracking-tight mb-1">The GLP-1 Survival Guide</h3>
-            <p className="text-[13px] opacity-85 mb-3 leading-snug">
+            <p className="text-[13px] opacity-85 leading-snug">
               90 pages. Side-effect playbook, muscle-preservation protocol, plateau breakers, 28-day high-protein meal plan.
             </p>
-            <Button variant="inverse" size="sm" onClick={() => alert('Connect your payment provider here.')}>
-              Get the guide →
-            </Button>
           </div>
         </div>
       </Card>
