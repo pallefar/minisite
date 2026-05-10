@@ -9,6 +9,7 @@ import {
   Trash2,
   Download,
   GraduationCap,
+  Terminal,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -22,7 +23,15 @@ import { todayStr, cn } from '@/lib/helpers';
 import { apiKeyStorage } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 
-type Section = 'profile' | 'goals' | 'ai' | 'notifications' | 'privacy' | 'subscription' | 'data';
+type Section =
+  | 'profile'
+  | 'goals'
+  | 'ai'
+  | 'notifications'
+  | 'privacy'
+  | 'subscription'
+  | 'data'
+  | 'dev';
 
 const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'profile', label: 'Profile', Icon: UserIcon },
@@ -32,6 +41,7 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'privacy', label: 'Privacy', Icon: Shield },
   { id: 'subscription', label: 'Subscription', Icon: CreditCard },
   { id: 'data', label: 'Data', Icon: Database },
+  ...(import.meta.env.DEV ? [{ id: 'dev' as Section, label: 'Dev Tools', Icon: Terminal }] : []),
 ];
 
 export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -324,6 +334,23 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 onClick={reset}
               >
                 Reset everything
+              </Button>
+            </Section>
+          )}
+
+          {section === 'dev' && import.meta.env.DEV && (
+            <Section
+              title="Dev Tools"
+              body="Development-only diagnostic actions. Not compiled into production builds."
+            >
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  throw new Error('phase-1-sentry-smoke');
+                }}
+              >
+                Throw test error → Sentry
               </Button>
             </Section>
           )}
