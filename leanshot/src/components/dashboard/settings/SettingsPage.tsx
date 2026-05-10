@@ -1,11 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { User as UserIcon, Target, Bell, Shield, CreditCard, Database, Bot, Trash2, Download, GraduationCap } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/Confirm';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/hooks/useConfirm';
 import { apiKeyStorage } from '@/lib/storage';
 import { todayStr, cn } from '@/lib/helpers';
 
@@ -27,6 +29,18 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   const resetAll = useStore((s) => s.resetAll);
   const fullState = useStore((s) => s);
   const toast = useToast();
+
+  const {
+    confirm,
+    open: confirmOpen,
+    message: confirmMessage,
+    title: confirmTitle,
+    confirmLabel,
+    cancelLabel,
+    destructive: confirmDestructive,
+    handleConfirm,
+    handleCancel,
+  } = useConfirm();
 
   const [section, setSection] = useState<Section>('profile');
   const [draft, setDraft] = useState({ ...u });
@@ -74,9 +88,12 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     toast('Data exported');
   };
 
-  const reset = (): void => {
-    if (!confirm('Erase ALL your LeanShot data?')) return;
-    if (!confirm('Last chance — really erase everything?')) return;
+  const reset = async (): Promise<void> => {
+    const ok = await confirm(
+      'Erase ALL your LeanShot data? This cannot be undone.',
+      { title: 'Reset everything', confirmLabel: 'Erase everything', destructive: true },
+    );
+    if (!ok) return;
     resetAll();
     onClose();
   };
@@ -219,6 +236,16 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
         </div>
       </div>
+      <ConfirmModal
+        open={confirmOpen}
+        message={confirmMessage}
+        title={confirmTitle}
+        confirmLabel={confirmLabel}
+        cancelLabel={cancelLabel}
+        destructive={confirmDestructive}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </Modal>
   );
 }
