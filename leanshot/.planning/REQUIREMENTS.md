@@ -142,17 +142,80 @@ Deferred to a future milestone. Tracked but not in v1 roadmap.
 
 ## Traceability
 
-Filled in by the roadmapper agent. Each v1 requirement maps to exactly one phase.
+Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent on 2026-05-10.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (filled in during roadmap) | — | Pending |
+| COMPL-01 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
+| COMPL-02 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
+| COMPL-03 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
+| COMPL-04 | Phase 2 — Visible Compliance & Public Deploy | Pending |
+| COMPL-05 | Phase 2 — Visible Compliance & Public Deploy | Pending |
+| COMPL-06 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
+| PROD-01 | Phase 2 — Visible Compliance & Public Deploy | Pending |
+| PROD-02 | Phase 1 — Quality Gates & Observability Foundation | Pending |
+| PROD-03 | Phase 1 — Quality Gates & Observability Foundation | Pending |
+| PROD-04 | Phase 1 — Quality Gates & Observability Foundation | Pending |
+| PROD-05 | Phase 1 — Quality Gates & Observability Foundation | Pending |
+| PROD-06 | Phase 2 — Visible Compliance & Public Deploy | Pending |
+| AUTH-01 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| AUTH-02 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| AUTH-03 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| AUTH-04 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| AUTH-05 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| AUTH-06 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| SYNC-01 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| SYNC-02 | Phase 6 — Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | Pending |
+| SYNC-03 | Phase 6 — Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | Pending |
+| SYNC-04 | Phase 6 — Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | Pending |
+| SYNC-05 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
+| SYNC-06 | Phase 6 — Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | Pending |
+| AI-01 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-02 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-03 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-04 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-05 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-06 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| PK-01 | Phase 3 — Pharmacology + Insights Hardening | Pending |
+| PK-02 | Phase 3 — Pharmacology + Insights Hardening | Pending |
+| PK-03 | Phase 3 — Pharmacology + Insights Hardening | Pending |
+| PK-04 | Phase 3 — Pharmacology + Insights Hardening | Pending |
+| PK-05 | Phase 3 — Pharmacology + Insights Hardening | Pending |
+| SHARE-01 | Phase 8 — Doctor Read-Share | Pending |
+| SHARE-02 | Phase 8 — Doctor Read-Share | Pending |
+| SHARE-03 | Phase 8 — Doctor Read-Share | Pending |
+| SHARE-04 | Phase 8 — Doctor Read-Share | Pending |
+| SHARE-05 | Phase 8 — Doctor Read-Share | Pending |
+| SHARE-06 | Phase 8 — Doctor Read-Share | Pending |
+| CLINIC-01 | Phase 9 — Clinic B2B Foundations | Pending |
+| CLINIC-02 | Phase 9 — Clinic B2B Foundations | Pending |
+| CLINIC-03 | Phase 9 — Clinic B2B Foundations | Pending |
+| CLINIC-04 | Phase 10 — Clinic Operator Surface | Pending |
+| CLINIC-05 | Phase 10 — Clinic Operator Surface | Pending |
+| CLINIC-06 | Phase 10 — Clinic Operator Surface | Pending |
+| CLINIC-07 | Phase 10 — Clinic Operator Surface | Pending |
 
 **Coverage:**
-- v1 requirements: 42 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 42 ⚠️
+- v1 requirements: 48 total (corrected from prior 42-count footer; per-category line-by-line: COMPL 6 + PROD 6 + AUTH 6 + SYNC 6 + AI 6 + PK 5 + SHARE 6 + CLINIC 7)
+- Mapped to phases: 48 ✓
+- Unmapped: 0 ✓
+
+**Per-phase summary:**
+
+| Phase | Requirements | Count |
+|-------|--------------|-------|
+| 1. Quality Gates & Observability Foundation | PROD-02, PROD-03, PROD-04, PROD-05 | 4 |
+| 2. Visible Compliance & Public Deploy | COMPL-04, COMPL-05, PROD-01, PROD-06 | 4 |
+| 3. Pharmacology + Insights Hardening | PK-01, PK-02, PK-03, PK-04, PK-05 | 5 |
+| 4. AI Proxy on Supabase Edge Functions | AI-01, AI-02, AI-03, AI-04, AI-05, AI-06 | 6 |
+| 5. Patient Cloud Sync Slice 1 — Auth + Injections | AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, SYNC-01, SYNC-05 | 8 |
+| 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | SYNC-02, SYNC-03, SYNC-04, SYNC-06 | 4 |
+| 7. Compliance Foundations (Legal-Counsel-Led) | COMPL-01, COMPL-02, COMPL-03, COMPL-06 | 4 |
+| 8. Doctor Read-Share | SHARE-01, SHARE-02, SHARE-03, SHARE-04, SHARE-05, SHARE-06 | 6 |
+| 9. Clinic B2B Foundations | CLINIC-01, CLINIC-02, CLINIC-03 | 3 |
+| 10. Clinic Operator Surface | CLINIC-04, CLINIC-05, CLINIC-06, CLINIC-07 | 4 |
+| **Total** | | **48** |
 
 ---
 *Requirements defined: 2026-05-10*
-*Last updated: 2026-05-10 after initial definition*
+*Last updated: 2026-05-10 — traceability filled in by roadmapper (10 phases, 100% coverage)*
