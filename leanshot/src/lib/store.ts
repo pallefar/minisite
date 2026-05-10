@@ -100,13 +100,11 @@ export const useStore = create<Store>()(
       toast: null,
 
       setTab: (tab) => set({ currentTab: tab }),
-      showToast: (message, kind = 'success') =>
-        set({ toast: { message, kind, id: ++toastId } }),
+      showToast: (message, kind = 'success') => set({ toast: { message, kind, id: ++toastId } }),
       dismissToast: () => set({ toast: null }),
 
       setUser: (user) => set({ user }),
-      updateUser: (patch) =>
-        set((s) => (s.user ? { user: { ...s.user, ...patch } } : s)),
+      updateUser: (patch) => set((s) => (s.user ? { user: { ...s.user, ...patch } } : s)),
       resetAll: () => {
         try {
           localStorage.removeItem(STORAGE_KEY);
@@ -144,8 +142,7 @@ export const useStore = create<Store>()(
           next.sort((a, b) => a.date.localeCompare(b.date));
           return { weights: next };
         }),
-      removeWeight: (idx) =>
-        set((s) => ({ weights: s.weights.filter((_, i) => i !== idx) })),
+      removeWeight: (idx) => set((s) => ({ weights: s.weights.filter((_, i) => i !== idx) })),
 
       addMeasurement: (m) => set((s) => ({ measurements: [m, ...s.measurements] })),
 
@@ -154,12 +151,10 @@ export const useStore = create<Store>()(
 
       setWater: (date, n) =>
         set((s) => ({ water: { ...s.water, [date]: s.water[date] === n ? n - 1 : n } })),
-      setFoodNoise: (date, n) =>
-        set((s) => ({ foodNoise: { ...s.foodNoise, [date]: n } })),
+      setFoodNoise: (date, n) => set((s) => ({ foodNoise: { ...s.foodNoise, [date]: n } })),
 
       addWorkout: (w) => set((s) => ({ workouts: [w, ...s.workouts] })),
-      removeWorkout: (idx) =>
-        set((s) => ({ workouts: s.workouts.filter((_, i) => i !== idx) })),
+      removeWorkout: (idx) => set((s) => ({ workouts: s.workouts.filter((_, i) => i !== idx) })),
 
       setSteps: (date, n) => set((s) => ({ steps: { ...s.steps, [date]: n } })),
       bulkSetSteps: (entries) => set((s) => ({ steps: { ...s.steps, ...entries } })),
@@ -179,8 +174,7 @@ export const useStore = create<Store>()(
             supplements: { ...s.supplements, [date]: { ...day, [id]: !day[id] } },
           };
         }),
-      resetSuppsForDate: (date) =>
-        set((s) => ({ supplements: { ...s.supplements, [date]: {} } })),
+      resetSuppsForDate: (date) => set((s) => ({ supplements: { ...s.supplements, [date]: {} } })),
 
       upsertMood: (m) =>
         set((s) => {
@@ -203,16 +197,13 @@ export const useStore = create<Store>()(
       removeNSV: (idx) => set((s) => ({ nsvs: s.nsvs.filter((_, i) => i !== idx) })),
 
       addPhoto: (p) => set((s) => ({ photos: [p, ...s.photos] })),
-      removePhoto: (idx) =>
-        set((s) => ({ photos: s.photos.filter((_, i) => i !== idx) })),
+      removePhoto: (idx) => set((s) => ({ photos: s.photos.filter((_, i) => i !== idx) })),
 
       addVial: (v) => set((s) => ({ vials: [...s.vials, v] })),
       useVialDose: (idx) =>
         set((s) => ({
           vials: s.vials.map((v, i) =>
-            i === idx && v.dosesUsed < v.dosesPerVial
-              ? { ...v, dosesUsed: v.dosesUsed + 1 }
-              : v,
+            i === idx && v.dosesUsed < v.dosesPerVial ? { ...v, dosesUsed: v.dosesUsed + 1 } : v,
           ),
         })),
       removeVial: (idx) => set((s) => ({ vials: s.vials.filter((_, i) => i !== idx) })),

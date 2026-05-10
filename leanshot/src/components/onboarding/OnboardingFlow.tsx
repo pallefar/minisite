@@ -1,19 +1,34 @@
-import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
-import { ProgressIndicator } from './ProgressIndicator';
-import { UnitToggle } from './UnitToggle';
-import {
-  OnboardWelcome, OnboardMedication, OnboardBody, OnboardGoals, OnboardRoutine, OnboardReady, OnboardSnapshot,
-} from '@/illustrations/OnboardSteps';
-import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
+import {
+  OnboardWelcome,
+  OnboardMedication,
+  OnboardBody,
+  OnboardGoals,
+  OnboardRoutine,
+  OnboardReady,
+  OnboardSnapshot,
+} from '@/illustrations/OnboardSteps';
 import { todayStr } from '@/lib/helpers';
 import { medLabel } from '@/lib/pharmacology';
-import type { ActivityLevel, GoalType, LiftingLevel, MedicationId, Sex, Units, User, DoseUnit } from '@/types';
+import { useStore } from '@/lib/store';
+import type {
+  ActivityLevel,
+  GoalType,
+  LiftingLevel,
+  MedicationId,
+  Sex,
+  Units,
+  User,
+  DoseUnit,
+} from '@/types';
+import { ProgressIndicator } from './ProgressIndicator';
+import { UnitToggle } from './UnitToggle';
 
 interface OnboardingFlowProps {
   onCancel: () => void;
@@ -112,7 +127,12 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
       createdAt: new Date().toISOString(),
     };
     setUser(user);
-    upsertWeight({ date: draft.startDate, weight, bodyFat: parseFloat(draft.bodyFat) || null, ts: Date.now() });
+    upsertWeight({
+      date: draft.startDate,
+      weight,
+      bodyFat: parseFloat(draft.bodyFat) || null,
+      ts: Date.now(),
+    });
     onComplete();
   };
 
@@ -156,7 +176,10 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        Welcome <span className="font-display italic font-normal text-[var(--color-primary)]">in.</span>
+                        Welcome{' '}
+                        <span className="font-display italic font-normal text-[var(--color-primary)]">
+                          in.
+                        </span>
                       </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         Two minutes. Your data stays on this device — always.
@@ -165,13 +188,14 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                     <Input
                       label="Your name"
                       placeholder="First name"
-                      autoFocus
                       autoComplete="given-name"
                       value={draft.name}
                       onChange={(e) => update({ name: e.target.value })}
                     />
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">Units</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                        Units
+                      </p>
                       <UnitToggle value={draft.units} onChange={(u) => update({ units: u })} />
                     </div>
                   </div>
@@ -181,7 +205,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">Your medication</h1>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">We'll tailor everything to your med.</p>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        We&apos;ll tailor everything to your med.
+                      </p>
                     </div>
                     <Select
                       label="GLP-1 medication"
@@ -208,7 +234,11 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                         value={draft.dose}
                         onChange={(e) => update({ dose: e.target.value })}
                       />
-                      <Select label="Unit" value={draft.doseUnit} onChange={(e) => update({ doseUnit: e.target.value as DoseUnit })}>
+                      <Select
+                        label="Unit"
+                        value={draft.doseUnit}
+                        onChange={(e) => update({ doseUnit: e.target.value as DoseUnit })}
+                      >
                         <option value="mg">mg</option>
                         <option value="units">units</option>
                         <option value="ml">ml</option>
@@ -227,7 +257,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">Your starting point</h1>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">For real progress tracking.</p>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        For real progress tracking.
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
@@ -255,7 +287,11 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                         value={draft.age}
                         onChange={(e) => update({ age: e.target.value })}
                       />
-                      <Select label="Sex at birth" value={draft.sex} onChange={(e) => update({ sex: e.target.value as Sex })}>
+                      <Select
+                        label="Sex at birth"
+                        value={draft.sex}
+                        onChange={(e) => update({ sex: e.target.value as Sex })}
+                      >
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                       </Select>
@@ -276,7 +312,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">Your goals</h1>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">Where are you headed?</p>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        Where are you headed?
+                      </p>
                     </div>
                     <Input
                       label={`Target weight (${wU})`}
@@ -287,11 +325,23 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                       onChange={(e) => update({ goalWeight: e.target.value })}
                     />
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">Primary goal</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                        Primary goal
+                      </p>
                       <PillGroup>
                         {(['fat-loss', 'recomp', 'health', 'maintenance'] as const).map((g) => (
-                          <Pill key={g} active={draft.goal === g} onClick={() => update({ goal: g })}>
-                            {g === 'fat-loss' ? 'Fat loss' : g === 'recomp' ? 'Recomp' : g === 'health' ? 'Health markers' : 'Maintenance'}
+                          <Pill
+                            key={g}
+                            active={draft.goal === g}
+                            onClick={() => update({ goal: g })}
+                          >
+                            {g === 'fat-loss'
+                              ? 'Fat loss'
+                              : g === 'recomp'
+                                ? 'Recomp'
+                                : g === 'health'
+                                  ? 'Health markers'
+                                  : 'Maintenance'}
                           </Pill>
                         ))}
                       </PillGroup>
@@ -312,32 +362,56 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">Your routine</h1>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">For smart nudges that actually fit.</p>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        For smart nudges that actually fit.
+                      </p>
                     </div>
                     <Select
                       label="Injection day"
                       value={draft.injectionDay}
                       onChange={(e) => update({ injectionDay: parseInt(e.target.value) })}
                     >
-                      {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => (
-                        <option key={d} value={i}>{d}</option>
+                      {[
+                        'Sunday',
+                        'Monday',
+                        'Tuesday',
+                        'Wednesday',
+                        'Thursday',
+                        'Friday',
+                        'Saturday',
+                      ].map((d, i) => (
+                        <option key={d} value={i}>
+                          {d}
+                        </option>
                       ))}
                     </Select>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">Activity</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                        Activity
+                      </p>
                       <PillGroup>
                         {(['sedentary', 'light', 'moderate', 'very'] as const).map((a) => (
-                          <Pill key={a} active={draft.activity === a} onClick={() => update({ activity: a })}>
+                          <Pill
+                            key={a}
+                            active={draft.activity === a}
+                            onClick={() => update({ activity: a })}
+                          >
                             {a === 'very' ? 'Very active' : a[0]!.toUpperCase() + a.slice(1)}
                           </Pill>
                         ))}
                       </PillGroup>
                     </div>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">Lifting experience</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                        Lifting experience
+                      </p>
                       <PillGroup>
                         {(['none', 'beginner', 'intermediate', 'advanced'] as const).map((l) => (
-                          <Pill key={l} active={draft.lifting === l} onClick={() => update({ lifting: l })}>
+                          <Pill
+                            key={l}
+                            active={draft.lifting === l}
+                            onClick={() => update({ lifting: l })}
+                          >
                             {l[0]!.toUpperCase() + l.slice(1)}
                           </Pill>
                         ))}
@@ -350,21 +424,45 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        Your starting <span className="font-display italic font-normal text-[var(--color-primary)]">snapshot</span>
+                        Your starting{' '}
+                        <span className="font-display italic font-normal text-[var(--color-primary)]">
+                          snapshot
+                        </span>
                       </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        This is what we'll measure progress against. Looks right?
+                        This is what we&apos;ll measure progress against. Looks right?
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <SnapshotTile label="Name" value={draft.name || '—'} />
-                      <SnapshotTile label="Medication" value={draft.medication ? medLabel(draft.medication as MedicationId) : '—'} />
-                      <SnapshotTile label="Current dose" value={draft.dose ? `${draft.dose} ${draft.doseUnit}` : '—'} />
+                      <SnapshotTile
+                        label="Medication"
+                        value={draft.medication ? medLabel(draft.medication as MedicationId) : '—'}
+                      />
+                      <SnapshotTile
+                        label="Current dose"
+                        value={draft.dose ? `${draft.dose} ${draft.doseUnit}` : '—'}
+                      />
                       <SnapshotTile label="Started" value={draft.startDate} />
-                      <SnapshotTile label="Weight" value={draft.weight ? `${draft.weight} ${wU}` : '—'} />
-                      <SnapshotTile label="Goal" value={draft.goalWeight ? `${draft.goalWeight} ${wU}` : '—'} />
-                      <SnapshotTile label="Protein/day" value={draft.protein ? `${draft.protein} g` : 'Auto'} />
-                      <SnapshotTile label="Injection day" value={['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][draft.injectionDay] ?? ''} />
+                      <SnapshotTile
+                        label="Weight"
+                        value={draft.weight ? `${draft.weight} ${wU}` : '—'}
+                      />
+                      <SnapshotTile
+                        label="Goal"
+                        value={draft.goalWeight ? `${draft.goalWeight} ${wU}` : '—'}
+                      />
+                      <SnapshotTile
+                        label="Protein/day"
+                        value={draft.protein ? `${draft.protein} g` : 'Auto'}
+                      />
+                      <SnapshotTile
+                        label="Injection day"
+                        value={
+                          ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][draft.injectionDay] ??
+                          ''
+                        }
+                      />
                     </div>
                   </div>
                 )}
@@ -373,14 +471,28 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        You're <span className="font-display italic font-normal text-[var(--color-primary)]">all set.</span>
+                        You&apos;re{' '}
+                        <span className="font-display italic font-normal text-[var(--color-primary)]">
+                          all set.
+                        </span>
                       </h1>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">Here's what's next:</p>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        Here&apos;s what&apos;s next:
+                      </p>
                     </div>
                     <div className="space-y-2.5">
-                      <NextStep title="Open your dashboard" body="Pre-filled with your data and today's focus." />
-                      <NextStep title="Log your first injection" body="Start your med-level curve from this dose." />
-                      <NextStep title="Add your current vial" body="Track supply and refill timing." />
+                      <NextStep
+                        title="Open your dashboard"
+                        body="Pre-filled with your data and today's focus."
+                      />
+                      <NextStep
+                        title="Log your first injection"
+                        body="Start your med-level curve from this dose."
+                      />
+                      <NextStep
+                        title="Add your current vial"
+                        body="Track supply and refill timing."
+                      />
                     </div>
                   </div>
                 )}
@@ -389,18 +501,33 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
 
             <div className="flex gap-2 mt-7">
               {step === 1 ? (
-                <Button variant="ghost" onClick={onCancel} className="flex-1">Cancel</Button>
+                <Button variant="ghost" onClick={onCancel} className="flex-1">
+                  Cancel
+                </Button>
               ) : (
-                <Button variant="ghost" onClick={back} leadingIcon={<ArrowLeft className="size-4" />} className="flex-1">
+                <Button
+                  variant="ghost"
+                  onClick={back}
+                  leadingIcon={<ArrowLeft className="size-4" />}
+                  className="flex-1"
+                >
                   Back
                 </Button>
               )}
               {step < TOTAL_STEPS ? (
-                <Button onClick={next} trailingIcon={<ArrowRight className="size-4" />} className="flex-1">
+                <Button
+                  onClick={next}
+                  trailingIcon={<ArrowRight className="size-4" />}
+                  className="flex-1"
+                >
                   Continue
                 </Button>
               ) : (
-                <Button onClick={complete} trailingIcon={<Check className="size-4" />} className="flex-1">
+                <Button
+                  onClick={complete}
+                  trailingIcon={<Check className="size-4" />}
+                  className="flex-1"
+                >
                   Open dashboard
                 </Button>
               )}
@@ -415,7 +542,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
 function SnapshotTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-3">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
+        {label}
+      </div>
       <div className="text-[14px] font-semibold mt-0.5 truncate">{value}</div>
     </div>
   );

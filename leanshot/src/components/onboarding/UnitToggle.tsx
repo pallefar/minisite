@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import type { Units } from '@/types';
 import { cn } from '@/lib/helpers';
+import type { Units } from '@/types';
 
 /** Sliding pill toggle for the unit system — replaces the v1 pill-group. */
 export function UnitToggle({ value, onChange }: { value: Units; onChange: (u: Units) => void }) {
@@ -22,7 +22,9 @@ export function UnitToggle({ value, onChange }: { value: Units; onChange: (u: Un
             onClick={() => onChange(u)}
             className={cn(
               'relative flex-1 h-11 rounded-pill text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] z-10 transition-colors',
-              active ? 'text-[var(--color-primary-foreground)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]',
+              active
+                ? 'text-[var(--color-primary-foreground)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]',
             )}
           >
             {active && (

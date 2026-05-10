@@ -4,8 +4,8 @@
  * predicate is satisfied. Today may be empty without breaking streak.
  */
 import { useMemo } from 'react';
-import { useStore } from '@/lib/store';
 import { SUPPS_DEFAULT } from '@/lib/constants';
+import { useStore } from '@/lib/store';
 
 export interface Streaks {
   weight: number;
@@ -48,9 +48,7 @@ export function useStreaks(): Streaks {
         if (!day) return false;
         return Object.values(day).filter(Boolean).length >= Math.ceil(SUPPS_DEFAULT.length * 0.6);
       }),
-      movement: calc(
-        (ds) => workouts.some((w) => w.date === ds) || (steps[ds] ?? 0) >= 7000,
-      ),
+      movement: calc((ds) => workouts.some((w) => w.date === ds) || (steps[ds] ?? 0) >= 7000),
     }),
     [weights, meals, supplements, workouts, steps, proteinTarget],
   );

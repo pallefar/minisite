@@ -1,19 +1,29 @@
-import { Home, Syringe, ShieldAlert, User, Apple, Activity, Pill, Smile, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useStore } from '@/lib/store';
+import {
+  Home,
+  Syringe,
+  ShieldAlert,
+  User,
+  Apple,
+  Activity,
+  Pill,
+  Smile,
+  Trophy,
+} from 'lucide-react';
 import { cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
 
 const TABS: { id: TabId; label: string; short: string; Icon: typeof Home }[] = [
-  { id: 'home',        label: 'Today',        short: 'Today', Icon: Home },
-  { id: 'medication',  label: 'Medication',   short: 'Shot',  Icon: Syringe },
-  { id: 'symptoms',    label: 'Side effects', short: 'Sx',    Icon: ShieldAlert },
-  { id: 'body',        label: 'Body',         short: 'Body',  Icon: User },
-  { id: 'nutrition',   label: 'Nutrition',    short: 'Food',  Icon: Apple },
-  { id: 'activity',    label: 'Activity',     short: 'Move',  Icon: Activity },
-  { id: 'supplements', label: 'Stack',        short: 'Stack', Icon: Pill },
-  { id: 'mood',        label: 'Mood',         short: 'Mood',  Icon: Smile },
-  { id: 'insights',    label: 'Wins',         short: 'Wins',  Icon: Trophy },
+  { id: 'home', label: 'Today', short: 'Today', Icon: Home },
+  { id: 'medication', label: 'Medication', short: 'Shot', Icon: Syringe },
+  { id: 'symptoms', label: 'Side effects', short: 'Sx', Icon: ShieldAlert },
+  { id: 'body', label: 'Body', short: 'Body', Icon: User },
+  { id: 'nutrition', label: 'Nutrition', short: 'Food', Icon: Apple },
+  { id: 'activity', label: 'Activity', short: 'Move', Icon: Activity },
+  { id: 'supplements', label: 'Stack', short: 'Stack', Icon: Pill },
+  { id: 'mood', label: 'Mood', short: 'Mood', Icon: Smile },
+  { id: 'insights', label: 'Wins', short: 'Wins', Icon: Trophy },
 ];
 
 /**
@@ -32,7 +42,10 @@ export function MobileNav() {
       aria-label="Primary navigation"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-[max(8px,env(safe-area-inset-bottom))] pt-2"
     >
-      <div data-tour="mobile-nav" className="glass border border-[var(--color-border)] rounded-[28px] shadow-lg overflow-x-auto scrollbar-none">
+      <div
+        data-tour="mobile-nav"
+        className="glass border border-[var(--color-border)] rounded-[28px] shadow-lg overflow-x-auto scrollbar-none"
+      >
         <div className="flex justify-between min-w-full px-2 py-1.5">
           {TABS.map(({ id, short, Icon, label }) => {
             const active = currentTab === id;
@@ -52,7 +65,10 @@ export function MobileNav() {
                   />
                 )}
                 <Icon
-                  className={cn('size-5 relative z-10', active ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]')}
+                  className={cn(
+                    'size-5 relative z-10',
+                    active ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)]',
+                  )}
                   strokeWidth={active ? 2.2 : 1.8}
                 />
                 <span

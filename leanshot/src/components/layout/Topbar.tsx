@@ -1,14 +1,21 @@
-import { useState } from 'react';
 import { Search, Plus, FileDown, Sun, Moon, Menu, Bot } from 'lucide-react';
+import { useState } from 'react';
 import { Button, IconButton } from '@/components/ui/Button';
-import { useStore } from '@/lib/store';
 import { useTheme } from '@/hooks/useTheme';
 import { TAB_TITLES } from '@/lib/constants';
+import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
 
 const TAB_VALUES = new Set<string>([
-  'home', 'medication', 'symptoms', 'body', 'nutrition',
-  'activity', 'supplements', 'mood', 'insights',
+  'home',
+  'medication',
+  'symptoms',
+  'body',
+  'nutrition',
+  'activity',
+  'supplements',
+  'mood',
+  'insights',
 ]);
 
 interface TopbarProps {
@@ -27,13 +34,25 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI }: TopbarProps) {
   const handleSearch = (q: string): void => {
     setSearch(q);
     const map: Record<string, string> = {
-      weight: 'body', injection: 'medication', shot: 'medication', dose: 'medication',
-      symptom: 'symptoms', side: 'symptoms', nausea: 'symptoms',
-      meal: 'nutrition', food: 'nutrition', protein: 'nutrition', water: 'nutrition',
-      workout: 'activity', step: 'activity',
-      supp: 'supplements', vitamin: 'supplements',
-      mood: 'mood', sleep: 'mood',
-      win: 'insights', report: 'insights',
+      weight: 'body',
+      injection: 'medication',
+      shot: 'medication',
+      dose: 'medication',
+      symptom: 'symptoms',
+      side: 'symptoms',
+      nausea: 'symptoms',
+      meal: 'nutrition',
+      food: 'nutrition',
+      protein: 'nutrition',
+      water: 'nutrition',
+      workout: 'activity',
+      step: 'activity',
+      supp: 'supplements',
+      vitamin: 'supplements',
+      mood: 'mood',
+      sleep: 'mood',
+      win: 'insights',
+      report: 'insights',
     };
     const key = q.toLowerCase().trim();
     if (!key) return;
@@ -67,13 +86,30 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI }: TopbarProps) {
             aria-label="Search across the app"
           />
         </div>
-        <IconButton aria-label="Ask AI" onClick={onOpenAI} variant="ghost" size="sm" className="md:hidden">
+        <IconButton
+          aria-label="Ask AI"
+          onClick={onOpenAI}
+          variant="ghost"
+          size="sm"
+          className="md:hidden"
+        >
           <Bot className="size-5" />
         </IconButton>
-        <IconButton aria-label="Open menu" variant="ghost" size="sm" className="md:hidden" onClick={toggle}>
+        <IconButton
+          aria-label="Open menu"
+          variant="ghost"
+          size="sm"
+          className="md:hidden"
+          onClick={toggle}
+        >
           {theme === 'light' ? <Moon className="size-5" /> : <Sun className="size-5" />}
         </IconButton>
-        <Button variant="secondary" size="sm" onClick={onOpenReport} leadingIcon={<FileDown className="size-4" />}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onOpenReport}
+          leadingIcon={<FileDown className="size-4" />}
+        >
           <span className="hidden sm:inline">Export</span>
         </Button>
         <Button onClick={onLogDose} size="sm" trailingIcon={<Plus className="size-4" />}>

@@ -14,7 +14,8 @@ export const boldTemplate: Template = {
     const direction = lost >= 0 ? 'Lost' : 'Gained';
     const pct = data.startWeight > 0 ? (lost / data.startWeight) * 100 : 0;
     const goalLoss = data.startWeight - data.goalWeight;
-    const goalPct = goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
+    const goalPct =
+      goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
 
     // Background gradient
     const bg = ctx.createLinearGradient(0, 0, W, H);
@@ -73,7 +74,11 @@ export const boldTemplate: Template = {
     // Subtitle
     ctx.fillStyle = 'rgba(255,255,255,0.75)';
     ctx.font = '500 22px Inter, -apple-system, sans-serif';
-    ctx.fillText(`in ${data.weeks} week${data.weeks === 1 ? '' : 's'} · ${Math.abs(pct).toFixed(1)}%`, 40, 420);
+    ctx.fillText(
+      `in ${data.weeks} week${data.weeks === 1 ? '' : 's'} · ${Math.abs(pct).toFixed(1)}%`,
+      40,
+      420,
+    );
 
     // Stats card
     const cardY = 480;

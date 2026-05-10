@@ -32,7 +32,10 @@ export function ProgressRing({
   const dashOffset = circumference * (1 - pct);
 
   return (
-    <div className={cn('relative inline-flex items-center justify-center', className)} style={{ width: size, height: size }}>
+    <div
+      className={cn('relative inline-flex items-center justify-center', className)}
+      style={{ width: size, height: size }}
+    >
       <svg
         width={size}
         height={size}
@@ -59,7 +62,9 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
-          style={{ transition: 'stroke-dashoffset var(--duration-deliberate) var(--ease-out-quart)' }}
+          style={{
+            transition: 'stroke-dashoffset var(--duration-deliberate) var(--ease-out-quart)',
+          }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center text-center">
@@ -96,7 +101,11 @@ export function ProgressBar({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-label={label}
-      className={cn('w-full bg-[var(--color-surface-elevated)] rounded-pill overflow-hidden', heights[thickness], className)}
+      className={cn(
+        'w-full bg-[var(--color-surface-elevated)] rounded-pill overflow-hidden',
+        heights[thickness],
+        className,
+      )}
     >
       <div
         className="h-full rounded-pill transition-[width] duration-500 ease-out"

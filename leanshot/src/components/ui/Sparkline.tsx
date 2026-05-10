@@ -27,7 +27,8 @@ export function Sparkline({
   const id = useId();
   const numeric = values.map((v) => (v == null ? NaN : v));
   const finite = numeric.filter(Number.isFinite) as number[];
-  if (finite.length === 0) return <svg className={className} aria-hidden width={width} height={height} />;
+  if (finite.length === 0)
+    return <svg className={className} aria-hidden width={width} height={height} />;
   const min = Math.min(...finite);
   const max = Math.max(...finite);
   const span = Math.max(0.0001, max - min);
@@ -40,7 +41,9 @@ export function Sparkline({
     return { x, y };
   });
   const path = pts
-    .map((p, i) => (p == null ? '' : (i === 0 || pts[i - 1] == null ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)))
+    .map((p, i) =>
+      p == null ? '' : i === 0 || pts[i - 1] == null ? `M${p.x},${p.y}` : `L${p.x},${p.y}`,
+    )
     .join(' ');
   const area = `${path} L ${width},${height} L 0,${height} Z`;
   const last = [...pts].reverse().find((p) => p != null);
@@ -61,9 +64,23 @@ export function Sparkline({
         </linearGradient>
       </defs>
       <path d={area} fill={fill === 'gradient' ? `url(#sg-${id})` : fill} />
-      <path d={path} fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       {showLastDot && last && (
-        <circle cx={last.x} cy={last.y} r={2.5} fill={color} stroke="var(--color-surface)" strokeWidth={1.5} />
+        <circle
+          cx={last.x}
+          cy={last.y}
+          r={2.5}
+          fill={color}
+          stroke="var(--color-surface)"
+          strokeWidth={1.5}
+        />
       )}
     </svg>
   );

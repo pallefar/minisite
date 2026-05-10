@@ -3,12 +3,12 @@
  * colors track theme changes correctly.
  */
 import { useMemo } from 'react';
-import { useStore } from '@/lib/store';
 import { useTheme } from '@/hooks/useTheme';
-import { BaseChart } from './BaseChart';
 import { getChartTokens } from '@/lib/chart-theme';
-import { lastNDays, shortLabel } from '@/lib/helpers';
 import { SUPPS_DEFAULT, SYMPTOMS_LIST } from '@/lib/constants';
+import { lastNDays, shortLabel } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
+import { BaseChart } from './BaseChart';
 
 export function WeightChart({ days = 365, height = 280 }: { days?: number; height?: number }) {
   const u = useStore((s) => s.user!);
@@ -57,7 +57,9 @@ export function ProteinChart({ days = 14, height = 220 }: { days?: number; heigh
   const config = useMemo(() => {
     const t = getChartTokens(theme);
     const dates = lastNDays(days);
-    const data = dates.map((d) => meals.filter((m) => m.date === d).reduce((sum, m) => sum + (m.protein || 0), 0));
+    const data = dates.map((d) =>
+      meals.filter((m) => m.date === d).reduce((sum, m) => sum + (m.protein || 0), 0),
+    );
     return {
       type: 'bar' as const,
       data: {
@@ -92,13 +94,24 @@ export function SymptomChart({ height = 240 }: { height?: number }) {
     const counts: Record<string, number> = {};
     SYMPTOMS_LIST.forEach((s) => (counts[s.id] = 0));
     const cutoff = Date.now() - 30 * 86_400_000;
-    symptoms.filter((s) => new Date(s.date).getTime() > cutoff).forEach((s) => (counts[s.symptom] = (counts[s.symptom] ?? 0) + 1));
-    const data = SYMPTOMS_LIST.filter((s) => counts[s.id]! > 0).map((s) => ({ name: s.name, count: counts[s.id]! }));
+    symptoms
+      .filter((s) => new Date(s.date).getTime() > cutoff)
+      .forEach((s) => (counts[s.symptom] = (counts[s.symptom] ?? 0) + 1));
+    const data = SYMPTOMS_LIST.filter((s) => counts[s.id]! > 0).map((s) => ({
+      name: s.name,
+      count: counts[s.id]!,
+    }));
     return {
       type: 'bar' as const,
       data: {
         labels: data.length ? data.map((d) => d.name) : ['No data'],
-        datasets: [{ data: data.length ? data.map((d) => d.count) : [0], backgroundColor: t.rose, borderRadius: 6 }],
+        datasets: [
+          {
+            data: data.length ? data.map((d) => d.count) : [0],
+            backgroundColor: t.rose,
+            borderRadius: 6,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -123,7 +136,10 @@ export function SuppChart({ height = 220 }: { height?: number }) {
     const data = dates.map((d) => Object.values(supplements[d] ?? {}).filter(Boolean).length);
     return {
       type: 'bar' as const,
-      data: { labels: dates.map(shortLabel), datasets: [{ data, backgroundColor: t.sage, borderRadius: 6 }] },
+      data: {
+        labels: dates.map(shortLabel),
+        datasets: [{ data, backgroundColor: t.sage, borderRadius: 6 }],
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -151,8 +167,28 @@ export function MoodChart({ height = 220 }: { height?: number }) {
       data: {
         labels: days.map(shortLabel),
         datasets: [
-          { type: 'line' as const, label: 'Mood (1–5)', data: m, borderColor: t.primary, backgroundColor: t.primary + '1F', tension: 0.3, fill: true, spanGaps: true, pointRadius: 3 },
-          { type: 'line' as const, label: 'Energy (1–10)', data: e, borderColor: t.rose, backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2', spanGaps: true, pointRadius: 3 },
+          {
+            type: 'line' as const,
+            label: 'Mood (1–5)',
+            data: m,
+            borderColor: t.primary,
+            backgroundColor: t.primary + '1F',
+            tension: 0.3,
+            fill: true,
+            spanGaps: true,
+            pointRadius: 3,
+          },
+          {
+            type: 'line' as const,
+            label: 'Energy (1–10)',
+            data: e,
+            borderColor: t.rose,
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            yAxisID: 'y2',
+            spanGaps: true,
+            pointRadius: 3,
+          },
         ],
       },
       options: {
@@ -161,7 +197,13 @@ export function MoodChart({ height = 220 }: { height?: number }) {
         plugins: { legend: { labels: { color: t.tick } } },
         scales: {
           y: { min: 0, max: 5, ticks: { color: t.tick }, grid: { color: t.grid } },
-          y2: { min: 0, max: 10, position: 'right' as const, ticks: { color: t.tick }, grid: { display: false } },
+          y2: {
+            min: 0,
+            max: 10,
+            position: 'right' as const,
+            ticks: { color: t.tick },
+            grid: { display: false },
+          },
           x: { ticks: { color: t.tick }, grid: { color: t.grid } },
         },
       },
@@ -183,8 +225,24 @@ export function SleepChart({ height = 220 }: { height?: number }) {
       data: {
         labels: days.map(shortLabel),
         datasets: [
-          { type: 'bar' as const, label: 'Hours', data: hours, backgroundColor: t.primary + '88', borderRadius: 6 },
-          { type: 'line' as const, label: 'Quality', data: qual, borderColor: t.sage, backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y2', spanGaps: true, pointRadius: 3 },
+          {
+            type: 'bar' as const,
+            label: 'Hours',
+            data: hours,
+            backgroundColor: t.primary + '88',
+            borderRadius: 6,
+          },
+          {
+            type: 'line' as const,
+            label: 'Quality',
+            data: qual,
+            borderColor: t.sage,
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            yAxisID: 'y2',
+            spanGaps: true,
+            pointRadius: 3,
+          },
         ],
       },
       options: {
@@ -193,7 +251,13 @@ export function SleepChart({ height = 220 }: { height?: number }) {
         plugins: { legend: { labels: { color: t.tick } } },
         scales: {
           y: { min: 0, max: 12, ticks: { color: t.tick }, grid: { color: t.grid } },
-          y2: { min: 0, max: 10, position: 'right' as const, ticks: { color: t.tick }, grid: { display: false } },
+          y2: {
+            min: 0,
+            max: 10,
+            position: 'right' as const,
+            ticks: { color: t.tick },
+            grid: { display: false },
+          },
           x: { ticks: { color: t.tick }, grid: { color: t.grid } },
         },
       },
@@ -214,7 +278,16 @@ export function NoiseChart({ height = 220 }: { height?: number }) {
       data: {
         labels: days.map(shortLabel),
         datasets: [
-          { data, borderColor: '#5AB7C7', backgroundColor: 'rgba(90,183,199,0.16)', fill: true, tension: 0.3, spanGaps: true, pointRadius: 3, borderWidth: 2.4 },
+          {
+            data,
+            borderColor: '#5AB7C7',
+            backgroundColor: 'rgba(90,183,199,0.16)',
+            fill: true,
+            tension: 0.3,
+            spanGaps: true,
+            pointRadius: 3,
+            borderWidth: 2.4,
+          },
         ],
       },
       options: {
@@ -240,8 +313,15 @@ export function CompositionChart({ height = 240 }: { height?: number }) {
     if (data.length < 1) {
       return {
         type: 'doughnut' as const,
-        data: { labels: ['Log body fat % to see'], datasets: [{ data: [1], backgroundColor: [t.surface] }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+        data: {
+          labels: ['Log body fat % to see'],
+          datasets: [{ data: [1], backgroundColor: [t.surface] }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+        },
       };
     }
     const last = data[data.length - 1]!;
@@ -251,9 +331,19 @@ export function CompositionChart({ height = 240 }: { height?: number }) {
       type: 'doughnut' as const,
       data: {
         labels: ['Lean mass', 'Fat mass'],
-        datasets: [{ data: [Number(lean.toFixed(1)), Number(fat.toFixed(1))], backgroundColor: [t.sage, t.rose], borderWidth: 0 }],
+        datasets: [
+          {
+            data: [Number(lean.toFixed(1)), Number(fat.toFixed(1))],
+            backgroundColor: [t.sage, t.rose],
+            borderWidth: 0,
+          },
+        ],
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' as const, labels: { color: t.tick } } } },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' as const, labels: { color: t.tick } } },
+      },
     };
   }, [weights, theme]);
   return <BaseChart config={config} height={height} ariaLabel="Body composition" />;

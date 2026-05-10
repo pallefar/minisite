@@ -24,22 +24,19 @@ export function useConfirm() {
   const [destructive, setDestructive] = useState(false);
   const resolveRef = useRef<((v: boolean) => void) | null>(null);
 
-  const confirm = useCallback(
-    (msg: string, opts: ConfirmOptions = {}): Promise<boolean> => {
-      // Resolve any pending prior promise to false before replacing
-      resolveRef.current?.(false);
-      setMessage(msg);
-      setTitle(opts.title);
-      setConfirmLabel(opts.confirmLabel ?? 'Confirm');
-      setCancelLabel(opts.cancelLabel ?? 'Cancel');
-      setDestructive(opts.destructive ?? false);
-      setOpen(true);
-      return new Promise<boolean>((resolve) => {
-        resolveRef.current = resolve;
-      });
-    },
-    [],
-  );
+  const confirm = useCallback((msg: string, opts: ConfirmOptions = {}): Promise<boolean> => {
+    // Resolve any pending prior promise to false before replacing
+    resolveRef.current?.(false);
+    setMessage(msg);
+    setTitle(opts.title);
+    setConfirmLabel(opts.confirmLabel ?? 'Confirm');
+    setCancelLabel(opts.cancelLabel ?? 'Cancel');
+    setDestructive(opts.destructive ?? false);
+    setOpen(true);
+    return new Promise<boolean>((resolve) => {
+      resolveRef.current = resolve;
+    });
+  }, []);
 
   const handleConfirm = useCallback((): void => {
     setOpen(false);

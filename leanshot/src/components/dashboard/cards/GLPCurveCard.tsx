@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
 import { ChartLine, Clock } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
+import { useMemo } from 'react';
 import { Badge } from '@/components/ui/Badge';
-import { useStore } from '@/lib/store';
-import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
-import { formatDuration, hoursSince } from '@/lib/helpers';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { formatDuration, hoursSince } from '@/lib/helpers';
+import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
+import { useStore } from '@/lib/store';
 
 /**
  * GLP-1 level card.
@@ -24,9 +24,11 @@ export function GLPCurveCard() {
   const hSince = lastInj ? hoursSince(lastInj.datetime) : null;
   const peakOrTrough =
     hSince === null ? 'No data' : hSince < 48 ? 'Peak now' : hSince < 120 ? 'Mid-cycle' : 'Trough';
-  const peakTone = peakOrTrough === 'Peak now' ? 'success' : peakOrTrough === 'Trough' ? 'warning' : 'info';
+  const peakTone =
+    peakOrTrough === 'Peak now' ? 'success' : peakOrTrough === 'Trough' ? 'warning' : 'info';
 
-  const currentLevel = lastInj && hSince !== null ? Math.round(Math.pow(0.5, hSince / halfLife) * 100) : 0;
+  const currentLevel =
+    lastInj && hSince !== null ? Math.round(Math.pow(0.5, hSince / halfLife) * 100) : 0;
 
   // Compute next shot prediction: 7 days after last shot (default GLP-1 cadence)
   const nextShotMs = lastInj
@@ -48,7 +50,9 @@ export function GLPCurveCard() {
     const max = Math.max(0.01, ...points.map((p) => p.level));
     points.forEach((p) => (p.y = H - (p.level / max) * (H - 6) - 2));
     const path = points
-      .map((p, i) => (i === 0 ? `M${p.x.toFixed(1)},${p.y.toFixed(1)}` : `L${p.x.toFixed(1)},${p.y.toFixed(1)}`))
+      .map((p, i) =>
+        i === 0 ? `M${p.x.toFixed(1)},${p.y.toFixed(1)}` : `L${p.x.toFixed(1)},${p.y.toFixed(1)}`,
+      )
       .join(' ');
     const area = `${path} L ${W},${H} L 0,${H} Z`;
 
@@ -60,7 +64,10 @@ export function GLPCurveCard() {
         const hAgo = (Date.now() - ms) / 3_600_000;
         const x = ((totalHours - hAgo) / totalHours) * W;
         // Clamp between visible range
-        const closest = points.reduce((best, p) => (Math.abs(p.x - x) < Math.abs(best.x - x) ? p : best), points[0]!);
+        const closest = points.reduce(
+          (best, p) => (Math.abs(p.x - x) < Math.abs(best.x - x) ? p : best),
+          points[0]!,
+        );
         return { x, y: closest.y };
       });
 
@@ -77,25 +84,38 @@ export function GLPCurveCard() {
       <CardHeader
         title="GLP-1 level"
         icon={<ChartLine className="size-4" />}
-        action={<Badge tone={peakTone} pulse={peakOrTrough === 'Peak now'}>{peakOrTrough}</Badge>}
+        action={
+          <Badge tone={peakTone} pulse={peakOrTrough === 'Peak now'}>
+            {peakOrTrough}
+          </Badge>
+        }
       />
 
       <div>
         <div className="flex items-baseline gap-2">
-          <span className="text-[44px] font-extrabold tracking-[-0.04em] numerals-tabular leading-none">{currentLevel}</span>
+          <span className="text-[44px] font-extrabold tracking-[-0.04em] numerals-tabular leading-none">
+            {currentLevel}
+          </span>
           <span className="text-[18px] opacity-70 font-bold">%</span>
           <span className="ml-1 text-[12px] text-[var(--color-text-tertiary)]">est.</span>
         </div>
         {lastInj && (
           <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-[var(--color-text-secondary)]">
             <Clock className="size-3.5" />
-            <span>Next shot in <strong className="text-[var(--color-text)] numerals-tabular">{formatDuration(nextHours)}</strong></span>
+            <span>
+              Next shot in{' '}
+              <strong className="text-[var(--color-text)] numerals-tabular">
+                {formatDuration(nextHours)}
+              </strong>
+            </span>
           </div>
         )}
       </div>
 
       <div className="flex justify-between text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mt-4 mb-1">
-        {axisLabels.map((l) => <span key={l}>{l}</span>)}
+        {axisLabels.map((l) => (
+          <span key={l}>{l}</span>
+        ))}
       </div>
 
       <div className="relative flex-1 min-h-[100px]">
@@ -119,11 +139,27 @@ export function GLPCurveCard() {
           {dotMarkers.map((d, i) => (
             <g key={i}>
               <circle cx={d.x} cy={d.y} r={6} fill="var(--color-primary)" opacity={0.18} />
-              <circle cx={d.x} cy={d.y} r={3} fill="var(--color-primary)" stroke="var(--color-surface)" strokeWidth={1.4} />
+              <circle
+                cx={d.x}
+                cy={d.y}
+                r={3}
+                fill="var(--color-primary)"
+                stroke="var(--color-surface)"
+                strokeWidth={1.4}
+              />
             </g>
           ))}
           {/* "Now" indicator */}
-          <line x1="318" y1="0" x2="318" y2="110" stroke="var(--color-rose)" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6" />
+          <line
+            x1="318"
+            y1="0"
+            x2="318"
+            y2="110"
+            stroke="var(--color-rose)"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+            opacity="0.6"
+          />
         </svg>
         {!reduced && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-pill bg-[var(--color-warning-soft)] text-[var(--color-warning)] text-[10px] font-semibold tracking-tight">
@@ -140,11 +176,23 @@ export function GLPCurveCard() {
   );
 }
 
-function PeakChip({ tone, label, day, body }: { tone: 'info' | 'warning'; label: string; day: string; body: string }) {
+function PeakChip({
+  tone,
+  label,
+  day,
+  body,
+}: {
+  tone: 'info' | 'warning';
+  label: string;
+  day: string;
+  body: string;
+}) {
   return (
     <div
       className={`rounded-2xl px-3.5 py-3 ${
-        tone === 'info' ? 'bg-[var(--color-info-soft)] text-[var(--color-info)]' : 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
+        tone === 'info'
+          ? 'bg-[var(--color-info-soft)] text-[var(--color-info)]'
+          : 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
       }`}
     >
       <p className="text-[10px] font-bold uppercase tracking-[0.08em] opacity-75">{label}</p>

@@ -1,11 +1,11 @@
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { HeroOrbital } from '@/illustrations/HeroOrbital';
-import { useStore } from '@/lib/store';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { Card } from '@/components/ui/Card';
 import { useCountUp } from '@/hooks/useCountUp';
-import { medLabelShort, TITRATION } from '@/lib/pharmacology';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { HeroOrbital } from '@/illustrations/HeroOrbital';
 import { cn } from '@/lib/helpers';
+import { medLabelShort, TITRATION } from '@/lib/pharmacology';
+import { useStore } from '@/lib/store';
 
 /**
  * Home hero card.
@@ -28,9 +28,12 @@ export function HeroCard() {
   const direction = lost >= 0 ? 'Lost' : 'Gained';
   const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
   const today = new Date().toISOString().slice(0, 10);
-  const todayProtein = meals.filter((m) => m.date === today).reduce((acc, m) => acc + (m.protein || 0), 0);
+  const todayProtein = meals
+    .filter((m) => m.date === today)
+    .reduce((acc, m) => acc + (m.protein || 0), 0);
   const goalLoss = u.startWeight - u.goalWeight;
-  const goalPct = goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
+  const goalPct =
+    goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
 
   const countLost = useCountUp(lostAbs, { duration: 900 });
   const countGoal = useCountUp(goalPct, { duration: 900 });
@@ -50,7 +53,13 @@ export function HeroCard() {
   const titList = TITRATION[u.medication];
 
   return (
-    <Card span={7} variant="hero" padding="none" className="relative overflow-hidden bg-[var(--color-hero-bg)] text-white shadow-hero min-h-[360px] border-0 group" data-tour="hero">
+    <Card
+      span={7}
+      variant="hero"
+      padding="none"
+      className="relative overflow-hidden bg-[var(--color-hero-bg)] text-white shadow-hero min-h-[360px] border-0 group"
+      data-tour="hero"
+    >
       {/* Animated mesh gradient */}
       <Mesh reduced={reduced} />
       <HeroOrbital className="absolute -right-12 -bottom-16 w-[360px] h-[360px] opacity-50 pointer-events-none select-none" />
@@ -59,7 +68,9 @@ export function HeroCard() {
       <div className="relative z-10 flex items-start justify-between gap-3 p-6 md:p-7">
         <div className="flex flex-wrap gap-1.5">
           <Badge tone="inverse">{medLabelShort(u.medication)}</Badge>
-          <Badge tone="inverse">{u.dose} {u.doseUnit}</Badge>
+          <Badge tone="inverse">
+            {u.dose} {u.doseUnit}
+          </Badge>
         </div>
         <Badge tone="inverse" className="bg-white text-[var(--color-hero-bg)] border-transparent">
           Rx · {medLabelShort(u.medication)}
@@ -101,13 +112,12 @@ export function HeroCard() {
       {titList && (
         <div className="relative z-10 mx-6 md:mx-7 mb-6 mt-6 rounded-2xl bg-white/8 border border-white/15 backdrop-blur-md px-4 md:px-5 py-3">
           <div className="flex items-center justify-between gap-3 mb-2">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] opacity-70">Titration timeline</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] opacity-70">
+              Titration timeline
+            </p>
             <p className="text-[11px] opacity-60">Tap a step in the medication tab to learn more</p>
           </div>
-          <TitrationTrack
-            steps={titList}
-            currentWeek={weeks}
-          />
+          <TitrationTrack steps={titList} currentWeek={weeks} />
         </div>
       )}
     </Card>
@@ -118,7 +128,9 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <p className="text-[20px] md:text-[22px] font-bold leading-tight numerals-tabular">{value}</p>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] opacity-65 mt-0.5">{label}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] opacity-65 mt-0.5">
+        {label}
+      </p>
     </div>
   );
 }
@@ -191,7 +203,10 @@ function Mesh({ reduced }: { reduced: boolean }) {
   return (
     <div aria-hidden className="absolute inset-0 overflow-hidden">
       <div
-        className={cn('absolute -top-1/4 -right-1/4 w-[120%] h-[120%]', !reduced && 'animate-mesh-drift')}
+        className={cn(
+          'absolute -top-1/4 -right-1/4 w-[120%] h-[120%]',
+          !reduced && 'animate-mesh-drift',
+        )}
         style={{
           background:
             'radial-gradient(circle at 30% 30%, rgba(168,205,196,0.36), transparent 55%), radial-gradient(circle at 70% 60%, rgba(255,255,255,0.18), transparent 50%), radial-gradient(circle at 40% 80%, rgba(243,201,178,0.16), transparent 60%)',

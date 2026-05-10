@@ -1,8 +1,14 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/helpers';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'success' | 'inverse';
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'destructive'
+  | 'success'
+  | 'inverse';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -36,12 +42,22 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-[var(--color-danger)] text-white hover:brightness-95 hover:-translate-y-[1px] shadow-sm',
   success:
     'bg-[var(--color-success)] text-white hover:brightness-95 hover:-translate-y-[1px] shadow-sm',
-  inverse:
-    'bg-white text-[var(--color-hero-bg)] hover:bg-white/90 shadow-sm',
+  inverse: 'bg-white text-[var(--color-hero-bg)] hover:bg-white/90 shadow-sm',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = 'primary', size = 'md', loading, leadingIcon, trailingIcon, block, className, children, disabled, ...rest },
+  {
+    variant = 'primary',
+    size = 'md',
+    loading,
+    leadingIcon,
+    trailingIcon,
+    block,
+    className,
+    children,
+    disabled,
+    ...rest
+  },
   ref,
 ) {
   return (
@@ -96,8 +112,7 @@ const iconVariants: Record<NonNullable<IconButtonProps['variant']>, string> = {
     'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text)]',
   solid:
     'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-hover)]',
-  inverse:
-    'bg-white/15 text-white hover:bg-white/25',
+  inverse: 'bg-white/15 text-white hover:bg-white/25',
 };
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
@@ -105,7 +120,11 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   ref,
 ) {
   return (
-    <button ref={ref} className={cn(iconBase, iconSizes[size], iconVariants[variant], className)} {...rest}>
+    <button
+      ref={ref}
+      className={cn(iconBase, iconSizes[size], iconVariants[variant], className)}
+      {...rest}
+    >
       {children}
     </button>
   );

@@ -10,15 +10,23 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const toneClasses: Record<BadgeTone, string> = {
-  info:    'bg-[var(--color-info-soft)] text-[var(--color-info)]',
+  info: 'bg-[var(--color-info-soft)] text-[var(--color-info)]',
   success: 'bg-[var(--color-success-soft)] text-[var(--color-success)]',
   warning: 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]',
-  danger:  'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
-  neutral: 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
+  danger: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)]',
+  neutral:
+    'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
   inverse: 'bg-white/15 text-white border border-white/20',
 };
 
-export function Badge({ tone = 'neutral', leadingIcon, pulse, className, children, ...rest }: BadgeProps) {
+export function Badge({
+  tone = 'neutral',
+  leadingIcon,
+  pulse,
+  className,
+  children,
+  ...rest
+}: BadgeProps) {
   return (
     <span
       className={cn(

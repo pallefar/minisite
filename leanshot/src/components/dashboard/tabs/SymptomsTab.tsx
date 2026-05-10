@@ -1,17 +1,17 @@
-import { useState } from 'react';
 import { ChartLine, ListChecks, Zap } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
+import { useState } from 'react';
+import { SymptomChart } from '@/components/dashboard/charts/SimpleCharts';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Input';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { EmptySymptoms } from '@/illustrations/EmptySymptoms';
-import { SymptomChart } from '@/components/dashboard/charts/SimpleCharts';
-import { SYMPTOMS_LIST } from '@/lib/constants';
-import { useStore } from '@/lib/store';
+import { Textarea } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
+import { EmptySymptoms } from '@/illustrations/EmptySymptoms';
+import { SYMPTOMS_LIST } from '@/lib/constants';
 import { formatShort } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 
 export function SymptomsTab() {
   const symptoms = useStore((s) => s.symptoms);
@@ -26,7 +26,9 @@ export function SymptomsTab() {
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <Card span={7}>
         <CardHeader title="Log how you're feeling" icon={<Zap className="size-4" />} />
-        <p className="text-[13px] text-[var(--color-text-secondary)] mb-3">Tap any symptom, then set severity.</p>
+        <p className="text-[13px] text-[var(--color-text-secondary)] mb-3">
+          Tap any symptom, then set severity.
+        </p>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {SYMPTOMS_LIST.map((s) => {
             const active = selected === s.id;
@@ -45,7 +47,9 @@ export function SymptomsTab() {
                 <span className="size-8 rounded-xl bg-[var(--color-surface)] inline-flex items-center justify-center text-[12px] font-bold uppercase border border-[var(--color-border)]">
                   {s.name.slice(0, 2)}
                 </span>
-                <span className="text-[11px] font-semibold text-center leading-tight">{s.name}</span>
+                <span className="text-[11px] font-semibold text-center leading-tight">
+                  {s.name}
+                </span>
               </button>
             );
           })}
@@ -54,7 +58,9 @@ export function SymptomsTab() {
         {selected && (
           <div className="mt-4 space-y-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">Severity (1=mild, 5=severe)</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                Severity (1=mild, 5=severe)
+              </p>
               <div className="flex gap-1.5">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
@@ -73,7 +79,12 @@ export function SymptomsTab() {
                 ))}
               </div>
             </div>
-            <Textarea label="Notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Textarea
+              label="Notes"
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
             <Button
               block
               onClick={() => {
@@ -122,8 +133,12 @@ export function SymptomsTab() {
                     <tr key={i} className="border-t border-[var(--color-border)]">
                       <td className="py-2 px-1">{formatShort(s.date)}</td>
                       <td className="py-2 px-1 font-semibold">{sym?.name ?? s.symptom}</td>
-                      <td className="py-2 px-1"><Badge tone="warning">{s.severity}/5</Badge></td>
-                      <td className="py-2 px-1 text-[var(--color-text-secondary)] truncate max-w-[260px]">{s.notes || '—'}</td>
+                      <td className="py-2 px-1">
+                        <Badge tone="warning">{s.severity}/5</Badge>
+                      </td>
+                      <td className="py-2 px-1 text-[var(--color-text-secondary)] truncate max-w-[260px]">
+                        {s.notes || '—'}
+                      </td>
                     </tr>
                   );
                 })}

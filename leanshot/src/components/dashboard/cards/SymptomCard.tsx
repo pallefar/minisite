@@ -1,16 +1,18 @@
 import { ShieldAlert, Plus, Sparkles } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { EmptySymptoms } from '@/illustrations/EmptySymptoms';
-import { useStore } from '@/lib/store';
 import { SYMPTOMS_LIST } from '@/lib/constants';
 import { relTime } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 
 export function SymptomCard() {
   const symptoms = useStore((s) => s.symptoms);
   const setTab = useStore((s) => s.setTab);
-  const recent = symptoms.filter((s) => Date.now() - new Date(s.date).getTime() < 7 * 86_400_000).slice(0, 3);
+  const recent = symptoms
+    .filter((s) => Date.now() - new Date(s.date).getTime() < 7 * 86_400_000)
+    .slice(0, 3);
 
   return (
     <Card span={4} variant="default" data-tour="symptoms">
@@ -18,7 +20,12 @@ export function SymptomCard() {
         title="Side effects"
         icon={<ShieldAlert className="size-4" />}
         action={
-          <Button variant="secondary" size="sm" onClick={() => setTab('symptoms')} leadingIcon={<Plus className="size-3.5" />}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setTab('symptoms')}
+            leadingIcon={<Plus className="size-3.5" />}
+          >
             Log
           </Button>
         }
@@ -61,9 +68,7 @@ export function SymptomCard() {
       {recent.length >= 2 && (
         <div className="mt-4 rounded-2xl bg-[var(--color-warning-soft)] text-[var(--color-warning)] px-3 py-2.5 flex items-start gap-2 text-[12px] leading-snug">
           <Sparkles className="size-3.5 mt-0.5 shrink-0" />
-          <span>
-            Recurring pattern detected — bring this to your prescriber if it persists.
-          </span>
+          <span>Recurring pattern detected — bring this to your prescriber if it persists.</span>
         </div>
       )}
     </Card>

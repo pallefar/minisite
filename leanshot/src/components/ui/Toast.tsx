@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Info } from 'lucide-react';
-import { useStore } from '@/lib/store';
+import { useEffect } from 'react';
 import { cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 
 export function Toast() {
   const toast = useStore((s) => s.toast);

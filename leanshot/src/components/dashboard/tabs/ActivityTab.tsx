@@ -1,14 +1,14 @@
-import { useState } from 'react';
 import { Activity, Footprints, Upload, ListChecks, X } from 'lucide-react';
-import { Card, CardHeader, StatTile } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input, Select, Textarea } from '@/components/ui/Input';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, StatTile } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { ConnectData } from '@/illustrations/ConnectData';
-import { useStore } from '@/lib/store';
+import { Input, Select, Textarea } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
+import { ConnectData } from '@/illustrations/ConnectData';
 import { todayStr, formatShort } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 import type { Workout } from '@/types';
 
 type WorkoutType = Workout['type'];
@@ -27,9 +27,14 @@ export function ActivityTab() {
   const weekStart = Date.now() - 7 * 86_400_000;
   const weekly = workouts.filter((w) => new Date(w.date).getTime() > weekStart);
 
-  const [wo, setWo] = useState<{ date: string; type: WorkoutType; name: string; minutes: string; rpe: string; notes: string }>(
-    { date: today, type: 'resistance', name: '', minutes: '', rpe: '', notes: '' },
-  );
+  const [wo, setWo] = useState<{
+    date: string;
+    type: WorkoutType;
+    name: string;
+    minutes: string;
+    rpe: string;
+    notes: string;
+  }>({ date: today, type: 'resistance', name: '', minutes: '', rpe: '', notes: '' });
   const [stepDate, setStepDate] = useState(today);
   const [stepVal, setStepVal] = useState('');
 
@@ -80,7 +85,8 @@ export function ActivityTab() {
         });
       }
       if (file.name.endsWith('.xml') || text.includes('<HealthData')) {
-        const stepRe = /<Record[^>]*type="HKQuantityTypeIdentifierStepCount"[^>]*startDate="([^"]+)"[^>]*value="([^"]+)"/g;
+        const stepRe =
+          /<Record[^>]*type="HKQuantityTypeIdentifierStepCount"[^>]*startDate="([^"]+)"[^>]*value="([^"]+)"/g;
         let m: RegExpExecArray | null;
         while ((m = stepRe.exec(text)) !== null) {
           const date = m[1]!.slice(0, 10);
@@ -90,7 +96,8 @@ export function ActivityTab() {
             stepsAdded++;
           }
         }
-        const wtRe = /<Record[^>]*type="HKQuantityTypeIdentifierBodyMass"[^>]*startDate="([^"]+)"[^>]*value="([^"]+)"/g;
+        const wtRe =
+          /<Record[^>]*type="HKQuantityTypeIdentifierBodyMass"[^>]*startDate="([^"]+)"[^>]*value="([^"]+)"/g;
         while ((m = wtRe.exec(text)) !== null) {
           const date = m[1]!.slice(0, 10);
           const val = parseFloat(m[2]!);
@@ -119,8 +126,17 @@ export function ActivityTab() {
         <CardHeader title="Log workout" icon={<Activity className="size-4" />} />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Date" type="date" value={wo.date} onChange={(e) => setWo({ ...wo, date: e.target.value })} />
-            <Select label="Type" value={wo.type} onChange={(e) => setWo({ ...wo, type: e.target.value as WorkoutType })}>
+            <Input
+              label="Date"
+              type="date"
+              value={wo.date}
+              onChange={(e) => setWo({ ...wo, date: e.target.value })}
+            />
+            <Select
+              label="Type"
+              value={wo.type}
+              onChange={(e) => setWo({ ...wo, type: e.target.value as WorkoutType })}
+            >
               <option value="resistance">Resistance</option>
               <option value="cardio">Cardio</option>
               <option value="hybrid">Hybrid</option>
@@ -128,13 +144,39 @@ export function ActivityTab() {
               <option value="yoga">Yoga / Mobility</option>
             </Select>
           </div>
-          <Input label="Name / focus" placeholder="e.g. Push day" value={wo.name} onChange={(e) => setWo({ ...wo, name: e.target.value })} />
+          <Input
+            label="Name / focus"
+            placeholder="e.g. Push day"
+            value={wo.name}
+            onChange={(e) => setWo({ ...wo, name: e.target.value })}
+          />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Duration (min)" type="number" inputMode="numeric" value={wo.minutes} onChange={(e) => setWo({ ...wo, minutes: e.target.value })} />
-            <Input label="RPE (1–10)" type="number" min={1} max={10} inputMode="numeric" value={wo.rpe} onChange={(e) => setWo({ ...wo, rpe: e.target.value })} />
+            <Input
+              label="Duration (min)"
+              type="number"
+              inputMode="numeric"
+              value={wo.minutes}
+              onChange={(e) => setWo({ ...wo, minutes: e.target.value })}
+            />
+            <Input
+              label="RPE (1–10)"
+              type="number"
+              min={1}
+              max={10}
+              inputMode="numeric"
+              value={wo.rpe}
+              onChange={(e) => setWo({ ...wo, rpe: e.target.value })}
+            />
           </div>
-          <Textarea label="Notes" rows={2} value={wo.notes} onChange={(e) => setWo({ ...wo, notes: e.target.value })} />
-          <Button block onClick={submitWorkout}>Log workout</Button>
+          <Textarea
+            label="Notes"
+            rows={2}
+            value={wo.notes}
+            onChange={(e) => setWo({ ...wo, notes: e.target.value })}
+          />
+          <Button block onClick={submitWorkout}>
+            Log workout
+          </Button>
         </div>
       </Card>
 
@@ -142,20 +184,46 @@ export function ActivityTab() {
         <CardHeader title="Steps & health" icon={<Footprints className="size-4" />} />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Date" type="date" value={stepDate} onChange={(e) => setStepDate(e.target.value)} />
-            <Input label="Steps" type="number" inputMode="numeric" value={stepVal} onChange={(e) => setStepVal(e.target.value)} />
+            <Input
+              label="Date"
+              type="date"
+              value={stepDate}
+              onChange={(e) => setStepDate(e.target.value)}
+            />
+            <Input
+              label="Steps"
+              type="number"
+              inputMode="numeric"
+              value={stepVal}
+              onChange={(e) => setStepVal(e.target.value)}
+            />
           </div>
-          <Button block onClick={submitSteps}>Save steps</Button>
+          <Button block onClick={submitSteps}>
+            Save steps
+          </Button>
           <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 mt-2">
             <div className="flex items-start gap-3 mb-3">
               <ConnectData className="w-24 shrink-0" />
               <div>
                 <p className="text-[13px] font-bold">Apple Health import</p>
-                <p className="text-[11px] text-[var(--color-text-secondary)] leading-snug">Upload XML / CSV from Health export.</p>
+                <p className="text-[11px] text-[var(--color-text-secondary)] leading-snug">
+                  Upload XML / CSV from Health export.
+                </p>
               </div>
             </div>
-            <input type="file" id="health-up" accept=".csv,.xml,.txt" hidden onChange={importHealth} />
-            <Button variant="ghost" block leadingIcon={<Upload className="size-4" />} onClick={() => document.getElementById('health-up')?.click()}>
+            <input
+              type="file"
+              id="health-up"
+              accept=".csv,.xml,.txt"
+              hidden
+              onChange={importHealth}
+            />
+            <Button
+              variant="ghost"
+              block
+              leadingIcon={<Upload className="size-4" />}
+              onClick={() => document.getElementById('health-up')?.click()}
+            >
               Import file
             </Button>
           </div>
@@ -189,12 +257,18 @@ export function ActivityTab() {
                   return (
                     <tr key={w.date + w.name} className="border-t border-[var(--color-border)]">
                       <td className="py-2 px-1">{formatShort(w.date)}</td>
-                      <td className="py-2 px-1"><Badge tone="info">{w.type}</Badge></td>
+                      <td className="py-2 px-1">
+                        <Badge tone="info">{w.type}</Badge>
+                      </td>
                       <td className="py-2 px-1">{w.name || '—'}</td>
                       <td className="py-2 px-1 numerals-tabular">{w.minutes || '—'}</td>
                       <td className="py-2 px-1 numerals-tabular">{w.rpe ?? '—'}</td>
                       <td className="py-2 px-1 text-right">
-                        <button onClick={() => removeWorkout(realIdx)} aria-label="Delete" className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center">
+                        <button
+                          onClick={() => removeWorkout(realIdx)}
+                          aria-label="Delete"
+                          className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
+                        >
                           <X className="size-4" />
                         </button>
                       </td>

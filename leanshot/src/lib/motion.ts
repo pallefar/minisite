@@ -25,7 +25,11 @@ export const duration = {
  */
 export const cardRise = {
   hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: duration.deliberate, ease: easing.outQuart } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: duration.deliberate, ease: easing.outQuart },
+  },
 };
 
 export const stagger = (delay = 0.06) => ({

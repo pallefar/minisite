@@ -1,11 +1,11 @@
 import { Printer } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { useStore } from '@/lib/store';
-import { medLabel } from '@/lib/pharmacology';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { SYMPTOMS_LIST, siteShort } from '@/lib/constants';
 import { formatShort } from '@/lib/helpers';
+import { medLabel } from '@/lib/pharmacology';
+import { useStore } from '@/lib/store';
 
 export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => void }) {
   const u = useStore((s) => s.user!);
@@ -29,7 +29,12 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
       title="Doctor-ready report"
       size="lg"
       headerAction={
-        <Button size="sm" variant="secondary" leadingIcon={<Printer className="size-4" />} onClick={() => window.print()}>
+        <Button
+          size="sm"
+          variant="secondary"
+          leadingIcon={<Printer className="size-4" />}
+          onClick={() => window.print()}
+        >
           Print / save PDF
         </Button>
       }
@@ -37,7 +42,9 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
       <div className="space-y-6 leading-relaxed">
         <header>
           <h2 className="text-[22px] font-bold tracking-tight">{u.name} — GLP-1 Journey Report</h2>
-          <p className="text-[13px] text-[var(--color-text-secondary)]">Generated {new Date().toLocaleDateString()} · LeanShot</p>
+          <p className="text-[13px] text-[var(--color-text-secondary)]">
+            Generated {new Date().toLocaleDateString()} · LeanShot
+          </p>
         </header>
 
         <section className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4">
@@ -48,14 +55,24 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
               <Row label="Current dose" value={`${u.dose} ${u.doseUnit} (weekly)`} bold />
               <Row label="Started" value={`${formatShort(u.startDate)} (week ${weeks})`} />
               <Row label="Starting weight" value={`${u.startWeight} ${wU}`} />
-              <Row label="Current weight" value={latest ? `${latest.weight.toFixed(1)} ${wU}` : '—'} bold />
+              <Row
+                label="Current weight"
+                value={latest ? `${latest.weight.toFixed(1)} ${wU}` : '—'}
+                bold
+              />
               <Row
                 label="Total change"
                 value={
-                  <span className={lost >= 0 ? 'text-[var(--color-success)] font-bold' : 'text-[var(--color-danger)] font-bold'}>
-                    {lost >= 0 ? '−' : '+'}{Math.abs(lost).toFixed(1)} {wU}
-                    {' '}
-                    ({u.startWeight > 0 ? ((lost / u.startWeight) * 100).toFixed(1) : 0}%)
+                  <span
+                    className={
+                      lost >= 0
+                        ? 'text-[var(--color-success)] font-bold'
+                        : 'text-[var(--color-danger)] font-bold'
+                    }
+                  >
+                    {lost >= 0 ? '−' : '+'}
+                    {Math.abs(lost).toFixed(1)} {wU} (
+                    {u.startWeight > 0 ? ((lost / u.startWeight) * 100).toFixed(1) : 0}%)
                   </span>
                 }
               />
@@ -82,7 +99,9 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
                 {recentInj.map((i, idx) => (
                   <tr key={idx} className="border-t border-[var(--color-border)]">
                     <td className="py-1.5">{formatShort(i.datetime)}</td>
-                    <td className="py-1.5 font-bold numerals-tabular">{i.dose} {i.unit}</td>
+                    <td className="py-1.5 font-bold numerals-tabular">
+                      {i.dose} {i.unit}
+                    </td>
                     <td className="py-1.5">{siteShort(i.site ?? '—')}</td>
                     <td className="py-1.5 text-[var(--color-text-secondary)]">{i.notes || '—'}</td>
                   </tr>
@@ -103,10 +122,16 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
                   Lifetime frequency
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {Object.entries(sxCounts).sort((a, b) => b[1] - a[1]).map(([k, v]) => {
-                    const sym = SYMPTOMS_LIST.find((s) => s.id === k);
-                    return <Badge key={k} tone="warning">{sym?.name ?? k}: {v}×</Badge>;
-                  })}
+                  {Object.entries(sxCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([k, v]) => {
+                      const sym = SYMPTOMS_LIST.find((s) => s.id === k);
+                      return (
+                        <Badge key={k} tone="warning">
+                          {sym?.name ?? k}: {v}×
+                        </Badge>
+                      );
+                    })}
                 </div>
               </div>
               <table className="w-full text-[13px]">
@@ -126,7 +151,9 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
                         <td className="py-1.5">{formatShort(s.date)}</td>
                         <td className="py-1.5">{sym?.name ?? s.symptom}</td>
                         <td className="py-1.5">{s.severity}/5</td>
-                        <td className="py-1.5 text-[var(--color-text-secondary)]">{s.notes || '—'}</td>
+                        <td className="py-1.5 text-[var(--color-text-secondary)]">
+                          {s.notes || '—'}
+                        </td>
                       </tr>
                     );
                   })}
@@ -150,20 +177,26 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
                 </tr>
               </thead>
               <tbody>
-                {weights.slice(-15).reverse().map((w) => (
-                  <tr key={w.date} className="border-t border-[var(--color-border)]">
-                    <td className="py-1.5">{formatShort(w.date)}</td>
-                    <td className="py-1.5 numerals-tabular">{w.weight.toFixed(1)} {wU}</td>
-                    <td className="py-1.5">{w.bodyFat ? `${w.bodyFat.toFixed(1)}%` : '—'}</td>
-                  </tr>
-                ))}
+                {weights
+                  .slice(-15)
+                  .reverse()
+                  .map((w) => (
+                    <tr key={w.date} className="border-t border-[var(--color-border)]">
+                      <td className="py-1.5">{formatShort(w.date)}</td>
+                      <td className="py-1.5 numerals-tabular">
+                        {w.weight.toFixed(1)} {wU}
+                      </td>
+                      <td className="py-1.5">{w.bodyFat ? `${w.bodyFat.toFixed(1)}%` : '—'}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           )}
         </section>
 
         <p className="text-[11px] text-[var(--color-text-tertiary)] italic pt-4 border-t border-[var(--color-border)]">
-          Generated by LeanShot. This is a tracking summary, not medical documentation. Always defer to your healthcare provider.
+          Generated by LeanShot. This is a tracking summary, not medical documentation. Always defer
+          to your healthcare provider.
         </p>
       </div>
     </Modal>

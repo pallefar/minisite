@@ -1,10 +1,10 @@
-import { useState, type ReactNode } from 'react';
 import { Plus } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
+import { Toast } from '@/components/ui/Toast';
+import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
-import { MobileNav } from './MobileNav';
-import { Toast } from '@/components/ui/Toast';
-import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 
 export interface AppShellProps {
   children: ReactNode;
@@ -14,7 +14,13 @@ export interface AppShellProps {
   onOpenSettings: () => void;
 }
 
-export function AppShell({ children, onLogDose, onOpenReport, onOpenAI, onOpenSettings }: AppShellProps) {
+export function AppShell({
+  children,
+  onLogDose,
+  onOpenReport,
+  onOpenAI,
+  onOpenSettings,
+}: AppShellProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">

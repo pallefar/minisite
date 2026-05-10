@@ -18,9 +18,9 @@ export const HALF_LIVES: Record<MedicationId, number> = {
 };
 
 export interface TitrationStep {
-  d: string;          // dose label
-  w: string;          // week range "1–4"
-  n: string;          // note
+  d: string; // dose label
+  w: string; // week range "1–4"
+  n: string; // note
 }
 
 export const TITRATION: Partial<Record<MedicationId, TitrationStep[]>> = {
@@ -62,59 +62,97 @@ export interface TrialPoint {
 
 export const TRIAL_DATA: Record<string, TrialPoint[]> = {
   semaglutide: [
-    { w: 4, pct: 2 }, { w: 12, pct: 6 }, { w: 20, pct: 10 }, { w: 28, pct: 12.5 },
-    { w: 40, pct: 14 }, { w: 52, pct: 14.9 }, { w: 68, pct: 14.9 },
+    { w: 4, pct: 2 },
+    { w: 12, pct: 6 },
+    { w: 20, pct: 10 },
+    { w: 28, pct: 12.5 },
+    { w: 40, pct: 14 },
+    { w: 52, pct: 14.9 },
+    { w: 68, pct: 14.9 },
   ],
   tirzepatide: [
-    { w: 4, pct: 2.5 }, { w: 12, pct: 7.5 }, { w: 20, pct: 12 }, { w: 28, pct: 16 },
-    { w: 40, pct: 19 }, { w: 52, pct: 20.9 }, { w: 72, pct: 22.5 },
+    { w: 4, pct: 2.5 },
+    { w: 12, pct: 7.5 },
+    { w: 20, pct: 12 },
+    { w: 28, pct: 16 },
+    { w: 40, pct: 19 },
+    { w: 52, pct: 20.9 },
+    { w: 72, pct: 22.5 },
   ],
   liraglutide: [
-    { w: 4, pct: 1.5 }, { w: 12, pct: 4 }, { w: 28, pct: 6 }, { w: 56, pct: 8 },
+    { w: 4, pct: 1.5 },
+    { w: 12, pct: 4 },
+    { w: 28, pct: 6 },
+    { w: 56, pct: 8 },
   ],
   dulaglutide: [
-    { w: 12, pct: 2 }, { w: 28, pct: 4 }, { w: 52, pct: 5 },
+    { w: 12, pct: 2 },
+    { w: 28, pct: 4 },
+    { w: 52, pct: 5 },
   ],
   retatrutide: [
-    { w: 12, pct: 8 }, { w: 24, pct: 17 }, { w: 48, pct: 24 },
+    { w: 12, pct: 8 },
+    { w: 24, pct: 17 },
+    { w: 48, pct: 24 },
   ],
 };
 
 export function trialClass(med: MedicationId): keyof typeof TRIAL_DATA {
   const map: Record<MedicationId, keyof typeof TRIAL_DATA> = {
-    ozempic: 'semaglutide', wegovy: 'semaglutide', rybelsus: 'semaglutide',
-    'compound-sema': 'semaglutide', mounjaro: 'tirzepatide', zepbound: 'tirzepatide',
-    'compound-tirz': 'tirzepatide', saxenda: 'liraglutide', trulicity: 'dulaglutide',
+    ozempic: 'semaglutide',
+    wegovy: 'semaglutide',
+    rybelsus: 'semaglutide',
+    'compound-sema': 'semaglutide',
+    mounjaro: 'tirzepatide',
+    zepbound: 'tirzepatide',
+    'compound-tirz': 'tirzepatide',
+    saxenda: 'liraglutide',
+    trulicity: 'dulaglutide',
     retatrutide: 'retatrutide',
   };
   return map[med] ?? 'semaglutide';
 }
 
 export function medLabel(m: MedicationId): string {
-  return ({
-    ozempic: 'Ozempic · Semaglutide',
-    wegovy: 'Wegovy · Semaglutide',
-    mounjaro: 'Mounjaro · Tirzepatide',
-    zepbound: 'Zepbound · Tirzepatide',
-    rybelsus: 'Rybelsus · oral Semaglutide',
-    saxenda: 'Saxenda · Liraglutide',
-    trulicity: 'Trulicity · Dulaglutide',
-    retatrutide: 'Retatrutide',
-    'compound-sema': 'Compounded Semaglutide',
-    'compound-tirz': 'Compounded Tirzepatide',
-  } as const)[m];
+  return (
+    {
+      ozempic: 'Ozempic · Semaglutide',
+      wegovy: 'Wegovy · Semaglutide',
+      mounjaro: 'Mounjaro · Tirzepatide',
+      zepbound: 'Zepbound · Tirzepatide',
+      rybelsus: 'Rybelsus · oral Semaglutide',
+      saxenda: 'Saxenda · Liraglutide',
+      trulicity: 'Trulicity · Dulaglutide',
+      retatrutide: 'Retatrutide',
+      'compound-sema': 'Compounded Semaglutide',
+      'compound-tirz': 'Compounded Tirzepatide',
+    } as const
+  )[m];
 }
 
 export function medLabelShort(m: MedicationId): string {
-  return ({
-    ozempic: 'Ozempic', wegovy: 'Wegovy', mounjaro: 'Mounjaro', zepbound: 'Zepbound',
-    rybelsus: 'Rybelsus', saxenda: 'Saxenda', trulicity: 'Trulicity', retatrutide: 'Retatrutide',
-    'compound-sema': 'Sema', 'compound-tirz': 'Tirz',
-  } as const)[m];
+  return (
+    {
+      ozempic: 'Ozempic',
+      wegovy: 'Wegovy',
+      mounjaro: 'Mounjaro',
+      zepbound: 'Zepbound',
+      rybelsus: 'Rybelsus',
+      saxenda: 'Saxenda',
+      trulicity: 'Trulicity',
+      retatrutide: 'Retatrutide',
+      'compound-sema': 'Sema',
+      'compound-tirz': 'Tirz',
+    } as const
+  )[m];
 }
 
 /** Half-life decay sum across all injections — port of v1 calcMedLevel (leanshot.html:2054). */
-export function calcMedLevel(time: number, halfLifeHours: number, injections: { datetime: string; dose: string }[]): number {
+export function calcMedLevel(
+  time: number,
+  halfLifeHours: number,
+  injections: { datetime: string; dose: string }[],
+): number {
   let total = 0;
   for (const inj of injections) {
     const t = new Date(inj.datetime).getTime();

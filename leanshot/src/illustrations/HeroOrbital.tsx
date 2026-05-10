@@ -45,7 +45,10 @@ export function HeroOrbital({ className, staticOnly }: HeroOrbitalProps) {
       <circle cx="160" cy="160" r="120" fill="url(#hero-glow)" />
 
       {/* Outer orbital — slowly rotating */}
-      <g className={motion ? 'animate-orbit-slow' : undefined} style={{ transformOrigin: '160px 160px' }}>
+      <g
+        className={motion ? 'animate-orbit-slow' : undefined}
+        style={{ transformOrigin: '160px 160px' }}
+      >
         <ellipse
           cx="160"
           cy="160"
@@ -91,7 +94,12 @@ export function HeroOrbital({ className, staticOnly }: HeroOrbitalProps) {
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="M160 92 L160 232" stroke="rgba(255,255,255,0.45)" strokeWidth="1" strokeLinecap="round" />
+      <path
+        d="M160 92 L160 232"
+        stroke="rgba(255,255,255,0.45)"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
       <path
         d="M160 130 Q172 138 178 152 M160 130 Q148 138 142 152 M160 168 Q174 178 182 196 M160 168 Q146 178 138 196"
         stroke="rgba(255,255,255,0.36)"

@@ -29,8 +29,23 @@ export function StreakBadge({ variant, className, locked }: BadgeProps) {
       aria-hidden
     >
       {/* outer ring */}
-      <circle cx="48" cy="48" r="44" stroke={stroke} strokeWidth="1.5" opacity={locked ? 0.5 : 0.85} />
-      <circle cx="48" cy="48" r="38" fill={fill} stroke={stroke} strokeWidth="1.5" opacity={locked ? 0.6 : 1} />
+      <circle
+        cx="48"
+        cy="48"
+        r="44"
+        stroke={stroke}
+        strokeWidth="1.5"
+        opacity={locked ? 0.5 : 0.85}
+      />
+      <circle
+        cx="48"
+        cy="48"
+        r="38"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth="1.5"
+        opacity={locked ? 0.6 : 1}
+      />
 
       {/* petals */}
       {variant === '7d' && (
@@ -59,7 +74,14 @@ export function StreakBadge({ variant, className, locked }: BadgeProps) {
       )}
 
       {/* inner disc with day count */}
-      <circle cx="48" cy="56" r="18" fill="var(--color-surface)" stroke={stroke} strokeWidth="1.4" />
+      <circle
+        cx="48"
+        cy="56"
+        r="18"
+        fill="var(--color-surface)"
+        stroke={stroke}
+        strokeWidth="1.4"
+      />
       <text
         x="48"
         y="62"

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/lib/store';
 
@@ -19,18 +19,18 @@ const STEPS: TourStep[] = [
   {
     selector: '[data-tour="hero"]',
     title: 'Your hero card',
-    body: 'At-a-glance summary — total lost, current phase, today\'s protein, and your titration timeline.',
+    body: "At-a-glance summary — total lost, current phase, today's protein, and your titration timeline.",
     placement: 'bottom',
   },
   {
     selector: '[data-tour="glp"]',
     title: 'GLP-1 medication level',
-    body: 'A real pharmacokinetic curve based on your medication\'s half-life. Circles mark each shot. The pill tells you when the next one is due.',
+    body: "A real pharmacokinetic curve based on your medication's half-life. Circles mark each shot. The pill tells you when the next one is due.",
     placement: 'bottom',
   },
   {
     selector: '[data-tour="focus"]',
-    title: 'Today\'s focus',
+    title: "Today's focus",
     body: 'Just the single most important thing today. Tap the button to jump straight there.',
     placement: 'bottom',
   },
@@ -58,7 +58,10 @@ const STEPS: TourStep[] = [
 export function GuidedTour({ open, onClose }: { open: boolean; onClose: () => void }) {
   const setTab = useStore((s) => s.setTab);
   const [step, setStep] = useState(0);
-  const [position, setPosition] = useState<{ rect: DOMRect; placement: TourStep['placement'] } | null>(null);
+  const [position, setPosition] = useState<{
+    rect: DOMRect;
+    placement: TourStep['placement'];
+  } | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -113,7 +116,16 @@ export function GuidedTour({ open, onClose }: { open: boolean; onClose: () => vo
         aria-label="Guided tour"
       >
         {/* Backdrop with cutout via inverse box-shadow */}
-        <div className="absolute inset-0 bg-black/55 pointer-events-auto" onClick={finish} />
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close tour"
+          className="absolute inset-0 bg-black/55 pointer-events-auto"
+          onClick={finish}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') finish();
+          }}
+        />
 
         {position && (
           <>
@@ -129,7 +141,13 @@ export function GuidedTour({ open, onClose }: { open: boolean; onClose: () => vo
               className="absolute rounded-[18px] border-2 border-white/40 pointer-events-none"
               style={{ boxShadow: '0 0 0 9999px rgba(11,20,19,0.55)' }}
             />
-            <Tooltip rect={position.rect} placement={position.placement} step={step} total={STEPS.length} title={s.title} body={s.body}
+            <Tooltip
+              rect={position.rect}
+              placement={position.placement}
+              step={step}
+              total={STEPS.length}
+              title={s.title}
+              body={s.body}
               onPrev={() => setStep((x) => Math.max(0, x - 1))}
               onNext={() => (step >= STEPS.length - 1 ? finish() : setStep((x) => x + 1))}
               onSkip={finish}
@@ -152,7 +170,17 @@ interface TooltipProps {
   onNext: () => void;
   onSkip: () => void;
 }
-function Tooltip({ rect, placement, step, total, title, body, onPrev, onNext, onSkip }: TooltipProps) {
+function Tooltip({
+  rect,
+  placement,
+  step,
+  total,
+  title,
+  body,
+  onPrev,
+  onNext,
+  onSkip,
+}: TooltipProps) {
   const ttW = Math.min(320, window.innerWidth - 32);
   const margin = 18;
   let top: number;
@@ -211,11 +239,20 @@ function Tooltip({ rect, placement, step, total, title, body, onPrev, onNext, on
         </div>
         <div className="flex gap-1.5">
           {step > 0 && (
-            <Button variant="ghost" size="sm" onClick={onPrev} leadingIcon={<ArrowLeft className="size-4" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onPrev}
+              leadingIcon={<ArrowLeft className="size-4" />}
+            >
               Back
             </Button>
           )}
-          <Button size="sm" onClick={onNext} trailingIcon={step >= total - 1 ? undefined : <ArrowRight className="size-4" />}>
+          <Button
+            size="sm"
+            onClick={onNext}
+            trailingIcon={step >= total - 1 ? undefined : <ArrowRight className="size-4" />}
+          >
             {step >= total - 1 ? 'Done' : 'Next'}
           </Button>
         </div>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { useStore } from '@/lib/store';
 import { formatShort } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 
 export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const photos = useStore((s) => s.photos);
@@ -21,16 +21,23 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
     });
   };
 
-  const sorted = [...sel].sort((a, b) => new Date(photos[a]?.date ?? 0).getTime() - new Date(photos[b]?.date ?? 0).getTime());
+  const sorted = [...sel].sort(
+    (a, b) => new Date(photos[a]?.date ?? 0).getTime() - new Date(photos[b]?.date ?? 0).getTime(),
+  );
   const left = sorted[0] != null ? photos[sorted[0]] : null;
   const right = sorted[1] != null ? photos[sorted[1]] : null;
 
-  const days = left && right ? Math.round((new Date(right.date).getTime() - new Date(left.date).getTime()) / 86_400_000) : null;
+  const days =
+    left && right
+      ? Math.round((new Date(right.date).getTime() - new Date(left.date).getTime()) / 86_400_000)
+      : null;
   const wDelta = left?.weight != null && right?.weight != null ? right.weight - left.weight : null;
 
   return (
     <Modal open={open} onClose={onClose} title="Compare photos" size="lg" mobileFullscreen>
-      <p className="text-[13px] text-[var(--color-text-secondary)] mb-3">Tap two photos to compare side-by-side.</p>
+      <p className="text-[13px] text-[var(--color-text-secondary)] mb-3">
+        Tap two photos to compare side-by-side.
+      </p>
       <div className="grid grid-cols-2 gap-3 mb-4">
         <Side photo={left} side="Before" units={wU} />
         <Side photo={right} side="After" units={wU} />
@@ -45,7 +52,10 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
             />
           )}
           {left.weight && wDelta != null && (
-            <DeltaStat label="Body weight" value={`${((wDelta / left.weight) * 100).toFixed(1)}%`} />
+            <DeltaStat
+              label="Body weight"
+              value={`${((wDelta / left.weight) * 100).toFixed(1)}%`}
+            />
           )}
         </div>
       )}
@@ -60,14 +70,20 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
               aria-pressed={selected}
               className={cn(
                 'relative aspect-[3/4] rounded-xl overflow-hidden border-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
-                selected ? 'border-[var(--color-primary)]' : 'border-transparent hover:border-[var(--color-border-strong)]',
+                selected
+                  ? 'border-[var(--color-primary)]'
+                  : 'border-transparent hover:border-[var(--color-border-strong)]',
               )}
             >
               <img src={p.data} alt="" className="w-full h-full object-cover" />
               <span className="absolute bottom-0 inset-x-0 px-1.5 py-1 bg-gradient-to-t from-black/85 to-transparent text-white text-[10px] font-semibold">
                 {formatShort(p.date)}
               </span>
-              {selected && <span className="absolute top-1 left-1 size-5 rounded-full bg-[var(--color-primary)] text-white inline-flex items-center justify-center text-[12px] font-bold">{sel.indexOf(i) + 1}</span>}
+              {selected && (
+                <span className="absolute top-1 left-1 size-5 rounded-full bg-[var(--color-primary)] text-white inline-flex items-center justify-center text-[12px] font-bold">
+                  {sel.indexOf(i) + 1}
+                </span>
+              )}
             </button>
           );
         })}
@@ -76,19 +92,32 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
   );
 }
 
-function Side({ photo, side, units }: { photo: { data: string; date: string; weight: number | null } | null; side: string; units: string }) {
+function Side({
+  photo,
+  side,
+  units,
+}: {
+  photo: { data: string; date: string; weight: number | null } | null;
+  side: string;
+  units: string;
+}) {
   return (
     <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] overflow-hidden">
       {photo ? (
         <img src={photo.data} alt="" className="aspect-[3/4] w-full object-cover" />
       ) : (
-        <div className="aspect-[3/4] flex items-center justify-center text-[12px] text-[var(--color-text-tertiary)]">Tap a photo below</div>
+        <div className="aspect-[3/4] flex items-center justify-center text-[12px] text-[var(--color-text-tertiary)]">
+          Tap a photo below
+        </div>
       )}
       <div className="p-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-          {side}{photo ? ` · ${formatShort(photo.date)}` : ''}
+          {side}
+          {photo ? ` · ${formatShort(photo.date)}` : ''}
         </p>
-        <p className="text-[18px] font-bold mt-0.5">{photo?.weight != null ? `${photo.weight.toFixed(1)} ${units}` : '—'}</p>
+        <p className="text-[18px] font-bold mt-0.5">
+          {photo?.weight != null ? `${photo.weight.toFixed(1)} ${units}` : '—'}
+        </p>
       </div>
     </div>
   );
@@ -97,8 +126,12 @@ function Side({ photo, side, units }: { photo: { data: string; date: string; wei
 function DeltaStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[22px] font-extrabold tracking-tight text-[var(--color-primary)] numerals-tabular">{value}</p>
-      <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-secondary)] font-semibold">{label}</p>
+      <p className="text-[22px] font-extrabold tracking-tight text-[var(--color-primary)] numerals-tabular">
+        {value}
+      </p>
+      <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-secondary)] font-semibold">
+        {label}
+      </p>
     </div>
   );
 }

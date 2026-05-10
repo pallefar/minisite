@@ -1,5 +1,11 @@
+import {
+  Chart,
+  type ChartConfiguration,
+  type ChartOptions,
+  type ChartType,
+  registerables,
+} from 'chart.js';
 import { useEffect, useRef } from 'react';
-import { Chart, type ChartConfiguration, type ChartOptions, type ChartType, registerables } from 'chart.js';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/helpers';
 
@@ -33,7 +39,7 @@ export function BaseChart({ config, className, height = 240, ariaLabel }: BaseCh
       chartRef.current?.destroy();
       chartRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: effect 1 owns chart
+
     //   creation/destruction on theme change only; effect 2 handles data updates
   }, [theme]);
 
