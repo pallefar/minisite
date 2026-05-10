@@ -36,7 +36,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `npm test` runs Vitest unit + Playwright smoke locally and on CI; CI blocks merge to main on any failure (typecheck, lint, unit test, smoke)
   4. CI lint pass surfaces and fixes the existing `// eslint-disable-next-line` comment in `BaseChart.tsx` that has no underlying ESLint config (CONCERNS.md tech debt entry resolved)
   5. ESLint + Prettier configs are committed and `npm run lint`/`npm run format` succeed against the v2 codebase as-is
-**Plans**: TBD
+**Plans:** 6 plans
+- [ ] 01-01-PLAN.md — Type/lint cleanup: 5x as-never casts, BaseChart eslint-disable doc, claude-sonnet-4-6 model ID, YOURTAG-20 affiliate (Wave 1)
+- [ ] 01-02-PLAN.md — useConfirm hook + ConfirmModal + 3 native-dialog migrations (Wave 1)
+- [ ] 01-03-PLAN.md — ESLint flat-config + Prettier + npm scripts (Wave 2)
+- [ ] 01-04-PLAN.md — Vitest + RTL + foundational tests (helpers, useStreaks, storage, OnboardingFlow) (Wave 2)
+- [ ] 01-05-PLAN.md — Sentry beforeSend + PostHog cookieless + main.tsx wiring + Settings dev trigger + .env.example (Wave 2)
+- [ ] 01-06-PLAN.md — Playwright config + onboarding e2e + GitHub Actions CI 5-job pipeline + manual checkpoint (Wave 3)
 
 ### Phase 2: Visible Compliance & Public Deploy
 **Goal**: The app is reachable at the production custom domain over HTTPS with a "Not medical advice — consult your healthcare provider" disclaimer overlaid on the drug-level chart and shown as a first-run modal before the user can log anything; the marketing landing is on a separate subdomain so health-app analytics + future tracking pixels never collide with authenticated routes.

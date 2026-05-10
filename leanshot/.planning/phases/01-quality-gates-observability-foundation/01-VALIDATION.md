@@ -1,10 +1,11 @@
 ---
 phase: 1
 slug: quality-gates-observability-foundation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-10
+approved: 2026-05-10
 ---
 
 # Phase 1 — Validation Strategy
@@ -36,11 +37,18 @@ created: 2026-05-10
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD — populated by gsd-planner from PLAN.md task IDs | | | PROD-02/03/04/05 | T-1-XX (per planner threat model) | Per task acceptance | unit/integration/e2e/manual | `npm run test:unit -- <pattern>` etc. | ❌ W0 | ⬜ pending |
+The 6 PLAN.md files in this directory are the source of truth — every task in every plan carries a `<verify>` block with an `<automated>` command and `<acceptance_criteria>` with grep-verifiable conditions. Plan-checker confirmed all `type="auto"` and `type="tdd"` tasks have automated verify commands; no `MISSING` references; no watch-mode flags.
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+| Plan | Wave | depends_on | Tasks | Requirements | Threat Refs |
+|------|------|-----------|-------|--------------|-------------|
+| 01-01 | 1 | [] | 2 (auto) | PROD-05 | T-1-LOC-01..03 |
+| 01-02 | 1 | [] | 2 (1 tdd, 1 auto) | PROD-05 | T-1-LOC-04..06 |
+| 01-03 | 2 | [1, 2] | 1 (auto) | PROD-05 | T-1-LOC-07..08, T-1-05 |
+| 01-04 | 2 | [1, 2] | 3 (1 auto, 2 tdd) | PROD-04 | T-1-LOC-09..11 |
+| 01-05 | 2 | [1, 2, 4] | 3 (2 tdd, 1 auto) | PROD-02, PROD-03 | T-1-01..05, T-1-PostHog-pre-7 |
+| 01-06 | 3 | [1, 2, 3, 4, 5] | 3 (2 auto, 1 checkpoint:human-verify) | PROD-04, PROD-05 | T-1-04..07 |
+
+*Status tracking lives in `.planning/STATE.md` and per-plan execution checkpoints — not duplicated here.*
 
 ---
 
