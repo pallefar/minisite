@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-flight runs for the same branch/PR on a new push (Discretion)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  format-check:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+
+  test-unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run test:unit
+
+  test-e2e:
+    name: E2E smoke + production-build security check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      # Production-shaped build with explicitly empty env vars.
+      # Asserts S-10: production build with empty Sentry DSN exits 0.
+      - name: Build (production-shaped, empty env)
+        run: npm run build
+        env:
+          VITE_SENTRY_DSN: ''
+          VITE_POSTHOG_KEY: ''
+          VITE_POSTHOG_HOST: ''
+          VITE_ANALYTICS_ENABLED: 'false'
+
+      # Security check (T-1-05 mitigation): the dev-only Sentry trigger string
+      # 'phase-1-sentry-smoke' MUST NOT appear in any production-built JS file.
+      # Vite tree-shakes the import.meta.env.DEV branch out of production builds.
+      - name: Security check — dev-only trigger absent from production build
+        run: |
+          if grep -r "phase-1-sentry-smoke" dist/ ; then
+            echo "FAIL: dev-only Sentry trigger 'phase-1-sentry-smoke' leaked into production bundle"
+            exit 1
+          fi
+
+      - name: Run Playwright smoke against production build
+        run: npm run test:e2e
+        env:
+          CI: 'true'
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: leanshot/playwright-report/
+          retention-days: 7
