@@ -47,7 +47,8 @@ function isEnabled(): boolean {
 export function initAnalytics(): void {
   const enabled = isEnabled();
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
-  const host = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
+  const host =
+    (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
 
   posthog.init(key ?? '__placeholder__', {
     api_host: host,

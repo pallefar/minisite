@@ -46,7 +46,12 @@ describe('beforeSend', () => {
 
   it('redacts non-aiHistory keys inside arrays of objects', () => {
     const event = makeEvent({
-      extra: { items: [{ symptom: 'a', other: 'b' }, { symptom: 'c', other: 'd' }] },
+      extra: {
+        items: [
+          { symptom: 'a', other: 'b' },
+          { symptom: 'c', other: 'd' },
+        ],
+      },
     });
     const out = beforeSend(event);
     const items = out.extra?.items as Array<{ symptom: string; other: string }>;
