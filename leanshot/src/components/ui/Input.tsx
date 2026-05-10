@@ -1,4 +1,11 @@
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  useId,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 import { cn } from '@/lib/helpers';
 
 const fieldShellBase =
@@ -6,7 +13,8 @@ const fieldShellBase =
   'transition-[box-shadow,border-color] focus-within:border-[var(--color-primary)] focus-within:shadow-[0_0_0_3px_var(--color-primary-soft)] ' +
   'has-[:disabled]:opacity-60 has-[:disabled]:bg-[var(--color-surface-elevated)]';
 
-const fieldErrorClass = 'border-[var(--color-danger)] focus-within:border-[var(--color-danger)] focus-within:shadow-[0_0_0_3px_var(--color-danger-soft)]';
+const fieldErrorClass =
+  'border-[var(--color-danger)] focus-within:border-[var(--color-danger)] focus-within:shadow-[0_0_0_3px_var(--color-danger-soft)]';
 
 interface FieldShellProps {
   label?: string;
@@ -20,7 +28,17 @@ interface FieldShellProps {
   className?: string;
 }
 
-export function FieldShell({ label, hint, error, leadingIcon, trailingIcon, required, htmlFor, children, className }: FieldShellProps) {
+export function FieldShell({
+  label,
+  hint,
+  error,
+  leadingIcon,
+  trailingIcon,
+  required,
+  htmlFor,
+  children,
+  className,
+}: FieldShellProps) {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
       {label && (
@@ -29,7 +47,11 @@ export function FieldShell({ label, hint, error, leadingIcon, trailingIcon, requ
           className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
         >
           {label}
-          {required && <span aria-hidden className="ml-1 text-[var(--color-warning)]">*</span>}
+          {required && (
+            <span aria-hidden className="ml-1 text-[var(--color-warning)]">
+              *
+            </span>
+          )}
         </label>
       )}
       <div className={cn(fieldShellBase, error && fieldErrorClass)}>
@@ -46,7 +68,12 @@ export function FieldShell({ label, hint, error, leadingIcon, trailingIcon, requ
         )}
       </div>
       {(hint || error) && (
-        <p className={cn('text-[12px] leading-snug', error ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-tertiary)]')}>
+        <p
+          className={cn(
+            'text-[12px] leading-snug',
+            error ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-tertiary)]',
+          )}
+        >
           {error ?? hint}
         </p>
       )}

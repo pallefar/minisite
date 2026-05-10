@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { Smile, BedDouble, Frown, Meh, Annoyed, Laugh, ChartLine } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input, Textarea } from '@/components/ui/Input';
+import { useState } from 'react';
 import { MoodChart, SleepChart } from '@/components/dashboard/charts/SimpleCharts';
-import { useStore } from '@/lib/store';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader } from '@/components/ui/Card';
+import { Input, Textarea } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import { todayStr, cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 
 const MOODS = [
   { v: 1, Icon: Frown, label: 'Tough' },
@@ -77,9 +77,24 @@ export function MoodTab() {
           })}
         </div>
         <div className="mt-4 space-y-3">
-          <Input label="Energy (1–10)" type="number" min={1} max={10} inputMode="numeric" value={energy} onChange={(e) => setEnergy(e.target.value)} />
-          <Textarea label="Notes" rows={2} value={moodNotes} onChange={(e) => setMoodNotes(e.target.value)} />
-          <Button block onClick={submitMood}>Save mood</Button>
+          <Input
+            label="Energy (1–10)"
+            type="number"
+            min={1}
+            max={10}
+            inputMode="numeric"
+            value={energy}
+            onChange={(e) => setEnergy(e.target.value)}
+          />
+          <Textarea
+            label="Notes"
+            rows={2}
+            value={moodNotes}
+            onChange={(e) => setMoodNotes(e.target.value)}
+          />
+          <Button block onClick={submitMood}>
+            Save mood
+          </Button>
         </div>
       </Card>
 
@@ -87,12 +102,40 @@ export function MoodTab() {
         <CardHeader title="Last night's sleep" icon={<BedDouble className="size-4" />} />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Hours" type="number" step="0.25" inputMode="decimal" value={sleep.hours} onChange={(e) => setSleep({ ...sleep, hours: e.target.value })} />
-            <Input label="Quality (1–10)" type="number" min={1} max={10} inputMode="numeric" value={sleep.quality} onChange={(e) => setSleep({ ...sleep, quality: e.target.value })} />
+            <Input
+              label="Hours"
+              type="number"
+              step="0.25"
+              inputMode="decimal"
+              value={sleep.hours}
+              onChange={(e) => setSleep({ ...sleep, hours: e.target.value })}
+            />
+            <Input
+              label="Quality (1–10)"
+              type="number"
+              min={1}
+              max={10}
+              inputMode="numeric"
+              value={sleep.quality}
+              onChange={(e) => setSleep({ ...sleep, quality: e.target.value })}
+            />
           </div>
-          <Input label="Wakings" type="number" inputMode="numeric" value={sleep.wakings} onChange={(e) => setSleep({ ...sleep, wakings: e.target.value })} />
-          <Textarea label="Notes" rows={2} value={sleep.notes} onChange={(e) => setSleep({ ...sleep, notes: e.target.value })} />
-          <Button block onClick={submitSleep}>Save sleep</Button>
+          <Input
+            label="Wakings"
+            type="number"
+            inputMode="numeric"
+            value={sleep.wakings}
+            onChange={(e) => setSleep({ ...sleep, wakings: e.target.value })}
+          />
+          <Textarea
+            label="Notes"
+            rows={2}
+            value={sleep.notes}
+            onChange={(e) => setSleep({ ...sleep, notes: e.target.value })}
+          />
+          <Button block onClick={submitSleep}>
+            Save sleep
+          </Button>
         </div>
       </Card>
 

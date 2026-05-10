@@ -1,15 +1,26 @@
+import {
+  User as UserIcon,
+  Target,
+  Bell,
+  Shield,
+  CreditCard,
+  Database,
+  Bot,
+  Trash2,
+  Download,
+  GraduationCap,
+} from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { User as UserIcon, Target, Bell, Shield, CreditCard, Database, Bot, Trash2, Download, GraduationCap } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
-import { ConfirmModal } from '@/components/ui/Confirm';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { ConfirmModal } from '@/components/ui/Confirm';
 import { Input } from '@/components/ui/Input';
-import { useStore } from '@/lib/store';
-import { useToast } from '@/hooks/useToast';
+import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
-import { apiKeyStorage } from '@/lib/storage';
+import { useToast } from '@/hooks/useToast';
 import { todayStr, cn } from '@/lib/helpers';
+import { apiKeyStorage } from '@/lib/storage';
+import { useStore } from '@/lib/store';
 
 type Section = 'profile' | 'goals' | 'ai' | 'notifications' | 'privacy' | 'subscription' | 'data';
 
@@ -89,10 +100,11 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   };
 
   const reset = async (): Promise<void> => {
-    const ok = await confirm(
-      'Erase ALL your LeanShot data? This cannot be undone.',
-      { title: 'Reset everything', confirmLabel: 'Erase everything', destructive: true },
-    );
+    const ok = await confirm('Erase ALL your LeanShot data? This cannot be undone.', {
+      title: 'Reset everything',
+      confirmLabel: 'Erase everything',
+      destructive: true,
+    });
     if (!ok) return;
     resetAll();
     onClose();
@@ -129,8 +141,15 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
         <div className="flex-1 min-w-0 space-y-3">
           {section === 'profile' && (
             <Section title="Profile" body="Your basic account info.">
-              <Input label="Name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-              <p className="text-[12px] text-[var(--color-text-tertiary)]">Units: <strong>{u.units === 'metric' ? 'Metric' : 'Imperial'}</strong> · Set during onboarding.</p>
+              <Input
+                label="Name"
+                value={draft.name}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              />
+              <p className="text-[12px] text-[var(--color-text-tertiary)]">
+                Units: <strong>{u.units === 'metric' ? 'Metric' : 'Imperial'}</strong> · Set during
+                onboarding.
+              </p>
               <Button onClick={save}>Save profile</Button>
             </Section>
           )}
@@ -143,20 +162,57 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 step="0.1"
                 inputMode="decimal"
                 value={String(draft.goalWeight)}
-                onChange={(e) => setDraft({ ...draft, goalWeight: parseFloat(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setDraft({ ...draft, goalWeight: parseFloat(e.target.value) || 0 })
+                }
               />
-              <Input label="Protein (g)" type="number" inputMode="numeric" value={String(draft.proteinTarget)} onChange={(e) => setDraft({ ...draft, proteinTarget: parseInt(e.target.value) || 0 })} />
-              <Input label="Calorie target" type="number" inputMode="numeric" value={String(draft.calorieTarget)} onChange={(e) => setDraft({ ...draft, calorieTarget: parseInt(e.target.value) || 0 })} />
+              <Input
+                label="Protein (g)"
+                type="number"
+                inputMode="numeric"
+                value={String(draft.proteinTarget)}
+                onChange={(e) =>
+                  setDraft({ ...draft, proteinTarget: parseInt(e.target.value) || 0 })
+                }
+              />
+              <Input
+                label="Calorie target"
+                type="number"
+                inputMode="numeric"
+                value={String(draft.calorieTarget)}
+                onChange={(e) =>
+                  setDraft({ ...draft, calorieTarget: parseInt(e.target.value) || 0 })
+                }
+              />
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Fiber (g)" type="number" inputMode="numeric" value={String(draft.fiberTarget)} onChange={(e) => setDraft({ ...draft, fiberTarget: parseInt(e.target.value) || 0 })} />
-                <Input label="Water (cups)" type="number" inputMode="numeric" value={String(draft.waterTarget)} onChange={(e) => setDraft({ ...draft, waterTarget: parseInt(e.target.value) || 0 })} />
+                <Input
+                  label="Fiber (g)"
+                  type="number"
+                  inputMode="numeric"
+                  value={String(draft.fiberTarget)}
+                  onChange={(e) =>
+                    setDraft({ ...draft, fiberTarget: parseInt(e.target.value) || 0 })
+                  }
+                />
+                <Input
+                  label="Water (cups)"
+                  type="number"
+                  inputMode="numeric"
+                  value={String(draft.waterTarget)}
+                  onChange={(e) =>
+                    setDraft({ ...draft, waterTarget: parseInt(e.target.value) || 0 })
+                  }
+                />
               </div>
               <Button onClick={save}>Save goals</Button>
             </Section>
           )}
 
           {section === 'ai' && (
-            <Section title="AI assistant" body="Bring your own Anthropic key. Pennies per month for typical use.">
+            <Section
+              title="AI assistant"
+              body="Bring your own Anthropic key. Pennies per month for typical use."
+            >
               <Input
                 label="Anthropic API key"
                 type="password"
@@ -166,15 +222,36 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 hint="Stored locally on this device. Never sent to anyone but Anthropic."
               />
               <div className="flex gap-2">
-                <Button onClick={() => { apiKeyStorage.set(apiKey.trim()); toast('API key saved'); }}>
+                <Button
+                  onClick={() => {
+                    apiKeyStorage.set(apiKey.trim());
+                    toast('API key saved');
+                  }}
+                >
                   Save key
                 </Button>
-                <Button variant="ghost" onClick={() => { apiKeyStorage.clear(); setApiKey(''); toast('API key cleared'); }}>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    apiKeyStorage.clear();
+                    setApiKey('');
+                    toast('API key cleared');
+                  }}
+                >
                   Clear
                 </Button>
               </div>
               <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener" className="text-[var(--color-primary)] font-semibold">console.anthropic.com</a>.
+                Get a key at{' '}
+                <a
+                  href="https://console.anthropic.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--color-primary)] font-semibold"
+                >
+                  console.anthropic.com
+                </a>
+                .
               </p>
             </Section>
           )}
@@ -183,7 +260,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             <Section title="Notifications" body="Choose when LeanShot taps you on the shoulder.">
               <Card variant="flat">
                 <p className="text-[13px] text-[var(--color-text-secondary)]">
-                  Email and push notifications aren't enabled yet — LeanShot is local-only by design. Save your data to a calendar reminder for now.
+                  Email and push notifications aren&apos;t enabled yet — LeanShot is local-only by
+                  design. Save your data to a calendar reminder for now.
                 </p>
               </Card>
             </Section>
@@ -194,7 +272,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               <Card variant="flat">
                 <ul className="space-y-2 text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
                   <li>Local storage only — never sent to a server.</li>
-                  <li>The AI coach is the only exception. It sends your prompt + relevant context to Anthropic using your own API key.</li>
+                  <li>
+                    The AI coach is the only exception. It sends your prompt + relevant context to
+                    Anthropic using your own API key.
+                  </li>
                   <li>No analytics. No telemetry. No third-party trackers.</li>
                   <li>Clearing site data deletes everything LeanShot knows about you.</li>
                 </ul>
@@ -205,15 +286,21 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {section === 'subscription' && (
             <Section title="Subscription" body="Free forever. Pro adds polish.">
               <Card variant="flat">
-                <p className="text-[14px] font-semibold mb-1">You're on the Free plan.</p>
-                <p className="text-[13px] text-[var(--color-text-secondary)]">All 9 dashboard tabs, unlimited tracking, and one progress card template.</p>
+                <p className="text-[14px] font-semibold mb-1">You&apos;re on the Free plan.</p>
+                <p className="text-[13px] text-[var(--color-text-secondary)]">
+                  All 9 dashboard tabs, unlimited tracking, and one progress card template.
+                </p>
               </Card>
             </Section>
           )}
 
           {section === 'data' && (
             <Section title="Data" body="Export, import, or wipe your record.">
-              <Button variant="ghost" leadingIcon={<Download className="size-4" />} onClick={exportData}>
+              <Button
+                variant="ghost"
+                leadingIcon={<Download className="size-4" />}
+                onClick={exportData}
+              >
                 Export JSON
               </Button>
               <Button
@@ -221,15 +308,21 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 leadingIcon={<GraduationCap className="size-4" />}
                 onClick={() => {
                   onClose();
-                  void import('@/components/dashboard/tour/GuidedTour').then(({ clearTourSeen }) => {
-                    clearTourSeen();
-                    window.dispatchEvent(new Event('leanshot:replay-tour'));
-                  });
+                  void import('@/components/dashboard/tour/GuidedTour').then(
+                    ({ clearTourSeen }) => {
+                      clearTourSeen();
+                      window.dispatchEvent(new Event('leanshot:replay-tour'));
+                    },
+                  );
                 }}
               >
                 Replay guided tour
               </Button>
-              <Button variant="destructive" leadingIcon={<Trash2 className="size-4" />} onClick={reset}>
+              <Button
+                variant="destructive"
+                leadingIcon={<Trash2 className="size-4" />}
+                onClick={reset}
+              >
                 Reset everything
               </Button>
             </Section>

@@ -15,9 +15,25 @@ export function EmptyPhotos({ className }: { className?: string }) {
         </linearGradient>
       </defs>
       {/* camera body */}
-      <rect x="50" y="58" width="100" height="68" rx="14" fill="url(#ep-body)" stroke="var(--color-primary)" strokeWidth="1.4" />
+      <rect
+        x="50"
+        y="58"
+        width="100"
+        height="68"
+        rx="14"
+        fill="url(#ep-body)"
+        stroke="var(--color-primary)"
+        strokeWidth="1.4"
+      />
       {/* lens hump */}
-      <path d="M82 58 L84 48 H116 L118 58 Z" fill="var(--color-primary)" opacity="0.15" stroke="var(--color-primary)" strokeWidth="1.4" strokeLinejoin="round" />
+      <path
+        d="M82 58 L84 48 H116 L118 58 Z"
+        fill="var(--color-primary)"
+        opacity="0.15"
+        stroke="var(--color-primary)"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
       {/* lens */}
       <circle cx="100" cy="92" r="20" stroke="var(--color-primary)" strokeWidth="1.4" />
       <circle cx="100" cy="92" r="11" fill="var(--color-primary)" opacity="0.16" />

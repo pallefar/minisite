@@ -5,7 +5,10 @@ import { useReducedMotion } from './useReducedMotion';
  * Animate a numeric value from 0 (or `from`) up to `value` on first mount.
  * Skips animation entirely if reduced motion is requested.
  */
-export function useCountUp(value: number, opts?: { duration?: number; from?: number; decimals?: number }): number {
+export function useCountUp(
+  value: number,
+  opts?: { duration?: number; from?: number; decimals?: number },
+): number {
   const reduced = useReducedMotion();
   const duration = opts?.duration ?? 800;
   const from = opts?.from ?? 0;

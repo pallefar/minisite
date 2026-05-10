@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
 import { Download, Copy } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { useStore } from '@/lib/store';
-import { useToast } from '@/hooks/useToast';
+import { Modal } from '@/components/ui/Modal';
 import { useStreaks } from '@/hooks/useStreaks';
-import { medLabelShort } from '@/lib/pharmacology';
+import { useToast } from '@/hooks/useToast';
 import { todayStr, cn } from '@/lib/helpers';
-import { boldTemplate } from '@/lib/share-card/template-bold';
-import { minimalTemplate } from '@/lib/share-card/template-minimal';
-import { milestoneTemplate } from '@/lib/share-card/template-milestone';
+import { medLabelShort } from '@/lib/pharmacology';
 import type { ShareData, Template, TemplateId } from '@/lib/share-card/renderer';
+import { boldTemplate } from '@/lib/share-card/template-bold';
+import { milestoneTemplate } from '@/lib/share-card/template-milestone';
+import { minimalTemplate } from '@/lib/share-card/template-minimal';
+import { useStore } from '@/lib/store';
 
 const TEMPLATES: Template[] = [boldTemplate, minimalTemplate, milestoneTemplate];
 
@@ -99,8 +99,17 @@ export function ShareCardModal({ open, onClose }: { open: boolean; onClose: () =
           ))}
         </div>
         <div className="flex gap-2 w-full max-w-[340px]">
-          <Button block onClick={download} leadingIcon={<Download className="size-4" />}>Download</Button>
-          <Button variant="secondary" block onClick={copy} leadingIcon={<Copy className="size-4" />}>Copy</Button>
+          <Button block onClick={download} leadingIcon={<Download className="size-4" />}>
+            Download
+          </Button>
+          <Button
+            variant="secondary"
+            block
+            onClick={copy}
+            leadingIcon={<Copy className="size-4" />}
+          >
+            Copy
+          </Button>
         </div>
         <p className="text-[11px] text-[var(--color-text-tertiary)] text-center">
           Share to Instagram, Reddit, or your community.

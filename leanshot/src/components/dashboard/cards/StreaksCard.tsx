@@ -1,13 +1,13 @@
 import { Flame } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { useStreaks } from '@/hooks/useStreaks';
 import { StreakBadge } from '@/illustrations/StreakBadge';
 
 const ROWS: { key: keyof ReturnType<typeof useStreaks>; label: string }[] = [
-  { key: 'weight',   label: 'Weight log' },
-  { key: 'protein',  label: 'Protein hit' },
-  { key: 'supps',    label: 'Stack run' },
+  { key: 'weight', label: 'Weight log' },
+  { key: 'protein', label: 'Protein hit' },
+  { key: 'supps', label: 'Stack run' },
   { key: 'movement', label: 'Active days' },
 ];
 
@@ -34,9 +34,13 @@ export function StreaksCard() {
               <div className="min-w-0">
                 <p className="text-[20px] font-bold leading-none numerals-tabular">
                   {count}
-                  <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ml-1">{count === 1 ? 'day' : 'days'}</span>
+                  <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ml-1">
+                    {count === 1 ? 'day' : 'days'}
+                  </span>
                 </p>
-                <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mt-0.5 font-semibold">{r.label}</p>
+                <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mt-0.5 font-semibold">
+                  {r.label}
+                </p>
               </div>
             </div>
           );

@@ -39,9 +39,18 @@ export const hoursSince = (iso: string): number =>
   (Date.now() - new Date(iso).getTime()) / 3_600_000;
 
 export const escapeHtml = (s: string | null | undefined): string =>
-  (s ?? '').toString().replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c],
-  );
+  (s ?? '')
+    .toString()
+    .replace(
+      /[&<>"']/g,
+      (c) =>
+        (
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }) as Record<
+            string,
+            string
+          >
+        )[c],
+    );
 
 export const cn = (...parts: Array<string | false | null | undefined>): string =>
   parts.filter(Boolean).join(' ');

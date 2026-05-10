@@ -1,12 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Sun, Moon, Check, Zap, Brain, ChartLine, Sparkles, ChevronDown, Shield, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import {
+  ArrowRight,
+  Sun,
+  Moon,
+  Check,
+  Zap,
+  Brain,
+  ChartLine,
+  Sparkles,
+  ChevronDown,
+  Shield,
+  Lock,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, IconButton } from '@/components/ui/Button';
-import { useTheme } from '@/hooks/useTheme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useTheme } from '@/hooks/useTheme';
+import { AIAvatar } from '@/illustrations/AIAvatar';
 import { ConnectData } from '@/illustrations/ConnectData';
 import { HeroOrbital } from '@/illustrations/HeroOrbital';
-import { AIAvatar } from '@/illustrations/AIAvatar';
 
 interface LandingProps {
   onStart: () => void;
@@ -27,7 +39,15 @@ export function Landing({ onStart }: LandingProps) {
   );
 }
 
-function Nav({ theme, toggle, onStart }: { theme: 'light' | 'dark'; toggle: () => void; onStart: () => void }) {
+function Nav({
+  theme,
+  toggle,
+  onStart,
+}: {
+  theme: 'light' | 'dark';
+  toggle: () => void;
+  onStart: () => void;
+}) {
   return (
     <nav className="max-w-[1200px] mx-auto px-5 py-4 flex items-center justify-between">
       <div className="flex items-center gap-2 text-[20px] font-extrabold tracking-tight text-[var(--color-primary)]">
@@ -37,10 +57,17 @@ function Nav({ theme, toggle, onStart }: { theme: 'light' | 'dark'; toggle: () =
         LeanShot
       </div>
       <div className="flex items-center gap-2">
-        <IconButton aria-label={theme === 'light' ? 'Dark mode' : 'Light mode'} variant="ghost" size="sm" onClick={toggle}>
+        <IconButton
+          aria-label={theme === 'light' ? 'Dark mode' : 'Light mode'}
+          variant="ghost"
+          size="sm"
+          onClick={toggle}
+        >
           {theme === 'light' ? <Moon className="size-5" /> : <Sun className="size-5" />}
         </IconButton>
-        <Button onClick={onStart} size="sm" trailingIcon={<ArrowRight className="size-4" />}>Get started</Button>
+        <Button onClick={onStart} size="sm" trailingIcon={<ArrowRight className="size-4" />}>
+          Get started
+        </Button>
       </div>
     </nav>
   );
@@ -56,25 +83,38 @@ function Hero({ onStart }: { onStart: () => void }) {
           </span>
           <h1 className="mt-5 text-[clamp(38px,6vw,72px)] font-extrabold leading-[0.96] tracking-[-0.03em]">
             Maximize your{' '}
-            <span className="font-display italic font-normal text-[var(--color-primary)]">GLP-1 journey.</span>
+            <span className="font-display italic font-normal text-[var(--color-primary)]">
+              GLP-1 journey.
+            </span>
             <br />
             Lose fat. Keep muscle.
           </h1>
           <p className="mt-5 text-[16px] md:text-[17px] leading-relaxed text-[var(--color-text-secondary)] max-w-[44ch]">
-            Clinical tracking for Ozempic, Wegovy, Mounjaro, and Zepbound. Med-level curves, vial supply, AI food
-            logging, doctor reports, and an expert chat — all in one warm, calm place.
+            Clinical tracking for Ozempic, Wegovy, Mounjaro, and Zepbound. Med-level curves, vial
+            supply, AI food logging, doctor reports, and an expert chat — all in one warm, calm
+            place.
           </p>
           <div className="mt-7 flex gap-3 flex-wrap">
             <Button size="lg" onClick={onStart} trailingIcon={<ArrowRight className="size-4" />}>
               Start free
             </Button>
-            <Button size="lg" variant="secondary" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() =>
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
               See features
             </Button>
           </div>
           <div className="mt-8 flex items-center gap-5 text-[13px] text-[var(--color-text-secondary)]">
-            <span className="inline-flex items-center gap-1.5"><Lock className="size-4" /> Local-only data</span>
-            <span className="inline-flex items-center gap-1.5"><Check className="size-4" /> No card needed</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Lock className="size-4" /> Local-only data
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Check className="size-4" /> No card needed
+            </span>
           </div>
         </div>
         <HeroVisual />
@@ -135,7 +175,9 @@ function HeroVisual() {
         </div>
         <div className="relative h-full flex flex-col justify-between text-white">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.1em] opacity-80">GLP-1 LEVEL · 7-day</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.1em] opacity-80">
+              GLP-1 LEVEL · 7-day
+            </p>
             <p className="mt-1 text-[28px] font-bold leading-tight">
               Peak <span className="font-display italic font-normal opacity-90">→ trough</span>
             </p>
@@ -161,7 +203,7 @@ function HeroVisual() {
             />
             {/* Dose markers along the curve */}
             {[0, 32].map((x) => {
-              const idx = (x / 64) * points.length | 0;
+              const idx = ((x / 64) * points.length) | 0;
               const p = points[Math.min(points.length - 1, idx)];
               if (!p) return null;
               const cx = (p.x / 64) * 320;
@@ -180,8 +222,13 @@ function HeroVisual() {
               { label: 'Phase', val: 'Titration' },
               { label: 'Adherence', val: '92%' },
             ].map((s) => (
-              <div key={s.label} className="rounded-xl bg-white/10 border border-white/15 px-3 py-2">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] opacity-70">{s.label}</div>
+              <div
+                key={s.label}
+                className="rounded-xl bg-white/10 border border-white/15 px-3 py-2"
+              >
+                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] opacity-70">
+                  {s.label}
+                </div>
                 <div className="text-[15px] font-bold mt-0.5">{s.val}</div>
               </div>
             ))}
@@ -217,9 +264,12 @@ function Features() {
     <section id="features" className="px-5 py-20 md:py-28 max-w-[1200px] mx-auto">
       <div className="text-center max-w-[640px] mx-auto mb-16">
         <h2 className="text-[clamp(28px,4vw,40px)] font-extrabold tracking-tight">
-          What no other tracker <span className="font-display italic font-normal text-[var(--color-primary)]">does</span>
+          What no other tracker{' '}
+          <span className="font-display italic font-normal text-[var(--color-primary)]">does</span>
         </h2>
-        <p className="text-[15px] text-[var(--color-text-secondary)] mt-3">Built around the science of GLP-1 — not retrofitted from a generic habit app.</p>
+        <p className="text-[15px] text-[var(--color-text-secondary)] mt-3">
+          Built around the science of GLP-1 — not retrofitted from a generic habit app.
+        </p>
       </div>
       <div className="grid md:grid-cols-3 gap-5">
         {features.map(({ Icon, title, body, Illustration }, i) => (
@@ -276,7 +326,10 @@ function Testimonials() {
     <section className="px-5 py-20 md:py-28 max-w-[1200px] mx-auto">
       <div className="text-center max-w-[640px] mx-auto mb-12">
         <h2 className="text-[clamp(28px,4vw,40px)] font-extrabold tracking-tight">
-          From real <span className="font-display italic font-normal text-[var(--color-primary)]">patients.</span>
+          From real{' '}
+          <span className="font-display italic font-normal text-[var(--color-primary)]">
+            patients.
+          </span>
         </h2>
         <p className="text-[15px] text-[var(--color-text-secondary)] mt-3">
           Names changed at request. Reviews from public communities of GLP-1 users.
@@ -292,7 +345,10 @@ function Testimonials() {
             transition={{ delay: i * 0.08, duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
             className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-7 flex flex-col gap-4"
           >
-            <div aria-hidden className="size-7 rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] inline-flex items-center justify-center font-display italic text-[22px] font-light leading-none">
+            <div
+              aria-hidden
+              className="size-7 rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] inline-flex items-center justify-center font-display italic text-[22px] font-light leading-none"
+            >
               &ldquo;
             </div>
             <blockquote className="text-[15px] leading-relaxed text-[var(--color-text)]">
@@ -316,7 +372,14 @@ function Pricing({ onStart }: { onStart: () => void }) {
       price: '$0',
       cadence: '/forever',
       description: 'Everything most people need.',
-      features: ['All 9 dashboard tabs', 'Med-level curves', 'Vial & supply tracking', 'Doctor-ready report', 'Local-only data', '1 progress card template'],
+      features: [
+        'All 9 dashboard tabs',
+        'Med-level curves',
+        'Vial & supply tracking',
+        'Doctor-ready report',
+        'Local-only data',
+        '1 progress card template',
+      ],
       cta: 'Start free',
       featured: false,
     },
@@ -325,7 +388,14 @@ function Pricing({ onStart }: { onStart: () => void }) {
       price: '$5',
       cadence: '/month',
       description: 'For people serious about their journey.',
-      features: ['Everything in Free', 'AI coach with full context', '3 progress card templates', 'Apple Health import', 'Priority support', 'Cancel anytime'],
+      features: [
+        'Everything in Free',
+        'AI coach with full context',
+        '3 progress card templates',
+        'Apple Health import',
+        'Priority support',
+        'Cancel anytime',
+      ],
       cta: 'Try Pro',
       featured: true,
     },
@@ -334,9 +404,14 @@ function Pricing({ onStart }: { onStart: () => void }) {
     <section className="px-5 py-20 md:py-28 max-w-[1100px] mx-auto">
       <div className="text-center max-w-[640px] mx-auto mb-12">
         <h2 className="text-[clamp(28px,4vw,40px)] font-extrabold tracking-tight">
-          Honest <span className="font-display italic font-normal text-[var(--color-primary)]">pricing.</span>
+          Honest{' '}
+          <span className="font-display italic font-normal text-[var(--color-primary)]">
+            pricing.
+          </span>
         </h2>
-        <p className="text-[15px] text-[var(--color-text-secondary)] mt-3">No data harvesting. No ads. Optional Pro pays for the AI.</p>
+        <p className="text-[15px] text-[var(--color-text-secondary)] mt-3">
+          No data harvesting. No ads. Optional Pro pays for the AI.
+        </p>
       </div>
       <div className="grid md:grid-cols-2 gap-5 max-w-[820px] mx-auto">
         {tiers.map((t) => (
@@ -347,23 +422,42 @@ function Pricing({ onStart }: { onStart: () => void }) {
             <div className="flex items-baseline justify-between gap-2 mb-1">
               <h3 className="text-[18px] font-bold">{t.name}</h3>
               {t.featured && (
-                <span className="text-[10px] font-bold uppercase tracking-[0.1em] bg-white/20 text-white px-2 py-1 rounded-pill">Most popular</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.1em] bg-white/20 text-white px-2 py-1 rounded-pill">
+                  Most popular
+                </span>
               )}
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-[44px] font-extrabold tracking-tight">{t.price}</span>
-              <span className={`text-[14px] ${t.featured ? 'text-white/70' : 'text-[var(--color-text-secondary)]'}`}>{t.cadence}</span>
+              <span
+                className={`text-[14px] ${t.featured ? 'text-white/70' : 'text-[var(--color-text-secondary)]'}`}
+              >
+                {t.cadence}
+              </span>
             </div>
-            <p className={`text-[13px] mt-1 ${t.featured ? 'text-white/80' : 'text-[var(--color-text-secondary)]'}`}>{t.description}</p>
+            <p
+              className={`text-[13px] mt-1 ${t.featured ? 'text-white/80' : 'text-[var(--color-text-secondary)]'}`}
+            >
+              {t.description}
+            </p>
             <ul className="mt-6 space-y-2.5">
               {t.features.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-[14px]">
-                  <Check className={`size-4 mt-[3px] shrink-0 ${t.featured ? 'text-white' : 'text-[var(--color-primary)]'}`} />
-                  <span className={t.featured ? 'text-white/95' : 'text-[var(--color-text)]'}>{f}</span>
+                  <Check
+                    className={`size-4 mt-[3px] shrink-0 ${t.featured ? 'text-white' : 'text-[var(--color-primary)]'}`}
+                  />
+                  <span className={t.featured ? 'text-white/95' : 'text-[var(--color-text)]'}>
+                    {f}
+                  </span>
                 </li>
               ))}
             </ul>
-            <Button onClick={onStart} variant={t.featured ? 'inverse' : 'primary'} block className="mt-7">
+            <Button
+              onClick={onStart}
+              variant={t.featured ? 'inverse' : 'primary'}
+              block
+              className="mt-7"
+            >
               {t.cta}
             </Button>
           </div>
@@ -375,17 +469,35 @@ function Pricing({ onStart }: { onStart: () => void }) {
 
 function FAQ() {
   const items = [
-    { q: 'Is my data shared with anyone?', a: "No. Everything lives in your browser's localStorage. We never send your weight, dose, or notes to any server. The only exception is the AI coach, which sends just your prompt + the relevant context to Anthropic's API using your own key." },
-    { q: 'Will this replace my doctor?', a: 'No. LeanShot is an educational tracking tool. It surfaces patterns and produces a doctor-ready summary you can bring to visits. Always defer to your prescriber for clinical decisions.' },
-    { q: 'How accurate are the medication-level curves?', a: 'They use peer-reviewed half-life values for each medication and your actual dose log. Real plasma levels vary with body composition, injection site, and timing — treat the curve as a clinically-grounded estimate, not lab data.' },
-    { q: 'Does AI cost extra?', a: 'You bring your own Anthropic API key (free to create at console.anthropic.com). Costs are pennies per month for typical use. Pro adds priority support and unlimited progress card templates.' },
-    { q: 'Can I export my data?', a: 'Yes. Settings → Data → Export gives you a complete JSON file. Re-import it later or take it to another tool.' },
+    {
+      q: 'Is my data shared with anyone?',
+      a: "No. Everything lives in your browser's localStorage. We never send your weight, dose, or notes to any server. The only exception is the AI coach, which sends just your prompt + the relevant context to Anthropic's API using your own key.",
+    },
+    {
+      q: 'Will this replace my doctor?',
+      a: 'No. LeanShot is an educational tracking tool. It surfaces patterns and produces a doctor-ready summary you can bring to visits. Always defer to your prescriber for clinical decisions.',
+    },
+    {
+      q: 'How accurate are the medication-level curves?',
+      a: 'They use peer-reviewed half-life values for each medication and your actual dose log. Real plasma levels vary with body composition, injection site, and timing — treat the curve as a clinically-grounded estimate, not lab data.',
+    },
+    {
+      q: 'Does AI cost extra?',
+      a: 'You bring your own Anthropic API key (free to create at console.anthropic.com). Costs are pennies per month for typical use. Pro adds priority support and unlimited progress card templates.',
+    },
+    {
+      q: 'Can I export my data?',
+      a: 'Yes. Settings → Data → Export gives you a complete JSON file. Re-import it later or take it to another tool.',
+    },
   ];
   return (
     <section className="px-5 py-20 md:py-28 max-w-[820px] mx-auto">
       <div className="text-center mb-12">
         <h2 className="text-[clamp(28px,4vw,40px)] font-extrabold tracking-tight">
-          Common <span className="font-display italic font-normal text-[var(--color-primary)]">questions.</span>
+          Common{' '}
+          <span className="font-display italic font-normal text-[var(--color-primary)]">
+            questions.
+          </span>
         </h2>
       </div>
       <div className="space-y-2">
@@ -407,7 +519,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
       >
         <span className="text-[15px] font-semibold">{q}</span>
-        <ChevronDown className={`size-5 text-[var(--color-text-secondary)] transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`size-5 text-[var(--color-text-secondary)] transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
       {open && (
         <div className="px-5 pb-5 text-[14px] text-[var(--color-text-secondary)] leading-relaxed border-t border-[var(--color-border)] pt-4">
@@ -434,15 +548,25 @@ function Footer() {
           </p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mb-2">Trust</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mb-2">
+            Trust
+          </p>
           <ul className="space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
-            <li className="flex items-center gap-2"><Lock className="size-3.5" /> Local-only by default</li>
-            <li className="flex items-center gap-2"><Shield className="size-3.5" /> No third-party analytics</li>
-            <li className="flex items-center gap-2"><Check className="size-3.5" /> Open data export</li>
+            <li className="flex items-center gap-2">
+              <Lock className="size-3.5" /> Local-only by default
+            </li>
+            <li className="flex items-center gap-2">
+              <Shield className="size-3.5" /> No third-party analytics
+            </li>
+            <li className="flex items-center gap-2">
+              <Check className="size-3.5" /> Open data export
+            </li>
           </ul>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mb-2">Legal</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mb-2">
+            Legal
+          </p>
           <ul className="space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
             <li>Privacy policy</li>
             <li>Terms of service</li>

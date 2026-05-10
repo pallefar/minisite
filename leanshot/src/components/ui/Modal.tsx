@@ -1,6 +1,6 @@
-import { useEffect, type ReactNode } from 'react';
-import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/helpers';
 import { IconButton } from './Button';
 
@@ -78,7 +78,10 @@ export function Modal({
             {(title || !hideClose || headerAction) && (
               <div className="flex items-center gap-2 px-5 md:px-6 pt-5 md:pt-6 pb-3 md:pb-4 border-b border-[var(--color-border)]">
                 {/* Mobile drag handle */}
-                <span aria-hidden className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 h-1 w-10 rounded-pill bg-[var(--color-border-strong)]" />
+                <span
+                  aria-hidden
+                  className="md:hidden absolute top-2 left-1/2 -translate-x-1/2 h-1 w-10 rounded-pill bg-[var(--color-border-strong)]"
+                />
                 <h2 className="flex-1 text-[16px] font-bold tracking-tight">{title}</h2>
                 {headerAction}
                 {!hideClose && (

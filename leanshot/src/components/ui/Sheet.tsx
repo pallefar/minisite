@@ -1,5 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/helpers';
 
 export interface SheetProps {
@@ -67,11 +67,12 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
               className="pt-3 pb-1 cursor-grab active:cursor-grabbing flex justify-center"
               onPointerDown={(e) => controls.start(e)}
             >
-              <span aria-hidden className="block h-1.5 w-12 rounded-pill bg-[var(--color-border-strong)]" />
+              <span
+                aria-hidden
+                className="block h-1.5 w-12 rounded-pill bg-[var(--color-border-strong)]"
+              />
             </div>
-            {title && (
-              <h2 className="px-5 pb-3 text-[16px] font-bold tracking-tight">{title}</h2>
-            )}
+            {title && <h2 className="px-5 pb-3 text-[16px] font-bold tracking-tight">{title}</h2>}
             <div className="overflow-y-auto px-5 pb-6 safe-bottom">{children}</div>
           </motion.div>
         </motion.div>

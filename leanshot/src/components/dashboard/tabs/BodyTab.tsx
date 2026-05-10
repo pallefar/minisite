@@ -1,18 +1,28 @@
+import {
+  Scale,
+  Ruler,
+  Camera,
+  ChartLine,
+  ListChecks,
+  Plus,
+  X,
+  Target,
+  ArrowLeftRight,
+} from 'lucide-react';
 import { useState } from 'react';
-import { Scale, Ruler, Camera, ChartLine, ListChecks, Plus, X, Target, ArrowLeftRight } from 'lucide-react';
-import { Card, CardHeader, StatTile } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { ProgressBar } from '@/components/ui/ProgressRing';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
-import { EmptyPhotos } from '@/illustrations/EmptyPhotos';
 import { WeightChart, CompositionChart } from '@/components/dashboard/charts/SimpleCharts';
 import { PhotoCompareModal } from '@/components/dashboard/modals/PhotoCompareModal';
-import { useStore } from '@/lib/store';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader, StatTile } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Input } from '@/components/ui/Input';
+import { ProgressBar } from '@/components/ui/ProgressRing';
+import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
 import { useToast } from '@/hooks/useToast';
+import { EmptyPhotos } from '@/illustrations/EmptyPhotos';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
+import { useStore } from '@/lib/store';
 import type { Measurement, Photo } from '@/types';
 
 export function BodyTab() {
@@ -28,7 +38,14 @@ export function BodyTab() {
 
   const [compareOpen, setCompareOpen] = useState(false);
   const [wForm, setWForm] = useState({ date: todayStr(), value: '', bf: '' });
-  const [meas, setMeas] = useState({ waist: '', hips: '', chest: '', neck: '', arms: '', thighs: '' });
+  const [meas, setMeas] = useState({
+    waist: '',
+    hips: '',
+    chest: '',
+    neck: '',
+    arms: '',
+    thighs: '',
+  });
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
   const latest = weights[weights.length - 1];
@@ -113,15 +130,25 @@ export function BodyTab() {
       <StatTile label="Current weight" value={latest ? latest.weight.toFixed(1) : '—'} unit={wU} />
       <StatTile label="Total lost" value={lost.toFixed(1)} unit={wU} />
       <StatTile label="Goal progress" value={`${Math.round(goalPct)}%`} />
-      <StatTile label="Est. lean mass" value={lean ? lean.toFixed(1) : 'Log BF%'} unit={lean ? wU : ''} />
+      <StatTile
+        label="Est. lean mass"
+        value={lean ? lean.toFixed(1) : 'Log BF%'}
+        unit={lean ? wU : ''}
+      />
 
       {trial && weeks > 2 && (
         <Card span={12}>
           <CardHeader title="vs. clinical trial average" icon={<Target className="size-4" />} />
           <div className="grid grid-cols-2 gap-4 items-center">
             <div>
-              <p className="text-[12px] text-[var(--color-text-secondary)]">Your loss at week {weeks}</p>
-              <p className={`text-[28px] font-extrabold tracking-tight ${ahead ? 'text-[var(--color-success)]' : ''}`}>{myPct.toFixed(1)}%</p>
+              <p className="text-[12px] text-[var(--color-text-secondary)]">
+                Your loss at week {weeks}
+              </p>
+              <p
+                className={`text-[28px] font-extrabold tracking-tight ${ahead ? 'text-[var(--color-success)]' : ''}`}
+              >
+                {myPct.toFixed(1)}%
+              </p>
             </div>
             <div>
               <p className="text-[12px] text-[var(--color-text-secondary)]">Trial average</p>
@@ -129,7 +156,10 @@ export function BodyTab() {
             </div>
           </div>
           <p className="text-[12px] text-[var(--color-text-secondary)] mt-3">
-            {ahead ? 'Ahead of trial average — keep your protein up.' : "Trial averages don't reflect everyone — your pace is your own."} <em>STEP/SURMOUNT data.</em>
+            {ahead
+              ? 'Ahead of trial average — keep your protein up.'
+              : "Trial averages don't reflect everyone — your pace is your own."}{' '}
+            <em>STEP/SURMOUNT data.</em>
           </p>
         </Card>
       )}
@@ -138,7 +168,12 @@ export function BodyTab() {
         <CardHeader title="Log weight" icon={<Scale className="size-4" />} />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Date" type="date" value={wForm.date} onChange={(e) => setWForm({ ...wForm, date: e.target.value })} />
+            <Input
+              label="Date"
+              type="date"
+              value={wForm.date}
+              onChange={(e) => setWForm({ ...wForm, date: e.target.value })}
+            />
             <Input
               label={`Weight (${wU})`}
               type="number"
@@ -156,7 +191,9 @@ export function BodyTab() {
             value={wForm.bf}
             onChange={(e) => setWForm({ ...wForm, bf: e.target.value })}
           />
-          <Button block onClick={submitWeight}>Save weight</Button>
+          <Button block onClick={submitWeight}>
+            Save weight
+          </Button>
         </div>
       </Card>
 
@@ -191,14 +228,24 @@ export function BodyTab() {
           icon={<Camera className="size-4" />}
           action={
             photos.length >= 2 ? (
-              <Button variant="secondary" size="sm" onClick={() => setCompareOpen(true)} leadingIcon={<ArrowLeftRight className="size-3.5" />}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setCompareOpen(true)}
+                leadingIcon={<ArrowLeftRight className="size-3.5" />}
+              >
                 Compare
               </Button>
             ) : undefined
           }
         />
         <input type="file" accept="image/*" id="photo-up" hidden onChange={onPhoto} />
-        <Button variant="ghost" block leadingIcon={<Plus className="size-4" />} onClick={() => document.getElementById('photo-up')?.click()}>
+        <Button
+          variant="ghost"
+          block
+          leadingIcon={<Plus className="size-4" />}
+          onClick={() => document.getElementById('photo-up')?.click()}
+        >
           Add photo
         </Button>
         {photos.length === 0 ? (
@@ -211,11 +258,19 @@ export function BodyTab() {
         ) : (
           <div className="grid grid-cols-3 gap-2 mt-3">
             {photos.map((p, i) => (
-              <SwipeToDelete key={i} onDelete={() => removePhoto(i)} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--color-surface-elevated)] border border-[var(--color-border)] group">
+              <SwipeToDelete
+                key={i}
+                onDelete={() => removePhoto(i)}
+                className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--color-surface-elevated)] border border-[var(--color-border)] group"
+              >
                 <img src={p.data} alt="" className="w-full h-full object-cover absolute inset-0" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent text-white px-2 py-1.5 text-[10px] font-semibold">
                   <p>{formatShort(p.date)}</p>
-                  {p.weight && <p className="opacity-80">{p.weight.toFixed(1)} {wU}</p>}
+                  {p.weight && (
+                    <p className="opacity-80">
+                      {p.weight.toFixed(1)} {wU}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => removePhoto(i)}
@@ -240,7 +295,9 @@ export function BodyTab() {
       <Card span={12}>
         <CardHeader title="Weight history" icon={<ListChecks className="size-4" />} />
         {weights.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">Log your first weight above.</p>
+          <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">
+            Log your first weight above.
+          </p>
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-[13px]">
@@ -261,17 +318,32 @@ export function BodyTab() {
                   return (
                     <tr key={w.date} className="border-t border-[var(--color-border)]">
                       <td className="py-2 px-1">{formatShort(w.date)}</td>
-                      <td className="py-2 px-1 font-bold numerals-tabular">{w.weight.toFixed(1)} {wU}</td>
+                      <td className="py-2 px-1 font-bold numerals-tabular">
+                        {w.weight.toFixed(1)} {wU}
+                      </td>
                       <td className="py-2 px-1">{w.bodyFat ? `${w.bodyFat.toFixed(1)}%` : '—'}</td>
                       <td className="py-2 px-1">
                         {delta ? (
-                          <span className={delta < 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'}>
-                            {delta < 0 ? '↓' : '↑'}{Math.abs(delta).toFixed(1)}
+                          <span
+                            className={
+                              delta < 0
+                                ? 'text-[var(--color-success)]'
+                                : 'text-[var(--color-warning)]'
+                            }
+                          >
+                            {delta < 0 ? '↓' : '↑'}
+                            {Math.abs(delta).toFixed(1)}
                           </span>
-                        ) : '—'}
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="py-2 px-1 text-right">
-                        <button onClick={() => removeWeight(realIdx)} aria-label="Delete" className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center">
+                        <button
+                          onClick={() => removeWeight(realIdx)}
+                          aria-label="Delete"
+                          className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
+                        >
                           <X className="size-4" />
                         </button>
                       </td>
@@ -283,7 +355,13 @@ export function BodyTab() {
           </div>
         )}
         {weights.length > 0 && (
-          <ProgressBar value={goalPct} className="mt-4" color="var(--color-success)" thickness="thick" label="Goal progress" />
+          <ProgressBar
+            value={goalPct}
+            className="mt-4"
+            color="var(--color-success)"
+            thickness="thick"
+            label="Goal progress"
+          />
         )}
       </Card>
 

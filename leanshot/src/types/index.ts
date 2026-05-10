@@ -40,7 +40,7 @@ export interface User {
   medication: MedicationId;
   dose: string;
   doseUnit: DoseUnit;
-  startDate: string;          // YYYY-MM-DD
+  startDate: string; // YYYY-MM-DD
   startWeight: number;
   height: number | null;
   age: number | null;
@@ -52,14 +52,14 @@ export interface User {
   calorieTarget: number;
   fiberTarget: number;
   waterTarget: number;
-  injectionDay: number;        // 0=Sun..6=Sat
+  injectionDay: number; // 0=Sun..6=Sat
   activityLevel: ActivityLevel;
   liftingLevel: LiftingLevel;
-  createdAt: string;           // ISO
+  createdAt: string; // ISO
 }
 
 export interface Injection {
-  datetime: string;            // ISO
+  datetime: string; // ISO
   dose: string;
   unit: DoseUnit;
   site: InjectionSite | null;
@@ -67,14 +67,14 @@ export interface Injection {
 }
 
 export interface SymptomLog {
-  date: string;                // ISO
-  symptom: string;             // id from SYMPTOMS_LIST
+  date: string; // ISO
+  symptom: string; // id from SYMPTOMS_LIST
   severity: 1 | 2 | 3 | 4 | 5;
   notes: string;
 }
 
 export interface WeightLog {
-  date: string;                // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   weight: number;
   bodyFat: number | null;
   ts: number;
@@ -91,7 +91,7 @@ export interface Measurement {
 }
 
 export interface Meal {
-  date: string;                // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   name: string;
   calories: number;
   protein: number;
@@ -147,7 +147,7 @@ export interface SleepLog {
 
 export interface Photo {
   date: string;
-  data: string;                // dataURL
+  data: string; // dataURL
   weight: number | null;
 }
 

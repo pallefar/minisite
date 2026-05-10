@@ -13,7 +13,12 @@ export interface VialIllustrationProps {
   className?: string;
 }
 
-export function VialIllustration({ fillPct, size = 64, warning, className }: VialIllustrationProps) {
+export function VialIllustration({
+  fillPct,
+  size = 64,
+  warning,
+  className,
+}: VialIllustrationProps) {
   const reduced = useReducedMotion();
   const stroke = warning ? 'var(--color-warning)' : 'var(--color-primary)';
   const liquid = warning ? 'var(--color-warning)' : 'var(--color-primary)';
@@ -74,7 +79,16 @@ export function VialIllustration({ fillPct, size = 64, warning, className }: Via
       </g>
 
       {/* glass shine */}
-      <line x1="18" y1="30" x2="18" y2="68" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+      <line
+        x1="18"
+        y1="30"
+        x2="18"
+        y2="68"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
     </svg>
   );
 }

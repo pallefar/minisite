@@ -1,28 +1,58 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { useStore } from '@/lib/store';
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Card } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { useStore } from '@/lib/store';
 
 // Tab content modules — lazy-loaded so the initial bundle stays lean.
-const HomeTab = lazy(() => import('@/components/dashboard/tabs/HomeTab').then((m) => ({ default: m.HomeTab })));
-const MedicationTab = lazy(() => import('@/components/dashboard/tabs/MedicationTab').then((m) => ({ default: m.MedicationTab })));
-const SymptomsTab = lazy(() => import('@/components/dashboard/tabs/SymptomsTab').then((m) => ({ default: m.SymptomsTab })));
-const BodyTab = lazy(() => import('@/components/dashboard/tabs/BodyTab').then((m) => ({ default: m.BodyTab })));
-const NutritionTab = lazy(() => import('@/components/dashboard/tabs/NutritionTab').then((m) => ({ default: m.NutritionTab })));
-const ActivityTab = lazy(() => import('@/components/dashboard/tabs/ActivityTab').then((m) => ({ default: m.ActivityTab })));
-const SupplementsTab = lazy(() => import('@/components/dashboard/tabs/SupplementsTab').then((m) => ({ default: m.SupplementsTab })));
-const MoodTab = lazy(() => import('@/components/dashboard/tabs/MoodTab').then((m) => ({ default: m.MoodTab })));
-const InsightsTab = lazy(() => import('@/components/dashboard/tabs/InsightsTab').then((m) => ({ default: m.InsightsTab })));
+const HomeTab = lazy(() =>
+  import('@/components/dashboard/tabs/HomeTab').then((m) => ({ default: m.HomeTab })),
+);
+const MedicationTab = lazy(() =>
+  import('@/components/dashboard/tabs/MedicationTab').then((m) => ({ default: m.MedicationTab })),
+);
+const SymptomsTab = lazy(() =>
+  import('@/components/dashboard/tabs/SymptomsTab').then((m) => ({ default: m.SymptomsTab })),
+);
+const BodyTab = lazy(() =>
+  import('@/components/dashboard/tabs/BodyTab').then((m) => ({ default: m.BodyTab })),
+);
+const NutritionTab = lazy(() =>
+  import('@/components/dashboard/tabs/NutritionTab').then((m) => ({ default: m.NutritionTab })),
+);
+const ActivityTab = lazy(() =>
+  import('@/components/dashboard/tabs/ActivityTab').then((m) => ({ default: m.ActivityTab })),
+);
+const SupplementsTab = lazy(() =>
+  import('@/components/dashboard/tabs/SupplementsTab').then((m) => ({ default: m.SupplementsTab })),
+);
+const MoodTab = lazy(() =>
+  import('@/components/dashboard/tabs/MoodTab').then((m) => ({ default: m.MoodTab })),
+);
+const InsightsTab = lazy(() =>
+  import('@/components/dashboard/tabs/InsightsTab').then((m) => ({ default: m.InsightsTab })),
+);
 
-const Onboarding = lazy(() => import('@/components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })));
-const Marketing = lazy(() => import('@/components/marketing/Landing').then((m) => ({ default: m.Landing })));
+const Onboarding = lazy(() =>
+  import('@/components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })),
+);
+const Marketing = lazy(() =>
+  import('@/components/marketing/Landing').then((m) => ({ default: m.Landing })),
+);
 
-const AIChatPanel = lazy(() => import('@/components/dashboard/ai/AIChatPanel').then((m) => ({ default: m.AIChatPanel })));
-const SettingsPage = lazy(() => import('@/components/dashboard/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
-const DoctorReport = lazy(() => import('@/components/dashboard/modals/DoctorReport').then((m) => ({ default: m.DoctorReport })));
-const GuidedTour = lazy(() => import('@/components/dashboard/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })));
+const AIChatPanel = lazy(() =>
+  import('@/components/dashboard/ai/AIChatPanel').then((m) => ({ default: m.AIChatPanel })),
+);
+const SettingsPage = lazy(() =>
+  import('@/components/dashboard/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
+const DoctorReport = lazy(() =>
+  import('@/components/dashboard/modals/DoctorReport').then((m) => ({ default: m.DoctorReport })),
+);
+const GuidedTour = lazy(() =>
+  import('@/components/dashboard/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })),
+);
 
 type View = 'marketing' | 'onboarding' | 'dashboard';
 
@@ -76,10 +106,7 @@ export function App() {
   if (view === 'onboarding') {
     return (
       <Suspense fallback={<FullPageLoader />}>
-        <Onboarding
-          onCancel={() => setView('marketing')}
-          onComplete={() => setView('dashboard')}
-        />
+        <Onboarding onCancel={() => setView('marketing')} onComplete={() => setView('dashboard')} />
       </Suspense>
     );
   }
@@ -110,7 +137,9 @@ export function App() {
 
       <Suspense fallback={null}>
         {aiOpen && <AIChatPanel open={aiOpen} onClose={() => setAIOpen(false)} />}
-        {settingsOpen && <SettingsPage open={settingsOpen} onClose={() => setSettingsOpen(false)} />}
+        {settingsOpen && (
+          <SettingsPage open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        )}
         {reportOpen && <DoctorReport open={reportOpen} onClose={() => setReportOpen(false)} />}
         {tourOpen && <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />}
       </Suspense>
@@ -129,11 +158,21 @@ function FullPageLoader() {
 function TabLoader() {
   return (
     <div className="grid grid-cols-12 gap-4">
-      <Card span={7} className="min-h-[340px]"><Skeleton className="w-full h-full" /></Card>
-      <Card span={5} className="min-h-[340px]"><Skeleton className="w-full h-full" /></Card>
-      <Card span={4} className="min-h-[180px]"><Skeleton className="w-full h-full" /></Card>
-      <Card span={4} className="min-h-[180px]"><Skeleton className="w-full h-full" /></Card>
-      <Card span={4} className="min-h-[180px]"><Skeleton className="w-full h-full" /></Card>
+      <Card span={7} className="min-h-[340px]">
+        <Skeleton className="w-full h-full" />
+      </Card>
+      <Card span={5} className="min-h-[340px]">
+        <Skeleton className="w-full h-full" />
+      </Card>
+      <Card span={4} className="min-h-[180px]">
+        <Skeleton className="w-full h-full" />
+      </Card>
+      <Card span={4} className="min-h-[180px]">
+        <Skeleton className="w-full h-full" />
+      </Card>
+      <Card span={4} className="min-h-[180px]">
+        <Skeleton className="w-full h-full" />
+      </Card>
     </div>
   );
 }

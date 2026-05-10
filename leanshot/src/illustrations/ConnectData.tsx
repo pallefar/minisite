@@ -18,8 +18,22 @@ export function ConnectData({ className }: { className?: string }) {
         </linearGradient>
       </defs>
       {/* left node */}
-      <rect x="20" y="48" width="44" height="44" rx="10" fill="url(#cd-fill)" stroke="var(--color-primary)" strokeWidth="1.4" />
-      <path d="M30 70 L40 70 M44 70 L54 70" stroke="var(--color-primary)" strokeWidth="1.4" strokeLinecap="round" />
+      <rect
+        x="20"
+        y="48"
+        width="44"
+        height="44"
+        rx="10"
+        fill="url(#cd-fill)"
+        stroke="var(--color-primary)"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M30 70 L40 70 M44 70 L54 70"
+        stroke="var(--color-primary)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
       <circle cx="42" cy="62" r="2" fill="var(--color-primary)" />
       {/* bridge dots */}
       <g fill="var(--color-primary)">
@@ -28,10 +42,32 @@ export function ConnectData({ className }: { className?: string }) {
         <circle cx="106" cy="70" r="1.8" opacity="0.5" />
       </g>
       {/* arrow tail */}
-      <path d="M64 70 Q100 30 138 70" stroke="var(--color-primary)" strokeWidth="1.4" strokeDasharray="3 4" strokeLinecap="round" />
+      <path
+        d="M64 70 Q100 30 138 70"
+        stroke="var(--color-primary)"
+        strokeWidth="1.4"
+        strokeDasharray="3 4"
+        strokeLinecap="round"
+      />
       {/* right node — leanshot */}
-      <rect x="136" y="48" width="44" height="44" rx="10" fill="var(--color-primary)" stroke="var(--color-primary)" strokeWidth="1.4" />
-      <path d="M150 70 L156 70 L162 64 L158 76 L164 70 L170 70" stroke="white" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" fill="none" />
+      <rect
+        x="136"
+        y="48"
+        width="44"
+        height="44"
+        rx="10"
+        fill="var(--color-primary)"
+        stroke="var(--color-primary)"
+        strokeWidth="1.4"
+      />
+      <path
+        d="M150 70 L156 70 L162 64 L158 76 L164 70 L170 70"
+        stroke="white"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   );
 }

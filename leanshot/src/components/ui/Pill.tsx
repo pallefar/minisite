@@ -7,7 +7,14 @@ export interface PillProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leadingIcon?: ReactNode;
 }
 
-export function Pill({ active, size = 'md', leadingIcon, className, children, ...rest }: PillProps) {
+export function Pill({
+  active,
+  size = 'md',
+  leadingIcon,
+  className,
+  children,
+  ...rest
+}: PillProps) {
   return (
     <button
       type="button"

@@ -15,13 +15,11 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const variantClasses: Record<CardVariant, string> = {
   default:
     'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)]',
-  elevated:
-    'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow)]',
+  elevated: 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow)]',
   interactive:
     'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow)] hover:-translate-y-[2px] hover:border-[var(--color-primary-soft)] transition-[transform,box-shadow,border-color] cursor-pointer',
   hero: '',
-  flat:
-    'bg-[var(--color-surface-elevated)] border border-[var(--color-border)]',
+  flat: 'bg-[var(--color-surface-elevated)] border border-[var(--color-border)]',
 };
 
 const paddingClasses: Record<NonNullable<CardProps['padding']>, string> = {
@@ -97,10 +95,16 @@ export interface StatTileProps {
 export function StatTile({ label, value, unit, delta, span = 3 }: StatTileProps) {
   return (
     <Card span={span} padding="md" variant="default">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-tertiary)]">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-tertiary)]">
+        {label}
+      </div>
       <div className="mt-1.5 text-[26px] font-bold leading-tight numerals-tabular tracking-tight">
         {value}
-        {unit && <span className="ml-1 text-[12px] font-medium text-[var(--color-text-secondary)]">{unit}</span>}
+        {unit && (
+          <span className="ml-1 text-[12px] font-medium text-[var(--color-text-secondary)]">
+            {unit}
+          </span>
+        )}
       </div>
       {delta && (
         <div

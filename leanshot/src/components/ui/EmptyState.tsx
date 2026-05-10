@@ -21,11 +21,17 @@ export function EmptyState({ illustration, title, body, cta, className, inline }
       )}
     >
       {illustration && (
-        <div className="text-[var(--color-text-tertiary)] motion-safe:animate-rise">{illustration}</div>
+        <div className="text-[var(--color-text-tertiary)] motion-safe:animate-rise">
+          {illustration}
+        </div>
       )}
       <div className="space-y-1">
         <h3 className="text-[15px] font-semibold text-[var(--color-text)]">{title}</h3>
-        {body && <p className="text-[13px] text-[var(--color-text-secondary)] max-w-[34ch] leading-snug">{body}</p>}
+        {body && (
+          <p className="text-[13px] text-[var(--color-text-secondary)] max-w-[34ch] leading-snug">
+            {body}
+          </p>
+        )}
       </div>
       {cta && <div className="mt-1">{cta}</div>}
     </div>

@@ -1,5 +1,5 @@
-import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -29,11 +29,7 @@ export function ConfirmModal({
         <Button variant="ghost" size="sm" onClick={onCancel}>
           {cancelLabel}
         </Button>
-        <Button
-          variant={destructive ? 'destructive' : 'primary'}
-          size="sm"
-          onClick={onConfirm}
-        >
+        <Button variant={destructive ? 'destructive' : 'primary'} size="sm" onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </div>

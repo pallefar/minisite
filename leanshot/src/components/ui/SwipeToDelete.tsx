@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { Trash2 } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 export interface SwipeToDeleteProps {
@@ -47,7 +47,10 @@ export function SwipeToDelete({ onDelete, children, className }: SwipeToDeletePr
   );
 
   return (
-    <div className={className} style={{ position: 'relative', overflow: 'hidden', borderRadius: 'inherit' }}>
+    <div
+      className={className}
+      style={{ position: 'relative', overflow: 'hidden', borderRadius: 'inherit' }}
+    >
       <div
         aria-hidden
         className="absolute inset-y-0 right-0 w-[120px] flex items-center justify-end pr-5 bg-[var(--color-danger)] text-white"

@@ -1,11 +1,11 @@
 import { Flame, RotateCcw, ChartLine, Check } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { SuppChart } from '@/components/dashboard/charts/SimpleCharts';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { SUPPS_DEFAULT } from '@/lib/constants';
-import { useStore } from '@/lib/store';
 import { todayStr, cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 
 export function SupplementsTab() {
   const today = todayStr();
@@ -23,8 +23,15 @@ export function SupplementsTab() {
           icon={<Flame className="size-4" />}
           action={
             <div className="flex items-center gap-2">
-              <Badge tone="info">{count} / {SUPPS_DEFAULT.length}</Badge>
-              <Button variant="secondary" size="sm" onClick={() => reset(today)} leadingIcon={<RotateCcw className="size-3.5" />}>
+              <Badge tone="info">
+                {count} / {SUPPS_DEFAULT.length}
+              </Badge>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => reset(today)}
+                leadingIcon={<RotateCcw className="size-3.5" />}
+              >
                 Reset
               </Button>
             </div>
@@ -54,18 +61,26 @@ export function SupplementsTab() {
                   </span>
                   <div className="min-w-0">
                     <p className="text-[14px] font-bold leading-tight">{s.name}</p>
-                    <p className="text-[11px] text-[var(--color-text-tertiary)] truncate">{s.brand}</p>
+                    <p className="text-[11px] text-[var(--color-text-tertiary)] truncate">
+                      {s.brand}
+                    </p>
                   </div>
                 </div>
-                <p className="text-[12px] text-[var(--color-text-secondary)] leading-snug mb-3">{s.why}</p>
+                <p className="text-[12px] text-[var(--color-text-secondary)] leading-snug mb-3">
+                  {s.why}
+                </p>
                 <div className="flex gap-2">
-                  <Button variant={isTaken ? 'ghost' : 'primary'} size="sm" onClick={() => toggle(today, s.id)}>
+                  <Button
+                    variant={isTaken ? 'ghost' : 'primary'}
+                    size="sm"
+                    onClick={() => toggle(today, s.id)}
+                  >
                     {isTaken ? 'Undo' : 'Logged'}
                   </Button>
                   <a
                     href={`https://www.amazon.com/s?k=${s.search}`}
                     target="_blank"
-                    rel="noopener"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center h-8 px-3 rounded-pill bg-transparent border border-[var(--color-border-strong)] text-[13px] font-semibold hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                   >
                     Reorder

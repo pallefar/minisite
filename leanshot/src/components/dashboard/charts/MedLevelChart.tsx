@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useStore } from '@/lib/store';
 import { useTheme } from '@/hooks/useTheme';
-import { BaseChart } from './BaseChart';
-import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
 import { getChartTokens } from '@/lib/chart-theme';
+import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
+import { useStore } from '@/lib/store';
+import { BaseChart } from './BaseChart';
 
 /** 28-day past + 7-day projected medication level chart. */
 export function MedLevelChart({ height = 280 }: { height?: number }) {
@@ -32,7 +32,9 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
       }
     }
     // Bridge the gap so the line connects past → projected
-    const lastPast = past.findIndex((v, i, a) => v != null && (i === a.length - 1 || a[i + 1] == null));
+    const lastPast = past.findIndex(
+      (v, i, a) => v != null && (i === a.length - 1 || a[i + 1] == null),
+    );
     if (lastPast >= 0 && future[lastPast + 1] !== undefined) future[lastPast] = past[lastPast]!;
 
     return {

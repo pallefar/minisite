@@ -40,10 +40,45 @@ export function EmptySymptoms({ className }: { className?: string }) {
         strokeLinejoin="round"
       />
       {/* horizon */}
-      <line x1="28" y1="100" x2="172" y2="100" stroke="var(--color-text-tertiary)" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="36" y1="112" x2="60" y2="112" stroke="var(--color-text-tertiary)" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-      <line x1="76" y1="112" x2="124" y2="112" stroke="var(--color-text-tertiary)" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-      <line x1="140" y1="112" x2="164" y2="112" stroke="var(--color-text-tertiary)" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line
+        x1="28"
+        y1="100"
+        x2="172"
+        y2="100"
+        stroke="var(--color-text-tertiary)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      <line
+        x1="36"
+        y1="112"
+        x2="60"
+        y2="112"
+        stroke="var(--color-text-tertiary)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+      <line
+        x1="76"
+        y1="112"
+        x2="124"
+        y2="112"
+        stroke="var(--color-text-tertiary)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+      <line
+        x1="140"
+        y1="112"
+        x2="164"
+        y2="112"
+        stroke="var(--color-text-tertiary)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
     </svg>
   );
 }

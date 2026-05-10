@@ -23,10 +23,35 @@ export function EmptyInjections({ className }: { className?: string }) {
       </g>
       {/* pen body */}
       <g transform="rotate(-22 110 80)">
-        <rect x="60" y="68" width="100" height="24" rx="12" fill="url(#ej-pen)" stroke="var(--color-primary)" strokeWidth="1.4" />
-        <rect x="64" y="74" width="20" height="12" rx="3" fill="var(--color-primary)" opacity="0.18" />
+        <rect
+          x="60"
+          y="68"
+          width="100"
+          height="24"
+          rx="12"
+          fill="url(#ej-pen)"
+          stroke="var(--color-primary)"
+          strokeWidth="1.4"
+        />
+        <rect
+          x="64"
+          y="74"
+          width="20"
+          height="12"
+          rx="3"
+          fill="var(--color-primary)"
+          opacity="0.18"
+        />
         <circle cx="146" cy="80" r="3" fill="var(--color-primary)" />
-        <line x1="160" y1="80" x2="176" y2="80" stroke="var(--color-primary)" strokeWidth="1.4" strokeLinecap="round" />
+        <line
+          x1="160"
+          y1="80"
+          x2="176"
+          y2="80"
+          stroke="var(--color-primary)"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
       </g>
       {/* drop catching the light */}
       <path

@@ -1,7 +1,7 @@
 import { ArrowUpRight, Syringe } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
-import { useStore } from '@/lib/store';
 import { SITES } from '@/lib/constants';
+import { useStore } from '@/lib/store';
 import type { InjectionSite } from '@/types';
 
 /** Body figure with site dots, color-coded by recency. */
@@ -10,8 +10,14 @@ export function SiteRotationCard() {
   const setTab = useStore((s) => s.setTab);
 
   const status: Record<InjectionSite, 'recent' | 'older' | 'next' | 'empty'> = {
-    'abdomen-ul': 'empty', 'abdomen-ur': 'empty', 'abdomen-ll': 'empty', 'abdomen-lr': 'empty',
-    'thigh-l': 'empty', 'thigh-r': 'empty', 'arm-l': 'empty', 'arm-r': 'empty',
+    'abdomen-ul': 'empty',
+    'abdomen-ur': 'empty',
+    'abdomen-ll': 'empty',
+    'abdomen-lr': 'empty',
+    'thigh-l': 'empty',
+    'thigh-r': 'empty',
+    'arm-l': 'empty',
+    'arm-r': 'empty',
   };
   injections.slice(0, 8).forEach((inj) => {
     if (!inj.site) return;
@@ -23,10 +29,13 @@ export function SiteRotationCard() {
   if (empty) status[empty] = 'next';
 
   const colorOf = (s: InjectionSite): string =>
-    status[s] === 'recent' ? 'var(--color-warning)'
-    : status[s] === 'older' ? 'var(--color-amber)'
-    : status[s] === 'next' ? 'var(--color-success)'
-    : 'var(--color-border-strong)';
+    status[s] === 'recent'
+      ? 'var(--color-warning)'
+      : status[s] === 'older'
+        ? 'var(--color-amber)'
+        : status[s] === 'next'
+          ? 'var(--color-success)'
+          : 'var(--color-border-strong)';
 
   return (
     <Card span={4} variant="default" data-tour="sites">
@@ -45,33 +54,96 @@ export function SiteRotationCard() {
       />
 
       <div className="flex justify-center py-2">
-        <svg width="140" viewBox="0 0 200 320" xmlns="http://www.w3.org/2000/svg" aria-label="Body diagram with injection sites">
+        <svg
+          width="140"
+          viewBox="0 0 200 320"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="Body diagram with injection sites"
+        >
           {/* head */}
-          <circle cx="100" cy="38" r="26" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
+          <circle
+            cx="100"
+            cy="38"
+            r="26"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
           {/* neck */}
-          <rect x="92" y="60" width="16" height="14" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
+          <rect
+            x="92"
+            y="60"
+            width="16"
+            height="14"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
           {/* torso */}
-          <path d="M70 75 Q100 70 130 75 L138 178 Q100 173 62 178 Z" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
+          <path
+            d="M70 75 Q100 70 130 75 L138 178 Q100 173 62 178 Z"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
           {/* legs */}
-          <path d="M75 175 L70 285 L92 285 L98 175 Z" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
-          <path d="M102 175 L108 285 L130 285 L125 175 Z" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
+          <path
+            d="M75 175 L70 285 L92 285 L98 175 Z"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
+          <path
+            d="M102 175 L108 285 L130 285 L125 175 Z"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
           {/* arms */}
-          <path d="M70 80 L42 165 L52 170 L80 92 Z" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
-          <path d="M130 80 L158 165 L148 170 L120 92 Z" fill="var(--color-surface-elevated)" stroke="var(--color-border-strong)" strokeWidth="2" />
+          <path
+            d="M70 80 L42 165 L52 170 L80 92 Z"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
+          <path
+            d="M130 80 L158 165 L148 170 L120 92 Z"
+            fill="var(--color-surface-elevated)"
+            stroke="var(--color-border-strong)"
+            strokeWidth="2"
+          />
           {/* dots */}
           {(
             [
-              ['abdomen-ul', 86, 115], ['abdomen-ur', 114, 115],
-              ['abdomen-ll', 86, 148], ['abdomen-lr', 114, 148],
-              ['thigh-l', 82, 220], ['thigh-r', 118, 220],
-              ['arm-l', 55, 125], ['arm-r', 145, 125],
+              ['abdomen-ul', 86, 115],
+              ['abdomen-ur', 114, 115],
+              ['abdomen-ll', 86, 148],
+              ['abdomen-lr', 114, 148],
+              ['thigh-l', 82, 220],
+              ['thigh-r', 118, 220],
+              ['arm-l', 55, 125],
+              ['arm-r', 145, 125],
             ] as Array<[InjectionSite, number, number]>
           ).map(([s, x, y]) => (
             <g key={s}>
               {status[s] === 'next' && (
-                <circle cx={x} cy={y} r="11" fill="none" stroke={colorOf(s)} strokeWidth="1.5" opacity="0.5">
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="11"
+                  fill="none"
+                  stroke={colorOf(s)}
+                  strokeWidth="1.5"
+                  opacity="0.5"
+                >
                   <animate attributeName="r" from="6" to="13" dur="1.6s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" from="0.6" to="0" dur="1.6s" repeatCount="indefinite" />
+                  <animate
+                    attributeName="opacity"
+                    from="0.6"
+                    to="0"
+                    dur="1.6s"
+                    repeatCount="indefinite"
+                  />
                 </circle>
               )}
               <circle
@@ -82,7 +154,9 @@ export function SiteRotationCard() {
                 stroke="var(--color-surface)"
                 strokeWidth="2"
               >
-                <title>{s.replace('-', ' ')} — {status[s]}</title>
+                <title>
+                  {s.replace('-', ' ')} — {status[s]}
+                </title>
               </circle>
             </g>
           ))}

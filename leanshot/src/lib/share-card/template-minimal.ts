@@ -58,7 +58,8 @@ export const minimalTemplate: Template = {
     ctx.fillText('SHOTS', 48, H / 2 + 148);
 
     const goalLoss = data.startWeight - data.goalWeight;
-    const goalPct = goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
+    const goalPct =
+      goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
 
     ctx.font = '600 13px Inter, -apple-system, sans-serif';
     ctx.fillText(`${goalPct}%`, 220, H / 2 + 130);
