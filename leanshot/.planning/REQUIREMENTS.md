@@ -22,7 +22,7 @@ Pre-launch legal foundation. Surfaced by research as Phase-0 blocker — three c
 
 Take the existing v2 from "runs locally" to "publicly deployed and observable".
 
-- [ ] **PROD-01**: App is deployed at a real custom domain over HTTPS (Cloudflare Pages recommended per research)
+- [ ] **PROD-01**: App is deployed at a real custom domain over HTTPS — static SPA hosted on Vercel/Cloudflare Pages/Netlify (decision deferred to deploy phase)
 - [ ] **PROD-02**: Real-user JS errors are captured by Sentry with PII redaction configured for symptom/mood/AI fields
 - [ ] **PROD-03**: Privacy-respectful product analytics (PostHog cookieless mode) measure feature usage, onboarding drop-off, and core funnels — without leaking health content
 - [ ] **PROD-04**: A test runner (Vitest 4 + React Testing Library + Playwright) is configured with `npm test` running in CI on every PR
@@ -31,34 +31,35 @@ Take the existing v2 from "runs locally" to "publicly deployed and observable".
 
 ### Auth
 
-Single identity for cross-device + B2B access. Selected provider: Better Auth (per research synthesis — Clerk has no BAA; Better Auth's `organization` plugin matches the multi-tenant model 1:1).
+Single identity for cross-device + B2B access. **Backend platform: Supabase** (Postgres + Auth + Realtime + Storage + Edge Functions in one product — supersedes the research synthesis's Better Auth + Neon recommendation; rationale captured in PROJECT.md Key Decisions). Supabase Auth handles email/password and magic-link out of the box.
 
-- [ ] **AUTH-01**: User can create an account with email + password
-- [ ] **AUTH-02**: User receives an email verification on signup and cannot fully use the app until verified
-- [ ] **AUTH-03**: User can sign in across devices and the session persists across browser refresh
-- [ ] **AUTH-04**: User can reset their password via emailed link
+- [ ] **AUTH-01**: User can create an account with email + password using Supabase Auth
+- [ ] **AUTH-02**: User receives an email verification on signup and cannot fully use the app until verified (Supabase confirmation flow)
+- [ ] **AUTH-03**: User can sign in across devices and the session persists across browser refresh (Supabase session in localStorage with refresh-token rotation)
+- [ ] **AUTH-04**: User can reset their password via emailed link (Supabase password reset)
 - [ ] **AUTH-05**: User can sign out, and signing out clears local sensitive caches (sync queue, AI history)
 - [ ] **AUTH-06**: User can continue to use the app fully offline once signed in (auth required only for cloud sync, not for local logging)
 
 ### Cloud Sync
 
-Local-first preserved; cloud sync is additive. Selected approach: TanStack Query 5 with `offlineFirst` + IndexedDB persister, wrapping the existing Zustand store (per synthesizer's reconciliation).
+Local-first preserved; cloud sync is additive. **Approach: Supabase Postgres tables + Realtime subscriptions, with the existing Zustand store as the local-first cache.** Mutations write through to Supabase; Realtime push replays updates from other devices into Zustand. IndexedDB queues writes when offline.
 
-- [ ] **SYNC-01**: A signed-in user's tracked data (injections, weights, photos, meals, supplements, mood, sleep, symptoms, settings) syncs across their devices via the backend
+- [ ] **SYNC-01**: A signed-in user's tracked data (injections, weights, photos, meals, supplements, mood, sleep, symptoms, settings) syncs across their devices via Supabase
 - [ ] **SYNC-02**: An existing local-only `leanshot_v4` user can sign in and have their localStorage data uploaded into their account on first sync, with no data loss
 - [ ] **SYNC-03**: The pre-cloud `leanshot_v4` snapshot is preserved as `leanshot_v4_pre_cloud_backup` for at least 90 days post-migration so users can recover if migration fails (mitigates the lossy v3→v4 pattern flagged in CONCERNS.md)
 - [ ] **SYNC-04**: Mutations made offline are queued in IndexedDB and replayed on reconnect; conflicts resolve last-writer-wins with a clear UI when collisions occur
-- [ ] **SYNC-05**: All data fetches and writes are scoped per-user via Postgres Row-Level Security (default-deny) with backend authorization as the second layer (defense in depth)
+- [ ] **SYNC-05**: All Supabase tables enforce per-user scoping via Row-Level Security policies (`auth.uid() = user_id`, default-deny) — RLS is the primary tenant-isolation primitive, not application-layer filtering
+- [ ] **SYNC-06**: Photos move from base64-in-Zustand to Supabase Storage with signed URLs, keeping the Zustand-persisted slice lean (current photos slice is the largest contributor to localStorage size)
 
 ### AI Coach Hardening
 
-Replace browser-direct Anthropic calls with a serverless proxy. Fixes plaintext-key-in-localStorage, the bogus hardcoded `claude-sonnet-4-6` model ID in `src/lib/ai.ts`, and adds rate-limiting + audit ownership.
+Replace browser-direct Anthropic calls with a server proxy. Fixes plaintext-key-in-localStorage, the bogus hardcoded `claude-sonnet-4-6` model ID in `src/lib/ai.ts`, and adds rate-limiting + audit ownership. **Runtime: Supabase Edge Functions** (Deno) — same proxy pattern as the Cloudflare-Worker option in the research, but co-located with auth + DB.
 
-- [ ] **AI-01**: User no longer needs to paste an Anthropic key — AI coach calls go through a `/api/ai/chat` proxy endpoint that holds the platform key
-- [ ] **AI-02**: AI proxy enforces per-user rate limits (Anthropic spend cap) and short-circuits abusive patterns
+- [ ] **AI-01**: User no longer needs to paste an Anthropic key — AI coach calls go through a Supabase Edge Function (`/functions/v1/ai-chat`) that holds the platform key in Supabase secrets
+- [ ] **AI-02**: AI proxy enforces per-user rate limits (Anthropic spend cap) and short-circuits abusive patterns — counters stored in a Supabase table keyed by `auth.uid()`
 - [ ] **AI-03**: AI proxy refuses prompts that look like prompt-injection or that ask for specific dosing changes; refusal-list is covered by automated tests
 - [ ] **AI-04**: User-supplied content (symptom logs, notes) is structurally separated from system prompts inside the proxy so injection attacks via logged content cannot escalate
-- [ ] **AI-05**: AI conversation history is stored only in the user's own data — never included in doctor or clinic snapshots
+- [ ] **AI-05**: AI conversation history is stored only in the user's own data (own table with RLS) — never included in doctor or clinic snapshots
 - [ ] **AI-06**: Proxy uses a real, current Claude model ID (replaces the broken hardcoded `'claude-sonnet-4-6'`)
 
 ### Pharmacology + Insights Hardening
@@ -84,10 +85,10 @@ The major differentiator vs Shotsy/Pep/Glapp/MeAgain. Patient-controlled link + 
 
 ### Clinic / Coach B2B
 
-Multi-patient organization surface. Reuses Better Auth's `organization` plugin and the same read-only patient view component built for SHARE.
+Multi-patient organization surface. Reuses the read-only patient view component built for SHARE. Supabase doesn't have a built-in organization primitive, so we model it with a `organizations` + `memberships` schema, enforced by RLS policies that join membership to data access.
 
 - [ ] **CLINIC-01**: A clinic operator can sign up and create an organization workspace
-- [ ] **CLINIC-02**: Clinic operator can invite a patient by email; an invited patient who already has a personal account can join the org without identity collision (single `users` table + `memberships` table, never duplicate user records)
+- [ ] **CLINIC-02**: Clinic operator can invite a patient by email; an invited patient who already has a Supabase account can join the org without identity collision (one `auth.users` row + a `memberships` row per org, never duplicate user records)
 - [ ] **CLINIC-03**: Patient must explicitly consent at the point of accepting a clinic invite, with the share scope visible (which fields, what window, can be revoked)
 - [ ] **CLINIC-04**: Clinic operator sees a roster of all linked patients with at-a-glance status (recent dose, active streak, recent symptoms, missed-dose flag) — powered by running `pickFocus`/`generateInsights` per-patient as `rankPatients(orgState)`
 - [ ] **CLINIC-05**: Clinic operator can drill into any one patient and see the same read-only view used by SHARE-02 (component reuse)
@@ -101,10 +102,6 @@ Deferred to a future milestone. Tracked but not in v1 roadmap.
 ### Pharmacology
 
 - **PK-V2-01**: Two-compartment PK model for tirzepatide (Schneck 2024 parameters) replaces single-compartment exponential decay — currently approximated within the uncertainty band
-
-### Storage / Media
-
-- **MEDIA-V2-01**: Photo binaries move from base64-in-store to a real object store (Cloudflare R2) with signed URLs to keep IndexedDB lean and improve cold-start
 
 ### Sharing
 
@@ -152,9 +149,9 @@ Filled in by the roadmapper agent. Each v1 requirement maps to exactly one phase
 | (filled in during roadmap) | — | Pending |
 
 **Coverage:**
-- v1 requirements: 41 total
+- v1 requirements: 42 total
 - Mapped to phases: 0 (pending roadmap)
-- Unmapped: 41 ⚠️
+- Unmapped: 42 ⚠️
 
 ---
 *Requirements defined: 2026-05-10*

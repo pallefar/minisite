@@ -92,6 +92,9 @@ LeanShot is a web app that lets people on GLP-1s (and adjacent peptides) track e
 | Pharmacology + insights engines are required-to-test before launch | They are the load-bearing clinical math; mistakes look bad in a medical context. | — Pending |
 | Native mobile, EHR integration, non-GLP-1 peptides, and payments are explicitly out of v1 | Each adds significant scope and gates a faster public launch. Park them in Out of Scope to prevent drift. | — Pending |
 | AI coach key handling decision deferred to planning phase | Two viable paths (BYO with disclosure vs. serverless proxy); pick during the AUTH/PROD planning phase. | — Pending |
+| Backend platform = **Supabase** (not Cloudflare Workers + Better Auth + Neon) | User chose Supabase post-research because most v1 needs (Postgres + Auth + Realtime + Storage + Edge Functions + RLS) come bundled in one product. Trades the cleaner per-component stack the synthesizer chose for shipping speed and operational simplicity. HIPAA BAA available on Team tier ($599/mo) when needed; not blocking v1. | — Pending |
+| Photos move from base64-in-store to Supabase Storage in v1 (was deferred to v2 in synthesizer's plan) | Once Supabase is in for auth + sync, Storage is "free" to use and the existing Zustand-base64 approach is the largest current contributor to localStorage size. | — Pending |
+| Vertical MVP phase mode (each phase = end-to-end user-visible slice) | User picked it intentionally for a multi-audience SaaS where shipping value to one persona at a time beats finishing tech tiers in lockstep. | — Pending |
 
 ## Evolution
 
