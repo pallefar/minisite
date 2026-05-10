@@ -18,10 +18,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@sentry/react": "^10.52.0",
     "@use-gesture/react": "^10.3.1",
     "chart.js": "^4.4.6",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.460.0",
+    "posthog-js": "^1.372.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zustand": "^5.0.1"
