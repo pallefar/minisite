@@ -13,7 +13,7 @@ import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
-import type { Photo } from '@/types';
+import type { Measurement, Photo } from '@/types';
 
 export function BodyTab() {
   const u = useStore((s) => s.user!);
@@ -69,17 +69,17 @@ export function BodyTab() {
   };
 
   const submitMeasurements = (): void => {
-    const entry: { date: string; [k: string]: number | string } = { date: todayStr() };
+    const entry: Measurement = { date: todayStr() };
     let any = false;
     (Object.keys(meas) as Array<keyof typeof meas>).forEach((k) => {
       const v = parseFloat(meas[k]);
       if (v) {
-        entry[k] = v;
+        (entry as unknown as Record<string, number | string>)[k] = v;
         any = true;
       }
     });
     if (!any) return toast('Enter at least one measurement', 'error');
-    addMeasurement(entry as never);
+    addMeasurement(entry);
     toast('Measurements saved');
     setMeas({ waist: '', hips: '', chest: '', neck: '', arms: '', thighs: '' });
   };

@@ -40,7 +40,7 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
             {insight.cta && (
               <button
                 className="text-[13px] font-bold text-[var(--color-primary)] hover:underline shrink-0 self-center focus-visible:outline-none focus-visible:underline"
-                onClick={() => setTab(insight.cta!.tab as never)}
+                onClick={() => setTab(insight.cta!.tab)}
               >
                 {insight.cta.label} →
               </button>

@@ -9,6 +9,9 @@ import { ConnectData } from '@/illustrations/ConnectData';
 import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
 import { todayStr, formatShort } from '@/lib/helpers';
+import type { Workout } from '@/types';
+
+type WorkoutType = Workout['type'];
 
 export function ActivityTab() {
   const workouts = useStore((s) => s.workouts);
@@ -24,7 +27,9 @@ export function ActivityTab() {
   const weekStart = Date.now() - 7 * 86_400_000;
   const weekly = workouts.filter((w) => new Date(w.date).getTime() > weekStart);
 
-  const [wo, setWo] = useState({ date: today, type: 'resistance' as const, name: '', minutes: '', rpe: '', notes: '' });
+  const [wo, setWo] = useState<{ date: string; type: WorkoutType; name: string; minutes: string; rpe: string; notes: string }>(
+    { date: today, type: 'resistance', name: '', minutes: '', rpe: '', notes: '' },
+  );
   const [stepDate, setStepDate] = useState(today);
   const [stepVal, setStepVal] = useState('');
 
@@ -115,7 +120,7 @@ export function ActivityTab() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input label="Date" type="date" value={wo.date} onChange={(e) => setWo({ ...wo, date: e.target.value })} />
-            <Select label="Type" value={wo.type} onChange={(e) => setWo({ ...wo, type: e.target.value as never })}>
+            <Select label="Type" value={wo.type} onChange={(e) => setWo({ ...wo, type: e.target.value as WorkoutType })}>
               <option value="resistance">Resistance</option>
               <option value="cardio">Cardio</option>
               <option value="hybrid">Hybrid</option>
