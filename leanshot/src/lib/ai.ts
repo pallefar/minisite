@@ -19,7 +19,7 @@ export class MissingAPIKeyError extends Error {
 
 const ENDPOINT = 'https://api.anthropic.com/v1/messages';
 /** Latest Sonnet at the time of build. */
-export const DEFAULT_MODEL = 'claude-sonnet-4-6';
+export const DEFAULT_MODEL = 'claude-sonnet-4-5';
 
 export interface AnthropicMessageParam {
   role: 'user' | 'assistant';

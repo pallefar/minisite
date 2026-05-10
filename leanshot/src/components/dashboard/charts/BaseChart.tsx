@@ -33,7 +33,8 @@ export function BaseChart({ config, className, height = 240, ariaLabel }: BaseCh
       chartRef.current?.destroy();
       chartRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: effect 1 owns chart
+    //   creation/destruction on theme change only; effect 2 handles data updates
   }, [theme]);
 
   // Update data without re-creating the chart for live data changes
