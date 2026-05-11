@@ -28,6 +28,7 @@ Take the existing v2 from "runs locally" to "publicly deployed and observable".
 - [ ] **PROD-04**: A test runner (Vitest 4 + React Testing Library + Playwright) is configured with `npm test` running in CI on every PR
 - [ ] **PROD-05**: ESLint + Prettier + a typecheck step run in CI; the existing `tsc -b --noEmit` is wired to PR checks
 - [ ] **PROD-06**: Marketing landing page (`Landing.tsx`) is hosted on a separate subdomain or path so health-app analytics and consents stay clean
+- [ ] **PROD-07**: Supabase cloud project provisioned, linked to repo, with Vercel env wiring and Anthropic API key as Function secret. Verified by `curl <function-url>/functions/v1/ai-chat` returning streamed Anthropic response. (Added Phase 4: orchestrator brief asked for "PROD-04" but that ID was already taken by the test-runner requirement; allocated a fresh ID here.)
 
 ### Auth
 
@@ -158,6 +159,7 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | PROD-04 | Phase 1 — Quality Gates & Observability Foundation | Pending |
 | PROD-05 | Phase 1 — Quality Gates & Observability Foundation | Pending |
 | PROD-06 | Phase 2 — Visible Compliance & Public Deploy | Pending |
+| PROD-07 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
 | AUTH-01 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
 | AUTH-02 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
 | AUTH-03 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
@@ -196,8 +198,8 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | CLINIC-07 | Phase 10 — Clinic Operator Surface | Pending |
 
 **Coverage:**
-- v1 requirements: 48 total (corrected from prior 42-count footer; per-category line-by-line: COMPL 6 + PROD 6 + AUTH 6 + SYNC 6 + AI 6 + PK 5 + SHARE 6 + CLINIC 7)
-- Mapped to phases: 48 ✓
+- v1 requirements: 49 total (PROD added one item for Phase 4 infra: COMPL 6 + PROD 7 + AUTH 6 + SYNC 6 + AI 6 + PK 5 + SHARE 6 + CLINIC 7)
+- Mapped to phases: 49 ✓
 - Unmapped: 0 ✓
 
 **Per-phase summary:**
@@ -207,15 +209,15 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | 1. Quality Gates & Observability Foundation | PROD-02, PROD-03, PROD-04, PROD-05 | 4 |
 | 2. Visible Compliance & Public Deploy | COMPL-04, COMPL-05, PROD-01, PROD-06 | 4 |
 | 3. Pharmacology + Insights Hardening | PK-01, PK-02, PK-03, PK-04, PK-05 | 5 |
-| 4. AI Proxy on Supabase Edge Functions | AI-01, AI-02, AI-03, AI-04, AI-05, AI-06 | 6 |
+| 4. AI Proxy on Supabase Edge Functions | AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, PROD-07 | 7 |
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, SYNC-01, SYNC-05 | 8 |
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | SYNC-02, SYNC-03, SYNC-04, SYNC-06 | 4 |
 | 7. Compliance Foundations (Legal-Counsel-Led) | COMPL-01, COMPL-02, COMPL-03, COMPL-06 | 4 |
 | 8. Doctor Read-Share | SHARE-01, SHARE-02, SHARE-03, SHARE-04, SHARE-05, SHARE-06 | 6 |
 | 9. Clinic B2B Foundations | CLINIC-01, CLINIC-02, CLINIC-03 | 3 |
 | 10. Clinic Operator Surface | CLINIC-04, CLINIC-05, CLINIC-06, CLINIC-07 | 4 |
-| **Total** | | **48** |
+| **Total** | | **49** |
 
 ---
 *Requirements defined: 2026-05-10*
-*Last updated: 2026-05-10 — traceability filled in by roadmapper (10 phases, 100% coverage)*
+*Last updated: 2026-05-11 — Phase 4 planner added PROD-07 (Supabase cloud bootstrap) per orchestrator brief; original brief specified "PROD-04" but that ID was already taken by the Phase 1 test-runner requirement.*

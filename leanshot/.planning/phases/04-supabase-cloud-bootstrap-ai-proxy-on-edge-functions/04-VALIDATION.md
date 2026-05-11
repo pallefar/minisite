@@ -1,9 +1,9 @@
 ---
 phase: 04
 slug: supabase-cloud-bootstrap-ai-proxy-on-edge-functions
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: planned
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-11
 ---
 
@@ -45,14 +45,23 @@ created: 2026-05-11
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 04-01-01 | 01 | 1 | PROD-04 | — | `supabase/config.toml` committed; project linked | smoke | `supabase functions list \| grep -q ai-chat \|\| echo "OK (no functions yet — pre-deploy state)"` | ❌ W0 | ⬜ pending |
-| 04-01-XX | 01 | — | PROD-04 | — | Vercel envs present across prod/preview/dev for both projects | smoke | `vercel env ls production --cwd leanshot 2>&1 \| grep -q SUPABASE_URL` | ❌ W0 | ⬜ pending |
-| 04-02-XX | 02 | — | AI-01, AI-06 | — | Edge Function streams Anthropic SSE; BYO key card removed from Settings | unit + e2e | `npm test -- --run src/lib/ai.test.ts && npm run test:e2e -- --grep "AI chat no key"` | ❌ W0 | ⬜ pending |
-| 04-02-XX | 02 | — | AI-01 | — | `claude-sonnet-4-6` returned in response metadata | integration | `curl -sS .../functions/v1/ai-chat -d '...' \| grep -q claude-sonnet-4-6` | ❌ W0 | ⬜ pending |
-| 04-03-XX | 03 | — | AI-03 | T-04-01 prompt-injection | Refusal corpus 50+ rows passes under vitest AND deno test | unit | `npm test -- --run shared/refusal.test.ts && (cd ../supabase/functions/ai-chat && deno test --allow-all refusal.test.ts)` | ❌ W0 | ⬜ pending |
-| 04-03-XX | 03 | — | AI-02 | T-04-02 quota-bypass | 100 msgs in 60s returns 429 with friendly UI; counters survive cold start | integration | `scripts/load-rate-limit.sh` | ❌ W0 | ⬜ pending |
-| 04-03-XX | 03 | — | AI-04 | T-04-03 prompt-leak | System prompt template fences `<user_data>`; corpus row asserts model never echoes fence tokens | unit | `npm test -- --run shared/refusal.test.ts -t "structural separation"` | ❌ W0 | ⬜ pending |
-| 04-03-XX | 03 | — | AI-05 | T-04-04 cross-tenant | user A cannot read user B's `ai_messages` rows via admin client | integration | `npm test -- --run e2e/rls-ai-messages.test.ts` | ❌ W0 | ⬜ pending |
+| 04-01-01 | 01 | 1 | PROD-07 | INFRA-04-01-* | `supabase init` + config.toml committed with anon-signins | smoke | `cd /Users/karstenhaldan/minisite && test -f supabase/config.toml && grep -q 'enable_anonymous_sign_ins = true' supabase/config.toml` | ✅ | ⬜ pending |
+| 04-01-02 | 01 | 1 | PROD-07 | — | [HUMAN] Supabase project created + ref recorded | manual | (checkpoint resume signal) | n/a | ⬜ pending |
+| 04-01-03 | 01 | 1 | PROD-07 | T-04-06 | Function secrets (ANTHROPIC_API_KEY + ANTHROPIC_MODEL) set; .env.secrets deleted; no commit contains the key | smoke | `npx --prefix leanshot supabase secrets list \| grep -cE 'ANTHROPIC_(API_KEY\|MODEL)' \| grep -q '^[[:space:]]*2$' && test ! -f supabase/.env.secrets` | ✅ | ⬜ pending |
+| 04-01-04 | 01 | 1 | PROD-07 | — | [HUMAN] Dashboard toggles Magic-Link + Anonymous + Manual Linking ON | manual | `curl -s https://<ref>.supabase.co/auth/v1/settings \| jq '.external.email, .external.anonymous_users'` | n/a | ⬜ pending |
+| 04-01-05 | 01 | 1 | PROD-07 | INFRA-04-01-C | Vercel envs present across prod/preview/dev for both projects | smoke | `vercel env ls production \| grep -cE 'VITE_SUPABASE_URL\|VITE_SUPABASE_ANON_KEY'` returns 2 per (project × target) | ✅ | ⬜ pending |
+| 04-01-06 | 01 | 1 | PROD-07 | — | `.planning/decisions/supabase.md` records project + thresholds + Phase 5 contract | smoke | `wc -l < .planning/decisions/supabase.md` ≥ 30 AND no `sk-ant-` / JWT strings present | ✅ | ⬜ pending |
+| 04-02-01 | 02 | 2 | AI-01 | — | `@supabase/supabase-js` + `eventsource-parser` installed; `src/lib/supabase.ts` singleton green | unit | `npm test -- --run src/lib/supabase.test.ts` exits 0 | ❌ W0 | ⬜ pending |
+| 04-02-02 | 02 | 2 | AI-01, AI-06 | T-04-06, T-04-07 | Edge Function source authored: tee() + waitUntil + `<user_data>` fence + claude-sonnet-4-6 env default; new `callAIChat` browser wrapper + `updateLastAssistant` store action | unit | `npm test -- --run src/lib/ai.test.ts src/lib/supabase.test.ts` + typecheck both green | ❌ W0 | ⬜ pending |
+| 04-02-03 | 02 | 2 | AI-01 | — | BYO key UI removed; FAQ rewritten; main.tsx stale-key cleanup; storage.ts apiKeyStorage deleted; full vitest + typecheck + lint + build green | unit + integration | `! grep -rE 'callAnthropic\|MissingAPIKeyError\|apiKeyStorage\|API_KEY_STORAGE' leanshot/src/ && npm test -- --run && npm run lint` | ❌ W0 | ⬜ pending |
+| 04-02-04 | 02 | 2 | AI-01, AI-06 | T-04-07 | Function deployed; unauth → 401; anon-JWT → 200 + text/event-stream + claude-sonnet-4-6 in logs | integration | `curl -i -X POST <fn-url> -d '{}' \| head -1` returns 401; with Bearer JWT returns 200 + SSE | ❌ W0 | ⬜ pending |
+| 04-02-05 | 02 | 2 | AI-01 | — | [HUMAN] Vercel Preview UAT: chat works without paste-key; Settings AI section gone; FAQ updated; logs show model claude-sonnet-4-6 | manual | (checkpoint resume signal) | n/a | ⬜ pending |
+| 04-03-01 | 03 | 3 | AI-03 | T-04-01, T-04-03 | shared/refusal.ts verbatim move; ≥ 50 ADVERSARIAL_CORPUS rows across 5 categories; vitest + deno test both green | unit | `npm test -- --run shared/refusal.test.ts && (cd /Users/karstenhaldan/minisite && deno test --allow-all --import-map=supabase/functions/import_map.json supabase/functions/tests/)` | ❌ W0 | ⬜ pending |
+| 04-03-02 | 03 | 3 | AI-02, AI-05, T-04-05 | T-04-02, T-04-04, T-04-05 | 3 migration files authored with RLS + RPC + pg_cron schedule | source assertion | `grep -c 'enable row level security' supabase/migrations/*.sql` ≥ 2 AND increment_rate_limit + cron.schedule strings present | ❌ W0 | ⬜ pending |
+| 04-03-03 | 03 | 3 | AI-02, AI-03, AI-04, AI-05 | T-04-01..T-04-04 | Edge Function index.ts wired: refusal pre-check + rate-limit RPC + ai_messages persist (user + assistant via captureAndPersist); zero TODO(04-03) markers; deno check green | source assertion + integration | `! grep -q 'TODO(04-03)' supabase/functions/ai-chat/index.ts && deno check --import-map=supabase/functions/import_map.json supabase/functions/ai-chat/index.ts` | ❌ W0 | ⬜ pending |
+| 04-03-04 | 03 | 3 | AI-02, AI-05 | T-04-04, T-04-05 | [BLOCKING] `supabase db push` applies all 3 migrations; ai_messages + rate_limit_counters live with rowsecurity=true; increment_rate_limit RPC + cron.job 'cleanup-anon-users' present | integration | 4 db remote query assertions (Task 4 acceptance) | ❌ W0 | ⬜ pending |
+| 04-03-05 | 03 | 3 | AI-02, AI-03, AI-05 | T-04-01, T-04-02, T-04-04, T-04-06 | Redeploy + 4 smokes: refusal short-circuit, rate-limit 429s, cross-tenant RLS isolation, log redaction | integration | `bash scripts/load-rate-limit.sh "<ref>" "$JWT" "$ANON_KEY"` exits 0 with 200≤30 + 429≥5; rls-ai-messages.test.ts passes | ❌ W0 | ⬜ pending |
+| 04-03-06 | 03 | 3 | AI-03 | T-04-01, T-04-03 | CI workflow contains deno-test job (working-directory: .); lighthouse needs: includes deno-test | smoke | `grep -q 'deno-test:' .github/workflows/ci.yml && grep 'needs:' .github/workflows/ci.yml \| grep -q 'deno-test'` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -60,12 +69,12 @@ created: 2026-05-11
 
 ## Wave 0 Requirements
 
-- [ ] `/Users/karstenhaldan/minisite/supabase/functions/ai-chat/deno.json` — Deno project config
-- [ ] `/Users/karstenhaldan/minisite/supabase/functions/import_map.json` — exposes `shared/refusal` to Deno
-- [ ] `/Users/karstenhaldan/minisite/shared/refusal.ts` + `shared/refusal.test.ts` — extracted from `src/lib/insights-refusal.ts` (Phase 3 baseline preserved)
-- [ ] `/Users/karstenhaldan/minisite/.github/workflows/ci.yml` — add `deno-test` job (overrides workflow-level `working-directory: leanshot`) per RESEARCH.md §9
-- [ ] `scripts/load-rate-limit.sh` — fires 100 requests in 60s against deployed function to assert SC#4
-- [ ] `e2e/rls-ai-messages.test.ts` — cross-tenant RLS proof (two service-role clients, two users, mutual visibility = 0 rows)
+- [x] `/Users/karstenhaldan/minisite/supabase/functions/ai-chat/deno.json` (authored in plan 04-02 Task 2 sub-task 2A step 4) — Deno project config
+- [x] `/Users/karstenhaldan/minisite/supabase/functions/import_map.json` (authored in plan 04-02 Task 2 sub-task 2A step 5; extended in plan 04-03 Task 3 sub-task 3D with shared/disclaimers alias) — exposes `shared/refusal` to Deno
+- [x] `/Users/karstenhaldan/minisite/shared/refusal.ts` + `shared/refusal.test.ts` (authored in plan 04-03 Task 1; verbatim move from src/lib/insights-refusal.ts preserving CR-01 + CR-02 fixes) — extracted from `src/lib/insights-refusal.ts` (Phase 3 baseline preserved)
+- [x] `/Users/karstenhaldan/minisite/.github/workflows/ci.yml` (deno-test job added in plan 04-03 Task 6) — add `deno-test` job (overrides workflow-level `working-directory: leanshot`) per RESEARCH.md §9
+- [x] `scripts/load-rate-limit.sh` (authored in plan 04-03 Task 5 sub-task 5C) — fires 100 requests in 60s against deployed function to assert SC#4
+- [x] `e2e/rls-ai-messages.test.ts` (authored in plan 04-03 Task 5 sub-task 5D) — cross-tenant RLS proof (two service-role clients, two users, mutual visibility = 0 rows)
 
 *If existing infra is reused without changes: note in plan-level Wave 0.*
 
@@ -85,12 +94,12 @@ created: 2026-05-11
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify command or Wave 0 dependency
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (deno.json, import_map.json, shared/refusal.ts, ci.yml deno-test job)
-- [ ] No watch-mode flags (`--watch`, `--ui`) in any command
-- [ ] Feedback latency < 30s for the post-commit smoke
-- [ ] Adversarial corpus has ≥ 50 rows (SC#3) and runs under BOTH vitest AND deno test
-- [ ] `nyquist_compliant: true` set in frontmatter once planner fills the per-task table
+- [x] All tasks have `<automated>` verify command or Wave 0 dependency (checkpoint tasks have shim automated 'human verification per resume signal'; per-task table maps every non-checkpoint task to a concrete command)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify (verified: every Wave's executor work has a vitest/typecheck/curl gate; max 2 consecutive human checkpoints in 04-01 Tasks 2-4)
+- [x] Wave 0 covers all MISSING references — all 6 Wave 0 file-creation steps explicitly assigned to plans 04-02 Task 2 + 04-03 Tasks 1+5+6
+- [x] No watch-mode flags (`--watch`, `--ui`) in any command (all `npm test` invocations use `-- --run`)
+- [x] Feedback latency < 30s for the post-commit smoke (vitest unit tests target ~30s; deno test ~10s; curl smokes ~3s)
+- [x] Adversarial corpus has ≥ 50 rows (SC#3) and runs under BOTH vitest AND deno test (plan 04-03 Task 1 step 3 targets ≥ 70 rows; CI gates both runners in plan 04-03 Task 6)
+- [x] `nyquist_compliant: true` set in frontmatter (this commit)
 
-**Approval:** pending
+**Approval:** planner-approved 2026-05-11 — execution unblocked.
