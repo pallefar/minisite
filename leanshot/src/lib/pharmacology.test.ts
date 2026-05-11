@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
 import { calcMedLevel } from './pharmacology';
 import { CORPUS, CV_BY_DRUG_CLASS } from './pharmacology-corpus';
 
