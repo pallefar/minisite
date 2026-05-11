@@ -9,8 +9,8 @@ describe('initialState', () => {
 });
 
 describe('STORAGE_VERSION', () => {
-  it('is bumped to 5 for D-10 versioned disclaimer field', () => {
-    expect(STORAGE_VERSION).toBe(5);
+  it('is bumped to 6 for PK-05 / D-07 pkEngineVersion field', () => {
+    expect(STORAGE_VERSION).toBe(6);
   });
 });
 
