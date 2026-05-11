@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useStore } from './store';
 import { initialState, migrateFromV3, STORAGE_VERSION } from './storage';
 
 describe('initialState', () => {
@@ -71,5 +72,13 @@ describe('migrateFromV3', () => {
   it('returns null on corrupted v3 JSON without throwing', () => {
     storageMock['leanshot_v3'] = '{not-valid-json';
     expect(migrateFromV3()).toBeNull();
+  });
+});
+
+describe('useStore.acknowledgeDisclaimer', () => {
+  it('writes v1 into persisted state (D-10)', () => {
+    useStore.setState({ acknowledgedDisclaimer: undefined });
+    useStore.getState().acknowledgeDisclaimer('v1');
+    expect(useStore.getState().acknowledgedDisclaimer).toBe('v1');
   });
 });
