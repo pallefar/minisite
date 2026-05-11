@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { DisclaimerBody } from '@/components/dashboard/DisclaimerModal';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
@@ -56,13 +57,13 @@ interface DraftState {
   lifting: LiftingLevel;
 }
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   const setUser = useStore((s) => s.setUser);
   const upsertWeight = useStore((s) => s.upsertWeight);
   const toast = useToast();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<DraftState>({
     name: '',
     units: 'metric',
@@ -93,13 +94,20 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   const update = (patch: Partial<DraftState>): void => setDraft((d) => ({ ...d, ...patch }));
 
   const next = (): void => {
+    if (step === 0) return; // Step 0 advances exclusively via handleAcknowledge (D-09)
     if (step === 1 && !draft.name.trim()) return toast('Please enter your name', 'error');
     if (step === 2 && !draft.medication) return toast('Please pick your medication', 'error');
     if (step === 3 && !draft.weight) return toast('Please enter your weight', 'error');
     track('onboarding_step_completed', { step });
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
   };
-  const back = (): void => setStep((s) => Math.max(1, s - 1));
+  const back = (): void => setStep((s) => Math.max(0, s - 1));
+
+  const handleAcknowledge = (): void => {
+    useStore.getState().acknowledgeDisclaimer('v1');
+    track('disclaimer_acknowledged', { version: 'v1' });
+    setStep(1);
+  };
 
   const complete = (): void => {
     const weight = parseFloat(draft.weight);
@@ -179,6 +187,18 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.2 }}
               >
+                {step === 0 && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Before you start</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        A quick note before we set things up.
+                      </p>
+                    </div>
+                    <DisclaimerBody onAcknowledge={handleAcknowledge} />
+                  </div>
+                )}
+
                 {step === 1 && (
                   <div className="space-y-4">
                     <div>
@@ -506,39 +526,41 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
               </motion.div>
             </AnimatePresence>
 
-            <div className="flex gap-2 mt-7">
-              {step === 1 ? (
-                <Button variant="ghost" onClick={onCancel} className="flex-1">
-                  Cancel
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  onClick={back}
-                  leadingIcon={<ArrowLeft className="size-4" />}
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-              )}
-              {step < TOTAL_STEPS ? (
-                <Button
-                  onClick={next}
-                  trailingIcon={<ArrowRight className="size-4" />}
-                  className="flex-1"
-                >
-                  Continue
-                </Button>
-              ) : (
-                <Button
-                  onClick={complete}
-                  trailingIcon={<Check className="size-4" />}
-                  className="flex-1"
-                >
-                  Open dashboard
-                </Button>
-              )}
-            </div>
+            {step === 0 ? null : (
+              <div className="flex gap-2 mt-7">
+                {step === 1 ? (
+                  <Button variant="ghost" onClick={onCancel} className="flex-1">
+                    Cancel
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={back}
+                    leadingIcon={<ArrowLeft className="size-4" />}
+                    className="flex-1"
+                  >
+                    Back
+                  </Button>
+                )}
+                {step < TOTAL_STEPS - 1 ? (
+                  <Button
+                    onClick={next}
+                    trailingIcon={<ArrowRight className="size-4" />}
+                    className="flex-1"
+                  >
+                    Continue
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={complete}
+                    trailingIcon={<Check className="size-4" />}
+                    className="flex-1"
+                  >
+                    Open dashboard
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

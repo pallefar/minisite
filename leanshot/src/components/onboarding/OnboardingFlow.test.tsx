@@ -7,14 +7,14 @@ import { OnboardingFlow } from './OnboardingFlow';
 describe('OnboardingFlow', () => {
   beforeEach(() => {
     // Reset store to initial state before each test
-    useStore.setState({ user: null });
+    useStore.setState({ user: null, acknowledgedDisclaimer: undefined });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('completes the 7-step happy path and calls setUser with a valid User', async () => {
+  it('completes the 8-step happy path (Step 0 disclaimer + 1-7 onboarding) and calls setUser with a valid User', async () => {
     const setUserSpy = vi.spyOn(useStore.getState(), 'setUser');
     const onComplete = vi.fn();
     const onCancel = vi.fn();
@@ -23,6 +23,10 @@ describe('OnboardingFlow', () => {
     // Do NOT wrap in StrictMode — RTL effects fire twice under StrictMode
     // and break call-count assertions (RESEARCH.md Pitfall 6)
     render(<OnboardingFlow onComplete={onComplete} onCancel={onCancel} />);
+
+    // ── Step 0: Disclaimer acknowledge ──────────────────────────────────────
+    expect(screen.getByText(/not medical advice/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /i understand/i }));
 
     // Step 1: Name + Continue
     const nameInput = await screen.findByLabelText(/your name/i);
@@ -67,5 +71,8 @@ describe('OnboardingFlow', () => {
         units: 'metric',
       }),
     );
+
+    // Assert disclaimer was acknowledged (D-10)
+    expect(useStore.getState().acknowledgedDisclaimer).toBe('v1');
   });
 });
