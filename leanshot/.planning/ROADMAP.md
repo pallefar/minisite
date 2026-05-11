@@ -55,7 +55,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Drug-level chart (`MedLevelChart.tsx`) displays an unmissable "Estimate — not medical advice" overlay that survives a screenshot (rendered into the chart canvas, not an HTML overlay outside it)
   4. Marketing landing (`Landing.tsx`) is served from a separate subdomain (e.g., `leanshot.app/` for marketing, `app.leanshot.app/` for the SPA — or inverse) with strict CSP `script-src 'self'` on the authenticated domain only
   5. Mood tab + AI coach copy review: zero occurrences of "depression", "anxiety", "therapy", "mental health treatment" in user-facing strings (CMIA AB 2089 mitigation per Pitfall #1) — verified by a CI grep test against `src/**/*.tsx`
-**Plans**: TBD
+**Plans:** 8 plans
+- [ ] 02-01-PLAN.md — Persisted state: acknowledgedDisclaimer field + store action + v4→v5 migration (Wave 1)
+- [ ] 02-02-PLAN.md — Modal `dismissible` prop + bundle measurement baseline (Wave 1)
+- [ ] 02-03-PLAN.md — CI compliance-copy job + EventName extension + .env.example (Wave 1)
+- [ ] 02-04-PLAN.md — DisclaimerModal component + Step 0 in OnboardingFlow + RTL/e2e tests (Wave 2)
+- [ ] 02-05-PLAN.md — Dashboard-render fallback in App.tsx + co-located test (Wave 3)
+- [ ] 02-06-PLAN.md — MedLevelChart watermark plugin + per-instance wiring (Wave 1)
+- [ ] 02-07-PLAN.md — vite.config.ts (Sentry + sourcemap + manualChunks) + marketing build + vercel.json (Wave 3)
+- [ ] 02-08-PLAN.md — lighthouserc.json + lighthouse CI job + 02-HUMAN-UAT.md + Vercel-setup checkpoint (Wave 4)
 **UI hint**: yes
 
 ### Phase 3: Pharmacology + Insights Hardening
@@ -175,7 +183,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Quality Gates & Observability Foundation | 0/TBD | Not started | - |
-| 2. Visible Compliance & Public Deploy | 0/TBD | Not started | - |
+| 2. Visible Compliance & Public Deploy | 0/8  | Not started | - |
 | 3. Pharmacology + Insights Hardening | 0/TBD | Not started | - |
 | 4. AI Proxy on Supabase Edge Functions | 0/TBD | Not started | - |
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | 0/TBD | Not started | - |
