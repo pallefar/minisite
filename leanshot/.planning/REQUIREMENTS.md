@@ -28,7 +28,7 @@ Take the existing v2 from "runs locally" to "publicly deployed and observable".
 - [ ] **PROD-04**: A test runner (Vitest 4 + React Testing Library + Playwright) is configured with `npm test` running in CI on every PR
 - [ ] **PROD-05**: ESLint + Prettier + a typecheck step run in CI; the existing `tsc -b --noEmit` is wired to PR checks
 - [ ] **PROD-06**: Marketing landing page (`Landing.tsx`) is hosted on a separate subdomain or path so health-app analytics and consents stay clean
-- [ ] **PROD-07**: Supabase cloud project provisioned, linked to repo, with Vercel env wiring and Anthropic API key as Function secret. Verified by `curl <function-url>/functions/v1/ai-chat` returning streamed Anthropic response. (Added Phase 4: orchestrator brief asked for "PROD-04" but that ID was already taken by the test-runner requirement; allocated a fresh ID here.)
+- [x] **PROD-07**: Supabase cloud project provisioned, linked to repo, with Vercel env wiring and Anthropic API key as Function secret. Verified by `curl <function-url>/functions/v1/ai-chat` returning streamed Anthropic response. (Added Phase 4: orchestrator brief asked for "PROD-04" but that ID was already taken by the test-runner requirement; allocated a fresh ID here.)
 
 ### Auth
 
@@ -159,7 +159,7 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | PROD-04 | Phase 1 — Quality Gates & Observability Foundation | Pending |
 | PROD-05 | Phase 1 — Quality Gates & Observability Foundation | Pending |
 | PROD-06 | Phase 2 — Visible Compliance & Public Deploy | Pending |
-| PROD-07 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| PROD-07 | Phase 4 — AI Proxy on Supabase Edge Functions | Complete |
 | AUTH-01 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
 | AUTH-02 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
 | AUTH-03 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |

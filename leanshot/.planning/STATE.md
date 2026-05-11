@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: verifying
+status: executing
 stopped_at: Phase 4 context gathered (3 plans, 6 decisions locked)
-last_updated: "2026-05-11T12:52:57.107Z"
-last_activity: 2026-05-11 -- Phase 03 verified complete
+last_updated: "2026-05-11T16:55:34.837Z"
+last_activity: 2026-05-11
 progress:
   total_phases: 11
   completed_phases: 4
-  total_plans: 24
-  completed_plans: 24
-  percent: 100
+  total_plans: 27
+  completed_plans: 25
+  percent: 93
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 03 — pharmacology-insights-hardening
+**Current focus:** Phase 04 — supabase-cloud-bootstrap-ai-proxy-on-edge-functions
 
 ## Current Position
 
-Phase: 03 (pharmacology-insights-hardening) — COMPLETE
-Plan: 5 of 5
-Status: Phase 03 verified — ready for next phase
-Last activity: 2026-05-11 -- Phase 03 verified complete
+Phase: 04 (supabase-cloud-bootstrap-ai-proxy-on-edge-functions) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-05-11
 
-Progress: [██████████] 100%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [██████████] 100%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 04 P01 | 30 | 6 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - Project init: AI proxy runtime = Supabase Edge Functions (Deno) — same proxy pattern as research-recommended Cloudflare Worker, different runtime
 - Project init: Vertical MVP phase mode (each phase = end-to-end user-visible slice)
 - Roadmap: 10 phases at fine granularity; visible compliance copy lands Phase 2; legal-counsel-led compliance foundations sit at Phase 7 (parallelizable with cloud work)
+- [Phase ?]: Phase 4 mid-execution pivot: Anthropic Claude Sonnet → Moonshot Kimi K2 (direct provider call, not Vercel AI Gateway); see 04-ADDENDUM-MOONSHOT.md
+- [Phase ?]: Supabase project ytnsipxxmzgaebkqmokp provisioned in eu-west-1; rate-limit thresholds 30/60/200, anon cleanup pg_cron daily 03:00 UTC (30-day retention)
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-11T12:52:57.100Z
+Last session: 2026-05-11T16:55:34.830Z
 Stopped at: Phase 4 context gathered (3 plans, 6 decisions locked)
-Resume file: .planning/phases/04-supabase-cloud-bootstrap-ai-proxy-on-edge-functions/04-CONTEXT.md
+Resume file: None

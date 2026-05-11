@@ -112,7 +112,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A user who fires 100 chat messages in 60 seconds is rate-limited with a friendly "you've used today's AI quota" UI; rate-limit counters are stored in a Supabase table keyed by `auth.uid()` and survive Edge Function cold starts
   5. AI conversation history (`aiHistory`) is stored in a `ai_messages` Supabase table with `auth.uid() = user_id` RLS — verified by an automated cross-tenant test that asserts user A cannot see user B's `ai_messages` rows even with admin client
 **Plans:** 3 plans
-- [ ] 04-01-PLAN.md — Bootstrap: Supabase CLI init + project link + Function secrets + Vercel env wiring (PROD-07; SC#0) (Wave 1)
+- [x] 04-01-PLAN.md — Bootstrap: Supabase CLI init + project link + Function secrets + Vercel env wiring (PROD-07; SC#0) (Wave 1)
 - [ ] 04-02-PLAN.md — Proxy skeleton: Edge Function SSE pass-through + browser supabase client + BYO key removal (AI-01, AI-06; SC#1, SC#2) (Wave 2)
 - [ ] 04-03-PLAN.md — Hardening: shared/refusal.ts + 50+ adversarial corpus + rate-limit RPC + ai_messages RLS + pg_cron + CI deno-test job (AI-02, AI-03, AI-04, AI-05; SC#3, SC#4, SC#5) (Wave 3)
 **UI hint**: yes
