@@ -132,7 +132,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 - [x] 05-01-PLAN.md — Injections schema migration + STORAGE_VERSION 6→7 helpers + cross-tenant RLS proof (Wave 1; depends_on: none)
 - [x] 05-02-PLAN.md — Auth UI (9 surfaces + AvatarMenu) + state machine + signOut/clearUserDataSlices + password policy push + 3 Playwright SC scenarios (SC#1 first leg, SC#2, SC#3) (Wave 2; depends_on: 05-01)
-- [ ] 05-03-PLAN.md — Sync engine (Realtime + offline queue + LWW) + replace store STUBs + App.tsx wiring + 2 Playwright SC scenarios (SC#1 completion, SC#4) + CI workflow secrets + manual UAT (Wave 3; depends_on: 05-01, 05-02)
+- [x] 05-03-PLAN.md — Sync engine (Realtime + offline queue + LWW) + replace store STUBs + App.tsx wiring + 2 Playwright SC scenarios (SC#1 completion, SC#4) + CI workflow secrets + manual UAT (Wave 3; depends_on: 05-01, 05-02)
 **UI hint**: yes
 
 ### Phase 6: Patient Cloud Sync Slice 2 — Full Data + Migration + Photos
