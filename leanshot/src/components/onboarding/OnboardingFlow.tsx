@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
@@ -14,6 +14,7 @@ import {
   OnboardReady,
   OnboardSnapshot,
 } from '@/illustrations/OnboardSteps';
+import { track } from '@/lib/analytics';
 import { todayStr } from '@/lib/helpers';
 import { medLabel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
@@ -85,12 +86,17 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   const wU = draft.units === 'metric' ? 'kg' : 'lb';
   const hU = draft.units === 'metric' ? 'cm' : 'in';
 
+  useEffect(() => {
+    track('onboarding_started');
+  }, []);
+
   const update = (patch: Partial<DraftState>): void => setDraft((d) => ({ ...d, ...patch }));
 
   const next = (): void => {
     if (step === 1 && !draft.name.trim()) return toast('Please enter your name', 'error');
     if (step === 2 && !draft.medication) return toast('Please pick your medication', 'error');
     if (step === 3 && !draft.weight) return toast('Please enter your weight', 'error');
+    track('onboarding_step_completed', { step });
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
   };
   const back = (): void => setStep((s) => Math.max(1, s - 1));
@@ -133,6 +139,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
       bodyFat: parseFloat(draft.bodyFat) || null,
       ts: Date.now(),
     });
+    track('onboarding_completed', { totalSteps: TOTAL_STEPS });
     onComplete();
   };
 
