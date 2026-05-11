@@ -22,6 +22,16 @@ export interface ModalProps {
    * D-09 (no decline path on disclaimer modal).
    */
   dismissible?: boolean;
+  /**
+   * Render at z-[160] instead of the default z-[100], so the modal stacks above
+   * GuidedTour's z-[150] overlay. Reserve for safety-critical blocking modals
+   * (the medical disclaimer fallback) — every other modal should keep the default
+   * so the tour can intentionally cover them while walking the user through the UI.
+   * Without this, the disclaimer fallback is visible but unclickable for users who
+   * see the tour and the disclaimer simultaneously (v3-migrated user, first dashboard
+   * render).
+   */
+  topLayer?: boolean;
 }
 
 const sizeClasses: Record<NonNullable<ModalProps['size']>, string> = {
@@ -40,6 +50,7 @@ export function Modal({
   headerAction,
   hideClose,
   dismissible = true,
+  topLayer = false,
   children,
 }: ModalProps) {
   useEffect(() => {
@@ -59,7 +70,10 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-[var(--color-surface-overlay)] backdrop-blur-md p-0 md:p-4"
+          className={cn(
+            'fixed inset-0 flex items-end md:items-center justify-center bg-[var(--color-surface-overlay)] backdrop-blur-md p-0 md:p-4',
+            topLayer ? 'z-[160]' : 'z-[100]',
+          )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

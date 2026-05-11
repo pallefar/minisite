@@ -42,6 +42,11 @@ export interface DisclaimerModalProps {
  *
  * Composes <Modal> with `dismissible={false}` + `hideClose` so the ONLY exit
  * is the explicit "I understand" button (D-09 — no decline path).
+ *
+ * `topLayer` raises the stacking to z-[160] so the disclaimer sits above
+ * GuidedTour's z-[150] overlay. Without it, a v3-migrated user (no ack, no
+ * tour-seen flag) sees the disclaimer behind the tour overlay and can't
+ * dismiss either — the very fallback path D-11 was built for would deadlock.
  */
 export function DisclaimerModal({ open, onAcknowledge }: DisclaimerModalProps) {
   return (
@@ -54,6 +59,7 @@ export function DisclaimerModal({ open, onAcknowledge }: DisclaimerModalProps) {
       size="md"
       hideClose
       dismissible={false}
+      topLayer
     >
       <DisclaimerBody onAcknowledge={onAcknowledge} />
     </Modal>

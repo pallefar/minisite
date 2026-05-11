@@ -31,6 +31,17 @@ describe('DisclaimerModal', () => {
     render(<DisclaimerModal open onAcknowledge={() => {}} />);
     expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
   });
+
+  it('renders at top-layer z-index so it stacks above GuidedTour (z-[150])', () => {
+    // Regression for the Phase 2 UAT bug: D-11 fallback was visible but unclickable
+    // because GuidedTour's z-[150] overlay intercepted pointer events. The fix
+    // is `topLayer` on Modal (sets z-[160]). Stacking is hard to assert visually
+    // in jsdom, so we assert the className contract instead.
+    render(<DisclaimerModal open onAcknowledge={() => {}} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.className).toMatch(/z-\[160\]/);
+    expect(dialog.className).not.toMatch(/z-\[100\]/);
+  });
 });
 
 describe('DisclaimerBody', () => {
