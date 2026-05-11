@@ -189,7 +189,7 @@ Phase 5 ships **9 new surfaces** plus **5 modified existing surfaces**. Each new
 │  ┌─────────────────────────────────────────────┐             │
 │  │  Auth card — max-w-[440px] w-full           │             │
 │  │  bg-[var(--color-surface)]                  │             │
-│  │  rounded-[28px] md:rounded-card             │             │
+│  │  rounded-card (24px — uses --radius-card)   │             │
 │  │  border border-[var(--color-border)]        │             │
 │  │  shadow-lg                                  │             │
 │  │  p-6 md:p-8                                 │             │
@@ -578,9 +578,9 @@ sub: "You're signed in via the reset link. Choose a new password
 │  user@example.com  (13px text-  │  ← user-info row (non-interactive)
 │  secondary, truncate)            │
 ├─────────────────────────────────┤
-│  [Settings]  ⚙  Settings        │  ← opens existing Settings drawer
 │  [User]      👤 Account          │  ← opens Settings drawer at "Account" section
 │  [LogOut]    →  Sign out         │  ← signOut action
+│  [Settings]  ⚙  Settings        │  ← opens existing Settings drawer
 └─────────────────────────────────┘
 ```
 
