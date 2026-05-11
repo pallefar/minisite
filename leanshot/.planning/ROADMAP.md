@@ -92,7 +92,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Insights refusal-list test fires 50+ adversarial state shapes at `generateInsights` and `pickFocus` and asserts the output never contains "increase", "decrease", "double", or "skip" in dose-change context
   4. Chart-overlaid disclaimer ("estimate, not measured serum level — based on population pharmacokinetics") is visible on every render of `MedLevelChart` and is included in the printed `DoctorReport` PDF
   5. Saved injection/dose data records the pharmacology engine version (e.g., `pkEngineVersion: 1`) so a future v1.1 two-compartment upgrade can be applied retroactively without ambiguity — verified in a unit test that mutates the engine and asserts saved data stays addressable
-**Plans**: TBD
+**Plans:** 5 plans
+- [ ] 03-01-PLAN.md — PK corpus + disclaimer constants + Vitest steady-state ±15% assertions (PK-01) (Wave 1)
+- [ ] 03-02-PLAN.md — Refusal-list helper + 30-row adversarial corpus + insights.ts wiring (PK-02) (Wave 1)
+- [ ] 03-03-PLAN.md — Uncertainty band + Y-axis relabel + watermark v2 + plugin/chart test updates (PK-03, PK-04 chart) (Wave 2)
+- [ ] 03-04-PLAN.md — DoctorReport PDF disclaimer + RTL test + Phase 2 cross-reference doc updates (PK-04 PDF) (Wave 2)
+- [ ] 03-05-PLAN.md — pkEngineVersion field + STORAGE_VERSION = 6 + chained migrate + addInjection stamping (PK-05) (Wave 1)
 
 ### Phase 4: Supabase Cloud Bootstrap + AI Proxy on Edge Functions
 **Goal**: The Supabase cloud project is provisioned and linked to this repo (region selected, Supabase CLI initialized in `supabase/` at repo root, `SUPABASE_URL`/`SUPABASE_ANON_KEY` wired into Vercel env across production+preview+development, Anthropic platform key stored as a Supabase Function secret, email magic-link auth provider enabled in the dashboard for Phase 5 readiness — no UI yet) AND an `ai-chat` Edge Function (Deno runtime) is deployed and serving — replacing the user-pasted-key flow. The function fixes the bogus `claude-sonnet-4-6` hardcoded model ID, enforces per-user rate limits, structurally separates user-supplied content from system prompts, and refuses prompt-injection patterns and dose-change requests — all verified by an adversarial test corpus in CI.
@@ -202,7 +207,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Quality Gates & Observability Foundation | 6/6 | Complete | 2026-05-10 |
 | 2. Visible Compliance & Public Deploy | 8/8 | Complete | 2026-05-11 |
 | 2.1. SPA Lighthouse Performance Fix (INSERTED) | 5/5 (3 executed, 2 skip-confirmed) | Complete | 2026-05-11 |
-| 3. Pharmacology + Insights Hardening | 0/TBD | Not started | - |
+| 3. Pharmacology + Insights Hardening | 0/5 | Not started | - |
 | 4. AI Proxy on Supabase Edge Functions | 0/TBD | Not started | - |
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | 0/TBD | Not started | - |
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | 0/TBD | Not started | - |
