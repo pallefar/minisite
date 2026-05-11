@@ -24,6 +24,7 @@ import type {
 import {
   initialState,
   migrateFromV3,
+  migrateV6ToV7,
   STORAGE_KEY,
   STORAGE_VERSION,
   type PersistedState,
@@ -158,6 +159,12 @@ export function migrateState(persistedState: unknown, version: number): Persiste
         pkEngineVersion: inj.pkEngineVersion ?? 1,
       })),
     };
+  }
+  // Phase 5 D-08 + DELEG-2: back-stamp log_id on every injection + initialise
+  // pendingOps slice for the unified offline write queue. Chained AFTER v5→v6
+  // so a v3-direct-to-v7 user passes through every transform in order.
+  if (state && version < 7) {
+    state = migrateV6ToV7(state);
   }
   return state;
 }
