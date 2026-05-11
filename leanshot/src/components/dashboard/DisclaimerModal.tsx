@@ -15,14 +15,14 @@ export function DisclaimerBody({ onAcknowledge }: DisclaimerBodyProps) {
   return (
     <div className="space-y-4">
       <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
-        <strong>Not medical advice.</strong> LeanShot helps you track GLP-1 medications,
-        body metrics, food, activity, and symptoms. The drug-level chart shows a modeled
-        estimate based on population pharmacokinetics — not a measured serum level.
-        Always consult your healthcare provider for clinical decisions.
+        <strong>Not medical advice.</strong> LeanShot helps you track GLP-1 medications, body
+        metrics, food, activity, and symptoms. The drug-level chart shows a modeled estimate based
+        on population pharmacokinetics — not a measured serum level. Always consult your healthcare
+        provider for clinical decisions.
       </p>
       <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-        Your data stays on this device unless you choose to sync. We do not share your
-        health data with third parties.
+        Your data stays on this device unless you choose to sync. We do not share your health data
+        with third parties.
       </p>
       <Button block onClick={onAcknowledge}>
         I understand
