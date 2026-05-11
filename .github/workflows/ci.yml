@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-flight runs for the same branch/PR on a new push (Discretion)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  format-check:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+
+  test-unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - run: npm run test:unit
+
+  test-e2e:
+    name: E2E smoke + production-build security check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      # Production-shaped build with explicitly empty env vars.
+      # Asserts S-10: production build with empty Sentry DSN exits 0.
+      - name: Build (production-shaped, empty env)
+        run: npm run build
+        env:
+          VITE_SENTRY_DSN: ''
+          VITE_POSTHOG_KEY: ''
+          VITE_POSTHOG_HOST: ''
+          VITE_ANALYTICS_ENABLED: 'false'
+
+      # Security check (T-1-05 mitigation): the dev-only Sentry trigger string
+      # 'phase-1-sentry-smoke' MUST NOT appear in any production-built JS file.
+      # Vite tree-shakes the import.meta.env.DEV branch out of production builds.
+      # Note: scope to *.js only — source maps (introduced in Phase 2 Plan 02-07
+      # via build.sourcemap: 'hidden') legitimately preserve the original .tsx
+      # source verbatim including the dev-only string, but the *.js bundle
+      # itself is what runs in the browser.
+      - name: Security check — dev-only trigger absent from production build
+        run: |
+          if grep -r --include="*.js" "phase-1-sentry-smoke" dist/ ; then
+            echo "FAIL: dev-only Sentry trigger 'phase-1-sentry-smoke' leaked into production bundle"
+            exit 1
+          fi
+
+      - name: Run Playwright smoke against production build
+        run: npm run test:e2e
+        env:
+          CI: 'true'
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: leanshot/playwright-report/
+          retention-days: 7
+
+  compliance-copy:
+    name: Compliance copy grep (CMIA AB 2089)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The repo-root `defaults.run.working-directory: leanshot` applies to this job too,
+      # so `src` below resolves to `leanshot/src/`. No per-job override needed.
+
+      # Phase 2 D-16/D-17 (SC#5): CMIA AB 2089 denylist for mental-health framing.
+      # Grep semantics — RESEARCH gotcha #5:
+      #   `grep` exits 0 on ANY match, 1 on NO match.
+      #   The job's success condition is the OPPOSITE: success = NO match.
+      #   Therefore the exit is INVERTED via `if grep …; then exit 1`.
+      # Search root: `src` (resolves to leanshot/src/ via working-directory default).
+      # Word-boundary regex `\b…\b` requires GNU grep -E; ubuntu-latest provides it.
+      - name: Check for forbidden mental-health terms (CMIA AB 2089 — D-16)
+        run: |
+          if grep -rniE '\b(depression|anxiety|therapy|mental health treatment)\b' src \
+               --include='*.ts' --include='*.tsx' \
+               --exclude='*.test.ts' --exclude='*.test.tsx'; then
+            echo "::error::Forbidden term found in user-facing string (SC#5 denylist)."
+            echo "Allowed: 'mood' (Mood tab name). Disallowed: depression, anxiety, therapy, mental health treatment."
+            exit 1
+          fi
+
+  lighthouse:
+    name: Lighthouse (Vercel preview)
+    runs-on: ubuntu-latest
+    needs: [lint, format-check, typecheck, test-unit, test-e2e, compliance-copy]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for Vercel preview deployment
+        id: wait
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - name: Run Lighthouse against Vercel preview
+        run: npx --yes @lhci/cli@0.15.1 autorun --collect.url=${{ steps.wait.outputs.url }}
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}

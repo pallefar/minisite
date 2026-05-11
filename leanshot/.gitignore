@@ -1,0 +1,19 @@
+node_modules/
+dist/
+dist-marketing/
+*.log
+*.tsbuildinfo
+.DS_Store
+.env
+.env.local
+.vite/
+
+# Test + lint artifacts
+coverage/
+playwright-report/
+test-results/
+/playwright/.cache/
+
+# Bundle analysis (rollup-plugin-visualizer)
+dist/stats.html
+stats.html
