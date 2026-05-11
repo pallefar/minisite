@@ -13,7 +13,8 @@ v1 takes the existing v2 codebase (single-tenant, local-only, BYO-key AI, untest
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Quality Gates & Observability Foundation** - Test runner, CI, Sentry, PostHog all green on a "hello" PR before any feature work
-- [ ] **Phase 2: Visible Compliance & Public Deploy** - "Not medical advice" disclaimer overlay + mental-health framing audit + custom domain HTTPS + marketing/app subdomain split
+- [x] **Phase 2: Visible Compliance & Public Deploy** - "Not medical advice" disclaimer overlay + mental-health framing audit + custom domain HTTPS + marketing/app subdomain split
+- [ ] **Phase 2.1: SPA Lighthouse Performance Fix** (INSERTED) - Get SPA Lighthouse Performance ≥ 0.90 on the deployed preview — Phase 2 shipped at ~0.74 (vendor-react underfilled, react-dom collapsed back into index)
 - [ ] **Phase 3: Pharmacology + Insights Hardening** - Cited test corpus, uncertainty band on the chart, refusal-list, chart-overlaid "estimate, not measured" disclaimer — defensible before any audience sees it
 - [ ] **Phase 4: AI Proxy on Supabase Edge Functions** - Kill plaintext-key-in-localStorage, fix the bogus model ID, server-side rate limit, prompt-injection mitigation, refusal-list test corpus
 - [ ] **Phase 5: Patient Cloud Sync Slice 1 — Auth + Injections** - Patient signs up, verifies email, logs an injection, signs in on a second browser, sees the injection — Realtime-driven cross-device sync of injections only
@@ -65,6 +66,20 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-07-PLAN.md — vite.config.ts (Sentry + sourcemap + manualChunks) + marketing build + vercel.json (Wave 3)
 - [x] 02-08-PLAN.md — lighthouserc.json + lighthouse CI job + 02-HUMAN-UAT.md + Vercel-setup checkpoint (Wave 4)
 **UI hint**: yes
+
+### Phase 2.1: SPA Lighthouse Performance Fix (INSERTED)
+**Goal**: The deployed SPA preview reaches Lighthouse Performance ≥ 0.90 (matching the SC#1 floor) without regressing Accessibility (currently 0.95) or Best Practices (currently 0.93). Phase 2 shipped at Performance ≈ 0.74 (3-run average) because the 5-chunk `manualChunks` shape didn't actually pull `react-dom` into `vendor-react` — react-dom (~98 kB gz) collapsed back into `index`, leaving FCP ≈ 3.9s and LCP ≈ 4.2s. Phase 2.1 fixes that without rewriting Phase 2's chunk topology.
+**Mode:** mvp
+**Depends on**: Phase 2
+**Requirements**: PROD-01 (Lighthouse ≥ 90 satisfied for SPA, not just marketing)
+**Success Criteria** (what must be TRUE):
+  1. `npx @lhci/cli@0.15.1 collect --url=<SPA-PREVIEW-URL> --numberOfRuns=3` reports median Performance ≥ 0.90 against a fresh PR Preview; the existing CI Lighthouse job is also reconfigured to run against the SPA preview (not whichever Vercel comment alphabetises first), so Phase 2.1 success is enforced on every subsequent PR.
+  2. Build output `dist/assets/vendor-react-*.js` carries the actual react + react-dom + scheduler payload (≈ 100 kB gz, not 3 kB) — verified by a CI assertion or a snapshot test on the chunk size.
+  3. Cold-load FCP ≤ 1.8s and LCP ≤ 2.5s (the Lighthouse green thresholds) on a desktop run against the deployed Preview, OR an explicit modulepreload for `vendor-react` is in `index.html` to mask the latency, whichever path the implementer chooses.
+  4. Accessibility score stays ≥ 0.95 and Best Practices stays ≥ 0.93 (no regression from the Phase 2 baseline).
+  5. The bundle-topology change is documented in a 2.1-BUNDLE-MEASUREMENT.md update so the next person reading 02-02-BUNDLE-MEASUREMENT.md understands why the projected vendor-react number didn't materialise and what fixed it.
+**Implementation hint** (for `/gsd-plan-phase`): the planner-suggested options ladder is (a) convert `vite.config.ts` `manualChunks` from object form to function form (`(id) => /react/.test(id) ? 'vendor-react' : ...`) so all transitively-imported react-family modules land in the named chunk; (b) if (a) alone doesn't reach 0.90, add `<link rel="modulepreload" href="/assets/vendor-react-*.js">` to `index.html` (pick up the hashed name via vite's HTML transform plugin); (c) only if (a)+(b) both fall short, replace framer-motion (113 kB gz, the largest remaining passenger per `02-02-BUNDLE-MEASUREMENT.md`) with CSS-only animations on the cold path — D-24 explicitly defers library swaps to this phase. Re-measure after each step; stop at the first one that gets to 0.90.
+**Plans**: TBD
 
 ### Phase 3: Pharmacology + Insights Hardening
 **Goal**: The drug-level curve and rule-based insights are defensible — every constant cites a peer-reviewed source, automated tests reproduce published steady-state values within ±15% per drug, the chart shows uncertainty as a band (not a deterministic line), and insights can never produce strings recommending dose changes — verified before any audience external to the patient sees the curve.
@@ -182,8 +197,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Quality Gates & Observability Foundation | 0/TBD | Not started | - |
-| 2. Visible Compliance & Public Deploy | 0/8  | Not started | - |
+| 1. Quality Gates & Observability Foundation | 6/6 | Complete | 2026-05-10 |
+| 2. Visible Compliance & Public Deploy | 8/8 | Complete | 2026-05-11 |
+| 2.1. SPA Lighthouse Performance Fix (INSERTED) | 0/TBD | Not started | - |
 | 3. Pharmacology + Insights Hardening | 0/TBD | Not started | - |
 | 4. AI Proxy on Supabase Edge Functions | 0/TBD | Not started | - |
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | 0/TBD | Not started | - |
