@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Quality Gates & Observability Foundation** - Test runner, CI, Sentry, PostHog all green on a "hello" PR before any feature work
 - [x] **Phase 2: Visible Compliance & Public Deploy** - "Not medical advice" disclaimer overlay + mental-health framing audit + custom domain HTTPS + marketing/app subdomain split
-- [ ] **Phase 2.1: SPA Lighthouse Performance Fix** (INSERTED) - Get SPA Lighthouse Performance ≥ 0.90 on the deployed preview — Phase 2 shipped at ~0.74 (vendor-react underfilled, react-dom collapsed back into index)
+- [x] **Phase 2.1: SPA Lighthouse Performance Fix** (INSERTED) - Achieved Performance 0.94 (3-run consistent, SHA 7ea9a9d) — function-form manualChunks + telemetry defer + non-blocking font CSS
 - [ ] **Phase 3: Pharmacology + Insights Hardening** - Cited test corpus, uncertainty band on the chart, refusal-list, chart-overlaid "estimate, not measured" disclaimer — defensible before any audience sees it
 - [ ] **Phase 4: AI Proxy on Supabase Edge Functions** - Kill plaintext-key-in-localStorage, fix the bogus model ID, server-side rate limit, prompt-injection mitigation, refusal-list test corpus
 - [ ] **Phase 5: Patient Cloud Sync Slice 1 — Auth + Injections** - Patient signs up, verifies email, logs an injection, signs in on a second browser, sees the injection — Realtime-driven cross-device sync of injections only
@@ -199,7 +199,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Quality Gates & Observability Foundation | 6/6 | Complete | 2026-05-10 |
 | 2. Visible Compliance & Public Deploy | 8/8 | Complete | 2026-05-11 |
-| 2.1. SPA Lighthouse Performance Fix (INSERTED) | 0/TBD | Not started | - |
+| 2.1. SPA Lighthouse Performance Fix (INSERTED) | 5/5 (3 executed, 2 skip-confirmed) | Complete | 2026-05-11 |
 | 3. Pharmacology + Insights Hardening | 0/TBD | Not started | - |
 | 4. AI Proxy on Supabase Edge Functions | 0/TBD | Not started | - |
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | 0/TBD | Not started | - |
