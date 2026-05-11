@@ -219,28 +219,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return jsonError(400, 'no-user-message');
   }
 
-  // 4. Refusal pre-check (T-04-01 mitigation). Deterministic short-circuit
-  // BEFORE any Moonshot round-trip — see `shared/refusal.ts`. The refusalSSE
-  // helper emits a single OpenAI-shaped delta frame so the browser parser
-  // handles it identically to a real upstream stream.
-  if (isDoseChangeAdvice(latestUser.content)) {
-    return refusalSSE(
-      "I can't recommend specific dose changes. Please bring this to your prescriber.",
-    );
-  }
-
-  // 5. Rate-limit (T-04-02 mitigation). Atomic security-definer RPC across
-  // minute/hour/day windows; fail-OPEN on RPC error.
+  // 4. Rate-limit (T-04-02 mitigation). Atomic security-definer RPC across
+  // minute/hour/day windows; fail-OPEN on RPC error. Runs BEFORE refusal +
+  // persist so a flooder can't burn DB writes — the cheapest gate first.
   const allowed = await checkAndIncrement(admin, user.id);
   if (!allowed) {
     return jsonError(429, 'rate-limited');
   }
 
-  // 6. ai_messages persistence (user side). T-04-04 integrity invariant:
+  // 5. ai_messages persistence (user side). T-04-04 integrity invariant:
   // `user_id` is sourced from `user.id` (verified JWT in step 2), NEVER from
   // request body. Service role bypasses RLS at write time; the RLS policy
   // `with check (auth.uid() = user_id)` guards any future non-service-role
   // write path.
+  //
+  // Order rationale (Rule 2 audit-trail fix): the user-side insert runs
+  // BEFORE the refusal pre-check so refused inputs are still captured —
+  // dose-change attempts, prompt-injection, and emotional-manipulation rows
+  // are valuable threat-model evidence and the SUMMARY's T-04-01 / T-04-03
+  // proof depends on this row being present after a refusal-smoke POST.
   try {
     await admin.from('ai_messages').insert({
       user_id: user.id,
@@ -255,6 +252,34 @@ Deno.serve(async (req: Request): Promise<Response> => {
       e instanceof Error ? e.message : 'unknown',
     );
     // Continue — persistence failure is logged but does not fail the chat.
+  }
+
+  // 6. Refusal pre-check (T-04-01 mitigation). Deterministic short-circuit
+  // BEFORE any Moonshot round-trip — see `shared/refusal.ts`. The refusalSSE
+  // helper emits a single OpenAI-shaped delta frame so the browser parser
+  // handles it identically to a real upstream stream. The matching user row
+  // landed in step 5 above so the refusal attempt is still audit-traceable.
+  if (isDoseChangeAdvice(latestUser.content)) {
+    // Also persist the refusal as the assistant turn (audit trail). Use the
+    // canonical refusal copy so this exact string appears in ai_messages
+    // alongside the user attempt — useful for post-mortem T-04-01 review.
+    const refusalText =
+      "I can't recommend specific dose changes. Please bring this to your prescriber.";
+    try {
+      await admin.from('ai_messages').insert({
+        user_id: user.id,
+        role: 'assistant',
+        content: refusalText,
+        mode,
+        model: 'refusal-precheck',
+      });
+    } catch (e) {
+      console.error(
+        '[ai-chat] failed to persist refusal assistant message',
+        e instanceof Error ? e.message : 'unknown',
+      );
+    }
+    return refusalSSE(refusalText);
   }
 
   // 7. AI-04 structural separation. Apply the <user_data> fence to the
