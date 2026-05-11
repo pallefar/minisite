@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { SYMPTOMS_LIST, siteShort } from '@/lib/constants';
+import { PK_DISCLAIMER_DOCTOR_REPORT } from '@/lib/disclaimers';
 import { formatShort } from '@/lib/helpers';
 import { medLabel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
@@ -46,6 +47,15 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
             Generated {new Date().toLocaleDateString()} · LeanShot
           </p>
         </header>
+
+        {/* CONTEXT D-10: DoctorReport PDF watermark parity — see .planning/phases/03-pharmacology-insights-hardening/03-CONTEXT.md */}
+        <aside
+          role="note"
+          className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 text-[12px] italic text-[var(--color-text-secondary)] print:border-black"
+        >
+          <strong className="not-italic font-semibold">Pharmacokinetic estimate:</strong>{' '}
+          {PK_DISCLAIMER_DOCTOR_REPORT}
+        </aside>
 
         <section className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4">
           <h3 className="text-[14px] font-bold mb-2">Summary</h3>

@@ -46,6 +46,8 @@ requirements:
 
 **One-liner:** In-canvas diagonal `Estimate — not medical advice` watermark on MedLevelChart, scoped per-instance via Chart.js plugin so screenshots carry the disclaimer (SC#3) without polluting weight/symptom/sparkline charts.
 
+> _Superseded by Phase 3 D-08: live watermark is now the two-line disclaimer `estimate, not measured serum level` / `— based on population pharmacokinetics`, plugin id bumped to `medLevelWatermark-v2`. The Phase 2 single-line string `Estimate — not medical advice` documented throughout this file is HISTORICAL — it accurately describes the Phase 2 deliverable but is no longer the rendered text. See `.planning/phases/03-pharmacology-insights-hardening/03-CONTEXT.md` D-08 and `src/lib/disclaimers.ts` for the canonical Phase 3 strings. D-09 also requires Phase 2 cross-reference docs to quote the new Phase 3 watermark string; this note discharges that requirement for 02-06-SUMMARY.md._
+
 ## What Shipped
 
 1. **`src/components/dashboard/charts/medLevelWatermarkPlugin.ts`** — Chart.js v4 `Plugin<'line', MedLevelWatermarkOptions>` with `id: 'medLevelWatermark'`. Implements `afterDraw(chart, _args, options)` using `ctx.save → translate(cx, cy) → rotate(-π/4) → fillText(WATERMARK_TEXT, 0, 0) → restore`. Bails when `chartArea` is undefined (chart not yet laid out). Defaults: color `'120, 120, 120'`, opacity `0.12`, font `Inter, system-ui, sans-serif`.

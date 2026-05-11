@@ -78,7 +78,9 @@ For each item below, visit the **production**-Vercel preview URL of the SPA proj
 - [ ] **C8. Disclaimer Step 0** — clear localStorage; refresh; verify the disclaimer is the FIRST screen of onboarding (D-08 / Phase 2 Wave 2).
 - [ ] **C9. Dashboard fallback** — manually set `acknowledgedDisclaimer: undefined` in localStorage with a user already created (DevTools → Application → Local Storage → edit `leanshot_v4` JSON); refresh; verify the blocking modal appears over the dashboard (D-11). Click "I understand" → verify modal dismisses and dashboard becomes interactive.
 - [ ] **C10. Watermark survives screenshot** — open MedLevelChart on a tab that displays it (Home or Medication); take a screenshot (system screenshot tool); confirm "Estimate — not medical advice" text is visible in the saved PNG (SC#3 verbatim).
+  - **Note (Phase 3 D-09):** As of Phase 3, the live watermark text is `estimate, not measured serum level — based on population pharmacokinetics` (two lines, plugin id `medLevelWatermark-v2`). The Phase 2 single-line string above is HISTORICAL; subsequent UAT runs MUST verify the Phase 3 two-line string. The em-dash U+2014 byte-verification check still applies (Phase 3 line 2 starts with U+2014).
 - [ ] **C11. Watermark NOT on other charts** — visit Body tab and Symptoms tab; confirm weight + symptom charts have NO watermark (D-14 — watermark is scoped to the pharmacology projection only).
+  - **Note (Phase 3 D-09):** D-14's watermark-scope constraint still holds in Phase 3 — the Phase 3 two-line disclaimer plugin (`medLevelWatermark-v2`) is registered per-instance on MedLevelChart only. C11 verifies the scope rule, not the text.
 
 ---
 
