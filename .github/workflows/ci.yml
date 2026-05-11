@@ -67,6 +67,14 @@ jobs:
           cache-dependency-path: leanshot/package-lock.json
       - run: npm ci
       - run: npm run test:unit
+        env:
+          # Phase 5 SC#5 (cross-tenant RLS on injections) — when these secrets
+          # are present the e2e/rls-*.test.ts suites run live against the
+          # remote DB and gate merge. If absent (forks, default PRs) the
+          # tests self-skip via describeIfLive — see e2e/rls-injections.test.ts.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   test-e2e:
     name: E2E smoke + production-build security check
@@ -85,6 +93,11 @@ jobs:
 
       # Production-shaped build with explicitly empty env vars.
       # Asserts S-10: production build with empty Sentry DSN exits 0.
+      # Phase 5: ALSO injects VITE_SUPABASE_* so the SPA bundle wired into
+      # the Playwright preview can reach the live Supabase project. These
+      # are bundled at build time (Vite resolves import.meta.env.* eagerly);
+      # without them the bundle ships with placeholder.invalid and the
+      # @phase05 e2e specs fall through to their skip-gates.
       - name: Build (production-shaped, empty env)
         run: npm run build
         env:
@@ -92,6 +105,8 @@ jobs:
           VITE_POSTHOG_KEY: ''
           VITE_POSTHOG_HOST: ''
           VITE_ANALYTICS_ENABLED: 'false'
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       # Phase 2.1 SC#2 — vendor-react chunk-size regression guard.
       # If this step fails, vendor-react gz dropped below the floor (e.g.
@@ -123,6 +138,13 @@ jobs:
         run: npm run test:e2e
         env:
           CI: 'true'
+          # Phase 5: @phase05 specs (auth-signup-verify-signin, password-reset,
+          # signout-cache-clear, cross-device-sync, offline-log-then-sync) read
+          # these to spin up an admin client for createUser/deleteUser cleanup.
+          # Without the secrets the specs self-skip via the HAS_LIVE_AUTH gate.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Upload Playwright report on failure
         if: failure()

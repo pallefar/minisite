@@ -108,6 +108,7 @@ export function MedicationTab() {
               placeholder={u.dose}
               value={injForm.dose}
               onChange={(e) => setInjForm({ ...injForm, dose: e.target.value })}
+              data-testid="injection-dose-input"
             />
             <Select
               label="Unit"
@@ -147,7 +148,7 @@ export function MedicationTab() {
             value={injForm.notes}
             onChange={(e) => setInjForm({ ...injForm, notes: e.target.value })}
           />
-          <Button block onClick={submitInjection}>
+          <Button block onClick={submitInjection} data-testid="injection-submit">
             Log injection
           </Button>
         </div>
@@ -287,7 +288,7 @@ export function MedicationTab() {
             body="Log your first dose to start your med-level curve. The graph below builds itself from here."
           />
         ) : (
-          <div className="overflow-x-auto -mx-1">
+          <div className="overflow-x-auto -mx-1" data-testid="injection-list">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
