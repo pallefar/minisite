@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
+status: verifying
 stopped_at: Phase 4 context gathered (3 plans, 6 decisions locked)
-last_updated: "2026-05-11T17:48:57.713Z"
+last_updated: "2026-05-11T18:22:05.539Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 11
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 27
-  completed_plans: 26
-  percent: 96
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 Phase: 04 (supabase-cloud-bootstrap-ai-proxy-on-edge-functions) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-11
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [█████████░] 93%
 
 *Updated after each plan completion*
 | Phase 04 P01 | 30 | 6 tasks | 7 files |
+| Phase 04 P03 | ~3.0h | 6 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,10 @@ Recent decisions affecting current work:
 - Roadmap: 10 phases at fine granularity; visible compliance copy lands Phase 2; legal-counsel-led compliance foundations sit at Phase 7 (parallelizable with cloud work)
 - [Phase ?]: Phase 4 mid-execution pivot: Anthropic Claude Sonnet → Moonshot Kimi K2 (direct provider call, not Vercel AI Gateway); see 04-ADDENDUM-MOONSHOT.md
 - [Phase ?]: Supabase project ytnsipxxmzgaebkqmokp provisioned in eu-west-1; rate-limit thresholds 30/60/200, anon cleanup pg_cron daily 03:00 UTC (30-day retention)
+- [Phase ?]: Audit-trail ordering: refused user inputs persist to ai_messages BEFORE the refusal short-circuit fires; refusal also persisted as assistant turn with model='refusal-precheck' (T-04-01 evidence inspectable post-mortem)
+- [Phase ?]: PostgreSQL reserved keyword 'window' requires double-quoting throughout the rate_limit_counters migration (column, PK, INSERT, ON CONFLICT); function parameter p_window is unaffected
+- [Phase ?]: ESLint v9 flat-config refuses to lint files outside config base path; shared/ quality coverage delegated to typecheck + vitest + CI deno-test job
+- [Phase ?]: 70-row adversarial corpus (vs 50 floor): 25 dose-change + 5 prompt-injection + 5 system-extraction + 5 emotional-manipulation + 30 benign-pass
 
 ### Pending Todos
 
@@ -102,6 +107,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-11T16:55:34.830Z
+Last session: 2026-05-11T18:17:58.541Z
 Stopped at: Phase 4 context gathered (3 plans, 6 decisions locked)
 Resume file: None
