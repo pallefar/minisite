@@ -2,15 +2,18 @@
  * Zustand store + persist.
  * Single source of truth for all user data and ephemeral UI state.
  */
+import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
+import { signOut as authSignOut } from '@/lib/auth';
 import type {
   AIMessage,
   Cost,
   Injection,
   Meal,
   MoodLog,
+  PendingOp,
   Photo,
   SleepLog,
   SymptomLog,
@@ -30,9 +33,32 @@ import {
   type PersistedState,
 } from './storage';
 
+/**
+ * Phase 5 D-13 / AUTH-06 cloud-sync gate slice.
+ *
+ * `null` while bootstrapping. Once App.tsx's `onAuthStateChange` resolves
+ * INITIAL_SESSION, the slice is populated; on SIGNED_OUT it returns to null
+ * (clearUserDataSlices below).
+ *
+ * `verified` is derived from `email_confirmed_at && !is_anonymous` so D-13's
+ * gate (block cloud sync but allow local logging) is a single boolean read
+ * via `isSyncEnabled()` rather than re-deriving across consumers.
+ */
+export interface SignedInSlice {
+  user: SupabaseUser | null;
+  session: Session | null;
+  verified: boolean;
+}
+
 interface UIState {
   currentTab: TabId;
   toast: { message: string; kind: 'success' | 'error' | 'info'; id: number } | null;
+  /**
+   * Phase 5 D-13 — auth/session slice. NOT persisted via partialize: supabase-js
+   * owns its own session under `sb-leanshot-auth`; we mirror only the derived
+   * snapshot here so UI components can subscribe via Zustand selectors.
+   */
+  signedIn: SignedInSlice | null;
 }
 
 interface Actions {
@@ -99,6 +125,18 @@ interface Actions {
    * SSE parser in `callAIChat` calls this once per delta.
    */
   updateLastAssistant: (delta: string) => void;
+
+  // Phase 5 Plan 05-02 Task 2 — session + offline write queue + sync gate.
+  setSession: (session: Session | null) => void;
+  clearUserDataSlices: () => void;
+  signOut: () => Promise<void>;
+  enqueueOp: (op: PendingOp) => void;
+  /** D-13: cloud sync is permitted only when verified AND online. */
+  isSyncEnabled: () => boolean;
+  /** STUB — 05-03 replaces with LWW merge logic. Defined here so 05-03 only edits this body. */
+  mergeServerInjections: (serverRows: Injection[]) => void;
+  /** STUB — 05-03 replaces with Realtime postgres_changes payload handling. */
+  applyRealtimePayload: (payload: unknown) => void;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -171,10 +209,15 @@ export function migrateState(persistedState: unknown, version: number): Persiste
 
 export const useStore = create<Store>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
+      // Plan 05-02 Task 2: pendingOps is in initialState, but TS narrows it as
+      // optional via PersistedState — ensure a concrete empty array at boot so
+      // every consumer can rely on .length / .find without ?? guards.
+      pendingOps: [],
       currentTab: 'home',
       toast: null,
+      signedIn: null,
 
       setTab: (tab) => {
         set({ currentTab: tab });
@@ -316,12 +359,106 @@ export const useStore = create<Store>()(
           next[next.length - 1] = { ...last, content: last.content + delta };
           return { aiHistory: next };
         }),
+
+      // -----------------------------------------------------------------
+      // Phase 5 Plan 05-02 Task 2 — D-11 + CONF-2 + CONF-3 + DELEG-2 + D-13.
+      // -----------------------------------------------------------------
+
+      setSession: (session) => {
+        if (!session) {
+          set({ signedIn: null });
+          return;
+        }
+        const user = session.user ?? null;
+        const verified = Boolean(
+          user && !user.is_anonymous && user.email_confirmed_at != null,
+        );
+        set({ signedIn: { user, session, verified } });
+      },
+
+      /**
+       * D-11 + CONF-3: clear every user-data slice while preserving
+       * device-level preferences (`acknowledgedDisclaimer`). Theme and
+       * `tour_seen` (the latter currently captured implicitly via guided-tour
+       * logic; not persisted in this store) are managed elsewhere.
+       *
+       * Triggered by: signOut() below + App.tsx SIGNED_OUT handler.
+       */
+      clearUserDataSlices: () =>
+        set((state) => ({
+          user: null,
+          injections: [],
+          symptoms: [],
+          weights: [],
+          measurements: [],
+          meals: [],
+          water: {},
+          foodNoise: {},
+          workouts: [],
+          steps: {},
+          supplements: {},
+          mood: [],
+          sleep: [],
+          nsvs: [],
+          photos: [],
+          vials: [],
+          aiHistory: [],
+          costs: [],
+          pendingOps: [],
+          signedIn: null,
+          // CONF-3: PRESERVE through signout. Device-level acknowledgment.
+          acknowledgedDisclaimer: state.acknowledgedDisclaimer,
+        })),
+
+      signOut: async () => {
+        const { error } = await authSignOut();
+        if (error) {
+          console.error('[leanshot] signOut failed', error);
+          return;
+        }
+        get().clearUserDataSlices();
+      },
+
+      enqueueOp: (op) =>
+        set((s) => {
+          const existing = (s.pendingOps ?? []).find(
+            (p) => p.table === op.table && p.op === op.op && p.key === op.key,
+          );
+          if (existing) return s;
+          return { pendingOps: [...(s.pendingOps ?? []), op] };
+        }),
+
+      /**
+       * D-13: cloud sync is gated. Local logging continues regardless.
+       * `navigator.onLine` is heuristic (some browsers report true on captive
+       * portals), but combined with verified-session it's a sufficient
+       * client-side gate; the actual upsert/Realtime calls 05-03 wires will
+       * surface network errors back into pendingOps if they fail.
+       */
+      isSyncEnabled: () => {
+        const s = get();
+        return Boolean(s.signedIn?.verified) && navigator.onLine === true;
+      },
+
+      // ----- STUBs — Plan 05-03 replaces bodies; signature stays stable. -----
+      mergeServerInjections: (_serverRows) => {
+        // TODO(05-03): merge serverRows into local `injections` with LWW by updated_at.
+        return;
+      },
+      applyRealtimePayload: (_payload) => {
+        // TODO(05-03): handle postgres_changes payload (INSERT/UPDATE/DELETE).
+        return;
+      },
     }),
     {
       name: STORAGE_KEY,
       version: STORAGE_VERSION,
       storage: createJSONStorage(() => localStorage),
       // Only persist domain data, not transient UI flags.
+      // Phase 5 Plan 05-02 DELEG-2: `pendingOps` joins the allow-list so the
+      // offline write queue survives reload/refresh — 05-03 drains it on
+      // SIGNED_IN+online via `flushSyncQueue`. `signedIn` is NOT persisted
+      // (supabase-js owns the session under `sb-leanshot-auth`).
       partialize: (state) => ({
         user: state.user,
         injections: state.injections,
@@ -342,6 +479,7 @@ export const useStore = create<Store>()(
         aiHistory: state.aiHistory,
         costs: state.costs,
         acknowledgedDisclaimer: state.acknowledgedDisclaimer,
+        pendingOps: state.pendingOps,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.
