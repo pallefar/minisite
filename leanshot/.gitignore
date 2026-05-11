@@ -12,3 +12,7 @@ coverage/
 playwright-report/
 test-results/
 /playwright/.cache/
+
+# Bundle analysis (rollup-plugin-visualizer)
+dist/stats.html
+stats.html

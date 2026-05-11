@@ -15,6 +15,13 @@ export interface ModalProps {
   headerAction?: ReactNode;
   /** Hide the default close button (e.g. for confirmation modals with explicit buttons). */
   hideClose?: boolean;
+  /**
+   * When false, ESC keydown and backdrop click are no-ops.
+   * Use for blocking modals (e.g. medical disclaimer) where the only exit is an
+   * explicit acknowledge button. Defaults to true (preserves existing behavior).
+   * D-09 (no decline path on disclaimer modal).
+   */
+  dismissible?: boolean;
 }
 
 const sizeClasses: Record<NonNullable<ModalProps['size']>, string> = {
@@ -32,12 +39,13 @@ export function Modal({
   mobileFullscreen,
   headerAction,
   hideClose,
+  dismissible = true,
   children,
 }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && dismissible) onClose();
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
@@ -45,7 +53,7 @@ export function Modal({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open, onClose, dismissible]);
 
   return (
     <AnimatePresence>
@@ -56,7 +64,7 @@ export function Modal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
-          onClick={onClose}
+          onClick={dismissible ? onClose : undefined}
           role="dialog"
           aria-modal="true"
           aria-label={typeof title === 'string' ? title : 'Dialog'}
