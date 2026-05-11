@@ -19,10 +19,10 @@
 
 create table public.rate_limit_counters (
   user_id uuid not null references auth.users(id) on delete cascade,
-  window text not null check (window in ('minute', 'hour', 'day')),
+  "window" text not null check ("window" in ('minute', 'hour', 'day')),
   bucket_start timestamptz not null,
   hits integer not null default 0,
-  primary key (user_id, window, bucket_start)
+  primary key (user_id, "window", bucket_start)
 );
 
 alter table public.rate_limit_counters enable row level security;
@@ -46,9 +46,9 @@ as $$
 declare
   v_hits integer;
 begin
-  insert into public.rate_limit_counters (user_id, window, bucket_start, hits)
+  insert into public.rate_limit_counters (user_id, "window", bucket_start, hits)
   values (p_user_id, p_window, p_bucket_start, 1)
-  on conflict (user_id, window, bucket_start)
+  on conflict (user_id, "window", bucket_start)
     do update set hits = rate_limit_counters.hits + 1
   returning hits into v_hits;
   return v_hits;
