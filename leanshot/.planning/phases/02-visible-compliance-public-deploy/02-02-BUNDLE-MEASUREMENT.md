@@ -103,6 +103,16 @@ Rationale:
 
 **Flag for 02-08:** Measure Lighthouse in 02-08 against both the bare landing route AND the dashboard-after-onboarding route. The dashboard-route Lighthouse score depends on whether `vendor-charts` is fetched eagerly (current: lazy via Suspense — keep that).
 
+## Decision (Human-verified — Task 3 resume signal)
+
+**Approved shape for 02-07:** the 5-chunk proposal exactly as written above (vendor-react, vendor-motion, vendor-charts, vendor-icons, vendor-telemetry).
+
+**Q1 (split vendor-telemetry?):** No — keep merged. Phase 02 has no consent toggle in scope; if a consent gate lands later, splitting PostHog into its own chunk is a one-line change.
+**Q2 (promote vendor-charts?):** Yes — promote out of BaseChart for cache-stability across all chart-using tabs.
+**Q3 (split vendor-icons?):** Yes — split (~8 kB gz isolated chunk) for cache-stability of icon-only updates.
+
+02-07 may proceed.
+
 ## Reproduction
 
 ```bash
