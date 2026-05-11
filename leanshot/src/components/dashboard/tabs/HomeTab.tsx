@@ -1,4 +1,5 @@
 import { Lightbulb } from 'lucide-react';
+import { useMemo } from 'react';
 import { EffectivenessCard } from '@/components/dashboard/cards/EffectivenessCard';
 import { FocusCard } from '@/components/dashboard/cards/FocusCard';
 import { GLPCurveCard } from '@/components/dashboard/cards/GLPCurveCard';
@@ -9,11 +10,37 @@ import { StreaksCard } from '@/components/dashboard/cards/StreaksCard';
 import { SymptomCard } from '@/components/dashboard/cards/SymptomCard';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { generateInsights } from '@/lib/insights';
+import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 
 export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
   const setTab = useStore((s) => s.setTab);
-  const insight = useStore((s) => generateInsights(s)[0]);
+  // generateInsights returns a fresh array each call — using it as a Zustand
+  // selector makes useSyncExternalStore's snapshot unstable. Subscribe to
+  // raw slices and memoize the derived [0] insight.
+  const user = useStore((s) => s.user);
+  const weights = useStore((s) => s.weights);
+  const meals = useStore((s) => s.meals);
+  const symptoms = useStore((s) => s.symptoms);
+  const injections = useStore((s) => s.injections);
+  const workouts = useStore((s) => s.workouts);
+  const water = useStore((s) => s.water);
+  const mood = useStore((s) => s.mood);
+  const insight = useMemo(
+    () =>
+      generateInsights({
+        ...initialState,
+        user,
+        weights,
+        meals,
+        symptoms,
+        injections,
+        workouts,
+        water,
+        mood,
+      })[0],
+    [user, weights, meals, symptoms, injections, workouts, water, mood],
+  );
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">

@@ -1,5 +1,5 @@
 import { FileText, Sparkles, Trophy, Star, Lightbulb, ChartLine, X, BookOpen } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ShareCardModal } from '@/components/dashboard/share/ShareCardModal';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { generateInsights } from '@/lib/insights';
+import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 
 interface InsightsTabProps {
@@ -23,7 +24,27 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
   const weights = useStore((s) => s.weights);
   const workouts = useStore((s) => s.workouts);
   const injections = useStore((s) => s.injections);
-  const insights = useStore(generateInsights);
+  // generateInsights returns a fresh array each call, so using it as a Zustand
+  // selector makes useSyncExternalStore's snapshot unstable (infinite loop).
+  // Subscribe to the slices it reads, then memoize the derivation.
+  const symptoms = useStore((s) => s.symptoms);
+  const water = useStore((s) => s.water);
+  const mood = useStore((s) => s.mood);
+  const insights = useMemo(
+    () =>
+      generateInsights({
+        ...initialState,
+        user: u,
+        weights,
+        meals,
+        symptoms,
+        injections,
+        workouts,
+        water,
+        mood,
+      }),
+    [u, weights, meals, symptoms, injections, workouts, water, mood],
+  );
   const toast = useToast();
 
   const [shareOpen, setShareOpen] = useState(false);

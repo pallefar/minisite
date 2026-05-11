@@ -85,6 +85,7 @@ None yet.
 | Date | Slug | Summary |
 |------|------|---------|
 | 2026-05-11 | fix-focus-loop-and-console | FocusCard infinite render loop, PostHog placeholder init, deprecated mobile-web-app meta |
+| 2026-05-11 | fix-insights-and-home-render-loop | InsightsTab + HomeTab infinite render loops (`generateInsights` as Zustand selector) |
 
 ## Deferred Items
 
