@@ -90,6 +90,14 @@ interface Actions {
 
   appendAI: (m: AIMessage) => void;
   clearAI: () => void;
+  /**
+   * Phase 4 D-05 (streaming UX): append `delta` to the .content of the
+   * LAST aiHistory message IF its role is 'assistant'. No-op when the
+   * last message is a user message or the list is empty (defensive).
+   * Mirrors the typing-effect UX the v1 BYO path used; the streaming
+   * SSE parser in `callAIChat` calls this once per delta.
+   */
+  updateLastAssistant: (delta: string) => void;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -284,6 +292,14 @@ export const useStore = create<Store>()(
 
       appendAI: (m) => set((s) => ({ aiHistory: [...s.aiHistory, m] })),
       clearAI: () => set({ aiHistory: [] }),
+      updateLastAssistant: (delta) =>
+        set((s) => {
+          const last = s.aiHistory[s.aiHistory.length - 1];
+          if (!last || last.role !== 'assistant') return s;
+          const next = [...s.aiHistory];
+          next[next.length - 1] = { ...last, content: last.content + delta };
+          return { aiHistory: next };
+        }),
     }),
     {
       name: STORAGE_KEY,
