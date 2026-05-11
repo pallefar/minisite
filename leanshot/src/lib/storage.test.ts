@@ -1,5 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { migrateFromV3 } from './storage';
+import { initialState, migrateFromV3, STORAGE_VERSION } from './storage';
+
+describe('initialState', () => {
+  it('defaults acknowledgedDisclaimer to undefined (D-10)', () => {
+    expect(initialState.acknowledgedDisclaimer).toBeUndefined();
+  });
+});
+
+describe('STORAGE_VERSION', () => {
+  it('is bumped to 5 for D-10 versioned disclaimer field', () => {
+    expect(STORAGE_VERSION).toBe(5);
+  });
+});
 
 describe('migrateFromV3', () => {
   let storageMock: Record<string, string>;
@@ -33,6 +45,8 @@ describe('migrateFromV3', () => {
     const result = migrateFromV3();
     expect(result).not.toBeNull();
     expect((result?.user as Record<string, unknown>)?.['name']).toBe('Alex');
+    // D-11: v3 migrants must default to undefined so they see the dashboard fallback modal
+    expect(result?.acknowledgedDisclaimer).toBeUndefined();
   });
 
   it('returns null when only v4 is present and v3 is absent', () => {
