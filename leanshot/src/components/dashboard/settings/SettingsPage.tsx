@@ -9,6 +9,8 @@ import {
   Download,
   GraduationCap,
   Terminal,
+  KeyRound,
+  Mail,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -18,10 +20,12 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
+import { attachEmailToAnon, requestPasswordReset } from '@/lib/auth';
 import { todayStr, cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 type Section =
+  | 'account'
   | 'profile'
   | 'goals'
   | 'notifications'
@@ -34,7 +38,12 @@ type Section =
 // retired). Streamed AI now flows through the server-side ai-chat Edge
 // Function — no per-user key needed. Stale localStorage key is wiped
 // on next boot via the one-shot cleanup in main.tsx.
+// Phase 5 D-04/D-10: 'account' section is the FIRST nav entry for permanent
+// (non-anonymous) users — surfaces email + change-password CTA. The runtime
+// rendering filters it out when `signedIn.user` is anonymous (see Account
+// section guard below).
 const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
+  { id: 'account', label: 'Account', Icon: UserIcon },
   { id: 'profile', label: 'Profile', Icon: UserIcon },
   { id: 'goals', label: 'Goals', Icon: Target },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
@@ -49,7 +58,11 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   const updateUser = useStore((s) => s.updateUser);
   const resetAll = useStore((s) => s.resetAll);
   const fullState = useStore((s) => s);
+  const signedIn = useStore((s) => s.signedIn);
   const toast = useToast();
+
+  // Phase 5 D-04: account section visible only for permanent (non-anon) users.
+  const isPermanent = Boolean(signedIn?.user && !signedIn.user.is_anonymous);
 
   const {
     confirm,
@@ -148,6 +161,56 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
         </nav>
 
         <div className="flex-1 min-w-0 space-y-3">
+          {section === 'account' && (
+            <Section title="Account" body="Email and password for cross-device sync.">
+              {!isPermanent ? (
+                <div className="space-y-3">
+                  <p className="text-[13px] text-[var(--color-text-secondary)]">
+                    You&apos;re using LeanShot locally. Sign up to sync across devices.
+                  </p>
+                  <Button
+                    leadingIcon={<Mail className="size-4" />}
+                    onClick={() => {
+                      window.location.hash = '#/auth/signup';
+                      onClose();
+                    }}
+                  >
+                    Sign up
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <Mail className="size-4 text-[var(--color-text-tertiary)]" aria-hidden />
+                    <span className="text-[var(--color-text-secondary)]">Email:</span>
+                    <span className="font-semibold">{signedIn?.user?.email ?? '—'}</span>
+                    {!signedIn?.verified && (
+                      <span className="text-[11px] text-[var(--color-warning,#a36a00)] font-semibold uppercase tracking-wider">
+                        Unverified
+                      </span>
+                    )}
+                  </div>
+                  <ChangeEmailRow currentEmail={signedIn?.user?.email ?? ''} onToast={toast} />
+                  <Button
+                    variant="secondary"
+                    leadingIcon={<KeyRound className="size-4" />}
+                    onClick={async () => {
+                      const email = signedIn?.user?.email;
+                      if (!email) {
+                        toast('No email on file', 'error');
+                        return;
+                      }
+                      const { error } = await requestPasswordReset(email);
+                      if (error) toast(error.message, 'error');
+                      else toast('Password reset email sent.', 'success');
+                    }}
+                  >
+                    Change password
+                  </Button>
+                </div>
+              )}
+            </Section>
+          )}
           {section === 'profile' && (
             <Section title="Profile" body="Your basic account info.">
               <Input
@@ -330,6 +393,73 @@ function Section({ title, body, children }: { title: string; body: string; child
         <p className="text-[13px] text-[var(--color-text-secondary)]">{body}</p>
       </div>
       <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * Phase 5 D-04: inline-expand change-email row. Calls `attachEmailToAnon` (which
+ * wraps `supabase.auth.updateUser({email})` — works for both anon promotion AND
+ * permanent-user email change since the underlying Supabase API path is the same).
+ * On success, Supabase sends a confirm-email link to the NEW address.
+ */
+function ChangeEmailRow({
+  currentEmail,
+  onToast,
+}: {
+  currentEmail: string;
+  onToast: (msg: string, kind?: 'success' | 'error' | 'info') => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [next, setNext] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        Change email
+      </Button>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <Input
+        label="New email"
+        type="email"
+        value={next}
+        onChange={(e) => setNext(e.target.value)}
+        placeholder={currentEmail}
+        autoComplete="email"
+      />
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          loading={busy}
+          onClick={async () => {
+            if (!next.trim()) {
+              onToast('Email is required', 'error');
+              return;
+            }
+            setBusy(true);
+            try {
+              const { error } = await attachEmailToAnon(next.trim());
+              if (error) {
+                onToast(error.message, 'error');
+                return;
+              }
+              onToast(`Check ${next.trim()} to confirm the change.`, 'success');
+              setOpen(false);
+              setNext('');
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          Send confirmation
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }

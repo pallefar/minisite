@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { TAB_TITLES } from '@/lib/constants';
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
+import { AvatarMenu } from './AvatarMenu';
 
 const TAB_VALUES = new Set<string>([
   'home',
@@ -22,9 +23,11 @@ interface TopbarProps {
   onLogDose: () => void;
   onOpenReport: () => void;
   onOpenAI: () => void;
+  /** Phase 5 D-04: AvatarMenu surfaces Account/Settings which both route through here. */
+  onOpenSettings?: () => void;
 }
 
-export function Topbar({ onLogDose, onOpenReport, onOpenAI }: TopbarProps) {
+export function Topbar({ onLogDose, onOpenReport, onOpenAI, onOpenSettings }: TopbarProps) {
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
   const meta = TAB_TITLES[currentTab];
@@ -115,6 +118,7 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI }: TopbarProps) {
         <Button onClick={onLogDose} size="sm" trailingIcon={<Plus className="size-4" />}>
           Log dose
         </Button>
+        <AvatarMenu onOpenSettings={onOpenSettings} />
       </div>
       {/* Hidden visual hint for the menu button placement on mobile */}
       <span className="sr-only" aria-hidden>

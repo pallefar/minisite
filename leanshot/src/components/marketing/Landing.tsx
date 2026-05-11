@@ -65,6 +65,13 @@ function Nav({
         >
           {theme === 'light' ? <Moon className="size-5" /> : <Sun className="size-5" />}
         </IconButton>
+        {/* Phase 5 D-03: top-right "Sign in" CTA — high-intent surface for returning users. */}
+        <a
+          href="#/auth/signin"
+          className="px-4 h-9 inline-flex items-center text-[13px] font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors"
+        >
+          Sign in
+        </a>
         <Button onClick={onStart} size="sm" trailingIcon={<ArrowRight className="size-4" />}>
           Get started
         </Button>
