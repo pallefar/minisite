@@ -6,9 +6,18 @@
  * - capture_pageview: false (we track tab_viewed manually via track())
  * - opt_out_capturing fires BEFORE identify when production-disabled (Pitfall 2)
  * - VITE_ANALYTICS_ENABLED defaults false in production until Phase 7 legal sign-off (D-13)
+ *
+ * Phase 2.1 perf fix: posthog-js is imported DYNAMICALLY inside `initAnalytics()`
+ * and `track()` (was a top-level static import — Phase 2). The static import
+ * dragged posthog-js (61 kB gz) into the entry static graph, contributing to
+ * `vendor-telemetry` becoming auto-preloaded on cold load. With dynamic
+ * imports the chunk only fetches when init/track is actually called, which
+ * `main.tsx` schedules via `deferAnalyticsInit` after first paint.
+ *
+ * `track()` calls fired BEFORE init complete are queued in `pendingTrackQueue`
+ * and drained inside the loaded() callback (Pitfall 4 mitigation: don't lose
+ * `disclaimer_acknowledged` events that fire during onboarding's first paint).
  */
-
-import posthog from 'posthog-js';
 
 /** Typed event taxonomy starter set (D-14). Other phases extend this union. */
 export type EventName =
@@ -46,7 +55,23 @@ function isEnabled(): boolean {
   return import.meta.env.VITE_ANALYTICS_ENABLED === 'true';
 }
 
+// Pre-init queue for `track()` calls that fire before posthog-js finishes loading.
+// Drained inside the dynamic-import loaded() callback so events fired during
+// onboarding's first paint (e.g. disclaimer_acknowledged) aren't lost.
+type QueuedEvent = { event: EventName; properties?: Record<string, string | number | boolean> };
+const pendingTrackQueue: QueuedEvent[] = [];
+// Captured from inside loaded() — typed as the same shape PostHog passes there.
+// We only call .capture() on it, so any minimal subset that includes that method is fine.
+type PostHogCaptureLike = {
+  capture: (event: string, properties?: Record<string, string | number | boolean>) => void;
+};
+let posthogInstance: PostHogCaptureLike | null = null;
+let initStarted = false;
+
 export function initAnalytics(): void {
+  if (initStarted) return;
+  initStarted = true;
+
   const enabled = isEnabled();
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
   const host =
@@ -54,25 +79,37 @@ export function initAnalytics(): void {
 
   // Without a real key, posthog.init still fires /array/<key>/config and /flags
   // before loaded() runs opt_out_capturing — producing 404/401 noise. Skip entirely.
-  if (!key) return;
+  if (!key) {
+    pendingTrackQueue.length = 0; // drop any queued events; nowhere to send them
+    return;
+  }
 
-  posthog.init(key, {
-    api_host: host,
-    // D-15: localStorage UUID, no PostHog-managed cookies
-    persistence: 'localStorage',
-    // Health content in DOM — never autocapture
-    autocapture: false,
-    capture_pageview: false,
-    disable_surveys: true,
-    loaded: (ph) => {
-      // Pitfall 2: opt_out BEFORE identify so $identify network calls don't fire in production
-      if (!enabled) {
-        ph.opt_out_capturing();
-        return;
-      }
-      const distinctId = getOrCreateDistinctId();
-      ph.identify(distinctId);
-    },
+  void import('posthog-js').then(({ default: posthog }) => {
+    posthog.init(key, {
+      api_host: host,
+      // D-15: localStorage UUID, no PostHog-managed cookies
+      persistence: 'localStorage',
+      // Health content in DOM — never autocapture
+      autocapture: false,
+      capture_pageview: false,
+      disable_surveys: true,
+      loaded: (ph) => {
+        // Pitfall 2: opt_out BEFORE identify so $identify network calls don't fire in production
+        if (!enabled) {
+          ph.opt_out_capturing();
+          pendingTrackQueue.length = 0;
+          return;
+        }
+        const distinctId = getOrCreateDistinctId();
+        ph.identify(distinctId);
+        posthogInstance = ph;
+        // Drain any track() calls that fired between deferAnalyticsInit() and loaded()
+        for (const queued of pendingTrackQueue) {
+          ph.capture(queued.event, queued.properties);
+        }
+        pendingTrackQueue.length = 0;
+      },
+    });
   });
 }
 
@@ -82,5 +119,10 @@ export function track(
   properties?: Record<string, string | number | boolean>,
 ): void {
   if (!isEnabled()) return;
-  posthog.capture(event, properties);
+  if (posthogInstance) {
+    posthogInstance.capture(event, properties);
+    return;
+  }
+  // Pre-init: queue. Drained inside loaded() callback above.
+  pendingTrackQueue.push({ event, properties });
 }

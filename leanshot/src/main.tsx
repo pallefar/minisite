@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
@@ -7,16 +6,18 @@ import { applyThemeToDOM } from './hooks/useTheme';
 import { initAnalytics } from './lib/analytics';
 import { beforeSend } from './lib/sentry';
 import { hydrate } from './lib/store';
+import { deferAnalyticsInit, deferSentryInit } from './lib/telemetry-defer';
 import type { Theme } from './types';
 
-// 0) Sentry FIRST — captures errors during theme read, hydrate(), lazy chunks (D-12)
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN as string | undefined,
-  environment: import.meta.env.MODE,
-  enabled: !!import.meta.env.VITE_SENTRY_DSN, // no-op when DSN absent (local dev)
-  integrations: [], // D-11: errors-only — no Replay, Tracing, Profiling
-  beforeSend,
-});
+// Phase 2.1 perf fix: telemetry init is now DEFERRED to after first paint
+// (was static `Sentry.init(...)` here in Phase 2; that pulled @sentry/* into
+// the entry static graph, auto-preloaded a 93 kB gz vendor-telemetry chunk,
+// and pinned SPA Lighthouse Performance at ~0.76).
+//
+// D-12 (Phase 1) error-capture floor is preserved by `deferSentryInit`'s
+// pre-init `error`/`unhandledrejection` listeners that buffer events until
+// Sentry's dynamic import resolves and drains them.
+deferSentryInit(beforeSend);
 
 // 1) Apply the saved/system theme to the DOM immediately so the first
 //    paint matches and we don't show a flash of the wrong palette.
@@ -34,13 +35,15 @@ applyThemeToDOM(initialTheme);
 // 2) Synchronously rehydrate Zustand from localStorage BEFORE first render.
 //    This avoids flashing the marketing page for already-onboarded users.
 void hydrate().then(() => {
-  // 3) Analytics AFTER hydrate so persisted distinct_id (if any) is available (D-15)
-  initAnalytics();
-
   const root = createRoot(document.getElementById('root')!);
   root.render(
     <StrictMode>
       <App />
     </StrictMode>,
   );
+
+  // 3) Analytics AFTER first render, scheduled at idle so the posthog-js
+  //    bundle never blocks the cold-load critical path. `initAnalytics()`
+  //    handles its own dynamic import + queue draining internally.
+  deferAnalyticsInit(initAnalytics);
 });

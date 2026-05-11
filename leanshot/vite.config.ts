@@ -50,18 +50,40 @@ export default defineConfig(({ mode }) => {
           //   Q1 No  — vendor-telemetry stays merged (no consent toggle in Phase 02)
           //   Q2 Yes — vendor-charts promoted out of BaseChart for cache-stability
           //   Q3 Yes — vendor-icons split (~8 kB gz isolated chunk for cache stability)
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'scheduler'],
-            'vendor-motion': ['framer-motion', 'motion-dom', 'motion-utils'],
-            'vendor-charts': ['chart.js', '@kurkle/color'],
-            'vendor-icons': ['lucide-react'],
-            'vendor-telemetry': [
-              '@sentry/react',
-              '@sentry/core',
-              '@sentry/browser',
-              '@sentry-internal/browser-utils',
-              'posthog-js',
-            ],
+          // 2.1 update — function form per .planning/phases/02.1-spa-lighthouse-perf/02.1-RESEARCH.md
+          // root-cause: object form left react-dom in `index` because the entry was the only
+          // static consumer; function form forces ANY id matching the anchored regex into the
+          // named chunk regardless of static-vs-lazy graph reachability.
+          // Anchored regex (`/node_modules\/(...)(\/|$)/`) avoids `id.includes('react')`
+          // false-positives such as `@use-gesture/react` polluting `vendor-react` (RESEARCH P1).
+          manualChunks: (id: string): string | undefined => {
+            // CSS-module guard — manualChunks receives ALL ids including .css ones;
+            // routing CSS into a JS chunk breaks the CSS pipeline (RESEARCH pitfall #1).
+            if (id.endsWith('.css')) return undefined;
+
+            if (id.includes('node_modules')) {
+              if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) {
+                return 'vendor-react';
+              }
+              if (/node_modules\/(framer-motion|motion-dom|motion-utils)(\/|$)/.test(id)) {
+                return 'vendor-motion';
+              }
+              if (/node_modules\/(chart\.js|@kurkle\/color)(\/|$)/.test(id)) {
+                return 'vendor-charts';
+              }
+              if (/node_modules\/lucide-react(\/|$)/.test(id)) {
+                return 'vendor-icons';
+              }
+              if (
+                /node_modules\/(@sentry\/react|@sentry\/core|@sentry\/browser|@sentry-internal\/browser-utils|posthog-js)(\/|$)/.test(
+                  id,
+                )
+              ) {
+                return 'vendor-telemetry';
+              }
+              // Any remaining node_modules → fall through to Vite's automatic chunking.
+            }
+            return undefined;
           },
         },
       },

@@ -103,6 +103,18 @@ Rationale:
 
 **Flag for 02-08:** Measure Lighthouse in 02-08 against both the bare landing route AND the dashboard-after-onboarding route. The dashboard-route Lighthouse score depends on whether `vendor-charts` is fetched eagerly (current: lazy via Suspense — keep that).
 
+## Phase 2.1 ADDENDUM (2026-05-11) — what this measurement got wrong
+
+The "Lighthouse 90 confidence: HIGH" rating above was based on the assumption that splitting `index` into vendor chunks would lift Performance to ≥ 0.90 by itself. **It didn't.** Phase 2 shipped at SPA Performance ~0.76 despite the 5-chunk split landing as designed. The rating was wrong because it assumed bundle topology was the bottleneck — actually network (preload waterfall) was. See `02.1-spa-lighthouse-perf/02.1-BUNDLE-MEASUREMENT.md` for the post-mortem and the actual fix path (defer telemetry init + non-blocking font CSS).
+
+Two specific predictions this measurement got wrong:
+1. **`vendor-react` would carry ~107 kB gz pre-bundle.** Actually 3 kB gz on Phase 2's deploy because object-form `manualChunks` doesn't move modules unless they're statically imported from the entry. Phase 2.1 fixed this with function-form (now 60.5 kB gz, react-dom included).
+2. **The slim post-split `index` chunk would drive FCP/LCP into green.** Index DID drop from 205.8 → 14.4 kB gz, but `vendor-telemetry` (93 kB gz of @sentry/* + posthog-js) was auto-preloaded by Vite due to static imports in `main.tsx` and `analytics.ts`, putting 93 kB on the critical path that wasn't accounted for here. Phase 2.1 fixed this by deferring telemetry init.
+
+Final SPA Performance after Phase 2.1 (3 lhci runs, SHA `7ea9a9d`): **0.94 / 0.94 / 0.94** — see `02.1-spa-lighthouse-perf/02.1-BUNDLE-MEASUREMENT.md` for full Web Vitals breakdown.
+
+The Q1/Q2/Q3 decisions below remain valid for Phase 2's split shape; they are NOT what moved the perf needle in Phase 2.1.
+
 ## Decision (Human-verified — Task 3 resume signal)
 
 **Approved shape for 02-07:** the 5-chunk proposal exactly as written above (vendor-react, vendor-motion, vendor-charts, vendor-icons, vendor-telemetry).
