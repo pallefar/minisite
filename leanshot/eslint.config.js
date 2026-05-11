@@ -17,8 +17,12 @@ export default defineConfig([
   ...tseslint.configs.recommended,
 
   // React + hooks + refresh + a11y + import ordering
+  // Phase 4 D-04: extend to `../shared/**/*.ts` so the dual-runtime shared/
+  // module (refusal.ts, disclaimers.ts) is linted alongside src/. Per RESEARCH
+  // §"Pitfall 10" the repo-root shared/ directory lives one level UP from the
+  // `leanshot/` cwd that eslint runs from; the relative glob resolves correctly.
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', '../shared/**/*.ts'],
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
@@ -105,7 +109,7 @@ export default defineConfig([
   // Disable import-x/no-unresolved for test files because vitest/@testing-library
   // packages are not installed until Plan 04.
   {
-    files: ['src/**/*.test.{ts,tsx}', 'e2e/**/*.{ts,tsx}', 'src/test-setup.ts'],
+    files: ['src/**/*.test.{ts,tsx}', 'e2e/**/*.{ts,tsx}', 'src/test-setup.ts', '../shared/**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'react-refresh/only-export-components': 'off',

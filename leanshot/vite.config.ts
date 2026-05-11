@@ -38,7 +38,14 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
-    server: { port: 5173, host: true },
+    server: {
+      port: 5173,
+      host: true,
+      // Phase 4 D-04: allow vitest to resolve files in the repo-root `shared/`
+      // directory (one level UP from leanshot/). Without this, vite's default
+      // fs.allow only permits the project root, blocking `../shared/*.test.ts`.
+      fs: { allow: ['..'] },
+    },
     build: {
       // 'hidden' generates .map files but does NOT add the sourceMappingURL comment to .js.
       // Even if a .map slips past filesToDeleteAfterUpload, clients can't fetch it (D-21).
@@ -92,7 +99,10 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       globals: true,
       setupFiles: ['./src/test-setup.ts'],
-      include: ['src/**/*.test.{ts,tsx}'],
+      // Phase 4 D-04 — pull in the dual-runtime shared/refusal.test.ts at the
+      // repo root so vitest exercises the SAME corpus that the Deno test
+      // runner exercises in CI (`supabase/functions/tests/ai-chat-refusal-test.ts`).
+      include: ['src/**/*.test.{ts,tsx}', '../shared/**/*.test.ts'],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
       // Avoid React 19 StrictMode double-invoke flake (RESEARCH.md Pitfall 6)
       css: false,
