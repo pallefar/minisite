@@ -111,6 +111,50 @@ describe('isDoseChangeAdvice — CR-01: multi-occurrence stem coverage', () => {
   }
 });
 
+/**
+ * CR-02 regression (Phase 3 review): D-05 / ROADMAP SC#3 require the refusal
+ * list to block "all dose-change phrasings." The prior STEM_PATTERN omitted
+ * the clinical verbs `discontinue`, `hold`, `pause`, `resume`, `withhold`,
+ * `add another`, and `cut` — each of these phrasings slipped through and
+ * could surface from a future rule branch or AI-generated insight.
+ *
+ * These tests MUST fail against the pre-fix STEM_PATTERN and pass after the
+ * fix. Paired benign-context PASS rows lock in that the ±5-token med-noun
+ * proximity guard still suppresses non-clinical uses of the same stems
+ * (e.g. "hold a plank", "add more vegetables", "cut sugar").
+ */
+describe('isDoseChangeAdvice — CR-02: clinical dose-change verbs', () => {
+  const CR02_REFUSE = [
+    'Discontinue your Ozempic this week.',
+    'Hold your next shot until labs return.',
+    'Pause your weekly dose.',
+    'Resume your Wegovy injection on Monday.',
+    'Withhold your dose pending labs.',
+    'Add another mg to your Saturday shot.',
+    'Cut your dose to 5mg.',
+  ];
+
+  for (const phrase of CR02_REFUSE) {
+    it(`refuses clinical dose-change verb: "${phrase}"`, () => {
+      expect(isDoseChangeAdvice(phrase)).toBe(true);
+    });
+  }
+
+  const CR02_PASS = [
+    'Hold a plank for 30 seconds at the end of your workout.',
+    'Add more vegetables to your evening plate.',
+    'Cut sugar from your morning coffee.',
+    'Pause before bed to wind down screens.',
+    'Resume your strength routine when soreness fades.',
+  ];
+
+  for (const phrase of CR02_PASS) {
+    it(`passes benign use of clinical verb: "${phrase}"`, () => {
+      expect(isDoseChangeAdvice(phrase)).toBe(false);
+    });
+  }
+});
+
 describe('scrubInsights', () => {
   it('filters dose-change rows and keeps benign rows', () => {
     const input = [
