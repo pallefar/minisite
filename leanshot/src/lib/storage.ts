@@ -25,10 +25,10 @@ import type {
 
 export const STORAGE_KEY = 'leanshot_v4';
 export const LEGACY_KEY = 'leanshot_v3';
-// D-10: bumped 4 → 5 so the persist `migrate` callback fires for existing v4 users
-// and explicitly defaults `acknowledgedDisclaimer` to undefined. Do NOT rename
-// STORAGE_KEY — that is the localStorage key, not the schema version.
-export const STORAGE_VERSION = 5;
+// D-07 (Phase 3): bumped 5 → 6 so persist `migrate` back-stamps existing
+// injections with pkEngineVersion: 1 (PK-05). Do NOT rename STORAGE_KEY —
+// that is the localStorage key, not the schema version.
+export const STORAGE_VERSION = 6;
 export const API_KEY_STORAGE = 'leanshot_anthropic_key';
 
 export interface PersistedState {

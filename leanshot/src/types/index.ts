@@ -64,6 +64,10 @@ export interface Injection {
   unit: DoseUnit;
   site: InjectionSite | null;
   notes: string;
+  /** PK-05 (Phase 3 D-07): pharmacology engine version that produced this record's expected curve.
+   *  Optional so legacy literals + in-memory v5-shaped records typecheck.
+   *  Storage v5→v6 migrate back-stamps to 1. New writes stamp 1 via addInjection. */
+  pkEngineVersion?: number;
 }
 
 export interface SymptomLog {
