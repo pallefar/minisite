@@ -95,8 +95,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 5 plans
 - [x] 03-01-PLAN.md — PK corpus + disclaimer constants + Vitest steady-state ±15% assertions (PK-01) (Wave 1)
 - [x] 03-02-PLAN.md — Refusal-list helper + 30-row adversarial corpus + insights.ts wiring (PK-02) (Wave 1)
-- [ ] 03-03-PLAN.md — Uncertainty band + Y-axis relabel + watermark v2 + plugin/chart test updates (PK-03, PK-04 chart) (Wave 2)
-- [ ] 03-04-PLAN.md — DoctorReport PDF disclaimer + RTL test + Phase 2 cross-reference doc updates (PK-04 PDF) (Wave 2)
+- [x] 03-03-PLAN.md — Uncertainty band + Y-axis relabel + watermark v2 + plugin/chart test updates (PK-03, PK-04 chart) (Wave 2)
+- [x] 03-04-PLAN.md — DoctorReport PDF disclaimer + RTL test + Phase 2 cross-reference doc updates (PK-04 PDF) (Wave 2)
 - [x] 03-05-PLAN.md — pkEngineVersion field + STORAGE_VERSION = 6 + chained migrate + addInjection stamping (PK-05) (Wave 1)
 
 ### Phase 4: Supabase Cloud Bootstrap + AI Proxy on Edge Functions
