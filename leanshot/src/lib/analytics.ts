@@ -16,7 +16,9 @@ export type EventName =
   | 'onboarding_step_completed'
   | 'onboarding_completed'
   | 'onboarding_abandoned'
-  | 'tab_viewed';
+  | 'tab_viewed'
+  | 'disclaimer_acknowledged' // Phase 2 D-08: fires when user clicks "I understand" on Step 0 OR dashboard fallback
+  | 'disclaimer_required'; // Phase 2 D-11: fires once on first dashboard render when ack !== 'v1'
 
 const DISTINCT_ID_KEY = 'leanshot_distinct_id';
 
