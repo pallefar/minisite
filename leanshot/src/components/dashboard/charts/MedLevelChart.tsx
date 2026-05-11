@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { getChartTokens } from '@/lib/chart-theme';
-import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
+import { PK_DISCLAIMER_BAND_CAPTION, PK_DISCLAIMER_Y_AXIS } from '@/lib/disclaimers';
+import { HALF_LIVES, calcMedLevel, trialClass } from '@/lib/pharmacology';
+import { CV_BY_DRUG_CLASS } from '@/lib/pharmacology-corpus';
 import { useStore } from '@/lib/store';
 import { BaseChart } from './BaseChart';
 import { medLevelWatermarkPlugin } from './medLevelWatermarkPlugin';
@@ -38,10 +40,24 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
     );
     if (lastPast >= 0 && future[lastPast + 1] !== undefined) future[lastPast] = past[lastPast]!;
 
+    // Phase 3 PK-03: inter-individual variability band per drug class CV%.
+    const cvPct = CV_BY_DRUG_CLASS[trialClass(u.medication)] ?? 0.3;
+    const upperPast = past.map((v) => (v == null ? null : v * (1 + cvPct)));
+    const lowerPast = past.map((v) => (v == null ? null : v * (1 - cvPct)));
+    const upperFuture = future.map((v) => (v == null ? null : v * (1 + cvPct)));
+    const lowerFuture = future.map((v) => (v == null ? null : v * (1 - cvPct)));
+    // Empty-state suppression: with zero injections every mean is zero so the
+    // ±CV band would render as a ghost-fill artifact along the x-axis. Skip.
+    const showBand = injections.length > 0;
+
     return {
       type: 'line' as const,
       data: {
         labels,
+        // Dataset ordering reconciliation (PATTERNS.md): visible lines FIRST so
+        // the UI-SPEC tooltip filter `(item) => item.datasetIndex < 2` cleanly
+        // EXCLUDES the band datasets. Chart.js `fill: '+1'` is index-relative,
+        // so upper-bound (idx N) → lower-bound (idx N+1) still works.
         datasets: [
           {
             label: 'Past',
@@ -66,6 +82,50 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
             borderDash: [5, 5],
             spanGaps: true,
           },
+          ...(showBand
+            ? [
+                {
+                  label: 'Upper bound (Past)',
+                  data: upperPast,
+                  borderColor: 'transparent',
+                  backgroundColor: t.primary + '20',
+                  fill: '+1',
+                  tension: 0.3,
+                  pointRadius: 0,
+                  spanGaps: false,
+                },
+                {
+                  label: 'Lower bound (Past)',
+                  data: lowerPast,
+                  borderColor: 'transparent',
+                  backgroundColor: 'transparent',
+                  fill: false,
+                  tension: 0.3,
+                  pointRadius: 0,
+                  spanGaps: false,
+                },
+                {
+                  label: 'Upper bound (Projected)',
+                  data: upperFuture,
+                  borderColor: 'transparent',
+                  backgroundColor: t.rose + '20',
+                  fill: '+1',
+                  tension: 0.3,
+                  pointRadius: 0,
+                  spanGaps: true,
+                },
+                {
+                  label: 'Lower bound (Projected)',
+                  data: lowerFuture,
+                  borderColor: 'transparent',
+                  backgroundColor: 'transparent',
+                  fill: false,
+                  tension: 0.3,
+                  pointRadius: 0,
+                  spanGaps: true,
+                },
+              ]
+            : []),
         ],
       },
       options: {
@@ -73,10 +133,20 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' as const },
         plugins: {
-          legend: { labels: { color: t.tick } },
-          // D-13: theme-aware diagonal watermark drawn into the canvas itself
-          // so screenshots carry the disclaimer (SC#3).
-          medLevelWatermark: {
+          legend: {
+            labels: {
+              color: t.tick,
+              filter: (item: { text: string }) =>
+                item.text === 'Past' || item.text === 'Projected',
+            },
+          },
+          tooltip: {
+            filter: (item: { datasetIndex: number }) => item.datasetIndex < 2,
+          },
+          // D-13 + Phase 3 D-08: theme-aware diagonal two-line watermark
+          // drawn into the canvas itself so screenshots carry the disclaimer.
+          // Plugin options key uses the v2 id (quoted because of hyphen).
+          'medLevelWatermark-v2': {
             color: theme === 'dark' ? '220, 220, 220' : '60, 60, 60',
             opacity: theme === 'dark' ? 0.18 : 0.12,
           },
@@ -85,7 +155,8 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
           y: {
             ticks: { color: t.tick, callback: (v: string | number) => Number(v).toFixed(1) },
             grid: { color: t.grid },
-            title: { display: true, text: `${u.doseUnit} in system`, color: t.tick },
+            // Phase 3 SC#1: Y-axis carries NO measurement-grade unit.
+            title: { display: true, text: PK_DISCLAIMER_Y_AXIS, color: t.tick },
           },
           x: { ticks: { color: t.tick, maxTicksLimit: 10 }, grid: { color: t.grid } },
         },
@@ -96,5 +167,16 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
     };
   }, [u, injections, theme]);
 
-  return <BaseChart config={config} height={height} ariaLabel="28-day medication level" />;
+  return (
+    <>
+      <BaseChart
+        config={config}
+        height={height}
+        ariaLabel="28-day medication level estimate with inter-individual variability band, not a measured serum level"
+      />
+      <p className="text-[12px] italic text-[var(--color-text-tertiary)] text-center mt-1">
+        {PK_DISCLAIMER_BAND_CAPTION}
+      </p>
+    </>
+  );
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { PK_DISCLAIMER_LINE_1, PK_DISCLAIMER_LINE_2 } from '@/lib/disclaimers';
 import { medLevelWatermarkPlugin } from './medLevelWatermarkPlugin';
 
 function makeChart() {
@@ -21,18 +22,20 @@ function makeChart() {
 }
 
 describe('medLevelWatermarkPlugin', () => {
-  it('plugin id is "medLevelWatermark" (D-15)', () => {
-    expect(medLevelWatermarkPlugin.id).toBe('medLevelWatermark');
+  it('plugin id is "medLevelWatermark-v2" (Phase 3 D-08)', () => {
+    expect(medLevelWatermarkPlugin.id).toBe('medLevelWatermark-v2');
   });
 
-  it('draws the verbatim SC#3 watermark via fillText', () => {
+  it('draws the Phase 3 two-line watermark via fillText (D-08)', () => {
     const { chart, ctx } = makeChart();
     medLevelWatermarkPlugin.afterDraw!(chart as never, {} as never, {});
-    expect(ctx.fillText).toHaveBeenCalledWith(
-      'Estimate — not medical advice', // U+2014 EM DASH
-      0,
-      0,
-    );
+    expect(ctx.fillText).toHaveBeenCalledWith(PK_DISCLAIMER_LINE_1, 0, expect.any(Number));
+    expect(ctx.fillText).toHaveBeenCalledWith(PK_DISCLAIMER_LINE_2, 0, expect.any(Number));
+    expect(ctx.fillText).toHaveBeenCalledTimes(2);
+  });
+
+  it('PK_DISCLAIMER_LINE_2 starts with em-dash U+2014 (byte verification)', () => {
+    expect(PK_DISCLAIMER_LINE_2.charCodeAt(0)).toBe(0x2014);
   });
 
   it('rotates the canvas -45 degrees (Math.PI / 4)', () => {
