@@ -115,3 +115,29 @@ jobs:
           name: playwright-report
           path: leanshot/playwright-report/
           retention-days: 7
+
+  compliance-copy:
+    name: Compliance copy grep (CMIA AB 2089)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The repo-root `defaults.run.working-directory: leanshot` applies to this job too,
+      # so `src` below resolves to `leanshot/src/`. No per-job override needed.
+
+      # Phase 2 D-16/D-17 (SC#5): CMIA AB 2089 denylist for mental-health framing.
+      # Grep semantics — RESEARCH gotcha #5:
+      #   `grep` exits 0 on ANY match, 1 on NO match.
+      #   The job's success condition is the OPPOSITE: success = NO match.
+      #   Therefore the exit is INVERTED via `if grep …; then exit 1`.
+      # Search root: `src` (resolves to leanshot/src/ via working-directory default).
+      # Word-boundary regex `\b…\b` requires GNU grep -E; ubuntu-latest provides it.
+      - name: Check for forbidden mental-health terms (CMIA AB 2089 — D-16)
+        run: |
+          if grep -rniE '\b(depression|anxiety|therapy|mental health treatment)\b' src \
+               --include='*.ts' --include='*.tsx' \
+               --exclude='*.test.ts' --exclude='*.test.tsx'; then
+            echo "::error::Forbidden term found in user-facing string (SC#5 denylist)."
+            echo "Allowed: 'mood' (Mood tab name). Disallowed: depression, anxiety, therapy, mental health treatment."
+            exit 1
+          fi
