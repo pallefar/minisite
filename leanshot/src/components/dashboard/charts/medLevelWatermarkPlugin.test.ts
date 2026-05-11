@@ -27,7 +27,6 @@ describe('medLevelWatermarkPlugin', () => {
 
   it('draws the verbatim SC#3 watermark via fillText', () => {
     const { chart, ctx } = makeChart();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     medLevelWatermarkPlugin.afterDraw!(chart as never, {} as never, {});
     expect(ctx.fillText).toHaveBeenCalledWith(
       'Estimate — not medical advice', // U+2014 EM DASH
@@ -38,14 +37,12 @@ describe('medLevelWatermarkPlugin', () => {
 
   it('rotates the canvas -45 degrees (Math.PI / 4)', () => {
     const { chart, ctx } = makeChart();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     medLevelWatermarkPlugin.afterDraw!(chart as never, {} as never, {});
     expect(ctx.rotate).toHaveBeenCalledWith(-Math.PI / 4);
   });
 
   it('calls save before drawing and restore after (proper canvas state hygiene)', () => {
     const { chart, ctx } = makeChart();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     medLevelWatermarkPlugin.afterDraw!(chart as never, {} as never, {});
     expect(ctx.save).toHaveBeenCalledTimes(1);
     expect(ctx.restore).toHaveBeenCalledTimes(1);
@@ -53,7 +50,6 @@ describe('medLevelWatermarkPlugin', () => {
 
   it('honors the opacity option in the fillStyle', () => {
     const { chart, ctx } = makeChart();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     medLevelWatermarkPlugin.afterDraw!(chart as never, {} as never, {
       color: '60, 60, 60',
       opacity: 0.18,
@@ -65,7 +61,6 @@ describe('medLevelWatermarkPlugin', () => {
   it('bails when chartArea is undefined', () => {
     const ctx = { save: vi.fn(), fillText: vi.fn() } as unknown as CanvasRenderingContext2D;
     const chart = { ctx, chartArea: undefined };
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     medLevelWatermarkPlugin.afterDraw!(chart as never, {} as never, {});
     expect(ctx.save).not.toHaveBeenCalled();
     expect(ctx.fillText).not.toHaveBeenCalled();

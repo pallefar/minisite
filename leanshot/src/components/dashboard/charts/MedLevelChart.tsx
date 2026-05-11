@@ -4,6 +4,7 @@ import { getChartTokens } from '@/lib/chart-theme';
 import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
 import { BaseChart } from './BaseChart';
+import { medLevelWatermarkPlugin } from './medLevelWatermarkPlugin';
 
 /** 28-day past + 7-day projected medication level chart. */
 export function MedLevelChart({ height = 280 }: { height?: number }) {
@@ -71,7 +72,15 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' as const },
-        plugins: { legend: { labels: { color: t.tick } } },
+        plugins: {
+          legend: { labels: { color: t.tick } },
+          // D-13: theme-aware diagonal watermark drawn into the canvas itself
+          // so screenshots carry the disclaimer (SC#3).
+          medLevelWatermark: {
+            color: theme === 'dark' ? '220, 220, 220' : '60, 60, 60',
+            opacity: theme === 'dark' ? 0.18 : 0.12,
+          },
+        },
         scales: {
           y: {
             ticks: { color: t.tick, callback: (v: string | number) => Number(v).toFixed(1) },
@@ -81,6 +90,9 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
           x: { ticks: { color: t.tick, maxTicksLimit: 10 }, grid: { color: t.grid } },
         },
       },
+      // D-15: per-instance plugin registration. NEVER Chart.register() — that would
+      // leak the watermark onto every chart sharing BaseChart (weight, symptom, sparkline).
+      plugins: [medLevelWatermarkPlugin],
     };
   }, [u, injections, theme]);
 
