@@ -10,7 +10,7 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
   // Global ignores
-  { ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'playwright-report/**', 'test-results/**'] },
+  { ignores: ['dist/**', 'dist-marketing/**', 'node_modules/**', 'coverage/**', 'playwright-report/**', 'test-results/**'] },
 
   // Base JS + TS recommended
   js.configs.recommended,
