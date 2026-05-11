@@ -12,10 +12,31 @@
     <title>LeanShot — Clinical GLP-1 Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Phase 2.1 perf fix: load font CSS NON-render-blocking. Preload-as-style +
+      print-onload swap is the canonical pattern (Filament Group). Combined with
+      `display=swap` in the URL, fallback system fonts render immediately and
+      swap to Inter/Fraunces/JetBrains Mono once the font files arrive — without
+      ever blocking FCP/LCP. The <noscript> path keeps fonts working for any
+      crawler/browser without JS.
+    -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@500;600&display=swap"
-      rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@500;600&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>
