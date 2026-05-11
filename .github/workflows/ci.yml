@@ -93,6 +93,18 @@ jobs:
           VITE_POSTHOG_HOST: ''
           VITE_ANALYTICS_ENABLED: 'false'
 
+      # Phase 2.1 SC#2 — vendor-react chunk-size regression guard.
+      # If this step fails, vendor-react gz dropped below the floor (e.g.
+      # react-dom collapsed back into the index chunk because vite.config.ts
+      # was reverted from function-form to object-form manualChunks).
+      # See:
+      #   leanshot/.planning/phases/02.1-spa-lighthouse-perf/02.1-RESEARCH.md
+      #   leanshot/scripts/assert-vendor-react-size.sh (threshold logic)
+      # Working directory is `leanshot` (job default), so the relative path
+      # resolves to leanshot/scripts/assert-vendor-react-size.sh.
+      - name: Assert vendor-react chunk size (SC#2 — Phase 2.1 regression guard)
+        run: bash scripts/assert-vendor-react-size.sh
+
       # Security check (T-1-05 mitigation): the dev-only Sentry trigger string
       # 'phase-1-sentry-smoke' MUST NOT appear in any production-built JS file.
       # Vite tree-shakes the import.meta.env.DEV branch out of production builds.
