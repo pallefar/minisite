@@ -86,6 +86,31 @@ describe('isDoseChangeAdvice — must PASS (false positives)', () => {
   }
 });
 
+/**
+ * CR-01 regression (Phase 3 review): the prior `tokens.findIndex(...)` only
+ * inspected the FIRST occurrence of a stem. These rows place a benign
+ * occurrence of the dose-change verb BEFORE the dangerous one near a med
+ * noun — under the old code, isDoseChangeAdvice returned `false` (leak);
+ * under the fix it must return `true`.
+ */
+describe('isDoseChangeAdvice — CR-01: multi-occurrence stem coverage', () => {
+  const SECOND_CLAUSE_REFUSE = [
+    'Increase your protein and increase your Ozempic dose tomorrow.',
+    'Lower your stress and lower your tirzepatide dose this week.',
+    'Bump up your fiber and bump your Wegovy dose by 0.25mg.',
+    'Ramp up cardio and ramp your Mounjaro dose to maintenance.',
+    'Double your water and double your compounded semaglutide dose.',
+    'Skip the late-night snack and skip your weekly shot.',
+    'Taper your caffeine and taper your retatrutide dose over four weeks.',
+  ];
+
+  for (const phrase of SECOND_CLAUSE_REFUSE) {
+    it(`refuses second-clause dose-change: "${phrase}"`, () => {
+      expect(isDoseChangeAdvice(phrase)).toBe(true);
+    });
+  }
+});
+
 describe('scrubInsights', () => {
   it('filters dose-change rows and keeps benign rows', () => {
     const input = [
