@@ -131,7 +131,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Cross-tenant RLS test in CI: patient A signs up, patient B signs up, A logs an injection, automated test as B asserts B sees zero rows in `injections` even with the most-permissive client query — RLS is the enforcement, not application filtering
 **Plans:** 3 plans
 - [x] 05-01-PLAN.md — Injections schema migration + STORAGE_VERSION 6→7 helpers + cross-tenant RLS proof (Wave 1; depends_on: none)
-- [ ] 05-02-PLAN.md — Auth UI (9 surfaces + AvatarMenu) + state machine + signOut/clearUserDataSlices + password policy push + 3 Playwright SC scenarios (SC#1 first leg, SC#2, SC#3) (Wave 2; depends_on: 05-01)
+- [x] 05-02-PLAN.md — Auth UI (9 surfaces + AvatarMenu) + state machine + signOut/clearUserDataSlices + password policy push + 3 Playwright SC scenarios (SC#1 first leg, SC#2, SC#3) (Wave 2; depends_on: 05-01)
 - [ ] 05-03-PLAN.md — Sync engine (Realtime + offline queue + LWW) + replace store STUBs + App.tsx wiring + 2 Playwright SC scenarios (SC#1 completion, SC#4) + CI workflow secrets + manual UAT (Wave 3; depends_on: 05-01, 05-02)
 **UI hint**: yes
 
