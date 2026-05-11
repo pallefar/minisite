@@ -1644,3 +1644,326 @@ select cron.unschedule('cleanup-anon-users');
 
 ### Ready for planning
 Planner can now author 04-01-PLAN.md (Bootstrap), 04-02-PLAN.md (Proxy Skeleton), 04-03-PLAN.md (Hardening) using §1–§13 as concrete inputs.
+
+---
+
+## §14 — Moonshot Kimi K2 Specifics (pivot refresh, 2026-05-11)
+
+> **Supersedes:** §2 (Edge Function streaming pattern — Anthropic Messages SSE shape) and §12 (model catalog confirmation — `claude-sonnet-4-6`) in their Anthropic-specific details. §1 (CLI bootstrap), §3 (anonymous auth), §4 (CORS/JWT), §5 (rate-limit table), §6 (refusal), §7 (system prompt — fence pattern only, payload slot differs), §8 (Vercel envs), §9 (CI — only `--allow-net` target changes), §10 (`ai_messages` schema), §11 (pg_cron), §13 (cleanup policy) still apply unchanged.
+>
+> **Provenance:** Live web research 2026-05-11 against Moonshot/Kimi platform docs and Vercel AI Gateway catalog. Critical fact: `platform.moonshot.ai` now 301-redirects to `platform.kimi.ai`. The **API host** (`api.moonshot.ai`) is unchanged. The **docs host** moved to `platform.kimi.ai`.
+
+### Recommendation summary (planner + executor consume this)
+
+| Item | Value | Confidence |
+|------|-------|-----------|
+| `MOONSHOT_BASE_URL` default (Edge Function source constant) | `https://api.moonshot.ai/v1` | HIGH |
+| `MOONSHOT_BASE_URL` override mechanism | `supabase secrets set MOONSHOT_BASE_URL=https://api.moonshot.cn/v1` (only if user's account is China-region) | HIGH |
+| `MOONSHOT_MODEL` default (replaces `kimi-k2-latest` placeholder) | `kimi-k2.6` | HIGH |
+| `MOONSHOT_MODEL` rationale | Current flagship (released 2026-04-20), recommended by Moonshot for production, multimodal-capable, 256k context. `kimi-k2-*-preview` family is deprecated 2026-05-25 — only **14 days after Phase 4 execution date**, so anchoring on a `-preview` ID would self-destruct immediately. | HIGH |
+| Auth header | `Authorization: Bearer ${MOONSHOT_API_KEY}` | HIGH |
+| Endpoint (full path) | `POST https://api.moonshot.ai/v1/chat/completions` | HIGH |
+| Content-Type header | `application/json` | HIGH |
+| Anthropic-specific headers (REMOVED) | `x-api-key`, `anthropic-version` — gone | HIGH |
+| Browser parser library | `eventsource-parser@^3.0.0` — UNCHANGED (transport-layer, model-agnostic; only the JSON `data:` payload shape interpreted by our handler changes) | HIGH |
+| API key provisioning URL (for executor's user-paste-back prompt) | `https://platform.kimi.ai/console/api-keys` | HIGH |
+| CI `--allow-net` allowlist value | `api.moonshot.ai` (the docs domain `platform.kimi.ai` is not contacted by the Edge Function at runtime — only at human-developer time) | HIGH |
+| Backout via Vercel AI Gateway model ID (if direct Moonshot fails curl-smoke) | `moonshotai/kimi-k2.6` (served by Moonshot, Fireworks, and Novita providers on Gateway) | HIGH |
+
+### Findings
+
+#### F1 — Moonshot API base URL: `https://api.moonshot.ai/v1` (international)
+
+- **Decision:** Default to `https://api.moonshot.ai/v1`. User is European on Supabase `eu-west-1` — international endpoint is correct.
+- **Alternative:** `https://api.moonshot.cn/v1` exists for China-region accounts. The two are region-specific aliases; both implement the same OpenAI-compatible API. Account provisioning is the discriminator: an account created on `platform.kimi.ai` (international, what the user will sign up on) uses `.ai`; one on `platform.moonshot.cn` uses `.cn`.
+- **Documentation host rename (important context):** `platform.moonshot.ai` now 301-redirects to `platform.kimi.ai`. This affects ONLY the docs/console human-facing URL. The API host `api.moonshot.ai` is **unchanged** (no redirect; the SDK examples in the new docs still POST to `api.moonshot.ai/v1/chat/completions`).
+- **Implementation:** Make this a `Deno.env.get('MOONSHOT_BASE_URL') ?? 'https://api.moonshot.ai/v1'` read in the Edge Function. User can override per region with `supabase secrets set MOONSHOT_BASE_URL=…` without a code change. This costs one extra env-read line and zero runtime overhead.
+- **Source:** [Quickstart with Kimi API](https://platform.kimi.ai/docs/guide/start-using-kimi-api), [Moonshot platform redirect verified live 2026-05-11].
+
+#### F2 — Resolved model ID: `kimi-k2.6` replaces `kimi-k2-latest` placeholder
+
+The `kimi-k2-latest` string used as a placeholder in `04-ADDENDUM-MOONSHOT.md` is **not** a Moonshot-supported alias. Moonshot does not document a stable `-latest` pointer. The executor at Plan 04-02 deploy time MUST pin an explicit ID.
+
+**Resolved value: `kimi-k2.6`**
+
+**Full Kimi model catalog as of 2026-05-11** (from [platform.kimi.ai/docs/models](https://platform.kimi.ai/docs/models)):
+
+| Model ID | Status | Context | Notes |
+|----------|--------|---------|-------|
+| **`kimi-k2.6`** | **CURRENT FLAGSHIP** | 262 144 tokens | Released 2026-04-20. Multimodal (vision + text). Native INT4. Recommended by Moonshot for production. **This is what user verbatim called "Kimi k2.6".** |
+| `kimi-k2.5` | Active | 262 144 tokens | Previous generation. Multimodal. |
+| `kimi-k2-thinking` | Active | 262 144 tokens | Reasoning-focused; emits chain-of-thought trace before final answer. |
+| `kimi-k2-thinking-turbo` | Active | 262 144 tokens | Faster thinking variant. |
+| `kimi-k2-turbo-preview` | **Deprecating 2026-05-25** | 262 144 tokens | High-speed K2 variant (60-100 tok/s). DO NOT pin. |
+| `kimi-k2-0905-preview` | **Deprecating 2026-05-25** | 262 144 tokens | DO NOT pin. |
+| `kimi-k2-0711-preview` | **Deprecating 2026-05-25** | 131 072 tokens | DO NOT pin. |
+| `kimi-latest` | Discontinued 2026-01-28 | — | Dead. |
+
+**Why `kimi-k2.6` and not a `-preview`:** The `kimi-k2-*-preview` family is officially discontinued on **2026-05-25** — fourteen days after this research date. Pinning to a preview ID would mean the Edge Function breaks within two weeks of deploy. `kimi-k2.6` is the production-recommended successor and is what the user named verbatim ("kimi k2.6").
+
+**Source:** [Kimi Model List](https://platform.kimi.ai/docs/models), [Kimi K2.6 release announcement 2026-04-20](https://moonshotai.github.io/Kimi-K2/), [Kimi K2.6 on OpenRouter](https://openrouter.ai/moonshotai/kimi-k2.6).
+
+#### F3 — Request payload shape (OpenAI-canonical, Moonshot-specific extensions)
+
+```http
+POST /v1/chat/completions HTTP/1.1
+Host: api.moonshot.ai
+Content-Type: application/json
+Authorization: Bearer ${MOONSHOT_API_KEY}
+Accept: text/event-stream
+
+{
+  "model": "kimi-k2.6",
+  "messages": [
+    { "role": "system",    "content": "You are a GLP-1 coach. <user_data>...</user_data>..." },
+    { "role": "user",      "content": "Why was my injection site sore yesterday?" },
+    { "role": "assistant", "content": "..." }
+  ],
+  "stream": true,
+  "temperature": 0.6,
+  "max_completion_tokens": 1024,
+  "top_p": 1.0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0,
+  "stream_options": { "include_usage": true }
+}
+```
+
+**Key differences from OpenAI canonical:**
+- Field name is **`max_completion_tokens`**, not legacy `max_tokens` (Moonshot follows OpenAI's newer convention; `max_tokens` may still be accepted as an alias but `max_completion_tokens` is canonical in the current docs).
+- `response_format` supports `"text"`, `"json_object"`, AND `"json_schema"` — useful for the NutritionTab macro-estimator (Plan 04-02 Task 3) which currently parses a stripped ```json fence; switching to `response_format: { type: "json_object" }` is a follow-up optimization, NOT in scope for 04-02.
+- `stop` accepts up to 5 stop sequences.
+- `stream_options.include_usage: true` emits a final delta with `usage: {prompt_tokens, completion_tokens, total_tokens, cached_tokens?}` — useful for `captureAndPersist` cost-tracking telemetry in 04-03.
+
+**Allowed `role` values:** `system`, `user`, `assistant`, `tool`. (`tool` only relevant once function-calling is wired — not in Phase 4 scope.)
+
+**Multimodal content shape (forward-looking, NOT used in Plan 04-02):** message `content` accepts either a plain string OR an array of `{ type: "text" | "image_url" | "video_url", ... }` content blocks. Plan 04-02 only sends `content: "..."` strings, so the Edge Function does not need to handle the array shape this phase. Photo-comparison or progress-pic-AI features in later phases will lean on this.
+
+**Source:** [platform.kimi.ai/docs/api/chat](https://platform.kimi.ai/docs/api/chat) (verified live 2026-05-11).
+
+#### F4 — SSE response shape (OpenAI-canonical line framing + delta envelope)
+
+Moonshot emits **OpenAI-canonical SSE**, NOT the Anthropic `event: content_block_delta` framing. The Edge Function's `captureAndPersist` (Plan 04-03 Task 3) AND the browser `eventsource-parser` consumer (Plan 04-02 Sub-task 2C `src/lib/ai.ts`) both extract text via `JSON.parse(data).choices[0].delta.content`.
+
+**Line framing:**
+- Only `data: <json>\n\n` lines. **No `event:` lines.** No `id:` lines. No `retry:` lines. Pure `data:` framing.
+- Each `data: <json>` payload is single-line JSON (no embedded newlines inside the JSON).
+- Terminator: literal `data: [DONE]\n\n` (the body `[DONE]` is NOT valid JSON — the consumer must short-circuit before attempting `JSON.parse`).
+
+**Initial chunk (role announcement):**
+```
+data: {"id":"cmpl-abc123","object":"chat.completion.chunk","created":1715472000,"model":"kimi-k2.6","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}
+```
+
+**Content delta chunk (the one our consumer cares about):**
+```
+data: {"id":"cmpl-abc123","object":"chat.completion.chunk","created":1715472000,"model":"kimi-k2.6","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+```
+
+**Final chunk (with usage, if `stream_options.include_usage: true`):**
+```
+data: {"id":"cmpl-abc123","object":"chat.completion.chunk","created":1715472000,"model":"kimi-k2.6","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":42,"completion_tokens":17,"total_tokens":59,"cached_tokens":0}}
+
+data: [DONE]
+```
+
+**Tool-call streaming shape (forward-looking, NOT in Phase 4):** when the model emits tool calls, deltas carry `choices[0].delta.tool_calls: [{ index, id?, function: { name?, arguments } }]` with `arguments` streamed as token fragments to be concatenated client-side. `finish_reason` becomes `"tool_calls"`. Phase 4 does NOT enable tools; the Edge Function ignores this branch.
+
+**Usage metadata:** ONLY emitted in the final pre-`[DONE]` chunk, AND only if the request includes `stream_options: { include_usage: true }`. Without that flag, no usage info ships. Recommendation: **enable it** for telemetry in 04-03 (`captureAndPersist` writes the token counts alongside the message row).
+
+**Browser parser pseudocode for the new `src/lib/ai.ts`:**
+```ts
+import { createParser } from 'eventsource-parser';
+
+const parser = createParser({
+  onEvent(event) {
+    if (event.data === '[DONE]') return;            // terminator
+    const json = JSON.parse(event.data);             // safe — not [DONE]
+    const text = json.choices?.[0]?.delta?.content;  // OpenAI delta shape
+    if (text) onText(text);
+  },
+});
+// feed bytes from response.body reader
+```
+
+**`captureAndPersist` pseudocode (Edge Function, 04-03):**
+```ts
+async function captureAndPersist(stream: ReadableStream<Uint8Array>, userId: string) {
+  let assistantText = '';
+  let usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } | null = null;
+  const decoder = new TextDecoder();
+  const parser = createParser({
+    onEvent(event) {
+      if (event.data === '[DONE]') return;
+      const json = JSON.parse(event.data);
+      const delta = json.choices?.[0]?.delta?.content;
+      if (delta) assistantText += delta;
+      if (json.usage) usage = json.usage;
+    },
+  });
+  const reader = stream.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parser.feed(decoder.decode(value, { stream: true }));
+  }
+  // INSERT into ai_messages: { role: 'assistant', content: assistantText, prompt_tokens: usage?.prompt_tokens, ... }
+}
+```
+
+**Source:** [platform.kimi.ai/docs/api/chat](https://platform.kimi.ai/docs/api/chat) streaming-response section; cross-verified against [OpenAI canonical SSE](https://developers.openai.com/api/docs/guides/streaming-responses) (they are identical at the wire-format level since Moonshot is explicitly OpenAI-compatible).
+
+#### F5 — Rate limits & quotas: free-tier is **3 RPM / 1.5M TPD / 1 concurrent**
+
+| Tier | Cumulative recharge | Concurrency | RPM | TPM | TPD |
+|------|--------------------:|------------:|----:|----:|----:|
+| **Tier 0 (free, $1 minimum activation)** | $1 | **1** | **3** | 500 000 | **1 500 000** |
+| Tier 1 | $10 | 50 | 200 | 2 000 000 | unlimited |
+| Tier 2 | $100 | 100 | 500 | 5 000 000 | unlimited |
+| … | … | … | … | … | … |
+| Tier 5 | $3 000 | 1 000 | 10 000 | unlimited | unlimited |
+
+**Implication for `rate_limit_counters` design (RESEARCH §5, Plan 04-03):** Our existing 30 RPM / 60 RPH / 200 RPD per-user thresholds are well below the upstream Tier 0 ceiling of 3 RPM **across the entire project key**. With even ONE concurrent user spamming at our 30 RPM cap, we will trip Moonshot's per-key 3-RPM limit ten times over. **Mitigation: the user MUST upgrade the Moonshot account to at least Tier 1 ($10 minimum recharge) before Plan 04-02 Task 4 curl-smoke**, OR Phase 4 launches with a per-app rate-limit floor of 3 RPM project-wide (which fails our SC#4 design).
+
+**Action item for Plan 04-02 Task 1 user-paste-back prompt:** include "make sure to recharge at least $10 to unlock Tier 1 (200 RPM, 50 concurrent)" alongside the API-key URL.
+
+**Source:** [Recharge and Rate Limiting](https://platform.kimi.ai/docs/pricing/limits) (verified 2026-05-11).
+
+#### F6 — Error response shape: OpenAI-canonical `{error: {message, type, code}}`
+
+All 4xx/5xx responses return JSON with shape:
+
+```json
+{
+  "error": {
+    "message": "Incorrect API key provided.",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key"
+  }
+}
+```
+
+**Mapping the Edge Function applies (Plan 04-02 Sub-task 2A step 6, the `jsonError` helper):**
+
+| Moonshot HTTP | Moonshot `error.code` examples | Edge Function returns | Browser-facing error class |
+|---------------|-------------------------------|----------------------|----------------------------|
+| 401 | `invalid_api_key`, `auth_failed` | 500 `{error: 'moonshot-401'}` (NOT 401 — that would imply the **user**'s JWT was bad, which is wrong; it's our server key) | `AIUnavailableError('upstream', 'moonshot-401')` |
+| 429 | `rate_limit_exceeded`, `concurrent_limit` | 429 `{error: 'moonshot-429'}` | `RateLimitedError` |
+| 400 | `invalid_model`, `context_length_exceeded` | 500 `{error: 'moonshot-400'}` | `AIUnavailableError('upstream', 'moonshot-400')` |
+| 5xx | upstream outage | 502 `{error: 'moonshot-5xx'}` | `AIUnavailableError('upstream', 'moonshot-5xx')` |
+
+**Critical security rule (unchanged from §2 T-04-06 mitigation):** the Edge Function NEVER echoes Moonshot's `error.message` body back to the browser — only the prefixed status-code string. This prevents leakage if Moonshot ever embeds the API key or other secrets in an error message.
+
+**Source:** [platform.kimi.ai/docs/api/chat](https://platform.kimi.ai/docs/api/chat) error-handling section. Confirmed via cross-reference to OpenAI-compatible-API standard (same envelope).
+
+#### F7 — CORS: not applicable (Edge Function → Moonshot is server-to-server)
+
+Moonshot's API does not require any specific `Origin` header. The Edge Function is the only client of Moonshot; the browser never speaks to `api.moonshot.ai` directly. CORS configuration on `supabase/functions/ai-chat/index.ts` covers the **browser → Edge Function** hop only. This finding is documentary — no code change needed.
+
+**Source:** Inference from Moonshot OpenAI-compat docs (no Origin restrictions documented; OpenAI's own API has none either).
+
+#### F8 — Deno fetch compatibility: no known issues
+
+Supabase Edge Functions run on Deno Deploy. Deno's `fetch` fully supports streaming `ReadableStream` response bodies (the `response.body.tee()` pattern used by §2's pass-through is the canonical idiom in Deno Deploy and is documented in Deno's own API reference). Moonshot's endpoint serves over HTTPS with standard HTTP/1.1 or HTTP/2 (negotiated via ALPN); no exotic transport quirks reported.
+
+**Known gotcha (unchanged from §2 Pitfall 8):** the `tee()` branch fed into `EdgeRuntime.waitUntil(captureAndPersist(...))` MUST drain itself — otherwise backpressure stalls the browser-facing stream. The Plan 04-02 stub `while (!(await reader.read()).done) {}` handles this; Plan 04-03 replaces it with the real persister (F4 pseudocode above).
+
+**Source:** [Deno ReadableStream API](https://docs.deno.com/api/web/~/ReadableStream); [Deno fetch streaming](https://stack.convex.dev/streaming-http-using-fetch).
+
+#### F9 — `eventsource-parser` consumes OpenAI delta shape cleanly
+
+`eventsource-parser@^3.0.0` is transport-layer only — it parses SSE framing (the `data: <payload>\n\n` envelope) into `{ event, data, id }` objects without interpreting the payload. The shift from Anthropic's `event: content_block_delta` framing to Moonshot's pure `data:`-only framing is HANDLED AUTOMATICALLY because the parser already treated `event:` lines as optional metadata. **No library change. No version change. Only the `onEvent` handler body changes:** from `event.event === 'content_block_delta' && JSON.parse(event.data).delta.text` to the F4 pseudocode (`event.data === '[DONE]' ? return : JSON.parse(event.data).choices[0].delta.content`).
+
+**Source:** [eventsource-parser README](https://github.com/rexxars/eventsource-parser); SSE-spec line framing is event-name-agnostic.
+
+#### F10 — CI `--allow-net` allowlist value: `api.moonshot.ai`
+
+Plan 04-03 Task 6's deno-test job allowlist:
+```yaml
+- run: cd supabase && deno test --allow-env --allow-net=api.moonshot.ai functions/ai-chat/refusal.test.ts
+```
+
+The host is the bare hostname (no protocol, no port — Deno's `--allow-net` syntax expects `host[:port]`; default port 443 over HTTPS doesn't need explicit listing). If Plan 04-03 Task 6 includes any test that imports from `deno.land/std` or hits Supabase itself, ADD those hosts comma-separated: `--allow-net=api.moonshot.ai,deno.land,<project-ref>.supabase.co`.
+
+**Source:** [Deno permissions reference](https://docs.deno.com/runtime/manual/basics/permissions/) (host syntax).
+
+#### F11 — Backout via Vercel AI Gateway: confirmed available
+
+If Plan 04-02 Task 4 curl-smoke fails (Moonshot SSE quirks, response quality, regional outage), the backout-to-Vercel-AI-Gateway escape hatch from `04-ADDENDUM-MOONSHOT.md` is **viable as a one-env-var swap**:
+
+- Gateway model ID: `moonshotai/kimi-k2.6`
+- Served by 3 underlying providers (Moonshot, Fireworks, Novita) with automatic failover.
+- Gateway endpoint (OpenAI-compatible): `https://ai-gateway.vercel.sh/v1/chat/completions`
+- Auth: Vercel AI Gateway uses its own API key, not Moonshot's — so swapping requires `supabase secrets set MOONSHOT_API_KEY=<gateway-key> MOONSHOT_BASE_URL=https://ai-gateway.vercel.sh/v1` and a Vercel AI Gateway account.
+- Payload + SSE shape: IDENTICAL (Gateway proxies the OpenAI-canonical shape verbatim).
+
+**Implication:** because Gateway is also OpenAI-canonical, the Edge Function code does not need to change for the backout — only the two env-var secrets. This is the cheapest possible fallback and validates the env-var-driven `MOONSHOT_BASE_URL` design (F1).
+
+**Source:** [Kimi K2.6 on Vercel AI Gateway](https://vercel.com/ai-gateway/models/kimi-k2.6).
+
+#### F12 — API key provisioning URL: `https://platform.kimi.ai/console/api-keys`
+
+For Plan 04-02 Task 1 (or wherever the executor surfaces the user-paste-back prompt for the real `MOONSHOT_API_KEY` value), the URL is:
+
+> **Create your Moonshot/Kimi API key here:** `https://platform.kimi.ai/console/api-keys`
+>
+> **Before pasting the key, recharge the account to at least Tier 1 ($10 minimum)** so the project key is not throttled to 3 RPM / 1 concurrent. URL: `https://platform.kimi.ai/console/billing` (or whatever the recharge subroute is — verify in the console UI).
+
+**Source:** [Quickstart with Kimi API](https://platform.kimi.ai/docs/guide/start-using-kimi-api).
+
+### Updates to apply to other planning files
+
+The orchestrator should apply these search/replace edits after this research returns:
+
+| File | Find | Replace with |
+|------|------|--------------|
+| `04-ADDENDUM-MOONSHOT.md` | `kimi-k2-latest` (all 3 occurrences in §"What changed" + §D-06 RESTATED + §"Known risks" #3) | `kimi-k2.6` (and add note that `-latest` is not a Moonshot-supported alias — must pin) |
+| `04-ADDENDUM-MOONSHOT.md` | `api.moonshot.ai` (in §"Plan 04-03" `--allow-net` swap reference) | `api.moonshot.ai` (already correct — but verify; this is the canonical host) |
+| `04-VALIDATION.md` | any `kimi-k2-latest` references in the Per-Task Verification Map | `kimi-k2.6` |
+| `04-02-PLAN.md` line 287 | `ANTHROPIC_URL`, `ANTHROPIC_MODEL = Deno.env.get('ANTHROPIC_MODEL') ?? 'claude-sonnet-4-6'`, `ANTHROPIC_KEY` | `MOONSHOT_BASE_URL = Deno.env.get('MOONSHOT_BASE_URL') ?? 'https://api.moonshot.ai/v1'`, `MOONSHOT_MODEL = Deno.env.get('MOONSHOT_MODEL') ?? 'kimi-k2.6'`, `MOONSHOT_KEY = Deno.env.get('MOONSHOT_API_KEY')` |
+| `04-02-PLAN.md` line 298 | `Open Anthropic stream with stream: true, model from env. max_tokens: …` | `Open Moonshot stream: POST ${MOONSHOT_BASE_URL}/chat/completions with Authorization: Bearer ${MOONSHOT_KEY}, body: { model: MOONSHOT_MODEL, messages, stream: true, max_completion_tokens: body.mode === 'macro-estimator' ? 250 : 1024, stream_options: { include_usage: true } }` |
+| `04-02-PLAN.md` line 297 | `transform body.messages so the FIRST user message's content is <user_data>…` | UNCHANGED — fence pattern is payload-shape-agnostic. The system prompt now goes in `messages[0]` with `role: 'system'` (not Anthropic top-level `system:` field) per `04-ADDENDUM-MOONSHOT.md`. |
+| `04-02-PLAN.md` line 244, 245, 248 (vitest mock) | canned Anthropic-shape stream `event: content_block_delta\ndata: {"delta":{"type":"text_delta","text":"hi"}}\n\n` | canned Moonshot-shape stream `data: {"choices":[{"index":0,"delta":{"content":"hi"},"finish_reason":null}]}\n\n` followed by `data: [DONE]\n\n` |
+| `04-02-PLAN.md` lines 326, 329, 432 (greppable assertions) | `grep -q "anthropicResp.body.tee"`, `grep -q "ANTHROPIC_MODEL"`, `grep -q "claude-sonnet-4-6"` | `grep -q "moonshotResp.body.tee"` (or whatever the var is named; suggest `upstreamResp` to be neutral), `grep -q "MOONSHOT_MODEL"`, `grep -q "kimi-k2.6"` |
+| `04-02-PLAN.md` Task 4 line 490-491 (curl-smoke expected output) | `One or more event: content_block_delta lines followed by event: message_stop` | `One or more data: {"choices":[{"index":0,"delta":{"content":"..."}}...]} lines followed by data: [DONE]` |
+| `04-02-PLAN.md` Task 4 line 493 (logs assertion) | `model=claude-sonnet-4-6 in the log line` | `model=kimi-k2.6 in the log line` |
+| `04-03-PLAN.md` Task 6 CI deno-test `--allow-net=api.anthropic.com` | (already addressed in ADDENDUM) | `--allow-net=api.moonshot.ai` |
+| `04-RESEARCH.md` §2 lines 1067-1074 (error mapping) | Anthropic error shape | Moonshot error shape per F6 above (this §14 is the canonical reference; do NOT rewrite §2) |
+
+**Edit-safe note:** the orchestrator can apply these as literal sed/Edit-tool find/replace. The fence pattern (`<user_data>…</user_data>`), refusal pre-check (`shared/refusal.ts`), rate-limit RPC, `ai_messages` schema, RLS, pg_cron, CORS allowlist, JWT verification, `EdgeRuntime.waitUntil` + `.tee()` topology, and all browser-side UI changes (BYO removal, `AIUnavailableError` empty state, NutritionTab error path) are **all UNCHANGED** by this pivot.
+
+## RESEARCH COMPLETE (§14 append)
+
+**Phase:** 4 — Supabase Cloud Bootstrap + AI Proxy on Edge Functions (Moonshot pivot)
+**Date:** 2026-05-11
+**Scope of this append:** Moonshot Kimi K2.6 API specifics — base URL, model ID resolution, payload shape, SSE shape, error envelope, rate limits, Vercel AI Gateway backout, key-provisioning URL, CI allowlist, Deno fetch compatibility, browser parser confirmation.
+
+### 3-line summary
+
+- Moonshot's API is OpenAI-canonical (POST `https://api.moonshot.ai/v1/chat/completions`, `Authorization: Bearer …`, `data:`-only SSE with `choices[0].delta.content` + `data: [DONE]` terminator); the only Anthropic→Moonshot code-level changes are the host, the auth header, the payload field for system prompt (`messages[0]` instead of top-level `system:`), and the delta-extraction expression — everything else (`.tee()` + `waitUntil` + refusal + rate-limit + RLS + CORS + JWT) is unchanged.
+- The placeholder `kimi-k2-latest` is not a Moonshot-supported alias — pin to **`kimi-k2.6`** (current flagship, released 2026-04-20, matches user's verbatim "k2.6"); avoid all `kimi-k2-*-preview` IDs since they sunset on 2026-05-25, two weeks after Phase 4 execution.
+- Free tier (Tier 0) is 3 RPM / 1 concurrent / 1.5M TPD — **far too tight for our 30-RPM per-user design**; user must recharge to Tier 1 ($10 minimum → 200 RPM / 50 concurrent) before Plan 04-02 Task 4 curl-smoke, otherwise the project key throttles instantly.
+
+### Confidence per finding
+
+| # | Finding | Confidence | Source quality |
+|---|---------|-----------|----------------|
+| F1 | Base URL `https://api.moonshot.ai/v1` for international | HIGH | Live Moonshot docs, multiple cross-references |
+| F2 | Resolved model `kimi-k2.6` (replaces `kimi-k2-latest`) | HIGH | Official model list page + release date + user's verbatim phrasing aligns |
+| F3 | Request payload shape (incl. `max_completion_tokens`) | HIGH | Live API-reference docs page; cross-verified with OpenAI canonical |
+| F4 | SSE shape (data-only, `choices[0].delta.content`, `data: [DONE]`) | HIGH | Live API-reference docs; OpenAI canonical alignment |
+| F5 | Rate limits (Tier 0 = 3 RPM, Tier 1 = 200 RPM) | HIGH | Dedicated rate-limits doc page |
+| F6 | Error envelope `{error: {message, type, code}}` | HIGH | Live API-reference docs; OpenAI canonical alignment |
+| F7 | CORS: not applicable to server-to-server | HIGH | Inference, but the inference is structural — Edge Function is the client |
+| F8 | Deno fetch compatibility | MEDIUM | Deno docs confirm streaming-fetch is solid; no Moonshot-specific bug reports surfaced, but absence of evidence isn't evidence of absence |
+| F9 | `eventsource-parser` handles OpenAI delta shape unchanged | HIGH | Library is transport-layer-only by design |
+| F10 | CI `--allow-net=api.moonshot.ai` | HIGH | Deno permissions syntax confirmed |
+| F11 | Vercel AI Gateway has `moonshotai/kimi-k2.6` | HIGH | Live Gateway model page confirms availability + 3 underlying providers |
+| F12 | API key URL `https://platform.kimi.ai/console/api-keys` | HIGH | Live quickstart docs |
+
+### Things I couldn't verify
+
+1. **Whether `max_tokens` is still accepted as a legacy alias for `max_completion_tokens`.** Moonshot's current docs prefer `max_completion_tokens` (OpenAI's newer convention). Some older Moonshot examples use `max_tokens`. RECOMMENDATION: use `max_completion_tokens` in the Edge Function (forward-compat with OpenAI's deprecation of `max_tokens`); if it 400s, swap to `max_tokens` at curl-smoke time. Plan 04-02 Task 4 should grep the smoke-test response for a 400 with `error.code: 'invalid_param'` and fall back.
+2. **Whether Moonshot ever emits multi-line `data:` payloads (SSE spec allows it; OpenAI never does).** Could not find a definitive statement in Moonshot's docs. `eventsource-parser` handles multi-line correctly regardless, so this is defensive — no plan change needed.
+3. **First-byte latency budget for `kimi-k2.6` over `api.moonshot.ai` from a Supabase `eu-west-1` Edge Function.** Moonshot's primary inference region is Asia; international users may see 200-500 ms higher TTFB than the same model on the `.cn` endpoint. This affects SC#0 (< 5s first-byte) margin but is not expected to breach it. Plan 04-02 Task 4 curl-smoke measures actual TTFB — if it breaches 3 s, consider Vercel AI Gateway backout (F11) which uses Fireworks/Novita for lower-latency international routing.
+4. **Whether free-tier (Tier 0) accounts can stream at all.** Some OpenAI-compatible providers restrict streaming to paid tiers. Moonshot docs do not explicitly say. The Tier 1 recharge recommendation (F5) sidesteps this — if user recharges before curl-smoke, streaming is unambiguously available.

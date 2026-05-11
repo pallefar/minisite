@@ -17,12 +17,12 @@
 | Old (Anthropic) | New (Moonshot) | Initial value (Plan 04-01) |
 |-----------------|----------------|----------------------------|
 | `ANTHROPIC_API_KEY` | `MOONSHOT_API_KEY` | `placeholder-set-before-04-02-deploy` |
-| `ANTHROPIC_MODEL` | `MOONSHOT_MODEL` | `kimi-k2-latest` (researcher resolves to real ID at Plan 04-02 time — e.g., `kimi-k2-0905-preview` or whatever is current/recommended) |
+| `ANTHROPIC_MODEL` | `MOONSHOT_MODEL` | `kimi-k2.6` (researcher resolves to real ID at Plan 04-02 time — e.g., `kimi-k2-0905-preview` or whatever is current/recommended) |
 
 The placeholder approach is the user's explicit choice ("Set placeholder + defer"). Real values pushed before Plan 04-02's curl-smoke verification step.
 
 ### D-06 (model ID strategy) — RESTATED
-**D-06 (Moonshot):** Env var `MOONSHOT_MODEL` with default `kimi-k2-latest` (placeholder). Edge Function reads `Deno.env.get('MOONSHOT_MODEL') ?? 'kimi-k2-latest'`. Settable via `supabase secrets set MOONSHOT_MODEL=…` without code change. CI integration test asserts the response carries the configured model ID. At Plan 04-02 execution, the researcher must query Moonshot's `/v1/models` endpoint (or scrape the public docs page if the endpoint requires auth) to resolve `kimi-k2-latest` → the canonical current model ID, then either (a) update this addendum + the in-code default to the canonical ID, or (b) keep the `-latest` alias if Moonshot's docs document it as a stable pointer. The current `src/lib/ai.ts:22` `DEFAULT_MODEL = 'claude-sonnet-4-5'` was the original target of replacement — that file is still being deleted, just replaced with a Moonshot wrapper now.
+**D-06 (Moonshot):** Env var `MOONSHOT_MODEL` with default `kimi-k2.6` (placeholder). Edge Function reads `Deno.env.get('MOONSHOT_MODEL') ?? 'kimi-k2.6'`. Settable via `supabase secrets set MOONSHOT_MODEL=…` without code change. CI integration test asserts the response carries the configured model ID. At Plan 04-02 execution, the researcher must query Moonshot's `/v1/models` endpoint (or scrape the public docs page if the endpoint requires auth) to resolve `kimi-k2.6` → the canonical current model ID, then either (a) update this addendum + the in-code default to the canonical ID, or (b) keep the `-latest` alias if Moonshot's docs document it as a stable pointer. The current `src/lib/ai.ts:22` `DEFAULT_MODEL = 'claude-sonnet-4-5'` was the original target of replacement — that file is still being deleted, just replaced with a Moonshot wrapper now.
 
 ### D-05 (streaming protocol) — STILL APPLIES, shape differs
 The SSE pass-through pattern (`response.body.tee()` + `EdgeRuntime.waitUntil(captureAndPersist(...))`) is unchanged. What changes is the **wire format of the deltas**:
@@ -63,7 +63,7 @@ Unchanged — `SUPABASE_URL` and `SUPABASE_ANON_KEY` (plus their `VITE_` mirrors
 ### Known risks of the pivot
 1. **Moonshot SSE framing details may differ subtly from OpenAI canonical.** Researcher at Plan 04-02 time must verify with a real `curl` against Moonshot's API: send a `stream: true` request and inspect the raw SSE bytes. Document any framing quirks (e.g., does Moonshot emit `event:` lines? are `data:` chunks always single-line JSON? is there a `data: [DONE]` terminator?).
 2. **Moonshot may rate-limit unauthenticated requests.** The placeholder period (between Plan 04-01 completion and Plan 04-02 deploy) means the Edge Function will return 401s or 500s if called. That's expected; Plan 04-02 Task 4 (curl smoke) requires the real `MOONSHOT_API_KEY` to be set first — either by re-running Task 3 with the real value or by `supabase secrets set` directly.
-3. **Model name resolution risk.** `kimi-k2-latest` may not be a real Moonshot model alias. If Moonshot doesn't expose a stable "-latest" pointer, the researcher at Plan 04-02 time must pin a specific model ID (e.g., `kimi-k2-0905-preview`) and update both the addendum and the in-code default.
+3. **Model name resolution risk.** `kimi-k2.6` may not be a real Moonshot model alias. If Moonshot doesn't expose a stable "-latest" pointer, the researcher at Plan 04-02 time must pin a specific model ID (e.g., `kimi-k2-0905-preview`) and update both the addendum and the in-code default.
 4. **Adversarial corpus assumed Anthropic refusal idioms.** Phase 3's CR-01/CR-02 corpus rows test against the refusal pre-check (browser-side regex), not against the model's own safety training. So the corpus stays valid. But any rows that depended on Anthropic-specific guardrail responses (none currently — Phase 3 corpus is input-side only) would need re-evaluation.
 
 ### Backout plan (if Moonshot pivot fails Plan 04-02 verification)
