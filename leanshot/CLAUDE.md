@@ -65,7 +65,9 @@ LeanShot is a web app that lets people on GLP-1s (and adjacent peptides) track e
 - `tsconfig.node.json` — Build-tool config covering only `vite.config.ts`, includes `types: ["node"]`
 - `vite.config.ts` — Plugins: `react()`, `tailwindcss()`. Resolve alias `@` → `./src`. Dev server `port: 5173`, `host: true` (LAN-accessible).
 - `index.html` — Default theme attr `data-theme="light"` on `<html>`. Theme-color metas for light (`#EFEBE0`) and dark (`#0B1413`). Apple PWA-style meta tags (`apple-mobile-web-app-capable`). Mounts `/src/main.tsx` into `#root`.
-- No ESLint config (`.eslintrc*`, `eslint.config.*`), no Prettier config (`.prettierrc*`), no Biome config. Code style enforced only by `tsc --strict`.
+- `eslint.config.js` — Flat config with `@eslint/js` + `typescript-eslint` recommended, plus `eslint-plugin-react`, `eslint-plugin-react-hooks` (rules-of-hooks=error, exhaustive-deps=warn), `eslint-plugin-react-refresh`, `eslint-plugin-jsx-a11y` recommended, `eslint-plugin-import-x` (alphabetized order), and `no-restricted-syntax` rules that block `useStore(generateInsights|pickFocus)` and `useStore((s) => generateInsights|pickFocus(s)…)` to prevent unstable-snapshot render loops. Run via `npm run lint` / `npm run lint:fix`.
+- Prettier `^3.8.3` is installed with no config file (defaults). Run via `npm run format` / `npm run format:check`.
+- No Biome config.
 ## Platform Requirements
 - Node.js capable of running Vite 6 + TS 5.6 (Node ≥18; current dev machine on `v22.18.0`)
 - npm (lockfile is npm-format, `lockfileVersion: 3`)
