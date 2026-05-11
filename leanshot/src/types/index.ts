@@ -59,7 +59,11 @@ export interface User {
 }
 
 export interface Injection {
-  datetime: string; // ISO
+  /** Phase 5 D-08/SYNC-01: client-generated UUID (crypto.randomUUID), composite PK with user_id on
+   *  public.injections. Stable across local-only logging, offline queue, and cloud upsert.
+   *  Storage v6→v7 migrate back-stamps existing legacy rows; new writes stamp via addInjection. */
+  log_id: string;
+  datetime: string; // ISO; maps to server `logged_at`
   dose: string;
   unit: DoseUnit;
   site: InjectionSite | null;
@@ -68,6 +72,23 @@ export interface Injection {
    *  Optional so legacy literals + in-memory v5-shaped records typecheck.
    *  Storage v5→v6 migrate back-stamps to 1. New writes stamp 1 via addInjection. */
   pkEngineVersion?: number;
+  /** Server timestamptz; populated only on rows that came FROM the server. Used for LWW merge. */
+  updated_at?: string;
+  /** Server-derived rows only; not persisted client-side. */
+  user_id?: string;
+}
+
+/**
+ * Unified offline write queue entry (Phase 5 DELEG-2; forward-compat with Phase 6
+ * weights/meals/photos/...). Phase 5 only uses `table: 'injections'`. Do NOT inline-couple
+ * to Injection — `key` is the natural identifier (`log_id` for injections; `(date)` or
+ * `(date,name)` for Phase 6 tables).
+ */
+export interface PendingOp {
+  table: string;
+  op: 'upsert' | 'delete';
+  key: string;
+  enqueuedAt: string; // ISO
 }
 
 export interface SymptomLog {

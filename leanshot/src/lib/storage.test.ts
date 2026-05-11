@@ -276,3 +276,38 @@ describe('useStore.addInjection — PK-05 stamping', () => {
     expect(useStore.getState().injections[0]!.pkEngineVersion).toBe(2);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 5 D-08 / SYNC-01: addInjection log_id stamping (composite PK with user_id).
+// ---------------------------------------------------------------------------
+
+describe('useStore.addInjection — Phase 5 log_id stamping', () => {
+  beforeEach(() => {
+    useStore.setState({ ...initialState, currentTab: 'home', toast: null });
+  });
+
+  it('stamps a UUID log_id on a new injection without explicit log_id', () => {
+    useStore.getState().addInjection({
+      datetime: '2026-05-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    } as unknown as Injection);
+    const stamped = useStore.getState().injections[0]!;
+    expect(stamped.log_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  });
+
+  it('preserves explicit log_id when caller provides one', () => {
+    const explicit = '11111111-2222-3333-4444-555555555555';
+    useStore.getState().addInjection({
+      log_id: explicit,
+      datetime: '2026-05-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    });
+    expect(useStore.getState().injections[0]!.log_id).toBe(explicit);
+  });
+});
