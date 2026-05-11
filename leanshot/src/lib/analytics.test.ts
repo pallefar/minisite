@@ -2,15 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getOrCreateDistinctId, track, type EventName } from './analytics';
 
 describe('analytics', () => {
-  describe('EventName union (D-14)', () => {
-    it('includes the five starter taxonomy events', () => {
+  describe('EventName union (D-14, Phase 2 D-08/D-11)', () => {
+    it('includes the five starter taxonomy events plus two Phase 2 disclaimer events', () => {
+      // Phase 1 starter set (5)
       const e1: EventName = 'onboarding_started';
       const e2: EventName = 'onboarding_step_completed';
       const e3: EventName = 'onboarding_completed';
       const e4: EventName = 'onboarding_abandoned';
       const e5: EventName = 'tab_viewed';
+
+      // Phase 2 additions (D-08, D-11) — wired by 02-04 and 02-05
+      const e6: EventName = 'disclaimer_acknowledged';
+      const e7: EventName = 'disclaimer_required';
+
       // The variables exist purely for compile-time enforcement
-      expect([e1, e2, e3, e4, e5]).toHaveLength(5);
+      expect([e1, e2, e3, e4, e5, e6, e7]).toHaveLength(7);
     });
   });
 
