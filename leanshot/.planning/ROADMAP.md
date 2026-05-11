@@ -42,7 +42,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 01-03-PLAN.md — ESLint flat-config + Prettier + npm scripts (Wave 2)
 - [x] 01-04-PLAN.md — Vitest + RTL + foundational tests (helpers, useStreaks, storage, OnboardingFlow) (Wave 2)
 - [x] 01-05-PLAN.md — Sentry beforeSend + PostHog cookieless + main.tsx wiring + Settings dev trigger + .env.example (Wave 2)
-- [ ] 01-06-PLAN.md — Playwright config + onboarding e2e + GitHub Actions CI 5-job pipeline + manual checkpoint (Wave 3)
+- [x] 01-06-PLAN.md — Playwright config + onboarding e2e + GitHub Actions CI 5-job pipeline + manual checkpoint (Wave 3)
 
 ### Phase 2: Visible Compliance & Public Deploy
 **Goal**: The app is reachable at the production custom domain over HTTPS with a "Not medical advice — consult your healthcare provider" disclaimer overlaid on the drug-level chart and shown as a first-run modal before the user can log anything; the marketing landing is on a separate subdomain so health-app analytics + future tracking pixels never collide with authenticated routes.
