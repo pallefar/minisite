@@ -54,7 +54,7 @@ The non-obvious gotchas are all repo-layout ones: `supabase init` MUST run at `/
 | AI-04 | User content structurally separated from system prompts | §7 (system prompt template with `<user_data>` fenced block) |
 | AI-05 | AI history stored in `ai_messages` with `auth.uid() = user_id` RLS | §4 (`ai_messages` schema + RLS policies) |
 | AI-06 | Proxy uses a current Claude model ID | §12 (`claude-sonnet-4-6` confirmed current latest stable Sonnet; `ANTHROPIC_MODEL` env override) |
-| PROD-04 | Supabase project exists in the cloud (implicit) | §1 (CLI bootstrap recipe), §8 (Vercel env wiring) |
+| PROD-07 | Supabase project exists in the cloud (allocated as PROD-07 by planner because PROD-04 was already taken by the Phase 1 test-runner requirement) | §1 (CLI bootstrap recipe), §8 (Vercel env wiring) |
 
 ## Architectural Responsibility Map
 
@@ -812,7 +812,7 @@ const resp = await fetch('https://api.anthropic.com/v1/messages', {
 
 **If this table is empty:** N/A — table is populated. Planner and discuss-phase MUST surface A1, A2, A5, A6 to the user if uncertainty matters (A1 is the highest-risk one).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `aiHistory` localStorage persistence stay enabled in `partialize` after Phase 4?**
    - What we know: `partialize` currently includes `aiHistory` (per CONVENTIONS.md code-context section). After Phase 4 `ai_messages` is source of truth, the localStorage copy is duplicate state.
@@ -884,7 +884,7 @@ const resp = await fetch('https://api.anthropic.com/v1/messages', {
 | AI-04 | User content structurally separated | Unit (vitest against `buildSystemPrompt`) | `cd leanshot && npm run test:unit -- ai-chat-system-prompt.test.ts` | ❌ Wave 0 — new test |
 | AI-05 | Cross-tenant RLS test | Integration (vitest + supabase-js admin client) | `cd leanshot && npm run test:unit -- ai-messages-rls.test.ts` | ❌ Wave 0 — new test |
 | AI-06 | Real Claude model ID in use | Smoke (curl + grep model in response) | Plan 04-02 acceptance step: `curl ... | jq .model` | manual |
-| PROD-04 | Supabase project provisioned in cloud | Smoke (curl) | `curl -X POST <fn-url>/functions/v1/ai-chat -H 'Authorization: Bearer <jwt>' -d '{"messages":[...]}'` | manual |
+| PROD-07 | Supabase project provisioned in cloud | Smoke (curl) | `curl -X POST <fn-url>/functions/v1/ai-chat -H 'Authorization: Bearer <jwt>' -d '{"messages":[...]}'` | manual |
 
 ### Sampling Rate
 

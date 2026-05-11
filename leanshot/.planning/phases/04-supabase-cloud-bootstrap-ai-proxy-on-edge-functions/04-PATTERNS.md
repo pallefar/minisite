@@ -329,7 +329,7 @@ export const corsHeaders = {
 
 ---
 
-### `supabase/functions/ai-chat/refusal.test.ts` (test — Deno)
+### `supabase/functions/tests/ai-chat-refusal-test.ts` (test — Deno)
 
 **Analog:** `src/lib/insights-refusal.test.ts:1-80` (vitest twin — same corpus, same assertions, different runtime).
 

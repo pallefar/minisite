@@ -84,9 +84,9 @@ created: 2026-05-11
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Supabase project provisioned in cloud + region picked | PROD-04 (SC#0) | One-time dashboard click; CLI cannot create projects on the free tier without web confirmation | `.planning/decisions/supabase.md` records project ID, region, dashboard URL; verifier opens URL and confirms project exists |
-| Magic-link email provider toggled ON | PROD-04 (SC#0) | Dashboard-only toggle (CLI does not flip auth providers on free tier) | `curl <project-url>/auth/v1/settings \| jq '.external.email'` returns provider config; verifier records output |
-| Vercel env vars present across prod/preview/dev for both projects | PROD-04 (SC#0) | Vercel CLI requires interactive prompts for `vercel env add` (per RESEARCH.md §8) — the `vercel env ls` smoke check is automatable but the add is not | Plan task includes the exact CLI commands; verifier eyeballs `vercel env ls` output |
+| Supabase project provisioned in cloud + region picked | PROD-07 (SC#0) | One-time dashboard click; CLI cannot create projects on the free tier without web confirmation | `.planning/decisions/supabase.md` records project ID, region, dashboard URL; verifier opens URL and confirms project exists |
+| Magic-link email provider toggled ON | PROD-07 (SC#0) | Dashboard-only toggle (CLI does not flip auth providers on free tier) | `curl <project-url>/auth/v1/settings \| jq '.external.email'` returns provider config; verifier records output |
+| Vercel env vars present across prod/preview/dev for both projects | PROD-07 (SC#0) | Vercel CLI requires interactive prompts for `vercel env add` (per RESEARCH.md §8) — the `vercel env ls` smoke check is automatable but the add is not | Plan task includes the exact CLI commands; verifier eyeballs `vercel env ls` output |
 
 *Bootstrap-side manual checks are unavoidable for the one-time cloud provisioning. Feature-side checks (proxy, RLS, rate-limit, refusal) are 100% automated.*
 
