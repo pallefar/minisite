@@ -59,10 +59,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-01-PLAN.md — Persisted state: acknowledgedDisclaimer field + store action + v4→v5 migration (Wave 1)
 - [x] 02-02-PLAN.md — Modal `dismissible` prop + bundle measurement baseline (Wave 1)
 - [x] 02-03-PLAN.md — CI compliance-copy job + EventName extension + .env.example (Wave 1)
-- [ ] 02-04-PLAN.md — DisclaimerModal component + Step 0 in OnboardingFlow + RTL/e2e tests (Wave 2)
-- [ ] 02-05-PLAN.md — Dashboard-render fallback in App.tsx + co-located test (Wave 3)
+- [x] 02-04-PLAN.md — DisclaimerModal component + Step 0 in OnboardingFlow + RTL/e2e tests (Wave 2)
+- [x] 02-05-PLAN.md — Dashboard-render fallback in App.tsx + co-located test (Wave 3)
 - [x] 02-06-PLAN.md — MedLevelChart watermark plugin + per-instance wiring (Wave 1)
-- [ ] 02-07-PLAN.md — vite.config.ts (Sentry + sourcemap + manualChunks) + marketing build + vercel.json (Wave 3)
+- [x] 02-07-PLAN.md — vite.config.ts (Sentry + sourcemap + manualChunks) + marketing build + vercel.json (Wave 3)
 - [ ] 02-08-PLAN.md — lighthouserc.json + lighthouse CI job + 02-HUMAN-UAT.md + Vercel-setup checkpoint (Wave 4)
 **UI hint**: yes
 
