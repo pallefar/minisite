@@ -96,6 +96,55 @@ export type Store = PersistedState & UIState & Actions;
 
 let toastId = 0;
 
+/**
+ * Pure persist-migration function.
+ *
+ * Chains schema transformations with `version <= N` predicates (NOT `===`)
+ * so a user who skipped intermediate versions still receives every transform:
+ *
+ *   - v3 → bootstrap: migrate legacy `leanshot_v3` blob into v4 shape via
+ *     migrateFromV3() (kept here only for the "no persisted state" path).
+ *   - v <= 4 → Phase 2 D-10/D-11: reset acknowledgedDisclaimer to undefined
+ *     so v4 users (and v4-direct-to-v6 users) see the dashboard fallback
+ *     modal on next load. NEVER default to 'v1' here — that would silently
+ *     grandfather every existing user past the disclaimer (RESEARCH Pitfall 5).
+ *   - v <= 5 → Phase 3 D-07 / PK-05: back-stamp every Injection with
+ *     pkEngineVersion: 1 if missing, so a future v1.1 two-compartment engine
+ *     can address records by version without ambiguity. Use `?? 1` so an
+ *     explicit value (e.g. from a future migration that stamped 2) is
+ *     preserved, never overwritten.
+ *
+ * Defensive: `state.injections ?? []` collapses a malformed snapshot's
+ * missing array into an empty list (T-03-16 mitigation).
+ *
+ * Exported so unit tests can drive the migration directly without spinning
+ * up the persist middleware.
+ */
+export function migrateState(persistedState: unknown, version: number): PersistedState {
+  // First boot of v2 with v3 data sitting around (no persisted state yet).
+  if (!persistedState && version < STORAGE_VERSION) {
+    const v3 = migrateFromV3();
+    if (v3) return { ...initialState, ...v3 };
+    return { ...initialState };
+  }
+  let state = persistedState as PersistedState;
+  // Phase 2 D-10/D-11: reset disclaimer for v4 users (also covers v4-direct-to-v6).
+  if (state && version <= 4) {
+    state = { ...state, acknowledgedDisclaimer: undefined };
+  }
+  // Phase 3 D-07 / PK-05: back-stamp pkEngineVersion on every injection.
+  if (state && version <= 5) {
+    state = {
+      ...state,
+      injections: (state.injections ?? []).map((inj) => ({
+        ...inj,
+        pkEngineVersion: inj.pkEngineVersion ?? 1,
+      })),
+    };
+  }
+  return state;
+}
+
 export const useStore = create<Store>()(
   persist(
     (set) => ({
@@ -124,7 +173,12 @@ export const useStore = create<Store>()(
 
       addInjection: (inj) =>
         set((s) => {
-          const injections = [inj, ...s.injections];
+          // Phase 3 D-07 / PK-05: every new injection carries the engine version
+          // that produced its expected curve. Default to 1 (current 1-compartment
+          // engine); explicit caller value wins so a future v1.1 engine can stamp
+          // its own version without a code change here.
+          const stamped: Injection = { ...inj, pkEngineVersion: inj.pkEngineVersion ?? 1 };
+          const injections = [stamped, ...s.injections];
           // Decrement first non-empty vial
           const vials = s.vials.map((v, i) => {
             const firstActive = s.vials.findIndex((x) => x.dosesUsed < x.dosesPerVial);
@@ -248,25 +302,7 @@ export const useStore = create<Store>()(
         costs: state.costs,
         acknowledgedDisclaimer: state.acknowledgedDisclaimer,
       }),
-      migrate: (persistedState, version) => {
-        // First boot of v2 with v3 data sitting around.
-        if (!persistedState && version < STORAGE_VERSION) {
-          const v3 = migrateFromV3();
-          if (v3) return { ...initialState, ...v3 };
-          return { ...initialState };
-        }
-        // Phase 2 D-10/D-11/RESEARCH Pitfall 5: existing v4 users must see the
-        // dashboard fallback modal on next load. Default acknowledgedDisclaimer
-        // to undefined here, NEVER 'v1' — defaulting to 'v1' would silently
-        // grandfather every existing user past the disclaimer.
-        if (persistedState && version === 4) {
-          return {
-            ...(persistedState as PersistedState),
-            acknowledgedDisclaimer: undefined,
-          } as PersistedState;
-        }
-        return persistedState as PersistedState;
-      },
+      migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.
     },
   ),
