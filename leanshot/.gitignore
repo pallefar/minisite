@@ -17,3 +17,5 @@ test-results/
 # Bundle analysis (rollup-plugin-visualizer)
 dist/stats.html
 stats.html
+.vercel
+.env*.local
