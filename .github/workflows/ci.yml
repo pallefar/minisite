@@ -158,10 +158,32 @@ jobs:
             exit 1
           fi
 
+  deno-test:
+    name: Deno tests (Edge Function refusal corpus)
+    runs-on: ubuntu-latest
+    # CRITICAL: override workflow-level defaults.run.working-directory: leanshot.
+    # Phase 4 RESEARCH §"Pitfall 10". The repo-root supabase/ and shared/
+    # directories are NOT visible if the working-directory is leanshot/.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Verify dual-runtime refusal artifacts present
+        run: |
+          test -f shared/refusal.ts || (echo "FAIL: shared/refusal.ts missing" && exit 1)
+          test -f supabase/functions/import_map.json || (echo "FAIL: import_map.json missing" && exit 1)
+          test -f supabase/functions/tests/ai-chat-refusal-test.ts || (echo "FAIL: deno test file missing" && exit 1)
+      - name: Run Deno tests (shared/refusal corpus under Deno runtime)
+        run: deno test --allow-net=api.moonshot.ai --allow-read --allow-env --import-map=supabase/functions/import_map.json supabase/functions/tests/
+
   lighthouse:
     name: Lighthouse (Vercel preview)
     runs-on: ubuntu-latest
-    needs: [lint, format-check, typecheck, test-unit, test-e2e, compliance-copy]
+    needs: [lint, format-check, typecheck, test-unit, test-e2e, compliance-copy, deno-test]
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
