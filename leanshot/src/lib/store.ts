@@ -121,18 +121,27 @@ let toastId = 0;
  * up the persist middleware.
  */
 export function migrateState(persistedState: unknown, version: number): PersistedState {
-  // First boot of v2 with v3 data sitting around (no persisted state yet).
+  // CR-03 (Phase 3 review): the v3-bootstrap branch previously returned
+  // early, skipping the v<=4 and v<=5 transforms — so a v3-direct-to-v6
+  // user landed at v6 with pkEngineVersion: undefined on every legacy
+  // injection. Funnel the bootstrap output through the same chained
+  // transforms so every back-stamp / reset runs regardless of entry path.
+  let state: PersistedState;
   if (!persistedState && version < STORAGE_VERSION) {
+    // First boot of v2 with v3 data sitting around (no persisted state yet).
     const v3 = migrateFromV3();
-    if (v3) return { ...initialState, ...v3 };
-    return { ...initialState };
+    state = v3 ? { ...initialState, ...v3 } : { ...initialState };
+  } else {
+    state = persistedState as PersistedState;
   }
-  let state = persistedState as PersistedState;
-  // Phase 2 D-10/D-11: reset disclaimer for v4 users (also covers v4-direct-to-v6).
+  // Phase 2 D-10/D-11: reset disclaimer for v4 users (also covers v4-direct-to-v6
+  // AND v3-direct-to-v6 after CR-03).
   if (state && version <= 4) {
     state = { ...state, acknowledgedDisclaimer: undefined };
   }
   // Phase 3 D-07 / PK-05: back-stamp pkEngineVersion on every injection.
+  // After CR-03 this also covers v3-direct-to-v6 migrants (the prior early
+  // return left their injections unstamped, defeating the v5→v6 bump).
   if (state && version <= 5) {
     state = {
       ...state,
@@ -316,7 +325,19 @@ export const hydrate = (): Promise<void> => {
     if (!localStorage.getItem(STORAGE_KEY) && localStorage.getItem('leanshot_v3')) {
       const v3 = migrateFromV3();
       if (v3) {
-        useStore.setState((s) => ({ ...s, ...v3 }));
+        // CR-03 (Phase 3 review): apply the same v<=5 pkEngineVersion
+        // back-stamp transform here that migrateState applies. Without
+        // this, a v3-direct-to-v6 user reached the dashboard with every
+        // legacy injection at pkEngineVersion: undefined — defeating the
+        // entire reason STORAGE_VERSION was bumped to 6 (D-07 / PK-05).
+        const stampedV3 = {
+          ...v3,
+          injections: (v3.injections ?? []).map((inj) => ({
+            ...inj,
+            pkEngineVersion: inj.pkEngineVersion ?? 1,
+          })),
+        };
+        useStore.setState((s) => ({ ...s, ...stampedV3 }));
         // Manually persist a snapshot so subsequent loads find v4.
         useStore.persist.rehydrate();
       }
