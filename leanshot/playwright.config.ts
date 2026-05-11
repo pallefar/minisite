@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
+  // Playwright). They use vitest globals + the supabase-js client and run via
+  // `npm run test:e2e:rls`. Restrict Playwright to *.spec.ts so it doesn't
+  // crash trying to load vitest expect helpers (pre-existing Phase 4 issue).
+  testMatch: /.*\.spec\.ts$/,
   timeout: 30_000,
   // Retry once on CI to tolerate flake; never locally
   retries: process.env.CI ? 1 : 0,

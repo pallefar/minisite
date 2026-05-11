@@ -14,6 +14,7 @@ import type {
   Measurement,
   MoodLog,
   NSV,
+  PendingOp,
   Photo,
   SleepLog,
   SymptomLog,
@@ -25,10 +26,13 @@ import type {
 
 export const STORAGE_KEY = 'leanshot_v4';
 export const LEGACY_KEY = 'leanshot_v3';
-// D-07 (Phase 3): bumped 5 → 6 so persist `migrate` back-stamps existing
-// injections with pkEngineVersion: 1 (PK-05). Do NOT rename STORAGE_KEY —
-// that is the localStorage key, not the schema version.
-export const STORAGE_VERSION = 6;
+// Phase 5 D-08 / SYNC-01: bumped 6 → 7 so persist `migrate` back-stamps existing
+// injections with a stable `log_id` (composite PK with user_id on public.injections)
+// and initialises `pendingOps: []` for the unified offline write queue (DELEG-2).
+// Do NOT rename STORAGE_KEY — that is the localStorage key, not the schema version.
+// The localStorage namespace per user (D-12) is layered ON TOP via `namespacedKey`;
+// STORAGE_KEY remains the bare prefix.
+export const STORAGE_VERSION = 7;
 // Phase 4 D-03: API_KEY_STORAGE + apiKeyStorage helper removed. The
 // BYO Anthropic-key UX is retired — AI now flows through the
 // server-side ai-chat Edge Function. The legacy 'leanshot_anthropic_key'
@@ -55,6 +59,10 @@ export interface PersistedState {
   costs: Cost[];
   /** Phase 2 D-10/D-11: versioned disclaimer acknowledgment. `undefined` triggers the dashboard-render fallback. */
   acknowledgedDisclaimer: 'v1' | undefined;
+  /** Phase 5 DELEG-2: unified offline write queue. Optional during v6→v7 migration grace;
+   *  the persist `migrate` callback initialises to `[]` if missing. The persist allow-list
+   *  bump (partialize) lands in 05-03 alongside the sync engine that consumes this slice. */
+  pendingOps?: PendingOp[];
 }
 
 export const initialState: PersistedState = {
@@ -119,5 +127,86 @@ export function migrateFromV3(): Partial<PersistedState> | null {
     console.error('[leanshot] v3 migration failed', e);
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5 D-12 / DELEG-2 — namespaced storage helpers + v6→v7 migration.
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute the user-scoped localStorage namespace key per D-12.
+ *
+ * Returns `leanshot_v4:<first 16 hex chars of sha256(userId)>`. The hash is
+ * truncated — full collision-resistance isn't required because the namespace
+ * is internal to localStorage and the user_id is already a uniqueness token;
+ * 64 bits is more than enough to keep two real Supabase UUIDs apart.
+ */
+export async function namespacedKey(userId: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(userId);
+  const hashBuf = await crypto.subtle.digest('SHA-256', data);
+  const hex = Array.from(new Uint8Array(hashBuf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `${STORAGE_KEY}:${hex.slice(0, 16)}`;
+}
+
+/**
+ * On first SIGNED_IN: move data from the universal `leanshot_v4` key to the
+ * per-user namespaced key. Idempotent and crash-safe:
+ *  - If universal key is absent → no-op.
+ *  - If target already has data → preserve target (signed-in user's data wins)
+ *    and ALWAYS delete the universal key (T-05-03 multi-account leak prevention).
+ *  - localStorage access is wrapped — private-mode browsers are silent no-ops.
+ */
+export async function renameStorageNamespace(userId: string): Promise<void> {
+  const target = await namespacedKey(userId);
+  let universalRaw: string | null = null;
+  try {
+    universalRaw = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return;
+  }
+  if (!universalRaw) return;
+  let targetRaw: string | null = null;
+  try {
+    targetRaw = localStorage.getItem(target);
+  } catch {
+    /* noop */
+  }
+  try {
+    if (targetRaw === null) {
+      localStorage.setItem(target, universalRaw);
+    }
+    // Always remove the universal key to prevent multi-account leak (T-05-03).
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* private-mode noop */
+  }
+}
+
+/**
+ * v6→v7 migration (Phase 5 D-08 + DELEG-2 + T-05-06):
+ *  - Back-stamp every Injection lacking `log_id` with `crypto.randomUUID()`.
+ *  - Initialise `pendingOps: []` for the unified offline write queue.
+ *  - Idempotent: re-running on v7-shaped state preserves existing `log_id`s
+ *    and an existing `pendingOps` array.
+ *
+ * Defensive: a malformed snapshot whose `injections` is missing collapses to
+ * `[]` (mirrors the v5→v6 transform in store.ts `migrateState`).
+ */
+export function migrateV6ToV7(state: PersistedState): PersistedState {
+  const stamped = (state.injections ?? []).map((row) =>
+    typeof (row as { log_id?: unknown }).log_id === 'string'
+      ? row
+      : { ...row, log_id: crypto.randomUUID() },
+  );
+  return {
+    ...state,
+    injections: stamped,
+    pendingOps: Array.isArray((state as { pendingOps?: unknown }).pendingOps)
+      ? (state as { pendingOps: PendingOp[] }).pendingOps
+      : [],
+  };
 }
 

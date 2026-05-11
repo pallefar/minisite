@@ -16,6 +16,7 @@
     "test": "vitest run && playwright test",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:rls": "vitest run --config vitest-e2e.config.ts",
     "test:watch": "vitest"
   },
   "dependencies": {

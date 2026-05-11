@@ -1,6 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Injection } from '@/types';
-import { initialState, migrateFromV3, STORAGE_VERSION, type PersistedState } from './storage';
+import {
+  initialState,
+  migrateFromV3,
+  migrateV6ToV7,
+  namespacedKey,
+  renameStorageNamespace,
+  STORAGE_KEY,
+  STORAGE_VERSION,
+  type PersistedState,
+} from './storage';
 import { migrateState, useStore } from './store';
 
 describe('initialState', () => {
@@ -10,8 +19,8 @@ describe('initialState', () => {
 });
 
 describe('STORAGE_VERSION', () => {
-  it('is bumped to 6 for PK-05 / D-07 pkEngineVersion field', () => {
-    expect(STORAGE_VERSION).toBe(6);
+  it('is bumped to 7 for Phase 5 D-08 / SYNC-01 log_id field', () => {
+    expect(STORAGE_VERSION).toBe(7);
   });
 });
 
@@ -274,5 +283,244 @@ describe('useStore.addInjection — PK-05 stamping', () => {
       pkEngineVersion: 2,
     });
     expect(useStore.getState().injections[0]!.pkEngineVersion).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 5 D-08 / SYNC-01: addInjection log_id stamping (composite PK with user_id).
+// ---------------------------------------------------------------------------
+
+describe('useStore.addInjection — Phase 5 log_id stamping', () => {
+  beforeEach(() => {
+    useStore.setState({ ...initialState, currentTab: 'home', toast: null });
+  });
+
+  it('stamps a UUID log_id on a new injection without explicit log_id', () => {
+    useStore.getState().addInjection({
+      datetime: '2026-05-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    } as unknown as Injection);
+    const stamped = useStore.getState().injections[0]!;
+    expect(stamped.log_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  });
+
+  it('preserves explicit log_id when caller provides one', () => {
+    const explicit = '11111111-2222-3333-4444-555555555555';
+    useStore.getState().addInjection({
+      log_id: explicit,
+      datetime: '2026-05-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    });
+    expect(useStore.getState().injections[0]!.log_id).toBe(explicit);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 5 D-08 / DELEG-2 / T-05-06: persist migrate v6 → v7 (log_id back-stamp + pendingOps).
+// ---------------------------------------------------------------------------
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+describe('v6 to v7 migration', () => {
+  function v6State(overrides: Partial<PersistedState> = {}): PersistedState {
+    return {
+      ...initialState,
+      acknowledgedDisclaimer: 'v1',
+      injections: [],
+      ...overrides,
+    };
+  }
+
+  it('back-stamps injections lacking log_id with crypto.randomUUID()', () => {
+    const before = v6State({
+      injections: [
+        {
+          datetime: '2026-04-01T10:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: null,
+          notes: '',
+          pkEngineVersion: 1,
+        } as unknown as Injection,
+        {
+          datetime: '2026-04-08T10:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: 'abdomen-ul',
+          notes: '',
+          pkEngineVersion: 1,
+        } as unknown as Injection,
+        {
+          datetime: '2026-04-15T10:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: 'thigh-r',
+          notes: '',
+          pkEngineVersion: 1,
+        } as unknown as Injection,
+      ],
+    });
+    const after = migrateV6ToV7(before);
+    expect(after.injections).toHaveLength(3);
+    for (const inj of after.injections) {
+      expect(inj.log_id).toMatch(UUID_REGEX);
+    }
+  });
+
+  it('is idempotent: running twice does not re-generate log_id', () => {
+    const stable = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const before = v6State({
+      injections: [
+        {
+          log_id: stable,
+          datetime: '2026-04-01T10:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: null,
+          notes: '',
+          pkEngineVersion: 1,
+        },
+      ],
+    });
+    const once = migrateV6ToV7(before);
+    const twice = migrateV6ToV7(once);
+    expect(twice.injections[0]!.log_id).toBe(stable);
+    // pendingOps stays as [] on second run.
+    expect(twice.pendingOps).toEqual([]);
+  });
+
+  it('initializes pendingOps as empty array if missing', () => {
+    const before = v6State();
+    const after = migrateV6ToV7(before);
+    expect(after.pendingOps).toEqual([]);
+  });
+
+  it('preserves an existing pendingOps array (forward-compat)', () => {
+    const before = {
+      ...v6State(),
+      pendingOps: [
+        { table: 'injections', op: 'upsert', key: 'log-1', enqueuedAt: '2026-05-01T00:00:00Z' },
+      ],
+    } as PersistedState;
+    const after = migrateV6ToV7(before);
+    expect(after.pendingOps).toHaveLength(1);
+    expect(after.pendingOps?.[0]?.key).toBe('log-1');
+  });
+
+  it('tolerates missing injections array (defensive ?? [])', () => {
+    const malformed = { ...v6State(), injections: undefined } as unknown as PersistedState;
+    const after = migrateV6ToV7(malformed);
+    expect(after.injections).toEqual([]);
+    expect(after.pendingOps).toEqual([]);
+  });
+
+  it('v3 → v7 chain via migrateState back-stamps log_id on every legacy injection', () => {
+    // Drive migrateState with version=3 + an empty persisted state.
+    // The v3 bootstrap branch reads from initialState; we seed v3-shape injections directly.
+    const v3Shape = v6State({
+      injections: [
+        {
+          datetime: '2026-03-01T10:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        } as unknown as Injection,
+      ],
+    });
+    // version<=5 + version<7 chain runs — pkEngineVersion AND log_id both stamped.
+    const after = migrateState(v3Shape, 5);
+    expect(after.injections[0]!.pkEngineVersion).toBe(1);
+    expect(after.injections[0]!.log_id).toMatch(UUID_REGEX);
+    expect(after.pendingOps).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 5 D-12 / T-05-03: namespacedKey + renameStorageNamespace.
+// ---------------------------------------------------------------------------
+
+describe('namespacedKey', () => {
+  it('returns deterministic key for same userId', async () => {
+    const k1 = await namespacedKey('user-a');
+    const k2 = await namespacedKey('user-a');
+    expect(k1).toBe(k2);
+  });
+
+  it('returns different keys for different userIds', async () => {
+    const a = await namespacedKey('user-a');
+    const b = await namespacedKey('user-b');
+    expect(a).not.toBe(b);
+  });
+
+  it('matches expected format `leanshot_v4:<16-hex>`', async () => {
+    const key = await namespacedKey('11111111-2222-3333-4444-555555555555');
+    expect(key).toMatch(/^leanshot_v4:[0-9a-f]{16}$/);
+  });
+});
+
+describe('renameStorageNamespace', () => {
+  let storageMock: Record<string, string>;
+
+  beforeEach(() => {
+    storageMock = {};
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((k) => storageMock[k] ?? null);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((k, v) => {
+      storageMock[k] = String(v);
+    });
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((k) => {
+      delete storageMock[k];
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('moves universal key to namespaced key on first call', async () => {
+    const payload = JSON.stringify({ injections: [] });
+    storageMock[STORAGE_KEY] = payload;
+    const target = await namespacedKey('user-a');
+    await renameStorageNamespace('user-a');
+    expect(storageMock[STORAGE_KEY]).toBeUndefined();
+    expect(storageMock[target]).toBe(payload);
+  });
+
+  it('is a no-op when the universal key is absent', async () => {
+    // No throw, no writes.
+    await expect(renameStorageNamespace('user-a')).resolves.toBeUndefined();
+    expect(Object.keys(storageMock)).toHaveLength(0);
+  });
+
+  it('deletes universal key even when target already has data (T-05-03 multi-account safety)', async () => {
+    const universalPayload = JSON.stringify({ injections: [{ log_id: 'universal' }] });
+    const targetPayload = JSON.stringify({ injections: [{ log_id: 'target' }] });
+    storageMock[STORAGE_KEY] = universalPayload;
+    const target = await namespacedKey('user-a');
+    storageMock[target] = targetPayload;
+
+    await renameStorageNamespace('user-a');
+
+    // Universal key removed unconditionally — prevents next user from inheriting prior data.
+    expect(storageMock[STORAGE_KEY]).toBeUndefined();
+    // Target's existing data preserved (signed-in user's data wins).
+    expect(storageMock[target]).toBe(targetPayload);
+  });
+
+  it('is idempotent across repeated calls for the same user', async () => {
+    const payload = JSON.stringify({ injections: [] });
+    storageMock[STORAGE_KEY] = payload;
+    await renameStorageNamespace('user-a');
+    // Second call: universal key now absent → no-op.
+    await renameStorageNamespace('user-a');
+    const target = await namespacedKey('user-a');
+    expect(storageMock[target]).toBe(payload);
+    expect(storageMock[STORAGE_KEY]).toBeUndefined();
   });
 });

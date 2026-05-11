@@ -24,6 +24,7 @@ import type {
 import {
   initialState,
   migrateFromV3,
+  migrateV6ToV7,
   STORAGE_KEY,
   STORAGE_VERSION,
   type PersistedState,
@@ -159,6 +160,12 @@ export function migrateState(persistedState: unknown, version: number): Persiste
       })),
     };
   }
+  // Phase 5 D-08 + DELEG-2: back-stamp log_id on every injection + initialise
+  // pendingOps slice for the unified offline write queue. Chained AFTER v5→v6
+  // so a v3-direct-to-v7 user passes through every transform in order.
+  if (state && version < 7) {
+    state = migrateV6ToV7(state);
+  }
   return state;
 }
 
@@ -194,7 +201,16 @@ export const useStore = create<Store>()(
           // that produced its expected curve. Default to 1 (current 1-compartment
           // engine); explicit caller value wins so a future v1.1 engine can stamp
           // its own version without a code change here.
-          const stamped: Injection = { ...inj, pkEngineVersion: inj.pkEngineVersion ?? 1 };
+          // Phase 5 D-08 / SYNC-01: stamp a stable log_id (composite PK with user_id
+          // on public.injections) so the offline write queue and eventual cloud upsert
+          // can identify this row across local-only logging and Realtime fanout. Callers
+          // (e.g. MedicationTab) currently pass form-shaped objects without log_id —
+          // back-stamp here rather than push the requirement onto every UI surface.
+          const stamped: Injection = {
+            ...inj,
+            log_id: inj.log_id ?? crypto.randomUUID(),
+            pkEngineVersion: inj.pkEngineVersion ?? 1,
+          };
           const injections = [stamped, ...s.injections];
           // Decrement first non-empty vial
           const vials = s.vials.map((v, i) => {
