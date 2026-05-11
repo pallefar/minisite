@@ -129,7 +129,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Patient signs out → local sensitive caches (sync queue, `aiHistory`) are cleared from IndexedDB/Zustand; signing back in does not surface stale data from the prior session
   4. Patient turns off Wi-Fi, logs three injections, sees them all in the UI immediately (Zustand-first), turns Wi-Fi back on, sees them propagate to a second device — no spinner, no blocking, no data loss
   5. Cross-tenant RLS test in CI: patient A signs up, patient B signs up, A logs an injection, automated test as B asserts B sees zero rows in `injections` even with the most-permissive client query — RLS is the enforcement, not application filtering
-**Plans**: TBD
+**Plans:** 3 plans
+- [ ] 05-01-PLAN.md — Injections schema migration + STORAGE_VERSION 6→7 helpers + cross-tenant RLS proof (Wave 1; depends_on: none)
+- [ ] 05-02-PLAN.md — Auth UI (9 surfaces + AvatarMenu) + state machine + signOut/clearUserDataSlices + password policy push + 3 Playwright SC scenarios (SC#1 first leg, SC#2, SC#3) (Wave 2; depends_on: 05-01)
+- [ ] 05-03-PLAN.md — Sync engine (Realtime + offline queue + LWW) + replace store STUBs + App.tsx wiring + 2 Playwright SC scenarios (SC#1 completion, SC#4) + CI workflow secrets + manual UAT (Wave 3; depends_on: 05-01, 05-02)
 **UI hint**: yes
 
 ### Phase 6: Patient Cloud Sync Slice 2 — Full Data + Migration + Photos
@@ -212,7 +215,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2.1. SPA Lighthouse Performance Fix (INSERTED) | 5/5 (3 executed, 2 skip-confirmed) | Complete | 2026-05-11 |
 | 3. Pharmacology + Insights Hardening | 0/5 | Not started | - |
 | 4. AI Proxy on Supabase Edge Functions | 0/3 | Not started | - |
-| 5. Patient Cloud Sync Slice 1 — Auth + Injections | 0/TBD | Not started | - |
+| 5. Patient Cloud Sync Slice 1 — Auth + Injections | 0/3 | Not started | - |
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | 0/TBD | Not started | - |
 | 7. Compliance Foundations (Legal-Counsel-Led) | 0/TBD | Not started | - |
 | 8. Doctor Read-Share | 0/TBD | Not started | - |
