@@ -26,7 +26,10 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
       <Sidebar onOpenAI={onOpenAI} onOpenSettings={onOpenSettings} />
-      <main className="md:ml-[80px] pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto">
+      <main
+        className="md:ml-[80px] pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto"
+        data-testid="dashboard"
+      >
         <Topbar
           onLogDose={onLogDose}
           onOpenReport={onOpenReport}
