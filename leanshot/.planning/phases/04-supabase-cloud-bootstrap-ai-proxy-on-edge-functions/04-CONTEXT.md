@@ -1,7 +1,9 @@
 # Phase 4: Supabase Cloud Bootstrap + AI Proxy on Edge Functions - Context
 
+> **⚠ MODEL PROVIDER PIVOT — READ FIRST (2026-05-11 mid-execution).** The user switched from Anthropic Claude to Moonshot Kimi K2. All references below to `ANTHROPIC_*` env vars, `claude-sonnet-*` model IDs, and the Anthropic Messages API are SUPERSEDED by `04-ADDENDUM-MOONSHOT.md`. Read that addendum before applying any task in this CONTEXT or in 04-01/04-02/04-03 PLAN files. Specifically: D-06 is restated there; D-01's proxy-skeleton spec is restated there; the API call shape, headers, and SSE delta format all differ from what's documented below.
+
 **Gathered:** 2026-05-11
-**Status:** Ready for planning
+**Status:** Ready for planning (with Moonshot addendum applied)
 
 <domain>
 ## Phase Boundary
