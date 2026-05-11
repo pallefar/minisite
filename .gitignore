@@ -10,3 +10,8 @@ leanshot.html
 .DS_Store
 .env
 .env.local
+
+# Supabase local artifacts + secrets
+supabase/.env.secrets
+supabase/.branches/
+supabase/.temp/
