@@ -68,6 +68,26 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+
+      // useStore(<deriver>) and useStore((s) => <deriver>(s)) produce a fresh
+      // object/array each call, so Zustand v5's useSyncExternalStore snapshot
+      // is unstable and React aborts with "Maximum update depth exceeded."
+      // The fix is per-slice selectors + useMemo over the deriver. Three
+      // distinct sites have hit this (FocusCard, InsightsTab, HomeTab); this
+      // rule keeps new ones from sneaking in.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.name='useStore'] > Identifier[name=/^(pickFocus|generateInsights)$/]",
+          message:
+            'useStore(pickFocus|generateInsights) returns a fresh object/array each call — destabilizes the snapshot. Subscribe to slices and useMemo() the deriver instead.',
+        },
+        {
+          selector: "CallExpression[callee.name='useStore'] CallExpression[callee.name=/^(pickFocus|generateInsights)$/]",
+          message:
+            'A useStore selector cannot invoke pickFocus|generateInsights — the returned value is a new reference each call. Subscribe to slices and useMemo() the deriver instead.',
+        },
+      ],
     },
     languageOptions: {
       parserOptions: {

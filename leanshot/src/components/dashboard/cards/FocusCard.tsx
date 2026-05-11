@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Beef, Syringe, Scale, PackageOpen, PillBottle } from 'lucide-react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { pickFocus } from '@/lib/insights';
