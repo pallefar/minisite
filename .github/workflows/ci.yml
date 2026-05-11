@@ -141,3 +141,27 @@ jobs:
             echo "Allowed: 'mood' (Mood tab name). Disallowed: depression, anxiety, therapy, mental health treatment."
             exit 1
           fi
+
+  lighthouse:
+    name: Lighthouse (Vercel preview)
+    runs-on: ubuntu-latest
+    needs: [lint, format-check, typecheck, test-unit, test-e2e, compliance-copy]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for Vercel preview deployment
+        id: wait
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - name: Run Lighthouse against Vercel preview
+        run: npx --yes @lhci/cli@0.15.1 autorun --collect.url=${{ steps.wait.outputs.url }}
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
