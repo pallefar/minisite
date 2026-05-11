@@ -63,7 +63,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-05-PLAN.md — Dashboard-render fallback in App.tsx + co-located test (Wave 3)
 - [x] 02-06-PLAN.md — MedLevelChart watermark plugin + per-instance wiring (Wave 1)
 - [x] 02-07-PLAN.md — vite.config.ts (Sentry + sourcemap + manualChunks) + marketing build + vercel.json (Wave 3)
-- [ ] 02-08-PLAN.md — lighthouserc.json + lighthouse CI job + 02-HUMAN-UAT.md + Vercel-setup checkpoint (Wave 4)
+- [x] 02-08-PLAN.md — lighthouserc.json + lighthouse CI job + 02-HUMAN-UAT.md + Vercel-setup checkpoint (Wave 4)
 **UI hint**: yes
 
 ### Phase 3: Pharmacology + Insights Hardening
