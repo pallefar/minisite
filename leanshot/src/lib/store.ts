@@ -2,11 +2,12 @@
  * Zustand store + persist.
  * Single source of truth for all user data and ephemeral UI state.
  */
-import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import type { RealtimePostgresChangesPayload, Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
 import { signOut as authSignOut } from '@/lib/auth';
+import { flushSyncQueue } from '@/lib/sync';
 import type {
   AIMessage,
   Cost,
@@ -74,6 +75,12 @@ interface Actions {
   acknowledgeDisclaimer: (version: 'v1') => void;
 
   addInjection: (inj: Injection) => void;
+  /**
+   * Phase 5 D-08 — update an existing injection by log_id. Idempotent over the
+   * upsert queue: if a pending upsert for the same log_id exists, no second
+   * entry is added (enqueueOp dedupes by (table, op, key)).
+   */
+  editInjection: (logId: string, updates: Partial<Omit<Injection, 'log_id' | 'user_id'>>) => void;
   removeInjection: (idx: number) => void;
 
   addSymptom: (s: SymptomLog) => void;
@@ -139,10 +146,10 @@ interface Actions {
   dropOps: (keys: string[]) => void;
   /** D-13: cloud sync is permitted only when verified AND online. */
   isSyncEnabled: () => boolean;
-  /** STUB — 05-03 replaces with LWW merge logic. Defined here so 05-03 only edits this body. */
+  /** Phase 5 D-08 — LWW merge: server rows overwrite local on log_id conflict iff server.updated_at > local.updated_at. */
   mergeServerInjections: (serverRows: Injection[]) => void;
-  /** STUB — 05-03 replaces with Realtime postgres_changes payload handling. */
-  applyRealtimePayload: (payload: unknown) => void;
+  /** Phase 5 D-08 / D-10 — handle Realtime postgres_changes payload (INSERT/UPDATE/DELETE). */
+  applyRealtimePayload: (payload: RealtimePostgresChangesPayload<Injection>) => void;
 
   /** D-13: hide the EmailVerificationBanner for 24h. */
   dismissVerificationBanner: () => void;
@@ -247,7 +254,8 @@ export const useStore = create<Store>()(
         set({ ...initialState, currentTab: 'home', toast: null });
       },
 
-      addInjection: (inj) =>
+      addInjection: (inj) => {
+        const log_id = inj.log_id ?? crypto.randomUUID();
         set((s) => {
           // Phase 3 D-07 / PK-05: every new injection carries the engine version
           // that produced its expected curve. Default to 1 (current 1-compartment
@@ -260,7 +268,7 @@ export const useStore = create<Store>()(
           // back-stamp here rather than push the requirement onto every UI surface.
           const stamped: Injection = {
             ...inj,
-            log_id: inj.log_id ?? crypto.randomUUID(),
+            log_id,
             pkEngineVersion: inj.pkEngineVersion ?? 1,
           };
           const injections = [stamped, ...s.injections];
@@ -274,9 +282,48 @@ export const useStore = create<Store>()(
             vials,
             user: s.user ? { ...s.user, dose: inj.dose, doseUnit: inj.unit } : s.user,
           };
-        }),
-      removeInjection: (idx) =>
-        set((s) => ({ injections: s.injections.filter((_, i) => i !== idx) })),
+        });
+        // Phase 5 D-10 — enqueue cloud upsert + fire-and-forget flush. The
+        // queue survives reload (partialize) and is drained by 05-03's
+        // flushSyncQueue gated on isSyncEnabled() (D-13).
+        get().enqueueOp({
+          table: 'injections',
+          op: 'upsert',
+          key: log_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        void flushSyncQueue();
+      },
+      editInjection: (logId, updates) => {
+        set((s) => ({
+          injections: s.injections.map((i) =>
+            i.log_id === logId ? { ...i, ...updates } : i,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'injections',
+          op: 'upsert',
+          key: logId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        void flushSyncQueue();
+      },
+      removeInjection: (idx) => {
+        // Look up the log_id BEFORE the filter mutates state so the delete op
+        // references the now-deleted row's stable identifier (composite PK
+        // with user_id on public.injections).
+        const target = useStore.getState().injections[idx];
+        const logId = target?.log_id;
+        set((s) => ({ injections: s.injections.filter((_, i) => i !== idx) }));
+        if (!logId) return;
+        get().enqueueOp({
+          table: 'injections',
+          op: 'delete',
+          key: logId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        void flushSyncQueue();
+      },
 
       addSymptom: (sx) => set((s) => ({ symptoms: [sx, ...s.symptoms] })),
 
@@ -456,15 +503,74 @@ export const useStore = create<Store>()(
         return Boolean(s.signedIn?.verified) && navigator.onLine === true;
       },
 
-      // ----- STUBs — Plan 05-03 replaces bodies; signature stays stable. -----
-      mergeServerInjections: (_serverRows) => {
-        // TODO(05-03): merge serverRows into local `injections` with LWW by updated_at.
-        return;
-      },
-      applyRealtimePayload: (_payload) => {
-        // TODO(05-03): handle postgres_changes payload (INSERT/UPDATE/DELETE).
-        return;
-      },
+      /**
+       * Phase 5 D-08 LWW merge (RESEARCH §6 lines 844-858).
+       *
+       * Build a Map keyed by log_id from local rows, then for each server row
+       * overwrite IFF the local is missing or older. Local-only rows survive
+       * the merge — important for the initial pull after offline edits.
+       *
+       * Local rows that came from a previous server snapshot already carry
+       * `updated_at`; brand-new local rows have NO `updated_at`, so server
+       * rows always win against them (which is correct: any server row for a
+       * brand-new local id means the server already saw it via flushSyncQueue
+       * AND stamped its own authoritative timestamp).
+       */
+      mergeServerInjections: (serverRows) =>
+        set((s) => {
+          const map = new Map<string, Injection>();
+          for (const local of s.injections) map.set(local.log_id, local);
+          for (const remote of serverRows) {
+            const local = map.get(remote.log_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at &&
+                new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.log_id, remote);
+            }
+          }
+          return { injections: Array.from(map.values()) };
+        }),
+      /**
+       * Phase 5 D-08 / D-10 — Realtime postgres_changes payload handler
+       * (RESEARCH §6 lines 860-881). INSERT/UPDATE branch is LWW-guarded so a
+       * stale fanout (e.g. our own write echoing back) does not clobber a
+       * newer local edit. DELETE drops the row by log_id.
+       */
+      applyRealtimePayload: (payload) =>
+        set((s) => {
+          if (
+            payload.eventType === 'INSERT' ||
+            payload.eventType === 'UPDATE'
+          ) {
+            const remote = payload.new as Injection;
+            const idx = s.injections.findIndex((i) => i.log_id === remote.log_id);
+            if (idx === -1) {
+              return { injections: [...s.injections, remote] };
+            }
+            const local = s.injections[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at &&
+                new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...s.injections];
+              next[idx] = remote;
+              return { injections: next };
+            }
+            return {}; // local is newer or equal; ignore
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { log_id?: string };
+            if (!oldRow.log_id) return {};
+            return {
+              injections: s.injections.filter((i) => i.log_id !== oldRow.log_id),
+            };
+          }
+          return {};
+        }),
 
       dismissVerificationBanner: () => {
         const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();

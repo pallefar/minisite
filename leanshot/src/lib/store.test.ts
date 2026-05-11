@@ -216,11 +216,335 @@ describe('isSyncEnabled (D-13 gate)', () => {
   });
 });
 
-describe('mergeServerInjections + applyRealtimePayload stubs (05-03 will replace)', () => {
-  it('mergeServerInjections is callable and does not throw', () => {
-    expect(() => useStore.getState().mergeServerInjections([] as Injection[])).not.toThrow();
+// ---------------------------------------------------------------------------
+// Phase 5 Plan 05-03 Task 2 — LWW merge + Realtime payload handler + offline
+// queue wiring on addInjection/editInjection/removeInjection + dropOps.
+// ---------------------------------------------------------------------------
+
+// Auto-mock sync.ts so addInjection's fire-and-forget flushSyncQueue() does
+// not network. (vi.mock hoists to top of file.)
+vi.mock('@/lib/sync', () => ({
+  flushSyncQueue: vi.fn().mockResolvedValue(undefined),
+}));
+
+describe('mergeServerInjections LWW (D-08)', () => {
+  beforeEach(() => {
+    useStore.setState({ injections: [] });
   });
-  it('applyRealtimePayload is callable and does not throw', () => {
-    expect(() => useStore.getState().applyRealtimePayload({})).not.toThrow();
+
+  it('appends server-only rows when local is empty', () => {
+    const server: Injection = {
+      log_id: 'sA',
+      datetime: '2026-05-11T00:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: null,
+      notes: '',
+      updated_at: '2026-05-11T00:00:00Z',
+    };
+    useStore.getState().mergeServerInjections([server]);
+    const s = useStore.getState().injections;
+    expect(s).toHaveLength(1);
+    expect(s[0]!.log_id).toBe('sA');
+  });
+
+  it('overwrites local when server.updated_at > local.updated_at', () => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'r1',
+          datetime: '2026-05-10T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: 'old',
+          updated_at: '2026-05-10T00:00:00Z',
+        },
+      ],
+    });
+    useStore.getState().mergeServerInjections([
+      {
+        log_id: 'r1',
+        datetime: '2026-05-10T00:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: 'newer-server-note',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    ]);
+    const s = useStore.getState().injections;
+    expect(s).toHaveLength(1);
+    expect(s[0]!.notes).toBe('newer-server-note');
+    expect(s[0]!.updated_at).toBe('2026-05-11T00:00:00Z');
+  });
+
+  it('keeps local when local.updated_at > server.updated_at (reverse-LWW)', () => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'r2',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: 'local-newer',
+          updated_at: '2026-05-12T00:00:00Z',
+        },
+      ],
+    });
+    useStore.getState().mergeServerInjections([
+      {
+        log_id: 'r2',
+        datetime: '2026-05-10T00:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: 'older-server',
+        updated_at: '2026-05-10T00:00:00Z',
+      },
+    ]);
+    const s = useStore.getState().injections;
+    expect(s[0]!.notes).toBe('local-newer');
+  });
+
+  it('preserves local-only rows when server returns a disjoint set', () => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'local-only',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+      ],
+    });
+    useStore.getState().mergeServerInjections([
+      {
+        log_id: 'server-only',
+        datetime: '2026-05-11T00:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    ]);
+    const ids = useStore.getState().injections.map((i) => i.log_id).sort();
+    expect(ids).toEqual(['local-only', 'server-only']);
+  });
+});
+
+describe('applyRealtimePayload', () => {
+  beforeEach(() => {
+    useStore.setState({ injections: [] });
+  });
+
+  it('INSERT for new log_id → appended', () => {
+    useStore.getState().applyRealtimePayload({
+      eventType: 'INSERT',
+      new: {
+        log_id: 'rt1',
+        datetime: '2026-05-12T00:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: '',
+        updated_at: '2026-05-12T00:00:00Z',
+      },
+      old: {},
+    });
+    const s = useStore.getState().injections;
+    expect(s).toHaveLength(1);
+    expect(s[0]!.log_id).toBe('rt1');
+  });
+
+  it('UPDATE with later updated_at → replaced', () => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'rt1',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: 'old',
+          updated_at: '2026-05-10T00:00:00Z',
+        },
+      ],
+    });
+    useStore.getState().applyRealtimePayload({
+      eventType: 'UPDATE',
+      new: {
+        log_id: 'rt1',
+        datetime: '2026-05-12T00:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: 'newer',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+      old: { log_id: 'rt1' },
+    });
+    const s = useStore.getState().injections;
+    expect(s[0]!.notes).toBe('newer');
+  });
+
+  it('UPDATE with EARLIER updated_at → ignored (local kept)', () => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'rt1',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: 'local-newer',
+          updated_at: '2026-05-12T00:00:00Z',
+        },
+      ],
+    });
+    useStore.getState().applyRealtimePayload({
+      eventType: 'UPDATE',
+      new: {
+        log_id: 'rt1',
+        datetime: '2026-05-12T00:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: 'older-remote',
+        updated_at: '2026-05-10T00:00:00Z',
+      },
+      old: { log_id: 'rt1' },
+    });
+    expect(useStore.getState().injections[0]!.notes).toBe('local-newer');
+  });
+
+  it('DELETE → row removed by log_id', () => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'rt1',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+        {
+          log_id: 'rt2',
+          datetime: '2026-05-11T00:00:00Z',
+          dose: '0.25',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+      ],
+    });
+    useStore.getState().applyRealtimePayload({
+      eventType: 'DELETE',
+      new: {},
+      old: { log_id: 'rt1' },
+    });
+    const s = useStore.getState().injections;
+    expect(s).toHaveLength(1);
+    expect(s[0]!.log_id).toBe('rt2');
+  });
+});
+
+describe('addInjection wires pendingOps + flushSyncQueue', () => {
+  beforeEach(() => {
+    useStore.setState({ injections: [], pendingOps: [], vials: [] });
+  });
+
+  it('enqueues a pendingOps upsert entry for the new log_id', () => {
+    useStore.getState().addInjection({
+      datetime: '2026-05-12T00:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    } as never);
+    const ops = useStore.getState().pendingOps;
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.table).toBe('injections');
+    expect(ops[0]!.op).toBe('upsert');
+    // The key equals the log_id auto-stamped by addInjection.
+    const created = useStore.getState().injections[0]!;
+    expect(ops[0]!.key).toBe(created.log_id);
+  });
+});
+
+describe('editInjection wires pendingOps upsert', () => {
+  beforeEach(() => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'edit-1',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: 'before',
+        },
+      ],
+      pendingOps: [],
+    });
+  });
+
+  it('mutates the row in place and enqueues an upsert op', () => {
+    useStore.getState().editInjection('edit-1', { notes: 'after' });
+    const inj = useStore.getState().injections.find((i) => i.log_id === 'edit-1');
+    expect(inj?.notes).toBe('after');
+    const ops = useStore.getState().pendingOps;
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.op).toBe('upsert');
+    expect(ops[0]!.key).toBe('edit-1');
+  });
+});
+
+describe('removeInjection wires pendingOps delete', () => {
+  beforeEach(() => {
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'rm-1',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+      ],
+      pendingOps: [],
+    });
+  });
+
+  it('removes the row by index AND enqueues a delete op with the row log_id', () => {
+    useStore.getState().removeInjection(0);
+    expect(useStore.getState().injections).toEqual([]);
+    const ops = useStore.getState().pendingOps;
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.op).toBe('delete');
+    expect(ops[0]!.key).toBe('rm-1');
+    expect(ops[0]!.table).toBe('injections');
+  });
+});
+
+describe('dropOps', () => {
+  it('removes matching injection pendingOps by key', () => {
+    useStore.setState({
+      pendingOps: [
+        { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
+        { table: 'injections', op: 'upsert', key: 'l2', enqueuedAt: 'now' },
+        { table: 'injections', op: 'delete', key: 'l3', enqueuedAt: 'now' },
+      ],
+    });
+    useStore.getState().dropOps(['l1', 'l3']);
+    const remaining = useStore.getState().pendingOps;
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]!.key).toBe('l2');
   });
 });
