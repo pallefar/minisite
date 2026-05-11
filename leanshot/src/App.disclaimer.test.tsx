@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { App } from './App';
 import { useStore } from '@/lib/store';
 import type { User } from '@/types';
+import { App } from './App';
 
 // Stub the lazy-loaded dashboard tab modules so the dashboard branch renders
 // deterministically without the test having to wait on real chunk loads.

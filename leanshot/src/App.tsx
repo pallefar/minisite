@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { DisclaimerModal } from '@/components/dashboard/DisclaimerModal';
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { track } from '@/lib/analytics';
 import { useStore } from '@/lib/store';
 
 // Tab content modules — lazy-loaded so the initial bundle stays lean.
@@ -58,8 +60,15 @@ type View = 'marketing' | 'onboarding' | 'dashboard';
 
 export function App() {
   const user = useStore((s) => s.user);
+  const acknowledgedDisclaimer = useStore((s) => s.acknowledgedDisclaimer);
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
+
+  // D-11: dashboard-render fallback gate. True whenever a logged-in user lands
+  // on the dashboard without the current disclaimer version acknowledged
+  // (covers returning users from before disclaimers existed AND v3→v5 migrants
+  // whose acknowledgedDisclaimer defaults to undefined per src/lib/storage.ts).
+  const needsDisclaimer = !!user && acknowledgedDisclaimer !== 'v1';
 
   // Synchronously decide initial view based on hydrated user state.
   const [view, setView] = useState<View>(() => (user ? 'dashboard' : 'marketing'));
@@ -95,6 +104,17 @@ export function App() {
     window.addEventListener('leanshot:replay-tour', onReplay);
     return () => window.removeEventListener('leanshot:replay-tour', onReplay);
   }, []);
+
+  // D-11: fire `disclaimer_required` when the dashboard-render fallback first
+  // appears. Fires once per false→true transition; if the user dismisses then
+  // re-triggers (e.g. a hypothetical 'v1' → 'v2' version bump), it fires again
+  // — desired. Trade-off: a refs + once-flag would avoid the eventual second
+  // fire, but the version-bump signal is itself useful for analytics.
+  useEffect(() => {
+    if (needsDisclaimer) {
+      track('disclaimer_required', { surface: 'dashboard' });
+    }
+  }, [needsDisclaimer]);
 
   if (view === 'marketing') {
     return (
@@ -143,6 +163,17 @@ export function App() {
         {reportOpen && <DoctorReport open={reportOpen} onClose={() => setReportOpen(false)} />}
         {tourOpen && <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />}
       </Suspense>
+
+      {/* D-11 dashboard-render fallback (Phase 2). Mounted AFTER the lazy
+          Suspense block so it visually layers above any concurrent overlay.
+          DisclaimerModal is eager-loaded (small, no chart/animation deps); its
+          Modal primitive sets z-[100] which already stacks above AppShell. */}
+      {needsDisclaimer && (
+        <DisclaimerModal
+          open
+          onAcknowledge={() => useStore.getState().acknowledgeDisclaimer('v1')}
+        />
+      )}
     </>
   );
 }
