@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 import { Toast } from '@/components/ui/Toast';
 import { MobileNav } from './MobileNav';
@@ -26,7 +27,13 @@ export function AppShell({
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
       <Sidebar onOpenAI={onOpenAI} onOpenSettings={onOpenSettings} />
       <main className="md:ml-[80px] pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto">
-        <Topbar onLogDose={onLogDose} onOpenReport={onOpenReport} onOpenAI={onOpenAI} />
+        <Topbar
+          onLogDose={onLogDose}
+          onOpenReport={onOpenReport}
+          onOpenAI={onOpenAI}
+          onOpenSettings={onOpenSettings}
+        />
+        <EmailVerificationBanner />
         {children}
       </main>
       <MobileNav />

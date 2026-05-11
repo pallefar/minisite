@@ -9,8 +9,8 @@
  * (scope:'local') are regression-tested in src/lib/auth.test.ts.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useStore } from './store';
 import type { Injection, PendingOp } from '@/types';
+import { useStore } from './store';
 
 describe('updateLastAssistant', () => {
   beforeEach(() => {

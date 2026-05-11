@@ -521,6 +521,25 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                         body="Track supply and refill timing."
                       />
                     </div>
+                    {/* Phase 5 D-03: post-onboarding contextual prompt — high-intent
+                        "save your data" moment. Anonymous-by-default flow continues if
+                        user dismisses; permanent users skip this entirely. */}
+                    <div className="rounded-xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)] p-3.5 mt-3">
+                      <p className="text-[13px] font-semibold">Save your data across devices</p>
+                      <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5">
+                        Sign up to sync your injections to your account.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        className="mt-2.5"
+                        onClick={() => {
+                          window.location.hash = '#/auth/signup';
+                        }}
+                      >
+                        Sign up — free
+                      </Button>
+                    </div>
                   </div>
                 )}
               </motion.div>
