@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { initialState, migrateFromV3, STORAGE_VERSION } from './storage';
-import { useStore } from './store';
+import type { Injection } from '@/types';
+import { initialState, migrateFromV3, STORAGE_VERSION, type PersistedState } from './storage';
+import { migrateState, useStore } from './store';
 
 describe('initialState', () => {
   it('defaults acknowledgedDisclaimer to undefined (D-10)', () => {
@@ -80,5 +81,109 @@ describe('useStore.acknowledgeDisclaimer', () => {
     useStore.setState({ acknowledgedDisclaimer: undefined });
     useStore.getState().acknowledgeDisclaimer('v1');
     expect(useStore.getState().acknowledgedDisclaimer).toBe('v1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PK-05 / Phase 3 D-07: persist migrate v5 → v6 + addInjection pk stamping.
+// ---------------------------------------------------------------------------
+
+/** Build a v5-shaped persisted state for migration tests. */
+function v5State(overrides: Partial<PersistedState> = {}): PersistedState {
+  return {
+    ...initialState,
+    acknowledgedDisclaimer: 'v1',
+    injections: [],
+    ...overrides,
+  };
+}
+
+describe('persist migrate v5 → v6 (PK-05)', () => {
+  it('back-stamps injections lacking pkEngineVersion to 1', () => {
+    const inj1: Injection = {
+      datetime: '2026-04-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    };
+    const inj2: Injection = {
+      datetime: '2026-04-08T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: 'abdomen-ul',
+      notes: '',
+    };
+    const before = v5State({ injections: [inj1, inj2] });
+    const after = migrateState(before, 5);
+    expect(after.injections).toHaveLength(2);
+    expect(after.injections[0]!.pkEngineVersion).toBe(1);
+    expect(after.injections[1]!.pkEngineVersion).toBe(1);
+  });
+
+  it('preserves explicit pkEngineVersion when already present', () => {
+    const inj: Injection = {
+      datetime: '2026-04-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+      pkEngineVersion: 2,
+    };
+    const before = v5State({ injections: [inj] });
+    const after = migrateState(before, 5);
+    expect(after.injections[0]!.pkEngineVersion).toBe(2);
+  });
+
+  it('v4 → v6 chain applies BOTH disclaimer reset AND pk back-stamp', () => {
+    const inj: Injection = {
+      datetime: '2026-04-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    };
+    // v4-shaped state had acknowledgedDisclaimer 'v1' (or similar) — migrate must
+    // reset to undefined (Phase 2 D-10) AND back-stamp injections (Phase 3 D-07).
+    const before = v5State({ acknowledgedDisclaimer: 'v1', injections: [inj] });
+    const after = migrateState(before, 4);
+    expect(after.acknowledgedDisclaimer).toBeUndefined();
+    expect(after.injections[0]!.pkEngineVersion).toBe(1);
+  });
+
+  it('tolerates missing injections array (defensive ?? [])', () => {
+    // simulate a malformed v5 snapshot whose `injections` field is undefined
+    const malformed = { ...v5State(), injections: undefined } as unknown as PersistedState;
+    const after = migrateState(malformed, 5);
+    expect(after.injections).toEqual([]);
+  });
+});
+
+describe('useStore.addInjection — PK-05 stamping', () => {
+  beforeEach(() => {
+    useStore.setState({ ...initialState, currentTab: 'home', toast: null });
+  });
+
+  it('stamps pkEngineVersion: 1 on a new injection without explicit version', () => {
+    useStore.getState().addInjection({
+      datetime: '2026-04-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    });
+    expect(useStore.getState().injections[0]!.pkEngineVersion).toBe(1);
+  });
+
+  it('preserves explicit pkEngineVersion when caller provides one', () => {
+    useStore.getState().addInjection({
+      datetime: '2026-04-01T10:00:00Z',
+      dose: '1',
+      unit: 'mg',
+      site: null,
+      notes: '',
+      pkEngineVersion: 2,
+    });
+    expect(useStore.getState().injections[0]!.pkEngineVersion).toBe(2);
   });
 });
