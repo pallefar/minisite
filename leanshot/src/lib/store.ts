@@ -131,6 +131,12 @@ interface Actions {
   clearUserDataSlices: () => void;
   signOut: () => Promise<void>;
   enqueueOp: (op: PendingOp) => void;
+  /**
+   * Remove pendingOps entries whose `key` is in the supplied list AND
+   * `table === 'injections'`. Called by `flushSyncQueue` (sync.ts) after a
+   * successful upsert/delete batch.
+   */
+  dropOps: (keys: string[]) => void;
   /** D-13: cloud sync is permitted only when verified AND online. */
   isSyncEnabled: () => boolean;
   /** STUB — 05-03 replaces with LWW merge logic. Defined here so 05-03 only edits this body. */
@@ -430,6 +436,13 @@ export const useStore = create<Store>()(
           if (existing) return s;
           return { pendingOps: [...(s.pendingOps ?? []), op] };
         }),
+
+      dropOps: (keys) =>
+        set((s) => ({
+          pendingOps: (s.pendingOps ?? []).filter(
+            (p) => !(p.table === 'injections' && keys.includes(p.key)),
+          ),
+        })),
 
       /**
        * D-13: cloud sync is gated. Local logging continues regardless.
