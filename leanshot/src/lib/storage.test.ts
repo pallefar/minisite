@@ -159,6 +159,95 @@ describe('persist migrate v5 → v6 (PK-05)', () => {
   });
 });
 
+/**
+ * CR-03 regression (Phase 3 review): the v3-bootstrap branch in migrateState
+ * previously returned early — `{ ...initialState, ...v3 }` — without flowing
+ * through the v<=4 and v<=5 transforms. A v3-direct-to-v6 user therefore
+ * landed at v6 with every Injection.pkEngineVersion === undefined, defeating
+ * the v5→v6 bump (D-07 / PK-05).
+ *
+ * This test drives migrateState(undefined, 3) against a mocked v3 blob that
+ * contains injections, and asserts every record was back-stamped. It MUST
+ * fail against the pre-fix early-return implementation.
+ */
+describe('CR-03: v3 → v6 bootstrap chains through v4 + v5 transforms', () => {
+  let storageMock: Record<string, string>;
+
+  beforeEach(() => {
+    storageMock = {};
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((k) => storageMock[k] ?? null);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((k, v) => {
+      storageMock[k] = String(v);
+    });
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((k) => {
+      delete storageMock[k];
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('stamps pkEngineVersion: 1 on every injection in a v3 → v6 migration', () => {
+    const v3Blob = {
+      user: { name: 'Alex', medication: 'tirzepatide', startWeightKg: 90 },
+      injections: [
+        {
+          datetime: '2026-03-01T10:00:00Z',
+          dose: '5',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+        {
+          datetime: '2026-03-08T10:00:00Z',
+          dose: '7.5',
+          unit: 'mg',
+          site: 'abdomen-ul',
+          notes: '',
+        },
+        {
+          datetime: '2026-03-15T10:00:00Z',
+          dose: '10',
+          unit: 'mg',
+          site: 'thigh-r',
+          notes: '',
+        },
+      ],
+      weights: [],
+    };
+    storageMock['leanshot_v3'] = JSON.stringify(v3Blob);
+
+    // version=3 with no persisted v6 state triggers the bootstrap branch.
+    const after = migrateState(undefined, 3);
+
+    expect(after.injections).toHaveLength(3);
+    // Every legacy injection must be back-stamped with pkEngineVersion: 1.
+    for (const inj of after.injections) {
+      expect(inj.pkEngineVersion).toBe(1);
+    }
+    // Phase 2 D-10/D-11 chained transform also runs: disclaimer reset to undefined.
+    expect(after.acknowledgedDisclaimer).toBeUndefined();
+  });
+
+  it('stamps pkEngineVersion: 1 even when v3 blob has empty injections', () => {
+    const v3Blob = { user: { name: 'Pat' }, injections: [], weights: [] };
+    storageMock['leanshot_v3'] = JSON.stringify(v3Blob);
+    const after = migrateState(undefined, 3);
+    // Empty injections array survives the chained map (no records to stamp).
+    expect(after.injections).toEqual([]);
+    expect(after.acknowledgedDisclaimer).toBeUndefined();
+  });
+
+  it('returns initialState when no v3 blob exists at all', () => {
+    // version<STORAGE_VERSION + no v3 in localStorage → falls through to
+    // initialState, then chained transforms run as no-ops.
+    const after = migrateState(undefined, 3);
+    expect(after.injections).toEqual([]);
+    expect(after.acknowledgedDisclaimer).toBeUndefined();
+  });
+});
+
 describe('useStore.addInjection — PK-05 stamping', () => {
   beforeEach(() => {
     useStore.setState({ ...initialState, currentTab: 'home', toast: null });
