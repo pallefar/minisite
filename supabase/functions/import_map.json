@@ -1,5 +1,6 @@
 {
   "imports": {
-    "shared/refusal": "../../shared/refusal.ts"
+    "shared/refusal": "../../shared/refusal.ts",
+    "shared/disclaimers": "../../shared/disclaimers.ts"
   }
 }

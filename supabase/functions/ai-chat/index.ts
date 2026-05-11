@@ -10,10 +10,11 @@
  * so the stream stays alive past response close (RESEARCH §"Common
  * Pitfalls" Pitfall 8).
  *
- * Three TODO(04-03) stubs are deliberately left for the next plan:
- *   1. Refusal pre-check: `shared/refusal.ts` is not extracted yet.
- *   2. Rate-limit RPC: `rate_limit_counters` migration owned by 04-03.
- *   3. `ai_messages` persistence: schema + RLS owned by 04-03.
+ * Phase 4 D-04 (04-03) wiring complete:
+ *   1. Refusal pre-check: `isDoseChangeAdvice` from `shared/refusal.ts`.
+ *   2. Rate-limit RPC: `checkAndIncrement` → `increment_rate_limit` (atomic).
+ *   3. `ai_messages` persistence: user-side insert + assistant-side capture
+ *      in `captureAndPersist` (Moonshot/OpenAI delta-shape extractor).
  *
  * Security:
  * - T-04-06 (key leak): Moonshot non-2xx is wrapped as
@@ -25,8 +26,10 @@
  */
 import 'jsr:@std/dotenv/load';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { buildSystemPrompt } from './system-prompt.ts';
+import { isDoseChangeAdvice } from 'shared/refusal';
 import { corsHeaders } from './cors.ts';
+import { checkAndIncrement } from './rate-limit.ts';
+import { buildSystemPrompt } from './system-prompt.ts';
 
 const MOONSHOT_BASE_URL = Deno.env.get('MOONSHOT_BASE_URL') ?? 'https://api.moonshot.ai/v1';
 const MOONSHOT_MODEL = Deno.env.get('MOONSHOT_MODEL') ?? 'kimi-k2.6';
@@ -91,20 +94,89 @@ function refusalSSE(refusalText: string): Response {
   });
 }
 
-// Drainer for the captureAndPersist tee branch. In 04-02 this is a
-// no-op that simply reads to end so the upstream stream is not
-// backpressure-stalled (RESEARCH Pitfall 8). 04-03 replaces this body
-// with the real `ai_messages` persister (RESEARCH §14 F4 pseudocode).
+// Phase 4 D-04: persist the streamed assistant turn to `public.ai_messages`
+// after the response has flushed to the browser. Runs inside
+// `EdgeRuntime.waitUntil(...)` so the function stays alive past response
+// close (RESEARCH Pitfall 8) without blocking the SSE stream.
+//
+// SSE delta extractor — Moonshot / OpenAI Chat Completions shape:
+//   `data: {"choices":[{"delta":{"content":"..."}}]}\n\n` … `data: [DONE]\n\n`
+// per `04-ADDENDUM-MOONSHOT.md`. We accumulate `choices[0].delta.content`
+// across frames; bad/empty frames are swallowed (the front-end already saw
+// the text — we just won't get to persist that piece). Buffered across reads
+// so a `data:` frame that arrives split across chunks is parsed whole.
 async function captureAndPersist(
   stream: ReadableStream<Uint8Array>,
-  _userId: string,
+  userId: string,
+  mode: 'coach' | 'macro-estimator',
 ): Promise<void> {
-  // TODO(04-03): persist assistant message to ai_messages.
-  // For 04-02, drain so the tee branch does not stall the browser stream.
-  const reader = stream.getReader();
+  const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+  let assistantText = '';
+  let buffer = '';
   while (true) {
-    const { done } = await reader.read();
+    const { done, value } = await reader.read();
     if (done) break;
+    buffer += value;
+    // SSE frames are separated by a blank line (\n\n). Keep the last
+    // (possibly partial) chunk in the buffer for the next read.
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() ?? '';
+    for (const frame of parts) {
+      const dataLine = frame.split('\n').find((l) => l.startsWith('data: '));
+      if (!dataLine) continue;
+      const payload = dataLine.slice(6).trim();
+      if (payload === '' || payload === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(payload) as {
+          choices?: Array<{ delta?: { content?: unknown } }>;
+        };
+        const delta = parsed?.choices?.[0]?.delta?.content;
+        if (typeof delta === 'string') {
+          assistantText += delta;
+        }
+      } catch {
+        // Swallow malformed frames — front-end already received the text;
+        // persistence is best-effort. T-04-06: never log the raw payload.
+      }
+    }
+  }
+  // Handle any trailing partial buffer (rare — most streams end with `\n\n`).
+  if (buffer.startsWith('data: ')) {
+    const payload = buffer.slice(6).trim();
+    if (payload && payload !== '[DONE]') {
+      try {
+        const parsed = JSON.parse(payload) as {
+          choices?: Array<{ delta?: { content?: unknown } }>;
+        };
+        const delta = parsed?.choices?.[0]?.delta?.content;
+        if (typeof delta === 'string') {
+          assistantText += delta;
+        }
+      } catch {
+        // best-effort
+      }
+    }
+  }
+
+  if (!assistantText) {
+    // Nothing to persist (refusalSSE path bypasses this drainer anyway).
+    return;
+  }
+  try {
+    // T-04-04 mitigation invariant: `user_id` is the verified JWT id passed
+    // from the request handler — NEVER from request body or upstream payload.
+    await admin.from('ai_messages').insert({
+      user_id: userId,
+      role: 'assistant',
+      content: assistantText,
+      mode,
+      model: MOONSHOT_MODEL,
+    });
+  } catch (e) {
+    console.error(
+      '[ai-chat] failed to persist assistant message',
+      e instanceof Error ? e.message : 'unknown',
+    );
   }
 }
 
@@ -147,21 +219,43 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return jsonError(400, 'no-user-message');
   }
 
-  // 4. Refusal pre-check.
-  // TODO(04-03): import { isDoseChangeAdvice } from 'shared/refusal';
-  //   if (isDoseChangeAdvice(latestUser.content)) {
-  //     return refusalSSE("I can't suggest a specific dose change. Please bring this to your prescriber.");
-  //   }
+  // 4. Refusal pre-check (T-04-01 mitigation). Deterministic short-circuit
+  // BEFORE any Moonshot round-trip — see `shared/refusal.ts`. The refusalSSE
+  // helper emits a single OpenAI-shaped delta frame so the browser parser
+  // handles it identically to a real upstream stream.
+  if (isDoseChangeAdvice(latestUser.content)) {
+    return refusalSSE(
+      "I can't recommend specific dose changes. Please bring this to your prescriber.",
+    );
+  }
 
-  // 5. Rate-limit.
-  // TODO(04-03): const allowed = await checkAndIncrement(user.id);
-  //   if (!allowed) return jsonError(429, 'rate-limited');
+  // 5. Rate-limit (T-04-02 mitigation). Atomic security-definer RPC across
+  // minute/hour/day windows; fail-OPEN on RPC error.
+  const allowed = await checkAndIncrement(admin, user.id);
+  if (!allowed) {
+    return jsonError(429, 'rate-limited');
+  }
 
-  // 6. ai_messages persistence (user side).
-  // TODO(04-03): await admin.from('ai_messages').insert({
-  //     user_id: user.id, role: 'user', content: latestUser.content, mode,
-  //   });
-  //   user_id MUST come from `user.id` (verified JWT) — never from body (T-04-04).
+  // 6. ai_messages persistence (user side). T-04-04 integrity invariant:
+  // `user_id` is sourced from `user.id` (verified JWT in step 2), NEVER from
+  // request body. Service role bypasses RLS at write time; the RLS policy
+  // `with check (auth.uid() = user_id)` guards any future non-service-role
+  // write path.
+  try {
+    await admin.from('ai_messages').insert({
+      user_id: user.id,
+      role: 'user',
+      content: latestUser.content,
+      mode,
+      model: MOONSHOT_MODEL,
+    });
+  } catch (e) {
+    console.error(
+      '[ai-chat] failed to persist user message',
+      e instanceof Error ? e.message : 'unknown',
+    );
+    // Continue — persistence failure is logged but does not fail the chat.
+  }
 
   // 7. AI-04 structural separation. Apply the <user_data> fence to the
   // FIRST user message so the model treats client-supplied context as
@@ -232,7 +326,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // drainer running past response close (Pitfall 8).
   const [toClient, toCapture] = upstreamResp.body.tee();
   // @ts-expect-error — EdgeRuntime is injected by Supabase Edge Runtime; not in @types/deno.
-  EdgeRuntime.waitUntil(captureAndPersist(toCapture, user.id));
+  EdgeRuntime.waitUntil(captureAndPersist(toCapture, user.id, mode));
 
   return new Response(toClient, {
     status: 200,
@@ -245,7 +339,3 @@ Deno.serve(async (req: Request): Promise<Response> => {
   });
 });
 
-// `refusalSSE` is intentionally referenced from a commented hook above
-// (TODO 04-03) — keep the import in the surface area so 04-03 only flips
-// the call site, not the helper. Force-reference here for lint cleanliness.
-void refusalSSE;
