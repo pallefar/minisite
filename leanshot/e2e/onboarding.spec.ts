@@ -1,12 +1,18 @@
 import { expect, test } from '@playwright/test';
 
-test('onboarding happy path: marketing → 7 steps → HomeTab dashboard', async ({ page }) => {
+test('onboarding happy path: marketing → 8 steps (Step 0 + 1-7) → HomeTab dashboard', async ({
+  page,
+}) => {
   // ── Marketing landing ──────────────────────────────────────────────────────
   await page.goto('/');
 
   // Click the nav "Get started" CTA (first button on the page, always visible
   // without scrolling — avoids the Hero's "Start free" which may be below fold).
   await page.getByRole('button', { name: /get started/i }).first().click();
+
+  // ── Step 0: Disclaimer ────────────────────────────────────────────────────
+  await expect(page.getByText(/not medical advice/i)).toBeVisible();
+  await page.getByRole('button', { name: /i understand/i }).click();
 
   // ── Step 1: Name + units ───────────────────────────────────────────────────
   // Heading: "Welcome in."  Required field: "Your name"  Button: "Continue"
