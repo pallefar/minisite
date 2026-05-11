@@ -43,6 +43,9 @@ interface Actions {
   updateUser: (patch: Partial<User>) => void;
   resetAll: () => void;
 
+  /** Phase 2 D-10/D-11: write the current disclaimer version into persisted state. */
+  acknowledgeDisclaimer: (version: 'v1') => void;
+
   addInjection: (inj: Injection) => void;
   removeInjection: (idx: number) => void;
 
@@ -109,6 +112,7 @@ export const useStore = create<Store>()(
 
       setUser: (user) => set({ user }),
       updateUser: (patch) => set((s) => (s.user ? { user: { ...s.user, ...patch } } : s)),
+      acknowledgeDisclaimer: (version) => set({ acknowledgedDisclaimer: version }),
       resetAll: () => {
         try {
           localStorage.removeItem(STORAGE_KEY);
@@ -242,6 +246,7 @@ export const useStore = create<Store>()(
         vials: state.vials,
         aiHistory: state.aiHistory,
         costs: state.costs,
+        acknowledgedDisclaimer: state.acknowledgedDisclaimer,
       }),
       migrate: (persistedState, version) => {
         // First boot of v2 with v3 data sitting around.
@@ -249,6 +254,16 @@ export const useStore = create<Store>()(
           const v3 = migrateFromV3();
           if (v3) return { ...initialState, ...v3 };
           return { ...initialState };
+        }
+        // Phase 2 D-10/D-11/RESEARCH Pitfall 5: existing v4 users must see the
+        // dashboard fallback modal on next load. Default acknowledgedDisclaimer
+        // to undefined here, NEVER 'v1' — defaulting to 'v1' would silently
+        // grandfather every existing user past the disclaimer.
+        if (persistedState && version === 4) {
+          return {
+            ...(persistedState as PersistedState),
+            acknowledgedDisclaimer: undefined,
+          } as PersistedState;
         }
         return persistedState as PersistedState;
       },

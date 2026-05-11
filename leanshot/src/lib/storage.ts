@@ -25,7 +25,10 @@ import type {
 
 export const STORAGE_KEY = 'leanshot_v4';
 export const LEGACY_KEY = 'leanshot_v3';
-export const STORAGE_VERSION = 4;
+// D-10: bumped 4 → 5 so the persist `migrate` callback fires for existing v4 users
+// and explicitly defaults `acknowledgedDisclaimer` to undefined. Do NOT rename
+// STORAGE_KEY — that is the localStorage key, not the schema version.
+export const STORAGE_VERSION = 5;
 export const API_KEY_STORAGE = 'leanshot_anthropic_key';
 
 export interface PersistedState {
@@ -47,6 +50,8 @@ export interface PersistedState {
   vials: Vial[];
   aiHistory: AIMessage[];
   costs: Cost[];
+  /** Phase 2 D-10/D-11: versioned disclaimer acknowledgment. `undefined` triggers the dashboard-render fallback. */
+  acknowledgedDisclaimer: 'v1' | undefined;
 }
 
 export const initialState: PersistedState = {
@@ -68,6 +73,8 @@ export const initialState: PersistedState = {
   vials: [],
   aiHistory: [],
   costs: [],
+  // D-10/D-11: net-new install → dashboard fallback fires until user clicks "I understand".
+  acknowledgedDisclaimer: undefined,
 };
 
 /**
@@ -98,6 +105,9 @@ export function migrateFromV3(): Partial<PersistedState> | null {
       vials: (v3.vials as Vial[]) ?? [],
       aiHistory: (v3.aiHistory as AIMessage[]) ?? [],
       costs: (v3.costs as Cost[]) ?? [],
+      // D-11 / RESEARCH Pitfall 5: v3 migrants must see the fallback modal on next load.
+      // Defaulting to 'v1' here would silently grandfather every existing user, breaking SC#2.
+      acknowledgedDisclaimer: undefined,
     };
     // Only delete legacy after we've successfully built the merged state.
     localStorage.removeItem(LEGACY_KEY);
