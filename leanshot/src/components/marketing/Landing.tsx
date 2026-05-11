@@ -471,7 +471,7 @@ function FAQ() {
   const items = [
     {
       q: 'Is my data shared with anyone?',
-      a: "No. Everything lives in your browser's localStorage. We never send your weight, dose, or notes to any server. The only exception is the AI coach, which sends just your prompt + the relevant context to Anthropic through our secure server using your account (you never share an API key).",
+      a: "No. Everything lives in your browser's localStorage. We never send your weight, dose, or notes to any server. The only exception is the AI coach, which sends just your prompt + the relevant context through our secure server using your account (you never share an API key).",
     },
     {
       q: 'Will this replace my doctor?',

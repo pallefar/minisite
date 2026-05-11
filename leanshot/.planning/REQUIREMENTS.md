@@ -61,7 +61,7 @@ Replace browser-direct Anthropic calls with a server proxy. Fixes plaintext-key-
 - [x] **AI-03**: AI proxy refuses prompts that look like prompt-injection or that ask for specific dosing changes; refusal-list is covered by automated tests
 - [x] **AI-04**: User-supplied content (symptom logs, notes) is structurally separated from system prompts inside the proxy so injection attacks via logged content cannot escalate
 - [x] **AI-05**: AI conversation history is stored only in the user's own data (own table with RLS) — never included in doctor or clinic snapshots
-- [x] **AI-06**: Proxy uses a real, current Claude model ID (replaces the broken hardcoded `'claude-sonnet-4-6'`)
+- [x] **AI-06**: Proxy uses a real, current AI provider model ID (post-Phase-4 pivot: Moonshot `kimi-k2.6`, replaces the broken hardcoded `'claude-sonnet-4-5'` from v2 source; see `phases/04-supabase-cloud-bootstrap-ai-proxy-on-edge-functions/04-ADDENDUM-MOONSHOT.md` for the model-provider switch from Anthropic Claude to Moonshot Kimi K2 mid-Phase-4)
 
 ### Pharmacology + Insights Hardening
 
