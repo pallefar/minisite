@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useStore } from './store';
 import { initialState, migrateFromV3, STORAGE_VERSION } from './storage';
+import { useStore } from './store';
 
 describe('initialState', () => {
   it('defaults acknowledgedDisclaimer to undefined (D-10)', () => {
