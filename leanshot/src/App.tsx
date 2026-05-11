@@ -14,6 +14,12 @@ import {
 import { renameStorageNamespace } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import {
+  flushSyncQueue,
+  pullInitialInjections,
+  subscribeInjections,
+  unsubscribeInjections,
+} from '@/lib/sync';
 
 // Tab content modules — lazy-loaded so the initial bundle stays lean.
 const HomeTab = lazy(() =>
@@ -137,7 +143,12 @@ export function App() {
             await renameStorageNamespace(session.user.id);
             await runAnonPromotionMigrationIfNeeded(session.user.id);
             enqueueLocalInjectionsForSync();
-            // TODO(05-03): pullInitialInjections + subscribeInjections + flushSyncQueue.
+            // Phase 5 D-09/D-13: explicit initial pull BEFORE subscribe (Pitfall #5
+            // — postgres_changes does NOT replay history); then subscribe; then
+            // drain any pendingOps that accumulated while offline.
+            await pullInitialInjections(session.user.id);
+            subscribeInjections(session.user.id);
+            await flushSyncQueue();
           }
           break;
         }
@@ -151,12 +162,18 @@ export function App() {
             await renameStorageNamespace(session.user.id);
             await runAnonPromotionMigrationIfNeeded(session.user.id);
             enqueueLocalInjectionsForSync();
-            // TODO(05-03): pullInitialInjections + subscribeInjections + flushSyncQueue.
+            // See INITIAL_SESSION above — same triplet (pull → subscribe → flush).
+            await pullInitialInjections(session.user.id);
+            subscribeInjections(session.user.id);
+            await flushSyncQueue();
           }
           break;
         }
         case 'SIGNED_OUT': {
-          // TODO(05-03): unsubscribeInjections() — cleanup the Realtime channel.
+          // Phase 5 D-09 — tear down Realtime BEFORE clearing user data
+          // slices so a late-arriving channel event cannot repopulate state
+          // that we are about to wipe.
+          await unsubscribeInjections();
           useStore.getState().clearUserDataSlices();
           // CONF-2: clear any auth-related hash so selectView returns 'marketing'.
           if (window.location.hash.startsWith('#/auth/')) {
@@ -187,6 +204,18 @@ export function App() {
     return () => {
       data.subscription.unsubscribe();
     };
+  }, []);
+
+  // Phase 5 D-10 / RESEARCH §6 line 887 — when the browser reports the
+  // network is back, drain `pendingOps`. `flushSyncQueue` is idempotent and
+  // re-checks `isSyncEnabled()` (D-13) so this listener is safe to fire while
+  // signed-out or unverified.
+  useEffect(() => {
+    const onOnline = (): void => {
+      void flushSyncQueue();
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
   }, []);
 
   // Auto-mint anonymous session when the user lands on the dashboard without
