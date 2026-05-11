@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DoctorReport } from './DoctorReport';
 import { PK_DISCLAIMER_DOCTOR_REPORT } from '@/lib/disclaimers';
 import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import type { User } from '@/types';
+import { DoctorReport } from './DoctorReport';
 
 /**
  * RTL regression test for PK-04 + CONTEXT D-10.
@@ -45,7 +45,10 @@ describe('DoctorReport — Phase 3 PK disclaimer (PK-04 + D-10)', () => {
   });
 
   afterEach(() => {
-    // Reset to initial state after RTL auto-unmounts the component
+    // Unmount the modal BEFORE resetting state — framer-motion's AnimatePresence
+    // exit transition still reads `u.units` from the store during teardown; resetting
+    // user→null first triggers a "Cannot read properties of null" unhandled exception.
+    cleanup();
     useStore.setState(initialState);
   });
 
