@@ -24,6 +24,15 @@
 // bump, lower) keep their full form. `more` and `less` are adverbs/quantifiers
 // with no suffix variants.
 //
+// CR-02 (Phase 3 review): added the clinical dose-change verbs called out
+// by D-05 / ROADMAP SC#3 as "all dose-change phrasings" that were missing
+// from the original stem set — `discontinu(e|ed|ing)`, `paus(e|ed|ing)`,
+// `hold(s|ed|ing)`, `resum(e|ed|ing)`, `withhold(s|ing)`, `add(s|ed|ing)`,
+// `cut(s)`, `reduc(e|ed|ing)`. The ±5-token med-noun context guard
+// continues to suppress benign uses ("add more vegetables", "cut sugar",
+// "hold a plank", "pause before bed") because those phrases contain no
+// med-noun within proximity.
+//
 // This is a Rule-1 auto-fix vs. the plan's literal regex
 // `(...double|halve|...|escalate|de[-\s]?escalate|...)(s|ed|ing|es|d)?` which
 // couldn't match `doubling` / `escalating` / `raising` / `halving` (the silent
@@ -31,7 +40,7 @@
 // those `-ing` forms (REFUSE rows 3 "doubling", 25 "Start" + "schedule again";
 // PASS rows 11 "Escalate"... etc.) so the regex must accept them.
 const STEM_PATTERN =
-  /\b(increas|decreas|rais|lower|doubl|halv|skip|stop|start|taper|ramp|escalat|de[-\s]?escalat|bump|more|less)(e|es|ed|ing|s|d)?\b/gi;
+  /\b(increas|decreas|rais|lower|doubl|halv|skip|stop|start|taper|ramp|escalat|de[-\s]?escalat|bump|more|less|discontinu|paus|hold|resum|withhold|add|cut|reduc)(e|es|ed|ing|s|d)?\b/gi;
 
 const MED_NOUNS = new Set([
   'dose',
