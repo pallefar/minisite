@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Beef, Syringe, Scale, PackageOpen, PillBottle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { pickFocus } from '@/lib/insights';
+import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
 
@@ -21,7 +23,19 @@ const ICON_MAP = {
  */
 export function FocusCard() {
   const setTab = useStore((s) => s.setTab);
-  const focus = useStore((s) => pickFocus(s));
+  // pickFocus returns a fresh object each call, so calling it inside the selector
+  // makes Zustand's useSyncExternalStore snapshot unstable (infinite render loop).
+  // Subscribe to the raw slices it reads, then memoize the derivation.
+  const user = useStore((s) => s.user);
+  const injections = useStore((s) => s.injections);
+  const vials = useStore((s) => s.vials);
+  const meals = useStore((s) => s.meals);
+  const supplements = useStore((s) => s.supplements);
+  const weights = useStore((s) => s.weights);
+  const focus = useMemo(
+    () => pickFocus({ ...initialState, user, injections, vials, meals, supplements, weights }),
+    [user, injections, vials, meals, supplements, weights],
+  );
   const Icon = (ICON_MAP as Record<string, typeof Sparkles>)[focus.icon] ?? Sparkles;
 
   return (

@@ -80,6 +80,12 @@ None yet.
 - Hardcoded `claude-sonnet-4-6` model ID in `src/lib/ai.ts:22` is bogus and 404s — Phase 4 fixes; if any user-facing AI work happens before Phase 4, surface a "AI temporarily unavailable" toast
 - REQUIREMENTS.md footer claims 42 v1 requirements but actual count is 48 across the 8 categories — corrected during traceability mapping
 
+## Quick Tasks Completed
+
+| Date | Slug | Summary |
+|------|------|---------|
+| 2026-05-11 | fix-focus-loop-and-console | FocusCard infinite render loop, PostHog placeholder init, deprecated mobile-web-app meta |
+
 ## Deferred Items
 
 Items acknowledged and carried forward from previous milestone close:

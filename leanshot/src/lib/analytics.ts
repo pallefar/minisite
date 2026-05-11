@@ -50,7 +50,11 @@ export function initAnalytics(): void {
   const host =
     (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
 
-  posthog.init(key ?? '__placeholder__', {
+  // Without a real key, posthog.init still fires /array/<key>/config and /flags
+  // before loaded() runs opt_out_capturing — producing 404/401 noise. Skip entirely.
+  if (!key) return;
+
+  posthog.init(key, {
     api_host: host,
     // D-15: localStorage UUID, no PostHog-managed cookies
     persistence: 'localStorage',
