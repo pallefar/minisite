@@ -32,6 +32,16 @@ const initialTheme: Theme = ((): Theme => {
 })();
 applyThemeToDOM(initialTheme);
 
+// Phase 4 D-03 cleanup: remove any stale BYO Anthropic API key from
+// localStorage (the old pasted-key UX is gone in v4 — AI now flows
+// through the server-side ai-chat Edge Function). Silent try/catch
+// (S-3) so private-mode browsers don't crash.
+try {
+  localStorage.removeItem('leanshot_anthropic_key');
+} catch {
+  /* noop */
+}
+
 // 2) Synchronously rehydrate Zustand from localStorage BEFORE first render.
 //    This avoids flashing the marketing page for already-onboarded users.
 void hydrate().then(() => {

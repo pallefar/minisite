@@ -7,7 +7,7 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { useToast } from '@/hooks/useToast';
-import { callAnthropic, MissingAPIKeyError } from '@/lib/ai';
+import { AIUnavailableError, RateLimitedError, callAIChat } from '@/lib/ai';
 import { todayStr } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
@@ -53,16 +53,20 @@ export function NutritionTab() {
     if (!meal.name.trim()) return toast('Type what you ate first', 'error');
     setAIBusy(true);
     try {
-      const text = await callAnthropic({
-        maxTokens: 250,
+      let buffer = '';
+      await callAIChat({
         messages: [
           {
             role: 'user',
             content: `Estimate macros. Return ONLY a JSON object, no markdown.\nFormat: {"calories": number, "protein": number, "fiber": number}\n\nMeal: ${meal.name}`,
           },
         ],
+        mode: 'macro-estimator',
+        onText: (delta) => {
+          buffer += delta;
+        },
       });
-      const cleaned = text.replace(/```json|```/g, '').trim();
+      const cleaned = buffer.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleaned) as { calories?: number; protein?: number; fiber?: number };
       setMeal((m) => ({
         ...m,
@@ -72,8 +76,10 @@ export function NutritionTab() {
       }));
       toast('AI estimated');
     } catch (e) {
-      if (e instanceof MissingAPIKeyError)
-        toast('Add your Anthropic key in Settings → AI', 'error');
+      if (e instanceof RateLimitedError)
+        toast('Hit the AI rate limit — try again in a minute', 'error');
+      else if (e instanceof AIUnavailableError)
+        toast('AI is unavailable right now — enter manually', 'error');
       else toast('AI failed — enter manually', 'error');
     } finally {
       setAIBusy(false);

@@ -12,9 +12,11 @@
  *      callbacks (`choices[0].delta.content`).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import { RateLimitedError, callAIChat } from './ai';
 
-// Mock the supabase singleton BEFORE importing `ai.ts` so it picks up
-// the mock surface.
+// Mock the supabase singleton BEFORE the test bodies run. Vitest hoists
+// `vi.mock` calls to the top of the file regardless of placement.
 vi.mock('@/lib/supabase', () => {
   const auth = {
     getSession: vi.fn(),
@@ -23,8 +25,10 @@ vi.mock('@/lib/supabase', () => {
   return { supabase: { auth } };
 });
 
-import { supabase } from '@/lib/supabase';
-import { AIUnavailableError, RateLimitedError, callAIChat } from './ai';
+// Local helper to bypass strict typing on the supabase mock returns —
+// the real SDK returns a deeply-typed object we don't need to fully
+// reconstruct in tests; we only assert the fields `ai.ts` reads.
+type AuthShim = { data: { session: { access_token: string } | null }; error?: unknown };
 
 function sseResponse(frames: string[], status = 200): Response {
   const encoder = new TextEncoder();
@@ -51,16 +55,14 @@ describe('callAIChat', () => {
           // Other fields the type wants — cast through unknown.
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as unknown as AuthShim);
     vi.mocked(supabase.auth.signInAnonymously).mockResolvedValue({
       data: {
         session: { access_token: 'anon-jwt' },
         user: null,
       },
       error: null,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as unknown as AuthShim);
   });
 
   afterEach(() => {
@@ -115,16 +117,14 @@ describe('callAIChat', () => {
   it('Test 4: calls signInAnonymously before fetch when no session exists', async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: { session: null },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as unknown as AuthShim);
     const callOrder: string[] = [];
     vi.mocked(supabase.auth.signInAnonymously).mockImplementation(async () => {
       callOrder.push('signInAnonymously');
       return {
         data: { session: { access_token: 'anon-jwt' }, user: null },
         error: null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+      } as unknown as AuthShim;
     });
     const fetchSpy = vi.fn().mockImplementation(async () => {
       callOrder.push('fetch');

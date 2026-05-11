@@ -471,7 +471,7 @@ function FAQ() {
   const items = [
     {
       q: 'Is my data shared with anyone?',
-      a: "No. Everything lives in your browser's localStorage. We never send your weight, dose, or notes to any server. The only exception is the AI coach, which sends just your prompt + the relevant context to Anthropic's API using your own key.",
+      a: "No. Everything lives in your browser's localStorage. We never send your weight, dose, or notes to any server. The only exception is the AI coach, which sends just your prompt + the relevant context to Anthropic through our secure server using your account (you never share an API key).",
     },
     {
       q: 'Will this replace my doctor?',
@@ -483,7 +483,7 @@ function FAQ() {
     },
     {
       q: 'Does AI cost extra?',
-      a: 'You bring your own Anthropic API key (free to create at console.anthropic.com). Costs are pennies per month for typical use. Pro adds priority support and unlimited progress card templates.',
+      a: 'AI coaching is included — no separate API key, no extra setup. Pro adds priority support and unlimited progress card templates.',
     },
     {
       q: 'Can I export my data?',

@@ -6,7 +6,7 @@ import { ConfirmModal } from '@/components/ui/Confirm';
 import { Textarea } from '@/components/ui/Input';
 import { useConfirm } from '@/hooks/useConfirm';
 import { AIAvatar } from '@/illustrations/AIAvatar';
-import { callAnthropic, MissingAPIKeyError } from '@/lib/ai';
+import { AIUnavailableError, RateLimitedError, callAIChat } from '@/lib/ai';
 import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
@@ -40,6 +40,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   const u = useStore((s) => s.user!);
   const history = useStore((s) => s.aiHistory);
   const append = useStore((s) => s.appendAI);
+  const updateLastAssistant = useStore((s) => s.updateLastAssistant);
   const clear = useStore((s) => s.clearAI);
   const weights = useStore((s) => s.weights);
   const symptoms = useStore((s) => s.symptoms);
@@ -87,31 +88,42 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   const send = async (text: string): Promise<void> => {
     if (!text.trim() || busy) return;
     setInput('');
-    append({ role: 'user', content: text.trim() });
+    const trimmed = text.trim();
+    // Snapshot the conversation BEFORE appending the placeholder so we
+    // send a clean history to the proxy (placeholder is browser-only UX).
+    const wireHistory = [...history, { role: 'user' as const, content: trimmed }];
+    append({ role: 'user', content: trimmed });
+    append({ role: 'assistant', content: '' });
     setBusy(true);
     try {
-      const reply = await callAnthropic({
-        maxTokens: 1000,
-        system: `You are an expert GLP-1 medication coach inside the LeanShot tracking app. ${ctx}\n\nGuidelines:\n- Be warm, concise, and practical. Talk like a knowledgeable friend.\n- Use the user's data to personalize answers when relevant.\n- Always remind users you're not a substitute for their prescriber when discussing dosing or symptoms.\n- Focus on actionable advice. Use short paragraphs and bullet points where helpful.\n- Never recommend specific dose changes; defer to their doctor.`,
-        messages: [...history, { role: 'user', content: text.trim() }],
+      await callAIChat({
+        messages: wireHistory,
+        mode: 'coach',
+        userContext: ctx,
+        onText: (delta) => updateLastAssistant(delta),
       });
-      append({
-        role: 'assistant',
-        content: reply || 'Sorry, I had trouble responding.',
-        hasDataReference: detectDataRef(reply),
-      });
+      // Final pass: stamp hasDataReference once the stream is complete so
+      // the "Personalized" badge appears on contextual replies. Read the
+      // accumulated content from the store via getState (selectors are
+      // for renders; this is a one-shot post-stream side-effect).
+      const finalContent =
+        useStore.getState().aiHistory[useStore.getState().aiHistory.length - 1]?.content ?? '';
+      if (detectDataRef(finalContent)) {
+        const hist = useStore.getState().aiHistory;
+        const last = hist[hist.length - 1];
+        if (last?.role === 'assistant') {
+          useStore.setState({
+            aiHistory: [...hist.slice(0, -1), { ...last, hasDataReference: true }],
+          });
+        }
+      }
     } catch (e) {
-      if (e instanceof MissingAPIKeyError) {
-        append({
-          role: 'assistant',
-          content:
-            'I need an Anthropic API key to chat. Open Settings → AI to add one. It stores locally and is only used to talk to Claude on your behalf.',
-        });
+      if (e instanceof RateLimitedError) {
+        updateLastAssistant('Hit the AI rate limit — try again in a minute.');
+      } else if (e instanceof AIUnavailableError) {
+        updateLastAssistant('AI is unavailable right now. Please try again shortly.');
       } else {
-        append({
-          role: 'assistant',
-          content: "I couldn't reach the API. Check your connection and key, then try again.",
-        });
+        updateLastAssistant('AI is unavailable right now. Please try again shortly.');
       }
     } finally {
       setBusy(false);

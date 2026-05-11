@@ -5,7 +5,6 @@ import {
   Shield,
   CreditCard,
   Database,
-  Bot,
   Trash2,
   Download,
   GraduationCap,
@@ -20,23 +19,24 @@ import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
 import { todayStr, cn } from '@/lib/helpers';
-import { apiKeyStorage } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 
 type Section =
   | 'profile'
   | 'goals'
-  | 'ai'
   | 'notifications'
   | 'privacy'
   | 'subscription'
   | 'data'
   | 'dev';
 
+// Phase 4 D-03: 'ai' section + apiKeyStorage helper removed (BYO key UX
+// retired). Streamed AI now flows through the server-side ai-chat Edge
+// Function — no per-user key needed. Stale localStorage key is wiped
+// on next boot via the one-shot cleanup in main.tsx.
 const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'profile', label: 'Profile', Icon: UserIcon },
   { id: 'goals', label: 'Goals', Icon: Target },
-  { id: 'ai', label: 'AI', Icon: Bot },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
   { id: 'subscription', label: 'Subscription', Icon: CreditCard },
@@ -65,7 +65,6 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
   const [section, setSection] = useState<Section>('profile');
   const [draft, setDraft] = useState({ ...u });
-  const [apiKey, setApiKey] = useState<string>(() => apiKeyStorage.get() ?? '');
 
   const save = (): void => {
     updateUser({
@@ -218,54 +217,6 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             </Section>
           )}
 
-          {section === 'ai' && (
-            <Section
-              title="AI assistant"
-              body="Bring your own Anthropic key. Pennies per month for typical use."
-            >
-              <Input
-                label="Anthropic API key"
-                type="password"
-                placeholder="sk-ant-…"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                hint="Stored locally on this device. Never sent to anyone but Anthropic."
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    apiKeyStorage.set(apiKey.trim());
-                    toast('API key saved');
-                  }}
-                >
-                  Save key
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    apiKeyStorage.clear();
-                    setApiKey('');
-                    toast('API key cleared');
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
-              <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                Get a key at{' '}
-                <a
-                  href="https://console.anthropic.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--color-primary)] font-semibold"
-                >
-                  console.anthropic.com
-                </a>
-                .
-              </p>
-            </Section>
-          )}
-
           {section === 'notifications' && (
             <Section title="Notifications" body="Choose when LeanShot taps you on the shoulder.">
               <Card variant="flat">
@@ -283,8 +234,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 <ul className="space-y-2 text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
                   <li>Local storage only — never sent to a server.</li>
                   <li>
-                    The AI coach is the only exception. It sends your prompt + relevant context to
-                    Anthropic using your own API key.
+                    The AI coach is the only exception. It sends just your prompt plus relevant
+                    context through our secure server using your account — you never share an API
+                    key.
                   </li>
                   <li>No analytics. No telemetry. No third-party trackers.</li>
                   <li>Clearing site data deletes everything LeanShot knows about you.</li>

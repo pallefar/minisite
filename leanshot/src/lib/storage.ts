@@ -29,7 +29,10 @@ export const LEGACY_KEY = 'leanshot_v3';
 // injections with pkEngineVersion: 1 (PK-05). Do NOT rename STORAGE_KEY —
 // that is the localStorage key, not the schema version.
 export const STORAGE_VERSION = 6;
-export const API_KEY_STORAGE = 'leanshot_anthropic_key';
+// Phase 4 D-03: API_KEY_STORAGE + apiKeyStorage helper removed. The
+// BYO Anthropic-key UX is retired — AI now flows through the
+// server-side ai-chat Edge Function. The legacy 'leanshot_anthropic_key'
+// key is wiped on next boot by the one-shot cleanup in src/main.tsx.
 
 export interface PersistedState {
   user: User | null;
@@ -118,26 +121,3 @@ export function migrateFromV3(): Partial<PersistedState> | null {
   }
 }
 
-export const apiKeyStorage = {
-  get(): string | null {
-    try {
-      return localStorage.getItem(API_KEY_STORAGE);
-    } catch {
-      return null;
-    }
-  },
-  set(key: string): void {
-    try {
-      localStorage.setItem(API_KEY_STORAGE, key);
-    } catch (e) {
-      console.error(e);
-    }
-  },
-  clear(): void {
-    try {
-      localStorage.removeItem(API_KEY_STORAGE);
-    } catch {
-      /* noop */
-    }
-  },
-};

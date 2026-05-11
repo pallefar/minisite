@@ -34,7 +34,7 @@ const DISTINCT_ID_KEY = 'leanshot_distinct_id';
 /**
  * Returns a stable UUID stored in localStorage, generating one if absent.
  * Falls back to an ephemeral UUID when localStorage throws (private-mode browsers).
- * Pattern matches src/lib/storage.ts apiKeyStorage try/catch wrapping.
+ * Pattern matches the historical storage.ts try/catch helper wrapping (S-3).
  *
  * Exported for testability — production callers should not depend on this directly.
  */
