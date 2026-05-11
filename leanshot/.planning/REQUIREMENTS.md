@@ -56,12 +56,12 @@ Local-first preserved; cloud sync is additive. **Approach: Supabase Postgres tab
 
 Replace browser-direct Anthropic calls with a server proxy. Fixes plaintext-key-in-localStorage, the bogus hardcoded `claude-sonnet-4-6` model ID in `src/lib/ai.ts`, and adds rate-limiting + audit ownership. **Runtime: Supabase Edge Functions** (Deno) — same proxy pattern as the Cloudflare-Worker option in the research, but co-located with auth + DB.
 
-- [ ] **AI-01**: User no longer needs to paste an Anthropic key — AI coach calls go through a Supabase Edge Function (`/functions/v1/ai-chat`) that holds the platform key in Supabase secrets
+- [x] **AI-01**: User no longer needs to paste an Anthropic key — AI coach calls go through a Supabase Edge Function (`/functions/v1/ai-chat`) that holds the platform key in Supabase secrets
 - [ ] **AI-02**: AI proxy enforces per-user rate limits (Anthropic spend cap) and short-circuits abusive patterns — counters stored in a Supabase table keyed by `auth.uid()`
 - [ ] **AI-03**: AI proxy refuses prompts that look like prompt-injection or that ask for specific dosing changes; refusal-list is covered by automated tests
 - [ ] **AI-04**: User-supplied content (symptom logs, notes) is structurally separated from system prompts inside the proxy so injection attacks via logged content cannot escalate
 - [ ] **AI-05**: AI conversation history is stored only in the user's own data (own table with RLS) — never included in doctor or clinic snapshots
-- [ ] **AI-06**: Proxy uses a real, current Claude model ID (replaces the broken hardcoded `'claude-sonnet-4-6'`)
+- [x] **AI-06**: Proxy uses a real, current Claude model ID (replaces the broken hardcoded `'claude-sonnet-4-6'`)
 
 ### Pharmacology + Insights Hardening
 
@@ -172,12 +172,12 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | SYNC-04 | Phase 6 — Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | Pending |
 | SYNC-05 | Phase 5 — Patient Cloud Sync Slice 1 — Auth + Injections | Pending |
 | SYNC-06 | Phase 6 — Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | Pending |
-| AI-01 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-01 | Phase 4 — AI Proxy on Supabase Edge Functions | Complete |
 | AI-02 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
 | AI-03 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
 | AI-04 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
 | AI-05 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
-| AI-06 | Phase 4 — AI Proxy on Supabase Edge Functions | Pending |
+| AI-06 | Phase 4 — AI Proxy on Supabase Edge Functions | Complete |
 | PK-01 | Phase 3 — Pharmacology + Insights Hardening | Pending |
 | PK-02 | Phase 3 — Pharmacology + Insights Hardening | Pending |
 | PK-03 | Phase 3 — Pharmacology + Insights Hardening | Pending |

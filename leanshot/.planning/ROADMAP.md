@@ -113,7 +113,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. AI conversation history (`aiHistory`) is stored in a `ai_messages` Supabase table with `auth.uid() = user_id` RLS — verified by an automated cross-tenant test that asserts user A cannot see user B's `ai_messages` rows even with admin client
 **Plans:** 3 plans
 - [x] 04-01-PLAN.md — Bootstrap: Supabase CLI init + project link + Function secrets + Vercel env wiring (PROD-07; SC#0) (Wave 1)
-- [ ] 04-02-PLAN.md — Proxy skeleton: Edge Function SSE pass-through + browser supabase client + BYO key removal (AI-01, AI-06; SC#1, SC#2) (Wave 2)
+- [x] 04-02-PLAN.md — Proxy skeleton: Edge Function SSE pass-through + browser supabase client + BYO key removal (AI-01, AI-06; SC#1, SC#2) (Wave 2)
 - [ ] 04-03-PLAN.md — Hardening: shared/refusal.ts + 50+ adversarial corpus + rate-limit RPC + ai_messages RLS + pg_cron + CI deno-test job (AI-02, AI-03, AI-04, AI-05; SC#3, SC#4, SC#5) (Wave 3)
 **UI hint**: yes
 **Bootstrap-vs-feature note:** SC#0 is the one-time infra slice; SCs 1–5 are the feature slice. Discuss-phase should surface whether to handle these as one plan with a checkpoint between bootstrap and proxy, or as two plans (4-01 bootstrap, 4-02+ proxy). Phase 5 (auth + injections sync) and every later cloud-using phase implicitly assume SC#0 is satisfied — that requirement transfers to "given" status from Phase 5 onward.
