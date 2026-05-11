@@ -63,6 +63,12 @@ export interface PersistedState {
    *  the persist `migrate` callback initialises to `[]` if missing. The persist allow-list
    *  bump (partialize) lands in 05-03 alongside the sync engine that consumes this slice. */
   pendingOps?: PendingOp[];
+  /**
+   * Phase 5 Plan 05-02 D-13 — ISO timestamp until which the EmailVerificationBanner
+   * stays dismissed. Set to "now + 24h" when user clicks "Dismiss for today".
+   * Undefined = banner is visible whenever the gate condition holds.
+   */
+  verificationBannerDismissedUntil?: string;
 }
 
 export const initialState: PersistedState = {

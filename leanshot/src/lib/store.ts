@@ -137,6 +137,9 @@ interface Actions {
   mergeServerInjections: (serverRows: Injection[]) => void;
   /** STUB — 05-03 replaces with Realtime postgres_changes payload handling. */
   applyRealtimePayload: (payload: unknown) => void;
+
+  /** D-13: hide the EmailVerificationBanner for 24h. */
+  dismissVerificationBanner: () => void;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -449,6 +452,11 @@ export const useStore = create<Store>()(
         // TODO(05-03): handle postgres_changes payload (INSERT/UPDATE/DELETE).
         return;
       },
+
+      dismissVerificationBanner: () => {
+        const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        set({ verificationBannerDismissedUntil: until });
+      },
     }),
     {
       name: STORAGE_KEY,
@@ -480,6 +488,7 @@ export const useStore = create<Store>()(
         costs: state.costs,
         acknowledgedDisclaimer: state.acknowledgedDisclaimer,
         pendingOps: state.pendingOps,
+        verificationBannerDismissedUntil: state.verificationBannerDismissedUntil,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.
