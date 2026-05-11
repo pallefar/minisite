@@ -159,6 +159,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           max_timeout: 300
+          # Filter to the SPA project's GitHub check (RESEARCH P6 / SC#1).
+          # Without this, the action returns the FIRST preview URL it finds,
+          # which alphabetises to `leanshot-marketing` and causes lhci to score
+          # the wrong site. Vercel's GitHub App posts one check per project;
+          # this string must match the SPA project's exact check name.
+          # Wave 5 verifies the exact dash character on a live PR; if this
+          # value does not resolve, try `'leanshot-app - Vercel'` (hyphen).
+          check_name: 'leanshot-app – Vercel'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
