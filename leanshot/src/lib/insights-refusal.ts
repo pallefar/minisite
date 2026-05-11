@@ -16,8 +16,22 @@
  * NO imports — pure module, safe to import from anywhere in the tree.
  */
 
+// Stem forms with the final silent `e` dropped (where applicable) so that
+// suffixes like `ing` / `ed` can match without re-introducing the `e`.
+// `double` becomes `doubl` + `(e|es|ed|ing)`; `escalate` becomes `escalat` +
+// `(e|es|ed|ing)`; `de-escalate` becomes `de[-\s]?escalat` + suffixes; etc.
+// Plain stems that don't have a silent-e (skip, stop, start, taper, ramp,
+// bump, lower) keep their full form. `more` and `less` are adverbs/quantifiers
+// with no suffix variants.
+//
+// This is a Rule-1 auto-fix vs. the plan's literal regex
+// `(...double|halve|...|escalate|de[-\s]?escalate|...)(s|ed|ing|es|d)?` which
+// couldn't match `doubling` / `escalating` / `raising` / `halving` (the silent
+// final `e` is dropped before adding `ing`). The corpus deliberately includes
+// those `-ing` forms (REFUSE rows 3 "doubling", 25 "Start" + "schedule again";
+// PASS rows 11 "Escalate"... etc.) so the regex must accept them.
 const STEM_PATTERN =
-  /\b(increase|decrease|raise|lower|double|halve|skip|stop|start|taper|ramp|escalate|de[-\s]?escalate|bump|more|less)(s|ed|ing|es|d)?\b/gi;
+  /\b(increas|decreas|rais|lower|doubl|halv|skip|stop|start|taper|ramp|escalat|de[-\s]?escalat|bump|more|less)(e|es|ed|ing|s|d)?\b/gi;
 
 const MED_NOUNS = new Set([
   'dose',
