@@ -80,6 +80,11 @@ export function tokenize(s: string): string[] {
  * a med-noun (mg/dose/injection/ozempic/...). Word-boundary anchors avoid
  * matching `bumper`, `humpback`, etc.; per-call regex avoids `lastIndex`
  * state leakage from the `g` flag.
+ *
+ * CR-01 (Phase 3 review): walks ALL token occurrences of a matched stem,
+ * not just the first via `tokens.findIndex`. The prior implementation
+ * silently allowed "Increase your protein and increase your Ozempic dose"
+ * because the second "increase" was never checked for med-noun proximity.
  */
 export function isDoseChangeAdvice(body: string): boolean {
   const tokens = tokenize(body);
@@ -91,13 +96,17 @@ export function isDoseChangeAdvice(body: string): boolean {
     if (matchedTokens.length === 0) continue;
     // Strip stem suffix so e.g. "increasing" matches the tokenized "increasing".
     const stem = matchedTokens[0]!.replace(/(s|ed|ing|es|d)$/, '');
-    const idx = tokens.findIndex((t) => t.startsWith(stem));
-    if (idx === -1) continue;
-    // Context-guard: any med-noun within ±5 tokens?
-    const lo = Math.max(0, idx - 5);
-    const hi = Math.min(tokens.length, idx + 6);
-    for (let i = lo; i < hi; i++) {
-      if (MED_NOUNS.has(tokens[i]!)) return true;
+    // CR-01 fix: walk EVERY token starting with the stem and check proximity
+    // around each occurrence. Returning true on any med-noun hit catches
+    // multi-occurrence cases like "increase ... protein ... increase your
+    // Ozempic dose" where only a later occurrence is near a med noun.
+    for (let idx = 0; idx < tokens.length; idx++) {
+      if (!tokens[idx]!.startsWith(stem)) continue;
+      const lo = Math.max(0, idx - 5);
+      const hi = Math.min(tokens.length, idx + 6);
+      for (let i = lo; i < hi; i++) {
+        if (MED_NOUNS.has(tokens[i]!)) return true;
+      }
     }
   }
   return false;
