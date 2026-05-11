@@ -6,6 +6,7 @@
 import type { TabId } from '@/types';
 import { SUPPS_DEFAULT, SYMPTOMS_LIST } from './constants';
 import { todayStr } from './helpers';
+import { isDoseChangeAdvice, scrubInsights } from './insights-refusal';
 import type { PersistedState } from './storage';
 
 export interface Insight {
@@ -151,7 +152,7 @@ export function generateInsights(s: PersistedState): Insight[] {
     }
   }
 
-  return out;
+  return scrubInsights(out);
 }
 
 /** "Daily focus" — pick the single most important action for today. */
@@ -162,13 +163,31 @@ export function pickFocus(s: PersistedState): {
   icon: string;
 } {
   const u = s.user;
+  // Defense-in-depth (PK-02): if any branch's result would emit dose-change
+  // copy, fall back to the celebrate-default. `guard` is applied inline at
+  // every return site so a future edit that introduces dose-change phrasing
+  // in any branch falls through to DEFAULT_FOCUS rather than reaching the UI.
+  type Focus = {
+    title: string;
+    body: string;
+    cta: { label: string; tab: TabId };
+    icon: string;
+  };
+  const DEFAULT_FOCUS: Focus = {
+    title: "You're ahead of today",
+    body: "Protein in. Stack run. Shot tracked. Take a walk and stack tomorrow's win.",
+    cta: { label: 'See your wins', tab: 'insights' },
+    icon: 'Sparkles',
+  };
+  const guard = (c: Focus): Focus =>
+    isDoseChangeAdvice(c.body) || isDoseChangeAdvice(c.title) ? DEFAULT_FOCUS : c;
   if (!u) {
-    return {
+    return guard({
       title: 'Welcome to your dashboard',
       body: 'Log your first weight to start your trajectory.',
       cta: { label: 'Open Body', tab: 'body' },
       icon: 'Sparkles',
-    };
+    });
   }
   const today = todayStr();
   const dayOfWeek = new Date().getDay();
@@ -179,66 +198,61 @@ export function pickFocus(s: PersistedState): {
 
   // 1) Injection day priority
   if (dayOfWeek === u.injectionDay && daysSinceInj >= 6) {
-    return {
+    return guard({
       title: 'Today is shot day',
       body: 'Rotate your site, log it after, and watch your med-level reset.',
       cta: { label: 'Log injection', tab: 'medication' },
       icon: 'Syringe',
-    };
+    });
   }
 
   // 2) Vial running out
   const activeVial = s.vials.find((v) => v.dosesUsed < v.dosesPerVial);
   const remaining = activeVial ? activeVial.dosesPerVial - activeVial.dosesUsed : 0;
   if (activeVial && remaining <= 1) {
-    return {
+    return guard({
       title: "You're almost out of vial",
       body: `Only ${remaining} dose${remaining === 1 ? '' : 's'} left. Refill before the gap.`,
       cta: { label: 'See supply', tab: 'medication' },
       icon: 'PackageOpen',
-    };
+    });
   }
 
   // 3) Protein
   const todayMeals = s.meals.filter((m) => m.date === today);
   const todayProtein = todayMeals.reduce((acc, m) => acc + (m.protein || 0), 0);
   if (todayProtein < u.proteinTarget * 0.4 && new Date().getHours() >= 12) {
-    return {
+    return guard({
       title: 'Protein is your priority',
       body: `${Math.round(todayProtein)}g logged so far. ${Math.round(u.proteinTarget - todayProtein)}g left to hit your target — preserve that muscle.`,
       cta: { label: 'Log meal', tab: 'nutrition' },
       icon: 'Beef',
-    };
+    });
   }
 
   // 4) Supplements not yet logged
   const todaySupps = s.supplements[today] ?? {};
   const taken = Object.values(todaySupps).filter(Boolean).length;
   if (taken < SUPPS_DEFAULT.length * 0.3 && new Date().getHours() >= 9) {
-    return {
+    return guard({
       title: 'Run your stack',
       body: `${taken}/${SUPPS_DEFAULT.length} supplements logged today. The right ones smooth your week.`,
       cta: { label: 'Open stack', tab: 'supplements' },
       icon: 'PillBottle',
-    };
+    });
   }
 
   // 5) Daily weight
   const hasTodayWeight = s.weights.some((w) => w.date === today);
   if (!hasTodayWeight && new Date().getHours() >= 7) {
-    return {
+    return guard({
       title: 'Weigh in',
       body: 'A daily weight reading keeps your trajectory honest. Same time, same conditions.',
       cta: { label: 'Log weight', tab: 'body' },
       icon: 'Scale',
-    };
+    });
   }
 
   // 6) Default — celebrate
-  return {
-    title: "You're ahead of today",
-    body: "Protein in. Stack run. Shot tracked. Take a walk and stack tomorrow's win.",
-    cta: { label: 'See your wins', tab: 'insights' },
-    icon: 'Sparkles',
-  };
+  return DEFAULT_FOCUS;
 }
