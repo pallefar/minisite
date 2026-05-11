@@ -24,7 +24,15 @@ findings:
   warning: 8
   info: 4
   total: 15
-status: issues_found
+critical_resolved: 3
+critical_resolved_commits:
+  - 8b682df  # CR-01 fix: walk all stem occurrences
+  - 717ed3f  # CR-01 test: second-clause regression
+  - ac50823  # CR-02 fix: extend STEM_PATTERN
+  - ca55368  # CR-02 test: 7-row clinical-verb corpus
+  - 4119dc6  # CR-03 fix: chain v3 bootstrap through v4+v5
+  - f70c135  # CR-03 test: v3→v6 pkEngineVersion stamping
+status: critical_resolved_warnings_open
 ---
 
 # Phase 3: Code Review Report
