@@ -16,7 +16,7 @@ Pre-launch legal foundation. Surfaced by research as Phase-0 blocker — three c
 - [x] **COMPL-03**: App is registered for FTC Health Breach Notification Rule (HBNR) compliance, with an incident-response plan documented
 - [ ] **COMPL-04**: App displays prominent "Not medical advice — consult your healthcare provider" disclaimer on first run and overlaid on the drug-level chart, calibrated for FDA general-wellness software guidance
 - [ ] **COMPL-05**: Marketing copy and in-app framing avoid mental-health treatment claims (Mood tab + AI coach) to keep the app outside CMIA's mental-health digital service definition
-- [ ] **COMPL-06**: User can export all their data (JSON + readable PDF) and delete their account on demand — surfaced clearly in Settings
+- [ ] **COMPL-06**: User can export all their data (JSON + readable PDF) and delete their account on demand — surfaced clearly in Settings (export half ✅ Plan 07-06; delete half ⏳ Plan 07-07)
 
 ### Production Readiness
 
@@ -152,7 +152,7 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | COMPL-03 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Complete |
 | COMPL-04 | Phase 2 — Visible Compliance & Public Deploy | Pending |
 | COMPL-05 | Phase 2 — Visible Compliance & Public Deploy | Pending |
-| COMPL-06 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
+| COMPL-06 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | In Progress (export half complete via 07-06; delete half pending 07-07) |
 | PROD-01 | Phase 2 — Visible Compliance & Public Deploy | Pending |
 | PROD-02 | Phase 1 — Quality Gates & Observability Foundation | Pending |
 | PROD-03 | Phase 1 — Quality Gates & Observability Foundation | Pending |
