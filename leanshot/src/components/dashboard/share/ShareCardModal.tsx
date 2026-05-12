@@ -15,7 +15,10 @@ import { useStore } from '@/lib/store';
 const TEMPLATES: Template[] = [boldTemplate, minimalTemplate, milestoneTemplate];
 
 export function ShareCardModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. All hooks (useStore×4, useStreaks, useToast, useRef,
+  // useState, useEffect) run unconditionally above the guard.
+  const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const injections = useStore((s) => s.injections);
   const nsvs = useStore((s) => s.nsvs);
@@ -25,23 +28,25 @@ export function ShareCardModal({ open, onClose }: { open: boolean; onClose: () =
   const [tplId, setTplId] = useState<TemplateId>('bold');
 
   const latest = weights[weights.length - 1];
-  const data: ShareData = {
-    name: u.name,
-    medication: medLabelShort(u.medication),
-    dose: u.dose,
-    doseUnit: u.doseUnit,
-    weeks: Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000)),
-    startWeight: u.startWeight,
-    currentWeight: latest?.weight ?? u.startWeight,
-    goalWeight: u.goalWeight,
-    injections: injections.length,
-    bestStreak: Math.max(...Object.values(streaks)),
-    units: u.units,
-    nsv: nsvs[0]?.text ?? null,
-  };
+  const data: ShareData | null = u
+    ? {
+        name: u.name,
+        medication: medLabelShort(u.medication),
+        dose: u.dose,
+        doseUnit: u.doseUnit,
+        weeks: Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000)),
+        startWeight: u.startWeight,
+        currentWeight: latest?.weight ?? u.startWeight,
+        goalWeight: u.goalWeight,
+        injections: injections.length,
+        bestStreak: Math.max(...Object.values(streaks)),
+        units: u.units,
+        nsv: nsvs[0]?.text ?? null,
+      }
+    : null;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !data) return;
     const c = canvasRef.current;
     if (!c) return;
     const ctx = c.getContext('2d');
@@ -50,6 +55,8 @@ export function ShareCardModal({ open, onClose }: { open: boolean; onClose: () =
     const tpl = TEMPLATES.find((t) => t.id === tplId)!;
     tpl.draw(ctx, data);
   }, [open, tplId, data]);
+
+  if (!u || !data) return null;
 
   const download = (): void => {
     const c = canvasRef.current;
