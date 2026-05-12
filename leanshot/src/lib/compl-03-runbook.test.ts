@@ -20,10 +20,7 @@ import { describe, expect, it } from 'vitest';
 
 // Vitest's cwd is the project root (leanshot/) by default.
 // `npm run test:unit` => `vitest run` with no `--root` override.
-const RUNBOOK_PATH = resolve(
-  process.cwd(),
-  '.planning/runbooks/hbnr-incident-response.md',
-);
+const RUNBOOK_PATH = resolve(process.cwd(), '.planning/runbooks/hbnr-incident-response.md');
 
 const REQUIRED_SECTIONS = [
   '## Definitions',
@@ -48,10 +45,7 @@ function escapeRe(s: string): string {
 
 describe('COMPL-03 runbook (.planning/runbooks/hbnr-incident-response.md)', () => {
   it('exists on disk', () => {
-    expect(
-      existsSync(RUNBOOK_PATH),
-      `Runbook missing at ${RUNBOOK_PATH}`,
-    ).toBe(true);
+    expect(existsSync(RUNBOOK_PATH), `Runbook missing at ${RUNBOOK_PATH}`).toBe(true);
   });
 
   it('is at least 120 lines (substantive content, not a stub)', () => {
@@ -59,14 +53,11 @@ describe('COMPL-03 runbook (.planning/runbooks/hbnr-incident-response.md)', () =
     expect(lines).toBeGreaterThanOrEqual(120);
   });
 
-  it.each(REQUIRED_SECTIONS)(
-    'contains required section heading: %s',
-    (heading) => {
-      const body = readFileSync(RUNBOOK_PATH, 'utf8');
-      const re = new RegExp(`^${escapeRe(heading)}$`, 'm');
-      expect(re.test(body)).toBe(true);
-    },
-  );
+  it.each(REQUIRED_SECTIONS)('contains required section heading: %s', (heading) => {
+    const body = readFileSync(RUNBOOK_PATH, 'utf8');
+    const re = new RegExp(`^${escapeRe(heading)}$`, 'm');
+    expect(re.test(body)).toBe(true);
+  });
 
   it('contains the sentinel anchor exactly once (no duplicate headings)', () => {
     const body = readFileSync(RUNBOOK_PATH, 'utf8');

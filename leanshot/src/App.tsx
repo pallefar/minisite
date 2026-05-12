@@ -83,7 +83,10 @@ const LegalNotFound = lazy(() =>
       <m.LegalLayout title="Page not found">
         <h1 className="text-2xl font-semibold tracking-tight mb-4">Page not found</h1>
         <p className="text-[var(--color-text-secondary)]">
-          That legal page does not exist. <a className="underline" href="/">Return to LeanShot.</a>
+          That legal page does not exist.{' '}
+          <a className="underline" href="/">
+            Return to LeanShot.
+          </a>
         </p>
       </m.LegalLayout>
     ),

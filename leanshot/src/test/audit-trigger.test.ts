@@ -178,8 +178,7 @@ describeIfLive('Phase 7 D-04 — audit_trigger fires on injections lifecycle', (
     });
     expect(tamperErr).not.toBeNull();
     expect(
-      tamperErr!.code === '42501' ||
-        /violates row-level security/i.test(tamperErr!.message ?? ''),
+      tamperErr!.code === '42501' || /violates row-level security/i.test(tamperErr!.message ?? ''),
     ).toBe(true);
   }, 30_000);
 });

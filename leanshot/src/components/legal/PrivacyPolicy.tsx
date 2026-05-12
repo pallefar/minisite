@@ -13,10 +13,9 @@ export function PrivacyPolicy() {
       <h1 className="text-2xl font-semibold tracking-tight mb-4">Privacy Policy</h1>
       <div data-todo="07-04" hidden />
       <p className="text-[var(--color-text-secondary)] leading-relaxed">
-        This policy is being authored. Plan 07-04 will enumerate the 17 data
-        categories the app collects (injection logs, body metrics, mood, sleep,
-        meals, workouts, photos, etc.) and the local-first storage posture
-        described in the marketing footer.
+        This policy is being authored. Plan 07-04 will enumerate the 17 data categories the app
+        collects (injection logs, body metrics, mood, sleep, meals, workouts, photos, etc.) and the
+        local-first storage posture described in the marketing footer.
       </p>
     </LegalLayout>
   );

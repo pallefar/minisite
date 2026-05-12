@@ -14,9 +14,8 @@ export function ConsumerHealthData() {
       <h1 className="text-2xl font-semibold tracking-tight mb-4">Consumer Health Data</h1>
       <div data-todo="07-03" hidden />
       <p className="text-[var(--color-text-secondary)] leading-relaxed">
-        Washington residents: this notice describes how LeanShot collects, uses,
-        and shares consumer health data under My Health, My Data Act
-        (RCW 19.373). Full text lands in Plan 07-03.
+        Washington residents: this notice describes how LeanShot collects, uses, and shares consumer
+        health data under My Health, My Data Act (RCW 19.373). Full text lands in Plan 07-03.
       </p>
     </LegalLayout>
   );

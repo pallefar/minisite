@@ -9,9 +9,9 @@ export function TermsOfService() {
       <h1 className="text-2xl font-semibold tracking-tight mb-4">Terms of Service</h1>
       <div data-todo="07-04" hidden />
       <p className="text-[var(--color-text-secondary)] leading-relaxed">
-        These terms are being authored. Plan 07-04 will cover the educational-
-        tool framing, the &ldquo;no medical advice&rdquo; stance, account-data
-        rights, and the disclaimer-acknowledgement contract Phase 2 introduced.
+        These terms are being authored. Plan 07-04 will cover the educational- tool framing, the
+        &ldquo;no medical advice&rdquo; stance, account-data rights, and the
+        disclaimer-acknowledgement contract Phase 2 introduced.
       </p>
     </LegalLayout>
   );

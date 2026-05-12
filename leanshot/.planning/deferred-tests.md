@@ -27,7 +27,7 @@ related_debug_sessions:
 - Cross-test Realtime contamination (photo-cross-device flips green/red across runs without source changes)
 - signout-cache-clear: account-menu button never found — possibly independent post-signin render bug
 
-**Photo-cross-device is now passing on CI run 25745029198** — RC1-RC4 fixes resolved it. Only 6 of the original 7 specs still need RC5 remediation.
+**Photo-cross-device flake (2026-05-12 evening update):** Passed CI run 25745029198 after RC1-RC4. Then FLAKED back to red on Wave 2 push (CI run 25747155098) — re-fixme'd. Cross-test Realtime contamination hypothesis confirmed empirically; 07-02c afterEach `removeAllChannels()` is the fix. Now 7 of 7 specs deferred again.
 
 ## Plan 07-02c remediation (queued for post-Wave-2)
 
