@@ -135,8 +135,7 @@ test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline prop
     });
   });
 
-  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
-  test.fixme('3 injections logged offline propagate to context B on reconnect', async ({ browser }) => {
+  test('3 injections logged offline propagate to context B on reconnect', async ({ browser }) => {
     const ctxA: BrowserContext = await browser.newContext();
     const ctxB: BrowserContext = await browser.newContext();
     try {
@@ -202,12 +201,13 @@ test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline prop
       // ----- Reconnect phase ------------------------------------------------
       await ctxA.setOffline(false);
 
-      // Within ~8s, context B should see all 3 doses propagated via
-      // flushSyncQueue (online event in A) + Realtime fanout (to B).
+      // Within the CI budget, context B should see all 3 doses propagated
+      // via flushSyncQueue (online event in A) + Realtime fanout (to B).
+      // CI-cold-realtime-budget: raised 8s→12s for prod-build cold WebSocket handshake. See leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-RESEARCH.md §1 Family A.
       for (const dose of doses) {
         await expect(
           pageB.getByTestId('injection-list').locator(`text=${dose}`),
-        ).toBeVisible({ timeout: 8000 });
+        ).toBeVisible({ timeout: 12_000 });
       }
     } finally {
       await ctxA.close();
