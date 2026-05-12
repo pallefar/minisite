@@ -387,9 +387,7 @@ export function App() {
               // Mid-flight escape — leave the slice in place so a subsequent
               // sign-in resumes the modal, but inform the user that sync
               // continues in the background.
-              useStore
-                .getState()
-                .showToast('Migration continuing in the background.', 'info');
+              useStore.getState().showToast('Migration continuing in the background.', 'info');
               useStore.getState().setMigrationState(null);
             }}
             onRetry={() => {

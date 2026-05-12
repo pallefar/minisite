@@ -48,11 +48,7 @@ export function MigrationEntityRow({
   // Count rendering per 06-UI-SPEC §1 table. Pending shows an em-dash
   // placeholder; complete shows the final tally; transient states show progress.
   const countText =
-    status === 'complete'
-      ? `${total}`
-      : status === 'pending'
-        ? '—'
-        : `${uploaded} of ${total}`;
+    status === 'complete' ? `${total}` : status === 'pending' ? '—' : `${uploaded} of ${total}`;
 
   const statusAnnouncement = status === 'in-progress' ? 'in progress' : status;
   const ariaLabel = `${name}: ${countText}, ${statusAnnouncement}`;
