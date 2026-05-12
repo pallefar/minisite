@@ -1,7 +1,11 @@
 ---
 phase: 6
 slug: patient-cloud-sync-slice-2-full-data-migration-photos
-status: draft
+status: approved
+checker_verdict: APPROVED
+checked: 2026-05-12
+blocking_findings: 0
+flag_findings: 6
 shadcn_initialized: false
 preset: none
 created: 2026-05-12
@@ -597,14 +601,14 @@ These are not blocking the spec — defaults are spelled out — but the planner
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS (N/A — no registry)
+- [x] Dimension 1 Token compliance: PASS (1 nit: N1 `--duration-deliberate` vs Tailwind `duration-500`)
+- [x] Dimension 2 Component reuse: PASS (N3 Badge `tone` not `variant`; N4 Toast `durationMs` is genuine new API)
+- [x] Dimension 3 Accessibility: PASS (N5 Skeleton reduced-motion is real gap, fold-fix correctly scoped)
+- [x] Dimension 4 Z-index ladder: PASS (default z-[100] correct, no GuidedTour collision)
+- [x] Dimension 5 Context compliance: PASS (all 14 LOCKED decisions honored; D-12 sync-defer.ts explicit)
+- [x] Dimension 6 Cross-phase consistency: PASS (tone + tokens + posture match 05-UI-SPEC)
 
-**Approval:** pending
+**Approval:** APPROVED 2026-05-12 by gsd-ui-checker. 0 blocking, 6 non-blocking notes. See `06-UI-CHECK.md` for details.
 
 ---
 
