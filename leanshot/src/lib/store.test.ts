@@ -969,3 +969,293 @@ describe('Phase 6 — migration_state slice actions', () => {
     expect(blob.state.migrationError).toBeUndefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-03 — per-entity add/edit/remove enqueue contract. Each entity
+// mirrors Phase 5's addInjection pattern: stamp <pk>_id if absent + append +
+// enqueue a pendingOp keyed by the stamped id.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-03 — per-entity actions enqueue pendingOps', () => {
+  beforeEach(() => {
+    useStore.setState({
+      ...initialState,
+      pendingOps: [],
+      currentTab: 'home',
+      toast: null,
+      signedIn: { user: { id: 'u-test' }, session: null, verified: true } as never,
+    });
+  });
+
+  it('addWeight stamps weight_id + enqueues upsert', () => {
+    useStore.getState().addWeight({ date: '2026-05-12', weight: 80, bodyFat: null, ts: 1 });
+    const s = useStore.getState();
+    expect(s.weights).toHaveLength(1);
+    const w0 = s.weights[0] as { weight_id?: string };
+    expect(w0.weight_id).toMatch(/^[0-9a-f-]{36}$/);
+    const op = (s.pendingOps ?? []).find((o) => o.table === 'weights' && o.op === 'upsert');
+    expect(op).toBeDefined();
+    expect(op!.key).toBe(w0.weight_id);
+  });
+
+  it('editWeight enqueues upsert and updates the row', () => {
+    useStore.getState().addWeight({ date: '2026-05-12', weight: 80, bodyFat: null, ts: 1 });
+    const wid = (useStore.getState().weights[0] as { weight_id: string }).weight_id;
+    useStore.getState().editWeight(wid, { weight: 82 });
+    expect(useStore.getState().weights[0]!.weight).toBe(82);
+    const upserts = (useStore.getState().pendingOps ?? []).filter(
+      (o) => o.table === 'weights' && o.op === 'upsert' && o.key === wid,
+    );
+    expect(upserts).toHaveLength(1); // enqueueOp dedupes by (table, op, key)
+  });
+
+  it('removeWeight enqueues delete keyed by weight_id', () => {
+    useStore.getState().addWeight({ date: '2026-05-12', weight: 80, bodyFat: null, ts: 1 });
+    const wid = (useStore.getState().weights[0] as { weight_id: string }).weight_id;
+    useStore.getState().removeWeight(0);
+    expect(useStore.getState().weights).toHaveLength(0);
+    const op = (useStore.getState().pendingOps ?? []).find(
+      (o) => o.table === 'weights' && o.op === 'delete',
+    );
+    expect(op).toBeDefined();
+    expect(op!.key).toBe(wid);
+  });
+
+  it('addMeal / editMeal / removeMeal enqueue ops keyed by meal_id', () => {
+    useStore
+      .getState()
+      .addMeal({ date: '2026-05-12', name: 'x', calories: 100, protein: 10, fiber: 2, hunger: null, satisfaction: null, ts: 1 });
+    const mid = (useStore.getState().meals[0] as { meal_id: string }).meal_id;
+    expect(mid).toMatch(/^[0-9a-f-]{36}$/);
+    useStore.getState().editMeal(mid, { calories: 200 });
+    expect(useStore.getState().meals[0]!.calories).toBe(200);
+    useStore.getState().removeMeal(0);
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'meals');
+    expect(ops.some((o) => o.op === 'upsert' && o.key === mid)).toBe(true);
+    expect(ops.some((o) => o.op === 'delete' && o.key === mid)).toBe(true);
+  });
+
+  it('addWorkout / editWorkout / removeWorkout enqueue ops keyed by workout_id', () => {
+    useStore.getState().addWorkout({
+      date: '2026-05-12',
+      type: 'cardio',
+      name: 'jog',
+      minutes: 30,
+      rpe: null,
+      notes: '',
+    });
+    const wid = (useStore.getState().workouts[0] as { workout_id: string }).workout_id;
+    expect(wid).toMatch(/^[0-9a-f-]{36}$/);
+    useStore.getState().editWorkout(wid, { minutes: 45 });
+    expect(useStore.getState().workouts[0]!.minutes).toBe(45);
+    useStore.getState().removeWorkout(0);
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'workouts');
+    expect(ops.some((o) => o.op === 'upsert' && o.key === wid)).toBe(true);
+    expect(ops.some((o) => o.op === 'delete' && o.key === wid)).toBe(true);
+  });
+
+  it('addMood / editMood / removeMood enqueue ops keyed by mood_id', () => {
+    useStore.getState().addMood({ date: '2026-05-12', mood: 4, energy: null, notes: '' });
+    const mid = (useStore.getState().mood[0] as { mood_id: string }).mood_id;
+    expect(mid).toMatch(/^[0-9a-f-]{36}$/);
+    useStore.getState().editMood(mid, { mood: 3 });
+    expect(useStore.getState().mood[0]!.mood).toBe(3);
+    useStore.getState().removeMood(0);
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'mood');
+    expect(ops.some((o) => o.op === 'upsert' && o.key === mid)).toBe(true);
+    expect(ops.some((o) => o.op === 'delete' && o.key === mid)).toBe(true);
+  });
+
+  it('addSleep / editSleep / removeSleep enqueue ops keyed by sleep_id', () => {
+    useStore
+      .getState()
+      .addSleep({ date: '2026-05-12', hours: 7.5, wakings: 1, quality: null, notes: '' });
+    const sid = (useStore.getState().sleep[0] as { sleep_id: string }).sleep_id;
+    expect(sid).toMatch(/^[0-9a-f-]{36}$/);
+    useStore.getState().editSleep(sid, { hours: 8 });
+    expect(useStore.getState().sleep[0]!.hours).toBe(8);
+    useStore.getState().removeSleep(0);
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'sleep');
+    expect(ops.some((o) => o.op === 'upsert' && o.key === sid)).toBe(true);
+    expect(ops.some((o) => o.op === 'delete' && o.key === sid)).toBe(true);
+  });
+
+  it('addSymptom / editSymptom / removeSymptom enqueue ops keyed by symptom_id', () => {
+    useStore
+      .getState()
+      .addSymptom({ date: '2026-05-12', symptom: 'h', severity: 2, notes: '' });
+    const sid = (useStore.getState().symptoms[0] as { symptom_id: string }).symptom_id;
+    expect(sid).toMatch(/^[0-9a-f-]{36}$/);
+    useStore.getState().editSymptom(sid, { severity: 4 });
+    expect(useStore.getState().symptoms[0]!.severity).toBe(4);
+    useStore.getState().removeSymptom(0);
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'symptoms');
+    expect(ops.some((o) => o.op === 'upsert' && o.key === sid)).toBe(true);
+    expect(ops.some((o) => o.op === 'delete' && o.key === sid)).toBe(true);
+  });
+
+  it('addVial / editVial / removeVial enqueue ops keyed by vial_id', () => {
+    useStore.getState().addVial({
+      name: 'oz 2mg',
+      dosesPerVial: 4,
+      dosesUsed: 0,
+      startDate: '2026-05-12',
+      expirationDate: '2026-08-12',
+    });
+    const vid = (useStore.getState().vials[0] as { vial_id: string }).vial_id;
+    expect(vid).toMatch(/^[0-9a-f-]{36}$/);
+    useStore.getState().editVial(vid, { dosesUsed: 2 });
+    expect(useStore.getState().vials[0]!.dosesUsed).toBe(2);
+    useStore.getState().removeVial(0);
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'vials');
+    expect(ops.some((o) => o.op === 'upsert' && o.key === vid)).toBe(true);
+    expect(ops.some((o) => o.op === 'delete' && o.key === vid)).toBe(true);
+  });
+
+  it('toggleSupplement enqueues upsert when taken=true, delete when taken=false', () => {
+    useStore.getState().toggleSupplement('2026-05-12', 'd3', true);
+    let ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'supplements');
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.op).toBe('upsert');
+    expect(ops[0]!.key).toBe('2026-05-12:d3');
+    useStore.getState().toggleSupplement('2026-05-12', 'd3', false);
+    ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'supplements');
+    expect(ops.some((o) => o.op === 'delete' && o.key === '2026-05-12:d3')).toBe(true);
+  });
+
+  it('setUser enqueues a settings upsert keyed by user_id', () => {
+    useStore.getState().setUser({
+      name: 'Test',
+      units: 'metric',
+      medication: 'ozempic',
+      dose: '0.5',
+      doseUnit: 'mg',
+      startDate: '2026-05-12',
+      startWeight: 80,
+      height: null,
+      age: null,
+      sex: 'male',
+      bodyFat: null,
+      goalWeight: 70,
+      goal: 'fat-loss',
+      proteinTarget: 100,
+      calorieTarget: 2000,
+      fiberTarget: 30,
+      waterTarget: 3000,
+      injectionDay: 0,
+      activityLevel: 'moderate',
+      liftingLevel: 'beginner',
+      createdAt: new Date().toISOString(),
+    });
+    const ops = (useStore.getState().pendingOps ?? []).filter((o) => o.table === 'settings');
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.op).toBe('upsert');
+    expect(ops[0]!.key).toBe('u-test');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-03 — dropOps generalization. Phase 5 callers (no `table` arg)
+// still scope to injections; Phase 6 callers pass `table` for per-table
+// scoping.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-03 — dropOps signature generalization', () => {
+  beforeEach(() => {
+    useStore.setState({
+      ...initialState,
+      pendingOps: [],
+      currentTab: 'home',
+      toast: null,
+      signedIn: null,
+    });
+  });
+
+  it('Phase 5 back-compat: dropOps([keys]) drops injection ops only', () => {
+    useStore.setState({
+      pendingOps: [
+        { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
+        { table: 'weights', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
+      ],
+    });
+    useStore.getState().dropOps(['l1']);
+    const remaining = useStore.getState().pendingOps ?? [];
+    expect(remaining.find((o) => o.table === 'injections')).toBeUndefined();
+    expect(remaining.find((o) => o.table === 'weights' && o.key === 'l1')).toBeDefined();
+  });
+
+  it('Phase 6 06-03: dropOps([keys], "weights") drops weights ops only', () => {
+    useStore.setState({
+      pendingOps: [
+        { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
+        { table: 'weights', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
+      ],
+    });
+    useStore.getState().dropOps(['l1'], 'weights');
+    const remaining = useStore.getState().pendingOps ?? [];
+    expect(remaining.find((o) => o.table === 'injections' && o.key === 'l1')).toBeDefined();
+    expect(remaining.find((o) => o.table === 'weights')).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-03 — per-entity applyRealtimePayload reducers (INSERT/UPDATE/DELETE).
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-03 — applyXRealtimePayload reducers', () => {
+  beforeEach(() => {
+    useStore.setState({
+      ...initialState,
+      pendingOps: [],
+      currentTab: 'home',
+      toast: null,
+      signedIn: null,
+    });
+  });
+
+  it('applyWeightRealtimePayload INSERT adds a new row keyed by weight_id', () => {
+    const payload = {
+      eventType: 'INSERT',
+      new: { weight_id: 'w1', date: '2026-05-12', weight: 80, bodyFat: null, ts: 1, updated_at: '2026-05-12T00:00:00Z' },
+      old: {},
+    } as unknown as RealtimePostgresChangesPayload<never>;
+    useStore.getState().applyWeightRealtimePayload(payload as never);
+    expect(useStore.getState().weights).toHaveLength(1);
+    expect((useStore.getState().weights[0] as { weight_id: string }).weight_id).toBe('w1');
+  });
+
+  it('applyMoodRealtimePayload DELETE removes the row by mood_id', () => {
+    useStore.setState({
+      mood: [
+        { date: '2026-05-12', mood: 4, energy: null, notes: '', mood_id: 'm1' } as never,
+        { date: '2026-05-13', mood: 3, energy: null, notes: '', mood_id: 'm2' } as never,
+      ],
+    });
+    const payload = {
+      eventType: 'DELETE',
+      new: {},
+      old: { mood_id: 'm1' },
+    } as unknown as RealtimePostgresChangesPayload<never>;
+    useStore.getState().applyMoodRealtimePayload(payload as never);
+    expect(useStore.getState().mood).toHaveLength(1);
+    expect((useStore.getState().mood[0] as { mood_id: string }).mood_id).toBe('m2');
+  });
+
+  it('applySettingsRealtimePayload UPDATE merges into user', () => {
+    useStore.setState({
+      user: {
+        name: 'orig',
+        units: 'metric',
+        medication: 'ozempic',
+      } as never,
+    });
+    const payload = {
+      eventType: 'UPDATE',
+      new: { payload: { medication: 'mounjaro' } },
+      old: {},
+    } as unknown as RealtimePostgresChangesPayload<never>;
+    useStore.getState().applySettingsRealtimePayload(payload as never);
+    expect(useStore.getState().user!.medication).toBe('mounjaro');
+    expect(useStore.getState().user!.name).toBe('orig'); // shallow merge preserves other fields
+  });
+});
