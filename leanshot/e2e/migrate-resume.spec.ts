@@ -133,10 +133,10 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     }
   });
 
-  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
-  test.fixme('Test 1: first sign-in with v4 data → migration runs + leanshot_v4_pre_cloud_backup retained', async ({
+  test('Test 1: first sign-in with v4 data → migration runs + leanshot_v4_pre_cloud_backup retained', async ({
     page,
   }) => {
+    // CI-cold-migration-budget: state machine + cold Realtime can take up to ~18s in prod build. See 07-RESEARCH.md §1 Family B.
     admin = createClient(SUPABASE_URL!, SERVICE_ROLE!, { auth: { persistSession: false } });
     const email = `phase6-mig-${Date.now()}@leanshot.test`;
     const password = 'Phase6!Migrate#';
@@ -156,7 +156,7 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     // your data" OR "All done" as the first observable title.
     const migrating = page.getByText('Migrating your data');
     const allDone = page.getByText('All done');
-    await expect(migrating.or(allDone)).toBeVisible({ timeout: 12000 });
+    await expect(migrating.or(allDone)).toBeVisible({ timeout: 20_000 });
 
     // D-03 contract: a backup snapshot exists BEFORE any cloud write (the modal
     // is rendered post-snapshot per maybeStartMigration's order of ops).
@@ -179,8 +179,8 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     await expect(page.getByText('Resuming migration')).not.toBeVisible({ timeout: 1000 });
   });
 
-  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
-  test.fixme('Test 2: mid-migration partial state surfaces "Resuming migration"', async ({ page }) => {
+  test('Test 2: mid-migration partial state surfaces "Resuming migration"', async ({ page }) => {
+    // CI-cold-migration-budget: state machine + cold Realtime can take up to ~18s in prod build. See 07-RESEARCH.md §1 Family B.
     admin = createClient(SUPABASE_URL!, SERVICE_ROLE!, { auth: { persistSession: false } });
     const email = `phase6-resume-${Date.now()}@leanshot.test`;
     const password = 'Phase6!Resume#';
@@ -218,7 +218,7 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     // Resume title appears (or "All done" if drain is near-instant).
     const resuming = page.getByText('Resuming migration');
     const allDone = page.getByText('All done');
-    await expect(resuming.or(allDone)).toBeVisible({ timeout: 12000 });
+    await expect(resuming.or(allDone)).toBeVisible({ timeout: 20_000 });
 
     // Eventually completes.
     await expect(page.getByText('All done')).toBeVisible({ timeout: 30000 });
