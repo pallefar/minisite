@@ -15,29 +15,19 @@ import { useStore } from '@/lib/store';
  *  - Peak vs trough chips
  */
 export function GLPCurveCard() {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. All hooks (useStore, useReducedMotion, useMemo) run
+  // unconditionally above the early-return.
+  const u = useStore((s) => s.user);
   const injections = useStore((s) => s.injections);
   const reduced = useReducedMotion();
 
-  const halfLife = HALF_LIVES[u.medication] ?? 168;
-  const lastInj = injections[0];
-  const hSince = lastInj ? hoursSince(lastInj.datetime) : null;
-  const peakOrTrough =
-    hSince === null ? 'No data' : hSince < 48 ? 'Peak now' : hSince < 120 ? 'Mid-cycle' : 'Trough';
-  const peakTone =
-    peakOrTrough === 'Peak now' ? 'success' : peakOrTrough === 'Trough' ? 'warning' : 'info';
-
-  const currentLevel =
-    lastInj && hSince !== null ? Math.round(Math.pow(0.5, hSince / halfLife) * 100) : 0;
-
-  // Compute next shot prediction: 7 days after last shot (default GLP-1 cadence)
-  const nextShotMs = lastInj
-    ? new Date(lastInj.datetime).getTime() + 7 * 86_400_000 - Date.now()
-    : 0;
-  const nextHours = Math.max(0, nextShotMs / 3_600_000);
-
-  // Build a 7-day curve with 4-hour resolution
-  const { path, area, dotMarkers, axisLabels } = useMemo(() => {
+  // Build a 7-day curve with 4-hour resolution. Memo body short-circuits
+  // when `u` is null so the deps-array references `u` (not `u.medication`).
+  const curve = useMemo(() => {
+    if (!u) return null;
+    const halfLife = HALF_LIVES[u.medication] ?? 168;
+    const lastInj = injections[0];
     const W = 320;
     const H = 110;
     const totalHours = 7 * 24;
@@ -72,12 +62,32 @@ export function GLPCurveCard() {
       });
 
     return {
+      halfLife,
       path,
       area,
       dotMarkers: dots,
-      axisLabels: ['Now', 'Day 3', 'Day 6'],
+      axisLabels: ['Now', 'Day 3', 'Day 6'] as const,
     };
-  }, [lastInj, halfLife, injections]);
+  }, [u, injections]);
+
+  if (!u || !curve) return null;
+
+  const { halfLife, path, area, dotMarkers, axisLabels } = curve;
+  const lastInj = injections[0];
+  const hSince = lastInj ? hoursSince(lastInj.datetime) : null;
+  const peakOrTrough =
+    hSince === null ? 'No data' : hSince < 48 ? 'Peak now' : hSince < 120 ? 'Mid-cycle' : 'Trough';
+  const peakTone =
+    peakOrTrough === 'Peak now' ? 'success' : peakOrTrough === 'Trough' ? 'warning' : 'info';
+
+  const currentLevel =
+    lastInj && hSince !== null ? Math.round(Math.pow(0.5, hSince / halfLife) * 100) : 0;
+
+  // Compute next shot prediction: 7 days after last shot (default GLP-1 cadence)
+  const nextShotMs = lastInj
+    ? new Date(lastInj.datetime).getTime() + 7 * 86_400_000 - Date.now()
+    : 0;
+  const nextHours = Math.max(0, nextShotMs / 3_600_000);
 
   return (
     <Card span={5} variant="default" className="min-h-[360px] flex flex-col" data-tour="glp">
