@@ -9,10 +9,13 @@ import { medLabel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
 
 export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const injections = useStore((s) => s.injections);
   const symptoms = useStore((s) => s.symptoms);
+
+  if (!u) return null;
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
   const latest = weights[weights.length - 1];
