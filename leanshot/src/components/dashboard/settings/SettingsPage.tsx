@@ -11,8 +11,9 @@ import {
   Terminal,
   KeyRound,
   Mail,
+  RotateCcw,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Confirm';
@@ -20,7 +21,7 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
-import { attachEmailToAnon, requestPasswordReset } from '@/lib/auth';
+import { attachEmailToAnon, requestPasswordReset, signOut } from '@/lib/auth';
 import { todayStr, cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
@@ -30,6 +31,7 @@ type Section =
   | 'goals'
   | 'notifications'
   | 'privacy'
+  | 'recovery'
   | 'subscription'
   | 'data'
   | 'dev';
@@ -48,6 +50,10 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'goals', label: 'Goals', Icon: Target },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
+  // Phase 7 Plan 07-10 (D-05): Recovery sits between Privacy and Subscription per
+  // 07-RESEARCH §6 ordering. Surfaces the Phase 6 D-03 90-day local backup so the
+  // user can roll back a bad cloud-sync overwrite.
+  { id: 'recovery', label: 'Recovery', Icon: RotateCcw },
   { id: 'subscription', label: 'Subscription', Icon: CreditCard },
   { id: 'data', label: 'Data', Icon: Database },
   ...(import.meta.env.DEV ? [{ id: 'dev' as Section, label: 'Dev Tools', Icon: Terminal }] : []),
@@ -82,6 +88,62 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
   const [section, setSection] = useState<Section>('profile');
   const [draft, setDraft] = useState(() => ({ ...(u ?? ({} as NonNullable<typeof u>)) }));
+
+  // Phase 7 Plan 07-10 (D-05): Recovery section state.
+  // - backup: parsed payload from localStorage['leanshot_v4_pre_cloud_backup'] (Phase 6 D-03)
+  // - backupCorrupted: true when the key is present but JSON.parse fails or shape is invalid
+  // - restoreOpen + typed + restoreBusy: typed-confirmation modal local state
+  const [backup, setBackup] = useState<{
+    state: Record<string, unknown>;
+    version: number;
+    snapshotAt: string;
+  } | null>(null);
+  const [backupCorrupted, setBackupCorrupted] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [restoreBusy, setRestoreBusy] = useState(false);
+
+  // Read + parse the backup ONCE when Settings opens. Private-mode browsers
+  // throw on localStorage.getItem — swallow + treat as "no backup". A parse
+  // failure on a present-but-malformed payload renders the corrupted empty
+  // state (and never invokes setState — T-07-10-04 mitigation).
+  useEffect(() => {
+    if (!open) return;
+    let raw: string | null = null;
+    try {
+      raw = localStorage.getItem('leanshot_v4_pre_cloud_backup');
+    } catch {
+      setBackup(null);
+      setBackupCorrupted(false);
+      return;
+    }
+    if (!raw) {
+      setBackup(null);
+      setBackupCorrupted(false);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as {
+        state?: Record<string, unknown>;
+        version?: number;
+        snapshotAt?: string;
+      };
+      if (!parsed.state || !parsed.snapshotAt) {
+        setBackup(null);
+        setBackupCorrupted(true);
+        return;
+      }
+      setBackup({
+        state: parsed.state,
+        version: parsed.version ?? 7,
+        snapshotAt: parsed.snapshotAt,
+      });
+      setBackupCorrupted(false);
+    } catch {
+      setBackup(null);
+      setBackupCorrupted(true);
+    }
+  }, [open]);
 
   if (!u) return null;
 
@@ -314,6 +376,55 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             </Section>
           )}
 
+          {section === 'recovery' && (
+            <Section
+              title="Recovery"
+              body="Restore a local backup taken before cloud migration."
+            >
+              {backupCorrupted ? (
+                <Card variant="flat">
+                  <p className="text-[13px] text-[var(--color-text-secondary)]">
+                    Backup file is corrupted. Contact support if you need help recovering your
+                    data.
+                  </p>
+                </Card>
+              ) : !backup ? (
+                <Card variant="flat">
+                  <p className="text-[13px] text-[var(--color-text-secondary)]">
+                    No local backup found. Backups are created automatically before cloud
+                    migration and retained for 90 days.
+                  </p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  <Card variant="flat">
+                    <p className="text-[13px] text-[var(--color-text-secondary)]">
+                      Snapshot taken:{' '}
+                      <strong className="text-[var(--color-text)]">
+                        {new Date(backup.snapshotAt).toLocaleString()}
+                      </strong>
+                    </p>
+                    <p className="text-[12px] text-[var(--color-text-tertiary)] mt-2">
+                      Restoring will overwrite your current data and sign you out so the cloud
+                      re-syncs cleanly.
+                    </p>
+                  </Card>
+                  <Button
+                    variant="destructive"
+                    leadingIcon={<RotateCcw className="size-4" />}
+                    aria-label="Restore from local backup — this will overwrite your current data"
+                    onClick={() => {
+                      setTyped('');
+                      setRestoreOpen(true);
+                    }}
+                  >
+                    Restore from this backup
+                  </Button>
+                </div>
+              )}
+            </Section>
+          )}
+
           {section === 'subscription' && (
             <Section title="Subscription" body="Free forever. Pro adds polish.">
               <Card variant="flat">
@@ -387,6 +498,81 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
+      {/* Phase 7 Plan 07-10 (D-05) — typed-confirmation modal for Recovery / restore-from-backup.
+       *  RESEARCH §6 LWW guardrail: useStore.setState MUST run BEFORE signOut so the persist
+       *  middleware writes the restored snapshot before the session is cleared. Reversing the
+       *  order races the persist write against a cleared sb-leanshot-auth cookie. */}
+      <Modal
+        open={restoreOpen}
+        onClose={() => {
+          if (restoreBusy) return;
+          setRestoreOpen(false);
+        }}
+        title="Restore from backup?"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
+            This will overwrite your current cloud-synced data with the backup from{' '}
+            <strong className="text-[var(--color-text)]">
+              {backup ? new Date(backup.snapshotAt).toLocaleString() : ''}
+            </strong>
+            . You will be signed out after restoring; sign back in to re-sync with the cloud.
+          </p>
+          <Input
+            label='Type "RESTORE" to confirm'
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            autoCapitalize="characters"
+          />
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => setRestoreOpen(false)}
+              disabled={restoreBusy}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={typed !== 'RESTORE' || !backup || restoreBusy}
+              loading={restoreBusy}
+              aria-label="Confirm restore — overwrites current data"
+              onClick={async () => {
+                if (!backup || typed !== 'RESTORE') return;
+                setRestoreBusy(true);
+                try {
+                  // T-07-10-02: replace=true on the partialized shape only.
+                  // The backup payload was written by Phase 6 D-03 from the
+                  // same partialize allow-list, so no ephemeral UI keys can
+                  // leak through.
+                  useStore.setState(
+                    backup.state as unknown as Parameters<typeof useStore.setState>[0],
+                    true,
+                  );
+                  // T-07-10-03: signOut AFTER setState — forces a clean
+                  // Supabase session re-sync on next sign-in. See RESEARCH §6.
+                  await signOut();
+                  toast(
+                    'Backup restored. You have been signed out — sign back in to re-sync.',
+                    'success',
+                  );
+                  setRestoreOpen(false);
+                  onClose();
+                } catch {
+                  toast('Restore failed. Your data was not changed.', 'error');
+                } finally {
+                  setRestoreBusy(false);
+                }
+              }}
+            >
+              Restore and overwrite
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   );
 }

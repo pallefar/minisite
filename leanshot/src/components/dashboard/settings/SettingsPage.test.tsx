@@ -145,7 +145,7 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     render(<SettingsPage open={true} onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /^recovery$/i }));
     expect(screen.getByText(/no local backup found/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /restore from this backup/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /restore from local backup/i })).toBeNull();
   });
 
   it('renders the snapshot date when a backup is present', async () => {
@@ -155,7 +155,7 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     // toLocaleString() in jsdom emits the year regardless of locale.
     expect(screen.getByText(/2026/)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /restore from this backup/i }),
+      screen.getByRole('button', { name: /restore from local backup/i }),
     ).toBeInTheDocument();
   });
 
@@ -163,7 +163,7 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     localStorage.setItem('leanshot_v4_pre_cloud_backup', JSON.stringify(SEED_BACKUP));
     render(<SettingsPage open={true} onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /^recovery$/i }));
-    await userEvent.click(screen.getByRole('button', { name: /restore from this backup/i }));
+    await userEvent.click(screen.getByRole('button', { name: /restore from local backup/i }));
     const confirmBtn = await screen.findByRole('button', { name: /confirm restore/i });
     expect(confirmBtn).toBeDisabled();
 
@@ -178,11 +178,14 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
 
   it('calls useStore.setState(backup.state, true) + signOut + onClose on confirm', async () => {
     localStorage.setItem('leanshot_v4_pre_cloud_backup', JSON.stringify(SEED_BACKUP));
-    const setStateSpy = vi.spyOn(useStore, 'setState');
+    // Replace setState with a no-op spy so the real replace-call doesn't wipe
+    // the store's action methods (which the post-restore toast() relies on).
+    // We only need to assert the call signature here.
+    const setStateSpy = vi.spyOn(useStore, 'setState').mockImplementation(() => {});
     const { signOut } = await import('@/lib/auth');
     render(<SettingsPage open={true} onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /^recovery$/i }));
-    await userEvent.click(screen.getByRole('button', { name: /restore from this backup/i }));
+    await userEvent.click(screen.getByRole('button', { name: /restore from local backup/i }));
     const input = screen.getByLabelText(/type "?RESTORE"? to confirm/i);
     await userEvent.type(input, 'RESTORE');
     await userEvent.click(screen.getByRole('button', { name: /confirm restore/i }));
@@ -203,7 +206,7 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     render(<SettingsPage open={true} onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /^recovery$/i }));
     expect(screen.getByText(/backup file is corrupted/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /restore from this backup/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /restore from local backup/i })).toBeNull();
     // setState may be called by the beforeEach seeding before the spy, so filter
     // for the replace-call signature we care about.
     const replaceCalls = setStateSpy.mock.calls.filter((call) => call[1] === true);
