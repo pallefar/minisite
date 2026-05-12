@@ -181,7 +181,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The 4-failure-mode revocation drill in CI: patient revokes → (a) doctor's open tab returns 401 within seconds (DB-row-checked, not JWT-only), (b) `Cache-Control: private, no-store` on every share-route response, (c) JWT carries opaque `share_id`, not patient_id, (d) forwarded link to a different recipient identifier fails — all four assertions pass
   4. Patient opens Settings → "Active shares" tab → sees a row per share (audience label, expiry, view count, last-viewed-at, IP family, UA family) and a one-click revoke button that takes effect within 1 second
   5. Doctor view delivers `Cache-Control: private, no-store` (verified in a Playwright network assertion); print-friendly mode is preserved and reuses `DoctorReport.tsx`'s existing print stylesheet with the chart-overlaid disclaimer from Phase 3 surviving the print
-**Plans**: TBD
+**Plans:** 6 plans
+- [ ] 08-01-PLAN.md — Schema gate: audit_logs extension + shares table + 5 RPCs + share_snapshot_view (ai_messages structurally excluded) + Wave 0 test scaffolds (Wave 1)
+- [ ] 08-02-PLAN.md — share Edge Function (Deno): /redeem cookie issuance + /snapshot DB-row revocation check + audit RPC + photo signed URLs + CORS-with-credentials (Wave 2; depends_on: 01)
+- [ ] 08-03-PLAN.md — Settings Active shares tab: ActiveSharesSection + CreateShareModal + revoke flow + audit aggregate + e2e (Wave 2; depends_on: 01)
+- [ ] 08-04-PLAN.md — SharePage lazy chunk + App.tsx selectView extension + CodeEntryScreen + ShareRevokedScreen + happy-path e2e (Wave 2; depends_on: 01)
+- [ ] 08-05-PLAN.md — 4-failure-mode revocation drill + extended rls-shares (5 tests) + CI gating (Wave 3; depends_on: 01-04)
+- [ ] 08-06-PLAN.md — Print mode e2e + bundle-size guard for share chunk + 08-VALIDATION traceability sweep (Wave 3; depends_on: 01-05)
 **UI hint**: yes
 
 ### Phase 9: Clinic B2B Foundations
@@ -227,7 +233,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | 3/6 | Gap closure planned (G1, G2, G3) | - |
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | 0/TBD | Not started | - |
 | 7. Compliance Foundations (Legal-Counsel-Led) | 3/10 | In Progress|  |
-| 8. Doctor Read-Share | 0/TBD | Not started | - |
+| 8. Doctor Read-Share | 0/6 | Planned | - |
 | 9. Clinic B2B Foundations | 0/TBD | Not started | - |
 | 10. Clinic Operator Surface | 0/TBD | Not started | - |
 
