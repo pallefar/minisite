@@ -1,14 +1,44 @@
 ---
 title: Deferred E2E SC tests — milestone-close fix queue
 created: 2026-05-12
-status: partial
+status: partial-round-2
 closed: null
-fix_target: in-progress — Phase 7 Plan 07-01 flipped all 7 fixmes but CI still fails (4 pass / 7 fail); follow-on investigation plan needed before Phase 7 entry condition is truly satisfied
+fix_target: Plan 07-02c (post-Wave-2). RC1-RC4 fixed in product/test code; RC5 (budget/contamination) deferred to remediation plan.
 owner: TBD
-related_debug_session: leanshot/.planning/debug/resolved/e2e-smoke-auth-signup.md
+related_debug_sessions:
+  - leanshot/.planning/debug/resolved/e2e-smoke-auth-signup.md (Round 0 — auth flow)
+  - leanshot/.planning/debug/phase7-e2e-post-signin-render.md (Round 1 — RC1-RC3 fixes shipped)
+  - leanshot/.planning/debug/phase7-e2e-rc4-state-wipe-race.md (Round 2 — RC4 fixed; RC5 surfaced)
 ---
 
-# Deferred E2E SC tests — milestone-close fix queue
+## ⚠ Round 2 update (2026-05-12 afternoon)
+
+**Four root causes confirmed and fixed across 9 commits:**
+
+| RC | Type | Fix | Commit |
+|---|---|---|---|
+| RC1 | Product bug — `migration.ts` read universal `leanshot_v4` AFTER `renameStorageNamespace` deletes it | Namespaced-key fallback in `readV4Snapshot` + `snapshotPreCloudBackup` | `a8f6824` |
+| RC2 | Product bug — GuidedTour backdrop auto-opens 900ms after dashboard render, intercepts clicks in CI | Skip auto-launch when `VITE_E2E=true` | `6e78c2a` |
+| RC3 | Test infra — empty-entity migration completes instantly, modal masks AppShell nav | Seed `migration_state.complete=true` in non-migration specs | `8800529` |
+| RC4 | Test infra — `page.goto + page.evaluate(seed) + reload` races supabase-js INITIAL_SESSION → wipes seed | Switch to `page.addInitScript(seed)` (runs BEFORE main.tsx) | `24abb44` |
+
+**RC5 (UNRESOLVED, re-fixme'd this round):** 6 specs still fail on:
+- 150s outer test timeout exceeded by cumulative 2-context Realtime work on cold prod-build CI
+- Cross-test Realtime contamination (photo-cross-device flips green/red across runs without source changes)
+- signout-cache-clear: account-menu button never found — possibly independent post-signin render bug
+
+**Photo-cross-device is now passing on CI run 25745029198** — RC1-RC4 fixes resolved it. Only 6 of the original 7 specs still need RC5 remediation.
+
+## Plan 07-02c remediation (queued for post-Wave-2)
+
+1. **Remove the VITE_E2E debug seams** in `src/lib/store.ts` lines 1953-2034 + `selectView` seam in `src/App.tsx` (commit 85266ca) + the diagnostic spec `leanshot/e2e/diagnostic-post-signin-view.spec.ts`.
+2. **Raise `test.setTimeout` to 240s** on the 4 multi-context specs to absorb cold-CI Realtime handshake variance.
+3. **Add `test.afterEach` Realtime-channel cleanup** (`await supabase.removeAllChannels()`) to prevent cross-test contamination.
+4. **Investigate signout-cache-clear RC5 independently** — Playwright trace of `account menu` button-never-found suggests a post-signin AppShell render bug separate from the budget/contamination family.
+
+---
+
+# Original Round-1 tracker
 
 7 Success-Criterion verification specs marked with `test.fixme()` so CI gates can stay green while the team ships Phase 7+. Each `fixme` line carries a comment pointing here. The underlying production code is NOT known to be broken — these all pass locally (against the dev server at port 5173); they only fail in CI's preview-build environment (port 4173, live Supabase, Linux runner). The failure shapes suggest tight timing budgets, fixture isolation, or CI-only realtime/Storage flakes.
 
