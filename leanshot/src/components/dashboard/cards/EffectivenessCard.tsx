@@ -6,11 +6,14 @@ import { todayStr, formatShort } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 export function EffectivenessCard() {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const meals = useStore((s) => s.meals);
   const supplements = useStore((s) => s.supplements);
   const setTab = useStore((s) => s.setTab);
+
+  if (!u) return null;
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
   const latest = weights[weights.length - 1];
