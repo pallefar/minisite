@@ -575,9 +575,13 @@ describe('dropOps', () => {
 
 describe('Plan 05-05 — per-user storage adapter (G2 closure)', () => {
   beforeEach(() => {
-    localStorage.clear();
-    __resetActiveNamespaceForTests();
+    // Order matters: reset the store FIRST (this fires a persist write to
+    // the universal key while activeNamespaceKey is still whatever the prior
+    // test left it), THEN reset the namespace cache, THEN clear localStorage
+    // so the test starts with both an empty store AND an empty localStorage.
     useStore.setState({ ...initialState, currentTab: 'home', toast: null });
+    __resetActiveNamespaceForTests();
+    localStorage.clear();
   });
 
   afterEach(() => {

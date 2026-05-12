@@ -4,7 +4,7 @@
  */
 import type { RealtimePostgresChangesPayload, Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
 import { signOut as authSignOut } from '@/lib/auth';
 import { flushSyncQueue } from '@/lib/sync';
@@ -26,6 +26,7 @@ import type {
   Measurement,
 } from '@/types';
 import {
+  createNamespacedStorage,
   initialState,
   migrateFromV3,
   migrateV6ToV7,
@@ -580,7 +581,15 @@ export const useStore = create<Store>()(
     {
       name: STORAGE_KEY,
       version: STORAGE_VERSION,
-      storage: createJSONStorage(() => localStorage),
+      // Phase 5 G2 (Plan 05-05): per-user namespaced storage adapter — closes
+      // 05-UAT.md gap G2 (T-05-03 cross-account leak). `createNamespacedStorage`
+      // is a `StateStorage` (string-based) whose get/set/removeItem route to
+      // localStorage[activeNamespaceKey ?? STORAGE_KEY]. `createJSONStorage`
+      // wraps it so persist's `PersistStorage<S>` contract is satisfied (JSON
+      // serialize on the way in, parse on the way out). App.tsx's
+      // onAuthStateChange handler calls setActiveStorageUserId(session.user.id)
+      // on every verified SIGNED_IN BEFORE renameStorageNamespace.
+      storage: createJSONStorage(() => createNamespacedStorage()),
       // Only persist domain data, not transient UI flags.
       // Phase 5 Plan 05-02 DELEG-2: `pendingOps` joins the allow-list so the
       // offline write queue survives reload/refresh — 05-03 drains it on
