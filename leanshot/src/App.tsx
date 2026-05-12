@@ -342,8 +342,20 @@ export function App() {
   }, [view]);
 
   // First visit to dashboard → auto-launch tour after a beat.
+  //
+  // Phase 7 07-02 fix: skip auto-launch when VITE_E2E='true'. e2e specs
+  // pre-seed `leanshot_v4` localStorage blobs to bypass onboarding, but the
+  // seed does NOT include the `leanshot_tour_seen_v4` flag (it's a separate
+  // localStorage key managed by GuidedTour itself). Result: shouldShowTour()
+  // returns true, tour auto-opens 900ms post-dashboard, and its
+  // `pointer-events-auto` backdrop intercepts every subsequent click
+  // (Migration "Continue to dashboard", Sidebar tabs, etc.) — blocking 6 of
+  // 7 deferred specs in CI. Settings → "Replay tour" still works locally,
+  // and the Vercel production build does NOT set VITE_E2E so real users
+  // continue to see the tour on first dashboard load.
   useEffect(() => {
     if (view !== 'dashboard') return;
+    if (isE2E()) return;
     let cancelled = false;
     void import('@/components/dashboard/tour/GuidedTour').then(({ shouldShowTour }) => {
       if (cancelled || !shouldShowTour()) return;
