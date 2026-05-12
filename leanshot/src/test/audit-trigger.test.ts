@@ -187,7 +187,6 @@ describeIfLive('Phase 7 D-04 — audit_trigger fires on injections lifecycle', (
 describe('Phase 7 D-04 — audit_trigger gating', () => {
   it('runs against live cloud DB when SUPABASE_SERVICE_ROLE_KEY is set', () => {
     if (!SHOULD_RUN) {
-      // eslint-disable-next-line no-console
       console.warn(
         '[audit-trigger.test] SKIPPED — SUPABASE_SERVICE_ROLE_KEY (or URL/ANON) not set. Wave verification gates this.',
       );
