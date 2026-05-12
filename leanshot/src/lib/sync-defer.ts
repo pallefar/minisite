@@ -32,13 +32,18 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 // static graph. The runtime loads happen via the `import(...)` expressions
 // inside `loadSync()` below.
 import type * as AuthMigrationModule from '@/lib/auth-migration';
+import type * as MigrationModule from '@/lib/migration';
 import type * as SyncModule from '@/lib/sync';
 
 type SyncCall =
   | { kind: 'onSignedIn'; userId: string; session: Session }
   | { kind: 'onSignedOut'; prevUserId: string | null }
   | { kind: 'flush' }
-  | { kind: 'setLastWasAnon'; value: boolean };
+  | { kind: 'setLastWasAnon'; value: boolean }
+  // Phase 6 Plan 06-02: explicit migration trigger. The normal SIGNED_IN
+  // drain ALSO triggers migration via the `onSignedIn` branch below — this
+  // kind is the manual fallback for e.g. App.tsx's "Retry migration" CTA.
+  | { kind: 'startMigration'; userId: string };
 
 const BUFFER_CAP = 64;
 const buffer: SyncCall[] = [];
@@ -46,14 +51,22 @@ const buffer: SyncCall[] = [];
 interface LoadedApi {
   sync: typeof SyncModule;
   authMig: typeof AuthMigrationModule;
+  migration: typeof MigrationModule;
 }
 
 let loadedApi: LoadedApi | null = null;
 let loadingPromise: Promise<LoadedApi> | null = null;
 
 async function loadSync(): Promise<LoadedApi> {
-  const [sync, authMig] = await Promise.all([import('@/lib/sync'), import('@/lib/auth-migration')]);
-  return { sync, authMig };
+  // Phase 6 Plan 06-02: load @/lib/migration alongside @/lib/sync +
+  // @/lib/auth-migration so the onSignedIn drain branch can call
+  // maybeStartMigration without a second idle-callback hop.
+  const [sync, authMig, migration] = await Promise.all([
+    import('@/lib/sync'),
+    import('@/lib/auth-migration'),
+    import('@/lib/migration'),
+  ]);
+  return { sync, authMig, migration };
 }
 
 function dispatch(api: LoadedApi, call: SyncCall): void {
@@ -69,6 +82,13 @@ function dispatch(api: LoadedApi, call: SyncCall): void {
         void api.sync.pullInitialInjections(call.userId);
         api.sync.subscribeInjections(call.userId);
         void api.sync.flushSyncQueue();
+        // Phase 6 Plan 06-02 — kick off the leanshot_v4 → cloud migration
+        // AFTER subscribe so Realtime is already listening when the per-entity
+        // upload loop enqueues server writes (Pitfall #5 mirror — server fanout
+        // for our own upserts arrives via the channel we just opened). For
+        // net-new users `maybeStartMigration` exits early on the v4-data
+        // absence check, so this is a near-free call.
+        void api.migration.maybeStartMigration(call.userId);
         return;
       }
       case 'onSignedOut': {
@@ -85,6 +105,14 @@ function dispatch(api: LoadedApi, call: SyncCall): void {
       }
       case 'setLastWasAnon': {
         api.authMig.setLastWasAnon(call.value);
+        return;
+      }
+      case 'startMigration': {
+        // Phase 6 Plan 06-02: explicit re-entry path for the "Retry migration"
+        // CTA after corruption. maybeStartMigration is idempotent (module-level
+        // migrationInFlight guard), so even if onSignedIn just fired this is
+        // safe.
+        void api.migration.maybeStartMigration(call.userId);
         return;
       }
     }
@@ -132,6 +160,17 @@ export function deferFlush(): void {
 /** Phase 5 D-05/D-07 anon-promotion hint — buffer + drain setLastWasAnon. */
 export function deferSetLastWasAnon(value: boolean): void {
   push({ kind: 'setLastWasAnon', value });
+}
+
+/**
+ * Phase 6 Plan 06-02 explicit migration trigger — buffer + drain
+ * maybeStartMigration. Used by App.tsx's "Retry migration" CTA AND any other
+ * caller that needs to kick the migration outside of the normal SIGNED_IN
+ * drain. Idempotent: a no-op if the module-level migrationInFlight guard is
+ * already set or migration_state.complete is true.
+ */
+export function deferStartMigration(userId: string): void {
+  push({ kind: 'startMigration', userId });
 }
 
 /**
