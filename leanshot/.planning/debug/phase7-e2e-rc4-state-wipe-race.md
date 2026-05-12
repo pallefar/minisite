@@ -1,8 +1,8 @@
 ---
-status: fixing
+status: blocked
 trigger: "3/11 e2e specs (cross-device-sync, offline-conflict-toast, offline-log-then-sync) fail on cold-cache first browser.newContext() runs. Seeded state.user + acknowledgedDisclaimer wiped to null mid-signin. Retries on warm cache pass <5s every time."
 created: 2026-05-12T14:18:34Z
-updated: 2026-05-12T15:15:00Z
+updated: 2026-05-12T15:35:00Z
 ---
 
 ## Current Focus
@@ -73,10 +73,24 @@ NOT applied to (other failing specs whose root cause may differ):
   - leanshot/e2e/photo-cross-device.spec.ts (already passing on run 3 — same race may be tolerated by photo flow timing)
   - leanshot/e2e/signout-cache-clear.spec.ts (different failure shape — account-menu button never findable; may be RC4-downstream OR a separate issue)"
 
-verification: "Pending CI run after the addInitScript fix lands."
+verification: "CI run 25743828101 (24abb44) post-fix:
+  - RC4 wipe IS eliminated. All 4 RC4-EARLY checks across the test+retry now report `storeUser=set storeAck=v1`. State-log dump shows lsset writes to leanshot_v4 with the full SEED_USER blob — no more user:null clobber.
+  - The 3 specs (cross-device-sync, offline-conflict-toast, offline-log-then-sync) STILL fail, but on a DIFFERENT cause: the 150s outer test timeout is exceeded during ctxA.close() cleanup. Both contexts complete signin in <2s, but the cumulative post-signin operations (gotoMedicationTab + log-injection + cross-device-realtime propagation × 2 contexts) consume the remaining budget.
+  - photo-cross-device.spec.ts ALSO regressed in run 4 (passed in run 3, failed in run 4). It wasn't modified — suggests cumulative Realtime backend load from upstream failed tests bleeds into subsequent specs.
+  - signout-cache-clear.spec.ts still fails (account-menu button never findable) — appears to be an unrelated downstream issue, NOT RC4.
+
+  Final CI state: 8 pass / 4 fail (same 3 + photo-cross-device regression).
+
+  RC4 is RESOLVED, but the broader Phase 7 entry condition (11/11) STILL not met. Remaining failures are budget pressure + cross-test contamination on cold prod-build CI — Plan 07-01 territory (already had 3 progressive budget raises). A 4th budget raise + Realtime-channel cleanup-between-tests pattern is the next escalation."
 
 files_changed:
   - leanshot/src/lib/store.ts (RC4 debug seam: Zustand subscribe + localStorage hooks, VITE_E2E-gated)
   - leanshot/e2e/cross-device-sync.spec.ts (addInitScript seed + RC4 instrumentation + 150s test budget)
   - leanshot/e2e/offline-log-then-sync.spec.ts (addInitScript seed)
   - leanshot/e2e/offline-conflict-toast.spec.ts (addInitScript seed)
+
+next_step_after_unblock: "Open a follow-up plan 07-02c to:
+  1. Remove the VITE_E2E-gated RC4 debug seam in src/lib/store.ts (lines 1953-2034) once the 4 failing tests are stable.
+  2. Raise test.setTimeout on cross-device-sync / offline-log-then-sync / offline-conflict-toast / photo-cross-device from 150s/120s to 240s to absorb cold-CI Realtime handshake variance.
+  3. Add explicit test.afterEach Realtime-channel cleanup (await supabase.removeAllChannels() or equivalent) to prevent prior-test contamination.
+  4. Investigate signout-cache-clear separately — the account-menu button never appears, which suggests the post-signin AppShell never fully rendered. May be its own RC5 (different root cause than RC4)."

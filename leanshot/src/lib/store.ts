@@ -1979,7 +1979,10 @@ if (typeof window !== 'undefined' && import.meta.env.VITE_E2E === 'true') {
     w.__leanshot_state_log__.push(entry);
   };
   const stackOf = (skip: number): string =>
-    new Error().stack?.split('\n').slice(skip, skip + 6).join(' | ') ?? '';
+    new Error().stack
+      ?.split('\n')
+      .slice(skip, skip + 6)
+      .join(' | ') ?? '';
 
   // (1) Zustand subscribe — fires on EVERY state change including persist
   // middleware's captured-original setter and rehydrate.
