@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: milestone
 status: executing
 stopped_at: Completed 07-05-PLAN.md
-last_updated: "2026-05-12T17:12:38.849Z"
-last_activity: 2026-05-12 -- Phase 06 execution started
+last_updated: "2026-05-12T17:52:40.206Z"
+last_activity: 2026-05-12
 progress:
   total_phases: 11
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 48
-  completed_plans: 47
-  percent: 98
+  completed_plans: 48
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 ## Current Position
 
 Phase: 06 (patient-cloud-sync-slice-2-full-data-migration-photos) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 06
-Last activity: 2026-05-12 -- Phase 06 execution started
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-05-12
 
-Progress: [██████████] 98%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [██████████] 98%
 | Phase 07 P05 | 18min | 4 tasks | 4 files |
 | Phase 07 P03 | 21 | 2 tasks | 4 files |
 | Phase 07 P04 | 435 | 2 tasks | 5 files |
+| Phase 07 P07 | 150min | - tasks | - files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 70-row adversarial corpus (vs 50 floor): 25 dose-change + 5 prompt-injection + 5 system-extraction + 5 emotional-manipulation + 30 benign-pass
 - [Phase ?]: Plan 07-05: HBNR runbook + founder acknowledgement; ROADMAP SC#3 corrected (no FTC registration exists)
 - [Phase ?]: 07-03 D-01: Hand-rolled WMHMDA CHDP from RCW 19.373.030 primary source per Researcher KF #7 (Termly/iubenda free outputs both fold §4 third parties); manifest-pinned drift gate in e2e/legal-pages.spec.ts
+- [Phase ?]: 07-07 ships account-delete RPC + T+30 pg_cron; 4 deviation migrations handle Supabase quirks — search_path/digest, storage delete bypass, audit cascade FK via custom GUC
+- [Phase ?]: RESTRICTIVE Storage RLS on photos-pending-shred/% — defense-in-depth: even original owner cannot read their pending-shred photos before T+30 hard-delete — D-03 crypto-shred guarantee on free-tier
 
 ### Pending Todos
 
@@ -113,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-12T17:11:26.029Z
+Last session: 2026-05-12T17:52:27.269Z
 Stopped at: Completed 07-05-PLAN.md
 Resume file: None

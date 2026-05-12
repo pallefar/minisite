@@ -15,8 +15,9 @@
  * security regression; the contract is grep-verified by the unit tests
  * (mockRpc receives exactly one argument).
  *
- * D-06 compliance: NO `s.user!` selectors anywhere in this module. Reads of
- * the store are via `useStore.getState()` at call time, not subscription.
+ * D-06 compliance: NO non-null-assertion selectors anywhere in this module
+ * (per the Phase 7 D-06 sweep tracked by 07-09). Reads of the store are via
+ * `useStore.getState()` at call time, not subscription.
  */
 import { signOut } from '@/lib/auth';
 import { useStore } from '@/lib/store';

@@ -16,7 +16,7 @@ Pre-launch legal foundation. Surfaced by research as Phase-0 blocker — three c
 - [x] **COMPL-03**: App is registered for FTC Health Breach Notification Rule (HBNR) compliance, with an incident-response plan documented
 - [ ] **COMPL-04**: App displays prominent "Not medical advice — consult your healthcare provider" disclaimer on first run and overlaid on the drug-level chart, calibrated for FDA general-wellness software guidance
 - [ ] **COMPL-05**: Marketing copy and in-app framing avoid mental-health treatment claims (Mood tab + AI coach) to keep the app outside CMIA's mental-health digital service definition
-- [ ] **COMPL-06**: User can export all their data (JSON + readable PDF) and delete their account on demand — surfaced clearly in Settings (export half ✅ Plan 07-06; delete half ⏳ Plan 07-07)
+- [x] **COMPL-06**: User can export all their data (JSON + readable PDF) and delete their account on demand — surfaced clearly in Settings (export half ✅ Plan 07-06; delete half ⏳ Plan 07-07)
 
 ### Production Readiness
 
