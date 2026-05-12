@@ -10,6 +10,50 @@ import { scheduleSyncInit } from './lib/sync-defer';
 import { deferAnalyticsInit, deferSentryInit } from './lib/telemetry-defer';
 import type { Theme } from './types';
 
+// Phase 6 hotfix: Supabase implicit-grant email-link flow returns the access
+// token via URL fragment (`#access_token=…`). When auth.ts uses a hash-based
+// redirectTo like `${origin}/#/auth/verify`, the final URL is
+// `${origin}/#/auth/verify#access_token=…` — a DOUBLE-`#` URL. The browser
+// only treats the first `#` as the fragment delimiter, so `window.location.hash`
+// becomes `#/auth/verify#access_token=…`, which supabase-js's
+// `parseParametersFromURL` (URLSearchParams over the post-`#` substring)
+// cannot decode (no `access_token` key emerges; the first key is the literal
+// `/auth/verify#access_token`). The result is a silent verify-failure: the
+// session never materializes, VerifyEmailLanding's polling times out, and
+// the user is bounced back to signup as if the link never worked.
+//
+// Fix: BEFORE supabase-js initializes (its first load is deferred via
+// `scheduleSyncInit` below), detect the double-`#` pattern, stash the
+// intended hash route in sessionStorage, and rewrite the URL so the
+// token portion sits at the start of the fragment. supabase-js's
+// `_initialize()` then parses the session cleanly and fires SIGNED_IN; the
+// stashed route is restored on the next tick (see App.tsx's `restorePostAuthRoute`
+// handler) so the user lands on `#/auth/verify` and VerifyEmailLanding's
+// poll picks up the now-real session immediately.
+//
+// This block is intentionally synchronous and runs BEFORE the React tree
+// mounts so a) the initial selectView() call sees the correct hash, and
+// b) supabase-js (loaded later via scheduleSyncInit) sees the clean URL.
+try {
+  const hash = window.location.hash;
+  if (hash.includes('#access_token=') || hash.includes('#error=')) {
+    const dbl = hash.indexOf('#', 1);
+    if (dbl > 0) {
+      const route = hash.slice(0, dbl); // e.g. '#/auth/verify'
+      const tokenPart = hash.slice(dbl + 1); // 'access_token=…&…'
+      sessionStorage.setItem('leanshot_post_auth_route', route);
+      history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}#${tokenPart}`,
+      );
+    }
+  }
+} catch {
+  /* sessionStorage can be unavailable (Safari private mode); fall through
+     and let the auth flow degrade — the legacy behavior pre-hotfix. */
+}
+
 // Phase 2.1 perf fix: telemetry init is now DEFERRED to after first paint
 // (was static `Sentry.init(...)` here in Phase 2; that pulled @sentry/* into
 // the entry static graph, auto-preloaded a 93 kB gz vendor-telemetry chunk,

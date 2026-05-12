@@ -141,6 +141,26 @@ export function App() {
       event: AuthChangeEvent,
       session: Session | null,
     ): Promise<void> => {
+      // Phase 6 hotfix companion: restore the post-auth route stashed by
+      // main.tsx's double-`#` rewrite. supabase-js clears the URL fragment
+      // after parsing the implicit-grant token, which would drop our
+      // intended `#/auth/verify` route. Restore it on the FIRST event that
+      // carries a real session (INITIAL_SESSION fires on every cold load;
+      // SIGNED_IN fires after a fresh email-link verify). Idempotent: the
+      // sessionStorage key is removed after one restoration so a subsequent
+      // navigation isn't hijacked.
+      try {
+        const stashed = sessionStorage.getItem('leanshot_post_auth_route');
+        if (stashed && session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
+          sessionStorage.removeItem('leanshot_post_auth_route');
+          if (window.location.hash !== stashed) {
+            window.location.hash = stashed;
+          }
+        }
+      } catch {
+        /* sessionStorage unavailable; skip restoration (Safari private mode). */
+      }
+
       switch (event) {
         case 'INITIAL_SESSION': {
           useStore.getState().setSession(session);
