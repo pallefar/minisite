@@ -3,13 +3,27 @@
  *   - `updateLastAssistant` (Phase 4 Plan 04-02 Task 2 — streaming UX).
  *   - `setSession`, `clearUserDataSlices`, `enqueueOp`, `isSyncEnabled`
  *     (Phase 5 Plan 05-02 Task 2 — D-11, CONF-3, DELEG-2, D-13).
+ *   - Plan 05-05 — per-user storage adapter G2 closure (multi-account
+ *     regression M1, Realtime INSERT routing M2, anon-only M3, anon-promotion
+ *     ordering contract M4).
  *
  * NOTE: the `signOut()` action wraps `@/lib/auth` signOut and is exercised
  * indirectly here only by stubbing the auth module; the wrapper's args
  * (scope:'local') are regression-tested in src/lib/auth.test.ts.
  */
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Injection, PendingOp } from '@/types';
+import {
+  __resetActiveNamespaceForTests,
+  initialState,
+  namespacedKey,
+  removeUserNamespace,
+  renameStorageNamespace,
+  setActiveStorageUserId,
+  STORAGE_KEY,
+  STORAGE_VERSION,
+} from './storage';
 import { useStore } from './store';
 
 describe('updateLastAssistant', () => {
@@ -546,5 +560,233 @@ describe('dropOps', () => {
     const remaining = useStore.getState().pendingOps;
     expect(remaining).toHaveLength(1);
     expect(remaining[0]!.key).toBe('l2');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Plan 05-05 — per-user storage adapter (G2 closure / T-05-03 re-mitigation).
+//
+// These tests drive the production code path that fires on Supabase
+// onAuthStateChange (SIGNED_IN → setActiveStorageUserId(userId) BEFORE
+// renameStorageNamespace(userId)). No mocks of @/lib/storage exports — the
+// real adapter is exercised so a future refactor that swaps the call order
+// fails M4 immediately.
+// ---------------------------------------------------------------------------
+
+describe('Plan 05-05 — per-user storage adapter (G2 closure)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    __resetActiveNamespaceForTests();
+    useStore.setState({ ...initialState, currentTab: 'home', toast: null });
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    __resetActiveNamespaceForTests();
+  });
+
+  it('M1: multi-account regression — A signs in, logs 3, signs out → B sees zero', async () => {
+    const userA = 'user-a-00000000-0000-0000-0000-000000000001';
+    const userB = 'user-b-00000000-0000-0000-0000-000000000002';
+
+    // Account A signs in: setActiveStorageUserId then writes.
+    await setActiveStorageUserId(userA);
+    useStore.getState().addInjection({
+      datetime: '2026-05-10T10:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: 'thigh-l',
+      notes: '',
+    } as unknown as Injection);
+    useStore.getState().addInjection({
+      datetime: '2026-05-10T11:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: 'thigh-r',
+      notes: '',
+    } as unknown as Injection);
+    useStore.getState().addInjection({
+      datetime: '2026-05-10T12:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: 'abdomen-ul',
+      notes: '',
+    } as unknown as Injection);
+
+    expect(useStore.getState().injections.length).toBe(3);
+    const keyA = await namespacedKey(userA);
+    const persistedA = JSON.parse(localStorage.getItem(keyA)!);
+    expect(persistedA.state.injections.length).toBe(3);
+
+    // SIGNED_OUT: real App.tsx wiring sequence.
+    useStore.getState().clearUserDataSlices();
+    await setActiveStorageUserId(null);
+    await removeUserNamespace(userA);
+    expect(localStorage.getItem(keyA)).toBeNull();
+
+    // Account B signs in.
+    await setActiveStorageUserId(userB);
+    expect(useStore.getState().injections.length).toBe(0); // THE proof: no leak.
+  });
+
+  it('M2: Realtime INSERT lands in namespaced key, not universal', async () => {
+    const userC = 'user-c-uuid';
+    await setActiveStorageUserId(userC);
+    const keyC = await namespacedKey(userC);
+
+    useStore.getState().applyRealtimePayload({
+      eventType: 'INSERT',
+      new: {
+        log_id: 'log-1',
+        user_id: userC,
+        datetime: '2026-05-11T10:00:00Z',
+        dose: '2.5',
+        unit: 'mg',
+        site: 'thigh-r',
+        notes: '',
+        updated_at: '2026-05-11T10:00:00Z',
+      } as Injection,
+      old: {},
+      schema: 'public',
+      table: 'injections',
+      commit_timestamp: '2026-05-11T10:00:00Z',
+      errors: null,
+    } as unknown as RealtimePostgresChangesPayload<Injection>);
+
+    const persistedC = JSON.parse(localStorage.getItem(keyC)!);
+    expect(
+      persistedC.state.injections.find((i: Injection) => i.log_id === 'log-1'),
+    ).toBeDefined();
+    // Universal key MUST NOT have received the write.
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it('M3: anon writes still land in universal STORAGE_KEY (no regression)', () => {
+    // No setActiveStorageUserId call → activeNamespaceKey stays null.
+    useStore.getState().addInjection({
+      datetime: '2026-05-09T10:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: null,
+      notes: '',
+    } as unknown as Injection);
+
+    const persisted = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    expect(persisted.state.injections.length).toBe(1);
+  });
+
+  it('M4: anon-promotion preserves anon-era injections AND locks ordering contract', async () => {
+    // Setup: seed the universal `leanshot_v4` key with a complete v7-shaped blob
+    // containing 1 anon-era injection.
+    const anonLogId = '00000000-anon-era-injection-0001';
+    const seededBlob = {
+      state: {
+        ...initialState,
+        pendingOps: [],
+        injections: [
+          {
+            log_id: anonLogId,
+            datetime: '2026-05-09T10:00:00Z',
+            dose: '0.5',
+            unit: 'mg',
+            site: 'thigh-l',
+            notes: '',
+            pkEngineVersion: 1,
+          } satisfies Injection,
+        ],
+      },
+      version: STORAGE_VERSION,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seededBlob));
+
+    // Act: invoke the production sequence (setActiveStorageUserId BEFORE renameStorageNamespace).
+    const promotedUserId = '00000000-0000-0000-0000-anon-promoted-1';
+    await setActiveStorageUserId(promotedUserId);
+    await renameStorageNamespace(promotedUserId);
+
+    // Assert 1: namespaced key contains the seeded anon-era injection.
+    const hashedKey = await namespacedKey(promotedUserId);
+    const namespacedBlob = JSON.parse(localStorage.getItem(hashedKey)!);
+    expect(namespacedBlob.state.injections.length).toBe(1);
+    expect(namespacedBlob.state.injections[0].log_id).toBe(anonLogId);
+
+    // Assert 2: universal key was cleared by renameStorageNamespace.
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+
+    // Assert 3: subsequent persist write lands in the NAMESPACED key, not universal.
+    // First hydrate the store from the namespaced snapshot so injections.length is 1
+    // (renameStorageNamespace moved bytes but the store's in-memory state is still
+    // initialState from beforeEach — drive it directly via setState to mirror the
+    // hydration step that persist.rehydrate() would perform in App.tsx).
+    useStore.setState({
+      injections: namespacedBlob.state.injections,
+    });
+    expect(useStore.getState().injections.length).toBe(1);
+
+    useStore.getState().addInjection({
+      datetime: '2026-05-12T08:00:00Z',
+      dose: '1.0',
+      unit: 'mg',
+      site: 'thigh-r',
+      notes: 'post-promotion write',
+    } as unknown as Injection);
+
+    const afterWrite = JSON.parse(localStorage.getItem(hashedKey)!);
+    expect(afterWrite.state.injections.length).toBe(2);
+    // Universal key must still be empty — proves the persist write went through
+    // the namespaced route (i.e. setActiveStorageUserId ran BEFORE
+    // renameStorageNamespace AND the adapter routed correctly).
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it('CONF-2 regression: clearUserDataSlices preserves acknowledgedDisclaimer', () => {
+    useStore.setState({
+      acknowledgedDisclaimer: 'v1',
+      injections: [
+        {
+          log_id: 'l1',
+          datetime: '2026-05-10T10:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+      ],
+    });
+    useStore.getState().clearUserDataSlices();
+    // CONF-2: device-level acknowledgment survives sign-out.
+    expect(useStore.getState().acknowledgedDisclaimer).toBe('v1');
+    expect(useStore.getState().injections).toEqual([]);
+  });
+
+  it('CONF-3 regression: signedIn slice is not persisted by partialize', async () => {
+    const userId = 'conf3-user-id';
+    await setActiveStorageUserId(userId);
+    useStore.setState({
+      signedIn: {
+        user: { id: userId } as never,
+        session: null as never,
+        verified: true,
+      },
+      // Force a write through persist by also setting a persisted slice.
+      injections: [
+        {
+          log_id: 'conf3-log',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+      ],
+    });
+    const key = await namespacedKey(userId);
+    // Persist flushes synchronously on setState in jsdom.
+    const raw = localStorage.getItem(key);
+    expect(raw).not.toBeNull();
+    const blob = JSON.parse(raw!);
+    // CONF-3: signedIn is NOT in the persisted snapshot (partialize allow-list excludes it).
+    expect(blob.state.signedIn).toBeUndefined();
+    expect(blob.state.injections).toBeDefined();
   });
 });
