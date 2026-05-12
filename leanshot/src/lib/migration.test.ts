@@ -165,7 +165,9 @@ describe('Phase 6 migration matrix', () => {
           pkEngineVersion: 1,
         },
       ],
-      weights: [{ date: '2026-05-11', weight: 80, bodyFat: null, ts: 1, weight_id: 'm2-w' } as never],
+      weights: [
+        { date: '2026-05-11', weight: 80, bodyFat: null, ts: 1, weight_id: 'm2-w' } as never,
+      ],
     });
 
     await mod.maybeStartMigration(TEST_USER);

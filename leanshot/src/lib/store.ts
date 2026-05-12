@@ -221,12 +221,20 @@ interface Actions {
   // Phase 6 06-03 — per-entity LWW merge + Realtime payload handlers
   // (mirror Phase 5's mergeServerInjections / applyRealtimePayload contracts).
   // -------------------------------------------------------------------------
-  mergeServerWeights: (serverRows: Array<WeightLog & { weight_id: string; updated_at?: string }>) => void;
+  mergeServerWeights: (
+    serverRows: Array<WeightLog & { weight_id: string; updated_at?: string }>,
+  ) => void;
   mergeServerMeals: (serverRows: Array<Meal & { meal_id: string; updated_at?: string }>) => void;
-  mergeServerWorkouts: (serverRows: Array<Workout & { workout_id: string; updated_at?: string }>) => void;
+  mergeServerWorkouts: (
+    serverRows: Array<Workout & { workout_id: string; updated_at?: string }>,
+  ) => void;
   mergeServerMood: (serverRows: Array<MoodLog & { mood_id: string; updated_at?: string }>) => void;
-  mergeServerSleep: (serverRows: Array<SleepLog & { sleep_id: string; updated_at?: string }>) => void;
-  mergeServerSymptoms: (serverRows: Array<SymptomLog & { symptom_id: string; updated_at?: string }>) => void;
+  mergeServerSleep: (
+    serverRows: Array<SleepLog & { sleep_id: string; updated_at?: string }>,
+  ) => void;
+  mergeServerSymptoms: (
+    serverRows: Array<SymptomLog & { symptom_id: string; updated_at?: string }>,
+  ) => void;
   mergeServerVials: (serverRows: Array<Vial & { vial_id: string; updated_at?: string }>) => void;
   mergeServerSupplements: (
     serverRows: Array<{ date: string; supplement_name: string; taken: boolean }>,
@@ -248,13 +256,19 @@ interface Actions {
     payload: RealtimePostgresChangesPayload<SleepLog & { sleep_id: string; updated_at?: string }>,
   ) => void;
   applySymptomRealtimePayload: (
-    payload: RealtimePostgresChangesPayload<SymptomLog & { symptom_id: string; updated_at?: string }>,
+    payload: RealtimePostgresChangesPayload<
+      SymptomLog & { symptom_id: string; updated_at?: string }
+    >,
   ) => void;
   applyVialRealtimePayload: (
     payload: RealtimePostgresChangesPayload<Vial & { vial_id: string; updated_at?: string }>,
   ) => void;
   applySupplementRealtimePayload: (
-    payload: RealtimePostgresChangesPayload<{ date: string; supplement_name: string; taken: boolean }>,
+    payload: RealtimePostgresChangesPayload<{
+      date: string;
+      supplement_name: string;
+      taken: boolean;
+    }>,
   ) => void;
   applySettingsRealtimePayload: (
     payload: RealtimePostgresChangesPayload<{ payload: Record<string, unknown> }>,
@@ -522,7 +536,9 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       removeSymptom: (idx) => {
-        const target = useStore.getState().symptoms[idx] as SymptomLog & { symptom_id?: string } | undefined;
+        const target = useStore.getState().symptoms[idx] as
+          | (SymptomLog & { symptom_id?: string })
+          | undefined;
         const symptomId = target?.symptom_id;
         set((s) => ({ symptoms: s.symptoms.filter((_, i) => i !== idx) }));
         if (!symptomId) return;
@@ -545,7 +561,9 @@ export const useStore = create<Store>()(
           return { weights: next };
         }),
       removeWeight: (idx) => {
-        const target = useStore.getState().weights[idx] as WeightLog & { weight_id?: string } | undefined;
+        const target = useStore.getState().weights[idx] as
+          | (WeightLog & { weight_id?: string })
+          | undefined;
         const weightId = target?.weight_id;
         set((s) => ({ weights: s.weights.filter((_, i) => i !== idx) }));
         if (!weightId) return;
@@ -603,7 +621,7 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       removeMeal: (idx) => {
-        const target = useStore.getState().meals[idx] as Meal & { meal_id?: string } | undefined;
+        const target = useStore.getState().meals[idx] as (Meal & { meal_id?: string }) | undefined;
         const mealId = target?.meal_id;
         set((s) => ({ meals: s.meals.filter((_, i) => i !== idx) }));
         if (!mealId) return;
@@ -650,7 +668,9 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       removeWorkout: (idx) => {
-        const target = useStore.getState().workouts[idx] as Workout & { workout_id?: string } | undefined;
+        const target = useStore.getState().workouts[idx] as
+          | (Workout & { workout_id?: string })
+          | undefined;
         const workoutId = target?.workout_id;
         set((s) => ({ workouts: s.workouts.filter((_, i) => i !== idx) }));
         if (!workoutId) return;
@@ -773,7 +793,9 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       removeMood: (idx) => {
-        const target = useStore.getState().mood[idx] as MoodLog & { mood_id?: string } | undefined;
+        const target = useStore.getState().mood[idx] as
+          | (MoodLog & { mood_id?: string })
+          | undefined;
         const moodId = target?.mood_id;
         set((s) => ({ mood: s.mood.filter((_, i) => i !== idx) }));
         if (!moodId) return;
@@ -815,7 +837,9 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       removeSleep: (idx) => {
-        const target = useStore.getState().sleep[idx] as SleepLog & { sleep_id?: string } | undefined;
+        const target = useStore.getState().sleep[idx] as
+          | (SleepLog & { sleep_id?: string })
+          | undefined;
         const sleepId = target?.sleep_id;
         set((s) => ({ sleep: s.sleep.filter((_, i) => i !== idx) }));
         if (!sleepId) return;
@@ -853,7 +877,7 @@ export const useStore = create<Store>()(
           const next = s.vials.map((v, i) =>
             i === idx && v.dosesUsed < v.dosesPerVial ? { ...v, dosesUsed: v.dosesUsed + 1 } : v,
           );
-          vialId = (next[idx] as Vial & { vial_id?: string } | undefined)?.vial_id;
+          vialId = (next[idx] as (Vial & { vial_id?: string }) | undefined)?.vial_id;
           return { vials: next };
         });
         if (vialId) {
@@ -867,7 +891,7 @@ export const useStore = create<Store>()(
         }
       },
       removeVial: (idx) => {
-        const target = useStore.getState().vials[idx] as Vial & { vial_id?: string } | undefined;
+        const target = useStore.getState().vials[idx] as (Vial & { vial_id?: string }) | undefined;
         const vialId = target?.vial_id;
         set((s) => ({ vials: s.vials.filter((_, i) => i !== idx) }));
         if (!vialId) return;
@@ -1262,7 +1286,9 @@ export const useStore = create<Store>()(
             const oldRow = payload.old as { weight_id?: string };
             if (!oldRow.weight_id) return {};
             return {
-              weights: (s.weights as Row[]).filter((w) => w.weight_id !== oldRow.weight_id) as never,
+              weights: (s.weights as Row[]).filter(
+                (w) => w.weight_id !== oldRow.weight_id,
+              ) as never,
             };
           }
           return {};
@@ -1288,7 +1314,9 @@ export const useStore = create<Store>()(
           if (payload.eventType === 'DELETE') {
             const oldRow = payload.old as { meal_id?: string };
             if (!oldRow.meal_id) return {};
-            return { meals: (s.meals as Row[]).filter((m) => m.meal_id !== oldRow.meal_id) as never };
+            return {
+              meals: (s.meals as Row[]).filter((m) => m.meal_id !== oldRow.meal_id) as never,
+            };
           }
           return {};
         }),
@@ -1314,7 +1342,9 @@ export const useStore = create<Store>()(
             const oldRow = payload.old as { workout_id?: string };
             if (!oldRow.workout_id) return {};
             return {
-              workouts: (s.workouts as Row[]).filter((w) => w.workout_id !== oldRow.workout_id) as never,
+              workouts: (s.workouts as Row[]).filter(
+                (w) => w.workout_id !== oldRow.workout_id,
+              ) as never,
             };
           }
           return {};
@@ -1365,7 +1395,9 @@ export const useStore = create<Store>()(
           if (payload.eventType === 'DELETE') {
             const oldRow = payload.old as { sleep_id?: string };
             if (!oldRow.sleep_id) return {};
-            return { sleep: (s.sleep as Row[]).filter((sl) => sl.sleep_id !== oldRow.sleep_id) as never };
+            return {
+              sleep: (s.sleep as Row[]).filter((sl) => sl.sleep_id !== oldRow.sleep_id) as never,
+            };
           }
           return {};
         }),
@@ -1374,7 +1406,9 @@ export const useStore = create<Store>()(
           type Row = SymptomLog & { symptom_id: string; updated_at?: string };
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const remote = payload.new as Row;
-            const idx = (s.symptoms as Row[]).findIndex((sx) => sx.symptom_id === remote.symptom_id);
+            const idx = (s.symptoms as Row[]).findIndex(
+              (sx) => sx.symptom_id === remote.symptom_id,
+            );
             if (idx === -1) return { symptoms: [...s.symptoms, remote as never] };
             const local = (s.symptoms as Row[])[idx]!;
             if (
@@ -1391,7 +1425,9 @@ export const useStore = create<Store>()(
             const oldRow = payload.old as { symptom_id?: string };
             if (!oldRow.symptom_id) return {};
             return {
-              symptoms: (s.symptoms as Row[]).filter((sx) => sx.symptom_id !== oldRow.symptom_id) as never,
+              symptoms: (s.symptoms as Row[]).filter(
+                (sx) => sx.symptom_id !== oldRow.symptom_id,
+              ) as never,
             };
           }
           return {};
@@ -1417,7 +1453,9 @@ export const useStore = create<Store>()(
           if (payload.eventType === 'DELETE') {
             const oldRow = payload.old as { vial_id?: string };
             if (!oldRow.vial_id) return {};
-            return { vials: (s.vials as Row[]).filter((v) => v.vial_id !== oldRow.vial_id) as never };
+            return {
+              vials: (s.vials as Row[]).filter((v) => v.vial_id !== oldRow.vial_id) as never,
+            };
           }
           return {};
         }),

@@ -324,8 +324,7 @@ export async function runMigration(
   // when no caller-provided snapshot is supplied (e.g. external callers /
   // future tests). The persist middleware overwrites leanshot_v4 on every
   // set() call so reading after setMigrationState would miss seeded data.
-  const snapshot =
-    preCapturedSnapshot === undefined ? readV4InnerState() : preCapturedSnapshot;
+  const snapshot = preCapturedSnapshot === undefined ? readV4InnerState() : preCapturedSnapshot;
 
   const ordered = computeRunOrder(snapshot ?? {});
   let allComplete = true;
@@ -416,7 +415,8 @@ async function migrateEntity(
     // 06-RESEARCH §1.B Option A flattening — emit ONE upsert op per
     // (date, supplement_name) where taken === true. taken=false rows are
     // intentionally skipped (the natural "row exists" predicate IS taken).
-    const supplementsByDate = (snapshot.supplements as Record<string, Record<string, boolean>> | undefined) ?? {};
+    const supplementsByDate =
+      (snapshot.supplements as Record<string, Record<string, boolean>> | undefined) ?? {};
     for (const [date, names] of Object.entries(supplementsByDate)) {
       for (const [name, taken] of Object.entries(names ?? {})) {
         if (taken === true) {

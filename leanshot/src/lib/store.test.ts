@@ -1022,9 +1022,16 @@ describe('Phase 6 06-03 — per-entity actions enqueue pendingOps', () => {
   });
 
   it('addMeal / editMeal / removeMeal enqueue ops keyed by meal_id', () => {
-    useStore
-      .getState()
-      .addMeal({ date: '2026-05-12', name: 'x', calories: 100, protein: 10, fiber: 2, hunger: null, satisfaction: null, ts: 1 });
+    useStore.getState().addMeal({
+      date: '2026-05-12',
+      name: 'x',
+      calories: 100,
+      protein: 10,
+      fiber: 2,
+      hunger: null,
+      satisfaction: null,
+      ts: 1,
+    });
     const mid = (useStore.getState().meals[0] as { meal_id: string }).meal_id;
     expect(mid).toMatch(/^[0-9a-f-]{36}$/);
     useStore.getState().editMeal(mid, { calories: 200 });
@@ -1081,9 +1088,7 @@ describe('Phase 6 06-03 — per-entity actions enqueue pendingOps', () => {
   });
 
   it('addSymptom / editSymptom / removeSymptom enqueue ops keyed by symptom_id', () => {
-    useStore
-      .getState()
-      .addSymptom({ date: '2026-05-12', symptom: 'h', severity: 2, notes: '' });
+    useStore.getState().addSymptom({ date: '2026-05-12', symptom: 'h', severity: 2, notes: '' });
     const sid = (useStore.getState().symptoms[0] as { symptom_id: string }).symptom_id;
     expect(sid).toMatch(/^[0-9a-f-]{36}$/);
     useStore.getState().editSymptom(sid, { severity: 4 });
@@ -1216,7 +1221,14 @@ describe('Phase 6 06-03 — applyXRealtimePayload reducers', () => {
   it('applyWeightRealtimePayload INSERT adds a new row keyed by weight_id', () => {
     const payload = {
       eventType: 'INSERT',
-      new: { weight_id: 'w1', date: '2026-05-12', weight: 80, bodyFat: null, ts: 1, updated_at: '2026-05-12T00:00:00Z' },
+      new: {
+        weight_id: 'w1',
+        date: '2026-05-12',
+        weight: 80,
+        bodyFat: null,
+        ts: 1,
+        updated_at: '2026-05-12T00:00:00Z',
+      },
       old: {},
     } as unknown as RealtimePostgresChangesPayload<never>;
     useStore.getState().applyWeightRealtimePayload(payload as never);

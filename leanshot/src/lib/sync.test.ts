@@ -439,7 +439,8 @@ describe('Phase 6 — per-table subscribe helpers', () => {
   ])('subscribe%s creates a "$table:<uid>" channel with string user_id filter', async (table) => {
     wireChannelSubscribe();
     const sync = await import('./sync');
-    const fnName = `subscribe${table.charAt(0).toUpperCase()}${table.slice(1)}` as keyof typeof sync;
+    const fnName =
+      `subscribe${table.charAt(0).toUpperCase()}${table.slice(1)}` as keyof typeof sync;
     const fn = sync[fnName] as (uid: string) => void;
     fn('u1');
     expect(mockChannel).toHaveBeenCalledWith(`${table}:u1`);
@@ -472,65 +473,125 @@ describe('Phase 6 — flushSyncQueue per-table updated_at omission (D-08 Critica
       table: 'weights',
       pk: 'weight_id',
       sliceKey: 'weights',
-      sliceRow: { weight_id: 'k1', date: '2026-05-12', weight: 80, bodyFat: null, ts: 1, updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        weight_id: 'k1',
+        date: '2026-05-12',
+        weight: 80,
+        bodyFat: null,
+        ts: 1,
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
     {
       table: 'meals',
       pk: 'meal_id',
       sliceKey: 'meals',
-      sliceRow: { meal_id: 'k1', date: '2026-05-12', name: 'x', calories: 100, protein: 10, fiber: 2, hunger: null, satisfaction: null, ts: 1, updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        meal_id: 'k1',
+        date: '2026-05-12',
+        name: 'x',
+        calories: 100,
+        protein: 10,
+        fiber: 2,
+        hunger: null,
+        satisfaction: null,
+        ts: 1,
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
     {
       table: 'workouts',
       pk: 'workout_id',
       sliceKey: 'workouts',
-      sliceRow: { workout_id: 'k1', date: '2026-05-12', type: 'cardio', name: 'jog', minutes: 30, rpe: null, notes: '', updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        workout_id: 'k1',
+        date: '2026-05-12',
+        type: 'cardio',
+        name: 'jog',
+        minutes: 30,
+        rpe: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
     {
       table: 'mood',
       pk: 'mood_id',
       sliceKey: 'mood',
-      sliceRow: { mood_id: 'k1', date: '2026-05-12', mood: 4, energy: null, notes: '', updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        mood_id: 'k1',
+        date: '2026-05-12',
+        mood: 4,
+        energy: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
     {
       table: 'sleep',
       pk: 'sleep_id',
       sliceKey: 'sleep',
-      sliceRow: { sleep_id: 'k1', date: '2026-05-12', hours: 7, wakings: 1, quality: null, notes: '', updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        sleep_id: 'k1',
+        date: '2026-05-12',
+        hours: 7,
+        wakings: 1,
+        quality: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
     {
       table: 'symptoms',
       pk: 'symptom_id',
       sliceKey: 'symptoms',
-      sliceRow: { symptom_id: 'k1', date: '2026-05-12', symptom: 'h', severity: 2, notes: '', updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        symptom_id: 'k1',
+        date: '2026-05-12',
+        symptom: 'h',
+        severity: 2,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
     {
       table: 'vials',
       pk: 'vial_id',
       sliceKey: 'vials',
-      sliceRow: { vial_id: 'k1', name: 'x', dosesPerVial: 4, dosesUsed: 0, startDate: '2026-05-12', expirationDate: '2026-08-12', updated_at: '2026-05-11T00:00:00Z' },
+      sliceRow: {
+        vial_id: 'k1',
+        name: 'x',
+        dosesPerVial: 4,
+        dosesUsed: 0,
+        startDate: '2026-05-12',
+        expirationDate: '2026-08-12',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
     },
   ];
 
-  it.each(cases)('table $table — upsert payload does NOT include updated_at', async ({ table, pk, sliceKey, sliceRow }) => {
-    resetMocks();
-    // Pre-seed the local slice via dynamic key on storeState. The test
-    // module's storeState is the same object the mocked useStore returns.
-    (storeState as unknown as Record<string, unknown>)[sliceKey] = [sliceRow];
-    storeState.pendingOps = [{ table, op: 'upsert', key: 'k1', enqueuedAt: 'now' }];
-    wireFromForUpsert();
-    const { flushSyncQueue } = await import('./sync');
-    await flushSyncQueue();
-    const callArgs = mockUpsert.mock.calls[0];
-    expect(callArgs).toBeDefined();
-    const rows = callArgs![0] as Array<Record<string, unknown>>;
-    expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) {
-      expect(row).not.toHaveProperty('updated_at');
-      expect(row[pk]).toBe('k1');
-      expect(row.user_id).toBe('u1');
-    }
-  });
+  it.each(cases)(
+    'table $table — upsert payload does NOT include updated_at',
+    async ({ table, pk, sliceKey, sliceRow }) => {
+      resetMocks();
+      // Pre-seed the local slice via dynamic key on storeState. The test
+      // module's storeState is the same object the mocked useStore returns.
+      (storeState as unknown as Record<string, unknown>)[sliceKey] = [sliceRow];
+      storeState.pendingOps = [{ table, op: 'upsert', key: 'k1', enqueuedAt: 'now' }];
+      wireFromForUpsert();
+      const { flushSyncQueue } = await import('./sync');
+      await flushSyncQueue();
+      const callArgs = mockUpsert.mock.calls[0];
+      expect(callArgs).toBeDefined();
+      const rows = callArgs![0] as Array<Record<string, unknown>>;
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) {
+        expect(row).not.toHaveProperty('updated_at');
+        expect(row[pk]).toBe('k1');
+        expect(row.user_id).toBe('u1');
+      }
+    },
+  );
 
   it('table supplements — upsert payload does NOT include updated_at', async () => {
     resetMocks();
@@ -556,9 +617,7 @@ describe('Phase 6 — flushSyncQueue per-table updated_at omission (D-08 Critica
 
   it('table settings — upsert payload does NOT include updated_at', async () => {
     resetMocks();
-    storeState.pendingOps = [
-      { table: 'settings', op: 'upsert', key: 'u1', enqueuedAt: 'now' },
-    ];
+    storeState.pendingOps = [{ table: 'settings', op: 'upsert', key: 'u1', enqueuedAt: 'now' }];
     wireFromForUpsert();
     const { flushSyncQueue } = await import('./sync');
     await flushSyncQueue();

@@ -248,9 +248,7 @@ function mapSleepLocalToServer(s: SleepLog & { sleep_id?: string }): Record<stri
   };
 }
 
-function mapSymptomLocalToServer(
-  s: SymptomLog & { symptom_id?: string },
-): Record<string, unknown> {
+function mapSymptomLocalToServer(s: SymptomLog & { symptom_id?: string }): Record<string, unknown> {
   return {
     symptom_id: s.symptom_id,
     date: s.date,
@@ -273,7 +271,9 @@ function mapVialLocalToServer(v: Vial & { vial_id?: string }): Record<string, un
 
 // Server-to-local mappers (used by pullInitial + Realtime payload handlers).
 
-function mapServerWeightToLocal(r: ServerWeight): WeightLog & { weight_id: string; updated_at?: string; user_id?: string } {
+function mapServerWeightToLocal(
+  r: ServerWeight,
+): WeightLog & { weight_id: string; updated_at?: string; user_id?: string } {
   return {
     weight_id: r.weight_id,
     date: r.date,
@@ -285,7 +285,9 @@ function mapServerWeightToLocal(r: ServerWeight): WeightLog & { weight_id: strin
   };
 }
 
-function mapServerMealToLocal(r: ServerMeal): Meal & { meal_id: string; updated_at?: string; user_id?: string } {
+function mapServerMealToLocal(
+  r: ServerMeal,
+): Meal & { meal_id: string; updated_at?: string; user_id?: string } {
   return {
     meal_id: r.meal_id,
     date: r.date,
@@ -301,7 +303,9 @@ function mapServerMealToLocal(r: ServerMeal): Meal & { meal_id: string; updated_
   };
 }
 
-function mapServerWorkoutToLocal(r: ServerWorkout): Workout & { workout_id: string; updated_at?: string; user_id?: string } {
+function mapServerWorkoutToLocal(
+  r: ServerWorkout,
+): Workout & { workout_id: string; updated_at?: string; user_id?: string } {
   return {
     workout_id: r.workout_id,
     date: r.date,
@@ -315,7 +319,9 @@ function mapServerWorkoutToLocal(r: ServerWorkout): Workout & { workout_id: stri
   };
 }
 
-function mapServerMoodToLocal(r: ServerMood): MoodLog & { mood_id: string; updated_at?: string; user_id?: string } {
+function mapServerMoodToLocal(
+  r: ServerMood,
+): MoodLog & { mood_id: string; updated_at?: string; user_id?: string } {
   return {
     mood_id: r.mood_id,
     date: r.date,
@@ -327,7 +333,9 @@ function mapServerMoodToLocal(r: ServerMood): MoodLog & { mood_id: string; updat
   };
 }
 
-function mapServerSleepToLocal(r: ServerSleep): SleepLog & { sleep_id: string; updated_at?: string; user_id?: string } {
+function mapServerSleepToLocal(
+  r: ServerSleep,
+): SleepLog & { sleep_id: string; updated_at?: string; user_id?: string } {
   return {
     sleep_id: r.sleep_id,
     date: r.date,
@@ -340,7 +348,9 @@ function mapServerSleepToLocal(r: ServerSleep): SleepLog & { sleep_id: string; u
   };
 }
 
-function mapServerSymptomToLocal(r: ServerSymptom): SymptomLog & { symptom_id: string; updated_at?: string; user_id?: string } {
+function mapServerSymptomToLocal(
+  r: ServerSymptom,
+): SymptomLog & { symptom_id: string; updated_at?: string; user_id?: string } {
   return {
     symptom_id: r.symptom_id,
     date: r.date,
@@ -352,7 +362,9 @@ function mapServerSymptomToLocal(r: ServerSymptom): SymptomLog & { symptom_id: s
   };
 }
 
-function mapServerVialToLocal(r: ServerVial): Vial & { vial_id: string; updated_at?: string; user_id?: string } {
+function mapServerVialToLocal(
+  r: ServerVial,
+): Vial & { vial_id: string; updated_at?: string; user_id?: string } {
   return {
     vial_id: r.vial_id,
     name: r.name,
@@ -479,10 +491,7 @@ export function pullInitialVials(userId: string): Promise<void> {
 }
 
 export async function pullInitialSupplements(userId: string): Promise<void> {
-  const { data, error } = await supabase
-    .from('supplements')
-    .select('*')
-    .eq('user_id', userId);
+  const { data, error } = await supabase.from('supplements').select('*').eq('user_id', userId);
   if (error) {
     console.error('[leanshot] pullInitial(supplements) failed', error);
     return;
@@ -913,12 +922,18 @@ async function flushTableOps<TLocal extends Record<string, unknown>>(
       if (error) {
         if (isPermanent4xx(error)) {
           console.error(`[leanshot] sync-permanent-error (${tableName} upsert)`, error);
-          state.dropOps(upsertOps.map((o) => o.key), tableName);
+          state.dropOps(
+            upsertOps.map((o) => o.key),
+            tableName,
+          );
         } else {
           console.warn(`[leanshot] flushTableOps(${tableName}) upsert transient error`, error);
         }
       } else {
-        state.dropOps(matching.map((r) => String((r as Record<string, unknown>)[primaryKeyField])), tableName);
+        state.dropOps(
+          matching.map((r) => String((r as Record<string, unknown>)[primaryKeyField])),
+          tableName,
+        );
       }
     }
   }
@@ -928,16 +943,25 @@ async function flushTableOps<TLocal extends Record<string, unknown>>(
       .from(tableName)
       .delete()
       .eq('user_id', uid)
-      .in(primaryKeyField, deleteOps.map((o) => o.key));
+      .in(
+        primaryKeyField,
+        deleteOps.map((o) => o.key),
+      );
     if (error) {
       if (isPermanent4xx(error)) {
         console.error(`[leanshot] sync-permanent-error (${tableName} delete)`, error);
-        state.dropOps(deleteOps.map((o) => o.key), tableName);
+        state.dropOps(
+          deleteOps.map((o) => o.key),
+          tableName,
+        );
       } else {
         console.warn(`[leanshot] flushTableOps(${tableName}) delete transient error`, error);
       }
     } else {
-      state.dropOps(deleteOps.map((o) => o.key), tableName);
+      state.dropOps(
+        deleteOps.map((o) => o.key),
+        tableName,
+      );
     }
   }
 }
@@ -1067,7 +1091,10 @@ async function flushSettingsOps(): Promise<void> {
   // If one shows up we drop it silently.
   const deleteOps = ops.filter((o) => o.op === 'delete');
   if (deleteOps.length > 0) {
-    state.dropOps(deleteOps.map((o) => o.key), 'settings');
+    state.dropOps(
+      deleteOps.map((o) => o.key),
+      'settings',
+    );
   }
 
   if (upsertOps.length === 0) return;
@@ -1086,12 +1113,18 @@ async function flushSettingsOps(): Promise<void> {
   if (error) {
     if (isPermanent4xx(error)) {
       console.error('[leanshot] sync-permanent-error (settings upsert)', error);
-      state.dropOps(upsertOps.map((o) => o.key), 'settings');
+      state.dropOps(
+        upsertOps.map((o) => o.key),
+        'settings',
+      );
     } else {
       console.warn('[leanshot] flushSettingsOps upsert transient error', error);
     }
   } else {
-    state.dropOps(upsertOps.map((o) => o.key), 'settings');
+    state.dropOps(
+      upsertOps.map((o) => o.key),
+      'settings',
+    );
   }
 }
 
