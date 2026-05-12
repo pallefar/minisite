@@ -15,15 +15,18 @@ vi.mock('@/components/dashboard/charts/MedLevelChart', () => ({
 }));
 
 /**
- * Phase 5 Plan 05-06 — Gap G3 close.
+ * Phase 5 Plan 05-06 — Gap G3 close (history; cure generalized in Phase 7
+ * Plan 07-09 / Phase 7 D-06 — see also Phase 6 D-12).
  *
  * UAT Test 7 (05-UAT.md) reported a transient
  * `TypeError: Cannot read properties of null (reading 'dose')`
  * fired by MedicationTab during the signOut → SIGNED_OUT view transition.
  * `clearUserDataSlices()` sets `user: null` BEFORE App.tsx swaps the view,
- * so MedicationTab renders one final time with `user === null` and the
- * `useStore((s) => s.user!)` non-null assertion lies, crashing the next
- * `u.dose` deref.
+ * so MedicationTab renders one final time with `user === null`. The
+ * pre-fix non-null assertion on the Zustand user selector lied to
+ * TypeScript and crashed the next `u.dose` deref. The codebase-wide
+ * sweep in plan 07-09 retired every remaining occurrence of that
+ * pattern.
  *
  * Fix in MedicationTab.tsx: nullable selector + null-guard early-return.
  * These two tests pin the fix:
