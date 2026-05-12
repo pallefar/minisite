@@ -1950,50 +1950,87 @@ if (
   (window as unknown as { useStore?: typeof useStore }).useStore = useStore;
 }
 
-// Phase 7 RC4 debug seam — wrap useStore.setState to record every transition
-// that mutates `user` or `acknowledgedDisclaimer`. Gated ONLY by
-// VITE_E2E === 'true'; Vercel production builds do NOT set this flag.
-// Used by cross-device-sync.spec.ts (and similar) to identify the offending
-// caller that wipes seeded state on cold-cache first-context signin.
-// Remove after RC4 is closed (see .planning/debug/phase7-e2e-rc4-state-wipe-race.md).
+// Phase 7 RC4 debug seam — capture every state transition that mutates
+// `user` or `acknowledgedDisclaimer`, REGARDLESS of whether it comes from
+// useStore.setState (covered by useStore.subscribe), the persist middleware's
+// captured-original setter (also covered by useStore.subscribe), or a
+// localStorage write/clear (covered by wrapping window.localStorage).
+// Gated ONLY by VITE_E2E === 'true'; Vercel production builds do NOT set
+// this flag. Remove after RC4 is closed
+// (see .planning/debug/phase7-e2e-rc4-state-wipe-race.md).
 if (typeof window !== 'undefined' && import.meta.env.VITE_E2E === 'true') {
   interface StateLogEntry {
+    kind: 'state' | 'lsset' | 'lsremove' | 'lsclear' | 'lsget';
     ts: number;
-    beforeUser: 'set' | 'null';
-    afterUser: 'set' | 'null';
-    beforeAck: string | null;
-    afterAck: string | null;
+    beforeUser?: 'set' | 'null';
+    afterUser?: 'set' | 'null';
+    beforeAck?: string | null;
+    afterAck?: string | null;
+    key?: string;
+    sample?: string;
     stack: string;
   }
   interface WindowWithLog {
     __leanshot_state_log__?: StateLogEntry[];
   }
   const w = window as unknown as WindowWithLog;
-  const origSetState = useStore.setState.bind(useStore);
-  const wrappedSetState: typeof useStore.setState = ((
-    partial: unknown,
-    replace?: boolean,
-  ): void => {
-    const before = useStore.getState();
-    const beforeUser: 'set' | 'null' = before.user ? 'set' : 'null';
-    const beforeAck = before.acknowledgedDisclaimer ?? null;
-    const stack = new Error().stack?.split('\n').slice(2, 7).join(' | ') ?? '';
-    // Cast preserves the overload — origSetState supports the same (partial, replace?) signature.
-    (origSetState as unknown as (p: unknown, r?: boolean) => void)(partial, replace);
-    const after = useStore.getState();
-    const afterUser: 'set' | 'null' = after.user ? 'set' : 'null';
-    const afterAck = after.acknowledgedDisclaimer ?? null;
-    if (beforeUser !== afterUser || beforeAck !== afterAck) {
-      if (!w.__leanshot_state_log__) w.__leanshot_state_log__ = [];
-      w.__leanshot_state_log__.push({
+  const pushLog = (entry: StateLogEntry): void => {
+    if (!w.__leanshot_state_log__) w.__leanshot_state_log__ = [];
+    w.__leanshot_state_log__.push(entry);
+  };
+  const stackOf = (skip: number): string =>
+    new Error().stack?.split('\n').slice(skip, skip + 6).join(' | ') ?? '';
+
+  // (1) Zustand subscribe — fires on EVERY state change including persist
+  // middleware's captured-original setter and rehydrate.
+  let prevUser: 'set' | 'null' = useStore.getState().user ? 'set' : 'null';
+  let prevAck: string | null = useStore.getState().acknowledgedDisclaimer ?? null;
+  useStore.subscribe((s) => {
+    const u: 'set' | 'null' = s.user ? 'set' : 'null';
+    const a: string | null = s.acknowledgedDisclaimer ?? null;
+    if (u !== prevUser || a !== prevAck) {
+      pushLog({
+        kind: 'state',
         ts: Date.now(),
-        beforeUser,
-        afterUser,
-        beforeAck,
-        afterAck,
-        stack,
+        beforeUser: prevUser,
+        afterUser: u,
+        beforeAck: prevAck,
+        afterAck: a,
+        stack: stackOf(2),
+      });
+      prevUser = u;
+      prevAck = a;
+    }
+  });
+
+  // (2) localStorage instrumentation — catches direct removes/clears that
+  // would invalidate persist's view of the world even without a setState call.
+  // Only log operations against `leanshot_v4` keys to avoid log spam.
+  const ls = window.localStorage;
+  const origSetItem = ls.setItem.bind(ls);
+  const origRemoveItem = ls.removeItem.bind(ls);
+  const origClear = ls.clear.bind(ls);
+  const isLeanshotKey = (k: string): boolean => k.startsWith('leanshot_v4');
+  ls.setItem = (k: string, v: string): void => {
+    if (isLeanshotKey(k)) {
+      pushLog({
+        kind: 'lsset',
+        ts: Date.now(),
+        key: k,
+        sample: v.slice(0, 80),
+        stack: stackOf(2),
       });
     }
-  }) as typeof useStore.setState;
-  useStore.setState = wrappedSetState;
+    origSetItem(k, v);
+  };
+  ls.removeItem = (k: string): void => {
+    if (isLeanshotKey(k)) {
+      pushLog({ kind: 'lsremove', ts: Date.now(), key: k, stack: stackOf(2) });
+    }
+    origRemoveItem(k);
+  };
+  ls.clear = (): void => {
+    pushLog({ kind: 'lsclear', ts: Date.now(), stack: stackOf(2) });
+    origClear();
+  };
 }

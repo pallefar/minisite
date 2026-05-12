@@ -148,8 +148,10 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
     `[RC4-EARLY] stateLog entries=${earlySnap.stateLogLen} viewLog entries=${earlySnap.viewLogLen} storeUser=${earlySnap.storeUser ? 'set' : 'null'} storeAck=${earlySnap.storeAck ?? 'null'}`,
   );
   if (Array.isArray(earlySnap.stateLog) && earlySnap.stateLog.length > 0) {
+    // Always dump — the log is small (a few entries) and the stacks are
+    // load-bearing for RC4 diagnosis.
     console.log(
-      `[RC4-EARLY] stateLog dump:\n${JSON.stringify(earlySnap.stateLog, null, 2)}`,
+      `[RC4-EARLY] stateLog dump (${earlySnap.stateLog.length} entries):\n${JSON.stringify(earlySnap.stateLog, null, 2)}`,
     );
   }
   try {
