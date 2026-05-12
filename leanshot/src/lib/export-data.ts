@@ -17,7 +17,9 @@
  * queries so the row bytes never leave Supabase.
  *
  * Photo policy (Threat T-07-06-01): PDF photo section is COUNT + date-range
- * only. `buildPdfDoc` never calls `doc.addImage(...)`.
+ * only. `buildPdfDoc` never embeds image bytes (the jsPDF image-embed API is
+ * deliberately not invoked from this module — see Test 5 in
+ * src/test/export-data.test.ts which asserts the mock was never called).
  */
 
 // NOTE: NO value-import of jspdf or jspdf-autotable at the top level. The
@@ -326,7 +328,7 @@ function lastN<T>(arr: T[] | undefined, n: number): T[] {
  *   7. Workouts (last 20)
  *   8. Symptoms (last 30)
  *   9. Mood (last 14) + Sleep (last 14)
- *  10. Photo summary (count + earliest/latest — NEVER addImage; T-07-06-01)
+ *  10. Photo summary (count + earliest/latest — image bytes NEVER embedded; T-07-06-01)
  *  11. AI conversation summary (count only — NEVER full text; T-07-06-03)
  *  12. Audit-log summary (5 rows)
  *
