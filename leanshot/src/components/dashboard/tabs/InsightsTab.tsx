@@ -16,7 +16,8 @@ interface InsightsTabProps {
 }
 
 export function InsightsTab({ onOpenReport }: InsightsTabProps) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const u = useStore((s) => s.user);
   const nsvs = useStore((s) => s.nsvs);
   const addNSV = useStore((s) => s.addNSV);
   const removeNSV = useStore((s) => s.removeNSV);
@@ -32,23 +33,27 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
   const mood = useStore((s) => s.mood);
   const insights = useMemo(
     () =>
-      generateInsights({
-        ...initialState,
-        user: u,
-        weights,
-        meals,
-        symptoms,
-        injections,
-        workouts,
-        water,
-        mood,
-      }),
+      u
+        ? generateInsights({
+            ...initialState,
+            user: u,
+            weights,
+            meals,
+            symptoms,
+            injections,
+            workouts,
+            water,
+            mood,
+          })
+        : [],
     [u, weights, meals, symptoms, injections, workouts, water, mood],
   );
   const toast = useToast();
 
   const [shareOpen, setShareOpen] = useState(false);
   const [nsv, setNsv] = useState('');
+
+  if (!u) return null;
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
   const weekAgo = Date.now() - 7 * 86_400_000;
