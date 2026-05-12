@@ -154,7 +154,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 06-02-PLAN.md — leanshot_v4 → cloud migration + 90-day backup + MigrationModal/EntityRow + 12-scenario test matrix (Wave 2; SYNC-02, SYNC-03)
 - [x] 06-03-PLAN.md — 9 new SQL tables (weights/meals/workouts/supplements/mood/sleep/symptoms/vials/settings) + sync.ts per-table extension + parameterized cross-tenant RLS (Wave 2; SYNC-02)
 - [x] 06-04-PLAN.md — public.photos + Storage bucket + photo-queue.ts (idb) + photo-compress.ts + signed-url-cache.ts + BodyTab signed-URL grid + eager base64 migration (Wave 3; SYNC-04, SYNC-06)
-- [ ] 06-05-PLAN.md — LWW conflict toast wired across all 10 apply reducers + offline-conflict-toast.spec.ts (Wave 3; SYNC-04)
+- [x] 06-05-PLAN.md — LWW conflict toast wired across all 10 apply reducers + offline-conflict-toast.spec.ts (Wave 3; SYNC-04)
 
 ### Phase 7: Compliance Foundations (Legal-Counsel-Led)
 **Goal**: The legal-counsel-led compliance items required to defend a public launch ship — published privacy policy, WMHMDA-compliant CHDP policy linked separately and conspicuously from the app footer, FTC HBNR registration filed with documented incident-response plan, and a Settings flow that lets the user export all their data (JSON + readable PDF) and delete their account on demand with crypto-shredded photos.
