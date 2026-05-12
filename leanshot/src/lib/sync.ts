@@ -1340,6 +1340,55 @@ function isPermanent4xx(err: unknown): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 6 06-05 D-11 — LWW conflict UX surface (lww-loser).
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect a server-wins LWW loss on the LOCAL device and surface the
+ * "We kept your most recent edit." toast (kind: 'info', durationMs: 5000)
+ * via the store's `notifyLwwLoss` action.
+ *
+ * Three-condition heuristic — all must hold:
+ *   1. Both `serverUpdatedAt` and `localUpdatedAt` parse to finite epoch ms.
+ *   2. `serverUpdatedAt` is STRICTLY GREATER than `localUpdatedAt` (ties
+ *      treated as no-loss to avoid false positives under clock skew).
+ *   3. The store's `pendingOps` slice contains an entry whose
+ *      `(table, key)` matches — i.e. the local user has a queued edit
+ *      that is about to be overwritten by the newer server row. Without
+ *      this condition, vanilla cross-device propagation would fire false
+ *      positives on every Realtime payload.
+ *
+ * Returns `true` if the toast was emitted; `false` otherwise. Callers (and
+ * unit tests) can use the return value to assert toast firing without
+ * inspecting the Toast component DOM.
+ *
+ * The `(table, key)` args are forwarded to `notifyLwwLoss` for future
+ * audit-log integration (Phase 7) — they do not influence the toast copy
+ * today (the literal D-11 wording is fixed: "We kept your most recent edit.").
+ */
+export function detectAndNotifyLwwLoss(
+  table: string,
+  key: string,
+  serverUpdatedAt: string | undefined,
+  localUpdatedAt: string | undefined,
+): boolean {
+  if (!serverUpdatedAt || !localUpdatedAt) return false;
+  const serverTs = new Date(serverUpdatedAt).getTime();
+  const localTs = new Date(localUpdatedAt).getTime();
+  if (Number.isNaN(serverTs) || Number.isNaN(localTs)) return false;
+  if (serverTs <= localTs) return false; // not a loss; local wins or tie
+
+  const state = useStore.getState();
+  const hadPendingEdit = (state.pendingOps ?? []).some(
+    (op) => op.table === table && op.key === key,
+  );
+  if (!hadPendingEdit) return false; // vanilla propagation; no conflict UX
+
+  state.notifyLwwLoss(table, key);
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // subscribeToTable<T> — generic helper retained for direct callers
 // ---------------------------------------------------------------------------
 

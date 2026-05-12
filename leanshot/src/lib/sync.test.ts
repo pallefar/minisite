@@ -43,6 +43,8 @@ const mockApplyRealtimePayload = vi.fn();
 const mockEnqueueOp = vi.fn();
 const mockDropOps = vi.fn();
 const mockIsSyncEnabled = vi.fn();
+// Phase 6 06-05 D-11 — lww-loser toast action mock for detectAndNotifyLwwLoss.
+const mockNotifyLwwLoss = vi.fn();
 
 const storeState: {
   signedIn: { user: { id: string }; verified: boolean } | null;
@@ -54,6 +56,7 @@ const storeState: {
   applyRealtimePayload: typeof mockApplyRealtimePayload;
   enqueueOp: typeof mockEnqueueOp;
   dropOps: typeof mockDropOps;
+  notifyLwwLoss: typeof mockNotifyLwwLoss;
 } = {
   signedIn: { user: { id: 'u1' }, verified: true },
   user: { medication: 'ozempic' },
@@ -64,6 +67,7 @@ const storeState: {
   applyRealtimePayload: mockApplyRealtimePayload,
   enqueueOp: mockEnqueueOp,
   dropOps: mockDropOps,
+  notifyLwwLoss: mockNotifyLwwLoss,
 };
 
 vi.mock('@/lib/store', () => ({
@@ -92,6 +96,7 @@ function resetMocks(): void {
   mockEnqueueOp.mockReset();
   mockDropOps.mockReset();
   mockIsSyncEnabled.mockReset();
+  mockNotifyLwwLoss.mockReset();
   storeState.signedIn = { user: { id: 'u1' }, verified: true };
   storeState.user = { medication: 'ozempic' };
   storeState.injections = [];
@@ -650,5 +655,89 @@ describe('Phase 6 — unsubscribeAll teardown', () => {
     mockRemoveChannel.mockClear();
     sync.subscribeWeights('u1');
     expect(mockChannel).toHaveBeenCalledWith('weights:u1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-05 D-11 — detectAndNotifyLwwLoss heuristic regression suite.
+//
+// The helper fires the "We kept your most recent edit." toast (kind: 'info',
+// durationMs: 5000) iff THREE conditions hold:
+//   1. server.updated_at strictly > local.updated_at (parseable both sides)
+//   2. pendingOps has an entry matching (table, key)
+//   3. (implicit) the local row exists with a parseable timestamp
+//
+// These 4 cases pin the heuristic against false positives (vanilla
+// propagation, clock skew, server-older) and verify the positive path.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-05 — detectAndNotifyLwwLoss (lww-loser heuristic)', () => {
+  it('fires notifyLwwLoss when server is strictly newer AND a matching pendingOp exists', async () => {
+    storeState.pendingOps = [
+      { table: 'injections', op: 'upsert', key: 'inj-1', enqueuedAt: 'now' },
+    ];
+    const { detectAndNotifyLwwLoss } = await import('./sync');
+    const fired = detectAndNotifyLwwLoss(
+      'injections',
+      'inj-1',
+      '2026-05-12T10:00:00Z', // server
+      '2026-05-12T09:55:00Z', // local — older
+    );
+    expect(fired).toBe(true);
+    expect(mockNotifyLwwLoss).toHaveBeenCalledTimes(1);
+    expect(mockNotifyLwwLoss).toHaveBeenCalledWith('injections', 'inj-1');
+  });
+
+  it('does NOT fire when no pendingOp matches (vanilla cross-device propagation)', async () => {
+    storeState.pendingOps = []; // empty — user has not edited this row locally
+    const { detectAndNotifyLwwLoss } = await import('./sync');
+    const fired = detectAndNotifyLwwLoss(
+      'injections',
+      'inj-1',
+      '2026-05-12T10:00:00Z', // server newer
+      '2026-05-12T09:55:00Z', // local older
+    );
+    expect(fired).toBe(false);
+    expect(mockNotifyLwwLoss).not.toHaveBeenCalled();
+  });
+
+  it('does NOT fire when server is OLDER than local (local wins; no loss)', async () => {
+    storeState.pendingOps = [
+      { table: 'injections', op: 'upsert', key: 'inj-1', enqueuedAt: 'now' },
+    ];
+    const { detectAndNotifyLwwLoss } = await import('./sync');
+    const fired = detectAndNotifyLwwLoss(
+      'injections',
+      'inj-1',
+      '2026-05-12T09:00:00Z', // server OLDER
+      '2026-05-12T10:00:00Z', // local newer
+    );
+    expect(fired).toBe(false);
+    expect(mockNotifyLwwLoss).not.toHaveBeenCalled();
+  });
+
+  it('does NOT fire on equal timestamps (tie — clock-skew safety)', async () => {
+    storeState.pendingOps = [
+      { table: 'injections', op: 'upsert', key: 'inj-1', enqueuedAt: 'now' },
+    ];
+    const { detectAndNotifyLwwLoss } = await import('./sync');
+    const sameTs = '2026-05-12T10:00:00Z';
+    const fired = detectAndNotifyLwwLoss('injections', 'inj-1', sameTs, sameTs);
+    expect(fired).toBe(false);
+    expect(mockNotifyLwwLoss).not.toHaveBeenCalled();
+  });
+
+  it('does NOT fire when either timestamp is missing (defensive)', async () => {
+    storeState.pendingOps = [
+      { table: 'injections', op: 'upsert', key: 'inj-1', enqueuedAt: 'now' },
+    ];
+    const { detectAndNotifyLwwLoss } = await import('./sync');
+    expect(detectAndNotifyLwwLoss('injections', 'inj-1', undefined, '2026-05-12T09:55:00Z')).toBe(
+      false,
+    );
+    expect(detectAndNotifyLwwLoss('injections', 'inj-1', '2026-05-12T10:00:00Z', undefined)).toBe(
+      false,
+    );
+    expect(mockNotifyLwwLoss).not.toHaveBeenCalled();
   });
 });
