@@ -1301,7 +1301,12 @@ export const useStore = create<Store>()(
             const local = s.injections[idx]!;
             // Phase 6 06-05 D-11 — lww-loser detection. Fires the toast iff
             // the 3-condition heuristic holds (see _maybeFireLwwLossToast).
-            _maybeFireLwwLossToast('injections', remote.log_id, remote.updated_at, local.updated_at);
+            _maybeFireLwwLossToast(
+              'injections',
+              remote.log_id,
+              remote.updated_at,
+              local.updated_at,
+            );
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1492,7 +1497,12 @@ export const useStore = create<Store>()(
             if (idx === -1) return { weights: [...s.weights, remote as never] };
             const local = (s.weights as Row[])[idx]!;
             // Phase 6 06-05 D-11 — lww-loser detection.
-            _maybeFireLwwLossToast('weights', remote.weight_id, remote.updated_at, local.updated_at);
+            _maybeFireLwwLossToast(
+              'weights',
+              remote.weight_id,
+              remote.updated_at,
+              local.updated_at,
+            );
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1752,12 +1762,7 @@ export const useStore = create<Store>()(
             // short-circuits on the missing-baseline guard unless a future
             // mutation stamps one. Wired here so the call site is uniform
             // across all 10 reducers (audit-grep compliance).
-            _maybeFireLwwLossToast(
-              'settings',
-              row.user_id ?? '',
-              row.updated_at,
-              undefined,
-            );
+            _maybeFireLwwLossToast('settings', row.user_id ?? '', row.updated_at, undefined);
             if (!s.user) return { user: row.payload as never };
             return { user: { ...s.user, ...(row.payload as Partial<User>) } };
           }
@@ -1921,3 +1926,14 @@ export const hydrate = (): Promise<void> => {
   }
   return useStore.persist.rehydrate() as Promise<void>;
 };
+
+// Phase 6 06-05 — Playwright test seam. Expose `useStore` on `window` in
+// non-production builds so e2e specs (offline-conflict-toast.spec.ts) can
+// drive store actions directly via `page.evaluate()` without depending on
+// UI affordances that may or may not exist for every entity (e.g. inline
+// weight-edit). Guarded behind `import.meta.env.MODE !== 'production'` so
+// production bundles do NOT leak the store handle. Mirrors the pattern
+// used by other test-instrumented modules in the codebase.
+if (typeof window !== 'undefined' && import.meta.env.MODE !== 'production') {
+  (window as unknown as { useStore?: typeof useStore }).useStore = useStore;
+}

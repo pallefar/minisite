@@ -1707,9 +1707,7 @@ describe('Phase 6 06-05 — addX/editX local mutations stamp updated_at', () => 
       rpe: null,
       notes: '',
     });
-    useStore
-      .getState()
-      .addMood({ date: '2026-05-12', mood: 4, energy: null, notes: '' } as never);
+    useStore.getState().addMood({ date: '2026-05-12', mood: 4, energy: null, notes: '' } as never);
     useStore.getState().addSleep({
       date: '2026-05-12',
       hours: 8,

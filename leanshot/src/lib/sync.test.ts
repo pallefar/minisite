@@ -732,9 +732,9 @@ describe('Phase 6 06-05 — detectAndNotifyLwwLoss (lww-loser heuristic)', () =>
       { table: 'injections', op: 'upsert', key: 'inj-1', enqueuedAt: 'now' },
     ];
     const { detectAndNotifyLwwLoss } = await import('./sync');
-    expect(
-      detectAndNotifyLwwLoss('injections', 'inj-1', undefined, '2026-05-12T09:55:00Z'),
-    ).toBe(false);
+    expect(detectAndNotifyLwwLoss('injections', 'inj-1', undefined, '2026-05-12T09:55:00Z')).toBe(
+      false,
+    );
     expect(detectAndNotifyLwwLoss('injections', 'inj-1', '2026-05-12T10:00:00Z', undefined)).toBe(
       false,
     );
