@@ -15,23 +15,25 @@ import { useStore } from '@/lib/store';
  *  - Spotify-style titration track at the bottom with current dose pulsing
  */
 export function HeroCard() {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. All hooks (useStore×4, useReducedMotion, useCountUp×4)
+  // run unconditionally above the `if (!u) return null;` guard. Derived
+  // values default to 0 / null when u is null so the count-up hooks
+  // receive stable inputs during the transient window.
+  const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const injections = useStore((s) => s.injections);
   const meals = useStore((s) => s.meals);
   const reduced = useReducedMotion();
 
-  const wU = u.units === 'metric' ? 'kg' : 'lb';
   const latest = weights[weights.length - 1];
-  const lost = latest ? u.startWeight - latest.weight : 0;
+  const lost = u && latest ? u.startWeight - latest.weight : 0;
   const lostAbs = Math.abs(lost);
-  const direction = lost >= 0 ? 'Lost' : 'Gained';
-  const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
   const today = new Date().toISOString().slice(0, 10);
   const todayProtein = meals
     .filter((m) => m.date === today)
     .reduce((acc, m) => acc + (m.protein || 0), 0);
-  const goalLoss = u.startWeight - u.goalWeight;
+  const goalLoss = u ? u.startWeight - u.goalWeight : 0;
   const goalPct =
     goalLoss > 0 ? Math.min(100, Math.max(0, Math.round((lost / goalLoss) * 100))) : 0;
 
@@ -39,6 +41,12 @@ export function HeroCard() {
   const countGoal = useCountUp(goalPct, { duration: 900 });
   const countShots = useCountUp(injections.length, { duration: 700 });
   const countProtein = useCountUp(todayProtein, { duration: 700 });
+
+  if (!u) return null;
+
+  const wU = u.units === 'metric' ? 'kg' : 'lb';
+  const direction = lost >= 0 ? 'Lost' : 'Gained';
+  const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
 
   let phase = 'Maintenance';
   let phaseTip = 'Lock in habits.';
