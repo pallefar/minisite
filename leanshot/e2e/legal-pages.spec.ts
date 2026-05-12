@@ -16,6 +16,7 @@
 
 import { expect, test, type ConsoleMessage } from '@playwright/test';
 import { LEGAL_LINKS } from '../src/components/layout/LegalFooter';
+import { DATA_CATEGORIES } from '../src/lib/legal/data-categories';
 
 const EXPECTED_LABELS: readonly string[] = [
   'Privacy policy',
@@ -143,5 +144,85 @@ test.describe('legal pages', () => {
     }
 
     expect(consoleErrors).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 7 Plan 07-03 — Consumer Health Data Privacy notice content anchors.
+//
+// Three assertions pinned to the rendered #/legal/consumer-health page:
+//   1. All 5 WMHMDA structural anchors land as <h2> headings (RCW 19.373.030(1)(b)(i)–(v))
+//   2. The 3 verbatim statute strings required by COMPL-02 SC#2
+//   3. Every DATA_CATEGORIES[i].label from the source-of-truth manifest is
+//      rendered verbatim — this is the manifest/policy drift gate
+//      (T-07-03-03 mitigation). A future phase adding a persisted slice
+//      without updating data-categories.ts will fail this assertion in CI,
+//      and so will a phase that updates the manifest but forgets to render.
+//
+// Fenced as its own test.describe so Plan 07-04 (Batch 2) can append its own
+// @phase07-04 block below without merge conflict on the closing brace.
+// ─────────────────────────────────────────────────────────────────────────────
+test.describe('@phase07-03 — CHDP content anchors', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/#/legal/consumer-health');
+    // Wait for the lazy-loaded ConsumerHealthData chunk to mount.
+    await expect(page.locator('main h1')).toHaveText('Consumer Health Data');
+  });
+
+  test('CHDP page contains all 5 WMHMDA mandatory structural anchors (RCW 19.373.030(1)(b))', async ({
+    page,
+  }) => {
+    // Each anchor is rendered as an <h2>. Assert verbatim heading text so a
+    // future drift (e.g. someone renames §4 to "Partners") fails CI.
+    const anchors = [
+      'Categories of consumer health data we collect',
+      'Sources from which we collect consumer health data',
+      'Categories of consumer health data we share',
+      'Third parties and affiliates with whom we share consumer health data',
+      'How Washington residents exercise their rights',
+    ];
+
+    for (const heading of anchors) {
+      await expect(
+        page.locator('main h2', { hasText: heading }),
+        `WMHMDA structural anchor missing: ${heading}`,
+      ).toHaveCount(1);
+    }
+  });
+
+  test('CHDP page contains the 3 verbatim statute strings required by COMPL-02 SC#2', async ({
+    page,
+  }) => {
+    const bodyText = await page.locator('main article').innerText();
+
+    // These strings are load-bearing for a WMHMDA private-right-of-action
+    // defense if our notice is ever challenged on adequacy grounds.
+    expect(bodyText.toLowerCase(), 'missing "consumer health data"').toContain(
+      'consumer health data',
+    );
+    expect(bodyText, 'missing "Washington"').toContain('Washington');
+    expect(bodyText.toLowerCase(), 'missing "private right of action"').toContain(
+      'private right of action',
+    );
+  });
+
+  test('CHDP page enumerates every persisted data category from the manifest', async ({
+    page,
+  }) => {
+    const bodyText = await page.locator('main article').innerText();
+
+    // Every DATA_CATEGORIES[i].label MUST appear verbatim. This is the
+    // mitigation for T-07-03-03 (policy drift): future phases that add a new
+    // slice but forget to update either the manifest or the rendered list
+    // will fail CI here. The error message includes the offending key so a
+    // future-you triaging CI sees exactly which manifest entry slipped.
+    for (const cat of DATA_CATEGORIES) {
+      expect(
+        bodyText,
+        `Data category "${cat.label}" (key=${cat.key}) is in DATA_CATEGORIES manifest ` +
+          `but missing from rendered CHDP. Either render it in ConsumerHealthData.tsx ` +
+          `or remove it from data-categories.ts.`,
+      ).toContain(cat.label);
+    }
   });
 });
