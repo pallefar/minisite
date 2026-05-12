@@ -93,8 +93,11 @@ async function seedUserAndSignIn(
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole('button', { name: /^sign in$/i }).click();
   // Land on dashboard (post-auth).
-  await expect(page).not.toHaveURL(/#\/auth/, { timeout: 8000 });
-  await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 8000 });
+  // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI
+  // (signInWithPassword roundtrip → onAuthStateChange dispatch → renameStorageNamespace
+  // → hashchange → React render → AppShell mount). See 07-RESEARCH.md §1 Family A.
+  await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
+  await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
 }
 
 async function gotoMedicationTab(page: Page): Promise<void> {
@@ -102,7 +105,8 @@ async function gotoMedicationTab(page: Page): Promise<void> {
   // mobile bottom-nav AND desktop side-nav advertise the Medication tab —
   // .first() guards against either layout's button being matched.
   await page.getByRole('button', { name: /^medication$/i }).first().click();
-  await expect(page.getByTestId('injection-submit')).toBeVisible({ timeout: 5000 });
+  // CI-cold-tab-mount-budget: raised 5s→15s for lazy MedicationTab chunk fetch + mount on prod-build CI.
+  await expect(page.getByTestId('injection-submit')).toBeVisible({ timeout: 15_000 });
 }
 
 test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budget)', () => {

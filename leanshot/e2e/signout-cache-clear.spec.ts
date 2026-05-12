@@ -45,7 +45,8 @@ test.describe('@phase05 SC#3: signout clears cache + lands on marketing (CONF-2 
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
     await page.getByRole('button', { name: /^sign in$/i }).click();
-    await expect(page).not.toHaveURL(/#\/auth/, { timeout: 8000 });
+    // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI. See 07-RESEARCH.md §1 Family A.
+    await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 
     // Family D: seed against the per-user namespaced storage key (Phase 5 D-12). See 07-RESEARCH.md §1 Family D.
     // Post-signin the active namespace is `leanshot_v4_user_<hash>` (per

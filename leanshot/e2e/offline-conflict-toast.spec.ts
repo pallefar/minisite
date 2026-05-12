@@ -104,8 +104,9 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole('button', { name: /^sign in$/i }).click();
-  await expect(page).not.toHaveURL(/#\/auth/, { timeout: 8000 });
-  await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 8000 });
+  // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI. See 07-RESEARCH.md §1 Family A.
+  await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
+  await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
 }
 
 async function gotoBodyTab(page: Page): Promise<void> {
