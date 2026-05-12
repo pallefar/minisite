@@ -54,7 +54,11 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
 ];
 
 export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. The draft useState uses a lazy initializer with a safe
+  // empty-object fallback so the hook order is preserved when u is null;
+  // the early-return below guarantees the empty draft never reaches render.
+  const u = useStore((s) => s.user);
   const updateUser = useStore((s) => s.updateUser);
   const resetAll = useStore((s) => s.resetAll);
   const fullState = useStore((s) => s);
@@ -77,7 +81,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   } = useConfirm();
 
   const [section, setSection] = useState<Section>('profile');
-  const [draft, setDraft] = useState({ ...u });
+  const [draft, setDraft] = useState(() => ({ ...(u ?? ({} as NonNullable<typeof u>)) }));
+
+  if (!u) return null;
 
   const save = (): void => {
     updateUser({
