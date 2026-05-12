@@ -33,6 +33,12 @@ const mocks = {
   // need to assert sync-defer's drain branch invokes it with the right user
   // id at the right point in the dispatch sequence.
   maybeStartMigration: vi.fn(async (_uid: string) => undefined),
+  // Phase 6 06-04 — photos channel mirror of injections. onSignedOut drain
+  // now calls unsubscribeAll() (one helper for all 10+ channels) instead of
+  // the Phase 5-only unsubscribeInjections.
+  pullInitialPhotos: vi.fn(async (_uid: string) => undefined),
+  subscribePhotos: vi.fn((_uid: string) => undefined),
+  unsubscribeAll: vi.fn(async () => undefined),
 };
 
 vi.mock('@/lib/sync', () => ({
@@ -40,6 +46,9 @@ vi.mock('@/lib/sync', () => ({
   subscribeInjections: (...a: unknown[]) => mocks.subscribeInjections(...(a as [string])),
   unsubscribeInjections: (...a: unknown[]) => mocks.unsubscribeInjections(...(a as [])),
   flushSyncQueue: (...a: unknown[]) => mocks.flushSyncQueue(...(a as [])),
+  pullInitialPhotos: (...a: unknown[]) => mocks.pullInitialPhotos(...(a as [string])),
+  subscribePhotos: (...a: unknown[]) => mocks.subscribePhotos(...(a as [string])),
+  unsubscribeAll: (...a: unknown[]) => mocks.unsubscribeAll(...(a as [])),
 }));
 
 vi.mock('@/lib/auth-migration', () => ({
@@ -137,7 +146,9 @@ describe('sync-defer', () => {
     expect(mocks.subscribeInjections).toHaveBeenCalledWith('user-1');
     // flushSyncQueue fires twice: once from onSignedIn drain, once from the explicit deferFlush call.
     expect(mocks.flushSyncQueue.mock.calls.length).toBeGreaterThanOrEqual(2);
-    expect(mocks.unsubscribeInjections).toHaveBeenCalled();
+    // Phase 6 06-04: onSignedOut now calls unsubscribeAll (10+ channels)
+    // instead of the Phase 5-only unsubscribeInjections.
+    expect(mocks.unsubscribeAll).toHaveBeenCalled();
   });
 
   it('Test 3: calls AFTER load drain immediately (push → drain same tick)', async () => {

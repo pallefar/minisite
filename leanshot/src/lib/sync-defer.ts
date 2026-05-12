@@ -81,6 +81,16 @@ function dispatch(api: LoadedApi, call: SyncCall): void {
         api.authMig.enqueueLocalInjectionsForSync();
         void api.sync.pullInitialInjections(call.userId);
         api.sync.subscribeInjections(call.userId);
+        // Phase 6 06-04 — photos channel runs alongside injections so a
+        // photo uploaded on Context A fans out to Context B via Realtime
+        // within the SC#3 5s budget. The pull-BEFORE-subscribe ordering
+        // mirrors injections (Pitfall #5 — postgres_changes does not
+        // replay history). For users with no photo rows yet the pull is a
+        // single 0-row round-trip.
+        void (async () => {
+          await api.sync.pullInitialPhotos(call.userId);
+          api.sync.subscribePhotos(call.userId);
+        })();
         void api.sync.flushSyncQueue();
         // Phase 6 Plan 06-02 — kick off the leanshot_v4 → cloud migration
         // AFTER subscribe so Realtime is already listening when the per-entity
@@ -95,8 +105,26 @@ function dispatch(api: LoadedApi, call: SyncCall): void {
         // Phase 5 D-09 — tear down Realtime BEFORE the caller clears user
         // data slices. App.tsx already enforces the ordering at the call
         // site (deferOnSignedOut → clearUserDataSlices); this drain branch
-        // only owns the unsubscribe.
-        void api.sync.unsubscribeInjections();
+        // owns the unsubscribe + Phase 6 06-04 photo-substrate cleanup.
+        void api.sync.unsubscribeAll().catch((e: unknown) => {
+          console.warn('[leanshot] unsubscribeAll failed', e);
+        });
+        // Phase 6 06-04 T-06-04-04: prior user's queued photo blobs MUST
+        // NOT survive sign-out (shared-device leak). The signed-URL cache
+        // must also be flushed so a forwarded URL cannot be re-resolved
+        // across accounts.
+        void (async () => {
+          try {
+            const [{ clearAllPhotoBlobs }, { clearSignedUrlCache }] = await Promise.all([
+              import('@/lib/photo-queue'),
+              import('@/lib/signed-url-cache'),
+            ]);
+            await clearAllPhotoBlobs();
+            clearSignedUrlCache();
+          } catch (e) {
+            console.warn('[leanshot] photo cleanup on signout failed', e);
+          }
+        })();
         return;
       }
       case 'flush': {

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { formatShort } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
+import type { Photo } from '@/types';
 
 export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const photos = useStore((s) => s.photos);
@@ -39,8 +40,8 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
         Tap two photos to compare side-by-side.
       </p>
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <Side photo={left} side="Before" units={wU} />
-        <Side photo={right} side="After" units={wU} />
+        <Side photo={left ?? null} side="Before" units={wU} />
+        <Side photo={right ?? null} side="After" units={wU} />
       </div>
       {left && right && (
         <div className="rounded-2xl bg-[var(--color-primary-soft)] border border-[var(--color-primary-soft)] p-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center mb-4">
@@ -65,7 +66,7 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
           const selected = sel.includes(i);
           return (
             <button
-              key={i}
+              key={p.photo_id ?? i}
               onClick={() => toggle(i)}
               aria-pressed={selected}
               className={cn(
@@ -75,7 +76,7 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
                   : 'border-transparent hover:border-[var(--color-border-strong)]',
               )}
             >
-              <img src={p.data} alt="" className="w-full h-full object-cover" />
+              <PhotoImg photo={p} />
               <span className="absolute bottom-0 inset-x-0 px-1.5 py-1 bg-gradient-to-t from-black/85 to-transparent text-white text-[10px] font-semibold">
                 {formatShort(p.date)}
               </span>
@@ -92,19 +93,11 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
   );
 }
 
-function Side({
-  photo,
-  side,
-  units,
-}: {
-  photo: { data: string; date: string; weight: number | null } | null;
-  side: string;
-  units: string;
-}) {
+function Side({ photo, side, units }: { photo: Photo | null; side: string; units: string }) {
   return (
     <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] overflow-hidden">
       {photo ? (
-        <img src={photo.data} alt="" className="aspect-[3/4] w-full object-cover" />
+        <PhotoImg photo={photo} className="aspect-[3/4] w-full object-cover" />
       ) : (
         <div className="aspect-[3/4] flex items-center justify-center text-[12px] text-[var(--color-text-tertiary)]">
           Tap a photo below
@@ -120,6 +113,70 @@ function Side({
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * Phase 6 06-04 — resolves the displayable URL for a photo across the
+ * 4-state matrix (loaded / queued-for-upload / signed-url-failed). The
+ * "loading-signed-url" skeleton is omitted here in favor of a transparent
+ * placeholder because the compare-modal grid intentionally renders all
+ * tiles in parallel and a flash of skeletons across the grid is noisier
+ * than a brief blank frame.
+ */
+function PhotoImg({ photo, className }: { photo: Photo; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let createdObjectUrl: string | null = null;
+    (async () => {
+      if (!photo.storage_path) {
+        // Queued for upload → local blob preview
+        try {
+          const { getPhotoBlob } = await import('@/lib/photo-queue');
+          const blob = await getPhotoBlob(photo.photo_id);
+          if (cancelled) return;
+          if (blob) {
+            createdObjectUrl = URL.createObjectURL(blob);
+            setUrl(createdObjectUrl);
+          }
+        } catch {
+          /* noop */
+        }
+        return;
+      }
+      try {
+        const { getSignedPhotoUrl } = await import('@/lib/signed-url-cache');
+        const signed = await getSignedPhotoUrl(photo.storage_path);
+        if (!cancelled) setUrl(signed);
+      } catch {
+        /* noop — render falls back to the placeholder */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (createdObjectUrl) URL.revokeObjectURL(createdObjectUrl);
+    };
+  }, [photo.storage_path, photo.photo_id]);
+
+  if (!url) {
+    return (
+      <div
+        className={cn(
+          'w-full h-full absolute inset-0 bg-[var(--color-surface-elevated)]',
+          className,
+        )}
+        aria-hidden
+      />
+    );
+  }
+  return (
+    <img
+      src={url}
+      alt=""
+      className={cn('w-full h-full object-cover absolute inset-0', className)}
+    />
   );
 }
 

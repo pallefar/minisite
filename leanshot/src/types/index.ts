@@ -86,9 +86,17 @@ export interface Injection {
  */
 export interface PendingOp {
   table: string;
-  op: 'upsert' | 'delete';
+  /**
+   * Phase 6 06-04: `'upload'` is the photo-specific op variant — sync.ts's
+   * flushPhotoOps reads the Blob from IndexedDB (`@/lib/photo-queue`),
+   * uploads to Storage, then upserts the metadata row. `blob_ref` carries
+   * the IndexedDB key (typically === op.key for simplicity).
+   */
+  op: 'upsert' | 'delete' | 'upload';
   key: string;
   enqueuedAt: string; // ISO
+  /** Phase 6 06-04 — IndexedDB key for the Blob payload (upload ops only). */
+  blob_ref?: string;
 }
 
 export interface SymptomLog {
@@ -170,10 +178,36 @@ export interface SleepLog {
   notes: string;
 }
 
+/**
+ * Phase 6 06-04 SYNC-06 / D-04 — Photo metadata. The Blob itself lives in
+ * Supabase Storage at `${user_id}/photos/${photo_id}.jpg`; this interface
+ * only carries the pointer + per-photo metadata (date, weight, mime, size).
+ *
+ * Pre-06-04 the legacy `data: string` (base64 dataURL) field carried the
+ * full image bytes inline — that field is migrated to Storage by the eager
+ * loop in migration.ts (D-10) and dropped after upload. Existing v7
+ * persisted state is back-stamped by migrateV7ToV8 in storage.ts.
+ *
+ * Local preview during the "queued-for-upload" state is served by reading
+ * the Blob from IndexedDB (`@/lib/photo-queue`) and producing an
+ * `URL.createObjectURL` blob URL on demand — NOT stored on this interface.
+ */
 export interface Photo {
+  /** Client-stable uuid (crypto.randomUUID); composite PK with user_id on public.photos. */
+  photo_id: string;
   date: string;
-  data: string; // dataURL
-  weight: number | null;
+  /** Optional weight at time of photo (kg in metric, lb in imperial). */
+  weight?: number | null;
+  /** {userId}/photos/{photo_id}.jpg. Empty string during queued-for-upload window. */
+  storage_path: string;
+  /** Defaults to 'image/jpeg' after compression. */
+  mime_type: string;
+  /** Compressed size in bytes; nullable pre-upload. */
+  size_bytes?: number;
+  /** Server-stamped via moddatetime trigger; populated on rows that came FROM the server. */
+  updated_at?: string;
+  /** Server-derived rows only. */
+  user_id?: string;
 }
 
 export interface AIMessage {

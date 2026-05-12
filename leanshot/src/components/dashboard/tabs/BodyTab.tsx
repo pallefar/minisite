@@ -1,15 +1,17 @@
 import {
-  Scale,
-  Ruler,
+  AlertCircle,
+  ArrowLeftRight,
   Camera,
   ChartLine,
+  CloudOff,
   ListChecks,
   Plus,
-  X,
+  Ruler,
+  Scale,
   Target,
-  ArrowLeftRight,
+  X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { WeightChart, CompositionChart } from '@/components/dashboard/charts/SimpleCharts';
 import { PhotoCompareModal } from '@/components/dashboard/modals/PhotoCompareModal';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +19,7 @@ import { Card, CardHeader, StatTile } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { ProgressBar } from '@/components/ui/ProgressRing';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
 import { useToast } from '@/hooks/useToast';
 import { EmptyPhotos } from '@/illustrations/EmptyPhotos';
@@ -101,27 +104,20 @@ export function BodyTab() {
     setMeas({ waist: '', hips: '', chest: '', neck: '', arms: '', thighs: '' });
   };
 
+  // Phase 6 06-04 — addPhoto(blob, meta) compresses (D-06), persists to
+  // IndexedDB, and enqueues a 'upload' op drained by sync.ts's flushPhotoOps.
   const onPhoto = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const max = 600;
-        const r = Math.min(max / img.width, max / img.height, 1);
-        const c = document.createElement('canvas');
-        c.width = img.width * r;
-        c.height = img.height * r;
-        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-        const data = c.toDataURL('image/jpeg', 0.7);
-        const p: Photo = { date: todayStr(), data, weight: latest?.weight ?? null };
-        addPhoto(p);
+    void (async () => {
+      try {
+        await addPhoto(file, { date: todayStr(), weight: latest?.weight ?? null });
         toast('Photo saved');
-      };
-      img.src = ev.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('[leanshot] addPhoto failed', err);
+        toast('Photo failed', 'error');
+      }
+    })();
     e.target.value = '';
   };
 
@@ -256,17 +252,17 @@ export function BodyTab() {
             body="Take a photo every 2 weeks. The mirror lies; the receipts don't."
           />
         ) : (
-          <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className="grid grid-cols-3 gap-2 mt-3" data-testid="body-tab-photo-grid">
             {photos.map((p, i) => (
               <SwipeToDelete
-                key={i}
+                key={p.photo_id ?? i}
                 onDelete={() => removePhoto(i)}
                 className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--color-surface-elevated)] border border-[var(--color-border)] group"
               >
-                <img src={p.data} alt="" className="w-full h-full object-cover absolute inset-0" />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent text-white px-2 py-1.5 text-[10px] font-semibold">
+                <PhotoTile photo={p} />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent text-white px-2 py-1.5 text-[10px] font-semibold z-10">
                   <p>{formatShort(p.date)}</p>
-                  {p.weight && (
+                  {p.weight != null && (
                     <p className="opacity-80">
                       {p.weight.toFixed(1)} {wU}
                     </p>
@@ -275,12 +271,11 @@ export function BodyTab() {
                 <button
                   onClick={() => removePhoto(i)}
                   aria-label="Delete photo"
-                  className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/60 text-white inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-10"
+                  className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/60 text-white inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-20"
                 >
                   <X className="size-3.5" />
                 </button>
                 <span className="sr-only">Swipe left to delete on mobile</span>
-                <span aria-hidden className="absolute inset-0" />
               </SwipeToDelete>
             ))}
           </div>
@@ -366,6 +361,107 @@ export function BodyTab() {
       </Card>
 
       <PhotoCompareModal open={compareOpen} onClose={() => setCompareOpen(false)} />
+    </div>
+  );
+}
+
+/**
+ * Phase 6 06-04 — per-tile state matrix (06-UI-SPEC §3):
+ *   - loading-signed-url → Skeleton overlay
+ *   - loaded → signed-URL <img>
+ *   - signed-url-failed → AlertCircle + retry button
+ *   - queued-for-upload → local Blob preview + "Queued" badge
+ *
+ * Dynamic-imports `@/lib/signed-url-cache` + `@/lib/photo-queue` so neither
+ * module appears on BodyTab's static graph (preserves bundle ceiling — sync
+ * subsystem only loads after BodyTab is itself lazy-loaded by App.tsx).
+ */
+type TileState = 'loading' | 'loaded' | 'failed' | 'queued';
+
+function PhotoTile({ photo }: { photo: Photo }) {
+  const [state, setState] = useState<TileState>('loading');
+  const [url, setUrl] = useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    let createdObjectUrl: string | null = null;
+    setState('loading');
+    setUrl(null);
+    (async () => {
+      if (!photo.storage_path) {
+        // Queued-for-upload: local Blob preview from IndexedDB.
+        try {
+          const { getPhotoBlob } = await import('@/lib/photo-queue');
+          const blob = await getPhotoBlob(photo.photo_id);
+          if (cancelled) return;
+          if (blob) {
+            createdObjectUrl = URL.createObjectURL(blob);
+            setUrl(createdObjectUrl);
+            setState('queued');
+          } else {
+            setState('failed');
+          }
+        } catch {
+          if (!cancelled) setState('failed');
+        }
+        return;
+      }
+      try {
+        const { getSignedPhotoUrl } = await import('@/lib/signed-url-cache');
+        const signed = await getSignedPhotoUrl(photo.storage_path);
+        if (cancelled) return;
+        setUrl(signed);
+        setState('loaded');
+      } catch {
+        if (!cancelled) setState('failed');
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (createdObjectUrl) URL.revokeObjectURL(createdObjectUrl);
+    };
+  }, [photo.storage_path, photo.photo_id, retryNonce]);
+
+  return (
+    <div
+      role="img"
+      aria-busy={state === 'loading'}
+      aria-label={
+        state === 'queued'
+          ? `Photo from ${photo.date}, queued for upload`
+          : `Photo from ${photo.date}`
+      }
+      className="absolute inset-0"
+    >
+      {state === 'loading' && <Skeleton shape="rect" className="absolute inset-0" />}
+      {url && (state === 'loaded' || state === 'queued') && (
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover absolute inset-0"
+          onError={() => setState('failed')}
+        />
+      )}
+      {state === 'failed' && (
+        <button
+          onClick={() => setRetryNonce((n) => n + 1)}
+          aria-label={`Retry loading photo from ${photo.date}`}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-[var(--color-surface-elevated)] text-[var(--color-danger)]"
+        >
+          <AlertCircle className="size-6" aria-hidden />
+          <span className="text-[12px] font-semibold">Tap to retry</span>
+        </button>
+      )}
+      {state === 'queued' && (
+        <span
+          className="absolute top-1.5 left-1.5 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-[var(--color-warning-soft,#fef3c7)] text-[var(--color-warning,#b45309)] text-[11px] font-semibold"
+          aria-hidden
+        >
+          <CloudOff className="size-3" aria-hidden />
+          Queued
+        </span>
+      )}
     </div>
   );
 }
