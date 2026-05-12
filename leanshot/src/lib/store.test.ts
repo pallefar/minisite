@@ -831,3 +831,141 @@ describe('Plan 05-05 — per-user storage adapter (G2 closure)', () => {
     expect(blob.state.injections).toBeDefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 6 Plan 06-02 — migration_state slice + actions + partialize coverage.
+//
+// Six tests covering the migration_state slice surface introduced by the
+// migration state machine in @/lib/migration:
+//   1. setMigrationState writes the slice
+//   2. markMigrationEntity mutates only the specified entity
+//   3. markMigrationComplete sets complete: true
+//   4. setMigrationError sets the flag
+//   5. clearUserDataSlices resets both migration_state and migrationError to null
+//   6. partialize allow-list includes migration_state but NOT migrationError
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 — migration_state slice actions', () => {
+  beforeEach(() => {
+    useStore.setState({
+      ...initialState,
+      pendingOps: [],
+      migration_state: null,
+      migrationError: null,
+      currentTab: 'home',
+      toast: null,
+      signedIn: null,
+    });
+    __resetActiveNamespaceForTests();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    __resetActiveNamespaceForTests();
+  });
+
+  it('setMigrationState writes the slice', () => {
+    const next = {
+      startedAt: '2026-05-12T00:00:00Z',
+      complete: false,
+      snapshotKey: 'leanshot_v4_pre_cloud_backup',
+      injections: 'pending' as const,
+    };
+    useStore.getState().setMigrationState(next);
+    expect(useStore.getState().migration_state).toEqual(next);
+    // null clears it.
+    useStore.getState().setMigrationState(null);
+    expect(useStore.getState().migration_state).toBeNull();
+  });
+
+  it('markMigrationEntity mutates only the specified entity', () => {
+    useStore.getState().setMigrationState({
+      startedAt: '2026-05-12T00:00:00Z',
+      complete: false,
+      snapshotKey: 'leanshot_v4_pre_cloud_backup',
+      injections: 'pending',
+      weights: 'pending',
+    });
+    useStore.getState().markMigrationEntity('weights', 'complete');
+    const state = useStore.getState().migration_state!;
+    expect(state.weights).toBe('complete');
+    expect(state.injections).toBe('pending'); // untouched
+  });
+
+  it('markMigrationEntity is a no-op when migration_state is null', () => {
+    expect(useStore.getState().migration_state).toBeNull();
+    useStore.getState().markMigrationEntity('injections', 'complete');
+    // Still null — no slice to mutate.
+    expect(useStore.getState().migration_state).toBeNull();
+  });
+
+  it('markMigrationComplete sets complete: true', () => {
+    useStore.getState().setMigrationState({
+      startedAt: '2026-05-12T00:00:00Z',
+      complete: false,
+      snapshotKey: 'leanshot_v4_pre_cloud_backup',
+    });
+    useStore.getState().markMigrationComplete();
+    expect(useStore.getState().migration_state?.complete).toBe(true);
+  });
+
+  it('setMigrationError sets and clears the corruption flag', () => {
+    useStore.getState().setMigrationError('corrupted');
+    expect(useStore.getState().migrationError).toBe('corrupted');
+    useStore.getState().setMigrationError(null);
+    expect(useStore.getState().migrationError).toBeNull();
+  });
+
+  it('clearUserDataSlices resets migration_state AND migrationError to null', () => {
+    useStore.setState({
+      migration_state: {
+        startedAt: '2026-05-12T00:00:00Z',
+        complete: true,
+        snapshotKey: 'leanshot_v4_pre_cloud_backup',
+      },
+      migrationError: 'corrupted',
+      acknowledgedDisclaimer: 'v1',
+    });
+    useStore.getState().clearUserDataSlices();
+    expect(useStore.getState().migration_state).toBeNull();
+    expect(useStore.getState().migrationError).toBeNull();
+    // CONF-3 still holds: acknowledgedDisclaimer survives.
+    expect(useStore.getState().acknowledgedDisclaimer).toBe('v1');
+  });
+
+  it('partialize allow-list includes migration_state (survives reload) and excludes migrationError (ephemeral)', async () => {
+    const userId = 'phase6-mig-partialize-user';
+    await setActiveStorageUserId(userId);
+    // Set both slices — only migration_state should land in the persisted blob.
+    useStore.setState({
+      migration_state: {
+        startedAt: '2026-05-12T00:00:00Z',
+        complete: false,
+        snapshotKey: 'leanshot_v4_pre_cloud_backup',
+        injections: 'complete',
+      },
+      migrationError: 'corrupted',
+      // Force a write through persist by setting a persisted slice too.
+      injections: [
+        {
+          log_id: 'partialize-log',
+          datetime: '2026-05-12T00:00:00Z',
+          dose: '1',
+          unit: 'mg',
+          site: null,
+          notes: '',
+        },
+      ],
+    });
+    const key = await namespacedKey(userId);
+    const raw = localStorage.getItem(key);
+    expect(raw).not.toBeNull();
+    const blob = JSON.parse(raw!);
+    // migration_state survives reload (D-02 resume contract).
+    expect(blob.state.migration_state).toBeDefined();
+    expect(blob.state.migration_state.injections).toBe('complete');
+    // migrationError is ephemeral — re-derived from corruption detection on next sign-in.
+    expect(blob.state.migrationError).toBeUndefined();
+  });
+});

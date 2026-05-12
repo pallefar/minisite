@@ -6,6 +6,7 @@
  * existing users keep their data. The legacy v3 key is deleted only after
  * a successful merge.
  */
+import type { MigrationState } from '@/lib/migration';
 import type {
   AIMessage,
   Cost,
@@ -69,6 +70,16 @@ export interface PersistedState {
    * Undefined = banner is visible whenever the gate condition holds.
    */
   verificationBannerDismissedUntil?: string;
+  /**
+   * Phase 6 Plan 06-02 D-02 — per-entity migration progress slice. Persisted
+   * across reload so a mid-migration crash resumes the modal in "Resuming
+   * migration" mode. `null` = no migration has ever started OR last migration
+   * completed and was reset. The structural shape lives in `@/lib/migration`
+   * (MigrationState) — kept as an import-only type to avoid a value-import
+   * cycle between this module and `@/lib/migration` (which itself imports
+   * `useStore` from store.ts).
+   */
+  migration_state?: MigrationState | null;
 }
 
 export const initialState: PersistedState = {
@@ -92,6 +103,10 @@ export const initialState: PersistedState = {
   costs: [],
   // D-10/D-11: net-new install → dashboard fallback fires until user clicks "I understand".
   acknowledgedDisclaimer: undefined,
+  // Phase 6 D-02: net-new install → no migration ever started. Set to the
+  // initialised MigrationState shape on first `maybeStartMigration` invocation
+  // for an existing v4 user; reset to null on signout (clearUserDataSlices).
+  migration_state: null,
 };
 
 /**
