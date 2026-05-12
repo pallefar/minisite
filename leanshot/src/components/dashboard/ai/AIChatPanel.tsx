@@ -37,7 +37,10 @@ function detectDataRef(text: string): boolean {
 }
 
 export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. ALL hooks (useStore×7, useConfirm, useState×2, useRef,
+  // useEffect) run unconditionally above the `if (!u) return null;` guard.
+  const u = useStore((s) => s.user);
   const history = useStore((s) => s.aiHistory);
   const append = useStore((s) => s.appendAI);
   const updateLastAssistant = useStore((s) => s.updateLastAssistant);
@@ -61,6 +64,13 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   const [busy, setBusy] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!open) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [history, open, busy]);
+
+  if (!u) return null;
+
   const wU = u.units === 'metric' ? 'kg' : 'lb';
   const latest = weights[weights.length - 1];
   const lost = latest ? u.startWeight - latest.weight : 0;
@@ -79,11 +89,6 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   if (u.liftingLevel === 'none') suggestions.push("What's a beginner lifting routine for me?");
   suggestions.push('How do I hit my protein on tough nausea days?');
   while (suggestions.length < 3) suggestions.push('Tell me about my titration phase');
-
-  useEffect(() => {
-    if (!open) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history, open, busy]);
 
   const send = async (text: string): Promise<void> => {
     if (!text.trim() || busy) return;
