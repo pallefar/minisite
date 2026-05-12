@@ -1,9 +1,9 @@
 ---
 title: Deferred E2E SC tests — milestone-close fix queue
 created: 2026-05-12
-status: closed
-closed: 2026-05-12
-fix_target: closed — see Phase 7 Plan 07-01
+status: partial
+closed: null
+fix_target: in-progress — Phase 7 Plan 07-01 flipped all 7 fixmes but CI still fails (4 pass / 7 fail); follow-on investigation plan needed before Phase 7 entry condition is truly satisfied
 owner: TBD
 related_debug_session: leanshot/.planning/debug/resolved/e2e-smoke-auth-signup.md
 ---
@@ -63,9 +63,13 @@ This file is the single source of truth for these 7 deferrals. Linked from:
 
 When all 7 are fixed and re-enabled, set `status: closed` in the frontmatter and add a `closed: <date>` field; do NOT delete this file — it's the post-mortem for "why was CI red between Phase 6 ship and milestone close".
 
-## Closure note (2026-05-12)
+## Partial-closure note (2026-05-12)
 
-All 7 specs re-enabled via Phase 7 Plan 07-01 batch fix. Fix families applied:
+**Status: PARTIAL — markers removed, CI still red.** Phase 7 Plan 07-01 flipped all 7 `test.fixme` markers and removed the 7 DEFERRED comments. However, after 3 CI runs the e2e-smoke job still fails at `4 pass / 7 fail` with a consistent symptom: post-signin-with-seeded-`leanshot_v4` → AppShell never mounts on the prod-build CI environment. Locally (against `npm run dev`) every spec passes; the failure is preview-build / Linux-runner-specific. See `leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-01-SUMMARY.md` §"CI evidence" for the differential and 3 hypotheses.
+
+A follow-on investigation plan (likely 07-01b or a fold-in to 07-02) must add a `VITE_E2E`-gated debug seam to log `selectView`'s return value + view transitions, then root-cause whether view ever reaches `'dashboard'` on prod-build CI after a seeded signin.
+
+All 7 specs were re-enabled via Phase 7 Plan 07-01 batch fix. Fix families applied:
 
 - **Family A2 (raise budget):** #1 (cross-device-sync), #5 (offline-log-then-sync), #6 (photo-cross-device). 5s/8s timing budgets → 12s to absorb prod-build cold WebSocket handshake.
 - **Family B (raise budget 12s → 20s):** #2, #3 (migrate-resume.spec.ts Tests 1 + 2). Cold-Realtime + state-machine setup on prod build exceeded the original 12s budget.
