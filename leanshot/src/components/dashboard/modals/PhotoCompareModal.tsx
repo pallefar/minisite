@@ -6,9 +6,13 @@ import { useStore } from '@/lib/store';
 import type { Photo } from '@/types';
 
 export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
   const photos = useStore((s) => s.photos);
-  const u = useStore((s) => s.user!);
+  const u = useStore((s) => s.user);
   const [sel, setSel] = useState<number[]>([photos.length - 1, 0].filter((n) => n >= 0));
+
+  if (!u) return null;
+
   const wU = u.units === 'metric' ? 'kg' : 'lb';
 
   const toggle = (i: number): void => {
