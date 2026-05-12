@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: shipped
-stopped_at: "Phase 5 shipped to main (64 commits pushed, sha 5c3838f) — no PR (direct-to-main per ship option C)"
-last_updated: "2026-05-12T03:36:00.000Z"
-last_activity: 2026-05-12 -- Phase 05 shipped to origin/main
+status: executing
+stopped_at: Phase 5 context gathered (14 decisions locked, 11 discretion items)
+last_updated: "2026-05-12T04:53:45.443Z"
+last_activity: 2026-05-12 -- Phase 06 execution started
 progress:
   total_phases: 11
-  completed_phases: 5
-  total_plans: 33
-  completed_plans: 30
-  percent: 91
+  completed_phases: 6
+  total_plans: 38
+  completed_plans: 33
+  percent: 87
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 05 — patient-cloud-sync-slice-1-auth-injections-gap-closure
+**Current focus:** Phase 06 — patient-cloud-sync-slice-2-full-data-migration-photos
 
 ## Current Position
 
-Phase: 05 (patient-cloud-sync-slice-1-auth-injections-gap-closure) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 05
-Last activity: 2026-05-12 -- Phase 05 execution started
+Phase: 06 (patient-cloud-sync-slice-2-full-data-migration-photos) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 06
+Last activity: 2026-05-12 -- Phase 06 execution started
 
 Progress: [██████████] 100%
 

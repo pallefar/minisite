@@ -150,7 +150,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Patient turns off network, edits weight on phone + edits the same weight on laptop, comes back online → last-writer-wins resolves the conflict deterministically (newest `updated_at` wins) and a non-blocking toast surfaces "We kept your most recent edit" on the losing device
   5. All eight remaining patient-owned tables (`weights`, `meals`, `workouts`, `supplements`, `mood`, `sleep`, `symptoms`, `vials`, `settings`) carry RLS policies (`auth.uid() = user_id`) verified by a single parameterized cross-tenant test
 **Plans:** 5 plans
-- [ ] 06-01-PLAN.md — CI hardening: sync-defer.ts + format pass + Toast durationMs + Skeleton reduced-motion + MedLevelChart null-guard (Wave 1; D-12 blocking prereq)
+- [x] 06-01-PLAN.md — CI hardening: sync-defer.ts + format pass + Toast durationMs + Skeleton reduced-motion + MedLevelChart null-guard (Wave 1; D-12 blocking prereq)
 - [ ] 06-02-PLAN.md — leanshot_v4 → cloud migration + 90-day backup + MigrationModal/EntityRow + 12-scenario test matrix (Wave 2; SYNC-02, SYNC-03)
 - [ ] 06-03-PLAN.md — 9 new SQL tables (weights/meals/workouts/supplements/mood/sleep/symptoms/vials/settings) + sync.ts per-table extension + parameterized cross-tenant RLS (Wave 2; SYNC-02)
 - [ ] 06-04-PLAN.md — public.photos + Storage bucket + photo-queue.ts (idb) + photo-compress.ts + signed-url-cache.ts + BodyTab signed-URL grid + eager base64 migration (Wave 3; SYNC-04, SYNC-06)
