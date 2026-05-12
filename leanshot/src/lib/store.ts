@@ -117,20 +117,32 @@ interface Actions {
   removeInjection: (idx: number) => void;
 
   addSymptom: (s: SymptomLog) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing symptom by symptom_id; enqueues cloud upsert. */
+  editSymptom: (symptomId: string, updates: Partial<Omit<SymptomLog, 'user_id'>>) => void;
+  /** Phase 6 06-03 SYNC-02 — remove by index; enqueues cloud delete using symptom_id. */
+  removeSymptom: (idx: number) => void;
 
   upsertWeight: (w: WeightLog) => void;
   removeWeight: (idx: number) => void;
+  /** Phase 6 06-03 SYNC-02 — add weight log with uuid + cloud enqueue (parallel to addInjection). */
+  addWeight: (w: WeightLog) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing weight by weight_id; enqueues cloud upsert. */
+  editWeight: (weightId: string, updates: Partial<Omit<WeightLog, 'user_id'>>) => void;
 
   addMeasurement: (m: Measurement) => void;
 
   addMeal: (m: Meal) => void;
   removeMeal: (idx: number) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing meal by meal_id; enqueues cloud upsert. */
+  editMeal: (mealId: string, updates: Partial<Omit<Meal, 'user_id'>>) => void;
 
   setWater: (date: string, n: number) => void;
   setFoodNoise: (date: string, n: number) => void;
 
   addWorkout: (w: Workout) => void;
   removeWorkout: (idx: number) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing workout by workout_id; enqueues cloud upsert. */
+  editWorkout: (workoutId: string, updates: Partial<Omit<Workout, 'user_id'>>) => void;
 
   setSteps: (date: string, n: number) => void;
   bulkSetSteps: (entries: Record<string, number>) => void;
@@ -138,9 +150,23 @@ interface Actions {
 
   toggleSupp: (date: string, id: string) => void;
   resetSuppsForDate: (date: string) => void;
+  /** Phase 6 06-03 SYNC-02 — alias for toggleSupp with explicit taken value (enqueues cloud upsert/delete). */
+  toggleSupplement: (date: string, name: string, taken: boolean) => void;
 
   upsertMood: (m: MoodLog) => void;
   upsertSleep: (s: SleepLog) => void;
+  /** Phase 6 06-03 SYNC-02 — add mood log with uuid + cloud enqueue. */
+  addMood: (m: MoodLog) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing mood by mood_id; enqueues cloud upsert. */
+  editMood: (moodId: string, updates: Partial<Omit<MoodLog, 'user_id'>>) => void;
+  /** Phase 6 06-03 SYNC-02 — remove mood by index; enqueues cloud delete. */
+  removeMood: (idx: number) => void;
+  /** Phase 6 06-03 SYNC-02 — add sleep log with uuid + cloud enqueue. */
+  addSleep: (s: SleepLog) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing sleep by sleep_id; enqueues cloud upsert. */
+  editSleep: (sleepId: string, updates: Partial<Omit<SleepLog, 'user_id'>>) => void;
+  /** Phase 6 06-03 SYNC-02 — remove sleep by index; enqueues cloud delete. */
+  removeSleep: (idx: number) => void;
 
   addNSV: (text: string, date: string) => void;
   removeNSV: (idx: number) => void;
@@ -151,6 +177,8 @@ interface Actions {
   addVial: (v: Vial) => void;
   useVialDose: (idx: number) => void;
   removeVial: (idx: number) => void;
+  /** Phase 6 06-03 SYNC-02 — edit existing vial by vial_id; enqueues cloud upsert. */
+  editVial: (vialId: string, updates: Partial<Omit<Vial, 'user_id'>>) => void;
 
   addCost: (c: Cost) => void;
   removeCost: (idx: number) => void;
@@ -172,17 +200,79 @@ interface Actions {
   signOut: () => Promise<void>;
   enqueueOp: (op: PendingOp) => void;
   /**
-   * Remove pendingOps entries whose `key` is in the supplied list AND
-   * `table === 'injections'`. Called by `flushSyncQueue` (sync.ts) after a
-   * successful upsert/delete batch.
+   * Remove pendingOps entries whose `key` is in the supplied list.
+   *
+   * Phase 5 contract: when called without `table`, scope to `table === 'injections'`
+   * (back-compat — the only Phase 5 caller is flushSyncQueue's injections branch).
+   *
+   * Phase 6 06-03 extension: when `table` is provided, scope to
+   * `table === <table> AND key in keys`. The per-table flushTableOps helper
+   * passes `table` so cross-table key collisions never cause spurious drops.
    */
-  dropOps: (keys: string[]) => void;
+  dropOps: (keys: string[], table?: string) => void;
   /** D-13: cloud sync is permitted only when verified AND online. */
   isSyncEnabled: () => boolean;
   /** Phase 5 D-08 — LWW merge: server rows overwrite local on log_id conflict iff server.updated_at > local.updated_at. */
   mergeServerInjections: (serverRows: Injection[]) => void;
   /** Phase 5 D-08 / D-10 — handle Realtime postgres_changes payload (INSERT/UPDATE/DELETE). */
   applyRealtimePayload: (payload: RealtimePostgresChangesPayload<Injection>) => void;
+
+  // -------------------------------------------------------------------------
+  // Phase 6 06-03 — per-entity LWW merge + Realtime payload handlers
+  // (mirror Phase 5's mergeServerInjections / applyRealtimePayload contracts).
+  // -------------------------------------------------------------------------
+  mergeServerWeights: (
+    serverRows: Array<WeightLog & { weight_id: string; updated_at?: string }>,
+  ) => void;
+  mergeServerMeals: (serverRows: Array<Meal & { meal_id: string; updated_at?: string }>) => void;
+  mergeServerWorkouts: (
+    serverRows: Array<Workout & { workout_id: string; updated_at?: string }>,
+  ) => void;
+  mergeServerMood: (serverRows: Array<MoodLog & { mood_id: string; updated_at?: string }>) => void;
+  mergeServerSleep: (
+    serverRows: Array<SleepLog & { sleep_id: string; updated_at?: string }>,
+  ) => void;
+  mergeServerSymptoms: (
+    serverRows: Array<SymptomLog & { symptom_id: string; updated_at?: string }>,
+  ) => void;
+  mergeServerVials: (serverRows: Array<Vial & { vial_id: string; updated_at?: string }>) => void;
+  mergeServerSupplements: (
+    serverRows: Array<{ date: string; supplement_name: string; taken: boolean }>,
+  ) => void;
+  mergeServerSettings: (row: { payload: Record<string, unknown> }) => void;
+  applyWeightRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<WeightLog & { weight_id: string; updated_at?: string }>,
+  ) => void;
+  applyMealRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<Meal & { meal_id: string; updated_at?: string }>,
+  ) => void;
+  applyWorkoutRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<Workout & { workout_id: string; updated_at?: string }>,
+  ) => void;
+  applyMoodRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<MoodLog & { mood_id: string; updated_at?: string }>,
+  ) => void;
+  applySleepRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<SleepLog & { sleep_id: string; updated_at?: string }>,
+  ) => void;
+  applySymptomRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<
+      SymptomLog & { symptom_id: string; updated_at?: string }
+    >,
+  ) => void;
+  applyVialRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<Vial & { vial_id: string; updated_at?: string }>,
+  ) => void;
+  applySupplementRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<{
+      date: string;
+      supplement_name: string;
+      taken: boolean;
+    }>,
+  ) => void;
+  applySettingsRealtimePayload: (
+    payload: RealtimePostgresChangesPayload<{ payload: Record<string, unknown> }>,
+  ) => void;
 
   /** D-13: hide the EmailVerificationBanner for 24h. */
   dismissVerificationBanner: () => void;
@@ -304,8 +394,35 @@ export const useStore = create<Store>()(
         }),
       dismissToast: () => set({ toast: null }),
 
-      setUser: (user) => set({ user }),
-      updateUser: (patch) => set((s) => (s.user ? { user: { ...s.user, ...patch } } : s)),
+      setUser: (user) => {
+        set({ user });
+        // Phase 6 06-03: settings singleton — every User mutation enqueues a
+        // settings upsert keyed by user_id. The actual cloud row payload is
+        // captured at flush time via state.user.
+        const uid = get().signedIn?.user?.id;
+        if (uid) {
+          get().enqueueOp({
+            table: 'settings',
+            op: 'upsert',
+            key: uid,
+            enqueuedAt: new Date().toISOString(),
+          });
+          deferFlush();
+        }
+      },
+      updateUser: (patch) => {
+        set((s) => (s.user ? { user: { ...s.user, ...patch } } : s));
+        const uid = get().signedIn?.user?.id;
+        if (uid) {
+          get().enqueueOp({
+            table: 'settings',
+            op: 'upsert',
+            key: uid,
+            enqueuedAt: new Date().toISOString(),
+          });
+          deferFlush();
+        }
+      },
       acknowledgeDisclaimer: (version) => set({ acknowledgedDisclaimer: version }),
       resetAll: () => {
         try {
@@ -385,7 +502,54 @@ export const useStore = create<Store>()(
         deferFlush();
       },
 
-      addSymptom: (sx) => set((s) => ({ symptoms: [sx, ...s.symptoms] })),
+      addSymptom: (sx) => {
+        // Phase 6 06-03: stamp symptom_id (composite PK on public.symptoms)
+        // so the cloud upsert can identify this row across local-only logging
+        // and Realtime fanout. Caller may pass an existing symptom_id (e.g.
+        // from a server pull); we preserve it.
+        const sxWithId = sx as SymptomLog & { symptom_id?: string };
+        const symptom_id = sxWithId.symptom_id ?? crypto.randomUUID();
+        const stamped: SymptomLog & { symptom_id: string } = { ...sx, symptom_id };
+        set((s) => ({ symptoms: [stamped as never, ...s.symptoms] }));
+        get().enqueueOp({
+          table: 'symptoms',
+          op: 'upsert',
+          key: symptom_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editSymptom: (symptomId, updates) => {
+        set((s) => ({
+          symptoms: s.symptoms.map((sx) =>
+            (sx as SymptomLog & { symptom_id?: string }).symptom_id === symptomId
+              ? ({ ...sx, ...updates } as SymptomLog)
+              : sx,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'symptoms',
+          op: 'upsert',
+          key: symptomId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      removeSymptom: (idx) => {
+        const target = useStore.getState().symptoms[idx] as
+          | (SymptomLog & { symptom_id?: string })
+          | undefined;
+        const symptomId = target?.symptom_id;
+        set((s) => ({ symptoms: s.symptoms.filter((_, i) => i !== idx) }));
+        if (!symptomId) return;
+        get().enqueueOp({
+          table: 'symptoms',
+          op: 'delete',
+          key: symptomId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       upsertWeight: (w) =>
         set((s) => {
@@ -396,19 +560,144 @@ export const useStore = create<Store>()(
           next.sort((a, b) => a.date.localeCompare(b.date));
           return { weights: next };
         }),
-      removeWeight: (idx) => set((s) => ({ weights: s.weights.filter((_, i) => i !== idx) })),
+      removeWeight: (idx) => {
+        const target = useStore.getState().weights[idx] as
+          | (WeightLog & { weight_id?: string })
+          | undefined;
+        const weightId = target?.weight_id;
+        set((s) => ({ weights: s.weights.filter((_, i) => i !== idx) }));
+        if (!weightId) return;
+        get().enqueueOp({
+          table: 'weights',
+          op: 'delete',
+          key: weightId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      addWeight: (w) => {
+        const wWithId = w as WeightLog & { weight_id?: string };
+        const weight_id = wWithId.weight_id ?? crypto.randomUUID();
+        const stamped: WeightLog & { weight_id: string } = { ...w, weight_id };
+        set((s) => ({ weights: [...s.weights, stamped as never] }));
+        get().enqueueOp({
+          table: 'weights',
+          op: 'upsert',
+          key: weight_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editWeight: (weightId, updates) => {
+        set((s) => ({
+          weights: s.weights.map((w) =>
+            (w as WeightLog & { weight_id?: string }).weight_id === weightId
+              ? ({ ...w, ...updates } as WeightLog)
+              : w,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'weights',
+          op: 'upsert',
+          key: weightId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       addMeasurement: (m) => set((s) => ({ measurements: [m, ...s.measurements] })),
 
-      addMeal: (m) => set((s) => ({ meals: [...s.meals, m] })),
-      removeMeal: (idx) => set((s) => ({ meals: s.meals.filter((_, i) => i !== idx) })),
+      addMeal: (m) => {
+        const mWithId = m as Meal & { meal_id?: string };
+        const meal_id = mWithId.meal_id ?? crypto.randomUUID();
+        const stamped: Meal & { meal_id: string } = { ...m, meal_id };
+        set((s) => ({ meals: [...s.meals, stamped as never] }));
+        get().enqueueOp({
+          table: 'meals',
+          op: 'upsert',
+          key: meal_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      removeMeal: (idx) => {
+        const target = useStore.getState().meals[idx] as (Meal & { meal_id?: string }) | undefined;
+        const mealId = target?.meal_id;
+        set((s) => ({ meals: s.meals.filter((_, i) => i !== idx) }));
+        if (!mealId) return;
+        get().enqueueOp({
+          table: 'meals',
+          op: 'delete',
+          key: mealId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editMeal: (mealId, updates) => {
+        set((s) => ({
+          meals: s.meals.map((m) =>
+            (m as Meal & { meal_id?: string }).meal_id === mealId
+              ? ({ ...m, ...updates } as Meal)
+              : m,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'meals',
+          op: 'upsert',
+          key: mealId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       setWater: (date, n) =>
         set((s) => ({ water: { ...s.water, [date]: s.water[date] === n ? n - 1 : n } })),
       setFoodNoise: (date, n) => set((s) => ({ foodNoise: { ...s.foodNoise, [date]: n } })),
 
-      addWorkout: (w) => set((s) => ({ workouts: [w, ...s.workouts] })),
-      removeWorkout: (idx) => set((s) => ({ workouts: s.workouts.filter((_, i) => i !== idx) })),
+      addWorkout: (w) => {
+        const wWithId = w as Workout & { workout_id?: string };
+        const workout_id = wWithId.workout_id ?? crypto.randomUUID();
+        const stamped: Workout & { workout_id: string } = { ...w, workout_id };
+        set((s) => ({ workouts: [stamped as never, ...s.workouts] }));
+        get().enqueueOp({
+          table: 'workouts',
+          op: 'upsert',
+          key: workout_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      removeWorkout: (idx) => {
+        const target = useStore.getState().workouts[idx] as
+          | (Workout & { workout_id?: string })
+          | undefined;
+        const workoutId = target?.workout_id;
+        set((s) => ({ workouts: s.workouts.filter((_, i) => i !== idx) }));
+        if (!workoutId) return;
+        get().enqueueOp({
+          table: 'workouts',
+          op: 'delete',
+          key: workoutId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editWorkout: (workoutId, updates) => {
+        set((s) => ({
+          workouts: s.workouts.map((w) =>
+            (w as Workout & { workout_id?: string }).workout_id === workoutId
+              ? ({ ...w, ...updates } as Workout)
+              : w,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'workouts',
+          op: 'upsert',
+          key: workoutId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       setSteps: (date, n) => set((s) => ({ steps: { ...s.steps, [date]: n } })),
       bulkSetSteps: (entries) => set((s) => ({ steps: { ...s.steps, ...entries } })),
@@ -421,14 +710,42 @@ export const useStore = create<Store>()(
           return { weights: next };
         }),
 
-      toggleSupp: (date, id) =>
+      toggleSupp: (date, id) => {
+        // Phase 6 06-03: toggle local state + enqueue cloud op. The cloud
+        // row IS the natural key (user_id, date, supplement_name); the
+        // sync.ts handler converts taken=true → upsert, taken=false → delete.
+        let nextTaken = false;
+        set((s) => {
+          const day = s.supplements[date] ?? {};
+          nextTaken = !day[id];
+          return {
+            supplements: { ...s.supplements, [date]: { ...day, [id]: nextTaken } },
+          };
+        });
+        get().enqueueOp({
+          table: 'supplements',
+          op: nextTaken ? 'upsert' : 'delete',
+          key: `${date}:${id}`,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      resetSuppsForDate: (date) => set((s) => ({ supplements: { ...s.supplements, [date]: {} } })),
+      toggleSupplement: (date, name, taken) => {
         set((s) => {
           const day = s.supplements[date] ?? {};
           return {
-            supplements: { ...s.supplements, [date]: { ...day, [id]: !day[id] } },
+            supplements: { ...s.supplements, [date]: { ...day, [name]: taken } },
           };
-        }),
-      resetSuppsForDate: (date) => set((s) => ({ supplements: { ...s.supplements, [date]: {} } })),
+        });
+        get().enqueueOp({
+          table: 'supplements',
+          op: taken ? 'upsert' : 'delete',
+          key: `${date}:${name}`,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       upsertMood: (m) =>
         set((s) => {
@@ -446,6 +763,94 @@ export const useStore = create<Store>()(
           else next.push(sl);
           return { sleep: next };
         }),
+      addMood: (m) => {
+        const mWithId = m as MoodLog & { mood_id?: string };
+        const mood_id = mWithId.mood_id ?? crypto.randomUUID();
+        const stamped: MoodLog & { mood_id: string } = { ...m, mood_id };
+        set((s) => ({ mood: [...s.mood, stamped as never] }));
+        get().enqueueOp({
+          table: 'mood',
+          op: 'upsert',
+          key: mood_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editMood: (moodId, updates) => {
+        set((s) => ({
+          mood: s.mood.map((m) =>
+            (m as MoodLog & { mood_id?: string }).mood_id === moodId
+              ? ({ ...m, ...updates } as MoodLog)
+              : m,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'mood',
+          op: 'upsert',
+          key: moodId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      removeMood: (idx) => {
+        const target = useStore.getState().mood[idx] as
+          | (MoodLog & { mood_id?: string })
+          | undefined;
+        const moodId = target?.mood_id;
+        set((s) => ({ mood: s.mood.filter((_, i) => i !== idx) }));
+        if (!moodId) return;
+        get().enqueueOp({
+          table: 'mood',
+          op: 'delete',
+          key: moodId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      addSleep: (sl) => {
+        const sWithId = sl as SleepLog & { sleep_id?: string };
+        const sleep_id = sWithId.sleep_id ?? crypto.randomUUID();
+        const stamped: SleepLog & { sleep_id: string } = { ...sl, sleep_id };
+        set((s) => ({ sleep: [...s.sleep, stamped as never] }));
+        get().enqueueOp({
+          table: 'sleep',
+          op: 'upsert',
+          key: sleep_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editSleep: (sleepId, updates) => {
+        set((s) => ({
+          sleep: s.sleep.map((sl) =>
+            (sl as SleepLog & { sleep_id?: string }).sleep_id === sleepId
+              ? ({ ...sl, ...updates } as SleepLog)
+              : sl,
+          ),
+        }));
+        get().enqueueOp({
+          table: 'sleep',
+          op: 'upsert',
+          key: sleepId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      removeSleep: (idx) => {
+        const target = useStore.getState().sleep[idx] as
+          | (SleepLog & { sleep_id?: string })
+          | undefined;
+        const sleepId = target?.sleep_id;
+        set((s) => ({ sleep: s.sleep.filter((_, i) => i !== idx) }));
+        if (!sleepId) return;
+        get().enqueueOp({
+          table: 'sleep',
+          op: 'delete',
+          key: sleepId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       addNSV: (text, date) => set((s) => ({ nsvs: [{ text, date }, ...s.nsvs] })),
       removeNSV: (idx) => set((s) => ({ nsvs: s.nsvs.filter((_, i) => i !== idx) })),
@@ -453,14 +858,67 @@ export const useStore = create<Store>()(
       addPhoto: (p) => set((s) => ({ photos: [p, ...s.photos] })),
       removePhoto: (idx) => set((s) => ({ photos: s.photos.filter((_, i) => i !== idx) })),
 
-      addVial: (v) => set((s) => ({ vials: [...s.vials, v] })),
-      useVialDose: (idx) =>
-        set((s) => ({
-          vials: s.vials.map((v, i) =>
+      addVial: (v) => {
+        const vWithId = v as Vial & { vial_id?: string };
+        const vial_id = vWithId.vial_id ?? crypto.randomUUID();
+        const stamped: Vial & { vial_id: string } = { ...v, vial_id };
+        set((s) => ({ vials: [...s.vials, stamped as never] }));
+        get().enqueueOp({
+          table: 'vials',
+          op: 'upsert',
+          key: vial_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      useVialDose: (idx) => {
+        let vialId: string | undefined;
+        set((s) => {
+          const next = s.vials.map((v, i) =>
             i === idx && v.dosesUsed < v.dosesPerVial ? { ...v, dosesUsed: v.dosesUsed + 1 } : v,
+          );
+          vialId = (next[idx] as (Vial & { vial_id?: string }) | undefined)?.vial_id;
+          return { vials: next };
+        });
+        if (vialId) {
+          get().enqueueOp({
+            table: 'vials',
+            op: 'upsert',
+            key: vialId,
+            enqueuedAt: new Date().toISOString(),
+          });
+          deferFlush();
+        }
+      },
+      removeVial: (idx) => {
+        const target = useStore.getState().vials[idx] as (Vial & { vial_id?: string }) | undefined;
+        const vialId = target?.vial_id;
+        set((s) => ({ vials: s.vials.filter((_, i) => i !== idx) }));
+        if (!vialId) return;
+        get().enqueueOp({
+          table: 'vials',
+          op: 'delete',
+          key: vialId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      editVial: (vialId, updates) => {
+        set((s) => ({
+          vials: s.vials.map((v) =>
+            (v as Vial & { vial_id?: string }).vial_id === vialId
+              ? ({ ...v, ...updates } as Vial)
+              : v,
           ),
-        })),
-      removeVial: (idx) => set((s) => ({ vials: s.vials.filter((_, i) => i !== idx) })),
+        }));
+        get().enqueueOp({
+          table: 'vials',
+          op: 'upsert',
+          key: vialId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       addCost: (c) => set((s) => ({ costs: [c, ...s.costs] })),
       removeCost: (idx) => set((s) => ({ costs: s.costs.filter((_, i) => i !== idx) })),
@@ -555,12 +1013,19 @@ export const useStore = create<Store>()(
           return { pendingOps: [...(s.pendingOps ?? []), op] };
         }),
 
-      dropOps: (keys) =>
-        set((s) => ({
-          pendingOps: (s.pendingOps ?? []).filter(
-            (p) => !(p.table === 'injections' && keys.includes(p.key)),
-          ),
-        })),
+      dropOps: (keys, table) =>
+        set((s) => {
+          // Phase 5 back-compat: when `table` is omitted, scope to
+          // injections (the only Phase 5 caller is flushSyncQueue's injections
+          // branch). Phase 6 06-03 callers pass an explicit `table` so
+          // cross-table key collisions can never cause spurious drops.
+          const scopeTable = table ?? 'injections';
+          return {
+            pendingOps: (s.pendingOps ?? []).filter(
+              (p) => !(p.table === scopeTable && keys.includes(p.key)),
+            ),
+          };
+        }),
 
       /**
        * D-13: cloud sync is gated. Local logging continues regardless.
@@ -634,6 +1099,392 @@ export const useStore = create<Store>()(
             return {
               injections: s.injections.filter((i) => i.log_id !== oldRow.log_id),
             };
+          }
+          return {};
+        }),
+
+      // -----------------------------------------------------------------
+      // Phase 6 06-03 — per-entity merge + Realtime reducers. Each mirrors
+      // the Phase 5 injections LWW contract: a Map keyed by the entity's
+      // PK column; server wins iff local is missing OR local.updated_at is
+      // absent OR remote.updated_at > local.updated_at.
+      // -----------------------------------------------------------------
+
+      mergeServerWeights: (serverRows) =>
+        set((s) => {
+          type Row = WeightLog & { weight_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.weights as Row[]) {
+            if (local.weight_id) map.set(local.weight_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.weight_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.weight_id, remote);
+            }
+          }
+          return { weights: Array.from(map.values()) as never };
+        }),
+      mergeServerMeals: (serverRows) =>
+        set((s) => {
+          type Row = Meal & { meal_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.meals as Row[]) {
+            if (local.meal_id) map.set(local.meal_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.meal_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.meal_id, remote);
+            }
+          }
+          return { meals: Array.from(map.values()) as never };
+        }),
+      mergeServerWorkouts: (serverRows) =>
+        set((s) => {
+          type Row = Workout & { workout_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.workouts as Row[]) {
+            if (local.workout_id) map.set(local.workout_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.workout_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.workout_id, remote);
+            }
+          }
+          return { workouts: Array.from(map.values()) as never };
+        }),
+      mergeServerMood: (serverRows) =>
+        set((s) => {
+          type Row = MoodLog & { mood_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.mood as Row[]) {
+            if (local.mood_id) map.set(local.mood_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.mood_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.mood_id, remote);
+            }
+          }
+          return { mood: Array.from(map.values()) as never };
+        }),
+      mergeServerSleep: (serverRows) =>
+        set((s) => {
+          type Row = SleepLog & { sleep_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.sleep as Row[]) {
+            if (local.sleep_id) map.set(local.sleep_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.sleep_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.sleep_id, remote);
+            }
+          }
+          return { sleep: Array.from(map.values()) as never };
+        }),
+      mergeServerSymptoms: (serverRows) =>
+        set((s) => {
+          type Row = SymptomLog & { symptom_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.symptoms as Row[]) {
+            if (local.symptom_id) map.set(local.symptom_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.symptom_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.symptom_id, remote);
+            }
+          }
+          return { symptoms: Array.from(map.values()) as never };
+        }),
+      mergeServerVials: (serverRows) =>
+        set((s) => {
+          type Row = Vial & { vial_id: string; updated_at?: string };
+          const map = new Map<string, Row>();
+          for (const local of s.vials as Row[]) {
+            if (local.vial_id) map.set(local.vial_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.vial_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.vial_id, remote);
+            }
+          }
+          return { vials: Array.from(map.values()) as never };
+        }),
+      mergeServerSupplements: (serverRows) =>
+        set((s) => {
+          const next: Record<string, Record<string, boolean>> = { ...s.supplements };
+          for (const row of serverRows) {
+            if (!next[row.date]) next[row.date] = {};
+            next[row.date]![row.supplement_name] = row.taken;
+          }
+          return { supplements: next };
+        }),
+      mergeServerSettings: (row) =>
+        set((s) => {
+          // Settings is server-authoritative when no local user exists; otherwise
+          // shallow-merge into current user (LWW via server's updated_at would
+          // require comparing against a local lastSyncedAt — Phase 6 ships
+          // "newest write wins" for the singleton via overwrite).
+          if (!s.user) {
+            return { user: row.payload as never };
+          }
+          return { user: { ...s.user, ...(row.payload as Partial<User>) } };
+        }),
+
+      applyWeightRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = WeightLog & { weight_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.weights as Row[]).findIndex((w) => w.weight_id === remote.weight_id);
+            if (idx === -1) return { weights: [...s.weights, remote as never] };
+            const local = (s.weights as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.weights as Row[])];
+              next[idx] = remote;
+              return { weights: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { weight_id?: string };
+            if (!oldRow.weight_id) return {};
+            return {
+              weights: (s.weights as Row[]).filter(
+                (w) => w.weight_id !== oldRow.weight_id,
+              ) as never,
+            };
+          }
+          return {};
+        }),
+      applyMealRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = Meal & { meal_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.meals as Row[]).findIndex((m) => m.meal_id === remote.meal_id);
+            if (idx === -1) return { meals: [...s.meals, remote as never] };
+            const local = (s.meals as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.meals as Row[])];
+              next[idx] = remote;
+              return { meals: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { meal_id?: string };
+            if (!oldRow.meal_id) return {};
+            return {
+              meals: (s.meals as Row[]).filter((m) => m.meal_id !== oldRow.meal_id) as never,
+            };
+          }
+          return {};
+        }),
+      applyWorkoutRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = Workout & { workout_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.workouts as Row[]).findIndex((w) => w.workout_id === remote.workout_id);
+            if (idx === -1) return { workouts: [...s.workouts, remote as never] };
+            const local = (s.workouts as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.workouts as Row[])];
+              next[idx] = remote;
+              return { workouts: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { workout_id?: string };
+            if (!oldRow.workout_id) return {};
+            return {
+              workouts: (s.workouts as Row[]).filter(
+                (w) => w.workout_id !== oldRow.workout_id,
+              ) as never,
+            };
+          }
+          return {};
+        }),
+      applyMoodRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = MoodLog & { mood_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.mood as Row[]).findIndex((m) => m.mood_id === remote.mood_id);
+            if (idx === -1) return { mood: [...s.mood, remote as never] };
+            const local = (s.mood as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.mood as Row[])];
+              next[idx] = remote;
+              return { mood: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { mood_id?: string };
+            if (!oldRow.mood_id) return {};
+            return { mood: (s.mood as Row[]).filter((m) => m.mood_id !== oldRow.mood_id) as never };
+          }
+          return {};
+        }),
+      applySleepRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = SleepLog & { sleep_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.sleep as Row[]).findIndex((sl) => sl.sleep_id === remote.sleep_id);
+            if (idx === -1) return { sleep: [...s.sleep, remote as never] };
+            const local = (s.sleep as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.sleep as Row[])];
+              next[idx] = remote;
+              return { sleep: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { sleep_id?: string };
+            if (!oldRow.sleep_id) return {};
+            return {
+              sleep: (s.sleep as Row[]).filter((sl) => sl.sleep_id !== oldRow.sleep_id) as never,
+            };
+          }
+          return {};
+        }),
+      applySymptomRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = SymptomLog & { symptom_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.symptoms as Row[]).findIndex(
+              (sx) => sx.symptom_id === remote.symptom_id,
+            );
+            if (idx === -1) return { symptoms: [...s.symptoms, remote as never] };
+            const local = (s.symptoms as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.symptoms as Row[])];
+              next[idx] = remote;
+              return { symptoms: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { symptom_id?: string };
+            if (!oldRow.symptom_id) return {};
+            return {
+              symptoms: (s.symptoms as Row[]).filter(
+                (sx) => sx.symptom_id !== oldRow.symptom_id,
+              ) as never,
+            };
+          }
+          return {};
+        }),
+      applyVialRealtimePayload: (payload) =>
+        set((s) => {
+          type Row = Vial & { vial_id: string; updated_at?: string };
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Row;
+            const idx = (s.vials as Row[]).findIndex((v) => v.vial_id === remote.vial_id);
+            if (idx === -1) return { vials: [...s.vials, remote as never] };
+            const local = (s.vials as Row[])[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...(s.vials as Row[])];
+              next[idx] = remote;
+              return { vials: next as never };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { vial_id?: string };
+            if (!oldRow.vial_id) return {};
+            return {
+              vials: (s.vials as Row[]).filter((v) => v.vial_id !== oldRow.vial_id) as never,
+            };
+          }
+          return {};
+        }),
+      applySupplementRealtimePayload: (payload) =>
+        set((s) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const row = payload.new as { date?: string; supplement_name?: string; taken?: boolean };
+            if (!row.date || !row.supplement_name) return {};
+            const next = { ...s.supplements };
+            if (!next[row.date]) next[row.date] = {};
+            next[row.date]![row.supplement_name] = row.taken !== false;
+            return { supplements: next };
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { date?: string; supplement_name?: string };
+            if (!oldRow.date || !oldRow.supplement_name) return {};
+            const day = { ...(s.supplements[oldRow.date] ?? {}) };
+            delete day[oldRow.supplement_name];
+            return { supplements: { ...s.supplements, [oldRow.date]: day } };
+          }
+          return {};
+        }),
+      applySettingsRealtimePayload: (payload) =>
+        set((s) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const row = payload.new as { payload?: Record<string, unknown> };
+            if (!row.payload) return {};
+            if (!s.user) return { user: row.payload as never };
+            return { user: { ...s.user, ...(row.payload as Partial<User>) } };
           }
           return {};
         }),

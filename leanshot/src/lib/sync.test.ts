@@ -404,3 +404,251 @@ describe('subscribeToTable<T> generic helper', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-03 — per-table subscribe helpers (channel-name + filter format).
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 — per-table subscribe helpers', () => {
+  const helpers: Array<[string, (uid: string) => void | unknown]> = [];
+
+  beforeEach(async () => {
+    helpers.length = 0;
+    const sync = await import('./sync');
+    helpers.push(['weights', sync.subscribeWeights]);
+    helpers.push(['meals', sync.subscribeMeals]);
+    helpers.push(['workouts', sync.subscribeWorkouts]);
+    helpers.push(['supplements', sync.subscribeSupplements]);
+    helpers.push(['mood', sync.subscribeMood]);
+    helpers.push(['sleep', sync.subscribeSleep]);
+    helpers.push(['symptoms', sync.subscribeSymptoms]);
+    helpers.push(['vials', sync.subscribeVials]);
+    helpers.push(['settings', sync.subscribeSettings]);
+  });
+
+  it.each([
+    ['weights'],
+    ['meals'],
+    ['workouts'],
+    ['supplements'],
+    ['mood'],
+    ['sleep'],
+    ['symptoms'],
+    ['vials'],
+    ['settings'],
+  ])('subscribe%s creates a "$table:<uid>" channel with string user_id filter', async (table) => {
+    wireChannelSubscribe();
+    const sync = await import('./sync');
+    const fnName =
+      `subscribe${table.charAt(0).toUpperCase()}${table.slice(1)}` as keyof typeof sync;
+    const fn = sync[fnName] as (uid: string) => void;
+    fn('u1');
+    expect(mockChannel).toHaveBeenCalledWith(`${table}:u1`);
+    const args = mockChannelOn.mock.calls[0]!;
+    expect(args[0]).toBe('postgres_changes');
+    expect(args[1]).toEqual(
+      expect.objectContaining({
+        event: '*',
+        schema: 'public',
+        table,
+        filter: 'user_id=eq.u1',
+      }),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-03 — flushSyncQueue parameterized LWW regression. The
+// "INTENTIONALLY OMITTING updated_at" contract is asserted per table.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 — flushSyncQueue per-table updated_at omission (D-08 Critical Gotcha #11)', () => {
+  const cases: Array<{
+    table: string;
+    pk: string;
+    sliceKey: string;
+    sliceRow: Record<string, unknown>;
+  }> = [
+    {
+      table: 'weights',
+      pk: 'weight_id',
+      sliceKey: 'weights',
+      sliceRow: {
+        weight_id: 'k1',
+        date: '2026-05-12',
+        weight: 80,
+        bodyFat: null,
+        ts: 1,
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+    {
+      table: 'meals',
+      pk: 'meal_id',
+      sliceKey: 'meals',
+      sliceRow: {
+        meal_id: 'k1',
+        date: '2026-05-12',
+        name: 'x',
+        calories: 100,
+        protein: 10,
+        fiber: 2,
+        hunger: null,
+        satisfaction: null,
+        ts: 1,
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+    {
+      table: 'workouts',
+      pk: 'workout_id',
+      sliceKey: 'workouts',
+      sliceRow: {
+        workout_id: 'k1',
+        date: '2026-05-12',
+        type: 'cardio',
+        name: 'jog',
+        minutes: 30,
+        rpe: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+    {
+      table: 'mood',
+      pk: 'mood_id',
+      sliceKey: 'mood',
+      sliceRow: {
+        mood_id: 'k1',
+        date: '2026-05-12',
+        mood: 4,
+        energy: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+    {
+      table: 'sleep',
+      pk: 'sleep_id',
+      sliceKey: 'sleep',
+      sliceRow: {
+        sleep_id: 'k1',
+        date: '2026-05-12',
+        hours: 7,
+        wakings: 1,
+        quality: null,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+    {
+      table: 'symptoms',
+      pk: 'symptom_id',
+      sliceKey: 'symptoms',
+      sliceRow: {
+        symptom_id: 'k1',
+        date: '2026-05-12',
+        symptom: 'h',
+        severity: 2,
+        notes: '',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+    {
+      table: 'vials',
+      pk: 'vial_id',
+      sliceKey: 'vials',
+      sliceRow: {
+        vial_id: 'k1',
+        name: 'x',
+        dosesPerVial: 4,
+        dosesUsed: 0,
+        startDate: '2026-05-12',
+        expirationDate: '2026-08-12',
+        updated_at: '2026-05-11T00:00:00Z',
+      },
+    },
+  ];
+
+  it.each(cases)(
+    'table $table — upsert payload does NOT include updated_at',
+    async ({ table, pk, sliceKey, sliceRow }) => {
+      resetMocks();
+      // Pre-seed the local slice via dynamic key on storeState. The test
+      // module's storeState is the same object the mocked useStore returns.
+      (storeState as unknown as Record<string, unknown>)[sliceKey] = [sliceRow];
+      storeState.pendingOps = [{ table, op: 'upsert', key: 'k1', enqueuedAt: 'now' }];
+      wireFromForUpsert();
+      const { flushSyncQueue } = await import('./sync');
+      await flushSyncQueue();
+      const callArgs = mockUpsert.mock.calls[0];
+      expect(callArgs).toBeDefined();
+      const rows = callArgs![0] as Array<Record<string, unknown>>;
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) {
+        expect(row).not.toHaveProperty('updated_at');
+        expect(row[pk]).toBe('k1');
+        expect(row.user_id).toBe('u1');
+      }
+    },
+  );
+
+  it('table supplements — upsert payload does NOT include updated_at', async () => {
+    resetMocks();
+    (storeState as unknown as Record<string, unknown>).supplements = {
+      '2026-05-12': { d3: true },
+    };
+    storeState.pendingOps = [
+      { table: 'supplements', op: 'upsert', key: '2026-05-12:d3', enqueuedAt: 'now' },
+    ];
+    wireFromForUpsert();
+    const { flushSyncQueue } = await import('./sync');
+    await flushSyncQueue();
+    expect(mockUpsert).toHaveBeenCalled();
+    const rows = mockUpsert.mock.calls[0]![0] as Array<Record<string, unknown>>;
+    for (const row of rows) {
+      expect(row).not.toHaveProperty('updated_at');
+      expect(row.user_id).toBe('u1');
+      expect(row.date).toBe('2026-05-12');
+      expect(row.supplement_name).toBe('d3');
+      expect(row.taken).toBe(true);
+    }
+  });
+
+  it('table settings — upsert payload does NOT include updated_at', async () => {
+    resetMocks();
+    storeState.pendingOps = [{ table: 'settings', op: 'upsert', key: 'u1', enqueuedAt: 'now' }];
+    wireFromForUpsert();
+    const { flushSyncQueue } = await import('./sync');
+    await flushSyncQueue();
+    expect(mockUpsert).toHaveBeenCalled();
+    const rows = mockUpsert.mock.calls[0]![0] as Array<Record<string, unknown>>;
+    for (const row of rows) {
+      expect(row).not.toHaveProperty('updated_at');
+      expect(row.user_id).toBe('u1');
+      expect(row).toHaveProperty('payload');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-03 — unsubscribeAll teardown semantics.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 — unsubscribeAll teardown', () => {
+  it('removes injections + every per-table channel and resets the Map', async () => {
+    wireChannelSubscribe();
+    const sync = await import('./sync');
+    sync.subscribeInjections('u1');
+    sync.subscribeWeights('u1');
+    sync.subscribeMeals('u1');
+    mockRemoveChannel.mockResolvedValue(undefined);
+    await sync.unsubscribeAll();
+    // Injections + 2 mapped tables = 3 removeChannel calls
+    expect(mockRemoveChannel).toHaveBeenCalledTimes(3);
+    // After teardown, fresh subscribe creates new channels (Map was cleared).
+    mockRemoveChannel.mockClear();
+    sync.subscribeWeights('u1');
+    expect(mockChannel).toHaveBeenCalledWith('weights:u1');
+  });
+});
