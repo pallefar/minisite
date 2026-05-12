@@ -67,58 +67,60 @@ const SEED_WEIGHT = {
 };
 
 async function seedUserAndSignIn(page: Page, email: string, password: string): Promise<void> {
-  await page.goto('/#/auth/signin');
-  await page.evaluate(
-    ({ user, key, weight }) => {
-      const blob = {
-        state: {
-          user,
-          injections: [],
-          symptoms: [],
-          weights: [weight],
-          measurements: [],
-          meals: [],
-          water: {},
-          foodNoise: {},
-          workouts: [],
-          steps: {},
-          supplements: {},
-          mood: [],
-          sleep: [],
-          nsvs: [],
-          photos: [],
-          vials: [],
-          aiHistory: [],
-          costs: [],
-          pendingOps: [],
-          acknowledgedDisclaimer: 'v1',
-          // Phase 7 07-02 fix: seed `migration_state.complete: true` so the
-          // MigrationModal does NOT render post-signin (see cross-device-sync
-          // for full rationale).
-          migration_state: {
-            startedAt: '2026-01-01T00:00:00Z',
-            complete: true,
-            snapshotKey: 'leanshot_v4_pre_cloud_backup',
-            photos: 'complete',
-            injections: 'complete',
-            weights: 'complete',
-            meals: 'complete',
-            workouts: 'complete',
-            supplements: 'complete',
-            mood: 'complete',
-            sleep: 'complete',
-            symptoms: 'complete',
-            vials: 'complete',
-            settings: 'complete',
-          },
-        },
-        version: 8,
-      };
-      localStorage.setItem(key, JSON.stringify(blob));
+  // Phase 7 RC4 — seed via addInitScript BEFORE first JS execution to avoid
+  // the cold-CI race where supabase-js's INITIAL_SESSION(null) → setSession
+  // → persist write overwrites a post-goto seed before reload. See
+  // .planning/debug/phase7-e2e-rc4-state-wipe-race.md.
+  const seedBlob = JSON.stringify({
+    state: {
+      user: SEED_USER,
+      injections: [],
+      symptoms: [],
+      weights: [SEED_WEIGHT],
+      measurements: [],
+      meals: [],
+      water: {},
+      foodNoise: {},
+      workouts: [],
+      steps: {},
+      supplements: {},
+      mood: [],
+      sleep: [],
+      nsvs: [],
+      photos: [],
+      vials: [],
+      aiHistory: [],
+      costs: [],
+      pendingOps: [],
+      acknowledgedDisclaimer: 'v1',
+      migration_state: {
+        startedAt: '2026-01-01T00:00:00Z',
+        complete: true,
+        snapshotKey: 'leanshot_v4_pre_cloud_backup',
+        photos: 'complete',
+        injections: 'complete',
+        weights: 'complete',
+        meals: 'complete',
+        workouts: 'complete',
+        supplements: 'complete',
+        mood: 'complete',
+        sleep: 'complete',
+        symptoms: 'complete',
+        vials: 'complete',
+        settings: 'complete',
+      },
     },
-    { user: SEED_USER, key: 'leanshot_v4', weight: SEED_WEIGHT },
-  );
-  await page.reload();
+    version: 8,
+  });
+  await page.addInitScript((blob: string) => {
+    try {
+      if (!localStorage.getItem('leanshot_v4')) {
+        localStorage.setItem('leanshot_v4', blob);
+      }
+    } catch {
+      /* private-mode noop */
+    }
+  }, seedBlob);
   await page.goto('/#/auth/signin');
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);

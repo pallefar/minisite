@@ -46,70 +46,71 @@ const SEED_USER = {
 };
 
 async function seedUserAndSignIn(page: Page, email: string, password: string): Promise<void> {
-  // Pre-seed the universal localStorage key so selectView returns 'dashboard'
-  // immediately after auth (no onboarding 8-step detour). The renameStorageNamespace
-  // helper on SIGNED_IN migrates it under the namespaced key automatically.
-  await page.goto('/#/auth/signin');
-  await page.evaluate(
-    ({ user, key }) => {
-      const blob = {
-        state: {
-          user,
-          injections: [],
-          symptoms: [],
-          weights: [],
-          measurements: [],
-          meals: [],
-          water: {},
-          foodNoise: {},
-          workouts: [],
-          steps: {},
-          supplements: {},
-          mood: [],
-          sleep: [],
-          nsvs: [],
-          photos: [],
-          vials: [],
-          aiHistory: [],
-          costs: [],
-          pendingOps: [],
-          acknowledgedDisclaimer: 'v1',
-          // Phase 7 07-02 fix: seed `migration_state.complete: true` so
-          // maybeStartMigration's early-exit branch (line 257 of migration.ts)
-          // fires and the MigrationModal does NOT render post-signin. Without
-          // this, post-Phase 6 the migration state machine kicks off on every
-          // first sign-in with v4 data, the "All done" modal opens with
-          // aria-modal=true, and the modal masks the AppShell nav from
-          // `getByRole('navigation')` queries — breaking seedUserAndSignIn's
-          // post-signin nav assertion. This spec is NOT testing migration
-          // (migrate-resume.spec.ts owns that contract), so marking the seed
-          // as already-migrated is semantically correct.
-          migration_state: {
-            startedAt: '2026-01-01T00:00:00Z',
-            complete: true,
-            snapshotKey: 'leanshot_v4_pre_cloud_backup',
-            photos: 'complete',
-            injections: 'complete',
-            weights: 'complete',
-            meals: 'complete',
-            workouts: 'complete',
-            supplements: 'complete',
-            mood: 'complete',
-            sleep: 'complete',
-            symptoms: 'complete',
-            vials: 'complete',
-            settings: 'complete',
-          },
-        },
-        version: 7,
-      };
-      localStorage.setItem(key, JSON.stringify(blob));
+  // Phase 7 RC4 — Pre-seed the universal localStorage key BEFORE any page JS
+  // runs by registering an addInitScript on the page's context. The legacy
+  // approach (page.goto → page.evaluate(seed) → page.reload) had a race: on
+  // cold preview CI, the dyn-imported supabase-js loaded during the page.goto
+  // wait window and fired INITIAL_SESSION(null) → setSession(null) → persist
+  // adapter write that overwrote the seed with user:null between
+  // page.evaluate and page.reload. addInitScript runs at every page nav
+  // BEFORE the SPA's main.tsx executes, so hydrate() always reads the seed.
+  // Idempotent: the "if empty" guard means we don't clobber a post-signin
+  // renamed namespaced key on subsequent reloads. See
+  // .planning/debug/phase7-e2e-rc4-state-wipe-race.md RC4 evidence.
+  const seedBlob = JSON.stringify({
+    state: {
+      user: SEED_USER,
+      injections: [],
+      symptoms: [],
+      weights: [],
+      measurements: [],
+      meals: [],
+      water: {},
+      foodNoise: {},
+      workouts: [],
+      steps: {},
+      supplements: {},
+      mood: [],
+      sleep: [],
+      nsvs: [],
+      photos: [],
+      vials: [],
+      aiHistory: [],
+      costs: [],
+      pendingOps: [],
+      acknowledgedDisclaimer: 'v1',
+      // Phase 7 07-02 fix: seed `migration_state.complete: true` so
+      // maybeStartMigration's early-exit branch fires and the MigrationModal
+      // does NOT render post-signin. This spec is NOT testing migration
+      // (migrate-resume.spec.ts owns that contract).
+      migration_state: {
+        startedAt: '2026-01-01T00:00:00Z',
+        complete: true,
+        snapshotKey: 'leanshot_v4_pre_cloud_backup',
+        photos: 'complete',
+        injections: 'complete',
+        weights: 'complete',
+        meals: 'complete',
+        workouts: 'complete',
+        supplements: 'complete',
+        mood: 'complete',
+        sleep: 'complete',
+        symptoms: 'complete',
+        vials: 'complete',
+        settings: 'complete',
+      },
     },
-    { user: SEED_USER, key: 'leanshot_v4' },
-  );
-  // Reload so the Zustand persist middleware picks up the seeded blob during
-  // synchronous hydrate() in main.tsx.
-  await page.reload();
+    version: 7,
+  });
+  await page.addInitScript((blob: string) => {
+    try {
+      if (!localStorage.getItem('leanshot_v4')) {
+        localStorage.setItem('leanshot_v4', blob);
+      }
+    } catch {
+      /* private-mode noop — non-fatal in CI */
+    }
+  }, seedBlob);
   await page.goto('/#/auth/signin');
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);

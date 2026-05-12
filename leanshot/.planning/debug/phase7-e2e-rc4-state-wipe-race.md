@@ -1,8 +1,8 @@
 ---
-status: investigating
+status: fixing
 trigger: "3/11 e2e specs (cross-device-sync, offline-conflict-toast, offline-log-then-sync) fail on cold-cache first browser.newContext() runs. Seeded state.user + acknowledgedDisclaimer wiped to null mid-signin. Retries on warm cache pass <5s every time."
 created: 2026-05-12T14:18:34Z
-updated: 2026-05-12T14:18:34Z
+updated: 2026-05-12T15:15:00Z
 ---
 
 ## Current Focus
@@ -53,7 +53,30 @@ started: "After 8800529 (RC1-RC3 fixes). RC4 unmasked because earlier failures (
 
 ## Resolution
 
-root_cause: ""
-fix: ""
-verification: ""
-files_changed: []
+root_cause: "TEST HELPER RACE — NOT a product bug. The `seedUserAndSignIn` helper in cross-device-sync.spec.ts / offline-conflict-toast.spec.ts / offline-log-then-sync.spec.ts seeds localStorage AFTER `page.goto('/#/auth/signin')` returns. On cold-cache CI, the dyn-imported `@supabase/supabase-js` chunk loads DURING the page.goto wait window AND can finish loading + fire `INITIAL_SESSION(null)` BETWEEN `page.evaluate(seed-write)` and `page.reload()`. supabase-js's auth event handler in App.tsx calls `setSession(null)` which triggers a persist middleware write to `leanshot_v4` containing the CURRENT in-memory state (initialState with user:null). That write OVERWRITES the seed. Subsequent `page.reload()` reads the wiped blob → state = initialState (user:null) → selectView returns 'marketing' → no dashboard nav → test fails.
+
+Proof from CI run 25742594370:
+  - SUCCESS pageload's stateLog: lsset to `leanshot_v4` with `user: {name: 'Phase5Test', ...}` (seed survived)
+  - WIPE pageload's stateLog: lsset to `leanshot_v4` with `user: null` (seed clobbered)
+  - WIPE-path's first lsset stack trace points at setSession() — confirming the supabase-js INITIAL_SESSION handler's persist-write was the clobber source.
+  - No `kind: \"state\"` subscribe entries in either log → state never transitioned via Zustand setState within the captured window; the wipe was entirely localStorage-level (persist's write of an already-initialState state)."
+
+fix: "Test-only fix: replace the page.goto → page.evaluate → page.reload race-prone pattern with `page.addInitScript(seedBlob)` which runs BEFORE the SPA's main.tsx executes on every page navigation. The SPA's hydrate() reads the seed on first paint; persist's subsequent writes preserve user/ack (the in-memory state matches the seed). Idempotent: the 'if !localStorage.getItem(key)' guard means the script doesn't clobber a post-signin renamed namespaced key on subsequent reloads.
+
+Applied to:
+  - leanshot/e2e/cross-device-sync.spec.ts
+  - leanshot/e2e/offline-log-then-sync.spec.ts
+  - leanshot/e2e/offline-conflict-toast.spec.ts
+
+NOT applied to (other failing specs whose root cause may differ):
+  - leanshot/e2e/diagnostic-post-signin-view.spec.ts (debug-only; can be removed when RC4 resolved)
+  - leanshot/e2e/photo-cross-device.spec.ts (already passing on run 3 — same race may be tolerated by photo flow timing)
+  - leanshot/e2e/signout-cache-clear.spec.ts (different failure shape — account-menu button never findable; may be RC4-downstream OR a separate issue)"
+
+verification: "Pending CI run after the addInitScript fix lands."
+
+files_changed:
+  - leanshot/src/lib/store.ts (RC4 debug seam: Zustand subscribe + localStorage hooks, VITE_E2E-gated)
+  - leanshot/e2e/cross-device-sync.spec.ts (addInitScript seed + RC4 instrumentation + 150s test budget)
+  - leanshot/e2e/offline-log-then-sync.spec.ts (addInitScript seed)
+  - leanshot/e2e/offline-conflict-toast.spec.ts (addInitScript seed)
