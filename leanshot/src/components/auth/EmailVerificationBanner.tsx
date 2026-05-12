@@ -14,8 +14,11 @@ import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
-import { resendVerification } from '@/lib/auth';
 import { useStore } from '@/lib/store';
+// Phase 6 D-12: `resendVerification` is dynamic-imported inside the onResend
+// handler so @/lib/auth (and transitively @/lib/supabase) stay off the
+// entry chunk's static graph. AppShell mounts this banner eagerly, so a
+// static import would re-pull supabase-js back onto the bundle topology.
 
 export function EmailVerificationBanner() {
   const signedIn = useStore((s) => s.signedIn);
@@ -27,8 +30,7 @@ export function EmailVerificationBanner() {
   const user = signedIn?.user;
   const isPermanent = user && !user.is_anonymous;
   const isUnverified = isPermanent && !user.email_confirmed_at;
-  const isDismissed =
-    dismissedUntil != null && new Date(dismissedUntil).getTime() > Date.now();
+  const isDismissed = dismissedUntil != null && new Date(dismissedUntil).getTime() > Date.now();
 
   if (!isUnverified || isDismissed) return null;
 
@@ -39,6 +41,7 @@ export function EmailVerificationBanner() {
     }
     setResending(true);
     try {
+      const { resendVerification } = await import('@/lib/auth');
       const { error } = await resendVerification(user.email);
       if (error) toast(error.message, 'error');
       else toast('Verification email sent.', 'success');
@@ -53,9 +56,14 @@ export function EmailVerificationBanner() {
       aria-label="Email verification reminder"
       className="mb-5 rounded-xl border border-[var(--color-warning,#a36a00)] bg-[var(--color-warning-soft,rgba(255,189,89,0.12))] p-3.5 flex items-start gap-3"
     >
-      <AlertCircle className="size-5 shrink-0 mt-0.5 text-[var(--color-warning,#a36a00)]" aria-hidden />
+      <AlertCircle
+        className="size-5 shrink-0 mt-0.5 text-[var(--color-warning,#a36a00)]"
+        aria-hidden
+      />
       <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-semibold leading-snug">Verify your email to sync across devices</p>
+        <p className="text-[14px] font-semibold leading-snug">
+          Verify your email to sync across devices
+        </p>
         <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5 leading-snug">
           We sent a verification link to <strong>{user.email ?? 'your email'}</strong>. Until then,
           your data only lives on this device.
