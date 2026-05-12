@@ -216,3 +216,117 @@ export function migrateV6ToV7(state: PersistedState): PersistedState {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Phase 5 G2 (Plan 05-05) — per-user storage adapter.
+//
+// Closes 05-UAT.md gap G2 (T-05-03 cross-account leak). Before this adapter,
+// Zustand persist was hardcoded with `name: STORAGE_KEY` — so every write
+// after the one-shot `renameStorageNamespace` migration went BACK to the
+// universal key, defeating per-user isolation.
+//
+// Usage (src/lib/store.ts):
+//   persist((set, get) => ({...}), {
+//     name: STORAGE_KEY,                       // persist's `name` is ignored by the adapter
+//     storage: createNamespacedStorage(),      // adapter routes via module-level activeNamespaceKey
+//     ...
+//   })
+//
+// Wiring (src/App.tsx onAuthStateChange):
+//   case 'SIGNED_IN' / 'INITIAL_SESSION' (verified):
+//     await setActiveStorageUserId(session.user.id);   // MUST precede renameStorageNamespace
+//     await renameStorageNamespace(session.user.id);
+//   case 'SIGNED_OUT':
+//     const prev = useStore.getState().signedIn?.user?.id ?? null;
+//     await setActiveStorageUserId(null);
+//     if (prev) await removeUserNamespace(prev);
+// ---------------------------------------------------------------------------
+
+let activeNamespaceKey: string | null = null;
+
+/**
+ * Set the active user's namespaced key. Pass `null` to revert to the universal
+ * `STORAGE_KEY` (used on SIGNED_OUT and during pre-signin anon activity).
+ * `namespacedKey` is async (uses `crypto.subtle.digest`); the result is cached
+ * synchronously so subsequent get/setItem calls do not need to await.
+ */
+export async function setActiveStorageUserId(
+  userId: string | null,
+): Promise<void> {
+  if (userId == null) {
+    activeNamespaceKey = null;
+    return;
+  }
+  activeNamespaceKey = await namespacedKey(userId);
+}
+
+/** Test-only inspector: returns the cached namespaced key (or null). */
+export function getActiveStorageNamespace(): string | null {
+  return activeNamespaceKey;
+}
+
+/**
+ * Zustand `StateStorage` adapter that routes every read/write/delete to the
+ * active user's namespaced localStorage key (or `STORAGE_KEY` when no user is
+ * active). The `name` argument from Zustand persist is IGNORED — persist
+ * configures `name: STORAGE_KEY` only to satisfy its type contract; routing
+ * is owned by `activeNamespaceKey`.
+ *
+ * Wrapped try/catch on every operation mirrors the existing `migrateFromV3`
+ * pattern — private-mode browsers and quota errors are silent no-ops.
+ */
+export function createNamespacedStorage(): {
+  getItem: (name: string) => string | null;
+  setItem: (name: string, value: string) => void;
+  removeItem: (name: string) => void;
+} {
+  return {
+    getItem: (_name: string): string | null => {
+      const key = activeNamespaceKey ?? STORAGE_KEY;
+      try {
+        return localStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    },
+    setItem: (_name: string, value: string): void => {
+      const key = activeNamespaceKey ?? STORAGE_KEY;
+      try {
+        localStorage.setItem(key, value);
+      } catch {
+        /* private-mode / quota — silent no-op */
+      }
+    },
+    removeItem: (_name: string): void => {
+      const key = activeNamespaceKey ?? STORAGE_KEY;
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        /* noop */
+      }
+    },
+  };
+}
+
+/**
+ * Wipe a specific user's namespaced localStorage key. Called by App.tsx's
+ * SIGNED_OUT handler with the prior user's id so signed-out users leave no
+ * per-user residue (UAT G2 missing item #2).
+ */
+export async function removeUserNamespace(userId: string): Promise<void> {
+  const key = await namespacedKey(userId);
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* noop */
+  }
+}
+
+/**
+ * Test-only reset hook — clears the module-level cached namespace so unit
+ * tests can run independently. Not for production use.
+ * @internal
+ */
+export function __resetActiveNamespaceForTests(): void {
+  activeNamespaceKey = null;
+}
+
