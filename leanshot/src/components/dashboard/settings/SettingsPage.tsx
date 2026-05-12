@@ -35,6 +35,7 @@ import { todayStr, cn } from '@/lib/helpers';
 import type { PersistedState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { DeleteAccountModal } from './DeleteAccountModal';
 
 type Section =
   | 'account'
@@ -113,6 +114,12 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const [restoreBusy, setRestoreBusy] = useState(false);
+
+  // Phase 7 Plan 07-07 (D-03): Privacy → "Delete my account" typed-confirm
+  // modal. Only surfaced to permanent (non-anon) users — the
+  // initiate_account_deletion RPC requires auth.users.last_sign_in_at, which
+  // anon users don't reliably have.
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Read + parse the backup ONCE when Settings opens. Private-mode browsers
   // throw on localStorage.getItem — swallow + treat as "no backup". A parse
@@ -445,6 +452,27 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   <li>Clearing site data deletes everything LeanShot knows about you.</li>
                 </ul>
               </Card>
+
+              {/* Phase 7 Plan 07-07 (D-03): account-delete affordance. Permanent
+               * users only — the 5-minute re-auth gate inside the RPC needs a
+               * non-anon auth.users.last_sign_in_at timestamp. */}
+              {isPermanent && (
+                <div className="pt-3 border-t border-[var(--color-border)]">
+                  <h3 className="text-[14px] font-semibold mb-1">Delete my account</h3>
+                  <p className="text-[12px] text-[var(--color-text-secondary)] mb-2">
+                    30-day soft-delete. Undo via support email within the window; after that,
+                    irreversible.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    leadingIcon={<Trash2 className="size-4" />}
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    Delete my account…
+                  </Button>
+                </div>
+              )}
             </Section>
           )}
 
@@ -581,6 +609,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
+      {/* Phase 7 Plan 07-07 (D-03) — typed-confirm modal for account-delete. */}
+      <DeleteAccountModal open={deleteOpen} onClose={() => setDeleteOpen(false)} />
       {/* Phase 7 Plan 07-10 (D-05) — typed-confirmation modal for Recovery / restore-from-backup.
        *  RESEARCH §6 LWW guardrail: useStore.setState MUST run BEFORE signOut so the persist
        *  middleware writes the restored snapshot before the session is cleared. Reversing the

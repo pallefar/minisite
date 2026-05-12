@@ -13,15 +13,16 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DeleteAccountModal } from '@/components/dashboard/settings/DeleteAccountModal';
 import { AccountDeleteError } from '@/lib/account-delete';
+import type * as AccountDeleteModule from '@/lib/account-delete';
+import { useStore } from '@/lib/store';
 
 const mockInitiate = vi.fn();
 const mockToast = vi.fn();
 
 vi.mock('@/lib/account-delete', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/account-delete')>(
-    '@/lib/account-delete',
-  );
+  const actual = await vi.importActual<typeof AccountDeleteModule>('@/lib/account-delete');
   return {
     ...actual,
     initiateAccountDeletion: (...args: unknown[]) => mockInitiate(...args),
@@ -36,15 +37,19 @@ vi.mock('@/hooks/useToast', () => ({
 // rather than mocking the entire module so reactive subscriptions still work.
 const SENTINEL_EMAIL = 'user@example.com';
 
-import { useStore } from '@/lib/store';
-import { DeleteAccountModal } from '@/components/dashboard/settings/DeleteAccountModal';
-
 beforeEach(() => {
   mockInitiate.mockReset();
   mockToast.mockReset();
   useStore.setState({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    signedIn: { user: { email: SENTINEL_EMAIL } as any, verified: true },
+    signedIn: {
+      // Test sentinel — a partial SupabaseUser shape is enough for the modal,
+      // which only reads `signedIn.user.email`. Cast through unknown so the
+      // intent (we're feeding a deliberately-partial fixture) is explicit.
+      user: { email: SENTINEL_EMAIL } as unknown as NonNullable<
+        ReturnType<typeof useStore.getState>['signedIn']
+      >['user'],
+      verified: true,
+    },
   });
 });
 
