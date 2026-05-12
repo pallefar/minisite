@@ -89,9 +89,14 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole('button', { name: /^sign in$/i }).click();
-  // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI. See 07-RESEARCH.md §1 Family A.
+  // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI.
+  // Use Sidebar's <nav aria-label="Primary navigation"> as the AppShell-render
+  // signal (more reliable than getByTestId('dashboard') on cold CI). See
+  // 07-RESEARCH.md §1 Family A.
   await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
-  await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('navigation', { name: /primary navigation/i })).toBeVisible({
+    timeout: 30_000,
+  });
 }
 
 async function gotoBodyTab(page: Page): Promise<void> {
@@ -100,9 +105,12 @@ async function gotoBodyTab(page: Page): Promise<void> {
     .first()
     .click();
   // CI-cold-tab-mount-budget: raised 5s→15s for lazy BodyTab chunk fetch + mount on prod-build CI.
-  await expect(page.getByTestId('body-tab-photo-grid').or(page.locator('input[type="file"][id="photo-up"]'))).toBeVisible({
-    timeout: 15_000,
-  });
+  // Use the "Journey photos" CardHeader title as the stable BodyTab-mounted
+  // signal — `body-tab-photo-grid` only renders when photos.length > 0
+  // (fresh users have empty photos), and `input#photo-up` is `hidden`
+  // (fails Playwright's toBeVisible check). The CardHeader is always
+  // rendered for the photos card. See 07-RESEARCH.md §1 Family A.
+  await expect(page.getByText('Journey photos')).toBeVisible({ timeout: 15_000 });
 }
 
 test.describe('@phase06 SC#3 — cross-device photo via signed URL (<5s budget)', () => {

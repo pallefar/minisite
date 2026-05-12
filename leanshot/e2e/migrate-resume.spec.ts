@@ -155,8 +155,10 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     // Migration modal opens. The state machine may finish very fast in the
     // jsdom-equivalent runtime test scenarios, so accept either "Migrating
     // your data" OR "All done" as the first observable title.
-    const migrating = page.getByText('Migrating your data');
-    const allDone = page.getByText('All done');
+    // Heading-role locators (not getByText) to avoid strict-mode violation
+    // against the sr-only aria-live status announcer that mirrors the title.
+    const migrating = page.getByRole('heading', { name: 'Migrating your data' });
+    const allDone = page.getByRole('heading', { name: 'All done' });
     await expect(migrating.or(allDone)).toBeVisible({ timeout: 20_000 });
 
     // D-03 contract: a backup snapshot exists BEFORE any cloud write (the modal
@@ -171,13 +173,17 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     expect(parsed.state).toBeDefined();
 
     // Wait for completion + acknowledge.
-    await expect(page.getByText('All done')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'All done' })).toBeVisible({ timeout: 30000 });
     await page.getByRole('button', { name: /continue to dashboard/i }).click();
 
     // Reload — migration_state.complete is true so modal MUST NOT re-render.
     await page.reload();
-    await expect(page.getByText('Migrating your data')).not.toBeVisible({ timeout: 3000 });
-    await expect(page.getByText('Resuming migration')).not.toBeVisible({ timeout: 1000 });
+    await expect(page.getByRole('heading', { name: 'Migrating your data' })).not.toBeVisible({
+      timeout: 3000,
+    });
+    await expect(page.getByRole('heading', { name: 'Resuming migration' })).not.toBeVisible({
+      timeout: 1000,
+    });
   });
 
   test('Test 2: mid-migration partial state surfaces "Resuming migration"', async ({ page }) => {
@@ -217,11 +223,15 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     await seedAndSignIn(page, email, password, partial);
 
     // Resume title appears (or "All done" if drain is near-instant).
-    const resuming = page.getByText('Resuming migration');
-    const allDone = page.getByText('All done');
+    // Use heading-role locators to avoid strict-mode violations: the modal
+    // renders both a <h2> heading AND a <span role="status" sr-only>
+    // a11y announcer with the same text — getByText would match both and
+    // fail strict-mode.
+    const resuming = page.getByRole('heading', { name: 'Resuming migration' });
+    const allDone = page.getByRole('heading', { name: 'All done' });
     await expect(resuming.or(allDone)).toBeVisible({ timeout: 20_000 });
 
     // Eventually completes.
-    await expect(page.getByText('All done')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: 'All done' })).toBeVisible({ timeout: 30000 });
   });
 });

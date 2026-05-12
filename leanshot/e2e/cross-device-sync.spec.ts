@@ -93,11 +93,17 @@ async function seedUserAndSignIn(
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole('button', { name: /^sign in$/i }).click();
   // Land on dashboard (post-auth).
-  // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI
-  // (signInWithPassword roundtrip → onAuthStateChange dispatch → renameStorageNamespace
-  // → hashchange → React render → AppShell mount). See 07-RESEARCH.md §1 Family A.
+  // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI.
+  // Switched the post-signin signal from `getByTestId('dashboard')` to
+  // `getByRole('navigation', { name: /primary navigation/i })` because the
+  // dashboard testid was sometimes not findable on CI even after the URL
+  // transition — the Sidebar's <nav aria-label="Primary navigation"> is a
+  // more reliable AppShell-rendered anchor (Sidebar mounts unconditionally
+  // inside AppShell). See 07-RESEARCH.md §1 Family A.
   await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
-  await expect(page.getByTestId('dashboard')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('navigation', { name: /primary navigation/i })).toBeVisible({
+    timeout: 30_000,
+  });
 }
 
 async function gotoMedicationTab(page: Page): Promise<void> {
