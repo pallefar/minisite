@@ -10,6 +10,8 @@
  *   5. PDF cover + autoTable section count + no addImage.
  *   6. PDF photo summary text format (with photos + empty array).
  */
+import type { jsPDF } from 'jspdf';
+import type autoTableFn from 'jspdf-autotable';
 import { describe, expect, it, vi } from 'vitest';
 import {
   EXPORT_WHITELIST_KEYS,
@@ -145,7 +147,7 @@ describe('buildPdfDoc', () => {
     function Ctor() {
       return doc;
     }
-    return { Ctor: Ctor as unknown as typeof import('jspdf').jsPDF, doc, calls };
+    return { Ctor: Ctor as unknown as typeof jsPDF, doc, calls };
   }
 
   it('cover page renders title + email + export date; autoTable called for at least 5 entity tables; addImage NEVER called', () => {
@@ -167,7 +169,7 @@ describe('buildPdfDoc', () => {
       { window: '13mo', inserts: 5, updates: 1, deletes: 0, initiated_count: 0, finalized_count: 0 },
     );
 
-    buildPdfDoc(Ctor, autoTable as unknown as typeof import('jspdf-autotable').default, payload);
+    buildPdfDoc(Ctor, autoTable as unknown as typeof autoTableFn, payload);
 
     // Title text appeared on cover.
     const titleCalls = calls.filter((c) => c.method === 'text' && c.args[0] === 'LeanShot Health Export');
@@ -203,7 +205,7 @@ describe('buildPdfDoc', () => {
       null,
       null,
     );
-    buildPdfDoc(CtorA, autoTableA as unknown as typeof import('jspdf-autotable').default, payloadA);
+    buildPdfDoc(CtorA, autoTableA as unknown as typeof autoTableFn, payloadA);
     const photoLines = callsA
       .filter((c) => c.method === 'text' && typeof c.args[0] === 'string')
       .map((c) => c.args[0] as string);
@@ -219,7 +221,7 @@ describe('buildPdfDoc', () => {
     const { Ctor: CtorB, calls: callsB } = makeJsPDFMock();
     const autoTableB = vi.fn();
     const payloadB = buildJsonExport(makeState({ photos: [] }), null, null);
-    buildPdfDoc(CtorB, autoTableB as unknown as typeof import('jspdf-autotable').default, payloadB);
+    buildPdfDoc(CtorB, autoTableB as unknown as typeof autoTableFn, payloadB);
     const allTextB = callsB
       .filter((c) => c.method === 'text' && typeof c.args[0] === 'string')
       .map((c) => c.args[0] as string);

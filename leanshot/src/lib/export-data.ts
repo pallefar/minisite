@@ -20,14 +20,13 @@
  * only. `buildPdfDoc` never calls `doc.addImage(...)`.
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { PersistedState } from '@/lib/storage';
-
 // NOTE: NO value-import of jspdf or jspdf-autotable at the top level. The
 // click handler in SettingsPage.tsx dynamic-imports them and passes them in.
 // `import type` is fine (erased at compile time).
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { jsPDF as JsPDFType } from 'jspdf';
 import type autoTableFn from 'jspdf-autotable';
+import type { PersistedState } from '@/lib/storage';
 
 // The 22 keys from src/lib/store.ts:1865-1892 partialize allow-list. Kept
 // as a `const` array so it's a single source of truth for the whitelist
@@ -522,7 +521,7 @@ export function buildPdfDoc(
   cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
 
   // ---- 10. Photo summary (count + date range only — T-07-06-01) ----
-  const photos = (local.photos ?? []) as Array<Record<string, unknown>>;
+  const photos = (local.photos ?? []) as unknown as Array<Record<string, unknown>>;
   doc.setFontSize(14);
   doc.text('Photos', 40, cursorY + 32);
   doc.setFontSize(11);

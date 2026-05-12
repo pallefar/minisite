@@ -7,6 +7,7 @@ import {
   Database,
   Trash2,
   Download,
+  FileText,
   GraduationCap,
   Terminal,
   KeyRound,
@@ -22,8 +23,18 @@ import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
 import { attachEmailToAnon, requestPasswordReset, signOut } from '@/lib/auth';
+import {
+  buildJsonExport,
+  buildPdfDoc,
+  fetchAuditSummary,
+  fetchCloudExtras,
+  type AuditSummary,
+  type CloudExtras,
+} from '@/lib/export-data';
 import { todayStr, cn } from '@/lib/helpers';
+import type { PersistedState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 
 type Section =
   | 'account'
@@ -159,34 +170,95 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     toast('Settings saved');
   };
 
-  const exportData = (): void => {
-    const data = {
-      user: fullState.user,
-      injections: fullState.injections,
-      symptoms: fullState.symptoms,
-      weights: fullState.weights,
-      measurements: fullState.measurements,
-      meals: fullState.meals,
-      water: fullState.water,
-      foodNoise: fullState.foodNoise,
-      workouts: fullState.workouts,
-      steps: fullState.steps,
-      supplements: fullState.supplements,
-      mood: fullState.mood,
-      sleep: fullState.sleep,
-      nsvs: fullState.nsvs,
-      photos: fullState.photos,
-      vials: fullState.vials,
-      costs: fullState.costs,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  // Phase 7 Plan 07-06 (COMPL-06): pick only the 22 partialize keys from the
+  // full store. The buildJsonExport whitelist would silently drop ephemeral
+  // UI keys anyway, but constructing the shape explicitly here keeps the
+  // TypeScript type narrow (PersistedState — not Store) so the contract is
+  // checked at the call boundary.
+  const pickPartialized = (): PersistedState => ({
+    user: fullState.user,
+    injections: fullState.injections,
+    symptoms: fullState.symptoms,
+    weights: fullState.weights,
+    measurements: fullState.measurements,
+    meals: fullState.meals,
+    water: fullState.water,
+    foodNoise: fullState.foodNoise,
+    workouts: fullState.workouts,
+    steps: fullState.steps,
+    supplements: fullState.supplements,
+    mood: fullState.mood,
+    sleep: fullState.sleep,
+    nsvs: fullState.nsvs,
+    photos: fullState.photos,
+    vials: fullState.vials,
+    aiHistory: fullState.aiHistory,
+    costs: fullState.costs,
+    acknowledgedDisclaimer: fullState.acknowledgedDisclaimer,
+    pendingOps: fullState.pendingOps,
+    verificationBannerDismissedUntil: fullState.verificationBannerDismissedUntil,
+    migration_state: fullState.migration_state,
+  });
+
+  const handleExportJson = async (): Promise<void> => {
+    const userId = signedIn?.user?.id;
+    let cloud: CloudExtras | null = null;
+    let audit: AuditSummary | null = null;
+    if (userId) {
+      toast('Fetching cloud data...', 'info');
+      const [c, a] = await Promise.all([
+        fetchCloudExtras(supabase, userId).catch(() => null),
+        fetchAuditSummary(supabase, userId).catch(() => null),
+      ]);
+      cloud = c;
+      audit = a;
+    }
+    const payload = buildJsonExport(pickPartialized(), cloud, audit);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `leanshot-export-${todayStr()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast('Data exported');
+    toast('JSON exported', 'success');
+  };
+
+  const handleExportPdf = async (): Promise<void> => {
+    const userId = signedIn?.user?.id;
+    toast('Generating PDF...', 'info');
+    try {
+      // CRITICAL: dynamic imports — these MUST stay inside the click handler.
+      // Static imports would land jsPDF in the index entry chunk and break
+      // the 50 kB gz CI guard. See memory project_phase5_bundle_regression.md
+      // and scripts/assert-bundle-budget.sh.
+      const { jsPDF } = await import('jspdf');
+      const autoTableMod = await import('jspdf-autotable');
+      const autoTable = autoTableMod.default;
+
+      let cloud: CloudExtras | null = null;
+      let audit: AuditSummary | null = null;
+      if (userId) {
+        const [c, a] = await Promise.all([
+          fetchCloudExtras(supabase, userId).catch(() => null),
+          fetchAuditSummary(supabase, userId).catch(() => null),
+        ]);
+        cloud = c;
+        audit = a;
+      }
+      const payload = buildJsonExport(pickPartialized(), cloud, audit);
+
+      // Yield to the browser between fetch + render to keep UI responsive
+      // (Threat T-07-06-05 mitigation).
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const doc = buildPdfDoc(jsPDF, autoTable, payload);
+      doc.save(`leanshot-export-${todayStr()}.pdf`);
+      toast('PDF exported', 'success');
+    } catch (e) {
+      console.error('[leanshot] PDF export failed', e);
+      toast('PDF export failed', 'error');
+    }
   };
 
   const reset = async (): Promise<void> => {
@@ -441,9 +513,20 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               <Button
                 variant="ghost"
                 leadingIcon={<Download className="size-4" />}
-                onClick={exportData}
+                onClick={() => {
+                  void handleExportJson();
+                }}
               >
                 Export JSON
+              </Button>
+              <Button
+                variant="ghost"
+                leadingIcon={<FileText className="size-4" />}
+                onClick={() => {
+                  void handleExportPdf();
+                }}
+              >
+                Export PDF rollup
               </Button>
               <Button
                 variant="ghost"
