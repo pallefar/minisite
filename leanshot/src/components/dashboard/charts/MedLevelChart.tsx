@@ -10,11 +10,21 @@ import { medLevelWatermarkPlugin } from './medLevelWatermarkPlugin';
 
 /** 28-day past + 7-day projected medication level chart. */
 export function MedLevelChart({ height = 280 }: { height?: number }) {
-  const u = useStore((s) => s.user!);
+  // Phase 6 Plan 06-01 (UI-CHECK + 06-CONTEXT D-12 #3): replace the previous
+  // `s.user!` non-null assertion with a nullable selector. MedLevelChart can
+  // mount transiently during the SIGNED_OUT → clearUserDataSlices() window
+  // (and on first paint before onboarding completes) when `s.user === null`;
+  // the `!` assertion previously crashed with "Cannot read properties of
+  // null (reading 'medication')" on line 19. Hook order is preserved: all
+  // `useStore` selectors + `useTheme` + `useMemo` run unconditionally; the
+  // `useMemo` body short-circuits when `u` is null so the early-return
+  // below (`if (!u) return null`) is legal under Rules of Hooks.
+  const u = useStore((s) => s.user);
   const injections = useStore((s) => s.injections);
   const { theme } = useTheme();
 
   const config = useMemo(() => {
+    if (!u) return null;
     const t = getChartTokens(theme);
     const halfLife = HALF_LIVES[u.medication] ?? 168;
     const labels: string[] = [];
@@ -136,8 +146,7 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
           legend: {
             labels: {
               color: t.tick,
-              filter: (item: { text: string }) =>
-                item.text === 'Past' || item.text === 'Projected',
+              filter: (item: { text: string }) => item.text === 'Past' || item.text === 'Projected',
             },
           },
           tooltip: {
@@ -166,6 +175,12 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
       plugins: [medLevelWatermarkPlugin],
     };
   }, [u, injections, theme]);
+
+  // Phase 6 Plan 06-01 (D-12 #3): early-return AFTER hooks so the Rules of
+  // Hooks are preserved (hooks run unconditionally; render output is
+  // null-guarded). Renders nothing during the transient SIGNED_OUT or
+  // pre-onboarding window when `user` is null.
+  if (!u || !config) return null;
 
   return (
     <>

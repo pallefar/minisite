@@ -497,6 +497,15 @@ a {
   .animate-pulse-soft {
     animation: none !important;
   }
+  /* Phase 6 Plan 06-01 (UI-CHECK N5) — suppress the Skeleton shimmer under
+     reduced-motion. The component renders the animation via inline-style
+     `animation: shimmer 1.6s linear infinite`, so the global `*` rule above
+     ONLY shortens duration to 0.001ms (still produces a stutter frame).
+     This explicit `animation: none !important` on the .skeleton-shimmer
+     class fully kills the animation, leaving a static neutral block. */
+  .skeleton-shimmer {
+    animation: none !important;
+  }
 }
 
 /* ========================================================================

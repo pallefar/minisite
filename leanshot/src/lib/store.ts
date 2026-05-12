@@ -65,7 +65,18 @@ export interface SignedInSlice {
 
 interface UIState {
   currentTab: TabId;
-  toast: { message: string; kind: 'success' | 'error' | 'info'; id: number } | null;
+  /**
+   * Phase 6 Plan 06-01 (UI-CHECK N4): `durationMs?: number` is an optional
+   * override for the default 2400 ms auto-dismiss honored by Toast.tsx's
+   * setTimeout. Phase 6's conflict-toast (Plan 06-05) passes 5000 ms;
+   * existing callers omit the field and Toast falls back to 2400 ms.
+   */
+  toast: {
+    message: string;
+    kind: 'success' | 'error' | 'info';
+    id: number;
+    durationMs?: number;
+  } | null;
   /**
    * Phase 5 D-13 — auth/session slice. NOT persisted via partialize: supabase-js
    * owns its own session under `sb-leanshot-auth`; we mirror only the derived
@@ -76,7 +87,11 @@ interface UIState {
 
 interface Actions {
   setTab: (tab: TabId) => void;
-  showToast: (message: string, kind?: 'success' | 'error' | 'info') => void;
+  showToast: (
+    message: string,
+    kind?: 'success' | 'error' | 'info',
+    durationMs?: number,
+  ) => void;
   dismissToast: () => void;
 
   setUser: (user: User) => void;
@@ -251,7 +266,15 @@ export const useStore = create<Store>()(
         set({ currentTab: tab });
         track('tab_viewed', { tab });
       },
-      showToast: (message, kind = 'success') => set({ toast: { message, kind, id: ++toastId } }),
+      showToast: (message, kind = 'success', durationMs) =>
+        set({
+          toast: {
+            message,
+            kind,
+            id: ++toastId,
+            ...(durationMs !== undefined && { durationMs }),
+          },
+        }),
       dismissToast: () => set({ toast: null }),
 
       setUser: (user) => set({ user }),

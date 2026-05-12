@@ -26,6 +26,42 @@ import {
 } from './storage';
 import { useStore } from './store';
 
+// ---------------------------------------------------------------------------
+// Phase 6 Plan 06-01 Task 3 — showToast `durationMs?: number` extension.
+// UI-CHECK N4: 06-05's conflict toast needs to override the default 2400ms;
+// store shape gains an optional `durationMs` field and the action signature
+// gains an optional 3rd arg. Back-compat: 2-arg / 1-arg callers unchanged.
+// ---------------------------------------------------------------------------
+
+describe('showToast — Phase 6 durationMs extension', () => {
+  beforeEach(() => {
+    useStore.setState({ toast: null });
+  });
+
+  it('Test 1: showToast accepts durationMs and writes it into state', () => {
+    useStore.getState().showToast('hi', 'info', 5000);
+    const t = useStore.getState().toast!;
+    expect(t.durationMs).toBe(5000);
+    expect(t.message).toBe('hi');
+    expect(t.kind).toBe('info');
+  });
+
+  it('Test 2: showToast without durationMs keeps durationMs undefined (back-compat)', () => {
+    useStore.getState().showToast('hi');
+    const t = useStore.getState().toast!;
+    expect(t.durationMs).toBeUndefined();
+    expect(t.message).toBe('hi');
+    expect(t.kind).toBe('success'); // default kind preserved
+  });
+
+  it('Test 3: showToast(message, kind) — positional 2-arg back-compat', () => {
+    useStore.getState().showToast('boom', 'error');
+    const t = useStore.getState().toast!;
+    expect(t.durationMs).toBeUndefined();
+    expect(t.kind).toBe('error');
+  });
+});
+
 describe('updateLastAssistant', () => {
   beforeEach(() => {
     useStore.setState({ aiHistory: [] });
@@ -346,7 +382,10 @@ describe('mergeServerInjections LWW (D-08)', () => {
         updated_at: '2026-05-11T00:00:00Z',
       },
     ]);
-    const ids = useStore.getState().injections.map((i) => i.log_id).sort();
+    const ids = useStore
+      .getState()
+      .injections.map((i) => i.log_id)
+      .sort();
     expect(ids).toEqual(['local-only', 'server-only']);
   });
 });
@@ -658,9 +697,7 @@ describe('Plan 05-05 — per-user storage adapter (G2 closure)', () => {
     } as unknown as RealtimePostgresChangesPayload<Injection>);
 
     const persistedC = JSON.parse(localStorage.getItem(keyC)!);
-    expect(
-      persistedC.state.injections.find((i: Injection) => i.log_id === 'log-1'),
-    ).toBeDefined();
+    expect(persistedC.state.injections.find((i: Injection) => i.log_id === 'log-1')).toBeDefined();
     // Universal key MUST NOT have received the write.
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });

@@ -10,7 +10,10 @@ export function Toast() {
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(dismiss, 2400);
+    // Phase 6 Plan 06-01 (UI-CHECK N4): caller can override the default
+    // 2400ms via showToast(msg, kind, durationMs). Used by 06-05's conflict
+    // toast at 5000ms; existing callers stay on 2400ms by default.
+    const t = setTimeout(dismiss, toast.durationMs ?? 2400);
     return () => clearTimeout(t);
   }, [toast, dismiss]);
 
