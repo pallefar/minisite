@@ -1,0 +1,1 @@
+- **07-04 noted (not owned):** Sibling plan 07-06 has a pending typecheck error in `src/lib/export-data.ts:525` — `Conversion of type 'Photo[]' to type 'Record<string, unknown>[]'` index-signature mismatch. Pre-existing as of 07-04 execution; 07-06 owns the fix (Batch 2 sibling still in flight). Not blocking for 07-04's legal-pages surface (only touches 07-06's new file).
