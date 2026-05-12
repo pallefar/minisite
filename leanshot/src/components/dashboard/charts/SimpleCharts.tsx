@@ -11,10 +11,13 @@ import { useStore } from '@/lib/store';
 import { BaseChart } from './BaseChart';
 
 export function WeightChart({ days = 365, height = 280 }: { days?: number; height?: number }) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. See MedLevelChart.tsx for the canonical pattern.
+  const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const { theme } = useTheme();
   const config = useMemo(() => {
+    if (!u) return null;
     const t = getChartTokens(theme);
     const cutoff = Date.now() - days * 86_400_000;
     const data = weights.filter((w) => new Date(w.date).getTime() > cutoff);
@@ -46,15 +49,19 @@ export function WeightChart({ days = 365, height = 280 }: { days?: number; heigh
         },
       },
     };
-  }, [u.startWeight, weights, days, theme]);
+  }, [u, weights, days, theme]);
+  if (!u || !config) return null;
   return <BaseChart config={config} height={height} ariaLabel="Weight trajectory" />;
 }
 
 export function ProteinChart({ days = 14, height = 220 }: { days?: number; height?: number }) {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
+  // early-return. See MedLevelChart.tsx for the canonical pattern.
+  const u = useStore((s) => s.user);
   const meals = useStore((s) => s.meals);
   const { theme } = useTheme();
   const config = useMemo(() => {
+    if (!u) return null;
     const t = getChartTokens(theme);
     const dates = lastNDays(days);
     const data = dates.map((d) =>
@@ -82,7 +89,8 @@ export function ProteinChart({ days = 14, height = 220 }: { days?: number; heigh
         },
       },
     };
-  }, [u.proteinTarget, meals, days, theme]);
+  }, [u, meals, days, theme]);
+  if (!u || !config) return null;
   return <BaseChart config={config} height={height} ariaLabel="Protein intake" />;
 }
 
