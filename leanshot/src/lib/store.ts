@@ -1934,6 +1934,18 @@ export const hydrate = (): Promise<void> => {
 // weight-edit). Guarded behind `import.meta.env.MODE !== 'production'` so
 // production bundles do NOT leak the store handle. Mirrors the pattern
 // used by other test-instrumented modules in the codebase.
-if (typeof window !== 'undefined' && import.meta.env.MODE !== 'production') {
+//
+// Phase 7 07-01 (Rule 3 deviation): the CI e2e job runs `npm run preview`
+// against a production build (MODE === 'production'), which would hide
+// this handle and break specs #4 (offline-conflict-toast) and #7
+// (signout-cache-clear) that need it. The CI build step opts in via
+// `VITE_E2E=true`; Vercel production builds do NOT set the flag, so the
+// deployed bundle still hides the handle. See
+// `.planning/phases/07-compliance-foundations-legal-counsel-led/07-01-findings.md`
+// §"Cross-cutting deviation".
+if (
+  typeof window !== 'undefined' &&
+  (import.meta.env.MODE !== 'production' || import.meta.env.VITE_E2E === 'true')
+) {
   (window as unknown as { useStore?: typeof useStore }).useStore = useStore;
 }

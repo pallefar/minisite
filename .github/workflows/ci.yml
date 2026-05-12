@@ -107,6 +107,14 @@ jobs:
           VITE_ANALYTICS_ENABLED: 'false'
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Phase 7 07-01 (Rule 3 deviation): opt the production-shaped CI
+          # build into exposing `window.useStore` so specs #4 (offline-conflict-toast)
+          # and #7 (signout-cache-clear) can drive store actions / read state
+          # via `page.evaluate()`. Vercel production builds do NOT set this
+          # flag, so the deployed bundle still hides the handle. See
+          # leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-01-findings.md
+          # §"Cross-cutting deviation".
+          VITE_E2E: 'true'
 
       # Phase 2.1 SC#2 — vendor-react chunk-size regression guard.
       # If this step fails, vendor-react gz dropped below the floor (e.g.

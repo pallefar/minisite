@@ -141,6 +141,28 @@ test.describe('@phase06 SC#4 third leg — LWW conflict toast on losing device',
     expect(userId).toBeDefined();
   });
 
+  // Family A1 warm-up: signs in a throwaway context to establish a warm
+  // Realtime channel pool before the real two-context conflict test. The
+  // conflict path needs BOTH clients to exchange a live postgres_changes
+  // payload within a tight budget — cold phx_join across the 9 sync
+  // channels can add 1-3s per client on prod-build CI. Warming once at
+  // the project level (just-after-user-creation) eliminates that tax.
+  // See 07-RESEARCH.md §1 Family A1.
+  test.beforeAll(async ({ browser }) => {
+    if (!HAS_LIVE_AUTH) return;
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    try {
+      await seedUserAndSignIn(page, email, password);
+      // Allow the postgres_changes channels to phx_join + ack. 2s is
+      // empirically enough to clear the cold-start tax without bloating
+      // the suite runtime.
+      await page.waitForTimeout(2_000);
+    } finally {
+      await ctx.close();
+    }
+  });
+
   test.afterAll(async () => {
     if (!userId) return;
     // Best-effort cleanup. The ON DELETE CASCADE on user_id removes all
@@ -150,8 +172,7 @@ test.describe('@phase06 SC#4 third leg — LWW conflict toast on losing device',
     });
   });
 
-  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
-  test.fixme('two contexts edit same weight offline; loser sees "We kept your most recent edit." toast', async ({
+  test('two contexts edit same weight offline; loser sees "We kept your most recent edit." toast', async ({
     browser,
   }) => {
     const ctxA = await browser.newContext();
@@ -217,11 +238,14 @@ test.describe('@phase06 SC#4 third leg — LWW conflict toast on losing device',
 
       await ctxA.setOffline(false);
 
-      // Assert the lww-loser toast appears on A within the Realtime budget.
-      // 10s upper bound accounts for: A's reconnect → A's flush → server
-      // ack → server moddatetime → Realtime fan-out to A → reducer → toast.
+      // Family C: assert toast presence within a 12s window (toast may auto-dismiss; relies on durationMs > assertion latency).
+      // 12s upper bound (Family A2 budget parity) accounts for: A's reconnect →
+      // A's flush → server ack → server moddatetime → Realtime fan-out to A
+      // → reducer → toast. The Toast component's default durationMs (5s, per
+      // Plan 06-01) is longer than the typical reducer→render latency, so
+      // poll-style assertion within the toBeVisible budget is sufficient.
       await expect(pageA.getByText('We kept your most recent edit.')).toBeVisible({
-        timeout: 10_000,
+        timeout: 12_000,
       });
 
       const elapsed = Date.now() - tStart;
