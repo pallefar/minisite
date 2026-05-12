@@ -123,6 +123,35 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
   // more reliable AppShell-rendered anchor (Sidebar mounts unconditionally
   // inside AppShell). See 07-RESEARCH.md §1 Family A.
   await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
+  // Phase 7 RC4 instrumentation — ALWAYS dump the state log right after URL
+  // leaves auth, before the (slow) nav-visible assertion. The seam in
+  // src/lib/store.ts records every set() that mutates user/ack — if a wipe
+  // happened during signin we'll see it here regardless of whether the test
+  // ultimately passes. We snapshot, log if non-empty, and continue.
+  const earlySnap = await page.evaluate(() => {
+    const sl = (window as unknown as { __leanshot_state_log__?: unknown[] })
+      .__leanshot_state_log__ ?? [];
+    const vl = (window as unknown as { __leanshot_view_log__?: unknown[] })
+      .__leanshot_view_log__ ?? [];
+    const store = (window as unknown as {
+      useStore?: { getState: () => { user: unknown; acknowledgedDisclaimer: unknown } };
+    }).useStore?.getState?.();
+    return {
+      stateLogLen: Array.isArray(sl) ? sl.length : -1,
+      stateLog: sl,
+      viewLogLen: Array.isArray(vl) ? vl.length : -1,
+      storeUser: store?.user ?? null,
+      storeAck: store?.acknowledgedDisclaimer ?? null,
+    };
+  });
+  console.log(
+    `[RC4-EARLY] stateLog entries=${earlySnap.stateLogLen} viewLog entries=${earlySnap.viewLogLen} storeUser=${earlySnap.storeUser ? 'set' : 'null'} storeAck=${earlySnap.storeAck ?? 'null'}`,
+  );
+  if (Array.isArray(earlySnap.stateLog) && earlySnap.stateLog.length > 0) {
+    console.log(
+      `[RC4-EARLY] stateLog dump:\n${JSON.stringify(earlySnap.stateLog, null, 2)}`,
+    );
+  }
   try {
     await expect(page.getByRole('navigation', { name: /primary navigation/i })).toBeVisible({
       timeout: 30_000,
@@ -202,7 +231,12 @@ test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budg
     !HAS_LIVE_AUTH,
     'requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY',
   );
-  test.setTimeout(90_000);
+  // Phase 7 RC4 — temp raise from 90_000 to 150_000 while instrumenting.
+  // Two seedUserAndSignIn calls × 30s nav-visible budget = 60s minimum on
+  // cold preview; the prior 90s ceiling left no slack for the second context
+  // to actually exercise the realtime propagation budget before the outer
+  // test-level timeout fired during cleanup. Revert with the instrumentation.
+  test.setTimeout(150_000);
 
   let admin: SupabaseClient;
   let userId: string | undefined;
@@ -236,6 +270,21 @@ test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budg
     try {
       const pageA = await ctxA.newPage();
       const pageB = await ctxB.newPage();
+
+      // Phase 7 RC4 — pipe browser console into the test step log so any
+      // [leanshot] warnings / state-log diagnostics from the app fire alongside
+      // the test output. Remove with the RC4 instrumentation.
+      for (const [label, p] of [
+        ['A', pageA],
+        ['B', pageB],
+      ] as const) {
+        p.on('console', (msg) => {
+          const t = msg.text();
+          if (t.startsWith('[RC4') || t.startsWith('[leanshot')) {
+            console.log(`[browser:${label}:${msg.type()}] ${t}`);
+          }
+        });
+      }
 
       // Sign in both contexts. Seed B FIRST so it's already subscribed when A logs.
       await seedUserAndSignIn(pageB, email, password);
