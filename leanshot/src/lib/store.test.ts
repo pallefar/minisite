@@ -1271,3 +1271,465 @@ describe('Phase 6 06-03 — applyXRealtimePayload reducers', () => {
     expect(useStore.getState().user!.name).toBe('orig'); // shallow merge preserves other fields
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-05 D-11 — notifyLwwLoss action + lww-loser toast wiring.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-05 — notifyLwwLoss action (lww-loser toast wiring)', () => {
+  beforeEach(() => {
+    useStore.setState({ toast: null });
+  });
+
+  it('notifyLwwLoss fires the info toast with the D-11 copy and 5000ms duration', () => {
+    useStore.getState().notifyLwwLoss('weights', 'w-1');
+    const t = useStore.getState().toast!;
+    expect(t).not.toBeNull();
+    expect(t.message).toBe('We kept your most recent edit.');
+    expect(t.kind).toBe('info');
+    expect(t.durationMs).toBe(5000);
+  });
+
+  it('notifyLwwLoss kind is info (NOT error/warning per D-11)', () => {
+    useStore.getState().notifyLwwLoss('injections', 'inj-1');
+    expect(useStore.getState().toast!.kind).toBe('info');
+    expect(useStore.getState().toast!.kind).not.toBe('error');
+  });
+
+  it('notifyLwwLoss is idempotent — every call rewrites the toast slice (new id)', () => {
+    useStore.getState().notifyLwwLoss('weights', 'w-1');
+    const id1 = useStore.getState().toast!.id;
+    useStore.getState().notifyLwwLoss('meals', 'm-1');
+    const id2 = useStore.getState().toast!.id;
+    expect(id2).toBeGreaterThan(id1);
+    expect(useStore.getState().toast!.message).toBe('We kept your most recent edit.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-05 D-11 — 10-table parameterized loss-detection wiring.
+//
+// For each entity reducer, when (a) a local row exists with an older
+// updated_at AND (b) a matching pendingOp exists, applying a newer remote
+// payload MUST fire the lww-loser toast. Vanilla propagation (no pendingOp)
+// MUST NOT fire it.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-05 — applyXRealtimePayload wires lww-loser toast across all 10 reducers', () => {
+  // Minimal local-row factories so we can populate state[table][0] before the
+  // apply call. Each table's reducer reads `local.updated_at` from the matching
+  // row; we set it 5 minutes BEFORE the remote payload's timestamp so the
+  // server-strictly-newer condition holds.
+  const localTs = '2026-05-12T09:00:00Z';
+  const remoteTs = '2026-05-12T10:00:00Z';
+
+  type ApplyCase = {
+    table: string;
+    key: string;
+    pkField: string;
+    sliceKey: keyof ReturnType<typeof useStore.getState>;
+    localRow: Record<string, unknown>;
+    remoteRow: Record<string, unknown>;
+    apply: (payload: RealtimePostgresChangesPayload<never>) => void;
+  };
+
+  const cases: ApplyCase[] = [
+    {
+      table: 'injections',
+      key: 'inj-1',
+      pkField: 'log_id',
+      sliceKey: 'injections',
+      localRow: {
+        log_id: 'inj-1',
+        datetime: '2026-05-12T08:00:00Z',
+        dose: '0.5',
+        unit: 'mg',
+        site: null,
+        notes: '',
+        pkEngineVersion: 1,
+        updated_at: localTs,
+      },
+      remoteRow: {
+        log_id: 'inj-1',
+        datetime: '2026-05-12T08:00:00Z',
+        dose: '0.6',
+        unit: 'mg',
+        site: null,
+        notes: '',
+        pkEngineVersion: 1,
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyRealtimePayload(p as never),
+    },
+    {
+      table: 'weights',
+      key: 'w-1',
+      pkField: 'weight_id',
+      sliceKey: 'weights',
+      localRow: {
+        weight_id: 'w-1',
+        date: '2026-05-12',
+        weight: 80,
+        bodyFat: null,
+        ts: 1,
+        updated_at: localTs,
+      },
+      remoteRow: {
+        weight_id: 'w-1',
+        date: '2026-05-12',
+        weight: 81,
+        bodyFat: null,
+        ts: 1,
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyWeightRealtimePayload(p as never),
+    },
+    {
+      table: 'meals',
+      key: 'm-1',
+      pkField: 'meal_id',
+      sliceKey: 'meals',
+      localRow: {
+        meal_id: 'm-1',
+        date: '2026-05-12',
+        name: 'lunch',
+        calories: 500,
+        protein: 30,
+        fiber: 5,
+        hunger: 3,
+        satisfaction: 4,
+        ts: 1,
+        updated_at: localTs,
+      },
+      remoteRow: {
+        meal_id: 'm-1',
+        date: '2026-05-12',
+        name: 'lunch',
+        calories: 600,
+        protein: 30,
+        fiber: 5,
+        hunger: 3,
+        satisfaction: 4,
+        ts: 1,
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyMealRealtimePayload(p as never),
+    },
+    {
+      table: 'workouts',
+      key: 'wk-1',
+      pkField: 'workout_id',
+      sliceKey: 'workouts',
+      localRow: {
+        workout_id: 'wk-1',
+        date: '2026-05-12',
+        type: 'cardio',
+        name: 'run',
+        minutes: 30,
+        rpe: 6,
+        notes: '',
+        updated_at: localTs,
+      },
+      remoteRow: {
+        workout_id: 'wk-1',
+        date: '2026-05-12',
+        type: 'cardio',
+        name: 'run',
+        minutes: 40,
+        rpe: 7,
+        notes: '',
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyWorkoutRealtimePayload(p as never),
+    },
+    {
+      table: 'mood',
+      key: 'mo-1',
+      pkField: 'mood_id',
+      sliceKey: 'mood',
+      localRow: {
+        mood_id: 'mo-1',
+        date: '2026-05-12',
+        mood: 4,
+        energy: 3,
+        notes: '',
+        updated_at: localTs,
+      },
+      remoteRow: {
+        mood_id: 'mo-1',
+        date: '2026-05-12',
+        mood: 5,
+        energy: 4,
+        notes: '',
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyMoodRealtimePayload(p as never),
+    },
+    {
+      table: 'sleep',
+      key: 'sl-1',
+      pkField: 'sleep_id',
+      sliceKey: 'sleep',
+      localRow: {
+        sleep_id: 'sl-1',
+        date: '2026-05-12',
+        hours: 7,
+        wakings: 1,
+        quality: 4,
+        notes: '',
+        updated_at: localTs,
+      },
+      remoteRow: {
+        sleep_id: 'sl-1',
+        date: '2026-05-12',
+        hours: 8,
+        wakings: 0,
+        quality: 5,
+        notes: '',
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applySleepRealtimePayload(p as never),
+    },
+    {
+      table: 'symptoms',
+      key: 'sx-1',
+      pkField: 'symptom_id',
+      sliceKey: 'symptoms',
+      localRow: {
+        symptom_id: 'sx-1',
+        date: '2026-05-12',
+        symptom: 'nausea',
+        severity: 2,
+        notes: '',
+        updated_at: localTs,
+      },
+      remoteRow: {
+        symptom_id: 'sx-1',
+        date: '2026-05-12',
+        symptom: 'nausea',
+        severity: 3,
+        notes: '',
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applySymptomRealtimePayload(p as never),
+    },
+    {
+      table: 'vials',
+      key: 'v-1',
+      pkField: 'vial_id',
+      sliceKey: 'vials',
+      localRow: {
+        vial_id: 'v-1',
+        name: 'oz 2mg',
+        dosesPerVial: 4,
+        dosesUsed: 1,
+        startDate: '2026-05-12',
+        expirationDate: '2026-08-12',
+        updated_at: localTs,
+      },
+      remoteRow: {
+        vial_id: 'v-1',
+        name: 'oz 2mg',
+        dosesPerVial: 4,
+        dosesUsed: 2,
+        startDate: '2026-05-12',
+        expirationDate: '2026-08-12',
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyVialRealtimePayload(p as never),
+    },
+    {
+      table: 'photos',
+      key: 'ph-1',
+      pkField: 'photo_id',
+      sliceKey: 'photos',
+      localRow: {
+        photo_id: 'ph-1',
+        date: '2026-05-12',
+        weight: null,
+        storage_path: 'u1/photos/ph-1.jpg',
+        mime_type: 'image/jpeg',
+        size_bytes: 1000,
+        updated_at: localTs,
+      },
+      remoteRow: {
+        photo_id: 'ph-1',
+        date: '2026-05-12',
+        weight: 80,
+        storage_path: 'u1/photos/ph-1.jpg',
+        mime_type: 'image/jpeg',
+        size_bytes: 1200,
+        updated_at: remoteTs,
+      },
+      apply: (p) => useStore.getState().applyPhotoRealtimePayload(p as never),
+    },
+  ];
+  // 9 entity-row tables above; supplements uses a composite date:name key and a
+  // different state shape (Record<date, Record<name, boolean>>), so it gets
+  // its own case using only the pendingOp + payload trigger.
+
+  cases.forEach(({ table, key, sliceKey, localRow, remoteRow, apply }) => {
+    it(`apply${table} reducer fires the lww-loser toast when conditions hold`, () => {
+      useStore.setState({
+        ...initialState,
+        pendingOps: [{ table, op: 'upsert', key, enqueuedAt: 'now' }],
+        toast: null,
+        currentTab: 'home',
+        signedIn: null,
+        [sliceKey]: [localRow as never],
+      } as never);
+      const payload = {
+        eventType: 'UPDATE',
+        new: remoteRow,
+        old: {},
+      } as unknown as RealtimePostgresChangesPayload<never>;
+      apply(payload);
+      const t = useStore.getState().toast;
+      expect(t).not.toBeNull();
+      expect(t!.message).toBe('We kept your most recent edit.');
+      expect(t!.kind).toBe('info');
+      expect(t!.durationMs).toBe(5000);
+    });
+
+    it(`apply${table} reducer does NOT fire the toast on vanilla propagation (no pendingOp)`, () => {
+      useStore.setState({
+        ...initialState,
+        pendingOps: [], // no matching local edit — propagation only
+        toast: null,
+        currentTab: 'home',
+        signedIn: null,
+        [sliceKey]: [localRow as never],
+      } as never);
+      const payload = {
+        eventType: 'UPDATE',
+        new: remoteRow,
+        old: {},
+      } as unknown as RealtimePostgresChangesPayload<never>;
+      apply(payload);
+      expect(useStore.getState().toast).toBeNull();
+    });
+  });
+
+  it('applySupplementRealtimePayload (10th reducer) does NOT fire on vanilla propagation', () => {
+    // Supplements use composite key date:name and no local updated_at;
+    // ensure the helper short-circuits on the missing-local-baseline guard.
+    useStore.setState({
+      ...initialState,
+      pendingOps: [],
+      toast: null,
+      currentTab: 'home',
+      signedIn: null,
+      supplements: {},
+    } as never);
+    const payload = {
+      eventType: 'INSERT',
+      new: {
+        date: '2026-05-12',
+        supplement_name: 'd3',
+        taken: true,
+        updated_at: remoteTs,
+      },
+      old: {},
+    } as unknown as RealtimePostgresChangesPayload<never>;
+    useStore.getState().applySupplementRealtimePayload(payload as never);
+    // Local row was applied (taken=true) but no toast because there's no local
+    // baseline timestamp AND no pending op.
+    expect(useStore.getState().supplements['2026-05-12']?.['d3']).toBe(true);
+    expect(useStore.getState().toast).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 06-05 D-11 — local mutations stamp updated_at so the LWW
+// comparison in apply reducers has a meaningful local baseline.
+// ---------------------------------------------------------------------------
+
+describe('Phase 6 06-05 — addX/editX local mutations stamp updated_at', () => {
+  beforeEach(() => {
+    useStore.setState({
+      ...initialState,
+      pendingOps: [],
+      toast: null,
+      currentTab: 'home',
+      signedIn: null,
+    });
+  });
+
+  it('addInjection stamps updated_at on the new row', () => {
+    useStore.getState().addInjection({
+      datetime: '2026-05-12T08:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: 'abdomen-ul',
+      notes: '',
+      pkEngineVersion: 1,
+    });
+    const inj = useStore.getState().injections[0]!;
+    expect(inj.updated_at).toBeTruthy();
+    expect(new Date(inj.updated_at!).getTime()).toBeGreaterThan(0);
+  });
+
+  it('editInjection refreshes updated_at on the edited row', async () => {
+    useStore.getState().addInjection({
+      datetime: '2026-05-12T08:00:00Z',
+      dose: '0.5',
+      unit: 'mg',
+      site: null,
+      notes: '',
+      pkEngineVersion: 1,
+    });
+    const originalTs = useStore.getState().injections[0]!.updated_at!;
+    const logId = useStore.getState().injections[0]!.log_id!;
+    // small delay so timestamps differ at ms granularity
+    await new Promise((r) => setTimeout(r, 5));
+    useStore.getState().editInjection(logId, { dose: '0.6' });
+    const newTs = useStore.getState().injections[0]!.updated_at!;
+    expect(new Date(newTs).getTime()).toBeGreaterThanOrEqual(new Date(originalTs).getTime());
+  });
+
+  it('addWeight / addMeal / addWorkout / addMood / addSleep / addVial stamp updated_at', () => {
+    useStore.getState().addWeight({ date: '2026-05-12', weight: 80, bodyFat: null, ts: 1 });
+    useStore.getState().addMeal({
+      date: '2026-05-12',
+      name: 'lunch',
+      calories: 500,
+      protein: 30,
+      fiber: 5,
+      hunger: null,
+      satisfaction: null,
+      ts: 1,
+    });
+    useStore.getState().addWorkout({
+      date: '2026-05-12',
+      type: 'cardio',
+      name: 'run',
+      minutes: 30,
+      rpe: null,
+      notes: '',
+    });
+    useStore
+      .getState()
+      .addMood({ date: '2026-05-12', mood: 4, energy: null, notes: '' } as never);
+    useStore.getState().addSleep({
+      date: '2026-05-12',
+      hours: 8,
+      wakings: 0,
+      quality: null,
+      notes: '',
+    } as never);
+    useStore.getState().addVial({
+      name: 'oz 2mg',
+      dosesPerVial: 4,
+      dosesUsed: 0,
+      startDate: '2026-05-12',
+      expirationDate: '2026-08-12',
+    });
+    const state = useStore.getState();
+    expect((state.weights[0] as { updated_at?: string }).updated_at).toBeTruthy();
+    expect((state.meals[0] as { updated_at?: string }).updated_at).toBeTruthy();
+    expect((state.workouts[0] as { updated_at?: string }).updated_at).toBeTruthy();
+    expect((state.mood[0] as { updated_at?: string }).updated_at).toBeTruthy();
+    expect((state.sleep[0] as { updated_at?: string }).updated_at).toBeTruthy();
+    expect((state.vials[0] as { updated_at?: string }).updated_at).toBeTruthy();
+  });
+});

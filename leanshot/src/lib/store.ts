@@ -290,6 +290,22 @@ interface Actions {
     payload: RealtimePostgresChangesPayload<{ payload: Record<string, unknown> }>,
   ) => void;
 
+  /**
+   * Phase 6 06-05 D-11 — LWW conflict UX surface (lww-loser notification).
+   *
+   * Fires the non-blocking info toast `"We kept your most recent edit."`
+   * (kind: 'info', durationMs: 5000) on the LOSING device when a server-wins
+   * LWW resolution overwrites a local pending edit. The `table` and `key`
+   * args are unused for toast rendering today (the copy is fixed per D-11)
+   * but the action signature retains them for future audit-log wiring
+   * (Phase 7).
+   *
+   * Callers: the 10 applyXRealtimePayload reducers via the module-scoped
+   * `_maybeFireLwwLossToast` helper, plus the testable `detectAndNotifyLwwLoss`
+   * helper in @/lib/sync.
+   */
+  notifyLwwLoss: (table: string, key: string) => void;
+
   /** D-13: hide the EmailVerificationBanner for 24h. */
   dismissVerificationBanner: () => void;
 
@@ -312,6 +328,53 @@ interface Actions {
 export type Store = PersistedState & UIState & Actions;
 
 let toastId = 0;
+
+/**
+ * Phase 6 06-05 D-11 — module-scope LWW loss-detection helper called by every
+ * applyXRealtimePayload reducer (10 in total: injections + 8 mechanical tables
+ * from 06-03 + photos from 06-04).
+ *
+ * Three-condition heuristic — ALL must hold to fire the toast:
+ *   1. Both timestamps parseable AND server.updated_at STRICTLY GREATER than
+ *      local.updated_at (i.e. server's row is newer).
+ *   2. A pendingOp exists for (table, key) — the local user had a queued edit
+ *      that is about to be overwritten by the newer server row.
+ *   3. (Implicit) The local row actually exists with a parseable updated_at.
+ *      Vanilla cross-device propagation has no local-pending edit → condition
+ *      2 fails → no toast (lww-loser: false positive averted).
+ *
+ * Equal or older server timestamps short-circuit early. Missing timestamps
+ * never fire (treated as no-loss to avoid false positives on clock skew).
+ *
+ * This helper is intentionally synchronous and pure-ish (it reads useStore
+ * once for `pendingOps` and the action handle) so reducer-side wiring needs
+ * exactly one line per call site.
+ *
+ * The mirror export at `@/lib/sync#detectAndNotifyLwwLoss` is the
+ * test-surface for unit tests; both share semantics (see sync.ts comment).
+ */
+function _maybeFireLwwLossToast(
+  table: string,
+  key: string,
+  serverUpdatedAt: string | undefined,
+  localUpdatedAt: string | undefined,
+): boolean {
+  if (!serverUpdatedAt || !localUpdatedAt) return false;
+  const serverTs = new Date(serverUpdatedAt).getTime();
+  const localTs = new Date(localUpdatedAt).getTime();
+  if (Number.isNaN(serverTs) || Number.isNaN(localTs)) return false;
+  // Condition 1: server STRICTLY newer (ties treated as no-loss; clock skew safety).
+  if (serverTs <= localTs) return false;
+  const state = useStore.getState();
+  // Condition 2: a pending local edit exists for this row.
+  const hadPendingEdit = (state.pendingOps ?? []).some(
+    (op) => op.table === table && op.key === key,
+  );
+  if (!hadPendingEdit) return false;
+  // All conditions met — surface lww-loser toast.
+  state.notifyLwwLoss(table, key);
+  return true;
+}
 
 /**
  * Pure persist-migration function.
@@ -417,6 +480,14 @@ export const useStore = create<Store>()(
           },
         }),
       dismissToast: () => set({ toast: null }),
+      // Phase 6 06-05 D-11 — non-blocking info toast on LWW-losing device.
+      // Wording per 06-CONTEXT D-11 / 06-UI-SPEC §"Conflict toast copy".
+      // Duration 5000ms via the 06-01 durationMs extension. The (table, key)
+      // args are reserved for future audit-log wiring (Phase 7) and for
+      // unit-test granularity; toast UI does not vary by table.
+      notifyLwwLoss: (_table, _key) => {
+        get().showToast('We kept your most recent edit.', 'info', 5000);
+      },
 
       setUser: (user) => {
         set({ user });
@@ -469,10 +540,16 @@ export const useStore = create<Store>()(
           // can identify this row across local-only logging and Realtime fanout. Callers
           // (e.g. MedicationTab) currently pass form-shaped objects without log_id —
           // back-stamp here rather than push the requirement onto every UI surface.
+          // Phase 6 06-05 D-11: stamp `updated_at` so the LWW loss-detection
+          // heuristic has a meaningful local baseline. The cloud upsert payload
+          // intentionally omits updated_at (mappers in sync.ts) — the server's
+          // moddatetime trigger is the source of truth. This local stamp only
+          // exists so that Realtime payloads arriving back can be compared.
           const stamped: Injection = {
             ...inj,
             log_id,
             pkEngineVersion: inj.pkEngineVersion ?? 1,
+            updated_at: inj.updated_at ?? new Date().toISOString(),
           };
           const injections = [stamped, ...s.injections];
           // Decrement first non-empty vial
@@ -498,8 +575,13 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editInjection: (logId, updates) => {
+        // Phase 6 06-05 D-11: stamp `updated_at` on every local edit so the
+        // LWW comparison in applyRealtimePayload has a fresh local baseline.
+        const stampedAt = new Date().toISOString();
         set((s) => ({
-          injections: s.injections.map((i) => (i.log_id === logId ? { ...i, ...updates } : i)),
+          injections: s.injections.map((i) =>
+            i.log_id === logId ? { ...i, ...updates, updated_at: stampedAt } : i,
+          ),
         }));
         get().enqueueOp({
           table: 'injections',
@@ -531,9 +613,14 @@ export const useStore = create<Store>()(
         // so the cloud upsert can identify this row across local-only logging
         // and Realtime fanout. Caller may pass an existing symptom_id (e.g.
         // from a server pull); we preserve it.
-        const sxWithId = sx as SymptomLog & { symptom_id?: string };
+        // Phase 6 06-05 D-11: stamp `updated_at` so LWW loss-detection works.
+        const sxWithId = sx as SymptomLog & { symptom_id?: string; updated_at?: string };
         const symptom_id = sxWithId.symptom_id ?? crypto.randomUUID();
-        const stamped: SymptomLog & { symptom_id: string } = { ...sx, symptom_id };
+        const stamped: SymptomLog & { symptom_id: string; updated_at?: string } = {
+          ...sx,
+          symptom_id,
+          updated_at: sxWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ symptoms: [stamped as never, ...s.symptoms] }));
         get().enqueueOp({
           table: 'symptoms',
@@ -544,10 +631,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editSymptom: (symptomId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           symptoms: s.symptoms.map((sx) =>
             (sx as SymptomLog & { symptom_id?: string }).symptom_id === symptomId
-              ? ({ ...sx, ...updates } as SymptomLog)
+              ? ({ ...sx, ...updates, updated_at: stampedAt } as SymptomLog)
               : sx,
           ),
         }));
@@ -600,9 +688,14 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       addWeight: (w) => {
-        const wWithId = w as WeightLog & { weight_id?: string };
+        const wWithId = w as WeightLog & { weight_id?: string; updated_at?: string };
         const weight_id = wWithId.weight_id ?? crypto.randomUUID();
-        const stamped: WeightLog & { weight_id: string } = { ...w, weight_id };
+        // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+        const stamped: WeightLog & { weight_id: string; updated_at?: string } = {
+          ...w,
+          weight_id,
+          updated_at: wWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ weights: [...s.weights, stamped as never] }));
         get().enqueueOp({
           table: 'weights',
@@ -613,10 +706,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editWeight: (weightId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           weights: s.weights.map((w) =>
             (w as WeightLog & { weight_id?: string }).weight_id === weightId
-              ? ({ ...w, ...updates } as WeightLog)
+              ? ({ ...w, ...updates, updated_at: stampedAt } as WeightLog)
               : w,
           ),
         }));
@@ -632,9 +726,14 @@ export const useStore = create<Store>()(
       addMeasurement: (m) => set((s) => ({ measurements: [m, ...s.measurements] })),
 
       addMeal: (m) => {
-        const mWithId = m as Meal & { meal_id?: string };
+        const mWithId = m as Meal & { meal_id?: string; updated_at?: string };
         const meal_id = mWithId.meal_id ?? crypto.randomUUID();
-        const stamped: Meal & { meal_id: string } = { ...m, meal_id };
+        // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+        const stamped: Meal & { meal_id: string; updated_at?: string } = {
+          ...m,
+          meal_id,
+          updated_at: mWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ meals: [...s.meals, stamped as never] }));
         get().enqueueOp({
           table: 'meals',
@@ -658,10 +757,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editMeal: (mealId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           meals: s.meals.map((m) =>
             (m as Meal & { meal_id?: string }).meal_id === mealId
-              ? ({ ...m, ...updates } as Meal)
+              ? ({ ...m, ...updates, updated_at: stampedAt } as Meal)
               : m,
           ),
         }));
@@ -679,9 +779,14 @@ export const useStore = create<Store>()(
       setFoodNoise: (date, n) => set((s) => ({ foodNoise: { ...s.foodNoise, [date]: n } })),
 
       addWorkout: (w) => {
-        const wWithId = w as Workout & { workout_id?: string };
+        const wWithId = w as Workout & { workout_id?: string; updated_at?: string };
         const workout_id = wWithId.workout_id ?? crypto.randomUUID();
-        const stamped: Workout & { workout_id: string } = { ...w, workout_id };
+        // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+        const stamped: Workout & { workout_id: string; updated_at?: string } = {
+          ...w,
+          workout_id,
+          updated_at: wWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ workouts: [stamped as never, ...s.workouts] }));
         get().enqueueOp({
           table: 'workouts',
@@ -707,10 +812,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editWorkout: (workoutId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           workouts: s.workouts.map((w) =>
             (w as Workout & { workout_id?: string }).workout_id === workoutId
-              ? ({ ...w, ...updates } as Workout)
+              ? ({ ...w, ...updates, updated_at: stampedAt } as Workout)
               : w,
           ),
         }));
@@ -788,9 +894,14 @@ export const useStore = create<Store>()(
           return { sleep: next };
         }),
       addMood: (m) => {
-        const mWithId = m as MoodLog & { mood_id?: string };
+        const mWithId = m as MoodLog & { mood_id?: string; updated_at?: string };
         const mood_id = mWithId.mood_id ?? crypto.randomUUID();
-        const stamped: MoodLog & { mood_id: string } = { ...m, mood_id };
+        // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+        const stamped: MoodLog & { mood_id: string; updated_at?: string } = {
+          ...m,
+          mood_id,
+          updated_at: mWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ mood: [...s.mood, stamped as never] }));
         get().enqueueOp({
           table: 'mood',
@@ -801,10 +912,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editMood: (moodId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           mood: s.mood.map((m) =>
             (m as MoodLog & { mood_id?: string }).mood_id === moodId
-              ? ({ ...m, ...updates } as MoodLog)
+              ? ({ ...m, ...updates, updated_at: stampedAt } as MoodLog)
               : m,
           ),
         }));
@@ -832,9 +944,14 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       addSleep: (sl) => {
-        const sWithId = sl as SleepLog & { sleep_id?: string };
+        const sWithId = sl as SleepLog & { sleep_id?: string; updated_at?: string };
         const sleep_id = sWithId.sleep_id ?? crypto.randomUUID();
-        const stamped: SleepLog & { sleep_id: string } = { ...sl, sleep_id };
+        // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+        const stamped: SleepLog & { sleep_id: string; updated_at?: string } = {
+          ...sl,
+          sleep_id,
+          updated_at: sWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ sleep: [...s.sleep, stamped as never] }));
         get().enqueueOp({
           table: 'sleep',
@@ -845,10 +962,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editSleep: (sleepId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           sleep: s.sleep.map((sl) =>
             (sl as SleepLog & { sleep_id?: string }).sleep_id === sleepId
-              ? ({ ...sl, ...updates } as SleepLog)
+              ? ({ ...sl, ...updates, updated_at: stampedAt } as SleepLog)
               : sl,
           ),
         }));
@@ -914,6 +1032,8 @@ export const useStore = create<Store>()(
           storage_path: uid ? `${uid}/photos/${photo_id}.jpg` : '',
           mime_type: 'image/jpeg',
           size_bytes: compressed.size,
+          // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+          updated_at: new Date().toISOString(),
         };
         set((s) => ({ photos: [photo, ...s.photos] }));
         get().enqueueOp({
@@ -949,9 +1069,14 @@ export const useStore = create<Store>()(
       },
 
       addVial: (v) => {
-        const vWithId = v as Vial & { vial_id?: string };
+        const vWithId = v as Vial & { vial_id?: string; updated_at?: string };
         const vial_id = vWithId.vial_id ?? crypto.randomUUID();
-        const stamped: Vial & { vial_id: string } = { ...v, vial_id };
+        // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
+        const stamped: Vial & { vial_id: string; updated_at?: string } = {
+          ...v,
+          vial_id,
+          updated_at: vWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => ({ vials: [...s.vials, stamped as never] }));
         get().enqueueOp({
           table: 'vials',
@@ -994,10 +1119,11 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       editVial: (vialId, updates) => {
+        const stampedAt = new Date().toISOString();
         set((s) => ({
           vials: s.vials.map((v) =>
             (v as Vial & { vial_id?: string }).vial_id === vialId
-              ? ({ ...v, ...updates } as Vial)
+              ? ({ ...v, ...updates, updated_at: stampedAt } as Vial)
               : v,
           ),
         }));
@@ -1173,6 +1299,9 @@ export const useStore = create<Store>()(
               return { injections: [...s.injections, remote] };
             }
             const local = s.injections[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection. Fires the toast iff
+            // the 3-condition heuristic holds (see _maybeFireLwwLossToast).
+            _maybeFireLwwLossToast('injections', remote.log_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1362,6 +1491,8 @@ export const useStore = create<Store>()(
             const idx = (s.weights as Row[]).findIndex((w) => w.weight_id === remote.weight_id);
             if (idx === -1) return { weights: [...s.weights, remote as never] };
             const local = (s.weights as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast('weights', remote.weight_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1391,6 +1522,8 @@ export const useStore = create<Store>()(
             const idx = (s.meals as Row[]).findIndex((m) => m.meal_id === remote.meal_id);
             if (idx === -1) return { meals: [...s.meals, remote as never] };
             const local = (s.meals as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast('meals', remote.meal_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1418,6 +1551,13 @@ export const useStore = create<Store>()(
             const idx = (s.workouts as Row[]).findIndex((w) => w.workout_id === remote.workout_id);
             if (idx === -1) return { workouts: [...s.workouts, remote as never] };
             const local = (s.workouts as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast(
+              'workouts',
+              remote.workout_id,
+              remote.updated_at,
+              local.updated_at,
+            );
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1447,6 +1587,8 @@ export const useStore = create<Store>()(
             const idx = (s.mood as Row[]).findIndex((m) => m.mood_id === remote.mood_id);
             if (idx === -1) return { mood: [...s.mood, remote as never] };
             const local = (s.mood as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast('mood', remote.mood_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1472,6 +1614,8 @@ export const useStore = create<Store>()(
             const idx = (s.sleep as Row[]).findIndex((sl) => sl.sleep_id === remote.sleep_id);
             if (idx === -1) return { sleep: [...s.sleep, remote as never] };
             const local = (s.sleep as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast('sleep', remote.sleep_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1501,6 +1645,13 @@ export const useStore = create<Store>()(
             );
             if (idx === -1) return { symptoms: [...s.symptoms, remote as never] };
             const local = (s.symptoms as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast(
+              'symptoms',
+              remote.symptom_id,
+              remote.updated_at,
+              local.updated_at,
+            );
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1530,6 +1681,8 @@ export const useStore = create<Store>()(
             const idx = (s.vials as Row[]).findIndex((v) => v.vial_id === remote.vial_id);
             if (idx === -1) return { vials: [...s.vials, remote as never] };
             const local = (s.vials as Row[])[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast('vials', remote.vial_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
@@ -1552,8 +1705,25 @@ export const useStore = create<Store>()(
       applySupplementRealtimePayload: (payload) =>
         set((s) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const row = payload.new as { date?: string; supplement_name?: string; taken?: boolean };
+            const row = payload.new as {
+              date?: string;
+              supplement_name?: string;
+              taken?: boolean;
+              updated_at?: string;
+            };
             if (!row.date || !row.supplement_name) return {};
+            // Phase 6 06-05 D-11 — lww-loser detection. Supplements use a
+            // composite key `date:name`. Local-side carries no per-cell
+            // updated_at (the slice is a Record<date, Record<name, boolean>>);
+            // pass undefined so the heuristic correctly short-circuits unless
+            // both sides are present. The pendingOps check via op.key still
+            // catches true conflicts when the user toggled the same cell.
+            _maybeFireLwwLossToast(
+              'supplements',
+              `${row.date}:${row.supplement_name}`,
+              row.updated_at,
+              undefined,
+            );
             const next = { ...s.supplements };
             if (!next[row.date]) next[row.date] = {};
             next[row.date]![row.supplement_name] = row.taken !== false;
@@ -1571,8 +1741,23 @@ export const useStore = create<Store>()(
       applySettingsRealtimePayload: (payload) =>
         set((s) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const row = payload.new as { payload?: Record<string, unknown> };
+            const row = payload.new as {
+              payload?: Record<string, unknown>;
+              updated_at?: string;
+              user_id?: string;
+            };
             if (!row.payload) return {};
+            // Phase 6 06-05 D-11 — lww-loser detection. Settings is a per-user
+            // singleton; the local user blob has no `updated_at` so the helper
+            // short-circuits on the missing-baseline guard unless a future
+            // mutation stamps one. Wired here so the call site is uniform
+            // across all 10 reducers (audit-grep compliance).
+            _maybeFireLwwLossToast(
+              'settings',
+              row.user_id ?? '',
+              row.updated_at,
+              undefined,
+            );
             if (!s.user) return { user: row.payload as never };
             return { user: { ...s.user, ...(row.payload as Partial<User>) } };
           }
@@ -1610,6 +1795,8 @@ export const useStore = create<Store>()(
             const idx = s.photos.findIndex((p) => p.photo_id === remote.photo_id);
             if (idx === -1) return { photos: [remote, ...s.photos] };
             const local = s.photos[idx]!;
+            // Phase 6 06-05 D-11 — lww-loser detection.
+            _maybeFireLwwLossToast('photos', remote.photo_id, remote.updated_at, local.updated_at);
             if (
               !local.updated_at ||
               (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
