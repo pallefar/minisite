@@ -194,8 +194,8 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | CLINIC-03 | Phase 9 — Clinic B2B Foundations | Pending |
 | CLINIC-04 | Phase 10 — Clinic Operator Surface | Pending |
 | CLINIC-05 | Phase 10 — Clinic Operator Surface | Pending |
-| CLINIC-06 | Phase 10 — Clinic Operator Surface | Pending |
-| CLINIC-07 | Phase 10 — Clinic Operator Surface | Pending |
+| CLINIC-06 | Phase 9 — Clinic B2B Foundations (moved 2026-05-12 per 09-CONTEXT.md D-07) | Pending |
+| CLINIC-07 | Phase 9 (audit-log capture infrastructure) + Phase 10 (org-owner audit surface UI) — split 2026-05-12 | Pending |
 
 **Coverage:**
 - v1 requirements: 49 total (PROD added one item for Phase 4 infra: COMPL 6 + PROD 7 + AUTH 6 + SYNC 6 + AI 6 + PK 5 + SHARE 6 + CLINIC 7)
@@ -214,8 +214,8 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | SYNC-02, SYNC-03, SYNC-04, SYNC-06 | 4 |
 | 7. Compliance Foundations (Legal-Counsel-Led) | COMPL-01, COMPL-02, COMPL-03, COMPL-06 | 4 |
 | 8. Doctor Read-Share | SHARE-01, SHARE-02, SHARE-03, SHARE-04, SHARE-05, SHARE-06 | 6 |
-| 9. Clinic B2B Foundations | CLINIC-01, CLINIC-02, CLINIC-03 | 3 |
-| 10. Clinic Operator Surface | CLINIC-04, CLINIC-05, CLINIC-06, CLINIC-07 | 4 |
+| 9. Clinic B2B Foundations | CLINIC-01, CLINIC-02, CLINIC-03, CLINIC-06 (+ CLINIC-07 capture half) | 4 |
+| 10. Clinic Operator Surface | CLINIC-04, CLINIC-05, CLINIC-07 (org-owner audit surface UI half) | 3 |
 | **Total** | | **49** |
 
 ---

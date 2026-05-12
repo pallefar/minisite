@@ -191,24 +191,27 @@ Decimal phases appear between their surrounding integers in numeric order.
 **UI hint**: yes
 
 ### Phase 9: Clinic B2B Foundations
-**Goal**: A clinic operator can sign up, create an organization workspace, invite a patient by email, and the patient explicitly consents at acceptance with the share scope visible — and identity stays singular: a patient who already has a personal Supabase account joins via a `memberships` row, never a duplicate `auth.users` record.
+**Goal**: A clinic operator can sign up, create an organization workspace, invite a patient by email, and the patient explicitly consents at acceptance with the share scope visible — and identity stays singular: a patient who already has a personal Supabase account joins via a `memberships` row, never a duplicate `auth.users` record. The full role system (Owner + Coach + View-only + admin-defined custom roles, all permission-jsonb-driven via RLS) ships in this phase so Phase 10's operator surface can immediately differentiate behavior by role.
 **Mode:** mvp
 **Depends on**: Phase 8
-**Requirements**: CLINIC-01, CLINIC-02, CLINIC-03
+**Requirements**: CLINIC-01, CLINIC-02, CLINIC-03, CLINIC-06
 **Success Criteria** (what must be TRUE):
   1. Clinic operator signs up → "Create organization" flow → enters org name + uploads a logo → ends with a workspace URL (e.g., `app.leanshot.app/clinic/concord-internal`) and a clinic-context bar visible in the operator's UI
   2. Operator types `karsten@example.com` into the invite-patient flow → patient receives a branded invitation email → patient (with no prior account) clicks → signs up → sees a consent dialog listing exactly which data fields the clinic will see and the revocation path → accepts → operator's roster (built in Phase 10) shows the patient
   3. The B2B invitation matrix from PITFALLS.md Pitfall #8 (existing-personal-user-invited / no-personal-user-invited / existing-personal-user-with-2-invitations / invited-but-never-accepts / accepts-then-rejects) all pass in CI; in every case, exactly one `auth.users` row exists per email and `memberships` is the relationship table
   4. Patient who already has a personal account is invited → consent dialog displays "your existing personal data is private; only what you share via this consent is visible to the clinic" → patient accepts → operator can roster the patient but cannot see the patient's `aiHistory` (Phase 4 guarantee preserved) or any data fields the patient excluded from scope
   5. Patient opens Settings → "Active organizations" → revokes membership in a clinic → operator's roster removes the patient within 1 second and operator's drill-in for that patient returns 401 — patient's own data stays intact
+  6. Org Owner opens `/clinic/{slug}/settings/roles` → sees 3 system roles (Owner, Coach, View-only) seeded on org-create → creates a custom role "Triage" with permission-key checkboxes (e.g. `patient_data.read` + `audit_log.read` but not `members.invite`) → assigns the role to a member → RLS policies enforce the permission-jsonb scope across all clinic-scoped tables and Storage buckets (verified by pgTAP cross-tenant impersonation tests)
 **Plans**: TBD
 **UI hint**: yes
+**Scope note (2026-05-12):** CLINIC-06 absorbed from Phase 10 per `09-CONTEXT.md` D-07. The role/permission scope (3 default roles + custom-role admin UI + `permissions` global table + `role_permissions` many-to-many + `has_permission()` SECURITY DEFINER helper) ships in Phase 9 so Phase 10's operator surface inherits a working RLS substrate. The audit-log capture infrastructure (every revoke/scope-change/permission-check writes an `audit_logs` row, extending Phase 8 D-04's enum) is also part of Phase 9; the org-owner-facing audit surface UI stays in Phase 10 (CLINIC-07).
 
 ### Phase 10: Clinic Operator Surface
-**Goal**: The clinic operator sees a roster view across linked patients with at-a-glance status (recent dose, active streak, recent symptoms, missed-dose flag) ranked by `rankPatients(orgState)` (a per-patient batched version of `pickFocus`/`generateInsights`), drills into any one patient via the same read-only view component built for SHARE-02, the org has at least three roles (Owner, Coach, View-only), and every operator action is audit-logged and surfaced to both the patient and the org owner.
+**Goal**: The clinic operator sees a roster view across linked patients with at-a-glance status (recent dose, active streak, recent symptoms, missed-dose flag) ranked by `rankPatients(orgState)` (a per-patient batched version of `pickFocus`/`generateInsights`), drills into any one patient via the same read-only view component built for SHARE-02, and every operator action is surfaced to both the patient (already done in Phase 9's "Active organizations" tab) and the org owner via a new admin audit surface. Role infrastructure (Owner/Coach/View-only + custom roles) is already live from Phase 9 — Phase 10 only reads from it.
 **Mode:** mvp
 **Depends on**: Phase 9
-**Requirements**: CLINIC-04, CLINIC-05, CLINIC-06, CLINIC-07
+**Requirements**: CLINIC-04, CLINIC-05, CLINIC-07
+**Scope note (2026-05-12):** CLINIC-06 (role system) moved to Phase 9 — see Phase 9 entry. The audit-log capture infrastructure for operator actions is also Phase 9; Phase 10 adds only the org-owner-facing audit surface UI (CLINIC-07 second half).
 **Success Criteria** (what must be TRUE):
   1. Operator opens the clinic dashboard → sees a roster of all linked patients sortable by name, last-dose, weight-trend arrow, recent-symptom-severity, days-since-last-injection; the default sort is by `rankPatients` "needs attention" score (highest first)
   2. Operator clicks any patient row → drills into a read-only patient detail page that reuses the Phase 8 `DoctorView` component with `viewerMode='clinic'` chrome — same data, same `aiHistory` exclusion, clinic-context-bar instead of doctor-context-bar
