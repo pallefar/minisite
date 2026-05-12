@@ -26,7 +26,13 @@
  * Type-only import of `Session` is mandatory: a value import of
  * `@supabase/supabase-js` here defeats the deferral.
  */
-import type { Session } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+// Type-only namespace imports of the heavy modules — these are erased at
+// compile time (verbatimModuleSyntax) and DO NOT pull the modules onto the
+// static graph. The runtime loads happen via the `import(...)` expressions
+// inside `loadSync()` below.
+import type * as AuthMigrationModule from '@/lib/auth-migration';
+import type * as SyncModule from '@/lib/sync';
 
 type SyncCall =
   | { kind: 'onSignedIn'; userId: string; session: Session }
@@ -38,8 +44,8 @@ const BUFFER_CAP = 64;
 const buffer: SyncCall[] = [];
 
 interface LoadedApi {
-  sync: typeof import('@/lib/sync');
-  authMig: typeof import('@/lib/auth-migration');
+  sync: typeof SyncModule;
+  authMig: typeof AuthMigrationModule;
 }
 
 let loadedApi: LoadedApi | null = null;
@@ -164,10 +170,7 @@ export function scheduleSyncInit(): void {
  * graph dedups @supabase/supabase-js across both entry points.
  */
 export async function subscribeAuthStateChanges(
-  handler: (
-    event: import('@supabase/supabase-js').AuthChangeEvent,
-    session: Session | null,
-  ) => void,
+  handler: (event: AuthChangeEvent, session: Session | null) => void,
 ): Promise<{
   data: { subscription: { unsubscribe: () => void } };
 }> {

@@ -94,9 +94,7 @@ export async function setNewPassword(password: string): Promise<AuthResult> {
   return { user: data.user, session: null, error };
 }
 
-export async function resendVerification(
-  email: string,
-): Promise<{ error: AuthError | null }> {
+export async function resendVerification(email: string): Promise<{ error: AuthError | null }> {
   const { error } = await supabase.auth.resend({
     type: 'signup',
     email,

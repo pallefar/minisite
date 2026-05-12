@@ -282,9 +282,7 @@ describe('unsubscribeInjections', () => {
 describe('flushSyncQueue', () => {
   it('early-returns when isSyncEnabled() === false (D-13 / T-05-07 regression guard)', async () => {
     mockIsSyncEnabled.mockReturnValue(false);
-    storeState.pendingOps = [
-      { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
-    ];
+    storeState.pendingOps = [{ table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' }];
     const { flushSyncQueue } = await import('./sync');
     await flushSyncQueue();
     expect(mockFrom).not.toHaveBeenCalled();
@@ -303,9 +301,7 @@ describe('flushSyncQueue', () => {
         pkEngineVersion: 1,
       },
     ];
-    storeState.pendingOps = [
-      { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
-    ];
+    storeState.pendingOps = [{ table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' }];
     wireFromForUpsert();
     const { flushSyncQueue } = await import('./sync');
     await flushSyncQueue();
@@ -346,9 +342,7 @@ describe('flushSyncQueue', () => {
         updated_at: '2026-05-11T00:00:00Z',
       },
     ];
-    storeState.pendingOps = [
-      { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
-    ];
+    storeState.pendingOps = [{ table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' }];
     wireFromForUpsert();
     const { flushSyncQueue } = await import('./sync');
     await flushSyncQueue();
@@ -359,9 +353,7 @@ describe('flushSyncQueue', () => {
   });
 
   it('handles delete ops via from().delete().eq().in()', async () => {
-    storeState.pendingOps = [
-      { table: 'injections', op: 'delete', key: 'l9', enqueuedAt: 'now' },
-    ];
+    storeState.pendingOps = [{ table: 'injections', op: 'delete', key: 'l9', enqueuedAt: 'now' }];
     wireFromForDelete();
     const { flushSyncQueue } = await import('./sync');
     await flushSyncQueue();
@@ -382,9 +374,7 @@ describe('flushSyncQueue', () => {
         notes: '',
       },
     ];
-    storeState.pendingOps = [
-      { table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' },
-    ];
+    storeState.pendingOps = [{ table: 'injections', op: 'upsert', key: 'l1', enqueuedAt: 'now' }];
     wireFromForUpsert({ message: 'network', code: '503' });
     const { flushSyncQueue } = await import('./sync');
     await flushSyncQueue();
@@ -399,11 +389,7 @@ describe('subscribeToTable<T> generic helper', () => {
     wireChannelSubscribe();
     const { subscribeToTable } = await import('./sync');
     const onPayload = vi.fn();
-    const ch = subscribeToTable<{ user_id: string; date: string }>(
-      'weights',
-      'u1',
-      onPayload,
-    );
+    const ch = subscribeToTable<{ user_id: string; date: string }>('weights', 'u1', onPayload);
     expect(ch).toBeDefined();
     expect(mockChannel).toHaveBeenCalledWith('weights:u1');
     expect(mockChannelOn).toHaveBeenCalledWith(

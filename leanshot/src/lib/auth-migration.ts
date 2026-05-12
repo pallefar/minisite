@@ -42,10 +42,7 @@ export async function runAnonPromotionMigrationIfNeeded(userId: string): Promise
   lastWasAnon = false;
   useStore
     .getState()
-    .showToast(
-      'Welcome back — your AI chat history is saved to your account.',
-      'success',
-    );
+    .showToast('Welcome back — your AI chat history is saved to your account.', 'success');
 }
 
 /**

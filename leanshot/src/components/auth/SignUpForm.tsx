@@ -62,10 +62,7 @@ export function SignUpForm() {
           setErrEmail(error.message);
           return;
         }
-        toast(
-          'We sent a verification link — click it to finish setting your password.',
-          'success',
-        );
+        toast('We sent a verification link — click it to finish setting your password.', 'success');
       } else {
         const { error } = await signUp(email.trim(), password);
         if (error) {

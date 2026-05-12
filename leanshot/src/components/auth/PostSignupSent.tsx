@@ -46,8 +46,8 @@ export function PostSignupSent() {
         <p className="text-[14px] text-[var(--color-text-secondary)] mt-2">
           {email ? (
             <>
-              We sent a verification link to <strong>{email}</strong>. Click it to finish setting
-              up your account.
+              We sent a verification link to <strong>{email}</strong>. Click it to finish setting up
+              your account.
             </>
           ) : (
             <>We sent a verification link to your email. Click it to finish setting up.</>

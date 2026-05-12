@@ -100,10 +100,10 @@ export async function callAIChat(opts: CallAIChatOpts): Promise<void> {
     resp = await fetch(resolveProxyUrl(), {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${jwt}`,
-        'apikey': resolveAnonKey(),
+        Authorization: `Bearer ${jwt}`,
+        apikey: resolveAnonKey(),
         'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
+        Accept: 'text/event-stream',
       },
       body: JSON.stringify({ messages, mode, userContext }),
       signal,

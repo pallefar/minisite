@@ -21,13 +21,7 @@ import { SignInForm } from './SignInForm';
 import { SignUpForm } from './SignUpForm';
 import { VerifyEmailLanding } from './VerifyEmailLanding';
 
-type AuthSub =
-  | 'signup'
-  | 'signin'
-  | 'verify'
-  | 'verify-sent'
-  | 'forgot'
-  | 'set-new-password';
+type AuthSub = 'signup' | 'signin' | 'verify' | 'verify-sent' | 'forgot' | 'set-new-password';
 
 function parseSub(hash: string): AuthSub {
   // Strip any query string `?...` so `#/auth/signin?promote=1` resolves to `signin`.

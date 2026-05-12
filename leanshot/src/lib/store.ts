@@ -87,11 +87,7 @@ interface UIState {
 
 interface Actions {
   setTab: (tab: TabId) => void;
-  showToast: (
-    message: string,
-    kind?: 'success' | 'error' | 'info',
-    durationMs?: number,
-  ) => void;
+  showToast: (message: string, kind?: 'success' | 'error' | 'info', durationMs?: number) => void;
   dismissToast: () => void;
 
   setUser: (user: User) => void;

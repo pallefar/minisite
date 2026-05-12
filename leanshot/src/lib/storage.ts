@@ -249,9 +249,7 @@ let activeNamespaceKey: string | null = null;
  * `namespacedKey` is async (uses `crypto.subtle.digest`); the result is cached
  * synchronously so subsequent get/setItem calls do not need to await.
  */
-export async function setActiveStorageUserId(
-  userId: string | null,
-): Promise<void> {
+export async function setActiveStorageUserId(userId: string | null): Promise<void> {
   if (userId == null) {
     activeNamespaceKey = null;
     return;
@@ -329,4 +327,3 @@ export async function removeUserNamespace(userId: string): Promise<void> {
 export function __resetActiveNamespaceForTests(): void {
   activeNamespaceKey = null;
 }
-

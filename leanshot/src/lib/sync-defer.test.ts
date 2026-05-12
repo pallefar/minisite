@@ -13,8 +13,8 @@
  *   5. Idle scheduling uses window.requestIdleCallback when present; setTimeout fallback otherwise.
  *   6. _resetForTests() clears the buffer + loadedApi for test isolation.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from '@supabase/supabase-js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mocks of the dynamic-import targets. Vitest hoists vi.mock calls, so these
