@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 import { Toast } from '@/components/ui/Toast';
+import { LegalFooter } from './LegalFooter';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
@@ -40,6 +41,13 @@ export function AppShell({
         {children}
       </main>
       <MobileNav />
+      {/* Phase 7 Plan 07-02 — Conspicuous legal-link footer for the
+          authenticated SPA (researcher OQ#7 + WMHMDA RCW 19.373.030(1)(b)
+          applied to the in-app homepage). Rendered AFTER MobileNav so the
+          mb-[80px] on mobile clears the fixed bottom nav; on desktop the
+          footer flows inline below <main>. The FAB below is `fixed` and so
+          floats independently of document order. */}
+      <LegalFooter variant="app" />
       {/* Mobile-only floating quick-log FAB */}
       <button
         onClick={() => setSheetOpen(true)}

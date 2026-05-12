@@ -13,6 +13,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { LegalFooter } from '@/components/layout/LegalFooter';
 import { Button, IconButton } from '@/components/ui/Button';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTheme } from '@/hooks/useTheme';
@@ -574,11 +575,7 @@ function Footer() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mb-2">
             Legal
           </p>
-          <ul className="space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
-            <li>Privacy policy</li>
-            <li>Terms of service</li>
-            <li>Medical disclaimer</li>
-          </ul>
+          <LegalFooter variant="marketing" />
         </div>
       </div>
       <div className="border-t border-[var(--color-border)] py-4 text-center text-[11px] text-[var(--color-text-tertiary)]">
