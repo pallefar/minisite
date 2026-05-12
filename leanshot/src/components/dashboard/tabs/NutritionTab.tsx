@@ -13,7 +13,8 @@ import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 export function NutritionTab() {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const u = useStore((s) => s.user);
   const meals = useStore((s) => s.meals);
   const water = useStore((s) => s.water);
   const foodNoise = useStore((s) => s.foodNoise);
@@ -32,6 +33,8 @@ export function NutritionTab() {
 
   const [meal, setMeal] = useState({ name: '', cal: '', pro: '', fib: '', hunger: '', sat: '' });
   const [aiBusy, setAIBusy] = useState(false);
+
+  if (!u) return null;
 
   const submit = (): void => {
     if (!meal.name.trim()) return toast('Enter what you ate', 'error');
