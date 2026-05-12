@@ -368,9 +368,93 @@ async function migrateEntity(
   snapshot: Record<string, unknown>,
   sync: typeof SyncModule,
 ): Promise<void> {
-  // Plan 06-04 wires the photos base64→Storage path. For 06-03 this is a
-  // no-op so the entity flips pending → complete without doing work.
+  // Phase 6 06-04 D-10 — eager photo migration: every legacy v4 photo with
+  // an inline base64 `data: string` dataURL is decoded → canvas-compressed
+  // (1600px maxEdge, JPEG-85, D-06) → persisted to IndexedDB photo-queue
+  // → enqueued as a `'upload'` op. The serial flush in sync.ts's
+  // flushPhotoOps drains them one-at-a-time per D-09.
+  //
+  // Pitfall 4 (RESEARCH lines 1252-1262): cap in-flight upload ops at 5
+  // so a 100-photo legacy library doesn't blow IndexedDB quota in a single
+  // synchronous loop. The cap also gives flushPhotoOps a chance to dequeue
+  // completed uploads + free their IDB blobs before the next batch enqueues.
+  //
+  // Pitfall 8 (RESEARCH lines 1294-1311): yield to the event loop between
+  // photos so the migration modal can repaint progress + the main thread
+  // does not block.
   if (entity === 'photos') {
+    const photos =
+      ((snapshot.photos as Array<Record<string, unknown>>) ?? []).filter(
+        (p): p is Record<string, unknown> => p !== null && typeof p === 'object',
+      ) ?? [];
+    if (photos.length === 0) return;
+
+    const { compressImage } = await import('@/lib/photo-compress');
+    const { putPhotoBlob } = await import('@/lib/photo-queue');
+    const storeState = useStore.getState();
+
+    const MAX_INFLIGHT = 5;
+
+    for (const legacyPhoto of photos) {
+      // Pitfall 4 backpressure: wait for in-flight uploads to drain below
+      // the cap before queuing the next photo. flushSyncQueue is idempotent
+      // and gated by isSyncEnabled() so a network blip just leaves the ops
+      // in the queue for a later retry.
+      while (
+        (useStore.getState().pendingOps ?? []).filter(
+          (op) => op.table === 'photos' && op.op === 'upload',
+        ).length >= MAX_INFLIGHT
+      ) {
+        await sync.flushSyncQueue();
+        await new Promise((r) => setTimeout(r, 100));
+      }
+
+      try {
+        const photo_id =
+          (legacyPhoto.photo_id as string) ?? (legacyPhoto.id as string) ?? crypto.randomUUID();
+
+        // The v7→v8 migrateV7ToV8 transform preserves `data` for the loop
+        // here, but only stamps photo_id+storage_path+mime_type onto the
+        // shape; the legacy `data: string` (base64 dataURL) is still
+        // present on the snapshot.
+        const dataUrl =
+          (legacyPhoto.data as string | undefined) ?? (legacyPhoto.dataUrl as string | undefined);
+        if (!dataUrl?.startsWith('data:image/')) {
+          // Already-migrated photo (storage_path set, no base64 data) OR
+          // malformed entry — skip silently.
+          await new Promise((r) => setTimeout(r, 0));
+          continue;
+        }
+
+        // base64 dataURL → Blob. fetch(dataUrl) is the canonical browser
+        // decode path (no manual atob bit-twiddling needed).
+        const res = await fetch(dataUrl);
+        const sourceBlob = await res.blob();
+        const compressed = await compressImage(sourceBlob);
+
+        await putPhotoBlob(photo_id, compressed);
+        storeState.enqueueOp({
+          table: 'photos',
+          op: 'upload',
+          key: photo_id,
+          blob_ref: photo_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+
+        // Pitfall 8 yield: let React repaint the migration modal between
+        // photos. setTimeout(0) drops to the macro-task queue so paint can
+        // run.
+        await new Promise((r) => setTimeout(r, 0));
+      } catch (e) {
+        console.error('[leanshot] photo migration failed for one row', e);
+        // Continue with the next photo — partial migration is preferable
+        // to losing the entire library on a single corrupt entry.
+      }
+    }
+
+    // Drain whatever's left so the entity flips to 'complete' only after
+    // every queued upload has had at least one flush attempt.
+    await sync.flushSyncQueue();
     return;
   }
 
