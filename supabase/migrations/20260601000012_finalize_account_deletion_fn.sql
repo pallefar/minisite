@@ -40,7 +40,11 @@ create or replace function public.finalize_account_deletion(p_user_id uuid)
 returns void
 language plpgsql
 security definer
-set search_path = public, auth, pg_catalog
+-- `extensions` is included so `digest()` (pgcrypto, installed in the
+-- extensions schema on managed Supabase) resolves inside the SECURITY
+-- DEFINER context. See 20260601000004_audit_trigger_fix_search_path.sql
+-- — same bug + same fix shape from 07-08.
+set search_path = public, auth, extensions, pg_catalog
 as $$
 declare
   v_row public.pending_account_deletions;
@@ -72,10 +76,15 @@ begin
     null, null, null
   );
 
-  -- Hard-delete Storage objects under the pending-shred prefix. Bytes are
-  -- gone after this DELETE returns (Supabase Storage is the source of truth
-  -- for object presence; the row in storage.objects pointing at the bucket
-  -- object is what makes it accessible).
+  -- Hard-delete Storage objects under the pending-shred prefix. Supabase
+  -- Storage has a `protect_objects_delete` trigger that rejects direct
+  -- DELETE FROM storage.objects unless the session variable
+  -- `storage.allow_delete_query` is set to 'true' (admin-bypass — local to
+  -- the transaction so it cannot leak). Bytes are gone after this DELETE
+  -- returns; the row in storage.objects pointing at the bucket object is
+  -- what makes it accessible. Discovered during 07-07 Task 5 e2e —
+  -- documented in 20260601000015_account_delete_fix_search_path.sql.
+  perform set_config('storage.allow_delete_query', 'true', true);
   delete from storage.objects
    where bucket_id = 'photos'
      and name like 'photos-pending-shred/' || p_user_id::text || '/%';

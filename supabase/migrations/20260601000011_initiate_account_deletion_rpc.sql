@@ -40,7 +40,11 @@ create or replace function public.initiate_account_deletion()
 returns void
 language plpgsql
 security definer
-set search_path = public, auth, pg_catalog
+-- `extensions` is included so `digest()` (pgcrypto, installed in the
+-- extensions schema on managed Supabase) resolves inside the SECURITY
+-- DEFINER context. See 20260601000004_audit_trigger_fix_search_path.sql
+-- — same bug + same fix shape from 07-08.
+set search_path = public, auth, extensions, pg_catalog
 as $$
 declare
   v_uid uuid := auth.uid();
