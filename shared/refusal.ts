@@ -154,7 +154,7 @@ export interface CorpusRow {
  * Adversarial corpus, ≥ 50 rows across 5 categories (SC#3 floor; planner
  * targets ≥ 70 for headroom). Each row is asserted under BOTH:
  *  - vitest (`shared/refusal.test.ts`) — browser-side parity proof.
- *  - deno test (`supabase/functions/tests/ai-chat-refusal-test.ts`) — proves
+ *  - deno test (`supabase/functions/tests/ai-chat-refusal.test.ts`) — proves
  *    the module resolves under Deno's TS parser + import-map.
  *
  * Important authoring rule: non-`benign-pass` rows MUST include a dose-change

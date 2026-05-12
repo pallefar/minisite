@@ -1,7 +1,7 @@
 /**
  * Vitest exercise of the dual-runtime refusal module.
  *
- * Mirrored by `supabase/functions/tests/ai-chat-refusal-test.ts` under Deno
+ * Mirrored by `supabase/functions/tests/ai-chat-refusal.test.ts` under Deno
  * (single source of truth via this file's ADVERSARIAL_CORPUS export). Phase 4
  * SC#3 + T-04-01 + T-04-03 evidence — see `04-03-PLAN.md` Task 1 behavior
  * specs (Tests 1-7).

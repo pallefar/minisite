@@ -198,7 +198,7 @@ jobs:
         run: |
           test -f shared/refusal.ts || (echo "FAIL: shared/refusal.ts missing" && exit 1)
           test -f supabase/functions/import_map.json || (echo "FAIL: import_map.json missing" && exit 1)
-          test -f supabase/functions/tests/ai-chat-refusal-test.ts || (echo "FAIL: deno test file missing" && exit 1)
+          test -f supabase/functions/tests/ai-chat-refusal.test.ts || (echo "FAIL: deno test file missing" && exit 1)
       - name: Run Deno tests (shared/refusal corpus under Deno runtime)
         run: deno test --allow-net=api.moonshot.ai --allow-read --allow-env --import-map=supabase/functions/import_map.json supabase/functions/tests/
 
