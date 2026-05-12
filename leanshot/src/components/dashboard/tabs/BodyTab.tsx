@@ -29,7 +29,8 @@ import { useStore } from '@/lib/store';
 import type { Measurement, Photo } from '@/types';
 
 export function BodyTab() {
-  const u = useStore((s) => s.user!);
+  // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const upsertWeight = useStore((s) => s.upsertWeight);
   const removeWeight = useStore((s) => s.removeWeight);
@@ -49,6 +50,8 @@ export function BodyTab() {
     arms: '',
     thighs: '',
   });
+
+  if (!u) return null;
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
   const latest = weights[weights.length - 1];
