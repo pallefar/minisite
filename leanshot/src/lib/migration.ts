@@ -19,6 +19,7 @@
  * Plan 06-04 wires the photos base64→Storage path. The `injections` entity
  * already has a working path via Phase 5's `enqueueLocalInjectionsForSync`.
  */
+import { getActiveStorageNamespace } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 // Type-only namespace import — sync.ts is loaded via `import('@/lib/sync')`
 // inside `runMigration` so it stays off this module's static graph. The type
@@ -142,7 +143,15 @@ export function cleanupExpiredBackup(): void {
 export function snapshotPreCloudBackup(): void {
   let raw: string | null = null;
   try {
+    // Phase 7 07-02 ordering fix: prefer universal key, fall back to active
+    // namespaced key — by the time maybeStartMigration runs, App.tsx has
+    // already renamed leanshot_v4 → leanshot_v4:<hash16>. Mirror readV4Snapshot
+    // so snapshotPreCloudBackup writes the SAME blob that runMigration reads.
     raw = localStorage.getItem(LEGACY_KEY);
+    if (!raw) {
+      const namespaced = getActiveStorageNamespace();
+      if (namespaced) raw = localStorage.getItem(namespaced);
+    }
   } catch {
     return; // private-mode browsers — silent no-op
   }
@@ -166,11 +175,37 @@ export function snapshotPreCloudBackup(): void {
   }
 }
 
+/**
+ * Read the active v4 blob from localStorage.
+ *
+ * Phase 7 07-02 ordering fix: Plan 05-05 introduced per-user storage
+ * namespacing — App.tsx's SIGNED_IN handler calls
+ * `await setActiveStorageUserId(session.user.id);`
+ * `await renameStorageNamespace(session.user.id);`
+ * BEFORE `deferOnSignedIn` enqueues `maybeStartMigration`. By the time the
+ * deferred sync-init drain reaches maybeStartMigration, the universal
+ * `leanshot_v4` key has already been moved+deleted and the data lives at
+ * `leanshot_v4:<hash16>` (the active namespace).
+ *
+ * Previously this helper only checked `LEGACY_KEY`, so fresh-migration's
+ * `v4HasUserData(null)` guard at line 275 of `maybeStartMigration` returned
+ * early and the MigrationModal never rendered. Phase 6's migrate-resume Test 1
+ * (and any future fresh-migration spec) relies on the modal appearing.
+ *
+ * Fix: prefer the universal key when it still exists (covers the "user signed
+ * out, anon usage seeded leanshot_v4, then signed in" path) AND fall back to
+ * the active namespaced key when the universal one has been renamed away
+ * (the common post-SIGNED_IN path).
+ */
 function readV4Snapshot(): Record<string, unknown> | null {
   try {
-    const raw = localStorage.getItem(LEGACY_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as Record<string, unknown>;
+    const universalRaw = localStorage.getItem(LEGACY_KEY);
+    if (universalRaw) return JSON.parse(universalRaw) as Record<string, unknown>;
+    const namespaced = getActiveStorageNamespace();
+    if (!namespaced) return null;
+    const namespacedRaw = localStorage.getItem(namespaced);
+    if (!namespacedRaw) return null;
+    return JSON.parse(namespacedRaw) as Record<string, unknown>;
   } catch {
     return null;
   }
