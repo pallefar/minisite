@@ -226,7 +226,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. AI Proxy on Supabase Edge Functions | 0/3 | Not started | - |
 | 5. Patient Cloud Sync Slice 1 — Auth + Injections | 3/6 | Gap closure planned (G1, G2, G3) | - |
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | 0/TBD | Not started | - |
-| 7. Compliance Foundations (Legal-Counsel-Led) | 0/TBD | Not started | - |
+| 7. Compliance Foundations (Legal-Counsel-Led) | 3/10 | In Progress|  |
 | 8. Doctor Read-Share | 0/TBD | Not started | - |
 | 9. Clinic B2B Foundations | 0/TBD | Not started | - |
 | 10. Clinic Operator Surface | 0/TBD | Not started | - |

@@ -13,7 +13,7 @@ Pre-launch legal foundation. Surfaced by research as Phase-0 blocker — three c
 
 - [ ] **COMPL-01**: Privacy policy is published and references all data collected (injections, photos, weight, mood, symptoms, AI conversations) — drafted in consultation with legal counsel
 - [ ] **COMPL-02**: A WMHMDA-compliant consumer health data privacy (CHDP) policy is published and linked from app footer (Washington My Health My Data Act, in force March 2024, has private right of action)
-- [ ] **COMPL-03**: App is registered for FTC Health Breach Notification Rule (HBNR) compliance, with an incident-response plan documented
+- [x] **COMPL-03**: App is registered for FTC Health Breach Notification Rule (HBNR) compliance, with an incident-response plan documented
 - [ ] **COMPL-04**: App displays prominent "Not medical advice — consult your healthcare provider" disclaimer on first run and overlaid on the drug-level chart, calibrated for FDA general-wellness software guidance
 - [ ] **COMPL-05**: Marketing copy and in-app framing avoid mental-health treatment claims (Mood tab + AI coach) to keep the app outside CMIA's mental-health digital service definition
 - [ ] **COMPL-06**: User can export all their data (JSON + readable PDF) and delete their account on demand — surfaced clearly in Settings
@@ -149,7 +149,7 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 |-------------|-------|--------|
 | COMPL-01 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
 | COMPL-02 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
-| COMPL-03 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
+| COMPL-03 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Complete |
 | COMPL-04 | Phase 2 — Visible Compliance & Public Deploy | Pending |
 | COMPL-05 | Phase 2 — Visible Compliance & Public Deploy | Pending |
 | COMPL-06 | Phase 7 — Compliance Foundations (Legal-Counsel-Led) | Pending |
