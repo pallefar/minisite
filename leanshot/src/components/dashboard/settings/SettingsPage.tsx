@@ -477,22 +477,18 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
 
           {section === 'recovery' && (
-            <Section
-              title="Recovery"
-              body="Restore a local backup taken before cloud migration."
-            >
+            <Section title="Recovery" body="Restore a local backup taken before cloud migration.">
               {backupCorrupted ? (
                 <Card variant="flat">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
-                    Backup file is corrupted. Contact support if you need help recovering your
-                    data.
+                    Backup file is corrupted. Contact support if you need help recovering your data.
                   </p>
                 </Card>
               ) : !backup ? (
                 <Card variant="flat">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
-                    No local backup found. Backups are created automatically before cloud
-                    migration and retained for 90 days.
+                    No local backup found. Backups are created automatically before cloud migration
+                    and retained for 90 days.
                   </p>
                 </Card>
               ) : (
@@ -641,11 +637,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             autoCapitalize="characters"
           />
           <div className="flex gap-2 justify-end">
-            <Button
-              variant="ghost"
-              onClick={() => setRestoreOpen(false)}
-              disabled={restoreBusy}
-            >
+            <Button variant="ghost" onClick={() => setRestoreOpen(false)} disabled={restoreBusy}>
               Cancel
             </Button>
             <Button

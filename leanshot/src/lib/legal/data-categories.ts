@@ -68,8 +68,7 @@ export const DATA_CATEGORIES: readonly DataCategory[] = [
   {
     key: 'meals',
     label: 'Meals and nutrition',
-    description:
-      'Meal name, calories, protein, fiber, hunger score, satisfaction score, and date.',
+    description: 'Meal name, calories, protein, fiber, hunger score, satisfaction score, and date.',
     isConsumerHealthData: true,
   },
   {

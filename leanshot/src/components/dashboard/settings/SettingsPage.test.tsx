@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as AuthModule from '@/lib/auth';
 import { useStore } from '@/lib/store';
 import { SettingsPage } from './SettingsPage';
 
@@ -30,7 +31,6 @@ describe('SettingsPage — Phase 4 D-03 BYO key removal', () => {
         liftingLevel: 'beginner',
         sex: 'male',
         activityLevel: 'moderate',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
     });
   });
@@ -69,7 +69,7 @@ describe('SettingsPage — Phase 4 D-03 BYO key removal', () => {
 
 // Mock auth.signOut so tests don't hit a real Supabase client.
 vi.mock('@/lib/auth', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/auth')>('@/lib/auth');
+  const actual = await vi.importActual<typeof AuthModule>('@/lib/auth');
   return {
     ...actual,
     signOut: vi.fn(async () => ({ error: null })),
@@ -131,7 +131,6 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     onClose = vi.fn();
     // Seed a minimum store user so SettingsPage's early-return doesn't fire.
     useStore.setState({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       user: { ...MIN_USER } as any,
     });
   });
@@ -154,9 +153,7 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     await userEvent.click(screen.getByRole('button', { name: /^recovery$/i }));
     // toLocaleString() in jsdom emits the year regardless of locale.
     expect(screen.getByText(/2026/)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /restore from local backup/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /restore from local backup/i })).toBeInTheDocument();
   });
 
   it('gates the confirm button on a case-sensitive typed RESTORE', async () => {

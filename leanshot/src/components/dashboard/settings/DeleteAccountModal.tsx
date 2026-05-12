@@ -63,10 +63,7 @@ export function DeleteAccountModal({ open, onClose }: DeleteAccountModalProps) {
     setInlineError(null);
     try {
       await initiateAccountDeletion();
-      toast(
-        "Account scheduled for deletion in 30 days. You've been signed out.",
-        'success',
-      );
+      toast("Account scheduled for deletion in 30 days. You've been signed out.", 'success');
       setTyped('');
       onClose();
     } catch (e) {
@@ -87,10 +84,7 @@ export function DeleteAccountModal({ open, onClose }: DeleteAccountModalProps) {
         }
       }
       // unknown / not_authenticated / anything else.
-      toast(
-        'Could not start account deletion. Please try again or contact support.',
-        'error',
-      );
+      toast('Could not start account deletion. Please try again or contact support.', 'error');
       setTyped('');
       onClose();
     } finally {
@@ -106,12 +100,12 @@ export function DeleteAccountModal({ open, onClose }: DeleteAccountModalProps) {
           help@leanshot.app. After 30 days your data is permanently destroyed and unrecoverable.
         </p>
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          Photos are immediately moved to a locked location — they become unreadable the instant
-          you confirm, even before the 30-day window ends.
+          Photos are immediately moved to a locked location — they become unreadable the instant you
+          confirm, even before the 30-day window ends.
         </p>
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          Same-email re-signup during the 30-day window is blocked. After the window ends, the
-          email is released.
+          Same-email re-signup during the 30-day window is blocked. After the window ends, the email
+          is released.
         </p>
         <Input
           label="Type your email to confirm"

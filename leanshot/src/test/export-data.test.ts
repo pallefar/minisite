@@ -24,7 +24,11 @@ import type { PersistedState } from '@/lib/storage';
 
 function makeState(overrides: Partial<PersistedState> = {}): PersistedState {
   return {
-    user: { name: 'TestUser', units: 'metric', goalWeight: 80 } as unknown as PersistedState['user'],
+    user: {
+      name: 'TestUser',
+      units: 'metric',
+      goalWeight: 80,
+    } as unknown as PersistedState['user'],
     injections: [],
     symptoms: [],
     weights: [],
@@ -161,26 +165,50 @@ describe('buildPdfDoc', () => {
 
     const payload = buildJsonExport(
       makeState({
-        injections: [{ logged_at: '2026-05-10', site: 'thigh-l', medication: 'ozempic', dose: '0.5' }] as unknown as PersistedState['injections'],
+        injections: [
+          { logged_at: '2026-05-10', site: 'thigh-l', medication: 'ozempic', dose: '0.5' },
+        ] as unknown as PersistedState['injections'],
         weights: [{ date: '2026-05-10', weight: 81 }] as unknown as PersistedState['weights'],
-        photos: [{ takenAt: '2026-05-01' }, { takenAt: '2026-05-09' }] as unknown as PersistedState['photos'],
+        photos: [
+          { takenAt: '2026-05-01' },
+          { takenAt: '2026-05-09' },
+        ] as unknown as PersistedState['photos'],
       }),
       null,
-      { window: '13mo', inserts: 5, updates: 1, deletes: 0, initiated_count: 0, finalized_count: 0 },
+      {
+        window: '13mo',
+        inserts: 5,
+        updates: 1,
+        deletes: 0,
+        initiated_count: 0,
+        finalized_count: 0,
+      },
     );
 
     buildPdfDoc(Ctor, autoTable as unknown as typeof autoTableFn, payload);
 
     // Title text appeared on cover.
-    const titleCalls = calls.filter((c) => c.method === 'text' && c.args[0] === 'LeanShot Health Export');
+    const titleCalls = calls.filter(
+      (c) => c.method === 'text' && c.args[0] === 'LeanShot Health Export',
+    );
     expect(titleCalls.length).toBeGreaterThanOrEqual(1);
 
     // Name field appears.
-    const nameCalls = calls.filter((c) => c.method === 'text' && typeof c.args[0] === 'string' && (c.args[0] as string).startsWith('Name: '));
+    const nameCalls = calls.filter(
+      (c) =>
+        c.method === 'text' &&
+        typeof c.args[0] === 'string' &&
+        (c.args[0] as string).startsWith('Name: '),
+    );
     expect(nameCalls.length).toBeGreaterThanOrEqual(1);
 
     // Export date appears.
-    const dateCalls = calls.filter((c) => c.method === 'text' && typeof c.args[0] === 'string' && (c.args[0] as string).startsWith('Exported: '));
+    const dateCalls = calls.filter(
+      (c) =>
+        c.method === 'text' &&
+        typeof c.args[0] === 'string' &&
+        (c.args[0] as string).startsWith('Exported: '),
+    );
     expect(dateCalls.length).toBeGreaterThanOrEqual(1);
 
     // ≥ 5 autoTable invocations (profile + injections + weights + measurements + meals + ... = many).

@@ -12,11 +12,7 @@
  * call time, which a partial state injection handles cleanly.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  AccountDeleteError,
-  initiateAccountDeletion,
-  typedConfirmMatches,
-} from './account-delete';
+import { AccountDeleteError, initiateAccountDeletion, typedConfirmMatches } from './account-delete';
 
 const mockRpc = vi.fn();
 const mockSignOut = vi.fn();

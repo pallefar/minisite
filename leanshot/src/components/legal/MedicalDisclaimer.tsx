@@ -35,8 +35,8 @@ export function MedicalDisclaimer() {
         {/* Verbatim Phase 2 paragraph 1 (byte-replicated from DisclaimerModal.tsx:18-22) */}
         <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
           <strong>Not medical advice.</strong> LeanShot helps you track GLP-1 medications, body
-          metrics, food, activity, and symptoms. The drug-level chart shows a modeled estimate
-          based on population pharmacokinetics — not a measured serum level. Always consult your
+          metrics, food, activity, and symptoms. The drug-level chart shows a modeled estimate based
+          on population pharmacokinetics — not a measured serum level. Always consult your
           healthcare provider for clinical decisions.
         </p>
 
@@ -57,11 +57,11 @@ export function MedicalDisclaimer() {
         <section className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ GLP-1 guidance is informational</h2>
           <p>
-            The titration schedule, dose-rotation reminders, and injection-site cycling
-            suggestions shown in LeanShot are based on publicly available manufacturer labeling
-            and general GLP-1 clinical guidance. They are NOT prescribing instructions. Your
-            clinician has the authority on dosage, frequency, and titration — follow their
-            guidance over LeanShot&apos;s defaults.
+            The titration schedule, dose-rotation reminders, and injection-site cycling suggestions
+            shown in LeanShot are based on publicly available manufacturer labeling and general
+            GLP-1 clinical guidance. They are NOT prescribing instructions. Your clinician has the
+            authority on dosage, frequency, and titration — follow their guidance over
+            LeanShot&apos;s defaults.
           </p>
         </section>
 
@@ -73,13 +73,12 @@ export function MedicalDisclaimer() {
           <p>
             The drug-level projection chart in the Medication tab is generated from a
             population-pharmacokinetics model (literature-derived half-lives and absorption
-            constants for semaglutide, tirzepatide, and related peptides). It estimates an
-            average patient&apos;s drug level given the doses you have logged. It is NOT a
-            measured serum concentration, it does NOT account for your individual metabolism or
-            body composition, and it MUST NOT be used to decide whether to take or skip a dose.
-            The chart&apos;s purpose is visualization — to help you see your dosing pattern over
-            time —
-            not clinical decision-making.
+            constants for semaglutide, tirzepatide, and related peptides). It estimates an average
+            patient&apos;s drug level given the doses you have logged. It is NOT a measured serum
+            concentration, it does NOT account for your individual metabolism or body composition,
+            and it MUST NOT be used to decide whether to take or skip a dose. The chart&apos;s
+            purpose is visualization — to help you see your dosing pattern over time — not clinical
+            decision-making.
           </p>
         </section>
 
@@ -89,27 +88,28 @@ export function MedicalDisclaimer() {
             § AI coach is rule-based + AI-assisted, NOT a clinician
           </h2>
           <p>
-            LeanShot&apos;s AI coach combines deterministic rule-based insights (generated from
-            your data on the client) with optional AI-assisted responses (routed via Vercel AI
-            Gateway to Moonshot&apos;s Kimi K2 model). The AI coach: (a) is not a licensed
-            healthcare
-            provider, (b) does not have access to your medical history beyond what you have
-            logged in the app, (c) may produce factually inaccurate or out-of-date information
-            (large language models hallucinate), and (d) MUST NOT be used as a substitute for
-            talking to your clinician, your pharmacist, or your therapist about any health
-            concern, dose question, side effect, or change in symptoms.
+            LeanShot&apos;s AI coach combines deterministic rule-based insights (generated from your
+            data on the client) with optional AI-assisted responses (routed via Vercel AI Gateway to
+            Moonshot&apos;s Kimi K2 model). The AI coach: (a) is not a licensed healthcare provider,
+            (b) does not have access to your medical history beyond what you have logged in the app,
+            (c) may produce factually inaccurate or out-of-date information (large language models
+            hallucinate), and (d) MUST NOT be used as a substitute for talking to your clinician,
+            your pharmacist, or your therapist about any health concern, dose question, side effect,
+            or change in symptoms.
           </p>
         </section>
 
         {/* § Consult your healthcare provider */}
         <section className="space-y-3">
-          <h2 className="text-[18px] font-semibold mt-8 mb-3">§ Consult your healthcare provider</h2>
+          <h2 className="text-[18px] font-semibold mt-8 mb-3">
+            § Consult your healthcare provider
+          </h2>
           <p>
             For any clinical decision — including whether to take or skip a dose, adjust your
             titration schedule, manage side effects, or address new symptoms — consult your
             clinician, pharmacist, or other licensed healthcare provider. If you experience a
-            medical emergency, call your local emergency number (911 in the US) or go to the
-            nearest emergency department. LeanShot is not designed to detect or alert on medical
+            medical emergency, call your local emergency number (911 in the US) or go to the nearest
+            emergency department. LeanShot is not designed to detect or alert on medical
             emergencies.
           </p>
         </section>

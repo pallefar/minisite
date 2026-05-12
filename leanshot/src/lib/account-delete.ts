@@ -45,10 +45,7 @@ export class AccountDeleteError extends Error {
  * shouldn't have to remember whether they registered as `Foo@bar.com` or
  * `foo@bar.com`; trim because mobile keyboards auto-insert trailing spaces.
  */
-export function typedConfirmMatches(
-  typed: string,
-  email: string | null | undefined,
-): boolean {
+export function typedConfirmMatches(typed: string, email: string | null | undefined): boolean {
   if (typeof email !== 'string') return false;
   const normalizedEmail = email.trim().toLowerCase();
   if (normalizedEmail.length === 0) return false;

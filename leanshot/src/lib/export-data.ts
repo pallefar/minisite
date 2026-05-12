@@ -158,7 +158,8 @@ export function buildJsonExport(
   // rows already match the local shape via the mapServer*ToLocal helpers in
   // src/lib/sync.ts (pullInitial* functions overwrite the slices the same way).
   if (cloudExtras) {
-    if (cloudExtras.injections) local.injections = cloudExtras.injections as ExportLocal['injections'];
+    if (cloudExtras.injections)
+      local.injections = cloudExtras.injections as ExportLocal['injections'];
     if (cloudExtras.weights) local.weights = cloudExtras.weights as ExportLocal['weights'];
     if (cloudExtras.meals) local.meals = cloudExtras.meals as ExportLocal['meals'];
     if (cloudExtras.workouts) local.workouts = cloudExtras.workouts as ExportLocal['workouts'];
@@ -198,30 +199,23 @@ export async function fetchCloudExtras(
   userId: string,
 ): Promise<CloudExtras | null> {
   try {
-    const [
-      injections,
-      weights,
-      meals,
-      workouts,
-      mood,
-      sleep,
-      symptoms,
-      vials,
-      photos,
-      aiCount,
-    ] = await Promise.all([
-      supabase.from('injections').select('*').eq('user_id', userId),
-      supabase.from('weights').select('*').eq('user_id', userId),
-      supabase.from('meals').select('*').eq('user_id', userId),
-      supabase.from('workouts').select('*').eq('user_id', userId),
-      supabase.from('mood').select('*').eq('user_id', userId),
-      supabase.from('sleep').select('*').eq('user_id', userId),
-      supabase.from('symptoms').select('*').eq('user_id', userId),
-      supabase.from('vials').select('*').eq('user_id', userId),
-      supabase.from('photos').select('*').eq('user_id', userId),
-      // ai_messages: HEAD count only — never raw rows (T-07-06-03).
-      supabase.from('ai_messages').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-    ]);
+    const [injections, weights, meals, workouts, mood, sleep, symptoms, vials, photos, aiCount] =
+      await Promise.all([
+        supabase.from('injections').select('*').eq('user_id', userId),
+        supabase.from('weights').select('*').eq('user_id', userId),
+        supabase.from('meals').select('*').eq('user_id', userId),
+        supabase.from('workouts').select('*').eq('user_id', userId),
+        supabase.from('mood').select('*').eq('user_id', userId),
+        supabase.from('sleep').select('*').eq('user_id', userId),
+        supabase.from('symptoms').select('*').eq('user_id', userId),
+        supabase.from('vials').select('*').eq('user_id', userId),
+        supabase.from('photos').select('*').eq('user_id', userId),
+        // ai_messages: HEAD count only — never raw rows (T-07-06-03).
+        supabase
+          .from('ai_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId),
+      ]);
 
     const extras: CloudExtras = {};
     if (!injections.error && injections.data) extras.injections = injections.data;
@@ -276,7 +270,10 @@ export async function fetchAuditSummary(
     // If ANY of the three core counts errored (e.g., RLS denied), bail —
     // returning a partial summary would mislead the user.
     if (ins.error || upd.error || del.error) {
-      console.warn('[leanshot] fetchAuditSummary core counts failed', ins.error || upd.error || del.error);
+      console.warn(
+        '[leanshot] fetchAuditSummary core counts failed',
+        ins.error || upd.error || del.error,
+      );
       return null;
     }
     return {
@@ -284,8 +281,8 @@ export async function fetchAuditSummary(
       inserts: ins.count ?? 0,
       updates: upd.count ?? 0,
       deletes: del.count ?? 0,
-      initiated_count: init.error ? 0 : init.count ?? 0,
-      finalized_count: fin.error ? 0 : fin.count ?? 0,
+      initiated_count: init.error ? 0 : (init.count ?? 0),
+      finalized_count: fin.error ? 0 : (fin.count ?? 0),
     };
   } catch (e) {
     console.warn('[leanshot] fetchAuditSummary failed', e);
@@ -385,7 +382,9 @@ export function buildPdfDoc(
       // no-op — placeholder hook for future header/footer.
     },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 3. Injections (last 30) ----
   const injectionsBody = lastN(local.injections as unknown[] | undefined, 30).map((r) => {
@@ -404,7 +403,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 4. Weights (last 30) ----
   const weightsBody = lastN(local.weights as unknown[] | undefined, 30).map((r) => {
@@ -418,17 +419,14 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 5. Measurements (last 30) ----
   const measBody = lastN(local.measurements as unknown[] | undefined, 30).map((r) => {
     const x = r as Record<string, unknown>;
-    return [
-      fmtDate(x.date),
-      String(x.waist ?? '—'),
-      String(x.hip ?? '—'),
-      String(x.chest ?? '—'),
-    ];
+    return [fmtDate(x.date), String(x.waist ?? '—'), String(x.hip ?? '—'), String(x.chest ?? '—')];
   });
   autoTable(doc, {
     startY: cursorY + 20,
@@ -437,7 +435,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 6. Meals (last 30) ----
   const mealsBody = lastN(local.meals as unknown[] | undefined, 30).map((r) => {
@@ -456,7 +456,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 7. Workouts (last 20) ----
   const workoutsBody = lastN(local.workouts as unknown[] | undefined, 20).map((r) => {
@@ -475,7 +477,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 8. Symptoms (last 30) ----
   const sxBody = lastN(local.symptoms as unknown[] | undefined, 30).map((r) => {
@@ -493,7 +497,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 9. Mood + Sleep (last 14 each) ----
   const moodBody = lastN(local.mood as unknown[] | undefined, 14).map((r) => {
@@ -507,7 +513,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   const sleepBody = lastN(local.sleep as unknown[] | undefined, 14).map((r) => {
     const x = r as Record<string, unknown>;
@@ -520,7 +528,9 @@ export function buildPdfDoc(
     headStyles: { fillColor: [60, 60, 60] },
     margin: { left: 40, right: 40 },
   });
-  cursorY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? cursorY + 200;
+  cursorY =
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ??
+    cursorY + 200;
 
   // ---- 10. Photo summary (count + date range only — T-07-06-01) ----
   const photos = (local.photos ?? []) as unknown as Array<Record<string, unknown>>;
@@ -538,11 +548,7 @@ export function buildPdfDoc(
       .filter((t) => !Number.isNaN(t));
     const earliest = dates.length ? new Date(Math.min(...dates)).toISOString().slice(0, 10) : '—';
     const latest = dates.length ? new Date(Math.max(...dates)).toISOString().slice(0, 10) : '—';
-    doc.text(
-      `${photos.length} photos · earliest ${earliest} · latest ${latest}`,
-      40,
-      cursorY + 52,
-    );
+    doc.text(`${photos.length} photos · earliest ${earliest} · latest ${latest}`, 40, cursorY + 52);
   }
   cursorY += 70;
 
@@ -551,9 +557,7 @@ export function buildPdfDoc(
   doc.text('AI coach conversations', 40, cursorY + 20);
   doc.setFontSize(11);
   const aiCount =
-    meta.ai_messages_count !== undefined
-      ? meta.ai_messages_count
-      : (local.aiHistory ?? []).length;
+    meta.ai_messages_count !== undefined ? meta.ai_messages_count : (local.aiHistory ?? []).length;
   doc.text(`${aiCount} messages (transcripts not included)`, 40, cursorY + 40);
   cursorY += 60;
 
