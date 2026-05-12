@@ -128,6 +128,17 @@ jobs:
       - name: Assert vendor-react chunk size (SC#2 — Phase 2.1 regression guard)
         run: bash scripts/assert-vendor-react-size.sh
 
+      # Phase 7 Plan 07-06 — jspdf chunk topology guard.
+      # Asserts: (a) dist/assets/jspdf*.js chunk exists separate from index,
+      # (b) jspdf gz > 20 kB (sanity floor — catches tree-shake regressions),
+      # (c) index chunk does NOT contain the jsPDF identifier (catches a
+      # static-import regression that would bloat the entry chunk).
+      # See:
+      #   leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-06-PLAN.md
+      #   leanshot/scripts/assert-bundle-budget.sh
+      - name: Assert bundle budget (jspdf chunk topology — Phase 7 COMPL-06 guard)
+        run: bash scripts/assert-bundle-budget.sh
+
       # Security check (T-1-05 mitigation): the dev-only Sentry trigger string
       # 'phase-1-sentry-smoke' MUST NOT appear in any production-built JS file.
       # Vite tree-shakes the import.meta.env.DEV branch out of production builds.
