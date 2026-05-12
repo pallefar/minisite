@@ -2,12 +2,23 @@
  * Zustand store + persist.
  * Single source of truth for all user data and ephemeral UI state.
  */
-import type { RealtimePostgresChangesPayload, Session, User as SupabaseUser } from '@supabase/supabase-js';
+import type {
+  RealtimePostgresChangesPayload,
+  Session,
+  User as SupabaseUser,
+} from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
-import { signOut as authSignOut } from '@/lib/auth';
-import { flushSyncQueue } from '@/lib/sync';
+// Phase 6 D-12 CI hardening: @/lib/auth + @/lib/sync are NO LONGER eager
+// imports. Both transitively pull @supabase/supabase-js into the entry
+// chunk's static graph (store.ts is reachable from main.tsx → hydrate()).
+// `signOut()` action uses a dynamic import inside the action body;
+// `addInjection` / `editInjection` / `removeInjection` route their
+// fire-and-forget flush through `deferFlush()` from sync-defer.ts, which
+// buffers pre-load and dispatches directly post-load (same idle-scheduled
+// shape as Phase 2.1's telemetry-defer wrapper).
+import { deferFlush } from '@/lib/sync-defer';
 import type {
   AIMessage,
   Cost,
@@ -54,7 +65,18 @@ export interface SignedInSlice {
 
 interface UIState {
   currentTab: TabId;
-  toast: { message: string; kind: 'success' | 'error' | 'info'; id: number } | null;
+  /**
+   * Phase 6 Plan 06-01 (UI-CHECK N4): `durationMs?: number` is an optional
+   * override for the default 2400 ms auto-dismiss honored by Toast.tsx's
+   * setTimeout. Phase 6's conflict-toast (Plan 06-05) passes 5000 ms;
+   * existing callers omit the field and Toast falls back to 2400 ms.
+   */
+  toast: {
+    message: string;
+    kind: 'success' | 'error' | 'info';
+    id: number;
+    durationMs?: number;
+  } | null;
   /**
    * Phase 5 D-13 — auth/session slice. NOT persisted via partialize: supabase-js
    * owns its own session under `sb-leanshot-auth`; we mirror only the derived
@@ -65,7 +87,7 @@ interface UIState {
 
 interface Actions {
   setTab: (tab: TabId) => void;
-  showToast: (message: string, kind?: 'success' | 'error' | 'info') => void;
+  showToast: (message: string, kind?: 'success' | 'error' | 'info', durationMs?: number) => void;
   dismissToast: () => void;
 
   setUser: (user: User) => void;
@@ -240,7 +262,15 @@ export const useStore = create<Store>()(
         set({ currentTab: tab });
         track('tab_viewed', { tab });
       },
-      showToast: (message, kind = 'success') => set({ toast: { message, kind, id: ++toastId } }),
+      showToast: (message, kind = 'success', durationMs) =>
+        set({
+          toast: {
+            message,
+            kind,
+            id: ++toastId,
+            ...(durationMs !== undefined && { durationMs }),
+          },
+        }),
       dismissToast: () => set({ toast: null }),
 
       setUser: (user) => set({ user }),
@@ -293,13 +323,11 @@ export const useStore = create<Store>()(
           key: log_id,
           enqueuedAt: new Date().toISOString(),
         });
-        void flushSyncQueue();
+        deferFlush();
       },
       editInjection: (logId, updates) => {
         set((s) => ({
-          injections: s.injections.map((i) =>
-            i.log_id === logId ? { ...i, ...updates } : i,
-          ),
+          injections: s.injections.map((i) => (i.log_id === logId ? { ...i, ...updates } : i)),
         }));
         get().enqueueOp({
           table: 'injections',
@@ -307,7 +335,7 @@ export const useStore = create<Store>()(
           key: logId,
           enqueuedAt: new Date().toISOString(),
         });
-        void flushSyncQueue();
+        deferFlush();
       },
       removeInjection: (idx) => {
         // Look up the log_id BEFORE the filter mutates state so the delete op
@@ -323,7 +351,7 @@ export const useStore = create<Store>()(
           key: logId,
           enqueuedAt: new Date().toISOString(),
         });
-        void flushSyncQueue();
+        deferFlush();
       },
 
       addSymptom: (sx) => set((s) => ({ symptoms: [sx, ...s.symptoms] })),
@@ -427,9 +455,7 @@ export const useStore = create<Store>()(
           return;
         }
         const user = session.user ?? null;
-        const verified = Boolean(
-          user && !user.is_anonymous && user.email_confirmed_at != null,
-        );
+        const verified = Boolean(user && !user.is_anonymous && user.email_confirmed_at != null);
         set({ signedIn: { user, session, verified } });
       },
 
@@ -468,6 +494,13 @@ export const useStore = create<Store>()(
         })),
 
       signOut: async () => {
+        // Phase 6 D-12: dynamic-import @/lib/auth so the store module does
+        // not pull @supabase/supabase-js onto the entry chunk's static
+        // graph. The signOut action is user-initiated (Settings → Sign out)
+        // and never runs on cold-load, so the lazy import latency is
+        // acceptable. The auth.test.ts contract (scope: 'local') is still
+        // exercised because src/lib/auth.ts is unchanged.
+        const { signOut: authSignOut } = await import('@/lib/auth');
         const { error } = await authSignOut();
         if (error) {
           console.error('[leanshot] signOut failed', error);
@@ -526,8 +559,7 @@ export const useStore = create<Store>()(
             if (
               !local ||
               !local.updated_at ||
-              (remote.updated_at &&
-                new Date(remote.updated_at) > new Date(local.updated_at))
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
             ) {
               map.set(remote.log_id, remote);
             }
@@ -542,10 +574,7 @@ export const useStore = create<Store>()(
        */
       applyRealtimePayload: (payload) =>
         set((s) => {
-          if (
-            payload.eventType === 'INSERT' ||
-            payload.eventType === 'UPDATE'
-          ) {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const remote = payload.new as Injection;
             const idx = s.injections.findIndex((i) => i.log_id === remote.log_id);
             if (idx === -1) {
@@ -554,8 +583,7 @@ export const useStore = create<Store>()(
             const local = s.injections[idx]!;
             if (
               !local.updated_at ||
-              (remote.updated_at &&
-                new Date(remote.updated_at) > new Date(local.updated_at))
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
             ) {
               const next = [...s.injections];
               next[idx] = remote;

@@ -6,6 +6,7 @@ import { applyThemeToDOM } from './hooks/useTheme';
 import { initAnalytics } from './lib/analytics';
 import { beforeSend } from './lib/sentry';
 import { hydrate } from './lib/store';
+import { scheduleSyncInit } from './lib/sync-defer';
 import { deferAnalyticsInit, deferSentryInit } from './lib/telemetry-defer';
 import type { Theme } from './types';
 
@@ -56,4 +57,11 @@ void hydrate().then(() => {
   //    bundle never blocks the cold-load critical path. `initAnalytics()`
   //    handles its own dynamic import + queue draining internally.
   deferAnalyticsInit(initAnalytics);
+
+  // 4) Phase 6 D-12 — dynamic-import @/lib/sync + @/lib/auth-migration after
+  //    first paint so they (and transitively @supabase/supabase-js) stay
+  //    off the entry chunk static graph. The deferred-init wrapper buffers
+  //    any deferOnSignedIn / deferOnSignedOut / deferFlush calls App.tsx
+  //    issues before this load resolves, then drains them in FIFO order.
+  scheduleSyncInit();
 });

@@ -23,10 +23,7 @@
  * Mapping: server `logged_at` <-> local `datetime`; server `pk_engine_version`
  * <-> local `pkEngineVersion`. All other columns share names.
  */
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import type { DoseUnit, Injection, InjectionSite } from '@/types';
@@ -177,9 +174,7 @@ export async function flushSyncQueue(): Promise<void> {
   const uid = state.signedIn?.user?.id;
   if (!uid) return;
 
-  const injectionOps = (state.pendingOps ?? []).filter(
-    (op) => op.table === 'injections',
-  );
+  const injectionOps = (state.pendingOps ?? []).filter((op) => op.table === 'injections');
   if (injectionOps.length === 0) return;
 
   const upsertKeys = injectionOps.filter((o) => o.op === 'upsert').map((o) => o.key);

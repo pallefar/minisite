@@ -6,24 +6,20 @@ import { GreetingStrip } from '@/components/layout/GreetingStrip';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
-import {
-  enqueueLocalInjectionsForSync,
-  runAnonPromotionMigrationIfNeeded,
-  setLastWasAnon,
-} from '@/lib/auth-migration';
-import {
-  removeUserNamespace,
-  renameStorageNamespace,
-  setActiveStorageUserId,
-} from '@/lib/storage';
+import { removeUserNamespace, renameStorageNamespace, setActiveStorageUserId } from '@/lib/storage';
 import { useStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
+// Phase 6 D-12 CI hardening: App.tsx no longer eagerly imports @/lib/sync,
+// @/lib/auth-migration, or @/lib/supabase. All three (and transitively
+// @supabase/supabase-js) move OFF the entry chunk static graph and load
+// after first paint via sync-defer's idle-scheduled dynamic imports.
 import {
-  flushSyncQueue,
-  pullInitialInjections,
-  subscribeInjections,
-  unsubscribeInjections,
-} from '@/lib/sync';
+  autoMintAnonSessionIfMissing,
+  deferFlush,
+  deferOnSignedIn,
+  deferOnSignedOut,
+  deferSetLastWasAnon,
+  subscribeAuthStateChanges,
+} from '@/lib/sync-defer';
 
 // Tab content modules — lazy-loaded so the initial bundle stays lean.
 const HomeTab = lazy(() =>
@@ -101,9 +97,7 @@ export function App() {
   const needsDisclaimer = !!user && acknowledgedDisclaimer !== 'v1';
 
   // Synchronously decide initial view based on hydrated user state + hash.
-  const [view, setView] = useState<View>(() =>
-    selectView({ user, hash: window.location.hash }),
-  );
+  const [view, setView] = useState<View>(() => selectView({ user, hash: window.location.hash }));
   const [aiOpen, setAIOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -111,8 +105,7 @@ export function App() {
 
   // Keep view aligned to user state + hash.
   useEffect(() => {
-    const recompute = (): void =>
-      setView(selectView({ user, hash: window.location.hash }));
+    const recompute = (): void => setView(selectView({ user, hash: window.location.hash }));
     recompute();
     window.addEventListener('hashchange', recompute);
     return () => window.removeEventListener('hashchange', recompute);
@@ -122,14 +115,14 @@ export function App() {
   // whole app — components consume `signedIn` via the Zustand slice rather
   // than holding their own subscriptions.
   //
+  // Phase 6 D-12: subscribeAuthStateChanges dynamically imports @/lib/supabase
+  // so the supabase-js client stays off App.tsx's static graph. The subscribe
+  // call is async; the cleanup function awaits the subscription handle before
+  // unsubscribing (Critical Gotcha #9 — StrictMode double-mount in dev).
+  //
   // Critical Gotcha #1 (RESEARCH §Pattern 3): the supabase-js docs forbid
   // calling supabase.* from a synchronous onAuthStateChange callback (lock
   // deadlock). Defer every dispatch via `setTimeout(fn, 0)`.
-  //
-  // Critical Gotcha #9 (StrictMode): cleanup function MUST call
-  // `data.subscription.unsubscribe()`. StrictMode double-mounts the effect
-  // in dev → without cleanup, two live subscriptions remain and every event
-  // dispatches twice.
   useEffect(() => {
     const handleAuthEvent = async (
       event: AuthChangeEvent,
@@ -138,47 +131,37 @@ export function App() {
       switch (event) {
         case 'INITIAL_SESSION': {
           useStore.getState().setSession(session);
-          setLastWasAnon(Boolean(session?.user?.is_anonymous));
-          if (
-            session?.user &&
-            !session.user.is_anonymous &&
-            session.user.email_confirmed_at
-          ) {
+          // Phase 6 D-12: setLastWasAnon now goes through sync-defer so the
+          // auth-migration module stays out of App.tsx's static graph. push()
+          // buffers if the heavy modules haven't loaded yet (extremely
+          // common on INITIAL_SESSION which fires very early).
+          deferSetLastWasAnon(Boolean(session?.user?.is_anonymous));
+          if (session?.user && !session.user.is_anonymous && session.user.email_confirmed_at) {
             // Phase 5 G2 (Plan 05-05): route all subsequent persist writes to
             // this user's namespaced key. MUST precede renameStorageNamespace
             // so the post-migration hydrate-rewrite lands in the namespace,
             // not the universal key. M4 in store.test.ts locks this contract.
             await setActiveStorageUserId(session.user.id);
             await renameStorageNamespace(session.user.id);
-            await runAnonPromotionMigrationIfNeeded(session.user.id);
-            enqueueLocalInjectionsForSync();
-            // Phase 5 D-09/D-13: explicit initial pull BEFORE subscribe (Pitfall #5
-            // — postgres_changes does NOT replay history); then subscribe; then
-            // drain any pendingOps that accumulated while offline.
-            await pullInitialInjections(session.user.id);
-            subscribeInjections(session.user.id);
-            await flushSyncQueue();
+            // Phase 6 D-12: the rest of the verified-signed-in triplet
+            // (anon-promotion + enqueue-local + pull + subscribe + flush)
+            // now lives in sync-defer's onSignedIn drain branch. The dispatch
+            // order inside dispatch() mirrors the original Phase 5 sequence.
+            deferOnSignedIn(session.user.id, session);
           }
           break;
         }
         case 'SIGNED_IN': {
           useStore.getState().setSession(session);
-          if (
-            session?.user &&
-            !session.user.is_anonymous &&
-            session.user.email_confirmed_at
-          ) {
+          if (session?.user && !session.user.is_anonymous && session.user.email_confirmed_at) {
             // Phase 5 G2 (Plan 05-05): see INITIAL_SESSION above — same
             // ordering contract: setActiveStorageUserId BEFORE
             // renameStorageNamespace. M4 in store.test.ts locks this contract.
             await setActiveStorageUserId(session.user.id);
             await renameStorageNamespace(session.user.id);
-            await runAnonPromotionMigrationIfNeeded(session.user.id);
-            enqueueLocalInjectionsForSync();
-            // See INITIAL_SESSION above — same triplet (pull → subscribe → flush).
-            await pullInitialInjections(session.user.id);
-            subscribeInjections(session.user.id);
-            await flushSyncQueue();
+            // Phase 6 D-12: deferred sync init covers the
+            // anon-promotion + enqueue-local + pull + subscribe + flush triplet.
+            deferOnSignedIn(session.user.id, session);
           }
           break;
         }
@@ -190,7 +173,14 @@ export function App() {
           // Phase 5 D-09 — tear down Realtime BEFORE clearing user data
           // slices so a late-arriving channel event cannot repopulate state
           // that we are about to wipe.
-          await unsubscribeInjections();
+          //
+          // Phase 6 D-12: deferOnSignedOut dispatches unsubscribeInjections
+          // immediately if loadedApi is non-null (the common case — by the
+          // time SIGNED_OUT fires, scheduleSyncInit() has long since
+          // resolved). supabase.removeChannel detaches the local listener
+          // synchronously, so a Realtime payload cannot re-enter the store
+          // between this call and the clearUserDataSlices that follows.
+          deferOnSignedOut(prevUserId);
           useStore.getState().clearUserDataSlices();
           // Phase 5 G2 (05-UAT.md gap #2 missing item #2): wipe the prior
           // user's namespaced localStorage residue + revert the adapter to
@@ -219,24 +209,41 @@ export function App() {
       }
     };
 
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    // Phase 6 D-12: subscribeAuthStateChanges is async (dyn-imports
+    // @/lib/supabase). The subscription handle is captured in a closure-local
+    // ref so the cleanup function can call .unsubscribe() once it resolves.
+    // Tracks the StrictMode double-mount edge: if the effect cleans up before
+    // the subscription resolves, the `cancelled` flag short-circuits the
+    // dispatch and immediately tears the freshly-resolved subscription down.
+    let cancelled = false;
+    let activeSubscription: { unsubscribe: () => void } | null = null;
+    void subscribeAuthStateChanges((event, session) => {
       setTimeout(() => {
         void handleAuthEvent(event, session);
       }, 0);
+    }).then(({ data }) => {
+      if (cancelled) {
+        data.subscription.unsubscribe();
+        return;
+      }
+      activeSubscription = data.subscription;
     });
 
     return () => {
-      data.subscription.unsubscribe();
+      cancelled = true;
+      activeSubscription?.unsubscribe();
     };
   }, []);
 
   // Phase 5 D-10 / RESEARCH §6 line 887 — when the browser reports the
-  // network is back, drain `pendingOps`. `flushSyncQueue` is idempotent and
-  // re-checks `isSyncEnabled()` (D-13) so this listener is safe to fire while
-  // signed-out or unverified.
+  // network is back, drain `pendingOps`. Phase 6 D-12: deferFlush buffers
+  // until sync-defer's dynamic import has resolved, then drains. The
+  // post-load fast path dispatches `flushSyncQueue()` immediately.
+  // `flushSyncQueue` is idempotent and re-checks `isSyncEnabled()` (D-13)
+  // so this listener is safe to fire while signed-out or unverified.
   useEffect(() => {
     const onOnline = (): void => {
-      void flushSyncQueue();
+      deferFlush();
     };
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
@@ -246,15 +253,17 @@ export function App() {
   // any session (RESEARCH §12 Q5). This ensures AvatarMenu always has a user
   // to render and Phase 4's AI Coach `signInAnonymously` first-call gating
   // (which is still inside AIChatPanel) does not race the auth subscriber.
+  //
+  // Phase 6 D-12: autoMintAnonSessionIfMissing is the dyn-import wrapper that
+  // keeps `@/lib/supabase` (and transitively `@supabase/supabase-js`) off
+  // App.tsx's static graph. It also enqueues a setLastWasAnon(true) via
+  // deferSetLastWasAnon so the hint survives the deferred-init window.
   useEffect(() => {
     if (view !== 'dashboard') return;
     const current = useStore.getState().signedIn;
     if (current?.user) return;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) return;
-      // Best-effort; ignore errors — AI Coach will retry on its own.
-      void supabase.auth.signInAnonymously().then(() => setLastWasAnon(true));
-    });
+    // Best-effort; ignore errors — AI Coach will retry on its own.
+    void autoMintAnonSessionIfMissing();
   }, [view]);
 
   // First visit to dashboard → auto-launch tour after a beat.

@@ -309,7 +309,9 @@ describe('useStore.addInjection — Phase 5 log_id stamping', () => {
       notes: '',
     } as unknown as Injection);
     const stamped = useStore.getState().injections[0]!;
-    expect(stamped.log_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(stamped.log_id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   });
 
   it('preserves explicit log_id when caller provides one', () => {
@@ -630,22 +632,18 @@ describe('Plan 05-05 — per-user storage adapter', () => {
   });
 
   it('Test 9: removeUserNamespace is crash-safe when localStorage throws', async () => {
-    const spy = vi
-      .spyOn(Storage.prototype, 'removeItem')
-      .mockImplementation(() => {
-        throw new Error('private mode');
-      });
+    const spy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('private mode');
+    });
     await expect(removeUserNamespace('user-a-uuid')).resolves.toBeUndefined();
     spy.mockRestore();
   });
 
   it('Test 10: createNamespacedStorage().setItem swallows localStorage exceptions', () => {
     const adapter = createNamespacedStorage();
-    const spy = vi
-      .spyOn(Storage.prototype, 'setItem')
-      .mockImplementation(() => {
-        throw new Error('QuotaExceeded');
-      });
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceeded');
+    });
     expect(() => adapter.setItem('x', 'data')).not.toThrow();
     spy.mockRestore();
   });

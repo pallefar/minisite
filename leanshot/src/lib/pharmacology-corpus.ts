@@ -57,8 +57,7 @@ export const CORPUS: CorpusEntry[] = [
     // CV-adjusted bandwidth per D-06
     cvPercent: 27, // Petri 2018: BSV 26.6% (base model)
     publishedCssNgPerMl: 122.6, // 29.8 nmol/L × 4113.58 / 1000
-    source:
-      'Petri KCC et al., Diabetes Ther. 2018;9(4):1533-1547. DOI 10.1007/s13300-018-0458-5',
+    source: 'Petri KCC et al., Diabetes Ther. 2018;9(4):1533-1547. DOI 10.1007/s13300-018-0458-5',
     year: 2018,
   },
   {
@@ -118,8 +117,7 @@ export const CORPUS: CorpusEntry[] = [
     cvPercent: 30, // Jastreboff 2023 Phase 2 main text does not report PK CV;
     // conservative class-typical 30% pending Phase 7 clinician audit
     publishedCssNgPerMl: null,
-    source:
-      'Jastreboff AM et al., N Engl J Med. 2023;389(6):514-526. DOI 10.1056/NEJMoa2301972',
+    source: 'Jastreboff AM et al., N Engl J Med. 2023;389(6):514-526. DOI 10.1056/NEJMoa2301972',
     year: 2023,
   },
 ];

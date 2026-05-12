@@ -67,10 +67,7 @@ describe('MedicationTab — Gap G3 null-guard (Plan 05-06)', () => {
   it('G3-1: renders cleanly with no errors when user is null (SIGNED_OUT transition)', () => {
     // Replicate the exact store shape after clearUserDataSlices() runs:
     // user is null but the slot still exists.
-    useStore.setState(
-      { ...initialState, user: null, injections: [], vials: [], costs: [] },
-      true,
-    );
+    useStore.setState({ ...initialState, user: null, injections: [], vials: [], costs: [] }, true);
 
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -83,9 +80,7 @@ describe('MedicationTab — Gap G3 null-guard (Plan 05-06)', () => {
     // The exact regression we're guarding against: zero "Cannot read properties
     // of null" console.error calls.
     const nullDerefCalls = errorSpy.mock.calls.filter((args) =>
-      args.some(
-        (a) => typeof a === 'string' && /Cannot read properties of null/i.test(a),
-      ),
+      args.some((a) => typeof a === 'string' && /Cannot read properties of null/i.test(a)),
     );
     expect(nullDerefCalls).toHaveLength(0);
   });

@@ -54,7 +54,9 @@ export function AvatarMenu({ onOpenSettings }: AvatarMenuProps) {
     return e.slice(0, 2).toUpperCase();
   }, [user, isAnon]);
 
-  const statusDotClass = verified ? 'bg-[var(--color-success)]' : 'bg-[var(--color-warning,#a36a00)]';
+  const statusDotClass = verified
+    ? 'bg-[var(--color-success)]'
+    : 'bg-[var(--color-warning,#a36a00)]';
 
   const items: MenuItem[] = useMemo(() => {
     const list: MenuItem[] = [];
