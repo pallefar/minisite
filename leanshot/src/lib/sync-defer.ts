@@ -1,0 +1,199 @@
+/**
+ * Sync deferral helper (Phase 6 D-12 CI hardening).
+ *
+ * Phase 5 wired @/lib/sync, @/lib/auth-migration, and (transitively)
+ * @supabase/supabase-js into App.tsx's static graph. That pushed the entry
+ * chunk gzip past the 50 kB Phase 2.1 ceiling enforced by
+ * scripts/assert-vendor-react-size.sh and broke the CI guard. Phase 6 D-12
+ * inverts the dependency: App.tsx imports THIS module's tiny pre-init buffer
+ * + dynamic-import scheduler, and the heavy modules load AFTER first paint
+ * via window.requestIdleCallback (setTimeout fallback on Safari < 17 /
+ * Firefox).
+ *
+ * Behavior mirrors src/lib/telemetry-defer.ts (Phase 2.1 proven pattern):
+ *   - Pre-init: callers push SyncCall entries into a FIFO buffer (cap 64;
+ *     oldest dropped with console.warn on overflow).
+ *   - On idle: dynamic-import the heavy modules in parallel, then drain the
+ *     buffer.
+ *   - Post-init: subsequent calls bypass the buffer and dispatch directly.
+ *
+ * Plan 06-01 ships THREE call kinds (`onSignedIn`, `onSignedOut`, `flush`) +
+ * a `setLastWasAnon` call kind (added during App.tsx rewire — see Task 2 step
+ * 5). Plan 06-02 will extend with `'startMigration'` for the data-migration
+ * orchestrator. Keep the SyncCall discriminated union exhaustive so a missed
+ * branch surfaces at typecheck.
+ *
+ * Type-only import of `Session` is mandatory: a value import of
+ * `@supabase/supabase-js` here defeats the deferral.
+ */
+import type { Session } from '@supabase/supabase-js';
+
+type SyncCall =
+  | { kind: 'onSignedIn'; userId: string; session: Session }
+  | { kind: 'onSignedOut'; prevUserId: string | null }
+  | { kind: 'flush' }
+  | { kind: 'setLastWasAnon'; value: boolean };
+
+const BUFFER_CAP = 64;
+const buffer: SyncCall[] = [];
+
+interface LoadedApi {
+  sync: typeof import('@/lib/sync');
+  authMig: typeof import('@/lib/auth-migration');
+}
+
+let loadedApi: LoadedApi | null = null;
+let loadingPromise: Promise<LoadedApi> | null = null;
+
+async function loadSync(): Promise<LoadedApi> {
+  const [sync, authMig] = await Promise.all([import('@/lib/sync'), import('@/lib/auth-migration')]);
+  return { sync, authMig };
+}
+
+function dispatch(api: LoadedApi, call: SyncCall): void {
+  try {
+    switch (call.kind) {
+      case 'onSignedIn': {
+        // Mirrors App.tsx's INITIAL_SESSION / SIGNED_IN handler triplet:
+        // anon-promotion migration helper + enqueue local injections, then
+        // explicit initial pull BEFORE subscribe (Pitfall #5 — postgres_changes
+        // does NOT replay history), then drain any pendingOps.
+        void api.authMig.runAnonPromotionMigrationIfNeeded(call.userId);
+        api.authMig.enqueueLocalInjectionsForSync();
+        void api.sync.pullInitialInjections(call.userId);
+        api.sync.subscribeInjections(call.userId);
+        void api.sync.flushSyncQueue();
+        return;
+      }
+      case 'onSignedOut': {
+        // Phase 5 D-09 — tear down Realtime BEFORE the caller clears user
+        // data slices. App.tsx already enforces the ordering at the call
+        // site (deferOnSignedOut → clearUserDataSlices); this drain branch
+        // only owns the unsubscribe.
+        void api.sync.unsubscribeInjections();
+        return;
+      }
+      case 'flush': {
+        void api.sync.flushSyncQueue();
+        return;
+      }
+      case 'setLastWasAnon': {
+        api.authMig.setLastWasAnon(call.value);
+        return;
+      }
+    }
+  } catch (e) {
+    console.error('[leanshot] deferred sync call failed', call.kind, e);
+  }
+}
+
+function drain(): void {
+  if (!loadedApi) return;
+  while (buffer.length > 0) {
+    const call = buffer.shift()!;
+    dispatch(loadedApi, call);
+  }
+}
+
+function push(call: SyncCall): void {
+  if (loadedApi) {
+    // Fast path: dispatch directly, skipping the buffer.
+    dispatch(loadedApi, call);
+    return;
+  }
+  if (buffer.length >= BUFFER_CAP) {
+    console.warn('[leanshot] sync-defer buffer full; dropping oldest');
+    buffer.shift();
+  }
+  buffer.push(call);
+}
+
+/** Phase 6 SIGNED_IN / INITIAL_SESSION handler — buffer + drain pull/subscribe/flush. */
+export function deferOnSignedIn(userId: string, session: Session): void {
+  push({ kind: 'onSignedIn', userId, session });
+}
+
+/** Phase 6 SIGNED_OUT handler — buffer + drain unsubscribe. */
+export function deferOnSignedOut(prevUserId: string | null): void {
+  push({ kind: 'onSignedOut', prevUserId });
+}
+
+/** Phase 6 online / generic flush trigger — buffer + drain flushSyncQueue. */
+export function deferFlush(): void {
+  push({ kind: 'flush' });
+}
+
+/** Phase 5 D-05/D-07 anon-promotion hint — buffer + drain setLastWasAnon. */
+export function deferSetLastWasAnon(value: boolean): void {
+  push({ kind: 'setLastWasAnon', value });
+}
+
+/**
+ * Idle-scheduled dynamic import of the heavy modules. Caller pattern: ONE
+ * invocation from main.tsx after `createRoot.render()` (mirrors
+ * deferSentryInit + deferAnalyticsInit wiring).
+ *
+ * Idempotent: a second call while loadingPromise is in flight is a no-op.
+ */
+export function scheduleSyncInit(): void {
+  if (loadedApi || loadingPromise) return;
+  const startLoad = (): void => {
+    if (loadedApi || loadingPromise) return;
+    loadingPromise = loadSync();
+    void loadingPromise.then((api) => {
+      loadedApi = api;
+      drain();
+    });
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(startLoad, { timeout: 2000 });
+  } else {
+    setTimeout(startLoad, 100);
+  }
+}
+
+/**
+ * Dynamic-import wrapper for `supabase.auth.onAuthStateChange`. Keeps
+ * `@/lib/supabase` (and transitively `@supabase/supabase-js`) OUT of
+ * App.tsx's static graph. Returns the supabase subscription handle so the
+ * caller can clean up on unmount.
+ *
+ * NOTE: this loads `@/lib/supabase` on FIRST call, which happens inside
+ * App's mount useEffect — i.e. AFTER first paint. The dynamic import resolves
+ * concurrently with the idle-scheduled scheduleSyncInit() load; the chunk
+ * graph dedups @supabase/supabase-js across both entry points.
+ */
+export async function subscribeAuthStateChanges(
+  handler: (
+    event: import('@supabase/supabase-js').AuthChangeEvent,
+    session: Session | null,
+  ) => void,
+): Promise<{
+  data: { subscription: { unsubscribe: () => void } };
+}> {
+  const { supabase } = await import('@/lib/supabase');
+  return supabase.auth.onAuthStateChange(handler);
+}
+
+/**
+ * Dynamic-import wrapper for `supabase.auth.getSession() + signInAnonymously()`.
+ * Used by App.tsx's dashboard-auto-anon-mint useEffect so the supabase client
+ * stays out of the entry chunk's static graph.
+ */
+export async function autoMintAnonSessionIfMissing(): Promise<void> {
+  const { supabase } = await import('@/lib/supabase');
+  const { data } = await supabase.auth.getSession();
+  if (data.session) return;
+  await supabase.auth.signInAnonymously();
+  // The setLastWasAnon hint is best-effort; the auth-migration module is
+  // loaded by scheduleSyncInit, so this call may either drain immediately
+  // (post-load) or buffer (pre-load) — push() handles both.
+  deferSetLastWasAnon(true);
+}
+
+/** Test-only reset hook. */
+export function _resetForTests(): void {
+  buffer.length = 0;
+  loadedApi = null;
+  loadingPromise = null;
+}
