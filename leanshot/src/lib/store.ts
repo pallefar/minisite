@@ -18,6 +18,7 @@ import { track } from '@/lib/analytics';
 // fire-and-forget flush through `deferFlush()` from sync-defer.ts, which
 // buffers pre-load and dispatches directly post-load (same idle-scheduled
 // shape as Phase 2.1's telemetry-defer wrapper).
+import type { Entity, EntityStatus, MigrationState } from '@/lib/migration';
 import { deferFlush } from '@/lib/sync-defer';
 import type {
   AIMessage,
@@ -83,6 +84,15 @@ interface UIState {
    * snapshot here so UI components can subscribe via Zustand selectors.
    */
   signedIn: SignedInSlice | null;
+  /**
+   * Phase 6 Plan 06-02 D-02 — ephemeral migration error flag. NOT persisted:
+   * if the user reloads after a corruption, `maybeStartMigration` re-runs and
+   * re-detects via `isMigrationStateCorrupted` so a stale persisted error
+   * cannot mask a clean migration_state slice. Currently only takes the
+   * sentinel `'corrupted'` value (D-02 corruption detection); future per-entity
+   * error surfaces (e.g. quota exceeded) would extend this union.
+   */
+  migrationError: 'corrupted' | null;
 }
 
 interface Actions {
@@ -176,6 +186,21 @@ interface Actions {
 
   /** D-13: hide the EmailVerificationBanner for 24h. */
   dismissVerificationBanner: () => void;
+
+  // -------------------------------------------------------------------------
+  // Phase 6 Plan 06-02 D-02 — migration slice actions. The state machine in
+  // `@/lib/migration` calls these via `useStore.getState()` rather than going
+  // through `setState` directly, so the action surface here is the single
+  // source of truth for "how does migration progress mutate the slice".
+  // -------------------------------------------------------------------------
+  /** Replace the migration_state slice wholesale. `null` clears it (resume gate or post-corruption reset). */
+  setMigrationState: (next: MigrationState | null) => void;
+  /** Per-entity status transition. No-op if migration_state is null. */
+  markMigrationEntity: (entity: Entity, status: EntityStatus) => void;
+  /** Set `complete: true` on the existing slice. No-op if migration_state is null. */
+  markMigrationComplete: () => void;
+  /** Surface (or clear) the corruption error banner. */
+  setMigrationError: (err: 'corrupted' | null) => void;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -254,9 +279,15 @@ export const useStore = create<Store>()(
       // optional via PersistedState — ensure a concrete empty array at boot so
       // every consumer can rely on .length / .find without ?? guards.
       pendingOps: [],
+      // Phase 6 Plan 06-02 D-02: migration_state is in initialState (null) but
+      // PersistedState marks it optional; pin it here so consumers can rely on
+      // `s.migration_state` being a concrete `MigrationState | null` rather
+      // than a tri-state with `undefined`.
+      migration_state: null,
       currentTab: 'home',
       toast: null,
       signedIn: null,
+      migrationError: null,
 
       setTab: (tab) => {
         set({ currentTab: tab });
@@ -489,6 +520,12 @@ export const useStore = create<Store>()(
           costs: [],
           pendingOps: [],
           signedIn: null,
+          // Phase 6 D-02: migration_state is per-account — MUST clear on signout
+          // so a second user signing in on the same browser does not see the
+          // prior user's resume modal. migrationError is ephemeral but also
+          // cleared here so the corruption banner does not bleed across users.
+          migration_state: null,
+          migrationError: null,
           // CONF-3: PRESERVE through signout. Device-level acknowledgment.
           acknowledgedDisclaimer: state.acknowledgedDisclaimer,
         })),
@@ -605,6 +642,26 @@ export const useStore = create<Store>()(
         const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         set({ verificationBannerDismissedUntil: until });
       },
+
+      // -----------------------------------------------------------------
+      // Phase 6 Plan 06-02 D-02 — migration_state slice actions.
+      // -----------------------------------------------------------------
+
+      setMigrationState: (next) => set({ migration_state: next }),
+
+      markMigrationEntity: (entity, status) =>
+        set((s) => {
+          if (!s.migration_state) return s;
+          return { migration_state: { ...s.migration_state, [entity]: status } };
+        }),
+
+      markMigrationComplete: () =>
+        set((s) => {
+          if (!s.migration_state) return s;
+          return { migration_state: { ...s.migration_state, complete: true } };
+        }),
+
+      setMigrationError: (err) => set({ migrationError: err }),
     }),
     {
       name: STORAGE_KEY,
@@ -645,6 +702,11 @@ export const useStore = create<Store>()(
         acknowledgedDisclaimer: state.acknowledgedDisclaimer,
         pendingOps: state.pendingOps,
         verificationBannerDismissedUntil: state.verificationBannerDismissedUntil,
+        // Phase 6 D-02: migration_state survives reload so a mid-migration
+        // crash resumes the modal in "Resuming migration" mode rather than
+        // restarting from scratch. migrationError is NOT persisted — it's
+        // re-derived from corruption detection on next sign-in.
+        migration_state: state.migration_state,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.

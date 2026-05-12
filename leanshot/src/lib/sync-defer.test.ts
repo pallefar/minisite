@@ -28,6 +28,11 @@ const mocks = {
   runAnonPromotionMigrationIfNeeded: vi.fn(async (_uid: string) => undefined),
   enqueueLocalInjectionsForSync: vi.fn(() => undefined),
   setLastWasAnon: vi.fn((_v: boolean) => undefined),
+  // Phase 6 Plan 06-02 — mock the migration state machine. The real
+  // implementation is exercised in src/lib/migration.test.ts; here we just
+  // need to assert sync-defer's drain branch invokes it with the right user
+  // id at the right point in the dispatch sequence.
+  maybeStartMigration: vi.fn(async (_uid: string) => undefined),
 };
 
 vi.mock('@/lib/sync', () => ({
@@ -43,6 +48,10 @@ vi.mock('@/lib/auth-migration', () => ({
   enqueueLocalInjectionsForSync: (...a: unknown[]) =>
     mocks.enqueueLocalInjectionsForSync(...(a as [])),
   setLastWasAnon: (...a: unknown[]) => mocks.setLastWasAnon(...(a as [boolean])),
+}));
+
+vi.mock('@/lib/migration', () => ({
+  maybeStartMigration: (...a: unknown[]) => mocks.maybeStartMigration(...(a as [string])),
 }));
 
 const fakeSession = { user: { id: 'u1' } } as unknown as Session;
@@ -204,5 +213,50 @@ describe('sync-defer', () => {
     // After reset + no scheduleSyncInit, the buffered call should not drain.
     await flushMicrotasks();
     expect(mocks.flushSyncQueue).not.toHaveBeenCalled();
+  });
+
+  // ---------------------------------------------------------------------
+  // Phase 6 Plan 06-02 — sync-defer now loads @/lib/migration alongside
+  // @/lib/sync + @/lib/auth-migration AND invokes maybeStartMigration as
+  // part of the onSignedIn drain branch.
+  // ---------------------------------------------------------------------
+
+  it('Test 7: onSignedIn drain calls maybeStartMigration AFTER subscribeInjections', async () => {
+    const mod = await import('./sync-defer');
+    mod._resetForTests();
+    mod.deferOnSignedIn('user-mig', fakeSession);
+    mod.scheduleSyncInit();
+    await flushMicrotasks();
+
+    // The migration call MUST happen — sync-defer loads @/lib/migration alongside the
+    // sync + auth-migration modules and the drain branch dispatches it.
+    expect(mocks.maybeStartMigration).toHaveBeenCalledWith('user-mig');
+
+    // Ordering contract: subscribe MUST fire before maybeStartMigration so
+    // Realtime is listening when the per-entity upload loop enqueues writes
+    // (Pitfall #5 mirror — server fanout for our own upserts arrives via
+    // the channel we just opened).
+    const subscribeOrder = mocks.subscribeInjections.mock.invocationCallOrder[0]!;
+    const migrationOrder = mocks.maybeStartMigration.mock.invocationCallOrder[0]!;
+    expect(migrationOrder).toBeGreaterThan(subscribeOrder);
+  });
+
+  it('Test 8: deferStartMigration buffers + drains a startMigration kind', async () => {
+    const mod = await import('./sync-defer');
+    mod._resetForTests();
+    // Push a startMigration BEFORE schedule resolves — should buffer.
+    mod.deferStartMigration('retry-user');
+    expect(mocks.maybeStartMigration).not.toHaveBeenCalled();
+
+    mod.scheduleSyncInit();
+    await flushMicrotasks();
+
+    expect(mocks.maybeStartMigration).toHaveBeenCalledWith('retry-user');
+
+    // Post-load: a second deferStartMigration drains immediately (fast path).
+    mocks.maybeStartMigration.mockClear();
+    mod.deferStartMigration('retry-user-2');
+    await flushMicrotasks();
+    expect(mocks.maybeStartMigration).toHaveBeenCalledWith('retry-user-2');
   });
 });

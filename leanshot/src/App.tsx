@@ -71,6 +71,15 @@ const GuidedTour = lazy(() =>
   import('@/components/dashboard/tour/GuidedTour').then((m) => ({ default: m.GuidedTour })),
 );
 
+// Phase 6 Plan 06-02 — MigrationModal is lazy-loaded AND its render below is
+// gated on `migration_state != null || migrationError != null`, so net-new
+// users never download the chunk. The chunk also pulls in @/lib/migration's
+// runtime (state machine + per-entity loops), which is only relevant when
+// there's actually v4 data to migrate.
+const MigrationModal = lazy(() =>
+  import('@/components/sync/MigrationModal').then((m) => ({ default: m.MigrationModal })),
+);
+
 type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard';
 
 /**
@@ -89,6 +98,10 @@ export function App() {
   const acknowledgedDisclaimer = useStore((s) => s.acknowledgedDisclaimer);
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
+  // Phase 6 Plan 06-02 — migration_state slice + ephemeral error flag. Both
+  // null on net-new users so the MigrationModal lazy chunk never loads.
+  const migrationState = useStore((s) => s.migration_state);
+  const migrationError = useStore((s) => s.migrationError);
 
   // D-11: dashboard-render fallback gate. True whenever a logged-in user lands
   // on the dashboard without the current disclaimer version acknowledged
@@ -353,6 +366,44 @@ export function App() {
         {reportOpen && <DoctorReport open={reportOpen} onClose={() => setReportOpen(false)} />}
         {tourOpen && <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />}
       </Suspense>
+
+      {/* Phase 6 Plan 06-02 — MigrationModal is rendered ONLY when there is a
+          migration in progress (D-02 resume), just completed (D-01 success),
+          or surfaced a corruption error (D-02 retry). Net-new users have
+          both slices null so the lazy chunk never loads. */}
+      {(migrationState != null || migrationError != null) && (
+        <Suspense fallback={null}>
+          <MigrationModal
+            onContinue={() => {
+              const m = useStore.getState().migration_state;
+              if (m?.complete) {
+                // Post-complete acknowledgement — clear the slice so the modal
+                // unmounts and the chunk can be GC'd. The persisted slice's
+                // `complete: true` flag prevents `maybeStartMigration` from
+                // re-entering on next sign-in.
+                useStore.getState().setMigrationState(null);
+                return;
+              }
+              // Mid-flight escape — leave the slice in place so a subsequent
+              // sign-in resumes the modal, but inform the user that sync
+              // continues in the background.
+              useStore.getState().showToast('Migration continuing in the background.', 'info');
+              useStore.getState().setMigrationState(null);
+            }}
+            onRetry={() => {
+              // Clear corruption flag + slice, then re-trigger maybeStartMigration
+              // via a direct dynamic import (the heavy module is already loaded
+              // by sync-defer, so this is a cache hit).
+              const userId = useStore.getState().signedIn?.user?.id;
+              useStore.getState().setMigrationError(null);
+              useStore.getState().setMigrationState(null);
+              if (userId) {
+                void import('@/lib/migration').then((m) => m.maybeStartMigration(userId));
+              }
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* D-11 dashboard-render fallback (Phase 2). Mounted AFTER the lazy
           Suspense block so it visually layers above any concurrent overlay.
