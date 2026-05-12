@@ -58,9 +58,14 @@ create policy "pending_account_deletions_select_own"
 -- DO NOT add write policies here.
 
 -- Partial index for the cron worker — only rows still eligible for finalize
--- need to be scanned at 04:00 UTC. The expression `(initiated_at + interval
--- '30 days')` matches the cron's WHERE clause so the planner can use this
--- index for a range scan.
+-- need to be scanned at 04:00 UTC. Indexes on `initiated_at` directly (NOT
+-- on the expression `initiated_at + interval '30 days'` — adding an interval
+-- to a timestamptz is not IMMUTABLE in Postgres, so the expression form is
+-- rejected with SQLSTATE 42P17). The cron's WHERE clause
+-- `initiated_at + interval '30 days' <= now()` is rewriteable as
+-- `initiated_at <= now() - interval '30 days'`, which uses this index for a
+-- range scan. Partial filter on finalize_attempts<5 keeps stuck rows out of
+-- the scan set so the queue cannot be blocked indefinitely.
 create index pending_account_deletions_shred_idx
-  on public.pending_account_deletions ((initiated_at + interval '30 days'))
+  on public.pending_account_deletions (initiated_at)
   where finalize_attempts < 5;
