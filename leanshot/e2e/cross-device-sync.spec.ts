@@ -45,11 +45,7 @@ const SEED_USER = {
   createdAt: '2026-01-01T00:00:00Z',
 };
 
-async function seedUserAndSignIn(
-  page: Page,
-  email: string,
-  password: string,
-): Promise<void> {
+async function seedUserAndSignIn(page: Page, email: string, password: string): Promise<void> {
   // Pre-seed the universal localStorage key so selectView returns 'dashboard'
   // immediately after auth (no onboarding 8-step detour). The renameStorageNamespace
   // helper on SIGNED_IN migrates it under the namespaced key automatically.
@@ -78,6 +74,32 @@ async function seedUserAndSignIn(
           costs: [],
           pendingOps: [],
           acknowledgedDisclaimer: 'v1',
+          // Phase 7 07-02 fix: seed `migration_state.complete: true` so
+          // maybeStartMigration's early-exit branch (line 257 of migration.ts)
+          // fires and the MigrationModal does NOT render post-signin. Without
+          // this, post-Phase 6 the migration state machine kicks off on every
+          // first sign-in with v4 data, the "All done" modal opens with
+          // aria-modal=true, and the modal masks the AppShell nav from
+          // `getByRole('navigation')` queries — breaking seedUserAndSignIn's
+          // post-signin nav assertion. This spec is NOT testing migration
+          // (migrate-resume.spec.ts owns that contract), so marking the seed
+          // as already-migrated is semantically correct.
+          migration_state: {
+            startedAt: '2026-01-01T00:00:00Z',
+            complete: true,
+            snapshotKey: 'leanshot_v4_pre_cloud_backup',
+            photos: 'complete',
+            injections: 'complete',
+            weights: 'complete',
+            meals: 'complete',
+            workouts: 'complete',
+            supplements: 'complete',
+            mood: 'complete',
+            sleep: 'complete',
+            symptoms: 'complete',
+            vials: 'complete',
+            settings: 'complete',
+          },
         },
         version: 7,
       };
@@ -110,13 +132,19 @@ async function gotoMedicationTab(page: Page): Promise<void> {
   // Sidebar primary nav exposes each tab via `aria-label={label}`. Both
   // mobile bottom-nav AND desktop side-nav advertise the Medication tab —
   // .first() guards against either layout's button being matched.
-  await page.getByRole('button', { name: /^medication$/i }).first().click();
+  await page
+    .getByRole('button', { name: /^medication$/i })
+    .first()
+    .click();
   // CI-cold-tab-mount-budget: raised 5s→15s for lazy MedicationTab chunk fetch + mount on prod-build CI.
   await expect(page.getByTestId('injection-submit')).toBeVisible({ timeout: 15_000 });
 }
 
 test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budget)', () => {
-  test.skip(!HAS_LIVE_AUTH, 'requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY');
+  test.skip(
+    !HAS_LIVE_AUTH,
+    'requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY',
+  );
   test.setTimeout(90_000);
 
   let admin: SupabaseClient;
@@ -165,18 +193,18 @@ test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budg
       await pageA.getByTestId('injection-submit').click();
 
       // Context A: local-first invariant — injection visible immediately.
-      await expect(
-        pageA.getByTestId('injection-list').locator(`text=${uniqueDose}`),
-      ).toBeVisible({ timeout: 1500 });
+      await expect(pageA.getByTestId('injection-list').locator(`text=${uniqueDose}`)).toBeVisible({
+        timeout: 1500,
+      });
 
       // Context B: Realtime postgres_changes push — same injection visible
       // within the CI budget. SC#1's headline budget is "within seconds, not
       // refresh"; on CI's prod-build cold WebSocket the warm dev 5s ceiling
       // is too tight (cold phx_join across 9 channels adds 1-3s).
       // CI-cold-realtime-budget: raised 5s→12s for prod-build cold WebSocket handshake. See leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-RESEARCH.md §1 Family A.
-      await expect(
-        pageB.getByTestId('injection-list').locator(`text=${uniqueDose}`),
-      ).toBeVisible({ timeout: 12_000 });
+      await expect(pageB.getByTestId('injection-list').locator(`text=${uniqueDose}`)).toBeVisible({
+        timeout: 12_000,
+      });
       const elapsed = Date.now() - tStart;
       // eslint-disable-next-line no-console
       console.log(`[cross-device-sync] propagation: ${elapsed}ms`);

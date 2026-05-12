@@ -77,6 +77,25 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
           costs: [],
           pendingOps: [],
           acknowledgedDisclaimer: 'v1',
+          // Phase 7 07-02 fix: seed `migration_state.complete: true` so the
+          // MigrationModal does NOT render post-signin (see cross-device-sync
+          // for full rationale).
+          migration_state: {
+            startedAt: '2026-01-01T00:00:00Z',
+            complete: true,
+            snapshotKey: 'leanshot_v4_pre_cloud_backup',
+            photos: 'complete',
+            injections: 'complete',
+            weights: 'complete',
+            meals: 'complete',
+            workouts: 'complete',
+            supplements: 'complete',
+            mood: 'complete',
+            sleep: 'complete',
+            symptoms: 'complete',
+            vials: 'complete',
+            settings: 'complete',
+          },
         },
         version: 8,
       };

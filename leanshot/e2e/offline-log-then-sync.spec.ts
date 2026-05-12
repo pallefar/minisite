@@ -47,11 +47,7 @@ const SEED_USER = {
   createdAt: '2026-01-01T00:00:00Z',
 };
 
-async function seedUserAndSignIn(
-  page: Page,
-  email: string,
-  password: string,
-): Promise<void> {
+async function seedUserAndSignIn(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/#/auth/signin');
   await page.evaluate(
     ({ user, key }) => {
@@ -77,6 +73,27 @@ async function seedUserAndSignIn(
           costs: [],
           pendingOps: [],
           acknowledgedDisclaimer: 'v1',
+          // Phase 7 07-02 fix: seed `migration_state.complete: true` so the
+          // MigrationModal does NOT render post-signin (see cross-device-sync
+          // for full rationale; the post-Phase 6 migration state machine
+          // would otherwise pop "All done" with aria-modal=true, masking
+          // the AppShell nav from `getByRole('navigation')`).
+          migration_state: {
+            startedAt: '2026-01-01T00:00:00Z',
+            complete: true,
+            snapshotKey: 'leanshot_v4_pre_cloud_backup',
+            photos: 'complete',
+            injections: 'complete',
+            weights: 'complete',
+            meals: 'complete',
+            workouts: 'complete',
+            supplements: 'complete',
+            mood: 'complete',
+            sleep: 'complete',
+            symptoms: 'complete',
+            vials: 'complete',
+            settings: 'complete',
+          },
         },
         version: 7,
       };
@@ -100,7 +117,10 @@ async function seedUserAndSignIn(
 }
 
 async function gotoMedicationTab(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /^medication$/i }).first().click();
+  await page
+    .getByRole('button', { name: /^medication$/i })
+    .first()
+    .click();
   // CI-cold-tab-mount-budget: raised 5s→15s for lazy MedicationTab chunk fetch + mount on prod-build CI.
   await expect(page.getByTestId('injection-submit')).toBeVisible({ timeout: 15_000 });
 }
@@ -108,13 +128,16 @@ async function gotoMedicationTab(page: Page): Promise<void> {
 async function logInjection(page: Page, dose: string): Promise<void> {
   await page.getByTestId('injection-dose-input').fill(dose);
   await page.getByTestId('injection-submit').click();
-  await expect(
-    page.getByTestId('injection-list').locator(`text=${dose}`),
-  ).toBeVisible({ timeout: 1500 });
+  await expect(page.getByTestId('injection-list').locator(`text=${dose}`)).toBeVisible({
+    timeout: 1500,
+  });
 }
 
 test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline propagate on reconnect', () => {
-  test.skip(!HAS_LIVE_AUTH, 'requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY');
+  test.skip(
+    !HAS_LIVE_AUTH,
+    'requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY',
+  );
   test.setTimeout(120_000);
 
   let admin: SupabaseClient;
@@ -175,16 +198,12 @@ test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline prop
 
       // Local-first: all 3 should be in the UI immediately.
       for (const dose of doses) {
-        await expect(
-          pageA.getByTestId('injection-list').locator(`text=${dose}`),
-        ).toBeVisible();
+        await expect(pageA.getByTestId('injection-list').locator(`text=${dose}`)).toBeVisible();
       }
 
       // pendingOps in localStorage MUST contain >=3 upsert entries for injections.
       const pendingOpsCount = await pageA.evaluate(() => {
-        const keys = Object.keys(localStorage).filter((k) =>
-          k.startsWith('leanshot_v4'),
-        );
+        const keys = Object.keys(localStorage).filter((k) => k.startsWith('leanshot_v4'));
         let total = 0;
         for (const key of keys) {
           const raw = localStorage.getItem(key);
@@ -194,9 +213,7 @@ test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline prop
               state?: { pendingOps?: Array<{ table: string; op: string }> };
             };
             const ops = parsed?.state?.pendingOps ?? [];
-            total += ops.filter(
-              (o) => o.table === 'injections' && o.op === 'upsert',
-            ).length;
+            total += ops.filter((o) => o.table === 'injections' && o.op === 'upsert').length;
           } catch {
             // skip
           }
@@ -212,9 +229,9 @@ test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline prop
       // via flushSyncQueue (online event in A) + Realtime fanout (to B).
       // CI-cold-realtime-budget: raised 8s→12s for prod-build cold WebSocket handshake. See leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-RESEARCH.md §1 Family A.
       for (const dose of doses) {
-        await expect(
-          pageB.getByTestId('injection-list').locator(`text=${dose}`),
-        ).toBeVisible({ timeout: 12_000 });
+        await expect(pageB.getByTestId('injection-list').locator(`text=${dose}`)).toBeVisible({
+          timeout: 12_000,
+        });
       }
     } finally {
       await ctxA.close();

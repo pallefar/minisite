@@ -92,6 +92,25 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
           costs: [],
           pendingOps: [],
           acknowledgedDisclaimer: 'v1',
+          // Phase 7 07-02 fix: seed `migration_state.complete: true` so the
+          // MigrationModal does NOT render post-signin (see cross-device-sync
+          // for full rationale).
+          migration_state: {
+            startedAt: '2026-01-01T00:00:00Z',
+            complete: true,
+            snapshotKey: 'leanshot_v4_pre_cloud_backup',
+            photos: 'complete',
+            injections: 'complete',
+            weights: 'complete',
+            meals: 'complete',
+            workouts: 'complete',
+            supplements: 'complete',
+            mood: 'complete',
+            sleep: 'complete',
+            symptoms: 'complete',
+            vials: 'complete',
+            settings: 'complete',
+          },
         },
         version: 8,
       };
@@ -211,9 +230,11 @@ test.describe('@phase06 SC#4 third leg — LWW conflict toast on losing device',
       // A edits the weight to 89.5 (offline → enqueues upsert; local row
       // stamps a fresh updated_at via the 06-05 store amendment).
       await pageA.evaluate(() => {
-        const w = (window as unknown as {
-          useStore: { getState: () => { editWeight: (id: string, u: object) => void } };
-        }).useStore;
+        const w = (
+          window as unknown as {
+            useStore: { getState: () => { editWeight: (id: string, u: object) => void } };
+          }
+        ).useStore;
         w.getState().editWeight('seed-lww-w1', { weight: 89.5 });
       });
 
@@ -225,9 +246,11 @@ test.describe('@phase06 SC#4 third leg — LWW conflict toast on losing device',
 
       // B edits the same weight to 91.
       await pageB.evaluate(() => {
-        const w = (window as unknown as {
-          useStore: { getState: () => { editWeight: (id: string, u: object) => void } };
-        }).useStore;
+        const w = (
+          window as unknown as {
+            useStore: { getState: () => { editWeight: (id: string, u: object) => void } };
+          }
+        ).useStore;
         w.getState().editWeight('seed-lww-w1', { weight: 91 });
       });
 
