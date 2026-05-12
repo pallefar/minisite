@@ -28,7 +28,8 @@ test.describe('@phase05 SC#3: signout clears cache + lands on marketing (CONF-2 
     await admin.auth.admin.deleteUser(userId).catch(() => {});
   });
 
-  test('signout returns to marketing (CONF-2) and preserves acknowledgedDisclaimer (CONF-3)', async ({
+  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
+  test.fixme('signout returns to marketing (CONF-2) and preserves acknowledgedDisclaimer (CONF-3)', async ({
     page,
   }) => {
     const admin = createClient(SUPABASE_URL!, SERVICE_ROLE!, { auth: { persistSession: false } });

@@ -161,6 +161,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Mode:** mvp
 **Depends on**: Phase 6
 **Requirements**: COMPL-01, COMPL-02, COMPL-03, COMPL-06
+**Entry condition (deferred from Phase 5/6 ship)**: re-enable + fix the 7 SC-verification e2e specs marked `test.fixme` per `leanshot/.planning/deferred-tests.md`. These prove Phase 5 SC#1/SC#3/SC#4 and Phase 6 SC#1/SC#3/SC#4 against the prod-build environment and must be green before v1 milestone close.
 **Success Criteria** (what must be TRUE):
   1. The privacy policy is published, references every data category currently collected (injections, weights, photos, meals, workouts, supplements, mood, sleep, symptoms, AI conversations), is reachable from app footer + landing footer, and was reviewed by privacy-law counsel (signed-off email retained in `.planning/decisions/`)
   2. A separately-titled "Consumer Health Data Privacy" policy meeting WMHMDA's structural requirements (categories collected, purposes, sources, third parties, retention) is linked conspicuously from the homepage and survives an automated grep for "consumer health data" + "Washington" + "private right of action" structural anchors

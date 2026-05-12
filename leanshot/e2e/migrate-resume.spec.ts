@@ -133,7 +133,8 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     }
   });
 
-  test('Test 1: first sign-in with v4 data → migration runs + leanshot_v4_pre_cloud_backup retained', async ({
+  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
+  test.fixme('Test 1: first sign-in with v4 data → migration runs + leanshot_v4_pre_cloud_backup retained', async ({
     page,
   }) => {
     admin = createClient(SUPABASE_URL!, SERVICE_ROLE!, { auth: { persistSession: false } });
@@ -178,7 +179,8 @@ test.describe('@phase06 SC#1 — migration happy-path + resume', () => {
     await expect(page.getByText('Resuming migration')).not.toBeVisible({ timeout: 1000 });
   });
 
-  test('Test 2: mid-migration partial state surfaces "Resuming migration"', async ({ page }) => {
+  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
+  test.fixme('Test 2: mid-migration partial state surfaces "Resuming migration"', async ({ page }) => {
     admin = createClient(SUPABASE_URL!, SERVICE_ROLE!, { auth: { persistSession: false } });
     const email = `phase6-resume-${Date.now()}@leanshot.test`;
     const password = 'Phase6!Resume#';

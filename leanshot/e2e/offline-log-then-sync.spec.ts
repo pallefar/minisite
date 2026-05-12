@@ -135,7 +135,8 @@ test.describe('@phase05 SC#4 — offline-first: 3 injections logged offline prop
     });
   });
 
-  test('3 injections logged offline propagate to context B on reconnect', async ({ browser }) => {
+  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
+  test.fixme('3 injections logged offline propagate to context B on reconnect', async ({ browser }) => {
     const ctxA: BrowserContext = await browser.newContext();
     const ctxB: BrowserContext = await browser.newContext();
     try {

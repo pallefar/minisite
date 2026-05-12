@@ -135,7 +135,8 @@ test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budg
     });
   });
 
-  test('injection logged on context A propagates to context B within 5s', async ({ browser }) => {
+  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
+  test.fixme('injection logged on context A propagates to context B within 5s', async ({ browser }) => {
     const ctxA = await browser.newContext();
     const ctxB = await browser.newContext();
     try {

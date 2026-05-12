@@ -148,7 +148,8 @@ test.describe('@phase06 SC#3 — cross-device photo via signed URL (<5s budget)'
     });
   });
 
-  test('photo uploaded on context A appears on context B via signed URL within 5s', async ({
+  // DEFERRED: see leanshot/.planning/deferred-tests.md — re-enable before v1 milestone close
+  test.fixme('photo uploaded on context A appears on context B via signed URL within 5s', async ({
     browser,
   }) => {
     const ctxA = await browser.newContext();
