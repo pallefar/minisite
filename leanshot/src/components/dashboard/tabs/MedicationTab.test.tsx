@@ -3,20 +3,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import type { User } from '@/types';
+import { MedicationTab } from './MedicationTab';
 
 // Chart.js requires a real canvas for resize/responsive handling, which jsdom
 // doesn't provide. The chart is irrelevant to the G3 null-guard test surface,
-// so stub MedLevelChart to a marker div before importing MedicationTab.
+// so stub MedLevelChart to a marker div. `vi.mock` calls are hoisted by Vitest
+// above the import statements at compile time, so this still runs before the
+// MedicationTab import resolves the real MedLevelChart.
 vi.mock('@/components/dashboard/charts/MedLevelChart', () => ({
   MedLevelChart: () => <div data-testid="med-level-chart-stub" />,
 }));
-
-// MedLevelChart also reads `useStore((s) => s.user!)` — but with the mock above
-// it never runs, so the G3-1 null-render path is fully exercised inside
-// MedicationTab itself, not its chart child.
-
-// eslint-disable-next-line import-x/order
-import { MedicationTab } from './MedicationTab';
 
 /**
  * Phase 5 Plan 05-06 — Gap G3 close.

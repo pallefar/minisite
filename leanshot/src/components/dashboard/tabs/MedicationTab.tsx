@@ -18,7 +18,12 @@ import { useStore } from '@/lib/store';
 import type { DoseUnit, Injection, InjectionSite, Vial, Cost } from '@/types';
 
 export function MedicationTab() {
-  const u = useStore((s) => s.user!);
+  // Phase 5 G3 (Plan 05-06) — UAT Test 7 reported a TypeError during the
+  // SIGNED_OUT view transition: clearUserDataSlices sets user=null and
+  // MedicationTab renders one more time before App.tsx swaps the view. The
+  // null-guard below (after all hooks, rules-of-hooks compliant) makes that
+  // render a clean no-op.
+  const user = useStore((s) => s.user);
   const injections = useStore((s) => s.injections);
   const vials = useStore((s) => s.vials);
   const costs = useStore((s) => s.costs);
@@ -33,22 +38,30 @@ export function MedicationTab() {
 
   const [vialOpen, setVialOpen] = useState(false);
   const [costOpen, setCostOpen] = useState(false);
+  // Phase 5 G3: useState initial value must tolerate user=null. When user
+  // becomes null, the next render returns early below; this initializer runs
+  // once at mount (when user is non-null per the App.tsx state machine) so
+  // the optional chaining is defensive belt-and-braces only.
   const [injForm, setInjForm] = useState({
     datetime: new Date().toISOString().slice(0, 16),
-    dose: u.dose,
-    unit: u.doseUnit as DoseUnit,
+    dose: user?.dose ?? '',
+    unit: (user?.doseUnit ?? 'mg') as DoseUnit,
     site: null as InjectionSite | null,
     notes: '',
   });
 
-  const halfLifeDays = ((HALF_LIVES[u.medication] ?? 168) / 24).toFixed(1);
+  // Phase 5 G3 null-guard — see top-of-function comment. MUST come after
+  // every hook above so rules-of-hooks ordering stays stable.
+  if (!user) return null;
+
+  const halfLifeDays = ((HALF_LIVES[user.medication] ?? 168) / 24).toFixed(1);
   const totalRemaining = vials.reduce((s, v) => s + Math.max(0, v.dosesPerVial - v.dosesUsed), 0);
   const lastInj = injections[0];
   const lastInjDays = lastInj
     ? Math.floor((Date.now() - new Date(lastInj.datetime).getTime()) / 86_400_000)
     : null;
-  const titList = TITRATION[u.medication];
-  const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
+  const titList = TITRATION[user.medication];
+  const weeks = Math.floor((Date.now() - new Date(user.startDate).getTime()) / (7 * 86_400_000));
 
   const totalSpent = costs.reduce((s, c) => s + (c.amount || 0), 0);
   const monthly = costs
@@ -70,7 +83,7 @@ export function MedicationTab() {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
-      <StatTile label="Current dose" value={u.dose} unit={u.doseUnit} />
+      <StatTile label="Current dose" value={user.dose} unit={user.doseUnit} />
       <StatTile
         label="Last shot"
         value={lastInjDays != null ? lastInjDays : '—'}
@@ -105,7 +118,7 @@ export function MedicationTab() {
             <Input
               label="Dose"
               inputMode="decimal"
-              placeholder={u.dose}
+              placeholder={user.dose}
               value={injForm.dose}
               onChange={(e) => setInjForm({ ...injForm, dose: e.target.value })}
               data-testid="injection-dose-input"
