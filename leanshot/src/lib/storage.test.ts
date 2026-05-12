@@ -1,11 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Injection } from '@/types';
 import {
+  __resetActiveNamespaceForTests,
+  createNamespacedStorage,
+  getActiveStorageNamespace,
   initialState,
   migrateFromV3,
   migrateV6ToV7,
   namespacedKey,
+  removeUserNamespace,
   renameStorageNamespace,
+  setActiveStorageUserId,
   STORAGE_KEY,
   STORAGE_VERSION,
   type PersistedState,
@@ -522,5 +527,126 @@ describe('renameStorageNamespace', () => {
     const target = await namespacedKey('user-a');
     expect(storageMock[target]).toBe(payload);
     expect(storageMock[STORAGE_KEY]).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 5 Plan 05-05 / G2 — per-user storage adapter (createNamespacedStorage,
+// setActiveStorageUserId, removeUserNamespace).
+// ---------------------------------------------------------------------------
+
+describe('Plan 05-05 — per-user storage adapter', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    __resetActiveNamespaceForTests();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    __resetActiveNamespaceForTests();
+  });
+
+  it('Test 1: setActiveStorageUserId(userId) caches the namespaced key', async () => {
+    await setActiveStorageUserId('user-a-uuid');
+    const expected = await namespacedKey('user-a-uuid');
+    expect(getActiveStorageNamespace()).toBe(expected);
+  });
+
+  it('Test 2: setActiveStorageUserId(null) clears the cached namespace', async () => {
+    await setActiveStorageUserId('user-a-uuid');
+    expect(getActiveStorageNamespace()).not.toBeNull();
+    await setActiveStorageUserId(null);
+    expect(getActiveStorageNamespace()).toBeNull();
+  });
+
+  it('Test 3: with no active user, setItem writes to the universal STORAGE_KEY (name arg ignored)', () => {
+    const adapter = createNamespacedStorage();
+    adapter.setItem('whatever-persist-passed-in', 'payload');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('payload');
+    // The arg name does NOT become a key
+    expect(localStorage.getItem('whatever-persist-passed-in')).toBeNull();
+  });
+
+  it('Test 4: under an active user, setItem writes to the namespaced key; universal untouched', async () => {
+    await setActiveStorageUserId('user-a-uuid');
+    const keyA = await namespacedKey('user-a-uuid');
+    const adapter = createNamespacedStorage();
+    adapter.setItem('whatever', 'payload-a');
+    expect(localStorage.getItem(keyA)).toBe('payload-a');
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it('Test 5: switching active user routes subsequent writes; prior namespace untouched', async () => {
+    const adapter = createNamespacedStorage();
+    await setActiveStorageUserId('user-a-uuid');
+    const keyA = await namespacedKey('user-a-uuid');
+    adapter.setItem('x', 'payload-a');
+    expect(localStorage.getItem(keyA)).toBe('payload-a');
+
+    await setActiveStorageUserId('user-b-uuid');
+    const keyB = await namespacedKey('user-b-uuid');
+    adapter.setItem('x', 'payload-b');
+
+    expect(localStorage.getItem(keyB)).toBe('payload-b');
+    // user-a's namespaced key is untouched by user-b's write.
+    expect(localStorage.getItem(keyA)).toBe('payload-a');
+  });
+
+  it('Test 6: getItem mirrors setItem — namespaced when active, universal when not', async () => {
+    const adapter = createNamespacedStorage();
+    // No active user → reads from universal
+    localStorage.setItem(STORAGE_KEY, 'universal-payload');
+    expect(adapter.getItem('any-name')).toBe('universal-payload');
+
+    await setActiveStorageUserId('user-a-uuid');
+    const keyA = await namespacedKey('user-a-uuid');
+    localStorage.setItem(keyA, 'ns-payload');
+    expect(adapter.getItem('any-name')).toBe('ns-payload');
+  });
+
+  it('Test 7: removeItem mirrors setItem under an active user', async () => {
+    const adapter = createNamespacedStorage();
+    await setActiveStorageUserId('user-a-uuid');
+    const keyA = await namespacedKey('user-a-uuid');
+    adapter.setItem('x', 'data');
+    expect(localStorage.getItem(keyA)).toBe('data');
+    adapter.removeItem('x');
+    expect(localStorage.getItem(keyA)).toBeNull();
+  });
+
+  it('Test 8: removeUserNamespace removes ONLY that user namespaced key', async () => {
+    const keyA = await namespacedKey('user-a-uuid');
+    const keyB = await namespacedKey('user-b-uuid');
+    localStorage.setItem(STORAGE_KEY, 'universal');
+    localStorage.setItem(keyA, 'a-data');
+    localStorage.setItem(keyB, 'b-data');
+
+    await removeUserNamespace('user-a-uuid');
+
+    expect(localStorage.getItem(keyA)).toBeNull();
+    // Universal key + other users' namespaces untouched.
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('universal');
+    expect(localStorage.getItem(keyB)).toBe('b-data');
+  });
+
+  it('Test 9: removeUserNamespace is crash-safe when localStorage throws', async () => {
+    const spy = vi
+      .spyOn(Storage.prototype, 'removeItem')
+      .mockImplementation(() => {
+        throw new Error('private mode');
+      });
+    await expect(removeUserNamespace('user-a-uuid')).resolves.toBeUndefined();
+    spy.mockRestore();
+  });
+
+  it('Test 10: createNamespacedStorage().setItem swallows localStorage exceptions', () => {
+    const adapter = createNamespacedStorage();
+    const spy = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('QuotaExceeded');
+      });
+    expect(() => adapter.setItem('x', 'data')).not.toThrow();
+    spy.mockRestore();
   });
 });

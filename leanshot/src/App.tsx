@@ -11,7 +11,11 @@ import {
   runAnonPromotionMigrationIfNeeded,
   setLastWasAnon,
 } from '@/lib/auth-migration';
-import { renameStorageNamespace } from '@/lib/storage';
+import {
+  removeUserNamespace,
+  renameStorageNamespace,
+  setActiveStorageUserId,
+} from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import {
@@ -140,6 +144,11 @@ export function App() {
             !session.user.is_anonymous &&
             session.user.email_confirmed_at
           ) {
+            // Phase 5 G2 (Plan 05-05): route all subsequent persist writes to
+            // this user's namespaced key. MUST precede renameStorageNamespace
+            // so the post-migration hydrate-rewrite lands in the namespace,
+            // not the universal key. M4 in store.test.ts locks this contract.
+            await setActiveStorageUserId(session.user.id);
             await renameStorageNamespace(session.user.id);
             await runAnonPromotionMigrationIfNeeded(session.user.id);
             enqueueLocalInjectionsForSync();
@@ -159,6 +168,10 @@ export function App() {
             !session.user.is_anonymous &&
             session.user.email_confirmed_at
           ) {
+            // Phase 5 G2 (Plan 05-05): see INITIAL_SESSION above — same
+            // ordering contract: setActiveStorageUserId BEFORE
+            // renameStorageNamespace. M4 in store.test.ts locks this contract.
+            await setActiveStorageUserId(session.user.id);
             await renameStorageNamespace(session.user.id);
             await runAnonPromotionMigrationIfNeeded(session.user.id);
             enqueueLocalInjectionsForSync();
@@ -170,11 +183,22 @@ export function App() {
           break;
         }
         case 'SIGNED_OUT': {
+          // Phase 5 G2 (Plan 05-05): capture prior user id BEFORE setSession /
+          // clearUserDataSlices null-out the signedIn slice. Used below to
+          // wipe the per-user namespaced localStorage residue.
+          const prevUserId = useStore.getState().signedIn?.user?.id ?? null;
           // Phase 5 D-09 — tear down Realtime BEFORE clearing user data
           // slices so a late-arriving channel event cannot repopulate state
           // that we are about to wipe.
           await unsubscribeInjections();
           useStore.getState().clearUserDataSlices();
+          // Phase 5 G2 (05-UAT.md gap #2 missing item #2): wipe the prior
+          // user's namespaced localStorage residue + revert the adapter to
+          // the universal key so any subsequent anon activity lands there.
+          await setActiveStorageUserId(null);
+          if (prevUserId) {
+            await removeUserNamespace(prevUserId);
+          }
           // CONF-2: clear any auth-related hash so selectView returns 'marketing'.
           if (window.location.hash.startsWith('#/auth/')) {
             history.replaceState(null, '', window.location.pathname);
