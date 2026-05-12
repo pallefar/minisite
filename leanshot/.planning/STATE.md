@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Phase 5 context gathered (14 decisions locked, 11 discretion items)
-last_updated: "2026-05-12T03:18:38.170Z"
-last_activity: 2026-05-12 -- Phase 05 execution started
+status: shipped
+stopped_at: "Phase 5 shipped to main (64 commits pushed, sha 5c3838f) — no PR (direct-to-main per ship option C)"
+last_updated: "2026-05-12T03:36:00.000Z"
+last_activity: 2026-05-12 -- Phase 05 shipped to origin/main
 progress:
   total_phases: 11
   completed_phases: 5
