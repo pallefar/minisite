@@ -20,7 +20,6 @@ export const LEGAL_LINKS: readonly LegalLink[] = [
   { label: 'Medical disclaimer', hash: '#/legal/disclaimer' },
 ] as const;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function LegalFooter(_props: { variant?: 'marketing' | 'app' } = {}): null {
   return null;
 }

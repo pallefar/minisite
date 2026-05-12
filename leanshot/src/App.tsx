@@ -58,6 +58,59 @@ const Marketing = lazy(() =>
 );
 const AuthView = lazy(() => import('@/components/auth/AuthView'));
 
+// Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
+// mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
+// boundary so Rollup emits four separate small chunks (preserving the 50 kB
+// index gz ceiling from Phase 6 Plan 06-01). The four legal pages render via
+// the new `'legal'` branch in selectView below.
+const PrivacyPolicyPage = lazy(() =>
+  import('@/components/legal/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })),
+);
+const ConsumerHealthDataPage = lazy(() =>
+  import('@/components/legal/ConsumerHealthData').then((m) => ({ default: m.ConsumerHealthData })),
+);
+const TermsOfServicePage = lazy(() =>
+  import('@/components/legal/TermsOfService').then((m) => ({ default: m.TermsOfService })),
+);
+const MedicalDisclaimerPage = lazy(() =>
+  import('@/components/legal/MedicalDisclaimer').then((m) => ({ default: m.MedicalDisclaimer })),
+);
+// Lazy-loaded 404 fallback so an unknown `#/legal/...` hash never blanks the
+// screen. Reuses LegalLayout for visual consistency.
+const LegalNotFound = lazy(() =>
+  import('@/components/legal/LegalLayout').then((m) => ({
+    default: () => (
+      <m.LegalLayout title="Page not found">
+        <h1 className="text-2xl font-semibold tracking-tight mb-4">Page not found</h1>
+        <p className="text-[var(--color-text-secondary)]">
+          That legal page does not exist. <a className="underline" href="/">Return to LeanShot.</a>
+        </p>
+      </m.LegalLayout>
+    ),
+  })),
+);
+
+/**
+ * Map a `#/legal/*` hash to the lazy component that renders the matching
+ * placeholder page. Returns the 404 fallback for unknown legal hashes so the
+ * Suspense boundary never receives `null` (T-07-02-02 mitigation — view
+ * selector cannot inject user-controlled hash content into render).
+ */
+function selectLegalPage(hash: string): React.LazyExoticComponent<React.ComponentType> {
+  switch (hash) {
+    case '#/legal/privacy':
+      return PrivacyPolicyPage;
+    case '#/legal/consumer-health':
+      return ConsumerHealthDataPage;
+    case '#/legal/terms':
+      return TermsOfServicePage;
+    case '#/legal/disclaimer':
+      return MedicalDisclaimerPage;
+    default:
+      return LegalNotFound;
+  }
+}
+
 const AIChatPanel = lazy(() =>
   import('@/components/dashboard/ai/AIChatPanel').then((m) => ({ default: m.AIChatPanel })),
 );
@@ -80,7 +133,7 @@ const MigrationModal = lazy(() =>
   import('@/components/sync/MigrationModal').then((m) => ({ default: m.MigrationModal })),
 );
 
-type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard';
+type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard' | 'legal';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -122,6 +175,12 @@ function pushViewLog(entry: ViewLogEntry): void {
  * `user`-presence rule decides marketing vs dashboard.
  */
 function selectView(opts: { user: unknown; hash: string }): View {
+  // Phase 7 Plan 07-02 — legal hash routes take TOP priority. A signed-out
+  // visitor following a footer link to `#/legal/privacy` should land on the
+  // policy page itself, not get bounced to the auth/marketing surface; a
+  // signed-in user clicking the same link from the AppShell footer should
+  // also see the policy page (not the dashboard underneath).
+  if (opts.hash.startsWith('#/legal/')) return 'legal';
   if (opts.hash.startsWith('#/auth/')) return 'auth';
   if (opts.user) return 'dashboard';
   return 'marketing';
@@ -404,6 +463,14 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <AuthView />
+      </Suspense>
+    );
+  }
+  if (view === 'legal') {
+    const LegalPage = selectLegalPage(window.location.hash);
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <LegalPage />
       </Suspense>
     );
   }
