@@ -83,8 +83,24 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('Phase 6 migration matrix', () => {
-  it('M1: v4 with multiple entities populated → all entities reach complete', async () => {
+  it('M1: v4 with multiple entities populated → all entities reach complete + ops enqueued (Plan 06-03)', async () => {
     const mod = await freshMigrationModule();
+    // Phase 6 06-03: order matters — `useStore.setState` fires persist which
+    // writes the live store state to leanshot_v4. seedV4 must come AFTER
+    // so the seeded snapshot is what runMigration reads.
+    useStore.setState({
+      injections: [
+        {
+          log_id: 'm1-1',
+          datetime: '2026-05-11T00:00:00Z',
+          dose: '0.5',
+          unit: 'mg',
+          site: 'thigh-l',
+          notes: '',
+          pkEngineVersion: 1,
+        } as never,
+      ],
+    });
     seedV4({
       injections: [
         {
@@ -97,8 +113,25 @@ describe('Phase 6 migration matrix', () => {
           pkEngineVersion: 1,
         },
       ],
-      weights: [{ date: '2026-05-11', kg: 80 }],
-      meals: [{ date: '2026-05-11', name: 'lunch', kcal: 500, protein: 30, fiber: 5 }],
+      // Phase 6 06-03: SQL-shaped fixtures (with <entity>_id PKs) so
+      // migrateEntity's enqueueOp loop emits real ops.
+      weights: [
+        { date: '2026-05-11', weight: 80, bodyFat: null, ts: 1, weight_id: 'w-1' } as never,
+        { date: '2026-05-10', weight: 81, bodyFat: null, ts: 2, weight_id: 'w-2' } as never,
+      ],
+      meals: [
+        {
+          date: '2026-05-11',
+          name: 'lunch',
+          calories: 500,
+          protein: 30,
+          fiber: 5,
+          hunger: null,
+          satisfaction: null,
+          ts: 3,
+          meal_id: 'me-1',
+        } as never,
+      ],
     });
 
     await mod.maybeStartMigration(TEST_USER);
@@ -109,9 +142,16 @@ describe('Phase 6 migration matrix', () => {
     for (const entity of mod.ENTITIES) {
       expect(state![entity]).toBe('complete');
     }
+    // Phase 6 06-03 — verify the real enqueue loops fired.
+    const ops = useStore.getState().pendingOps ?? [];
+    expect(ops.some((o) => o.table === 'injections' && o.key === 'm1-1')).toBe(true);
+    expect(ops.some((o) => o.table === 'weights' && o.key === 'w-1')).toBe(true);
+    expect(ops.some((o) => o.table === 'weights' && o.key === 'w-2')).toBe(true);
+    expect(ops.some((o) => o.table === 'meals' && o.key === 'me-1')).toBe(true);
+    expect(ops.some((o) => o.table === 'settings' && o.key === TEST_USER)).toBe(true);
   });
 
-  it('M2: v4 with only 2 entities populated → empty entities also complete immediately', async () => {
+  it('M2: v4 with only 2 entities populated → empty entities also complete immediately (Plan 06-03 zero-row case)', async () => {
     const mod = await freshMigrationModule();
     seedV4({
       injections: [
@@ -125,7 +165,7 @@ describe('Phase 6 migration matrix', () => {
           pkEngineVersion: 1,
         },
       ],
-      weights: [{ date: '2026-05-11', kg: 80 }],
+      weights: [{ date: '2026-05-11', weight: 80, bodyFat: null, ts: 1, weight_id: 'm2-w' } as never],
     });
 
     await mod.maybeStartMigration(TEST_USER);
@@ -134,7 +174,7 @@ describe('Phase 6 migration matrix', () => {
     expect(state.complete).toBe(true);
     expect(state.injections).toBe('complete');
     expect(state.weights).toBe('complete');
-    // The 9 other entities had zero rows — they still flip to 'complete' (zero-row case).
+    // The 8 other mechanical entities had zero rows — they still flip to 'complete' (zero-row case).
     expect(state.meals).toBe('complete');
     expect(state.workouts).toBe('complete');
     expect(state.supplements).toBe('complete');
@@ -142,8 +182,35 @@ describe('Phase 6 migration matrix', () => {
     expect(state.sleep).toBe('complete');
     expect(state.symptoms).toBe('complete');
     expect(state.vials).toBe('complete');
+    // settings ALWAYS reaches complete because the singleton enqueues a
+    // single op regardless of v4 payload (06-03 wiring).
     expect(state.settings).toBe('complete');
     expect(state.photos).toBe('complete');
+    // The 8 zero-row entities enqueued NOTHING (defensive against runaway
+    // upserts after a stale migration_state resume).
+    const ops = useStore.getState().pendingOps ?? [];
+    expect(ops.filter((o) => o.table === 'meals')).toHaveLength(0);
+    expect(ops.filter((o) => o.table === 'workouts')).toHaveLength(0);
+    expect(ops.filter((o) => o.table === 'supplements')).toHaveLength(0);
+    expect(ops.filter((o) => o.table === 'mood')).toHaveLength(0);
+    expect(ops.filter((o) => o.table === 'sleep')).toHaveLength(0);
+    expect(ops.filter((o) => o.table === 'symptoms')).toHaveLength(0);
+    expect(ops.filter((o) => o.table === 'vials')).toHaveLength(0);
+  });
+
+  it('M2b: supplements flattening — Option A skips taken=false rows (06-RESEARCH §1.B)', async () => {
+    const mod = await freshMigrationModule();
+    seedV4({
+      supplements: { '2026-03-01': { d3: true, b12: false, magnesium: true } } as never,
+    });
+
+    await mod.maybeStartMigration(TEST_USER);
+
+    const ops = useStore.getState().pendingOps ?? [];
+    const supOps = ops.filter((o) => o.table === 'supplements');
+    expect(supOps).toHaveLength(2); // d3 + magnesium only — b12=false skipped
+    const keys = supOps.map((o) => o.key).sort();
+    expect(keys).toEqual(['2026-03-01:d3', '2026-03-01:magnesium']);
   });
 
   it('M3: v4 empty (net-new install) → maybeStartMigration no-ops; modal never renders', async () => {

@@ -260,7 +260,10 @@ export async function maybeStartMigration(userId: string): Promise<void> {
   if (existingMigration) {
     migrationInFlight = true;
     try {
-      await runMigration(userId);
+      // Capture snapshot BEFORE runMigration in case the persist middleware
+      // has overwritten leanshot_v4 with a partial in-flight state.
+      const captured = readV4InnerState();
+      await runMigration(userId, captured);
     } finally {
       migrationInFlight = false;
     }
@@ -275,7 +278,13 @@ export async function maybeStartMigration(userId: string): Promise<void> {
   // on quota error — re-raise (the migration cannot proceed without a backup).
   snapshotPreCloudBackup();
 
-  // (6b) initialise migration_state.
+  // (6b) Capture the v4 inner state BEFORE setMigrationState fires — the
+  // persist middleware would otherwise overwrite leanshot_v4 with the live
+  // (empty) initialState shape on the next set() call, defeating the
+  // migration read. Hand the captured snapshot to runMigration directly.
+  const capturedSnapshot = readV4InnerState();
+
+  // (6c) initialise migration_state.
   const init: MigrationState = {
     startedAt: new Date().toISOString(),
     complete: false,
@@ -288,7 +297,7 @@ export async function maybeStartMigration(userId: string): Promise<void> {
 
   migrationInFlight = true;
   try {
-    await runMigration(userId);
+    await runMigration(userId, capturedSnapshot);
   } finally {
     migrationInFlight = false;
   }
@@ -304,10 +313,19 @@ export async function maybeStartMigration(userId: string): Promise<void> {
  * 'complete'. A partial drain (one entity in 'error') leaves complete=false
  * so the resume path re-enters on next sign-in.
  */
-export async function runMigration(userId: string): Promise<void> {
+export async function runMigration(
+  userId: string,
+  preCapturedSnapshot?: Record<string, unknown> | null,
+): Promise<void> {
   const sync = await import('@/lib/sync');
   const storeState = useStore.getState();
-  const snapshot = readV4InnerState();
+  // Phase 6 06-03: prefer the pre-captured snapshot from maybeStartMigration
+  // (taken BEFORE setMigrationState fires). Fallback to a fresh read only
+  // when no caller-provided snapshot is supplied (e.g. external callers /
+  // future tests). The persist middleware overwrites leanshot_v4 on every
+  // set() call so reading after setMigrationState would miss seeded data.
+  const snapshot =
+    preCapturedSnapshot === undefined ? readV4InnerState() : preCapturedSnapshot;
 
   const ordered = computeRunOrder(snapshot ?? {});
   let allComplete = true;
@@ -330,21 +348,30 @@ export async function runMigration(userId: string): Promise<void> {
   }
 }
 
+/**
+ * Phase 6 06-03: per-entity PK field map. The 7 mechanical mapped entities
+ * use `<entity>_id` UUIDs; supplements + settings have bespoke key shapes
+ * handled in the dedicated branches below.
+ */
+const ENTITY_PK_FIELD: Record<string, string> = {
+  weights: 'weight_id',
+  meals: 'meal_id',
+  workouts: 'workout_id',
+  mood: 'mood_id',
+  sleep: 'sleep_id',
+  symptoms: 'symptom_id',
+  vials: 'vial_id',
+};
+
 async function migrateEntity(
-  _userId: string,
+  userId: string,
   entity: Entity,
   snapshot: Record<string, unknown>,
   sync: typeof SyncModule,
 ): Promise<void> {
-  // STUBBED per-entity loops — Plan 06-03 wires the 8 mechanical tables
-  // (weights/meals/workouts/supplements/mood/sleep/symptoms/vials/settings),
-  // Plan 06-04 wires the photos base64→Storage path.
-
+  // Plan 06-04 wires the photos base64→Storage path. For 06-03 this is a
+  // no-op so the entity flips pending → complete without doing work.
   if (entity === 'photos') {
-    // Plan 06-04: decode base64 → compress (D-06) → upload to Storage → replace
-    // photo.dataUrl with photo.storage_path. For 06-02 this is a no-op so the
-    // entity flips pending → complete without doing work (M8 verifies the
-    // loop is wired but the upload path is deferred).
     return;
   }
 
@@ -359,16 +386,64 @@ async function migrateEntity(
     return;
   }
 
-  // The 8 mechanical entities (weights/meals/workouts/supplements/mood/sleep/symptoms/vials)
-  // + the settings singleton: leave as no-op for 06-02. 06-03 wires the
-  // per-entity enqueueOp calls. For empty arrays (zero-row case) this is the
-  // correct final behavior — nothing to enqueue.
-  const arr = snapshot[entity];
-  if (entity === 'settings') return;
-  if (!Array.isArray(arr) || arr.length === 0) return;
-  // TODO(06-03): for each row, enqueueOp({ table: entity, op: 'upsert', key: <pk> })
-  // No-op + log so the 06-03 wave's reviewer sees the wiring intent.
-  console.warn(
-    `[leanshot] migration: entity ${entity} has ${arr.length} rows but 06-03 wiring is pending`,
-  );
+  const now = new Date().toISOString();
+  const storeState = useStore.getState();
+
+  // Phase 6 06-03 — 7 mechanical entities. Each row carries a stable
+  // <entity>_id (back-stamped by addX actions OR explicitly assigned during
+  // migration if absent). Read from the v4 snapshot rather than the live
+  // store slice so the migration sees the pre-Zustand-hydrate payload.
+  if (entity in ENTITY_PK_FIELD) {
+    const arr = snapshot[entity];
+    if (Array.isArray(arr) && arr.length > 0) {
+      const pkField = ENTITY_PK_FIELD[entity]!;
+      for (const row of arr as Record<string, unknown>[]) {
+        const key = String(row[pkField] ?? '');
+        if (!key) continue; // skip rows without a stable id (defensive — addX stamps client-side now)
+        storeState.enqueueOp({
+          table: entity,
+          op: 'upsert',
+          key,
+          enqueuedAt: now,
+        });
+      }
+    }
+    await sync.flushSyncQueue();
+    return;
+  }
+
+  if (entity === 'supplements') {
+    // 06-RESEARCH §1.B Option A flattening — emit ONE upsert op per
+    // (date, supplement_name) where taken === true. taken=false rows are
+    // intentionally skipped (the natural "row exists" predicate IS taken).
+    const supplementsByDate = (snapshot.supplements as Record<string, Record<string, boolean>> | undefined) ?? {};
+    for (const [date, names] of Object.entries(supplementsByDate)) {
+      for (const [name, taken] of Object.entries(names ?? {})) {
+        if (taken === true) {
+          storeState.enqueueOp({
+            table: 'supplements',
+            op: 'upsert',
+            key: `${date}:${name}`,
+            enqueuedAt: now,
+          });
+        }
+      }
+    }
+    await sync.flushSyncQueue();
+    return;
+  }
+
+  if (entity === 'settings') {
+    // Singleton — one row per user keyed by user_id. The flushSettingsOps
+    // handler reads state.user as the upsert payload; this branch just
+    // emits the op so the queue includes settings on first migration.
+    storeState.enqueueOp({
+      table: 'settings',
+      op: 'upsert',
+      key: userId,
+      enqueuedAt: now,
+    });
+    await sync.flushSyncQueue();
+    return;
+  }
 }
