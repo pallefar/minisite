@@ -202,7 +202,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Patient who already has a personal account is invited → consent dialog displays "your existing personal data is private; only what you share via this consent is visible to the clinic" → patient accepts → operator can roster the patient but cannot see the patient's `aiHistory` (Phase 4 guarantee preserved) or any data fields the patient excluded from scope
   5. Patient opens Settings → "Active organizations" → revokes membership in a clinic → operator's roster removes the patient within 1 second and operator's drill-in for that patient returns 401 — patient's own data stays intact
   6. Org Owner opens `/clinic/{slug}/settings/roles` → sees 3 system roles (Owner, Coach, View-only) seeded on org-create → creates a custom role "Triage" with permission-key checkboxes (e.g. `patient_data.read` + `audit_log.read` but not `members.invite`) → assigns the role to a member → RLS policies enforce the permission-jsonb scope across all clinic-scoped tables and Storage buckets (verified by pgTAP cross-tenant impersonation tests)
-**Plans**: TBD
+**Plans:** 11 plans
+- [ ] 09-01-PLAN.md — Schema foundation: 13 migrations + has_permission + broadcast trigger + 6 RLS impersonation proofs + Wave 0 scaffolds (Wave 1)
+- [ ] 09-02-PLAN.md — Clinic chunk UI: ClinicWorkspace + ClinicContextBar + OrgCreateFlow + InvitePatientModal + clinic.ts wrappers + clinic-realtime helpers (Wave 2)
+- [ ] 09-03-PLAN.md — Clinic-settings UI: Workspace + Members + Roles tabs + RoleEditorModal + clinic-permissions hook (Wave 2)
+- [ ] 09-04-PLAN.md — Clinic-invite UI: ClinicInvitePage states A–H + ConsentDialog + InviteSignupForm (Wave 2)
+- [ ] 09-05-PLAN.md — Patient-side Active organizations tab + EditConsentScopeModal + SettingsPage NAV extension (Wave 2)
+- [ ] 09-06-PLAN.md — clinic-invite Edge Function (4 endpoints) + Resend HTTPS dispatch + Vercel rewrites [HUMAN CHECKPOINT] (Wave 3)
+- [ ] 09-07-PLAN.md — clinic-photo Edge Function + D-12 3-check gate + 5-min signed URL TTL (Wave 3)
+- [ ] 09-08-PLAN.md — WorkspaceSwitcher (index chunk, +3 kB) + AppShell mount + ClinicContextBar real-import (Wave 3)
+- [ ] 09-09-PLAN.md — Pitfall #8 5-scenario matrix + clinic-photo-access + clinic-role-permission-grid e2e (Wave 4)
+- [ ] 09-10-PLAN.md — SC#5 revoke-latency drill (Layer 1 + Layer 2) + Pitfall #2 realtime.messages RLS negative-space test (Wave 4)
+- [ ] 09-11-PLAN.md — Traceability sweep + ROADMAP/REQUIREMENTS/STATE sync + 09-SUMMARY.md (Wave 4)
 **UI hint**: yes
 **Scope note (2026-05-12):** CLINIC-06 absorbed from Phase 10 per `09-CONTEXT.md` D-07. The role/permission scope (3 default roles + custom-role admin UI + `permissions` global table + `role_permissions` many-to-many + `has_permission()` SECURITY DEFINER helper) ships in Phase 9 so Phase 10's operator surface inherits a working RLS substrate. The audit-log capture infrastructure (every revoke/scope-change/permission-check writes an `audit_logs` row, extending Phase 8 D-04's enum) is also part of Phase 9; the org-owner-facing audit surface UI stays in Phase 10 (CLINIC-07).
 
@@ -237,7 +248,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | 0/TBD | Not started | - |
 | 7. Compliance Foundations (Legal-Counsel-Led) | 3/10 | In Progress|  |
 | 8. Doctor Read-Share | 0/6 | Planned | - |
-| 9. Clinic B2B Foundations | 0/TBD | Not started | - |
+| 9. Clinic B2B Foundations | 0/11 | Planned | - |
 | 10. Clinic Operator Surface | 0/TBD | Not started | - |
 
 ---
