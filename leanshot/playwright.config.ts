@@ -39,4 +39,14 @@ export default defineConfig({
     video: 'off',
     screenshot: 'only-on-failure',
   },
+  // Phase 7 diagnostic: emit HTML report so the CI failure-upload step actually
+  // has files to upload. Without an html reporter Playwright defaults to list
+  // and never creates leanshot/playwright-report/, so the upload step warns
+  // "No files were found" and we lose trace evidence.
+  reporter: process.env.CI
+    ? [
+        ['list'],
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+      ]
+    : 'list',
 });

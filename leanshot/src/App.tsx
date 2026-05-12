@@ -82,6 +82,40 @@ const MigrationModal = lazy(() =>
 
 type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard';
 
+// Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
+// builds, never Vercel production). Records every selectView invocation so
+// Playwright specs can read `window.__leanshot_view_log__` to diagnose stuck
+// post-signin transitions. See
+// .planning/debug/phase7-e2e-post-signin-render.md.
+interface ViewLogEntry {
+  t: number;
+  caller: 'init' | 'recompute';
+  user: boolean;
+  hash: string;
+  result: View;
+}
+declare global {
+  interface Window {
+    __leanshot_view_log__?: ViewLogEntry[];
+  }
+}
+const isE2E = (): boolean => {
+  try {
+    return import.meta.env.VITE_E2E === 'true';
+  } catch {
+    return false;
+  }
+};
+function pushViewLog(entry: ViewLogEntry): void {
+  if (!isE2E()) return;
+  try {
+    if (!window.__leanshot_view_log__) window.__leanshot_view_log__ = [];
+    window.__leanshot_view_log__.push(entry);
+  } catch {
+    /* noop */
+  }
+}
+
 /**
  * Phase 5 D-01: view selector. Hash priority — any `#/auth/*` route forces
  * the auth view regardless of other state. Otherwise the existing
@@ -91,6 +125,11 @@ function selectView(opts: { user: unknown; hash: string }): View {
   if (opts.hash.startsWith('#/auth/')) return 'auth';
   if (opts.user) return 'dashboard';
   return 'marketing';
+}
+function selectViewLogged(caller: 'init' | 'recompute', user: unknown, hash: string): View {
+  const result = selectView({ user, hash });
+  pushViewLog({ t: Date.now(), caller, user: Boolean(user), hash, result });
+  return result;
 }
 
 export function App() {
@@ -110,7 +149,9 @@ export function App() {
   const needsDisclaimer = !!user && acknowledgedDisclaimer !== 'v1';
 
   // Synchronously decide initial view based on hydrated user state + hash.
-  const [view, setView] = useState<View>(() => selectView({ user, hash: window.location.hash }));
+  const [view, setView] = useState<View>(() =>
+    selectViewLogged('init', user, window.location.hash),
+  );
   const [aiOpen, setAIOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -118,7 +159,8 @@ export function App() {
 
   // Keep view aligned to user state + hash.
   useEffect(() => {
-    const recompute = (): void => setView(selectView({ user, hash: window.location.hash }));
+    const recompute = (): void =>
+      setView(selectViewLogged('recompute', user, window.location.hash));
     recompute();
     window.addEventListener('hashchange', recompute);
     return () => window.removeEventListener('hashchange', recompute);
