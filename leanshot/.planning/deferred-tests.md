@@ -1,8 +1,9 @@
 ---
 title: Deferred E2E SC tests — milestone-close fix queue
 created: 2026-05-12
-status: open
-fix_target: before v1 milestone close (Phase 7-10 range, decision point at Phase 7 entry)
+status: closed
+closed: 2026-05-12
+fix_target: closed — see Phase 7 Plan 07-01
 owner: TBD
 related_debug_session: leanshot/.planning/debug/resolved/e2e-smoke-auth-signup.md
 ---
@@ -61,3 +62,14 @@ This file is the single source of truth for these 7 deferrals. Linked from:
 - `~/.claude/projects/.../memory/project_e2e_smoke_failure.md` (memory)
 
 When all 7 are fixed and re-enabled, set `status: closed` in the frontmatter and add a `closed: <date>` field; do NOT delete this file — it's the post-mortem for "why was CI red between Phase 6 ship and milestone close".
+
+## Closure note (2026-05-12)
+
+All 7 specs re-enabled via Phase 7 Plan 07-01 batch fix. Fix families applied:
+
+- **Family A2 (raise budget):** #1 (cross-device-sync), #5 (offline-log-then-sync), #6 (photo-cross-device). 5s/8s timing budgets → 12s to absorb prod-build cold WebSocket handshake.
+- **Family B (raise budget 12s → 20s):** #2, #3 (migrate-resume.spec.ts Tests 1 + 2). Cold-Realtime + state-machine setup on prod build exceeded the original 12s budget.
+- **Family A1 + C (warm-up + toast window):** #4 (offline-conflict-toast). Added project-level Realtime warm-up beforeAll, bumped toast assertion 10s → 12s. **PLUS** cross-cutting Rule 3 deviation: `src/lib/store.ts:1937` widened so `window.useStore` is exposed when CI builds with `VITE_E2E=true` (needed because CI runs `npm run preview` against a production build).
+- **Family D (assertion reformulation):** #7 (signout-cache-clear). Scenario 1 — seed glob was correct; failure was on the post-signout read side because `removeUserNamespace` deletes the namespaced key right after the persist write lands on it (App.tsx:201-231). In-memory Zustand state correctly preserves `acknowledgedDisclaimer`, so the test now asserts on the store directly (via the widened `window.useStore` gate from spec #4) with the localStorage check as belt-and-suspenders.
+
+See `leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-01-findings.md` for the per-spec root-cause confirmations and `07-01-SUMMARY.md` for the merge evidence + final CI link.
