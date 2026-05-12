@@ -5,9 +5,14 @@ source:
   - 05-01-SUMMARY.md
   - 05-02-SUMMARY.md
   - 05-03-SUMMARY.md
+  - 05-04-SUMMARY.md  # G1 closure
+  - 05-05-SUMMARY.md  # G2 closure
+  - 05-06-SUMMARY.md  # G3 closure
 started: 2026-05-12T02:25:00Z
-updated: 2026-05-12T02:45:00Z
+updated: 2026-05-12T03:30:00Z
 runner: Claude Code + Playwright MCP + Supabase admin API
+gap_closure_round: 1
+gap_closure_plans: [05-04, 05-05, 05-06]
 ---
 
 ## Current Test
@@ -61,6 +66,8 @@ notes: |
   signOut() → universal `leanshot_v4` injections cleared (count → 0), `sb-leanshot-auth` removed, `user=null` in memory, `acknowledgedDisclaimer:'v1'` preserved (CONF-2 ✓), `signedIn` slice not persisted (CONF-3 ✓). Reload landed on marketing landing with no dashboard data flash. SC#3 PROVEN.
 issues: |
   A transient `TypeError: Cannot read properties of null (reading 'dose')` from `MedicationTab.tsx:53` fires once during the SIGNED_OUT view transition — MedicationTab doesn't null-guard `user` for the single render between user=null and view-switch-to-landing. Logged as Gap G3 below.
+gap_closure_2026-05-12: |
+  G3 CLOSED by Plan 05-06 (commits 73cd8dc test + 93e2915 fix). MedicationTab now selects nullable user and early-returns `null` when user==null. New test `MedicationTab.test.tsx` G3-1 reproduces the original UAT error on the failing branch and verifies zero console.error events post-fix; G3-2 covers the happy path. Sibling latent issue flagged: `MedLevelChart.tsx:13` still uses `s.user!` non-null assertion — doesn't crash today (MedicationTab guards above it) but logged out-of-scope.
 
 ### 8. Password reset round-trip (SC#2)
 expected: Password change works, new password signs in, old password rejected.
@@ -70,57 +77,60 @@ notes: |
 
 ### 9. Auth redirect URL allowlist configured (deferred-action from 05-02)
 expected: 4 leanshot URLs in the Supabase auth allowlist; recovery/verify links redirect back to the app.
-result: issue
-reported: |
+result: pass
+gap_closure_2026-05-12: |
+  G1 CLOSED by Plan 05-04 (commit 155f359 + 05-04-SUMMARY.md f44be90). `supabase config push --linked` updated site_url + additional_redirect_urls with zero drift on other auth keys. Live re-verification: 3 admin/generate_link probes confirmed allowlist enforcement — localhost:5173 redirect_to preserved, production redirect_to preserved, hostile evil.example.com redirect_to silently overridden to site_url (T-05-04-01 phishing-redirect mitigation working). Probe user cleaned up post-test.
+original_reported: |
   Live `/auth/v1/settings` and `supabase/config.toml` both show `site_url = "http://127.0.0.1:3000"` and `additional_redirect_urls = ["https://127.0.0.1:3000"]` — the Supabase init defaults. NONE of the leanshot URLs (localhost:5173, production Vercel, marketing site, preview URLs) are configured.
   Concrete impact: `admin/generate_link?redirect_to=http://localhost:5173/#/auth/reset` returned `action_link?...&redirect_to=http://127.0.0.1:3000` — the requested redirect was silently overridden because it wasn't on the allowlist. Real-user email verification links and password-reset links currently land on `127.0.0.1:3000` (a port leanshot doesn't serve), so the end-to-end signup and reset flows are broken in any environment where the user receives a real email.
-severity: blocker
+original_severity: blocker
 
 ## Summary
 
 total: 9
-passed: 8
-issues: 1
+passed: 9
+issues: 0
 pending: 0
 skipped: 0
+gap_closure_round_1:
+  date: 2026-05-12
+  plans_executed: [05-04, 05-05, 05-06]
+  gaps_closed: [G1, G2, G3]
+  all_resolved: true
+  post_merge_tests: 314/314 pass (296 baseline + 18 new from gap-closure plans)
+  post_merge_typecheck: clean
 
 ## Gaps
 
-- truth: "Auth redirect URL allowlist contains leanshot URLs so email links work end-to-end (SC#1 first leg + SC#2)"
-  status: failed
-  reason: "Supabase project still has Supabase init defaults (site_url=127.0.0.1:3000). Deferred manual step from 05-02-SUMMARY 'Auth gates encountered' was never executed."
-  severity: blocker
-  test: 9
-  artifacts: ["supabase/config.toml", "Live /auth/v1/settings"]
-  missing:
-    - "site_url updated to production Vercel URL (per phase 2 Vercel project leanshot-app)"
-    - "additional_redirect_urls includes: http://localhost:5173/**, https://leanshot-app.vercel.app/**, plus #/auth/verify and #/auth/reset paths for hash routing"
-    - "Either supabase config.toml updated + `supabase config push --linked` re-run, OR set via Supabase dashboard at https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/auth/url-configuration"
+- id: G1
+  truth: "Auth redirect URL allowlist contains leanshot URLs so email links work end-to-end (SC#1 first leg + SC#2)"
+  status: resolved
+  resolution_plan: 05-04
+  resolution_commits: [155f359, f44be90]
+  resolution_date: 2026-05-12
+  resolution_evidence: |
+    `supabase config push --linked` applied site_url + additional_redirect_urls update with zero drift on other auth keys (verified via diff in push output). Live re-verification: 3 admin/generate_link probes against /auth/v1/admin/generate_link — (1) localhost:5173 redirect_to preserved, (2) production Vercel URL redirect_to preserved, (3) hostile evil.example.com redirect_to silently overridden to site_url (T-05-04-01 phishing-redirect mitigation working). Probe user cleaned up post-test.
+  original_severity: blocker
+  original_reason: "Supabase project still had Supabase init defaults (site_url=127.0.0.1:3000). Deferred manual step from 05-02-SUMMARY 'Auth gates encountered' was never executed."
 
-- truth: "Per-user localStorage isolation (D-12, T-05-03 mitigation) — each signed-in user's data is namespaced and isolated"
-  status: degraded
-  reason: |
-    `renameStorageNamespace(userId)` moves data from `leanshot_v4` → `leanshot_v4:<hash>` ONCE on SIGNED_IN, but the Zustand persist middleware is hardcoded with `name: 'leanshot_v4'` — so ALL subsequent writes (Realtime updates, addInjection, etc.) go back to the universal key. The namespaced key becomes a dead snapshot from the moment of signin and never updates. Verified directly: after 6 Realtime inserts during Test 5, in-memory store had 7 injections, persisted universal `leanshot_v4` had 7 injections, namespaced `leanshot_v4:701e8fdbbeb9f8ad` still had 1 (the signin-time snapshot).
-    Practical implications:
-      1. Reload after writes loads from `leanshot_v4` (universal) — works because writes also went there.
-      2. Multi-account on same browser: Account A's writes land in `leanshot_v4`. If Account B signs in next, `renameStorageNamespace` would move A's data into B's namespace before clearing universal. Cross-account leak risk if the move runs before the prior session's clearUserDataSlices completes.
-      3. The namespaced keys accumulate as orphan bloat on signout (not cleared).
-    Fix shape: replace `createJSONStorage(() => localStorage)` with a custom storage adapter whose `getItem`/`setItem`/`removeItem` route to the active user's namespaced key (resolved via supabase.auth.getUser() or a userId-aware factory). Reconfigure persist on every SIGNED_IN / SIGNED_OUT.
-  severity: major
-  test: 5
-  artifacts: ["src/lib/store.ts:579 (persist config name: STORAGE_KEY)", "src/lib/storage.ts:161 renameStorageNamespace"]
-  missing:
-    - "Per-user storage adapter that writes to namespacedKey(userId), not the universal STORAGE_KEY"
-    - "On SIGNED_OUT: also remove the prior user's namespaced key so signed-out users leave no per-user residue"
-    - "Multi-account regression test (account A signs in, logs data, signs out; account B signs in, asserts injections == [])"
+- id: G2
+  truth: "Per-user localStorage isolation (D-12, T-05-03 mitigation) — each signed-in user's data is namespaced and isolated"
+  status: resolved
+  resolution_plan: 05-05
+  resolution_commits: [727c139, 37d242a, acbe5ba, 9fda29f, b2c47f7]
+  resolution_date: 2026-05-12
+  resolution_evidence: |
+    `createNamespacedStorage` adapter authored in src/lib/storage.ts; persist wired via `createJSONStorage(() => createNamespacedStorage())`. App.tsx onAuthStateChange now calls `setActiveStorageUserId(userId)` BEFORE `renameStorageNamespace(userId)` on INITIAL_SESSION/SIGNED_IN, and `removeUserNamespace(prevUserId)` on SIGNED_OUT. 16 new tests added (10 storage adapter + 6 store integration). Test M4 explicitly locks the setActive→rename ordering contract so a future refactor reversing the order fails immediately. CONF-2 (acknowledgedDisclaimer preservation) and CONF-3 (signedIn not persisted) regression-guarded by additional tests. Multi-account regression M1 fails if Account A's data ever leaks into Account B's view.
+  original_severity: major
+  original_reason: "renameStorageNamespace moved data once on SIGNED_IN but Zustand persist hardcoded `name: 'leanshot_v4'` — all subsequent writes went back to the universal key; namespaced key was a dead snapshot."
 
-- truth: "MedicationTab guards against user=null during SIGNED_OUT view transition"
-  status: failed
-  reason: |
-    During signOut → SIGNED_OUT view switch, MedicationTab renders one more time with user=null and crashes at `MedicationTab.tsx:53` with `TypeError: Cannot read properties of null (reading 'dose')`. React's default error boundary logs to console; user-visible impact is a single dropped frame but the error noise can mask real bugs in Sentry.
-  severity: minor
-  test: 7
-  artifacts: ["src/components/dashboard/tabs/MedicationTab.tsx:53"]
-  missing:
-    - "Null-guard early-return when user==null (return null or a skeleton)"
-    - "OR move the SIGNED_OUT view switch ahead of the user-clearing setState so MedicationTab unmounts before user becomes null"
+- id: G3
+  truth: "MedicationTab guards against user=null during SIGNED_OUT view transition"
+  status: resolved
+  resolution_plan: 05-06
+  resolution_commits: [73cd8dc, 93e2915, 10d0b64]
+  resolution_date: 2026-05-12
+  resolution_evidence: |
+    MedicationTab selector changed from `useStore((s) => s.user!)` (non-null assertion) to `useStore((s) => s.user)` (nullable), with `if (!user) return null` early-return after all hooks. RED test (G3-1) reproduced exact UAT error pre-fix; GREEN: 2/2 new tests pass (G3-1 null-render zero-error, G3-2 happy-path render). Sibling latent issue flagged out-of-scope: `MedLevelChart.tsx:13` still uses `s.user!` — doesn't crash today (MedicationTab guards above it) but logged in 05-06-SUMMARY for future hardening pass.
+  original_severity: minor
+  original_reason: "During signOut → SIGNED_OUT view switch, MedicationTab rendered once with user=null and crashed at MedicationTab.tsx:53 with `TypeError: Cannot read properties of null (reading 'dose')`."

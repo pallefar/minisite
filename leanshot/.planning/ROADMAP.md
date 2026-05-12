@@ -133,9 +133,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 05-01-PLAN.md — Injections schema migration + STORAGE_VERSION 6→7 helpers + cross-tenant RLS proof (Wave 1; depends_on: none)
 - [x] 05-02-PLAN.md — Auth UI (9 surfaces + AvatarMenu) + state machine + signOut/clearUserDataSlices + password policy push + 3 Playwright SC scenarios (SC#1 first leg, SC#2, SC#3) (Wave 2; depends_on: 05-01)
 - [x] 05-03-PLAN.md — Sync engine (Realtime + offline queue + LWW) + replace store STUBs + App.tsx wiring + 2 Playwright SC scenarios (SC#1 completion, SC#4) + CI workflow secrets + manual UAT (Wave 3; depends_on: 05-01, 05-02)
-- [ ] 05-04-PLAN.md — [gap_closure G1, blocker] Supabase auth allowlist: site_url=production SPA + 4-entry additional_redirect_urls + `supabase config push --linked` (Wave 1; depends_on: none)
-- [ ] 05-05-PLAN.md — [gap_closure G2, major] Per-user storage adapter (createNamespacedStorage + setActiveStorageUserId + removeUserNamespace) + persist wiring + App.tsx onAuthStateChange routing + multi-account regression test (T-05-03 re-mitigation) (Wave 1; depends_on: none)
-- [ ] 05-06-PLAN.md — [gap_closure G3, minor] MedicationTab null-guard for SIGNED_OUT view transition + co-located RTL test (Wave 1; depends_on: none)
+- [x] 05-04-PLAN.md — [gap_closure G1, blocker] Supabase auth allowlist: site_url=production SPA + 4-entry additional_redirect_urls + `supabase config push --linked` (Wave 1; depends_on: none)
+- [x] 05-05-PLAN.md — [gap_closure G2, major] Per-user storage adapter (createNamespacedStorage + setActiveStorageUserId + removeUserNamespace) + persist wiring + App.tsx onAuthStateChange routing + multi-account regression test (T-05-03 re-mitigation) (Wave 1; depends_on: none)
+- [x] 05-06-PLAN.md — [gap_closure G3, minor] MedicationTab null-guard for SIGNED_OUT view transition + co-located RTL test (Wave 1; depends_on: none)
 **UI hint**: yes
 
 ### Phase 6: Patient Cloud Sync Slice 2 — Full Data + Migration + Photos
