@@ -1949,3 +1949,51 @@ if (
 ) {
   (window as unknown as { useStore?: typeof useStore }).useStore = useStore;
 }
+
+// Phase 7 RC4 debug seam — wrap useStore.setState to record every transition
+// that mutates `user` or `acknowledgedDisclaimer`. Gated ONLY by
+// VITE_E2E === 'true'; Vercel production builds do NOT set this flag.
+// Used by cross-device-sync.spec.ts (and similar) to identify the offending
+// caller that wipes seeded state on cold-cache first-context signin.
+// Remove after RC4 is closed (see .planning/debug/phase7-e2e-rc4-state-wipe-race.md).
+if (typeof window !== 'undefined' && import.meta.env.VITE_E2E === 'true') {
+  interface StateLogEntry {
+    ts: number;
+    beforeUser: 'set' | 'null';
+    afterUser: 'set' | 'null';
+    beforeAck: string | null;
+    afterAck: string | null;
+    stack: string;
+  }
+  interface WindowWithLog {
+    __leanshot_state_log__?: StateLogEntry[];
+  }
+  const w = window as unknown as WindowWithLog;
+  const origSetState = useStore.setState.bind(useStore);
+  const wrappedSetState: typeof useStore.setState = ((
+    partial: unknown,
+    replace?: boolean,
+  ): void => {
+    const before = useStore.getState();
+    const beforeUser: 'set' | 'null' = before.user ? 'set' : 'null';
+    const beforeAck = before.acknowledgedDisclaimer ?? null;
+    const stack = new Error().stack?.split('\n').slice(2, 7).join(' | ') ?? '';
+    // Cast preserves the overload — origSetState supports the same (partial, replace?) signature.
+    (origSetState as unknown as (p: unknown, r?: boolean) => void)(partial, replace);
+    const after = useStore.getState();
+    const afterUser: 'set' | 'null' = after.user ? 'set' : 'null';
+    const afterAck = after.acknowledgedDisclaimer ?? null;
+    if (beforeUser !== afterUser || beforeAck !== afterAck) {
+      if (!w.__leanshot_state_log__) w.__leanshot_state_log__ = [];
+      w.__leanshot_state_log__.push({
+        ts: Date.now(),
+        beforeUser,
+        afterUser,
+        beforeAck,
+        afterAck,
+        stack,
+      });
+    }
+  }) as typeof useStore.setState;
+  useStore.setState = wrappedSetState;
+}

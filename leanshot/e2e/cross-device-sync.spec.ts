@@ -123,9 +123,66 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
   // more reliable AppShell-rendered anchor (Sidebar mounts unconditionally
   // inside AppShell). See 07-RESEARCH.md §1 Family A.
   await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
-  await expect(page.getByRole('navigation', { name: /primary navigation/i })).toBeVisible({
-    timeout: 30_000,
-  });
+  try {
+    await expect(page.getByRole('navigation', { name: /primary navigation/i })).toBeVisible({
+      timeout: 30_000,
+    });
+  } catch (err) {
+    // Phase 7 RC4 instrumentation — dump the state-mutation log + view log +
+    // localStorage snapshot when post-signin nav never renders. The seam in
+    // src/lib/store.ts (gated by VITE_E2E === 'true') records every
+    // useStore.setState() call that toggles user or acknowledgedDisclaimer.
+    // Remove this block once RC4 is fixed; see
+    // .planning/debug/phase7-e2e-rc4-state-wipe-race.md.
+    const snap = await page.evaluate(() => {
+      return {
+        url: window.location.href,
+        hash: window.location.hash,
+        viewLog: (window as unknown as { __leanshot_view_log__?: unknown[] })
+          .__leanshot_view_log__ ?? [],
+        stateLog: (window as unknown as { __leanshot_state_log__?: unknown[] })
+          .__leanshot_state_log__ ?? [],
+        storeUser:
+          (window as unknown as { useStore?: { getState: () => { user: unknown } } }).useStore
+            ?.getState?.()?.user ?? null,
+        storeAck:
+          (window as unknown as {
+            useStore?: { getState: () => { acknowledgedDisclaimer: unknown } };
+          }).useStore?.getState?.()?.acknowledgedDisclaimer ?? null,
+        lsBlob: (() => {
+          const out: Record<string, unknown> = {};
+          for (const k of Object.keys(localStorage)) {
+            if (!k.startsWith('leanshot_v4')) continue;
+            try {
+              const v = localStorage.getItem(k);
+              const parsed = v ? JSON.parse(v) : null;
+              out[k] = {
+                version: (parsed as { version?: unknown })?.version ?? null,
+                hasUser: Boolean((parsed as { state?: { user?: unknown } })?.state?.user),
+                ack:
+                  (parsed as { state?: { acknowledgedDisclaimer?: unknown } })?.state
+                    ?.acknowledgedDisclaimer ?? null,
+              };
+            } catch {
+              out[k] = '<unparseable>';
+            }
+          }
+          return out;
+        })(),
+      };
+    });
+    console.log(
+      `\n===== RC4-INSTRUMENT seedUserAndSignIn-failure =====\n${JSON.stringify(snap, null, 2)}\n===== /RC4-INSTRUMENT =====\n`,
+    );
+    // Assert that the seam did capture something — if the log is empty, the
+    // seam isn't loaded or VITE_E2E flag is missing on the CI build.
+    if (!Array.isArray(snap.stateLog) || snap.stateLog.length === 0) {
+      console.log(
+        '[RC4-INSTRUMENT] WARNING: __leanshot_state_log__ is empty — seam not loaded? Check VITE_E2E env var on CI build step.',
+      );
+    }
+    throw err;
+  }
 }
 
 async function gotoMedicationTab(page: Page): Promise<void> {
@@ -206,7 +263,6 @@ test.describe('@phase05 SC#1 completion — cross-device Realtime sync (<5s budg
         timeout: 12_000,
       });
       const elapsed = Date.now() - tStart;
-      // eslint-disable-next-line no-console
       console.log(`[cross-device-sync] propagation: ${elapsed}ms`);
       expect(elapsed).toBeLessThan(12_000);
     } finally {
