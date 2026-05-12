@@ -373,26 +373,71 @@ describe('Phase 6 migration matrix', () => {
     expect(state.workouts).toBe('complete');
   });
 
-  it('M8: v4 has base64 photos → photos entity is run-ordered first and reaches complete (06-04 wires real upload)', async () => {
-    const mod = await freshMigrationModule();
-    seedV4({
-      photos: [
-        // Inline a minimal Photo shape with a base64 dataURL — 06-04's eager
-        // migration (D-10) will decode + compress + upload each one.
-        { date: '2026-05-11', dataUrl: 'data:image/jpeg;base64,/9j/4AA=' } as never,
-        { date: '2026-05-10', dataUrl: 'data:image/jpeg;base64,/9j/4AB=' } as never,
-      ],
-    });
+  it('M8: v4 has base64 photos → photos entity decodes + enqueues upload ops + reaches complete (06-04 D-10)', async () => {
+    // Spy on the photo-compress + photo-queue + sync modules — jsdom has no
+    // real canvas decode + no IndexedDB (the real impl is exercised by the
+    // Playwright e2e in browser). This unit test asserts the migration
+    // loop's CONTROL FLOW: decode → compress → IDB put → enqueue 'upload' op.
+    const photoCompressMod = await import('./photo-compress');
+    const photoQueueMod = await import('./photo-queue');
+    const compressSpy = vi
+      .spyOn(photoCompressMod, 'compressImage')
+      .mockImplementation(async (b: Blob) => new Blob([new Uint8Array(b.size)], b));
+    const putSpy = vi
+      .spyOn(photoQueueMod, 'putPhotoBlob')
+      .mockImplementation(async () => undefined);
 
-    await mod.maybeStartMigration(TEST_USER);
+    // fetch(dataUrl) is the canonical decode path; jsdom does not implement
+    // data: URLs in fetch, so stub the global. The migration loop calls
+    // `.blob()` on the Response, so the stub returns a minimal Response-shaped
+    // object exposing `blob()`.
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: unknown) => {
+      const url = typeof input === 'string' ? input : (input as { url: string }).url;
+      if (typeof url === 'string' && url.startsWith('data:image/')) {
+        const blob = new Blob([new Uint8Array([0xff, 0xd8, 0xff])], { type: 'image/jpeg' });
+        return {
+          blob: async () => blob,
+          ok: true,
+          status: 200,
+        } as unknown as Response;
+      }
+      return originalFetch(input as never);
+    }) as typeof fetch;
 
-    // ENTITIES[0] === 'photos' per D-01 size-descending order; the entity loop
-    // must encounter it first. 06-04 will replace the no-op handler with the
-    // real upload path.
-    expect(mod.ENTITIES[0]).toBe('photos');
-    const state = useStore.getState().migration_state!;
-    expect(state.photos).toBe('complete');
-    expect(state.complete).toBe(true);
+    try {
+      const mod = await freshMigrationModule();
+      seedV4({
+        photos: [
+          // Legacy v4 Photo shape carrying a base64 dataURL inline. The
+          // migrateV7ToV8 transform preserves `data` through v8 so the eager
+          // loop has access to the source bytes.
+          { date: '2026-05-11', data: 'data:image/jpeg;base64,/9j/4AA=' } as never,
+          { date: '2026-05-10', data: 'data:image/jpeg;base64,/9j/4AB=' } as never,
+        ],
+      });
+
+      await mod.maybeStartMigration(TEST_USER);
+
+      // D-01 size-descending: photos runs FIRST.
+      expect(mod.ENTITIES[0]).toBe('photos');
+      const state = useStore.getState().migration_state!;
+      expect(state.photos).toBe('complete');
+
+      // Loop CONTROL FLOW: each legacy photo got decoded, compressed,
+      // persisted, and enqueued.
+      expect(compressSpy).toHaveBeenCalledTimes(2);
+      expect(putSpy).toHaveBeenCalledTimes(2);
+
+      const photoOps = (useStore.getState().pendingOps ?? []).filter(
+        (op) => op.table === 'photos' && op.op === 'upload',
+      );
+      expect(photoOps.length).toBe(2);
+    } finally {
+      globalThis.fetch = originalFetch;
+      compressSpy.mockRestore();
+      putSpy.mockRestore();
+    }
   });
 
   it('M9: migration_state is CORRUPTED → corruption detected, slice cleared, error banner set', async () => {

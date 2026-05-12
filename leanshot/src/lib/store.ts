@@ -42,6 +42,7 @@ import {
   initialState,
   migrateFromV3,
   migrateV6ToV7,
+  migrateV7ToV8,
   STORAGE_KEY,
   STORAGE_VERSION,
   type PersistedState,
@@ -171,8 +172,23 @@ interface Actions {
   addNSV: (text: string, date: string) => void;
   removeNSV: (idx: number) => void;
 
-  addPhoto: (p: Photo) => void;
+  /**
+   * Phase 6 06-04 SYNC-06 / D-04 — Add a photo from a Blob source. The
+   * Blob is compressed (canvas, D-06), persisted to IndexedDB
+   * (`photo-queue`), and enqueued as a `'upload'` op. The metadata row is
+   * appended optimistically to `photos` with `storage_path` populated for
+   * the eventual cloud row; cloud-side row insertion happens at flush time
+   * once the Storage upload succeeds.
+   *
+   * The action is async because compression is awaited inline; callers
+   * fire-and-forget OR `await` for confirmation before navigating.
+   */
+  addPhoto: (blob: Blob, meta: { date: string; weight?: number | null }) => Promise<void>;
   removePhoto: (idx: number) => void;
+  /** Phase 6 06-04 — handle Realtime postgres_changes payload for public.photos. */
+  applyPhotoRealtimePayload: (payload: RealtimePostgresChangesPayload<Photo>) => void;
+  /** Phase 6 06-04 — LWW merge for the initial pull (mirror Phase 5's mergeServerInjections). */
+  mergeServerPhotos: (serverRows: Photo[]) => void;
 
   addVial: (v: Vial) => void;
   useVialDose: (idx: number) => void;
@@ -357,6 +373,14 @@ export function migrateState(persistedState: unknown, version: number): Persiste
   // so a v3-direct-to-v7 user passes through every transform in order.
   if (state && version < 7) {
     state = migrateV6ToV7(state);
+  }
+  // Phase 6 06-04 / D-04 / SYNC-06: back-stamp photo_id + storage_path +
+  // mime_type on every Photo so the eager migration loop in migration.ts
+  // can address rows by stable composite-PK identity. Legacy `data: string`
+  // (base64 dataURL) is preserved through v8 — dropped per-photo after the
+  // upload loop runs (migration.ts photo branch).
+  if (state && version < 8) {
+    state = migrateV7ToV8(state);
   }
   return state;
 }
@@ -855,8 +879,74 @@ export const useStore = create<Store>()(
       addNSV: (text, date) => set((s) => ({ nsvs: [{ text, date }, ...s.nsvs] })),
       removeNSV: (idx) => set((s) => ({ nsvs: s.nsvs.filter((_, i) => i !== idx) })),
 
-      addPhoto: (p) => set((s) => ({ photos: [p, ...s.photos] })),
-      removePhoto: (idx) => set((s) => ({ photos: s.photos.filter((_, i) => i !== idx) })),
+      addPhoto: async (blob, meta) => {
+        const photo_id = crypto.randomUUID();
+        // Phase 6 D-06: client-side compression — canvas, 1600px maxEdge,
+        // JPEG-85. The Storage bucket also caps file_size_limit at 2 MB
+        // server-side (defence-in-depth T-06-04-02).
+        const { compressImage } = await import('@/lib/photo-compress');
+        let compressed: Blob;
+        try {
+          compressed = await compressImage(blob);
+        } catch (e) {
+          console.error('[leanshot] photo compression failed', e);
+          return;
+        }
+        // Phase 6 D-08 substrate split: Blob lives in IndexedDB, NOT
+        // localStorage (the persisted Zustand slice).
+        const { putPhotoBlob } = await import('@/lib/photo-queue');
+        try {
+          await putPhotoBlob(photo_id, compressed);
+        } catch (e) {
+          console.error('[leanshot] photo IDB put failed', e);
+          return;
+        }
+
+        const uid = get().signedIn?.user?.id;
+        const photo: Photo = {
+          photo_id,
+          date: meta.date,
+          weight: meta.weight ?? undefined,
+          // storage_path is the canonical bucket path; pre-populate even
+          // when offline so the queued tile UI can compose the eventual URL
+          // shape. Empty string when no uid (anon session) — the upload op
+          // populates it when the SIGNED_IN drain re-runs flushPhotoOps.
+          storage_path: uid ? `${uid}/photos/${photo_id}.jpg` : '',
+          mime_type: 'image/jpeg',
+          size_bytes: compressed.size,
+        };
+        set((s) => ({ photos: [photo, ...s.photos] }));
+        get().enqueueOp({
+          table: 'photos',
+          op: 'upload',
+          key: photo_id,
+          blob_ref: photo_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
+      removePhoto: (idx) => {
+        const target = useStore.getState().photos[idx];
+        const photoId = target?.photo_id;
+        set((s) => ({ photos: s.photos.filter((_, i) => i !== idx) }));
+        if (!photoId) return;
+        // Best-effort drop the local Blob if still queued — frees IDB space.
+        void (async () => {
+          try {
+            const { deletePhotoBlob } = await import('@/lib/photo-queue');
+            await deletePhotoBlob(photoId);
+          } catch {
+            /* noop */
+          }
+        })();
+        get().enqueueOp({
+          table: 'photos',
+          op: 'delete',
+          key: photoId,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
+      },
 
       addVial: (v) => {
         const vWithId = v as Vial & { vial_id?: string };
@@ -1485,6 +1575,55 @@ export const useStore = create<Store>()(
             if (!row.payload) return {};
             if (!s.user) return { user: row.payload as never };
             return { user: { ...s.user, ...(row.payload as Partial<User>) } };
+          }
+          return {};
+        }),
+
+      // -----------------------------------------------------------------
+      // Phase 6 06-04 — photos LWW merge + Realtime reducer. The Storage
+      // bucket holds the Blob; this slice only carries the metadata row.
+      // -----------------------------------------------------------------
+
+      mergeServerPhotos: (serverRows) =>
+        set((s) => {
+          const map = new Map<string, Photo>();
+          for (const local of s.photos) {
+            if (local.photo_id) map.set(local.photo_id, local);
+          }
+          for (const remote of serverRows) {
+            const local = map.get(remote.photo_id);
+            if (
+              !local ||
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              map.set(remote.photo_id, remote);
+            }
+          }
+          return { photos: Array.from(map.values()) };
+        }),
+
+      applyPhotoRealtimePayload: (payload) =>
+        set((s) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const remote = payload.new as Photo;
+            const idx = s.photos.findIndex((p) => p.photo_id === remote.photo_id);
+            if (idx === -1) return { photos: [remote, ...s.photos] };
+            const local = s.photos[idx]!;
+            if (
+              !local.updated_at ||
+              (remote.updated_at && new Date(remote.updated_at) > new Date(local.updated_at))
+            ) {
+              const next = [...s.photos];
+              next[idx] = remote;
+              return { photos: next };
+            }
+            return {};
+          }
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { photo_id?: string };
+            if (!oldRow.photo_id) return {};
+            return { photos: s.photos.filter((p) => p.photo_id !== oldRow.photo_id) };
           }
           return {};
         }),

@@ -33,7 +33,12 @@ export const LEGACY_KEY = 'leanshot_v3';
 // Do NOT rename STORAGE_KEY — that is the localStorage key, not the schema version.
 // The localStorage namespace per user (D-12) is layered ON TOP via `namespacedKey`;
 // STORAGE_KEY remains the bare prefix.
-export const STORAGE_VERSION = 7;
+// Phase 6 06-04 / D-04 / SYNC-06: bumped 7 → 8 so persist `migrate` back-stamps
+// every Photo with a stable `photo_id` + sets the new `storage_path`/`mime_type`
+// fields. The legacy `data: string` (base64 dataURL) is preserved through v8 so
+// the eager photo-migration loop in migration.ts (D-10) can decode it into a
+// Blob, compress + upload, then drop it after the upload succeeds.
+export const STORAGE_VERSION = 8;
 // Phase 4 D-03: API_KEY_STORAGE + apiKeyStorage helper removed. The
 // BYO Anthropic-key UX is retired — AI now flows through the
 // server-side ai-chat Edge Function. The legacy 'leanshot_anthropic_key'
@@ -229,6 +234,43 @@ export function migrateV6ToV7(state: PersistedState): PersistedState {
       ? (state as { pendingOps: PendingOp[] }).pendingOps
       : [],
   };
+}
+
+/**
+ * v7→v8 migration (Phase 6 06-04 / D-04 / SYNC-06):
+ *   - Back-stamp every Photo lacking `photo_id` with `crypto.randomUUID()`.
+ *     Legacy v7 photos used `id: string` (or no id at all); the back-stamp
+ *     prefers an existing `photo_id`, then a legacy `id`, then a fresh uuid.
+ *   - Initialise `storage_path: ''` (the eager photo-migration loop in
+ *     migration.ts populates the real path after upload succeeds).
+ *   - Initialise `mime_type: 'image/jpeg'` (the format the migration loop
+ *     compresses to per D-06).
+ *   - PRESERVE the legacy `data: string` (base64 dataURL) field through v8
+ *     so the eager migration loop has access to the source bytes; it will
+ *     be dropped per-photo after each successful upload (see migration.ts).
+ *   - Idempotent: re-running on v8-shaped state preserves existing
+ *     photo_id + storage_path values.
+ *
+ * Defensive: a malformed snapshot whose `photos` is missing collapses to
+ * `[]` (mirrors migrateV6ToV7's injections handling).
+ */
+export function migrateV7ToV8(state: PersistedState): PersistedState {
+  const stamped = (state.photos ?? []).map((p) => {
+    const photo = p as Photo & { id?: string; data?: string };
+    const photo_id =
+      typeof photo.photo_id === 'string' && photo.photo_id.length > 0
+        ? photo.photo_id
+        : typeof photo.id === 'string' && photo.id.length > 0
+          ? photo.id
+          : crypto.randomUUID();
+    const storage_path = typeof photo.storage_path === 'string' ? photo.storage_path : '';
+    const mime_type =
+      typeof photo.mime_type === 'string' && photo.mime_type.length > 0
+        ? photo.mime_type
+        : 'image/jpeg';
+    return { ...photo, photo_id, storage_path, mime_type };
+  });
+  return { ...state, photos: stamped };
 }
 
 // ---------------------------------------------------------------------------

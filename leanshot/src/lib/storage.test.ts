@@ -24,8 +24,8 @@ describe('initialState', () => {
 });
 
 describe('STORAGE_VERSION', () => {
-  it('is bumped to 7 for Phase 5 D-08 / SYNC-01 log_id field', () => {
-    expect(STORAGE_VERSION).toBe(7);
+  it('is bumped to 8 for Phase 6 06-04 / D-04 / SYNC-06 photo_id + storage_path fields', () => {
+    expect(STORAGE_VERSION).toBe(8);
   });
 });
 

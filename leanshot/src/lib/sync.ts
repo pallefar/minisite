@@ -35,6 +35,7 @@ import type {
   InjectionSite,
   Meal,
   MoodLog,
+  Photo,
   SleepLog,
   SymptomLog,
   Vial,
@@ -178,6 +179,33 @@ interface ServerSettings {
   user_id: string;
   payload: Record<string, unknown>;
   updated_at?: string;
+}
+
+// Phase 6 06-04 — public.photos server-row shape (mirrors
+// supabase/migrations/20260514000009_photos.sql).
+interface ServerPhoto {
+  user_id: string;
+  photo_id: string;
+  date: string;
+  weight: number | null;
+  storage_path: string;
+  mime_type: string;
+  size_bytes: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+function mapServerPhotoToLocal(r: ServerPhoto): Photo {
+  return {
+    photo_id: r.photo_id,
+    date: r.date,
+    weight: r.weight,
+    storage_path: r.storage_path,
+    mime_type: r.mime_type,
+    size_bytes: r.size_bytes ?? undefined,
+    updated_at: r.updated_at,
+    user_id: r.user_id,
+  };
 }
 
 /**
@@ -515,6 +543,16 @@ export async function pullInitialSettings(userId: string): Promise<void> {
   }
 }
 
+export function pullInitialPhotos(userId: string): Promise<void> {
+  return pullInitialGeneric<ServerPhoto, Photo>(
+    'photos',
+    userId,
+    'date',
+    mapServerPhotoToLocal,
+    (rows) => useStore.getState().mergeServerPhotos(rows),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // subscribeInjections / unsubscribeInjections (Phase 5 — unchanged)
 // ---------------------------------------------------------------------------
@@ -701,6 +739,12 @@ export function subscribeSettings(userId: string): void {
   tableChannels.set('settings', ch);
 }
 
+export function subscribePhotos(userId: string): void {
+  subscribeMappedTable<ServerPhoto, Photo>('photos', userId, mapServerPhotoToLocal, (p) =>
+    useStore.getState().applyPhotoRealtimePayload(p),
+  );
+}
+
 /**
  * Tear down ALL Realtime channels (Phase 5 injections + Phase 6 × 9). Called
  * by sync-defer's onSignedOut drain.
@@ -760,6 +804,12 @@ export async function pullAndSubscribeAll(userId: string): Promise<void> {
       await pullInitialSettings(userId);
       subscribeSettings(userId);
     })(),
+    // Phase 6 06-04 — photos metadata channel (the Blob bytes live in
+    // Supabase Storage; this subscription only fans out metadata rows).
+    (async () => {
+      await pullInitialPhotos(userId);
+      subscribePhotos(userId);
+    })(),
   ]);
 }
 
@@ -771,7 +821,13 @@ interface FlushableState {
   signedIn: { user: { id: string } | null } | null;
   user: { medication?: string } | null;
   injections: Injection[];
-  pendingOps: Array<{ table: string; op: 'upsert' | 'delete'; key: string }>;
+  photos: Photo[];
+  pendingOps: Array<{
+    table: string;
+    op: 'upsert' | 'delete' | 'upload';
+    key: string;
+    blob_ref?: string;
+  }>;
   isSyncEnabled: () => boolean;
   dropOps: (keys: string[], table?: string) => void;
 }
@@ -801,6 +857,12 @@ export async function flushSyncQueue(): Promise<void> {
   // Phase 6 — bespoke composite-key + singleton handlers.
   await flushSupplementsOps();
   await flushSettingsOps();
+
+  // Phase 6 06-04 — photos drain runs LAST and SERIAL (D-09). Each photo
+  // upload is a multi-step transaction (read Blob from IDB → Storage upload
+  // → metadata-row upsert → drop local Blob); serializing avoids piling
+  // multi-MB uploads onto the network in parallel.
+  await flushPhotoOps();
 }
 
 /**
@@ -1125,6 +1187,148 @@ async function flushSettingsOps(): Promise<void> {
       upsertOps.map((o) => o.key),
       'settings',
     );
+  }
+}
+
+/**
+ * Phase 6 06-04 — photos drain. D-09: SERIAL (one at a time). Each iteration:
+ *   1. read the queued op (upload OR delete)
+ *   2. for 'upload': fetch Blob from IndexedDB → Storage upload → metadata
+ *      row upsert → drop local Blob from IDB → drop op from queue
+ *   3. for 'delete': metadata row delete → Storage object remove → drop op
+ *
+ * Transient errors leave the op in place for retry on next flush. Permanent
+ * 4xx errors (auth/policy violation) drop the op so the queue cannot wedge.
+ *
+ * Dynamic-imports `@/lib/photo-queue` so the IndexedDB substrate stays off
+ * sync.ts's static graph (sync.ts itself is dynamic-imported by sync-defer).
+ */
+async function flushPhotoOps(): Promise<void> {
+  const state = useStore.getState() as unknown as FlushableState;
+  if (!state.isSyncEnabled()) return;
+  const uid = state.signedIn?.user?.id;
+  if (!uid) return;
+
+  const photoOps = (state.pendingOps ?? []).filter((op) => op.table === 'photos');
+  if (photoOps.length === 0) return;
+
+  const { getPhotoBlob, deletePhotoBlob } = await import('@/lib/photo-queue');
+
+  for (const op of photoOps) {
+    try {
+      if (op.op === 'upload') {
+        const blobKey = op.blob_ref ?? op.key;
+        const blob = await getPhotoBlob(blobKey);
+        const photo = state.photos.find((p) => p.photo_id === op.key);
+        if (!blob || !photo) {
+          // Local source vanished — drop the op rather than spin forever.
+          state.dropOps([op.key], 'photos');
+          continue;
+        }
+        const path = photo.storage_path || `${uid}/photos/${op.key}.jpg`;
+        const { error: upErr } = await supabase.storage.from('photos').upload(path, blob, {
+          contentType: photo.mime_type,
+          upsert: true,
+        });
+        if (upErr) {
+          if (isPermanent4xx(upErr as unknown as { code?: string; status?: number })) {
+            console.error('[leanshot] photo upload permanent error', upErr.message);
+            state.dropOps([op.key], 'photos');
+          } else {
+            console.warn('[leanshot] photo upload transient error', upErr.message);
+          }
+          continue;
+        }
+        // Storage write OK → insert metadata row. Upsert idempotent on
+        // composite PK so a retried op doesn't duplicate.
+        const { error: insErr } = await supabase.from('photos').upsert(
+          {
+            user_id: uid,
+            photo_id: photo.photo_id,
+            date: photo.date,
+            weight: photo.weight ?? null,
+            storage_path: path,
+            mime_type: photo.mime_type,
+            size_bytes: photo.size_bytes ?? null,
+            // INTENTIONALLY OMITTING updated_at — server moddatetime trigger sets per D-08.
+          },
+          { onConflict: 'user_id,photo_id' },
+        );
+        if (insErr) {
+          if (isPermanent4xx(insErr)) {
+            console.error('[leanshot] photo metadata permanent error', insErr);
+            state.dropOps([op.key], 'photos');
+          } else {
+            console.warn('[leanshot] photo metadata transient error', insErr);
+          }
+          continue;
+        }
+        // Drop op + free IDB blob.
+        state.dropOps([op.key], 'photos');
+        try {
+          await deletePhotoBlob(blobKey);
+        } catch (e) {
+          console.warn('[leanshot] photo IDB cleanup failed (best-effort)', e);
+        }
+      } else if (op.op === 'delete') {
+        // 06-RESEARCH §2.4 hard-delete cascade: table-row delete first, then
+        // Storage object remove (orphan tolerable if Storage delete fails —
+        // metadata-row absence makes it invisible to the client).
+        const photo = state.photos.find((p) => p.photo_id === op.key);
+        const { error: dbErr } = await supabase
+          .from('photos')
+          .delete()
+          .eq('user_id', uid)
+          .eq('photo_id', op.key);
+        if (dbErr) {
+          if (isPermanent4xx(dbErr)) {
+            console.error('[leanshot] photo delete permanent error', dbErr);
+            state.dropOps([op.key], 'photos');
+          } else {
+            console.warn('[leanshot] photo delete transient error', dbErr);
+          }
+          continue;
+        }
+        if (photo?.storage_path) {
+          await supabase.storage
+            .from('photos')
+            .remove([photo.storage_path])
+            .catch((e: unknown) => {
+              console.warn('[leanshot] photo storage delete failed (orphan)', e);
+            });
+        }
+        state.dropOps([op.key], 'photos');
+      } else if (op.op === 'upsert') {
+        // Metadata-only edit (e.g., changing weight on an existing photo).
+        const photo = state.photos.find((p) => p.photo_id === op.key);
+        if (!photo) {
+          state.dropOps([op.key], 'photos');
+          continue;
+        }
+        const { error } = await supabase.from('photos').upsert(
+          {
+            user_id: uid,
+            photo_id: photo.photo_id,
+            date: photo.date,
+            weight: photo.weight ?? null,
+            storage_path: photo.storage_path,
+            mime_type: photo.mime_type,
+            size_bytes: photo.size_bytes ?? null,
+          },
+          { onConflict: 'user_id,photo_id' },
+        );
+        if (error) {
+          if (isPermanent4xx(error)) {
+            state.dropOps([op.key], 'photos');
+          }
+          continue;
+        }
+        state.dropOps([op.key], 'photos');
+      }
+    } catch (e) {
+      console.error(`[leanshot] flushPhotoOps unexpected error for op ${op.key}`, e);
+      // Transient — leave the queue intact; next flush re-tries.
+    }
   }
 }
 
