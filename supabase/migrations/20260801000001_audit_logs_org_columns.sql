@@ -25,12 +25,12 @@
 -- the SECURITY DEFINER RPCs in 20260801000011 + the existing audit_trigger()
 -- can write. This migration does not change that contract.
 
--- 1. Extend audit_actor_type enum with the two clinic actors. Each ADD VALUE
--- is its own statement because Postgres does NOT allow adding multiple enum
--- values inside a transaction with other DDL on the same enum (per the docs).
--- IF NOT EXISTS makes the migration safely re-runnable.
-alter type public.audit_actor_type add value if not exists 'org_operator';
-alter type public.audit_actor_type add value if not exists 'org_member';
+-- 1. (Enum extension moved to 20260801000000_audit_actor_type_extend.sql.)
+--    Postgres "unsafe use of new value of enum type" (55P04) rejects using
+--    a newly-added enum value in the same transaction it was added in. The
+--    `where actor_type in ('org_operator','org_member')` partial index below
+--    triggers that error when the ALTER TYPE ADD VALUE statements live in
+--    this same file. The split is the only safe pattern on Postgres.
 
 -- 2. Add nullable org_id column. FK constraint lives in 20260801000004 (after
 -- orgs exists). Nullable because pre-Phase-9 rows + non-clinic actions don't

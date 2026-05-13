@@ -1,3 +1,32 @@
+-- ----------------------------------------------------------------------------
+-- Forward-reference stub for has_permission() — REPLACED by the real
+-- implementation in 20260801000009_has_permission_fn.sql via CREATE OR REPLACE.
+--
+-- Postgres validates RLS policy USING/WITH CHECK expressions at CREATE POLICY
+-- time, NOT at query plan time. The original plan-09-01 comment in 000009
+-- claiming forward references are safe is incorrect for CREATE POLICY (only
+-- correct for DDL like view definitions). Without this stub, every policy in
+-- 000002-000008 that references public.has_permission(...) fails with
+-- "function does not exist" (SQLSTATE 42883).
+--
+-- The stub returns false. No rows exist in any clinic table until 000010
+-- (seed_system_roles_trigger), and no application traffic runs against the
+-- DB during `supabase db push`. By the time any query runs, 000009 has
+-- replaced the stub with the real implementation.
+--
+-- Signature MUST match the real function in 000009 exactly so CREATE OR
+-- REPLACE works (same argument names, types, return type, language).
+create or replace function public.has_permission(
+  p_user_id uuid,
+  p_org_id uuid,
+  p_permission_key text
+)
+returns boolean
+language sql
+stable
+as $$ select false $$;
+-- ----------------------------------------------------------------------------
+
 -- Phase 9 Plan 09-01 — orgs table.
 --
 -- The orgs table is the workspace anchor for every clinic surface in
