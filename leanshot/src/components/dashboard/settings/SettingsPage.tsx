@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Terminal,
   KeyRound,
+  Link2,
   Mail,
   RotateCcw,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ import { todayStr, cn } from '@/lib/helpers';
 import type { PersistedState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { ActiveSharesSection } from './ActiveSharesSection';
 import { DeleteAccountModal } from './DeleteAccountModal';
 
 type Section =
@@ -43,6 +45,7 @@ type Section =
   | 'goals'
   | 'notifications'
   | 'privacy'
+  | 'shares'
   | 'recovery'
   | 'subscription'
   | 'data'
@@ -62,6 +65,10 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'goals', label: 'Goals', Icon: Target },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
+  // Phase 8 Plan 08-03 (D-04): Active shares sits between Privacy and Recovery
+  // per 08-UI-SPEC §"Component Inventory" (SettingsPage NAV extension). Surfaces
+  // the patient's create-share + revoke + audit-log aggregate UI.
+  { id: 'shares', label: 'Active shares', Icon: Link2 },
   // Phase 7 Plan 07-10 (D-05): Recovery sits between Privacy and Subscription per
   // 07-RESEARCH §6 ordering. Surfaces the Phase 6 D-03 90-day local backup so the
   // user can roll back a bad cloud-sync overwrite.
@@ -475,6 +482,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               )}
             </Section>
           )}
+
+          {section === 'shares' && <ActiveSharesSection />}
 
           {section === 'recovery' && (
             <Section title="Recovery" body="Restore a local backup taken before cloud migration.">
