@@ -1,10 +1,11 @@
 ---
 phase: 10
 slug: clinic-operator-surface
-status: draft
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-13
+completed: 2026-05-13
 ---
 
 # Phase 10 — Validation Strategy

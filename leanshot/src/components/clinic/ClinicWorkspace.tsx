@@ -25,6 +25,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { supabase } from '@/lib/supabase';
 import type { Org } from '@/types/clinic';
 import type { ReadOnlyPermissionMap } from '@/types/snapshot';
@@ -116,6 +117,12 @@ export function ClinicWorkspace() {
         return;
       }
       setLoad({ kind: 'hydrated', org: data as Org });
+      try {
+        (window as unknown as { posthog?: { capture: (e: string, p: Record<string, unknown>) => void } })
+          .posthog?.capture(CLINIC_EVENTS.WORKSPACE_LOADED, { org_id: data.id });
+      } catch {
+        /* PostHog optional — never block hydration */
+      }
     } catch {
       setLoad({
         kind: 'error',
