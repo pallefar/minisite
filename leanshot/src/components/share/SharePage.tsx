@@ -1,10 +1,14 @@
 /**
  * Phase 8 Plan 08-04 — Doctor read-share top-level component.
+ * Phase 10 Plan 10-05 — Refactored: snapshot-rendered branch now delegates
+ * to ReadOnlyPatientView (shared/ReadOnlyPatientView.tsx) with viewerMode='share'.
+ * The state machine (loading / needs-code / rendering / revoked / expired / error)
+ * and all share-chrome (header, disclaimer note, print button, footer) are UNCHANGED.
  *
  * State machine:
  *   loading       → initial mount; fetchSnapshot in-flight
  *   needs-code    → 401 'requires-code' or 'invalid-session' → CodeEntryScreen
- *   rendering     → 200 → snapshot rendered (chart + sections + doctor report)
+ *   rendering     → 200 → snapshot rendered via ReadOnlyPatientView
  *   revoked       → 401 'revoked' → ShareRevokedScreen kind='revoked'
  *   expired       → 401 'expired' → ShareRevokedScreen kind='expired'
  *   error         → any other failure / network → ShareRevokedScreen kind='load-error'
@@ -15,9 +19,7 @@
  * inside the cost ceiling and satisfies SC#3 "within seconds" tightly.
  *
  * INVARIANT — no Zustand store reads, no supabase client imports anywhere in
- * this module. The chart + DoctorReport are reused via the new optional
- * snapshot props added in this plan (HI-5); they keep their own Zustand
- * fallback for the dashboard call site.
+ * this module. ReadOnlyPatientView maintains the same invariant.
  *
  * Per BL-1 (Plan 08-02), the /snapshot 200 response includes an opaque
  * `share_id`. We capture it into local state so Plan 08-06's print-only
@@ -31,20 +33,19 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { formatShort } from '@/lib/helpers';
 import type { SnapshotResponse } from '@/types/share';
+import type { SnapshotData } from '@/types/snapshot';
 import { CodeEntryScreen } from './CodeEntryScreen';
 import { ShareRevokedScreen } from './ShareRevokedScreen';
 import { fetchSnapshot } from './share-client';
 
-// Lazy-load chart + doctor report so they ride their existing chunks
-// (vendor-charts + the dashboard modal split). They never touch Zustand on
-// this route — they receive the snapshot via the HI-5 optional props.
-const MedLevelChart = lazy(() =>
-  import('@/components/dashboard/charts/MedLevelChart').then((m) => ({
-    default: m.MedLevelChart,
+// Phase 10 Plan 10-05 — ReadOnlyPatientView is in the new shared chunk
+// 'read-only-patient-view'. The share chunk lazy-imports from it so the
+// body-section rendering (6 sections) moves out of the share chunk and
+// into the shared chunk. This reduces the share chunk size by ~8 kB.
+const ReadOnlyPatientView = lazy(() =>
+  import('@/components/shared/ReadOnlyPatientView').then((m) => ({
+    default: m.ReadOnlyPatientView,
   })),
-);
-const DoctorReport = lazy(() =>
-  import('@/components/dashboard/modals/DoctorReport').then((m) => ({ default: m.DoctorReport })),
 );
 
 type State =
@@ -59,6 +60,45 @@ type State =
   | { kind: 'revoked' }
   | { kind: 'expired' }
   | { kind: 'error' };
+
+/**
+ * Adapt Phase 8 SnapshotResponse['snapshot'] shape to the canonical SnapshotData
+ * shape expected by ReadOnlyPatientView.
+ *
+ * Phase 8 snapshot has a different field naming convention (log_id, timestamp,
+ * dose/unit/medication) vs SnapshotData (id, created_at, dose_mg). This adapter
+ * bridges the two shapes without modifying either the share Edge Function or
+ * the canonical SnapshotData type.
+ */
+function adaptSnapshotToReadOnly(snap: SnapshotResponse['snapshot']): SnapshotData {
+  return {
+    patient_user_id: snap.user_id,
+    display_name: snap.patient_first_name,
+    injections: snap.injections.map((i) => ({
+      id: i.log_id,
+      dose_mg: i.dose,
+      site: i.site,
+      created_at: i.timestamp,
+    })),
+    weights: snap.weights.map((w) => ({
+      id: w.id,
+      weight_kg: w.weight_kg,
+      recorded_at: w.timestamp,
+    })),
+    symptoms: snap.symptoms.map((s) => ({
+      id: s.id,
+      name: s.symptom,
+      severity: s.severity,
+      recorded_at: s.timestamp,
+    })),
+    photos: snap.photos.map((p) => ({
+      id: p.id,
+      storage_path: p.signed_url, // share mode: signed_url IS the accessible URL
+      taken_at: p.timestamp,
+    })),
+    viewer_context: 'share',
+  };
+}
 
 interface Props {
   /**
@@ -81,7 +121,6 @@ export function SharePage({ token: tokenProp }: Props = {}) {
   // the hash regex stays inside the lazy chunk and off the index budget.
   const [token] = useState<string>(() => tokenProp ?? tokenFromHash());
   const [state, setState] = useState<State>({ kind: 'loading' });
-  const [doctorReportOpen, setDoctorReportOpen] = useState(true);
 
   const load = useCallback(async () => {
     const result = await fetchSnapshot(token);
@@ -157,7 +196,10 @@ export function SharePage({ token: tokenProp }: Props = {}) {
   if (state.kind === 'error') return <ShareRevokedScreen kind="load-error" />;
 
   // Rendering — read-only patient view (UI-SPEC §"State C")
+  // Phase 10 Plan 10-05: body section rendering delegated to ReadOnlyPatientView.
+  // Share chrome (header, disclaimer note, print button, footers) unchanged.
   const { snapshot, expiresAt, shareId } = state;
+  const readOnlySnapshot = adaptSnapshotToReadOnly(snapshot);
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] pb-16">
@@ -203,125 +245,13 @@ export function SharePage({ token: tokenProp }: Props = {}) {
           advice. Consult the patient's care plan.
         </div>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold">Drug-level estimate</h2>
-          <Card padding="md">
-            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-              <MedLevelChart injections={snapshot.injections} weights={snapshot.weights} />
-            </Suspense>
-          </Card>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold">Recent injections</h2>
-          <Card padding="md">
-            {snapshot.injections.length === 0 ? (
-              <p className="text-[13px] text-[var(--color-text-tertiary)]">None logged.</p>
-            ) : (
-              <ul role="list" className="flex flex-col gap-2 text-[13px]">
-                {snapshot.injections.slice(0, 12).map((i) => (
-                  <li
-                    key={i.log_id}
-                    className="flex items-center justify-between gap-3 py-1.5 border-b border-[var(--color-border)] last:border-b-0"
-                  >
-                    <span>{formatShort(i.timestamp)}</span>
-                    <span className="font-bold numerals-tabular">
-                      {i.dose} {i.unit}
-                    </span>
-                    <span className="text-[var(--color-text-secondary)]">{i.site || '—'}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold">Symptoms</h2>
-          <Card padding="md">
-            {snapshot.symptoms.length === 0 ? (
-              <p className="text-[13px] text-[var(--color-text-tertiary)]">No symptoms logged.</p>
-            ) : (
-              <ul role="list" className="flex flex-col gap-2 text-[13px]">
-                {snapshot.symptoms.slice(0, 20).map((s) => (
-                  <li
-                    key={s.id}
-                    className="flex items-center justify-between gap-3 py-1.5 border-b border-[var(--color-border)] last:border-b-0"
-                  >
-                    <span>{formatShort(s.timestamp)}</span>
-                    <span>{s.symptom}</span>
-                    <span className="font-bold numerals-tabular">{s.severity}/5</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold">Body photos</h2>
-          <Card padding="md">
-            {snapshot.photos.length === 0 ? (
-              <p className="text-[13px] text-[var(--color-text-tertiary)]">No photos shared.</p>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {snapshot.photos.map((p) => (
-                  <figure key={p.id} className="flex flex-col gap-1">
-                    <img
-                      src={p.signed_url}
-                      alt={`Body photo from ${formatShort(p.timestamp)}`}
-                      className="w-full h-auto rounded-md border border-[var(--color-border)]"
-                      loading="lazy"
-                    />
-                    <figcaption className="text-[11px] text-[var(--color-text-tertiary)]">
-                      {formatShort(p.timestamp)}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            )}
-          </Card>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold">Weight log</h2>
-          <Card padding="md">
-            {snapshot.weights.length === 0 ? (
-              <p className="text-[13px] text-[var(--color-text-tertiary)]">No entries.</p>
-            ) : (
-              <ul role="list" className="flex flex-col gap-2 text-[13px]">
-                {snapshot.weights
-                  .slice(-15)
-                  .reverse()
-                  .map((w) => (
-                    <li
-                      key={w.id}
-                      className="flex items-center justify-between gap-3 py-1.5 border-b border-[var(--color-border)] last:border-b-0"
-                    >
-                      <span>{formatShort(w.timestamp)}</span>
-                      <span className="font-bold numerals-tabular">
-                        {w.weight_kg.toFixed(1)} kg
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </Card>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold">Doctor report</h2>
-          <Card padding="md">
-            <Suspense fallback={<Skeleton className="h-32 w-full" />}>
-              <DoctorReport
-                open={doctorReportOpen}
-                onClose={() => setDoctorReportOpen(false)}
-                snapshot={snapshot}
-                readOnly
-              />
-            </Suspense>
-          </Card>
-        </section>
+        {/*
+          Phase 10 Plan 10-05 — ReadOnlyPatientView with viewerMode='share' renders
+          all 6 body sections. No permissionMap passed (share mode: all sections visible).
+        */}
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <ReadOnlyPatientView snapshot={readOnlySnapshot} viewerMode="share" />
+        </Suspense>
 
         {/*
           Screen-only footer — hidden in print to avoid duplicating with the

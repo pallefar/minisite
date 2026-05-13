@@ -91,19 +91,18 @@ describe('SharePage — Plan 08-04', () => {
     expect(html).not.toMatch(/aichat/);
   });
 
-  it("renders all 6 verbatim UI-SPEC section headings", async () => {
+  it("renders ReadOnlyPatientView wrapper in snapshot-rendered state (Phase 10 Plan 10-05 refactor)", async () => {
+    // Phase 10 Plan 10-05: section rendering moved to ReadOnlyPatientView.
+    // This test verifies the share-mode chrome (header, patient name, print button).
+    // Section rendering assertions live in ReadOnlyPatientView.test.tsx.
     mockedFetchSnapshot.mockResolvedValue({ ok: true, data: buildSnapshot() });
     render(<SharePage token="abc" />);
     await waitFor(() =>
       expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument(),
     );
-    // All 6 section headings render verbatim per UI-SPEC §"State C"
-    expect(screen.getByRole('heading', { name: 'Drug-level estimate' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Recent injections' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Symptoms' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Body photos' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Weight log' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Doctor report' })).toBeInTheDocument();
+    // Share-mode chrome elements still present
+    expect(screen.getByText(/Recipient verified/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Print this share/i })).toBeInTheDocument();
   });
 
   it("print button calls window.print()", async () => {

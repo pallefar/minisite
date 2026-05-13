@@ -98,7 +98,15 @@ CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
 IDX_ABSOLUTE_CEILING=50000
 
+# Phase 10 Plan 10-05 — new shared chunk ceilings.
+# read-only-patient-view: ≤12,000 bytes gz (ReadOnlyPatientView + 6 section components;
+#   extracted from Phase 8 'share' chunk; shared by 'share' + 'clinic' lazy chunks).
+# share: ≤6,000 bytes gz (Phase 8 chrome only after extraction; down from 18 kB ceiling).
+READ_ONLY_PATIENT_VIEW_CEILING=12000
+SHARE_CEILING=6000
+
 PHASE_REF=".planning/phases/09-clinic-b2b-foundations/09-01-PLAN.md"
+PHASE_10_REF=".planning/phases/10-clinic-operator-surface/10-05-PLAN.md"
 
 if [ ! -d "$DIST_DIR" ]; then
   echo "::error::dist/ not found at $DIST_DIR — run 'npm run build' first" >&2
@@ -162,6 +170,12 @@ check_chunk_ceiling 'clinic-*.js' "$CLINIC_CEILING" 'clinic'
 # Vite emits clinic-settings-*.js when the clinic-settings module forms its own chunk.
 check_chunk_ceiling 'clinic-settings-*.js' "$CLINIC_SETTINGS_CEILING" 'clinic-settings'
 check_chunk_ceiling 'clinic-invite-*.js' "$CLINIC_INVITE_CEILING" 'clinic-invite'
+
+# Phase 10 Plan 10-05 — shared chunks: read-only-patient-view + share (post-extraction).
+# Note: share ceiling dropped from 18 kB to 6 kB after body-section extraction.
+# The "wave-0 skip" behavior applies to both: if the chunk doesn't exist, skip.
+check_chunk_ceiling 'read-only-patient-view-*.js' "$READ_ONLY_PATIENT_VIEW_CEILING" 'read-only-patient-view'
+check_chunk_ceiling 'share-*.js' "$SHARE_CEILING" 'share'
 
 # Index ceilings — both checks. The 24.5 kB Phase 9 working ceiling is
 # the canary; the 50 kB absolute ceiling is the hard stop inherited

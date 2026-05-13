@@ -86,6 +86,15 @@ const ClinicInvitePage = lazy(() =>
     default: m.ClinicInvitePage,
   })),
 );
+// Phase 10 Plan 10-05 — ClinicDrillInPage lazy chunk. Route is
+// `/clinic/{slug}/patient/{user_id}`. Plan 10-07 overwrites the stub body.
+// This is the ONLY Phase 10 plan that writes to App.tsx (per
+// memory `feedback_planner_iter1_anti_patterns.md` single-writer rule).
+const ClinicDrillInPage = lazy(() =>
+  import('@/components/clinic/drill-in/ClinicDrillInPage').then((m) => ({
+    default: m.ClinicDrillInPage,
+  })),
+);
 
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
@@ -177,7 +186,10 @@ type View =
   // page refresh + bookmarks (D-09 first-paint requirement).
   | 'clinic'
   | 'clinic-settings'
-  | 'clinic-invite';
+  | 'clinic-invite'
+  // Phase 10 Plan 10-05 — drill-in view for /clinic/{slug}/patient/{user_id}.
+  // More-specific than '/clinic/{slug}' — must be ordered BEFORE the base clinic branch.
+  | 'clinic-drill-in';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -239,6 +251,11 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
   // Phase 9 Plan 09-01 — path-based routing. clinic-invite is anonymous OK
   // (the lookup endpoint accepts the token-hash without a JWT).
   if (opts.pathname.startsWith('/clinic-invite/')) return 'clinic-invite';
+  // Phase 10 Plan 10-05 — drill-in route: /clinic/{slug}/patient/{user_id}.
+  // Must be ordered BEFORE the generic /clinic/{slug} branch (more-specific first).
+  if (opts.pathname.match(/^\/clinic\/[^/]+\/patient\/[^/]+$/)) {
+    return opts.user ? 'clinic-drill-in' : 'auth';
+  }
   if (
     opts.pathname.startsWith('/clinic/') &&
     opts.pathname.includes('/settings')
@@ -577,6 +594,15 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <ClinicWorkspace />
+      </Suspense>
+    );
+  }
+  // Phase 10 Plan 10-05 — drill-in route: /clinic/{slug}/patient/{user_id}.
+  // Stub file; Plan 10-07 overwrites ClinicDrillInPage with the real implementation.
+  if (view === 'clinic-drill-in') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <ClinicDrillInPage />
       </Suspense>
     );
   }

@@ -80,6 +80,15 @@ export default defineConfig(({ mode }) => {
             // (.github/workflows/ci.yml) is the regression-prevention layer.
             if (id.includes('src/components/share/')) return 'share';
 
+            // Phase 10 Plan 10-05 — group the shared ReadOnlyPatientView +
+            // section components into a dedicated 'read-only-patient-view' chunk.
+            // Both 'share' and 'clinic' lazy chunks depend on this shared chunk.
+            // This reduces the 'share' chunk size by ~8 kB gz (body-section
+            // rendering moves out) and enables the 'clinic' drill-in chunk to
+            // reuse the same section components without duplication.
+            // Chunk ceiling: ≤12 kB gz (enforced by assert-clinic-bundle-budget.sh).
+            if (id.includes('src/components/shared/')) return 'read-only-patient-view';
+
             // Phase 9 — group clinic surfaces into separate lazy chunks
             // (consolidates 09-02 operator surface + 09-03 settings tabs
             // + 09-04 invite acceptance). Each chunk is lazy-loaded from
