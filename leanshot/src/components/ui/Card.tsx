@@ -1,7 +1,16 @@
 import { type HTMLAttributes, type ReactNode, forwardRef } from 'react';
 import { cn } from '@/lib/helpers';
 
-export type CardVariant = 'default' | 'elevated' | 'interactive' | 'hero' | 'flat';
+export type CardVariant =
+  | 'default'
+  | 'elevated'
+  | 'interactive'
+  | 'hero'
+  | 'flat'
+  | 'selected'
+  | 'clickable'
+  | 'tonal'
+  | 'footer';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant;
@@ -20,6 +29,15 @@ const variantClasses: Record<CardVariant, string> = {
     'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow)] hover:-translate-y-[2px] hover:border-[var(--color-primary-soft)] transition-[transform,box-shadow,border-color] cursor-pointer',
   hero: '',
   flat: 'bg-[var(--color-surface-elevated)] border border-[var(--color-border)]',
+  // Phase 13 D-01: additive variants for v2 design system. Defaults unchanged.
+  selected:
+    'bg-[var(--color-surface-elevated)] border-2 border-[var(--color-primary)] shadow-[0_0_0_4px_var(--color-primary-soft)]',
+  clickable:
+    'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow)] hover:-translate-y-[2px] hover:border-[var(--color-primary-soft)] transition-[transform,box-shadow,border-color] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]',
+  tonal:
+    'bg-[var(--color-primary-soft)] border border-[var(--color-primary-soft)] text-[var(--color-text)]',
+  footer:
+    'bg-[var(--color-surface-elevated)] border-t border-[var(--color-border)] rounded-t-none',
 };
 
 const paddingClasses: Record<NonNullable<CardProps['padding']>, string> = {

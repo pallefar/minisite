@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 import { Toast } from '@/components/ui/Toast';
+import { cn } from '@/lib/helpers';
 import { LegalFooter } from './LegalFooter';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
@@ -25,11 +26,24 @@ export function AppShell({
   onOpenSettings,
 }: AppShellProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
+  // Phase 13 DS-08 / D-12: sidebar collapsed state. Internal only — not exposed
+  // on AppShellProps. Sidebar handles its own 72↔232 px instant snap; <main>
+  // tracks the matching left-margin (NEVER on a CSS transition — chat1.md
+  // landmines 1 + 3). Outer wrapper stays a plain block — DO NOT add `flex`.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      <Sidebar onOpenAI={onOpenAI} onOpenSettings={onOpenSettings} />
+      <Sidebar
+        onOpenAI={onOpenAI}
+        onOpenSettings={onOpenSettings}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+      />
       <main
-        className="md:ml-[80px] pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto"
+        className={cn(
+          'pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto',
+          sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-[232px]',
+        )}
         data-testid="dashboard"
       >
         {/* Phase 9 Plan 09-08 — WorkspaceSwitcher (D-09 + D-14 single-identity affordance).
