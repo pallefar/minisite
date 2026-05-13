@@ -203,7 +203,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Patient opens Settings → "Active organizations" → revokes membership in a clinic → operator's roster removes the patient within 1 second and operator's drill-in for that patient returns 401 — patient's own data stays intact
   6. Org Owner opens `/clinic/{slug}/settings/roles` → sees 3 system roles (Owner, Coach, View-only) seeded on org-create → creates a custom role "Triage" with permission-key checkboxes (e.g. `patient_data.read` + `audit_log.read` but not `members.invite`) → assigns the role to a member → RLS policies enforce the permission-jsonb scope across all clinic-scoped tables and Storage buckets (verified by pgTAP cross-tenant impersonation tests)
 **Plans:** 11 plans
-- [ ] 09-01-PLAN.md — Schema foundation: 13 migrations + has_permission + broadcast trigger + 6 RLS impersonation proofs + Wave 0 scaffolds (Wave 1)
+- [x] 09-01-PLAN.md — Schema foundation: 13 migrations + has_permission + broadcast trigger + 6 RLS impersonation proofs + Wave 0 scaffolds (Wave 1)
 - [ ] 09-02-PLAN.md — Clinic chunk UI: ClinicWorkspace + ClinicContextBar + OrgCreateFlow + InvitePatientModal + clinic.ts wrappers + clinic-realtime helpers (Wave 2)
 - [ ] 09-03-PLAN.md — Clinic-settings UI: Workspace + Members + Roles tabs + RoleEditorModal + clinic-permissions hook (Wave 2)
 - [ ] 09-04-PLAN.md — Clinic-invite UI: ClinicInvitePage states A–H + ConsentDialog + InviteSignupForm (Wave 2)
