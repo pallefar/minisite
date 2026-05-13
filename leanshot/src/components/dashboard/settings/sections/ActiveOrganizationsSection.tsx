@@ -28,7 +28,6 @@
 import { Activity, Building2, Pencil, Trash2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, IconButton } from '@/components/ui/Button';
-import { PatientActivityModal } from '../PatientActivityModal';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
@@ -48,6 +47,7 @@ import {
   type Role,
 } from '@/types/clinic';
 import { EditConsentScopeModal, type MembershipWithOrg } from '../EditConsentScopeModal';
+import { PatientActivityModal } from '../PatientActivityModal';
 
 type Row = Membership & {
   orgs: Pick<Org, 'id' | 'name' | 'logo_storage_path'>;

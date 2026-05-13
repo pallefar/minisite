@@ -13,8 +13,8 @@
  * the active tab (T-10-09-02 mitigation).
  */
 
-import { type RefObject, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { type RefObject, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
