@@ -1,5 +1,31 @@
 # LeanShot
 
+## Current State
+
+**Shipped:** v1.1 (2026-05-13). 11 phases / 76 plans on `origin/main` at commit `b24f26d`. Production live at `https://leanshot-app.vercel.app` (SPA) + `https://leanshot-marketing.vercel.app` (marketing). Supabase project `ytnsipxxmzgaebkqmokp` with 35+ migrations and 7 Edge Functions live (`ai-chat`, `share`, `clinic-invite`, `clinic-photo`, `clinic-snapshot`, `patient-activity`, `bulk-csv-export`). Onboarding summary at `.planning/reports/MILESTONE_SUMMARY-v1.1.md`; archived ROADMAP + REQUIREMENTS in `.planning/milestones/v1.1-*.md`.
+
+**Audit:** `tech_debt` — 48/49 REQ-IDs functionally satisfied; 1 partial (CLINIC-07 operator-side dead button, workaround via AuditTab). No functional blockers.
+
+## Next Milestone Goals
+
+v1.2 to be scoped via `/gsd-new-milestone`. Open themes:
+- Billing / Stripe integration (clinic seats)
+- EHR data import (CSV / FHIR / DEXA)
+- Mobile app (PWA or React Native)
+- Clinic expansion features (operator messaging, custom rank weights, dose-trend alerts)
+- Patient-side analytics dashboard
+- Group / family accounts
+
+Carried-over deferred items (full list in `.planning/v1.1-MILESTONE-AUDIT.md`):
+- Fix CLINIC-07 operator-side dead-button on `ClinicDrillInPage`
+- `s.user!` non-null assertion audit (15 occurrences / 14 files)
+- Photo trash flow
+- HIPAA BAA path (if clinic customers require)
+- Resend domain verification
+- 6 deferred-test batch-fix
+
+---
+
 ## What This Is
 
 LeanShot is a web app that lets people on GLP-1s (and adjacent peptides) track everything that affects their treatment — injections, body metrics, food, activity, mood, symptoms — and turns it into a unified picture they share with their doctor and a coach (rule-based + AI) shares with them. v1 serves three audiences: GLP-1 patients (B2C), doctors viewing a specific patient's data (read-share), and clinics/coaches monitoring multiple patients (B2B).
