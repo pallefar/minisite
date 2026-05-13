@@ -28,8 +28,8 @@
  * leak through this wrapper.
  */
 
-import { supabase } from './supabase';
 import { isConsentScope, type ConsentScope, type PermissionKey } from '@/types/clinic';
+import { supabase } from './supabase';
 
 // =============================================================================
 // Discriminated-union result types
@@ -192,10 +192,10 @@ export async function sendInvite(p: {
   }
 }
 
-export async function cancelInvite(p: { invite_id: string }): Promise<Result<null, GenericErr>> {
-  const r = await callRpc<null>('cancel_invite', { p_invite_id: p.invite_id });
-  return r as Result<null, GenericErr>;
-}
+export const cancelInvite = (p: { invite_id: string }) =>
+  callRpc<null>('cancel_invite', { p_invite_id: p.invite_id }) as Promise<
+    Result<null, GenericErr>
+  >;
 
 export async function acceptInviteExisting(p: {
   invite_token_hash: string;
@@ -243,23 +243,19 @@ export async function acceptInviteNew(p: {
   }
 }
 
-export async function rejectInvite(p: {
-  invite_token_hash: string;
-}): Promise<Result<null, GenericErr>> {
-  const r = await callRpc<null>('reject_invite', { p_invite_token_hash: p.invite_token_hash });
-  return r as Result<null, GenericErr>;
-}
+export const rejectInvite = (p: { invite_token_hash: string }) =>
+  callRpc<null>('reject_invite', { p_invite_token_hash: p.invite_token_hash }) as Promise<
+    Result<null, GenericErr>
+  >;
 
 // =============================================================================
 // Membership RPCs
 // =============================================================================
 
-export async function revokeMembership(p: {
-  membership_id: string;
-}): Promise<Result<null, GenericErr>> {
-  const r = await callRpc<null>('revoke_membership', { p_membership_id: p.membership_id });
-  return r as Result<null, GenericErr>;
-}
+export const revokeMembership = (p: { membership_id: string }) =>
+  callRpc<null>('revoke_membership', { p_membership_id: p.membership_id }) as Promise<
+    Result<null, GenericErr>
+  >;
 
 export async function updateConsentScope(p: {
   membership_id: string;
@@ -275,16 +271,11 @@ export async function updateConsentScope(p: {
   return r as Result<null, ConsentErr>;
 }
 
-export async function updateMemberRole(p: {
-  membership_id: string;
-  role_id: string;
-}): Promise<Result<null, GenericErr>> {
-  const r = await callRpc<null>('update_member_role', {
+export const updateMemberRole = (p: { membership_id: string; role_id: string }) =>
+  callRpc<null>('update_member_role', {
     p_membership_id: p.membership_id,
     p_role_id: p.role_id,
-  });
-  return r as Result<null, GenericErr>;
-}
+  }) as Promise<Result<null, GenericErr>>;
 
 // =============================================================================
 // Role RPCs
@@ -314,25 +305,21 @@ export async function createRole(p: {
   }
 }
 
-export async function updateRole(p: {
+export const updateRole = (p: {
   role_id: string;
   name: string;
   description: string | null;
   permission_keys: PermissionKey[] | string[];
-}): Promise<Result<null, GenericErr>> {
-  const r = await callRpc<null>('update_role', {
+}) =>
+  callRpc<null>('update_role', {
     p_role_id: p.role_id,
     p_name: p.name,
     p_description: p.description,
     p_permission_keys: p.permission_keys,
-  });
-  return r as Result<null, GenericErr>;
-}
+  }) as Promise<Result<null, GenericErr>>;
 
-export async function deleteRole(p: { role_id: string }): Promise<Result<null, GenericErr>> {
-  const r = await callRpc<null>('delete_role', { p_role_id: p.role_id });
-  return r as Result<null, GenericErr>;
-}
+export const deleteRole = (p: { role_id: string }) =>
+  callRpc<null>('delete_role', { p_role_id: p.role_id }) as Promise<Result<null, GenericErr>>;
 
 // =============================================================================
 // Storage — org logo upload (D-12 trust-boundary primitive)
