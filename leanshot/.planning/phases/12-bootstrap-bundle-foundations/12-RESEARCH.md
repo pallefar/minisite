@@ -986,22 +986,22 @@ The primary security contribution of Phase 12 is the **static architectural fire
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **dnd-kit sortable version pinning**
+1. **dnd-kit sortable version pinning** — **RESOLVED (deferred to Phase 15)**
    - What we know: STACK.md references `@dnd-kit/sortable@^8`; npm registry shows `10.0.0` is the latest stable release with `8.0.0` also on the registry.
    - What's unclear: Are `8.x` and `10.x` API-compatible? Does Phase 15 intend `^8` or `^10`?
-   - Recommendation: Plan 12-01 should document both versions in the bundle ceiling rationale comment. Phase 15 CONTEXT.md should lock the version.
+   - **Resolution:** Outside Phase 12 scope. Phase 15 CONTEXT.md will lock the version per the researcher recommendation. Plan 12-01 ceiling-rationale comment cites both versions to document the headroom assumption.
 
-2. **CI job wiring for clinic-ad-free spec**
-   - What we know: No `.github/workflows/` directory exists in the repo (`find` returned no results). Playwright runs via `npm run test:e2e` which runs against a dev/preview server.
+2. **CI job wiring for clinic-ad-free spec** — **RESOLVED (Plan 12-03 Task 2 investigates)**
+   - What we know: No `.github/workflows/` directory exists under `leanshot/` (`find` returned no results). Playwright runs via `npm run test:e2e` which runs against a dev/preview server.
    - What's unclear: How is the existing Playwright suite run as a PR gate? Is there a GitHub Actions workflow not in the `leanshot/` subtree?
-   - Recommendation: Plan 12-03 executor should investigate CI setup and document how to add the `clinic-ad-free` spec as a PR-blocking gate. If CI is managed at a higher level (monorepo root), the wiring must happen there.
+   - **Resolution:** Plan 12-03 Task 2 explicitly investigates the parent repo path (`/Users/karstenhaldan/minisite/.github/workflows/`) — the planner confirmed the workflow file lives at the parent monorepo root, NOT under `leanshot/`. Plan 12-03 Task 2 adds the named CI step there (grep-discoverable per VALIDATION row 12-03-02).
 
-3. **Stripe Connect approval timing vs Phase 12 close**
+3. **Stripe Connect approval timing vs Phase 12 close** — **RESOLVED (D-05 + parallel-Phase-13 acknowledged)**
    - What we know: D-05 says Phase 12 closes when Apple Dev + Play + Stripe Connect provisioned. Stripe Connect platform approval takes 1-2 business days.
-   - What's unclear: Can Phase 13 start before Stripe Connect is approved (given Phase 12 is code-only and Phase 13 is the design system rollout)?
-   - Recommendation: Per D-05, Phase 12 closes when provisioned. Phase 13 (Design System) has no dependency on Stripe Connect. The user may want to start Phase 13 work in parallel while waiting for Stripe approval. Suggest a Wave 3 in Plan 12-05 noting "Phase 13 can start in parallel; Phase 12 is not fully closed until Stripe Connect approval is received."
+   - What's unclear: Can Phase 13 start before Stripe Connect is approved?
+   - **Resolution:** Per D-05, Phase 12 closes when provisioned. Phase 13 (Design System) has zero dependency on Stripe Connect. Plan 12-05 Task 2 action explicitly notes Phase 13 work can start in parallel while Apple/Play/Stripe reviews are pending; Phase 12 stays in "closing" status with `⚠️ pending` per-vendor rows in VALIDATION.md until each vendor returns approved.
 
 ---
 

@@ -17,7 +17,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
 - Integer phases (12, 13, ...): Planned milestone work — continues from v1.1's last phase (11)
 - Decimal phases (e.g. 14.1): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 12: Bootstrap & Bundle Foundations** - Pre-work: fix hash-hyphen bundle-budget bug, set up Two-tunnel firewall ESLint rule, verify Resend domain, provision Apple Dev / Play Console / AdMob / Stripe Connect accounts, lock CSP + clinic-ad-free Playwright gate
+- [ ] **Phase 12: Bootstrap & Bundle Foundations** - Pre-work: fix hash-hyphen bundle-budget bug, set up Two-tunnel firewall ESLint rule, verify Resend domain, provision Apple Dev / Play Console / Stripe Connect Express accounts (AdMob + AdSense deferred to Phase 20 per CONTEXT D-05), lock CSP + clinic-ad-free Playwright gate
 - [ ] **Phase 13: Design System v2 Rollout** - Geist + Fraunces + Geist Mono fonts, refreshed tokens, refreshed Card/Button/Pill/Sidebar/SiteRotation v2, full illustration set, marketing site visually current — tokens-only FIRST so every later phase ships on new tokens
 - [ ] **Phase 14: Monetization Foundation (Stripe web + clinic seats)** - `subscriptions`/`subscription_events`/`stripe_customers` + `stripe-checkout`/`stripe-webhook` Edge Functions + `<TierGate>` + 7-day card-required trial + Customer Portal + clinic per-active-patient metered billing + web dunning — keystone; every downstream gates on `tier`
 - [ ] **Phase 15: Page Builder + Landing Pages** - `landing_pages` + `landing_page_revisions` + `page-assets` bucket + dnd-kit admin editor (lazy `admin-bundle`) + 8 semantic blocks + 5 templates + per-page SEO panel + version history + `page-render` Edge Function with Vercel ISR + `/pricing` wired to Stripe Checkout
@@ -33,7 +33,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
 ## Phase Details
 
 ### Phase 12: Bootstrap & Bundle Foundations
-**Goal**: CI is ready to absorb 10 net-new workstreams without regression. The per-chunk bundle gate works correctly (hash-hyphen bug fixed). The Two-tunnel firewall is enforced as a static build failure BEFORE any health or ad code is written. The clinic-ad-free invariant is a Playwright gate. Resend domain `app.leanshot.app` is verified end-to-end. Human-prereq accounts (Apple Dev, Play Console, AdMob, Stripe Connect, ad-network publishers) are all provisioned and credentials live in Vercel + Supabase secrets.
+**Goal**: CI is ready to absorb 10 net-new workstreams without regression. The per-chunk bundle gate works correctly (hash-hyphen bug fixed). The Two-tunnel firewall is enforced as a static build failure BEFORE any health or ad code is written. The clinic-ad-free invariant is a Playwright gate. Resend domain `app.leanshot.app` is verified end-to-end. Human-prereq accounts (Apple Dev, Play Console, Stripe Connect Express) are provisioned and credentials live in Vercel + Supabase secrets. **AdMob + AdSense are Phase 20 entry conditions per CONTEXT.md D-05 — NOT Phase 12 gates** (rationale: AdSense publisher review typically requires a live deployed app, creating circular dependency with Phases 13/14).
 **Mode:** mvp
 **Depends on**: Nothing (entry phase for milestone v1.2)
 **Requirements**: (none directly — infrastructure/prereq phase; cross-cutting concerns 2, 3, 5, 6, 7 originate here)
@@ -43,7 +43,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   2. ESLint `no-restricted-imports` rule forbids cross-imports between `src/lib/native/health.ts` and `src/lib/native/ads.ts` family files; rule produces a static build failure when violated (verified by a deliberately failing test file in a feature branch that does NOT merge)
   3. Playwright e2e `clinic-ad-free.spec.ts` asserts zero ad-provider script tags on `/clinic/*`, `/share/*`, `/admin/*` routes and zero `<AdSlot>` mounts on the same; runs in CI as a hard gate before any AD-* code lands
   4. User receives a real lifecycle email from `noreply@app.leanshot.app` via Resend (not the sandbox `onboarding@resend.dev`) — domain SPF/DKIM/DMARC verified and pinned in Supabase Function secrets
-  5. Apple Developer Program + Google Play Console + AdMob + Stripe Connect (Express) + AdSense publisher accounts are all live and the user can paste API credentials into the CONTEXT.md decision log for downstream phases
+  5. Apple Developer Program + Google Play Console + Stripe Connect (Express) accounts are all live with API credentials captured in Vercel env + Supabase Function secrets per the naming convention in CONTEXT.md D-06. **AdMob + AdSense are explicitly NOT Phase 12 gates** — they become entry conditions on Phase 20 (Ad Network) per CONTEXT.md D-05.
 **Plans:** 5 plans across 2 waves
   - Wave 1 (parallel):
     - [ ] 12-01-PLAN.md — Per-chunk bundle ceilings (5 v1.2 chunks) + hash-hyphen regression test (SC-1, CCC-3)
