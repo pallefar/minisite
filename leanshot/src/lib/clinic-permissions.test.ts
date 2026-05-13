@@ -13,6 +13,7 @@
  */
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useHasPermission, clearPermissionCache } from './clinic-permissions';
 
 // Hoist mocks so vi.mock factory can capture them.
 const rpcMock = vi.fn();
@@ -26,11 +27,6 @@ vi.mock('@/lib/supabase', () => ({
     },
   },
 }));
-
-import {
-  useHasPermission,
-  clearPermissionCache,
-} from './clinic-permissions';
 
 describe('useHasPermission', () => {
   beforeEach(() => {
