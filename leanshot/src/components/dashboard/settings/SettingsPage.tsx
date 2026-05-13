@@ -14,6 +14,7 @@ import {
   Link2,
   Mail,
   RotateCcw,
+  Building2,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -38,6 +39,7 @@ import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { ActiveSharesSection } from './ActiveSharesSection';
 import { DeleteAccountModal } from './DeleteAccountModal';
+import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 
 type Section =
   | 'account'
@@ -46,6 +48,9 @@ type Section =
   | 'notifications'
   | 'privacy'
   | 'shares'
+  // Phase 9 Plan 09-01 — Active organizations sits between 'shares' and
+  // 'recovery'. Plan 09-05 overwrites the stub component.
+  | 'organizations'
   | 'recovery'
   | 'subscription'
   | 'data'
@@ -69,6 +74,10 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   // per 08-UI-SPEC §"Component Inventory" (SettingsPage NAV extension). Surfaces
   // the patient's create-share + revoke + audit-log aggregate UI.
   { id: 'shares', label: 'Active shares', Icon: Link2 },
+  // Phase 9 Plan 09-01 (D-15): Active organizations sits between 'shares' and
+  // 'recovery'. Surfaces the patient's clinic memberships + per-org
+  // consent_scope edit + revoke. Plan 09-05 overwrites the stub component.
+  { id: 'organizations', label: 'Active organizations', Icon: Building2 },
   // Phase 7 Plan 07-10 (D-05): Recovery sits between Privacy and Subscription per
   // 07-RESEARCH §6 ordering. Surfaces the Phase 6 D-03 90-day local backup so the
   // user can roll back a bad cloud-sync overwrite.
@@ -484,6 +493,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
 
           {section === 'shares' && <ActiveSharesSection />}
+
+          {section === 'organizations' && <ActiveOrganizationsSection />}
 
           {section === 'recovery' && (
             <Section title="Recovery" body="Restore a local backup taken before cloud migration.">

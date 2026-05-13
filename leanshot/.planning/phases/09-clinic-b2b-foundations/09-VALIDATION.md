@@ -2,8 +2,10 @@
 phase: 9
 slug: clinic-b2b-foundations
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
+rls_specs_status: deferred  # 6 RLS impersonation specs (rls-orgs/memberships/invites/roles/role-permissions/org-logos-storage) authored but not run against live DB; deferred to Phase 9 verifier-agent gate after Wave 6
+db_push_state: applied  # 14 migrations live on ytnsipxxmzgaebkqmokp (000000-000013; 000000 split off enum-add per Postgres 55P04, 000002 prepended has_permission stub for forward refs to RLS policies)
 created: 2026-05-12
 ---
 
