@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Phase 8 Plan 08-02 deployed; 08-03+04 dispatch next
-last_updated: "2026-05-13T02:54:38.859Z"
+stopped_at: Phase 8 Wave 2 complete (08-02 deployed, 08-03+04 merged; 105B index regression deferred)
+last_updated: "2026-05-13T03:13:22.969Z"
 last_activity: 2026-05-12
 progress:
   total_phases: 11
   completed_phases: 8
   total_plans: 65
-  completed_plans: 50
-  percent: 77
+  completed_plans: 52
+  percent: 80
 ---
 
 # Project State
@@ -118,6 +118,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-05-13T02:54:38.850Z
-Stopped at: Phase 8 Plan 08-02 deployed; 08-03+04 dispatch next
-Resume file: .planning/phases/08-doctor-read-share/08-03-PLAN.md
+Last session: 2026-05-13T03:13:22.959Z
+Stopped at: Phase 8 Wave 2 complete (08-02 deployed, 08-03+04 merged; 105B index regression deferred)
+Resume file: .planning/phases/08-doctor-read-share/08-05-PLAN.md
