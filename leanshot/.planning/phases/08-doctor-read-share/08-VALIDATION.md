@@ -1,10 +1,11 @@
 ---
 phase: 8
 slug: doctor-read-share
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: wave-1-complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-12
+wave_1_complete_at: 2026-05-13
 ---
 
 # Phase 8 — Validation Strategy
