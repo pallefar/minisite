@@ -229,7 +229,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Org Owner invites a Coach with role `coach` → Coach signs in, sees the roster, can drill in, but cannot invite further operators or change billing settings; Org Owner invites a Viewer with role `viewer` → Viewer can read patient data but cannot manage the roster — verified by RLS policies and a per-role automated test
   4. Every operator action (which Coach viewed which patient at which time, who invited whom, who accepted/declined, who revoked) is recorded in an `org_audit_log` table with RLS scoping; both the org Owner and the affected patient can see entries about themselves in their respective Settings pages
   5. Operator opens Settings → triggers a roster refresh on a 50-patient fixture → the page renders within 2 seconds and the `rankPatients` ranking is computed server-side (not in the browser) so the same ranking appears identically across operators viewing the same org
-**Plans**: TBD
+**Plans**: 11
 **UI hint**: yes
 
 ## Progress
@@ -249,7 +249,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Compliance Foundations (Legal-Counsel-Led) | 3/10 | In Progress|  |
 | 8. Doctor Read-Share | 0/6 | Planned | - |
 | 9. Clinic B2B Foundations | 0/11 | Planned | - |
-| 10. Clinic Operator Surface | 0/TBD | Not started | - |
+| 10. Clinic Operator Surface | 0/11 | Planned | - |
 
 ---
 
