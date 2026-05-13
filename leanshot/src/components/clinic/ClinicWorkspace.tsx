@@ -1,16 +1,12 @@
 /**
- * Phase 9 Plan 09-02 — ClinicWorkspace.
+ * Phase 9 Plan 09-02 / Phase 10 Plan 10-06 — ClinicWorkspace.
  *
  * Operator workspace home at `/clinic/{slug}`. Composition:
  *
  *   ClinicContextBar (sticky top)
  *   Page eyebrow + heading + subhead
- *   Empty-roster shell (D-08 — "No patients yet — Invite your first")
+ *   RosterTable (Phase 10 Plan 10-06 — replaces Phase 9 empty-roster shell)
  *   InvitePatientModal (controlled, opens via local state)
- *
- * Plan 09-02 ships the EMPTY-roster slice only. Phase 10 fills the
- * roster table with rank+drill-in. Plan 09-03 ships the actual
- * /clinic/{slug}/settings page (this file just links to it).
  *
  * Data lifecycle:
  *   - Read slug from window.location.pathname (path-based routing — App.tsx).
@@ -19,18 +15,41 @@
  *   - When `?invite=1` query param is set (OrgCreateFlow success-state
  *     handoff), auto-open InvitePatientModal once on first hydrate.
  *
- * This file OVERWRITES the Plan 09-01 stub. App.tsx routing already
- * binds `/clinic/{slug}` → this lazy chunk (B-2 ownership).
+ * Phase 10 plan 10-06 update: replaces the empty EmptyState roster shell
+ * with the full RosterTable that calls rank_org_patients RPC + subscribes
+ * to Realtime broadcasts. permissionMap is derived from operator role
+ * using the owner-all-true default (role-specific permissions wired in
+ * Plan 10-07 via clinic-snapshot's permission_map response).
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
 import type { Org } from '@/types/clinic';
+import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { ClinicContextBar } from './ClinicContextBar';
 import { InvitePatientModal } from './InvitePatientModal';
+import { RosterTable } from './roster/RosterTable';
+
+/**
+ * Default permission map for the org owner. Role-specific permissions are
+ * resolved by Plan 10-07's clinic-snapshot Edge Function; this default
+ * allows all sections + breakdown for the owner context in Phase 10 Plan 10-06.
+ */
+const OWNER_PERMISSION_MAP: ReadOnlyPermissionMap = {
+  canViewInjections: true,
+  canViewWeights: true,
+  canViewSymptoms: true,
+  canViewPhotos: true,
+  canViewDoctorReport: true,
+  canViewMeals: true,
+  canViewWorkouts: true,
+  canViewSupplements: true,
+  canViewMood: true,
+  canViewSleep: true,
+  canViewBreakdown: true,
+};
 
 type LoadState =
   | { kind: 'loading' }
@@ -169,25 +188,19 @@ export function ClinicWorkspace() {
         </header>
 
         <section
-          className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-2"
+          className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-4 md:p-6"
           aria-label="Patient roster"
         >
-          <EmptyState
-            title="No patients yet"
-            body="Invite your first patient by email. They'll see your workspace name and choose what data to share with you."
-            cta={
-              <div className="flex flex-col-reverse md:flex-row gap-2">
-                <a
-                  href={`/clinic/${org.slug}/settings`}
-                  className="inline-flex items-center justify-center h-11 px-5 rounded-pill border border-[var(--color-border-strong)] text-[14px] font-semibold text-[var(--color-text)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
-                >
-                  Customize workspace
-                </a>
-                <Button variant="primary" onClick={() => setInviteOpen(true)}>
-                  Invite patient
-                </Button>
-              </div>
-            }
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Roster</h2>
+            <Button variant="secondary" size="sm" onClick={() => setInviteOpen(true)}>
+              Invite patient
+            </Button>
+          </div>
+          <RosterTable
+            orgId={org.id}
+            slug={org.slug}
+            permissionMap={OWNER_PERMISSION_MAP}
           />
         </section>
       </main>
