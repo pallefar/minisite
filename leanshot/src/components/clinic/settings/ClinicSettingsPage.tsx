@@ -23,23 +23,39 @@
  * wrappers + ClinicContextBar. Until they merge, this page renders a
  * minimal context header inline (workspace name + the standard tab nav).
  */
-import { Building2, Loader2, Shield, Users } from 'lucide-react';
+import { Building2, History, Loader2, Shield, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/helpers';
+import { useHasPermission } from '@/lib/clinic-permissions';
 import { supabase } from '@/lib/supabase';
 import type { Org, Role } from '@/types/clinic';
+import { AuditTab } from './AuditTab';
 import { MembersTab } from './MembersTab';
 import { RolesTab } from './RolesTab';
 import { WorkspaceTab } from './WorkspaceTab';
 
-type TabId = 'workspace' | 'members' | 'roles';
+type TabId = 'workspace' | 'members' | 'roles' | 'audit';
 
-const NAV: { id: TabId; label: string; Icon: typeof Building2 }[] = [
+interface NavEntry {
+  id: TabId;
+  label: string;
+  Icon: typeof Building2;
+  /** When provided, the tab is only shown when this predicate returns true. */
+  visibleWhen?: (perms: Record<string, boolean | null>) => boolean;
+}
+
+const NAV: NavEntry[] = [
   { id: 'workspace', label: 'Workspace', Icon: Building2 },
   { id: 'members', label: 'Members', Icon: Users },
   { id: 'roles', label: 'Roles', Icon: Shield },
+  {
+    id: 'audit',
+    label: 'Audit',
+    Icon: History,
+    visibleWhen: (perms) => perms['audit_log.read'] === true,
+  },
 ];
 
 /**
@@ -53,7 +69,7 @@ function parseRoute(pathname: string): { slug: string | null; tab: TabId } {
   const slug = m[1] ?? null;
   const raw = m[2];
   const tab: TabId =
-    raw === 'members' || raw === 'roles' ? raw : 'workspace';
+    raw === 'members' || raw === 'roles' || raw === 'audit' ? raw : 'workspace';
   return { slug, tab };
 }
 
@@ -63,6 +79,13 @@ export function ClinicSettingsPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [orgLoading, setOrgLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  // Permission map for NAV visibility gating. Uses cached session-scoped
+  // values from useHasPermission (Phase 9 clinic-permissions.ts).
+  const canReadAuditLog = useHasPermission(org?.id ?? null, 'audit_log.read');
+  const permMap: Record<string, boolean | null> = {
+    'audit_log.read': canReadAuditLog,
+  };
 
   // Sync route on popstate (back/forward) AND on internal pushState. We
   // dispatch a custom 'leanshot:clinic-settings-tab' event from the click
@@ -178,7 +201,7 @@ export function ClinicSettingsPage() {
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-5 md:py-8 flex flex-col md:flex-row gap-5 md:gap-8">
         <nav className="md:w-52 shrink-0" aria-label="Settings sections">
           <ul className="flex md:flex-col gap-1 overflow-x-auto scrollbar-none -mx-2 md:mx-0 px-2">
-            {NAV.map(({ id, label, Icon }) => {
+            {NAV.filter(({ visibleWhen }) => !visibleWhen || visibleWhen(permMap)).map(({ id, label, Icon }) => {
               const active = route.tab === id;
               return (
                 <li key={id} className="shrink-0">
@@ -210,6 +233,7 @@ export function ClinicSettingsPage() {
             <MembersTab orgId={org.id} roles={roles} />
           )}
           {route.tab === 'roles' && <RolesTab orgId={org.id} />}
+          {route.tab === 'audit' && canReadAuditLog && <AuditTab orgId={org.id} />}
         </div>
       </div>
     </main>
