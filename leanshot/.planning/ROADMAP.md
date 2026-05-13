@@ -44,7 +44,14 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   3. Playwright e2e `clinic-ad-free.spec.ts` asserts zero ad-provider script tags on `/clinic/*`, `/share/*`, `/admin/*` routes and zero `<AdSlot>` mounts on the same; runs in CI as a hard gate before any AD-* code lands
   4. User receives a real lifecycle email from `noreply@app.leanshot.app` via Resend (not the sandbox `onboarding@resend.dev`) — domain SPF/DKIM/DMARC verified and pinned in Supabase Function secrets
   5. Apple Developer Program + Google Play Console + AdMob + Stripe Connect (Express) + AdSense publisher accounts are all live and the user can paste API credentials into the CONTEXT.md decision log for downstream phases
-**Plans**: TBD
+**Plans:** 5 plans across 2 waves
+  - Wave 1 (parallel):
+    - [ ] 12-01-PLAN.md — Per-chunk bundle ceilings (5 v1.2 chunks) + hash-hyphen regression test (SC-1, CCC-3)
+    - [ ] 12-02-PLAN.md — Two-tunnel firewall ESLint rule (full-spectrum D-02) + 6 native/* stubs + firewall-test-violation branch (SC-2, CCC-4)
+    - [ ] 12-03-PLAN.md — clinic-ad-free Playwright e2e gate on /clinic/*, /share/*, /admin/* + CI wiring (SC-3, CCC-2)
+    - [ ] 12-04-PLAN.md — CSP snapshot test (Vitest) + tests/csp/csp-snapshot.txt + vite.config.ts test.include extension (SC-4, CCC-5)
+  - Wave 2 (serial, DNS-dependent):
+    - [ ] 12-05-PLAN.md — Resend domain verification (app.leanshot.app) + Apple Dev + Play Console + Stripe Connect Express provisioning + PROJECT.md vendor-accounts checklist (SC-4 part 2, SC-5, CCC-6, CCC-7)
 
 ### Phase 13: Design System v2 Rollout
 **Goal**: Every surface (app + marketing + emails + onboarding + auth pages) renders on the v2 token palette and the new component shapes. New illustrations replace the v1 hero/state art. Fonts load via `<link>` tags (NOT CSS `@import` chain) so no FCP regression. Tokens-only change FIRST means every subsequent phase ships components in new shapes without re-touching.
