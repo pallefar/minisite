@@ -419,3 +419,26 @@ export async function checkSlugAvailable(
 // =============================================================================
 
 export { RESERVED_SLUGS, SLUG_RE };
+
+// =============================================================================
+// Invite token hashing (Plan 09-04 — patient-side invite redemption)
+// =============================================================================
+
+/**
+ * SHA-256 hex digest of an invite token. The plain token only ever travels
+ * in the invite URL fragment; the server stores the hash. ConsentDialog +
+ * InviteSignupForm hash the URL token before calling `accept_invite_*` /
+ * `reject_invite` RPCs so the raw token never touches the wire-to-Postgres
+ * boundary (Pitfall #1 — see 09-04 SUMMARY).
+ *
+ * Brought in from worktree-agent-af6423754534d5a81 (Plan 09-04 commit 28f53ee)
+ * after the -X ours merge discarded its stub clinic.ts. The real merge needed
+ * to preserve 09-02's typed-wrapper surface AND 09-04's hashing helper.
+ */
+export async function hashInviteToken(rawToken: string): Promise<string> {
+  const bytes = new TextEncoder().encode(rawToken);
+  const buf = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
