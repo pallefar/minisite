@@ -58,20 +58,30 @@ Every DS-NN ID is owned by at least one plan:
 Wave 1 (PR 1 — MUST land alone, FCP/LCP-gated):
 └── 13-01 (token + font + Lighthouse CI)
 
-Wave 2 (PR 2 — parallel-executable by pathspec):
-├── 13-02 (components) ─┐
-├── 13-03 (illustrations) ─┼─→ 13-04 (login — needs Pill + LoginHero)
-├──                       ─┴─→ 13-05 (marketing — needs HeroOrbital + AIAvatar)
-└──                            └─→ 13-06 (VR suite — needs all above on main per D-06)
+Wave 2 (parallel batch — both depend only on 13-01):
+├── 13-02 (components: Card/Button/Pill/Sidebar variants)
+└── 13-03 (illustrations: mutate 9 + add 10 + StreakBadge 4-tier API)
+
+Wave 3 (parallel batch — both depend on wave-2 plans):
+├── 13-04 (login restyle — needs Pill v2 from 13-02 + LoginHero from 13-03)
+└── 13-05 (marketing — needs v2 illustrations from 13-03)
+
+Wave 4 (VR baseline capture, depends on all of 13-02..05 on main):
+└── 13-06 (visual regression suite + Phase 12 gate verify)
 ```
 
-**Parallel execution batches inside Wave 2** (driven by file pathspec isolation):
-- **Batch A (3 parallel):** 13-02, 13-03, 13-05 — disjoint file sets after 13-01 lands.
+**Wave-by-wave dispatch** (corrected after plan-checker iter-2; the original "Wave 2 = PR 2" conflation has been split into 4 dispatch waves while the PR-merge topology stays as the 2-PR ladder per D-02):
+
+- **Wave 1 (SOLO):** 13-01. Token swap + font swap + FCP/LCP gate. MUST merge to `main` before Wave 2 starts (PR 1 of the 2-PR ladder).
+- **Wave 2 (Batch A, 2 parallel):** 13-02, 13-03. Disjoint file sets after 13-01 lands.
   - 13-02 owns `src/components/ui/{Card,Button,Pill}.tsx` + `src/components/layout/Sidebar.tsx` + `AppShell.tsx`
-  - 13-03 owns `src/illustrations/*.tsx` + consumers `StreaksCard.tsx`, `ShareCardModal.tsx`, `AIChatPanel.tsx`, `BodyTab.tsx`, `MedicationTab.tsx`, `Topbar.tsx`, `OnboardingFlow.tsx` (Pill/Card consumer overlap minimal — wiring imports only)
-  - 13-05 owns `src/components/marketing/Landing.tsx` only (touches illustration imports — read-only from 13-03 perspective at file level)
-- **Batch B (1 plan):** 13-04 — depends on Pill v2 (13-02) AND LoginHero (13-03); restyles auth view file. Run after Batch A merges.
-- **Batch C (1 plan):** 13-06 — captures baselines AFTER 13-02..05 land on main (D-06).
+  - 13-03 owns `src/illustrations/*.tsx` + consumers `StreaksCard.tsx`, `ShareCardModal.tsx`, `AIChatPanel.tsx`, `Topbar.tsx`, `OnboardingFlow.tsx`, `SiteRotationCard.tsx` (no overlap with 13-02 file set)
+- **Wave 3 (Batch B, 2 parallel):** 13-04, 13-05. Both depend on wave-2 plans landing on `main`.
+  - 13-04 owns `src/components/auth/**` — consumes Pill v2 segmented (13-02) + `<LoginHero />` (13-03)
+  - 13-05 owns `src/components/marketing/Landing.tsx` only — consumes v2 illustration mutations from 13-03 via import-name contract
+- **Wave 4 (final):** 13-06. Visual regression baselines captured from CI Linux AFTER 13-02..05 all merge to `main` (D-06).
+
+PR-2 of the 2-PR ladder (D-02) bundles waves 2 + 3 + 4 as the second merge group.
 
 **File-pathspec discipline reminder** (memory `feedback_parallel_executor_git_isolation.md`): every parallel executor uses `git commit -- <pathspec>` to avoid sweeping sibling-plan files.
 
