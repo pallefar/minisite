@@ -32,6 +32,8 @@ export function VialIllustration({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-label={`Vial ${Math.round(fillPct)} percent full`}
+      role="img"
+      aria-hidden="false"
     >
       <defs>
         <clipPath id={`vial-clip-${size}`}>
