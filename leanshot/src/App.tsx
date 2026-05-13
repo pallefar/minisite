@@ -66,6 +66,27 @@ const SharePage = lazy(() =>
   import('@/components/share/SharePage').then((m) => ({ default: m.SharePage })),
 );
 
+// Phase 9 Plan 09-01 — Clinic B2B lazy chunks (B-2 ownership rule per
+// plan-checker iter 1). All three lazy boundaries land here in Plan 09-01
+// pointing at stub files; Plans 09-02 / 09-03 / 09-04 OVERWRITE the stubs
+// in place without touching App.tsx. Bundle CI in
+// `scripts/assert-clinic-bundle-budget.sh` enforces per-chunk ceilings
+// (clinic ≤12kB, clinic-settings ≤14kB, clinic-invite ≤6kB gz) +
+// preserves the 50 kB index ceiling.
+const ClinicWorkspace = lazy(() =>
+  import('@/components/clinic/ClinicWorkspace').then((m) => ({ default: m.ClinicWorkspace })),
+);
+const ClinicSettingsPage = lazy(() =>
+  import('@/components/clinic/settings/ClinicSettingsPage').then((m) => ({
+    default: m.ClinicSettingsPage,
+  })),
+);
+const ClinicInvitePage = lazy(() =>
+  import('@/components/clinic-invite/ClinicInvitePage').then((m) => ({
+    default: m.ClinicInvitePage,
+  })),
+);
+
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
 // boundary so Rollup emits four separate small chunks (preserving the 50 kB
@@ -144,7 +165,19 @@ const MigrationModal = lazy(() =>
   import('@/components/sync/MigrationModal').then((m) => ({ default: m.MigrationModal })),
 );
 
-type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard' | 'legal' | 'share';
+type View =
+  | 'marketing'
+  | 'onboarding'
+  | 'auth'
+  | 'dashboard'
+  | 'legal'
+  | 'share'
+  // Phase 9 Plan 09-01 — clinic B2B view IDs. Path-based routing (NOT
+  // hash) because operator dashboards need shareable URLs that survive
+  // page refresh + bookmarks (D-09 first-paint requirement).
+  | 'clinic'
+  | 'clinic-settings'
+  | 'clinic-invite';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -181,30 +214,45 @@ function pushViewLog(entry: ViewLogEntry): void {
 }
 
 /**
- * Phase 5 D-01: view selector. Hash priority — any `#/auth/*` route forces
- * the auth view regardless of other state. Otherwise the existing
- * `user`-presence rule decides marketing vs dashboard.
+ * Phase 5 D-01 + Phase 9 Plan 09-01: view selector. Hash priority — any
+ * `#/auth/*` route forces the auth view regardless of other state. Phase 9
+ * adds PATH-based routing for `/clinic/*` and `/clinic-invite/*` (these
+ * surfaces need shareable URLs that survive refresh + bookmarks).
+ *
+ * Branch ordering rationale:
+ *   1. `#/share/` — Phase 8 absolute-top (anonymous + signed-in both land here)
+ *   2. `#/legal/` — Phase 7 (signed-out + signed-in both render policy)
+ *   3. `#/auth/`  — Phase 5 (forces auth view)
+ *   4. `/clinic-invite/` — Phase 9 (anonymous OK; State A/B/C/D branch
+ *      inside the lazy chunk; routing into 'auth' here would block the
+ *      lookup-without-account flow)
+ *   5. `/clinic/<slug>/settings*` — Phase 9 operator settings; gated on user
+ *   6. `/clinic/<slug>` — Phase 9 operator workspace home; gated on user
+ *   7. `user` → 'dashboard'; else 'marketing'
+ *
+ * Settings BEFORE base `/clinic/` so the more-specific path wins.
  */
-function selectView(opts: { user: unknown; hash: string }): View {
-  // Phase 8 Plan 08-04 (Pitfall 9) — `#/share/<token>` takes ABSOLUTE top
-  // priority. Anonymous doctors AND signed-in patients who follow the link
-  // both land on the read-only share view. The token is base64url so it
-  // never contains `/`; `startsWith('#/share/')` is collision-safe with the
-  // sibling `#/legal/` and `#/auth/` branches because their prefixes don't
-  // intersect.
+function selectView(opts: { user: unknown; hash: string; pathname: string }): View {
   if (opts.hash.startsWith('#/share/')) return 'share';
-  // Phase 7 Plan 07-02 — legal hash routes take next priority. A signed-out
-  // visitor following a footer link to `#/legal/privacy` should land on the
-  // policy page itself, not get bounced to the auth/marketing surface; a
-  // signed-in user clicking the same link from the AppShell footer should
-  // also see the policy page (not the dashboard underneath).
   if (opts.hash.startsWith('#/legal/')) return 'legal';
   if (opts.hash.startsWith('#/auth/')) return 'auth';
+  // Phase 9 Plan 09-01 — path-based routing. clinic-invite is anonymous OK
+  // (the lookup endpoint accepts the token-hash without a JWT).
+  if (opts.pathname.startsWith('/clinic-invite/')) return 'clinic-invite';
+  if (
+    opts.pathname.startsWith('/clinic/') &&
+    opts.pathname.includes('/settings')
+  ) {
+    return opts.user ? 'clinic-settings' : 'auth';
+  }
+  if (opts.pathname.startsWith('/clinic/')) {
+    return opts.user ? 'clinic' : 'auth';
+  }
   if (opts.user) return 'dashboard';
   return 'marketing';
 }
 function selectViewLogged(caller: 'init' | 'recompute', user: unknown, hash: string): View {
-  const result = selectView({ user, hash });
+  const result = selectView({ user, hash, pathname: window.location.pathname });
   pushViewLog({ t: Date.now(), caller, user: Boolean(user), hash, result });
   return result;
 }
@@ -234,13 +282,20 @@ export function App() {
   const [reportOpen, setReportOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
 
-  // Keep view aligned to user state + hash.
+  // Keep view aligned to user state + hash + pathname. Phase 9 added
+  // path-based routes (/clinic/*, /clinic-invite/*); listen to popstate
+  // alongside hashchange so back/forward navigation between clinic and
+  // dashboard surfaces refreshes the view.
   useEffect(() => {
     const recompute = (): void =>
       setView(selectViewLogged('recompute', user, window.location.hash));
     recompute();
     window.addEventListener('hashchange', recompute);
-    return () => window.removeEventListener('hashchange', recompute);
+    window.addEventListener('popstate', recompute);
+    return () => {
+      window.removeEventListener('hashchange', recompute);
+      window.removeEventListener('popstate', recompute);
+    };
   }, [user]);
 
   // Phase 5 D-01/D-13: top-level onAuthStateChange subscription. ONE for the
@@ -498,6 +553,30 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <LegalPage />
+      </Suspense>
+    );
+  }
+  // Phase 9 Plan 09-01 — 3 clinic surfaces. Each is its own lazy chunk;
+  // Plan 09-02 / 03 / 04 OVERWRITE the stub bodies in place. Routing
+  // selection is owned by selectView() above.
+  if (view === 'clinic-invite') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <ClinicInvitePage />
+      </Suspense>
+    );
+  }
+  if (view === 'clinic-settings') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <ClinicSettingsPage />
+      </Suspense>
+    );
+  }
+  if (view === 'clinic') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <ClinicWorkspace />
       </Suspense>
     );
   }
