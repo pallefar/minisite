@@ -88,13 +88,13 @@ The major differentiator vs Shotsy/Pep/Glapp/MeAgain. Patient-controlled link + 
 
 Multi-patient organization surface. Reuses the read-only patient view component built for SHARE. Supabase doesn't have a built-in organization primitive, so we model it with a `organizations` + `memberships` schema, enforced by RLS policies that join membership to data access.
 
-- [ ] **CLINIC-01**: A clinic operator can sign up and create an organization workspace
-- [ ] **CLINIC-02**: Clinic operator can invite a patient by email; an invited patient who already has a Supabase account can join the org without identity collision (one `auth.users` row + a `memberships` row per org, never duplicate user records)
-- [ ] **CLINIC-03**: Patient must explicitly consent at the point of accepting a clinic invite, with the share scope visible (which fields, what window, can be revoked)
+- [x] **CLINIC-01**: A clinic operator can sign up and create an organization workspace
+- [x] **CLINIC-02**: Clinic operator can invite a patient by email; an invited patient who already has a Supabase account can join the org without identity collision (one `auth.users` row + a `memberships` row per org, never duplicate user records)
+- [x] **CLINIC-03**: Patient must explicitly consent at the point of accepting a clinic invite, with the share scope visible (which fields, what window, can be revoked)
 - [ ] **CLINIC-04**: Clinic operator sees a roster of all linked patients with at-a-glance status (recent dose, active streak, recent symptoms, missed-dose flag) — powered by running `pickFocus`/`generateInsights` per-patient as `rankPatients(orgState)`
 - [ ] **CLINIC-05**: Clinic operator can drill into any one patient and see the same read-only view used by SHARE-02 (component reuse)
-- [ ] **CLINIC-06**: Org has at least three roles: Owner, Coach (read+manage roster), View-only (read patient data)
-- [ ] **CLINIC-07**: All clinic operator actions are audit-logged (which operator viewed which patient, when), surfaced to both patient and org owner
+- [x] **CLINIC-06**: Org has at least three roles: Owner, Coach (read+manage roster), View-only (read patient data) — shipped Phase 9 per scope expansion 2026-05-12 (09-CONTEXT.md D-07)
+- [ ] **CLINIC-07**: All clinic operator actions are audit-logged (which operator viewed which patient, when), surfaced to both patient and org owner — capture half shipped Phase 9 (audit_logs writes via SECURITY DEFINER RPCs + log_clinic_event); operator/patient-facing audit surface UI shipped Phase 10
 
 ## v2 Requirements
 
@@ -189,13 +189,13 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 | SHARE-04 | Phase 8 — Doctor Read-Share | Pending |
 | SHARE-05 | Phase 8 — Doctor Read-Share | Pending |
 | SHARE-06 | Phase 8 — Doctor Read-Share | Pending |
-| CLINIC-01 | Phase 9 — Clinic B2B Foundations | Pending |
-| CLINIC-02 | Phase 9 — Clinic B2B Foundations | Pending |
-| CLINIC-03 | Phase 9 — Clinic B2B Foundations | Pending |
+| CLINIC-01 | Phase 9 — Clinic B2B Foundations | Complete |
+| CLINIC-02 | Phase 9 — Clinic B2B Foundations | Complete |
+| CLINIC-03 | Phase 9 — Clinic B2B Foundations | Complete |
 | CLINIC-04 | Phase 10 — Clinic Operator Surface | Pending |
 | CLINIC-05 | Phase 10 — Clinic Operator Surface | Pending |
-| CLINIC-06 | Phase 9 — Clinic B2B Foundations (moved 2026-05-12 per 09-CONTEXT.md D-07) | Pending |
-| CLINIC-07 | Phase 9 (audit-log capture infrastructure) + Phase 10 (org-owner audit surface UI) — split 2026-05-12 | Pending |
+| CLINIC-06 | Phase 9 — Clinic B2B Foundations (moved 2026-05-12 per 09-CONTEXT.md D-07) | Complete (shipped Phase 9 per scope expansion 2026-05-12) |
+| CLINIC-07 | Phase 9 (audit-log capture infrastructure) + Phase 10 (org-owner audit surface UI) — split 2026-05-12 | Capture half Complete (Phase 9); Surface UI half Pending (Phase 10) |
 
 **Coverage:**
 - v1 requirements: 49 total (PROD added one item for Phase 4 infra: COMPL 6 + PROD 7 + AUTH 6 + SYNC 6 + AI 6 + PK 5 + SHARE 6 + CLINIC 7)
@@ -221,3 +221,4 @@ Each v1 requirement maps to exactly one phase. Filled in by the roadmapper agent
 ---
 *Requirements defined: 2026-05-10*
 *Last updated: 2026-05-11 — Phase 4 planner added PROD-07 (Supabase cloud bootstrap) per orchestrator brief; original brief specified "PROD-04" but that ID was already taken by the Phase 1 test-runner requirement.*
+*Last updated: 2026-05-13 — Phase 9 close: CLINIC-01..03 + CLINIC-06 marked complete; CLINIC-07 split into capture half (Phase 9, complete) + operator/patient surface UI half (Phase 10, pending).*

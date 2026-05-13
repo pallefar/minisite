@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 6: Patient Cloud Sync Slice 2 — Full Data + Migration + Photos** - Remaining tables sync, leanshot_v4 migrates with backup, offline writes queue in IndexedDB, photos move to Supabase Storage
 - [ ] **Phase 7: Compliance Foundations (Legal-Counsel-Led)** - Privacy policy + WMHMDA CHDP + FTC HBNR registration + data export/delete on demand — parallelizable with cloud work, must close before broad public launch
 - [ ] **Phase 8: Doctor Read-Share** - Patient generates time-bound share link + 6-digit access code, doctor opens it, sees read-only data with live charts, patient revokes — all four revocation failure modes covered
-- [ ] **Phase 9: Clinic B2B Foundations** - Clinic operator signs up, creates org, invites a patient by email, patient consents at acceptance, identity stays singular across personal + clinic accounts
+- [x] **Phase 9: Clinic B2B Foundations** - Clinic operator signs up, creates org, invites a patient by email, patient consents at acceptance, identity stays singular across personal + clinic accounts
 - [ ] **Phase 10: Clinic Operator Surface** - Roster view with at-a-glance ranking, drill-in to one patient (reusing SHARE component), roles (Owner/Coach/View-only), audit log visible to both operator and patient
 
 ## Phase Details
@@ -211,9 +211,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 09-06-PLAN.md — clinic-invite Edge Function (4 endpoints) + Resend HTTPS dispatch + Vercel rewrites [HUMAN CHECKPOINT] (Wave 3)
 - [x] 09-07-PLAN.md — clinic-photo Edge Function + D-12 3-check gate + 5-min signed URL TTL (Wave 3)
 - [x] 09-08-PLAN.md — WorkspaceSwitcher (index chunk, +3 kB) + AppShell mount + ClinicContextBar real-import (Wave 3)
-- [ ] 09-09-PLAN.md — Pitfall #8 5-scenario matrix + clinic-photo-access + clinic-role-permission-grid e2e (Wave 4)
-- [ ] 09-10-PLAN.md — SC#5 revoke-latency drill (Layer 1 + Layer 2) + Pitfall #2 realtime.messages RLS negative-space test (Wave 4)
-- [ ] 09-11-PLAN.md — Traceability sweep + ROADMAP/REQUIREMENTS/STATE sync + 09-SUMMARY.md (Wave 4)
+- [x] 09-09-PLAN.md — Pitfall #8 5-scenario matrix + clinic-photo-access + clinic-role-permission-grid e2e (Wave 4)
+- [x] 09-10-PLAN.md — SC#5 revoke-latency drill (Layer 1 + Layer 2) + Pitfall #2 realtime.messages RLS negative-space test (Wave 4)
+- [x] 09-11-PLAN.md — Traceability sweep + ROADMAP/REQUIREMENTS/STATE sync + 09-SUMMARY.md (Wave 4)
 **UI hint**: yes
 **Scope note (2026-05-12):** CLINIC-06 absorbed from Phase 10 per `09-CONTEXT.md` D-07. The role/permission scope (3 default roles + custom-role admin UI + `permissions` global table + `role_permissions` many-to-many + `has_permission()` SECURITY DEFINER helper) ships in Phase 9 so Phase 10's operator surface inherits a working RLS substrate. The audit-log capture infrastructure (every revoke/scope-change/permission-check writes an `audit_logs` row, extending Phase 8 D-04's enum) is also part of Phase 9; the org-owner-facing audit surface UI stays in Phase 10 (CLINIC-07).
 
@@ -248,7 +248,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Patient Cloud Sync Slice 2 — Full Data + Migration + Photos | 0/TBD | Not started | - |
 | 7. Compliance Foundations (Legal-Counsel-Led) | 3/10 | In Progress|  |
 | 8. Doctor Read-Share | 0/6 | Planned | - |
-| 9. Clinic B2B Foundations | 0/11 | Planned | - |
+| 9. Clinic B2B Foundations | 11/11 | Complete | 2026-05-13 |
 | 10. Clinic Operator Surface | 0/11 | Planned | - |
 
 ---

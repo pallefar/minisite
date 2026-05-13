@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Phase 10 plan-phase complete — 11 plans + UI-SPEC + RESEARCH + EVENTS + VALIDATION + plan-checker self-review APPROVED
-last_updated: "2026-05-13T06:05:29.654Z"
+status: ready-to-execute
+stopped_at: Phase 9 close — 11/11 plans + 09-SUMMARY.md complete; ready to execute Phase 10
+last_updated: "2026-05-13T12:00:00.000Z"
 last_activity: 2026-05-13
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 76
-  completed_plans: 62
-  percent: 82
+  completed_plans: 73
+  percent: 96
 ---
 
 # Project State
@@ -21,34 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 09 — clinic-b2b-foundations
+**Current focus:** Phase 10 — clinic-operator-surface (ready to execute)
 
 ## Current Position
 
-Phase: 09 (clinic-b2b-foundations) — EXECUTING
-Plan: 9 of 11
-Status: Ready to execute
+Phase: 09 (clinic-b2b-foundations) — COMPLETE 2026-05-13
+Plan: 11 of 11
+Status: Complete; Phase 10 ready to execute
 Last activity: 2026-05-13
 
-### Blocker Detail (2026-05-13)
+### Phase 9 close (2026-05-13)
 
-**What:** `/gsd-execute-phase 9` invoked from background `/gsd-manager` thread cannot dispatch executor subagents — the Agent (Claude Code Task) tool is not surfaced in this runtime context. ToolSearch confirms no `Agent`, `Task`, `gsd-executor`, or equivalent subagent-spawn tool exists in the deferred-tool list either.
+All 11 plans landed on `origin/main` in 6 waves (Wave 1 schema + Wave-0 scaffolds → Wave 2 four parallel UI slices + patient-side scope → Wave 3 two Edge Functions + WorkspaceSwitcher → Wave 4 e2e + close). 14 migrations live on `ytnsipxxmzgaebkqmokp` (000000-000013); 16 SECURITY DEFINER RPCs + has_permission helper + Realtime broadcast trigger + realtime.messages RLS deployed. Bundle topology held: index 12.39 kB gz (Phase 9 working ceiling 24.5 kB); clinic 16.17 kB gz; clinic-settings 7.78 kB gz; clinic-invite ~4.84 kB gz; vendor-supabase 53 kB gz. 16 RTL files + 18 Deno tests + 15 Deno tests (clinic-photo) + 9 Playwright fixtures (Pitfall #8 + photo-access + role-grid) + 7 Playwright fixtures (revoke-latency + realtime negative-space) authored. Deferred items captured below.
 
-**Where it fails:** `execute-phase.md` step `execute_waves` requires `Agent(subagent_type="gsd-executor", ..., isolation="worktree", ...)` for every plan. Workflow `runtime_compatibility` block says: *"If `Agent`/`agent` tool is unavailable, use sequential inline execution as the fallback."* — but inline execution of all 11 plans (Plan 09-01 alone = 13 SQL migrations + 16 RPCs + 6 RLS impersonation specs + ~20 file scaffolds + Wave-0 routing + 4 stub component files; cumulative phase = 100+ source-of-truth files) would (a) blow the orchestrator context budget, (b) skip the verifier-agent + post-merge-gate + code-review skill that the workflow integrates, and (c) lose wave-based parallelization that the 6-wave / 11-plan structure relies on.
-
-**Impact:** All 11 plans incomplete. Foundational schema + RPCs not pushed to `ytnsipxxmzgaebkqmokp`. Wave 1 (09-01) blocks every other wave per `phase-plan-index` deps graph (waves 2/3/4/5/6 all transitively `depends_on: [09-01]`).
-
-**Manager guidance needed:**
-
-1. Re-invoke `/gsd-execute-phase 9` from a foreground (interactive) Claude Code thread where the Agent tool is registered, OR
-2. Re-invoke from a background runner that proxies the Agent tool (per MEMORY.md `reference_gsd_tooling_quirks.md`: *"`/gsd-manager` background plan/execute dispatch fails (runner pool lacks Task tool — prefer inline)"* — which matches this exact failure mode), OR
-3. Run `/gsd-execute-phase 9 --interactive` from foreground for sequential inline execution with user checkpoints (still requires foreground because of the human-action checkpoint in 09-01 Task 2: `supabase db push --linked`).
-
-**No partial work committed.** STATE.md frontmatter `progress.completed_phases` left unchanged (still 9). No git commits, no migration files written, no source files modified. `state.begin-phase` only updated STATE.md tracking fields — no phase-content side effects.
-
-**MEMORY.md cross-reference:** `reference_gsd_tooling_quirks.md` previously recorded this exact quirk on the `/gsd-manager` runner pool. This run confirms it again for the background skill-invocation path of `/gsd-execute-phase` specifically.
-
-Progress: [███████░░░] 72%
+Progress: [█████████░] 96%
 
 ## Performance Metrics
 
@@ -101,6 +87,14 @@ Recent decisions affecting current work:
 - [Phase ?]: 07-03 D-01: Hand-rolled WMHMDA CHDP from RCW 19.373.030 primary source per Researcher KF #7 (Termly/iubenda free outputs both fold §4 third parties); manifest-pinned drift gate in e2e/legal-pages.spec.ts
 - [Phase ?]: 07-07 ships account-delete RPC + T+30 pg_cron; 4 deviation migrations handle Supabase quirks — search_path/digest, storage delete bypass, audit cascade FK via custom GUC
 - [Phase ?]: RESTRICTIVE Storage RLS on photos-pending-shred/% — defense-in-depth: even original owner cannot read their pending-shred photos before T+30 hard-delete — D-03 crypto-shred guarantee on free-tier
+- [Phase 9]: has_permission(user_id, org_id, permission_key) SECURITY DEFINER STABLE helper is the SINGLE RLS dispatch primitive for clinic-scoped tables; all RLS policies on memberships/roles/role_permissions/realtime.messages/storage delegate to it (no inline tenancy checks in policies)
+- [Phase 9]: Realtime cross-tenant subscribe uses private channels + realtime.broadcast_changes trigger + realtime.messages RLS — supersedes postgres_changes for any cross-tenant subscription (operator org channel + patient user channel)
+- [Phase 9]: org-deletion cascades require BOTH `app.suppress_audit` GUC + `storage.allow_delete_query` GUC; applied preventively in delete_org RPC (extends Phase 7 finalize_account_deletion gotcha pattern to org-scope)
+- [Phase 9]: D-13 accepted tradeoff — clinic-photo signed URLs have 5-min TTL; revoke kills NEW mints immediately (Layer 2 DB check) but existing URLs stay valid until natural TTL expiry. UX overlay (Realtime broadcast) evicts the operator's open tab within 1s
+- [Phase 9]: Pitfall #11 invariant — clinic-* Edge Functions use JWT-or-token-in-URL auth; NO cookies; CORS allow `*` Origin acceptable (no credentials means no SOP risk)
+- [Phase 9]: Wave-0 ownership rule (B-5, plan-checker iter 1) — the plan that creates Wave-0 scaffolds (App.tsx routing + stub files + RLS proofs + migration push) ALSO flips wave_0_complete + nyquist_compliant in VALIDATION.md immediately after the scaffolds are verified present (Plan 09-01 Task 2). Phase-close plan only flips status: complete (Plan 09-11)
+- [Phase 9]: D-02 anti-enumeration invariant (W-1 reinforcement) — universal `{ok: true, invite_id}` server response shape + universal "Invitation sent" UI copy at every send-invite surface. No branching on email-existence anywhere in the call chain. Source-scan tests + RTL invariant tests gate this
+- [Phase 9]: Stub-overwrite ownership pattern (B-2, plan-checker iter 1) — Wave-1 plan creates App.tsx routing + 4 stub component files; Wave-2 plans OVERWRITE stub bodies in place (never touch App.tsx). Git-diff invariant verified at every Wave-2 plan close
 
 ### Pending Todos
 
@@ -132,10 +126,16 @@ Items acknowledged and carried forward from previous milestone close:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none — first milestone)* | | | |
+| Phase 9 infra | Resend domain verification + RESEND_FROM swap (currently sandbox `onboarding@resend.dev` — clinic invites to real patients won't dispatch until domain verified) | Open — orchestrator/user action | 2026-05-13 (Plan 09-06 close) |
+| Phase 9 CI | 6 RLS impersonation specs (rls-orgs/memberships/invites/roles/role-permissions/org-logos-storage) authored but not RUN against live DB — need SUPABASE_URL + SERVICE_ROLE_KEY env in CI | Open — CI infra | 2026-05-13 (Plan 09-01 close) |
+| Phase 9 tests | OrgCreateFlow taken-slug test fixme'd (mockReturnValueOnce queue carry-over; fix: mockReset in beforeEach) | Open — Phase 9 verifier at v1.2 milestone close | 2026-05-13 (Plan 09-02 close, `deferred-tests.md`) |
+| Phase 9 ops | bundle-budget script hash-hyphen glob fix landed Plan 09-03; verify it survives Phase 10 manualChunks additions | Resolved Plan 09-03; monitor | 2026-05-13 |
+| Phase 9 CI gate | GitHub branch-protection job for `share-security-drill` (Phase 8 carry-over) | Open — Phase 10 entry | 2026-05-13 |
+| Phase 9 hardening | Pre-existing 7 SharePage lint errors flagged in Phase 8 ship; clinic surfaces add 0 new lint errors | Open — hardening pass | 2026-05-13 |
+| Phase 9 hardening | `s.user!` latent assertion audit (14 files / 15 occurrences from Phase 7 inventory) | Open — Phase 10+ hardening | 2026-05-13 |
 
 ## Session Continuity
 
-Last session: 2026-05-13T04:59:53.245Z
-Stopped at: Phase 10 plan-phase complete — 11 plans + UI-SPEC + RESEARCH + EVENTS + VALIDATION + plan-checker self-review APPROVED
+Last session: 2026-05-13T12:00:00.000Z
+Stopped at: Phase 9 close (11/11 plans + 09-SUMMARY.md + ROADMAP/REQUIREMENTS sync); Phase 10 plan-phase already complete in parallel — ready to execute
 Resume file: .planning/phases/10-clinic-operator-surface/10-01-PLAN.md
