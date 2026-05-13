@@ -7,6 +7,7 @@ import { LegalFooter } from './LegalFooter';
 import { MobileNav } from './MobileNav';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 
 export interface AppShellProps {
   children: ReactNode;
@@ -31,6 +32,14 @@ export function AppShell({
         className="md:ml-[80px] pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto"
         data-testid="dashboard"
       >
+        {/* Phase 9 Plan 09-08 — WorkspaceSwitcher (D-09 + D-14 single-identity affordance).
+            Mounted above the topbar so Pitfall #8's "one auth.users + relationship-table
+            contexts" invariant is visible on every authenticated route. The switcher
+            self-defers until supabase.auth.getSession() resolves (Pitfall #9) and
+            auto-hides on anonymous routes. */}
+        <div className="mb-3 md:mb-4">
+          <WorkspaceSwitcher />
+        </div>
         <Topbar
           onLogDose={onLogDose}
           onOpenReport={onOpenReport}

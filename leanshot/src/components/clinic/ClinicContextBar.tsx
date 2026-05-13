@@ -1,21 +1,22 @@
 /**
- * Phase 9 Plan 09-02 — ClinicContextBar.
+ * Phase 9 Plan 09-02 + 09-08 — ClinicContextBar.
  *
  * Sticky top bar on every `/clinic/{slug}/*` route. Renders:
+ *   - WorkspaceSwitcher (Plan 09-08 — real component; replaces the
+ *     Plan 09-02 placeholder no-op button)
  *   - org logo (or monogram fallback if `logo_storage_path` is null)
- *   - org name (truncated to 32 chars with ellipsis)
- *   - WorkspaceSwitcher trigger placeholder (no-op button — the real
- *     switcher dropdown ships in Plan 09-08; this preserves the visible
- *     affordance + correct aria-label so screen readers behave the same)
+ *     + org name (truncated to 32 chars with ellipsis) as a visual
+ *     context indicator beside the switcher
  *   - settings link
  *
  * D-09 Pitfall #8 single-identity invariant: even with zero memberships
- * the switcher must show "Personal account" group; the trigger is
- * always rendered.
+ * the switcher must show "Personal account" group; mounting the real
+ * WorkspaceSwitcher here is the Phase 9 fulfillment of that invariant.
  */
 
 import { Settings } from 'lucide-react';
 import { useMemo } from 'react';
+import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
 import { cn } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
 import type { Org } from '@/types/clinic';
@@ -59,17 +60,16 @@ export function ClinicContextBar({ org, className }: ClinicContextBarProps) {
         className,
       )}
     >
-      {/* WorkspaceSwitcher trigger placeholder — Plan 09-08 wires the dropdown */}
-      <button
-        type="button"
-        aria-label={`Switch workspace. Currently in ${org.name}.`}
-        aria-haspopup="listbox"
-        aria-expanded="false"
-        data-testid="workspace-switcher-trigger"
-        className="flex items-center gap-2.5 rounded-pill px-2 py-1 hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
-        onClick={() => {
-          /* Plan 09-08 opens the workspace switcher dropdown here. */
-        }}
+      {/* Plan 09-08 — real WorkspaceSwitcher (was a placeholder no-op button in Plan 09-02). */}
+      <WorkspaceSwitcher />
+
+      {/* Visual org-context indicator (logo + name) beside the switcher. The
+          switcher itself owns the trigger affordance + aria-label; this is
+          purely a chrome element so the operator can see which workspace they
+          are currently in at a glance even when the dropdown is closed. */}
+      <div
+        data-testid="clinic-context-bar-org"
+        className="flex items-center gap-2.5 min-w-0"
       >
         {logoUrl ? (
           <img
@@ -85,8 +85,10 @@ export function ClinicContextBar({ org, className }: ClinicContextBarProps) {
             {monogram(org.name)}
           </span>
         )}
-        <span className="text-[14px] font-semibold text-[var(--color-text)]">{displayName}</span>
-      </button>
+        <span className="text-[14px] font-semibold text-[var(--color-text)] truncate">
+          {displayName}
+        </span>
+      </div>
 
       <div className="flex-1" />
 

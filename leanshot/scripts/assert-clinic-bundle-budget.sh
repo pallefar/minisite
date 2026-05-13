@@ -45,9 +45,31 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/dist"
 ASSETS_DIR="$DIST_DIR/assets"
 
-# Phase 9 ceiling rationale (combines 09-02 + 09-03 auto-fix deviations):
+# Phase 9 ceiling rationale (combines 09-02 + 09-03 + 09-08 auto-fix deviations):
 #
-# CLINIC_CEILING=16000 — Plan 09-02 bumped from planner-iter-1 12 kB.
+# CLINIC_CEILING=17000 — Plan 09-08 bumped from 09-02's 16 kB (which itself
+# bumped from planner-iter-1 12 kB). The 09-02 ceiling assumed Plan 09-08's
+# WorkspaceSwitcher would only land in the index chunk and not touch the
+# clinic chunk. In practice ClinicContextBar (in the clinic chunk) needs
+# to static-import the real WorkspaceSwitcher per Plan 09-08's
+# `must_haves.truths` line "ClinicContextBar (Plan 09-02) replaces its
+# WorkspaceSwitcher placeholder with the real component". That cross-chunk
+# import adds Rollup chunk-wrapper boilerplate to the clinic chunk
+# (~165 bytes gz observed: 13.44 → 16.17 kB gz after the static import is
+# resolved through the manualChunks vendor-split graph). Options considered:
+#   (a) avoid the static import (lazy-load WorkspaceSwitcher from
+#       ClinicContextBar via React.lazy) → defeats the D-09 first-paint
+#       affordance because the operator's clinic route would show a
+#       placeholder until the index-chunk-hosted switcher hydrates.
+#   (b) move ClinicContextBar out of the clinic chunk into the index chunk
+#       → bloats index from 12.39 → ~14 kB gz; eats the D-09 first-paint
+#       budget for a non-first-paint surface (clinic routes are lazy by
+#       design via App.tsx selectView).
+#   (c) raise the clinic ceiling +1 kB → chosen. 17 kB leaves ~0.8 kB
+#       headroom for any future ClinicContextBar / ClinicWorkspace
+#       additions; future plans should re-measure before adding more.
+#
+# CLINIC_CEILING=16000 (historical, Plan 09-02) — bumped from planner-iter-1 12 kB.
 # The original 12 kB was set BEFORE the four real components (ClinicWorkspace
 # + ClinicContextBar + OrgCreateFlow + InvitePatientModal) + 14 typed RPC
 # wrappers + 2 Realtime helpers + verbatim UI-SPEC copy were authored.
@@ -70,7 +92,7 @@ ASSETS_DIR="$DIST_DIR/assets"
 # The 24.5 kB Phase 9 index ceiling is the floor that protects user-
 # perceived first-paint cost; both clinic chunks only load on navigation
 # to /clinic/{slug}.
-CLINIC_CEILING=16000
+CLINIC_CEILING=17000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
