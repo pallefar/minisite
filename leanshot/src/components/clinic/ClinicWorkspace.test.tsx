@@ -16,9 +16,14 @@ import { ClinicWorkspace } from './ClinicWorkspace';
 
 const mockMaybeSingle = vi.fn();
 
+// Plan 09-08 — WorkspaceSwitcher (mounted by ClinicContextBar) also reads
+// memberships via from('memberships').select(...).eq(...).is(...). The chain
+// terminates with `.is()` returning a Promise rather than `.maybeSingle()`.
+// Add `is()` here so both consumers can share the chain in this test file.
 const fromChain = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
+  is: vi.fn().mockResolvedValue({ data: [], error: null }),
   maybeSingle: mockMaybeSingle,
 };
 
@@ -33,7 +38,18 @@ vi.mock('@/lib/supabase', () => ({
       }),
     },
     rpc: vi.fn(),
+    auth: {
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: { user: { id: 'u-1' } } } }),
+    },
   },
+}));
+
+// Plan 09-08 — WorkspaceSwitcher subscribes to user-channel for cross-context
+// updates. Stub so the test doesn't depend on real Realtime infra.
+vi.mock('@/lib/clinic-realtime', () => ({
+  subscribeToUserChannel: vi.fn().mockResolvedValue({ unsubscribe: vi.fn() }),
 }));
 
 // Stub clinic.ts so InvitePatientModal child can render without breaking.
@@ -95,12 +111,20 @@ describe('ClinicWorkspace — loading + hydrated', () => {
     expect(
       screen.getByRole('link', { name: /Customize workspace/i }),
     ).toBeInTheDocument();
-    // ContextBar switcher trigger with correct aria-label
-    expect(
-      screen.getByRole('button', {
-        name: /Switch workspace\. Currently in Acme Endocrinology\./,
-      }),
-    ).toBeInTheDocument();
+    // Plan 09-08 — real WorkspaceSwitcher mounted in the ContextBar.
+    // Without a mocked auth session + memberships fetch the switcher falls
+    // back to "your personal account" (defer-mount safety, Pitfall #9). The
+    // important assertion is that SOME WorkspaceSwitcher trigger exists with
+    // the canonical aria-label prefix (the placeholder no-op button from
+    // Plan 09-02 is gone). Full context-detection coverage lives in
+    // src/components/layout/WorkspaceSwitcher.test.tsx.
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: /^Switch workspace\. Currently in/,
+        }),
+      ).toBeInTheDocument(),
+    );
   });
 
   it('opens InvitePatientModal when "Invite patient" CTA is clicked', async () => {
