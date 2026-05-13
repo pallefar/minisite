@@ -1217,6 +1217,13 @@ export const useStore = create<Store>()(
           console.error('[leanshot] signOut failed', error);
           return;
         }
+        // Phase 9 Plan 09-03: clear the clinic permission cache so the next
+        // signed-in user does not inherit cached has_permission decisions
+        // made under the prior auth.uid(). Tiny dynamic import keeps the
+        // clinic-permissions module off the store's static graph (avoids
+        // pulling supabase-js into the entry chunk).
+        const { clearPermissionCache } = await import('@/lib/clinic-permissions');
+        clearPermissionCache();
         get().clearUserDataSlices();
       },
 
