@@ -5,11 +5,58 @@ import { PK_DISCLAIMER_BAND_CAPTION, PK_DISCLAIMER_Y_AXIS } from '@/lib/disclaim
 import { HALF_LIVES, calcMedLevel, trialClass } from '@/lib/pharmacology';
 import { CV_BY_DRUG_CLASS } from '@/lib/pharmacology-corpus';
 import { useStore } from '@/lib/store';
+import type { Injection, MedicationId, WeightLog } from '@/types';
+import type { SnapshotResponse } from '@/types/share';
 import { BaseChart } from './BaseChart';
 import { medLevelWatermarkPlugin } from './medLevelWatermarkPlugin';
 
+/**
+ * Phase 8 Plan 08-04 (HI-5) — optional snapshot props let the doctor read-share
+ * route pass injections + weights + the active medication via props, so the
+ * share lazy chunk never touches the Zustand store. When props are absent the
+ * chart falls back to the existing `useStore` reads (dashboard path
+ * unchanged). The `useStore` selectors must run unconditionally (Rules of
+ * Hooks) — the prop-vs-store choice happens AFTER all hooks resolve.
+ */
+export interface MedLevelChartProps {
+  height?: number;
+  /** Optional snapshot injections; when omitted, falls back to `useStore.injections`. */
+  injections?: SnapshotResponse['snapshot']['injections'];
+  /** Optional snapshot weights; when omitted, falls back to `useStore.weights`. */
+  weights?: SnapshotResponse['snapshot']['weights'];
+  /** Optional medication id for the share route (no store user available). */
+  medication?: MedicationId;
+}
+
+/** Map snapshot-shape injections to the Injection shape `calcMedLevel` expects. */
+function snapshotInjectionsToDashboard(
+  injections: SnapshotResponse['snapshot']['injections'],
+): Injection[] {
+  return injections.map((i) => ({
+    log_id: i.log_id,
+    datetime: i.timestamp,
+    dose: String(i.dose),
+    unit: i.unit as Injection['unit'],
+    site: (i.site || null) as Injection['site'],
+    notes: '',
+  }));
+}
+
+/** Map snapshot weights to dashboard WeightLog (ISO timestamp → YYYY-MM-DD). */
+function snapshotWeightsToDashboard(
+  weights: SnapshotResponse['snapshot']['weights'],
+): WeightLog[] {
+  return weights.map((w) => ({
+    date: w.timestamp.slice(0, 10),
+    weight: w.weight_kg,
+    bodyFat: null,
+    ts: new Date(w.timestamp).getTime(),
+  }));
+}
+
 /** 28-day past + 7-day projected medication level chart. */
-export function MedLevelChart({ height = 280 }: { height?: number }) {
+export function MedLevelChart(props: MedLevelChartProps) {
+  const { height = 280 } = props;
   // Phase 6 Plan 06-01 (UI-CHECK + 06-CONTEXT D-12 #3) + Phase 7 Plan
   // 07-09 (D-06): the nullable-selector + early-return pattern below is
   // the canonical shape for "this component needs a logged-in user".
@@ -21,14 +68,39 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
   // `useTheme` + `useMemo` run unconditionally; the `useMemo` body
   // short-circuits when `u` is null so the early-return below
   // (`if (!u) return null`) is legal under Rules of Hooks.
-  const u = useStore((s) => s.user);
-  const injections = useStore((s) => s.injections);
+  //
+  // Phase 8 Plan 08-04 (HI-5) — the share route passes its own snapshot
+  // data via props. The store reads still run (Rules of Hooks) but we
+  // prefer the props when present so the share lazy chunk never sees
+  // Zustand state.
+  const storeUser = useStore((s) => s.user);
+  const storeInjections = useStore((s) => s.injections);
+  const storeWeights = useStore((s) => s.weights);
   const { theme } = useTheme();
 
+  const propInjections = props.injections;
+  const propWeights = props.weights;
+  const propMedication = props.medication;
+
   const config = useMemo(() => {
-    if (!u) return null;
+    // Resolve medication: prop wins; else store user's medication; else
+    // null (no chart can be rendered without a medication).
+    const medication: MedicationId | null =
+      propMedication ?? (storeUser ? storeUser.medication : null);
+    if (!medication) return null;
+
+    const injections: Injection[] = propInjections
+      ? snapshotInjectionsToDashboard(propInjections)
+      : storeInjections;
+    const weights: WeightLog[] = propWeights
+      ? snapshotWeightsToDashboard(propWeights)
+      : storeWeights;
+    // `weights` is retained for future-PK extension symmetry with the
+    // dashboard call site; reference it so unused-locals does not fire.
+    void weights;
+
     const t = getChartTokens(theme);
-    const halfLife = HALF_LIVES[u.medication] ?? 168;
+    const halfLife = HALF_LIVES[medication] ?? 168;
     const labels: string[] = [];
     const past: (number | null)[] = [];
     const future: (number | null)[] = [];
@@ -53,7 +125,7 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
     if (lastPast >= 0 && future[lastPast + 1] !== undefined) future[lastPast] = past[lastPast]!;
 
     // Phase 3 PK-03: inter-individual variability band per drug class CV%.
-    const cvPct = CV_BY_DRUG_CLASS[trialClass(u.medication)] ?? 0.3;
+    const cvPct = CV_BY_DRUG_CLASS[trialClass(medication)] ?? 0.3;
     const upperPast = past.map((v) => (v == null ? null : v * (1 + cvPct)));
     const lowerPast = past.map((v) => (v == null ? null : v * (1 - cvPct)));
     const upperFuture = future.map((v) => (v == null ? null : v * (1 + cvPct)));
@@ -176,13 +248,22 @@ export function MedLevelChart({ height = 280 }: { height?: number }) {
       // leak the watermark onto every chart sharing BaseChart (weight, symptom, sparkline).
       plugins: [medLevelWatermarkPlugin],
     };
-  }, [u, injections, theme]);
+  }, [
+    storeUser,
+    storeInjections,
+    storeWeights,
+    propInjections,
+    propWeights,
+    propMedication,
+    theme,
+  ]);
 
   // Phase 6 Plan 06-01 (D-12 #3): early-return AFTER hooks so the Rules of
   // Hooks are preserved (hooks run unconditionally; render output is
   // null-guarded). Renders nothing during the transient SIGNED_OUT or
-  // pre-onboarding window when `user` is null.
-  if (!u || !config) return null;
+  // pre-onboarding window when `user` is null. Phase 8: if the share route
+  // passes `injections` but no `medication`, this guard also catches that.
+  if (!config) return null;
 
   return (
     <>

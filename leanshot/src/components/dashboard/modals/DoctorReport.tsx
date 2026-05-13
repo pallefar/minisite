@@ -7,20 +7,107 @@ import { PK_DISCLAIMER_DOCTOR_REPORT } from '@/lib/disclaimers';
 import { formatShort } from '@/lib/helpers';
 import { medLabel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
+import type { Injection, SymptomLog, WeightLog } from '@/types';
+import type { SnapshotResponse } from '@/types/share';
 
-export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => void }) {
+/**
+ * Phase 8 Plan 08-04 (HI-5) — optional snapshot props let the doctor read-share
+ * route render this component without touching Zustand. When `snapshot` is
+ * provided, the store reads still run (Rules of Hooks) but their values are
+ * ignored in favor of the snapshot. When `readOnly` is set (or when snapshot is
+ * present), edit affordances are disabled and the print-button label is
+ * preserved.
+ *
+ * INVARIANT: this is the ONLY component shared between the dashboard path
+ * (props-less call site in App.tsx) and the share path (snapshot-driven call
+ * site in SharePage). Adding `useStore` to `src/components/share/*` is a
+ * regression — the share route MUST pass data via props only.
+ */
+export interface DoctorReportProps {
+  open: boolean;
+  onClose: () => void;
+  /** When provided, treats the entire snapshot as the data source. */
+  snapshot?: SnapshotResponse['snapshot'];
+  /** Forces read-only chrome even when snapshot is undefined (testing affordance). */
+  readOnly?: boolean;
+}
+
+/** Map snapshot injections to dashboard Injection rows for table rendering. */
+function snapshotInjectionsToRows(
+  injections: SnapshotResponse['snapshot']['injections'],
+): Injection[] {
+  return injections.map((i) => ({
+    log_id: i.log_id,
+    datetime: i.timestamp,
+    dose: String(i.dose),
+    unit: i.unit as Injection['unit'],
+    site: (i.site || null) as Injection['site'],
+    notes: '',
+  }));
+}
+
+/** Map snapshot weights to dashboard WeightLog rows. */
+function snapshotWeightsToRows(weights: SnapshotResponse['snapshot']['weights']): WeightLog[] {
+  return weights.map((w) => ({
+    date: w.timestamp.slice(0, 10),
+    weight: w.weight_kg,
+    bodyFat: null,
+    ts: new Date(w.timestamp).getTime(),
+  }));
+}
+
+/** Map snapshot symptoms to dashboard SymptomLog rows. */
+function snapshotSymptomLogsToRows(
+  symptoms: SnapshotResponse['snapshot']['symptoms'],
+): SymptomLog[] {
+  return symptoms.map((s) => ({
+    date: s.timestamp.slice(0, 10),
+    symptom: s.symptom,
+    severity: s.severity as 1 | 2 | 3 | 4 | 5,
+    notes: '',
+  }));
+}
+
+export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReportProps) {
   // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
-  const u = useStore((s) => s.user);
-  const weights = useStore((s) => s.weights);
-  const injections = useStore((s) => s.injections);
-  const symptoms = useStore((s) => s.symptoms);
+  // Phase 8 Plan 08-04 (HI-5): the share route passes snapshot data via props;
+  // store reads still run (Rules of Hooks) but are ignored when snapshot
+  // is present. The dashboard path (no props) continues to read from store.
+  const storeUser = useStore((s) => s.user);
+  const storeWeights = useStore((s) => s.weights);
+  const storeInjections = useStore((s) => s.injections);
+  const storeSymptomLogs = useStore((s) => s.symptoms);
 
-  if (!u) return null;
+  // Resolve data source: snapshot wins; else store. If neither has a logged-in
+  // user, return null (mirrors prior dashboard behavior).
+  const hasSnapshot = snapshot !== undefined;
+  const isReadOnly = readOnly ?? hasSnapshot;
+  void isReadOnly; // tracked for future edit-affordance guards (Plan 08-06 print mode)
 
-  const wU = u.units === 'metric' ? 'kg' : 'lb';
+  if (!hasSnapshot && !storeUser) return null;
+
+  const weights: WeightLog[] = hasSnapshot
+    ? snapshotWeightsToRows(snapshot.weights)
+    : storeWeights;
+  const injections: Injection[] = hasSnapshot
+    ? snapshotInjectionsToRows(snapshot.injections)
+    : storeInjections;
+  const symptoms: SymptomLog[] = hasSnapshot
+    ? snapshotSymptomLogsToRows(snapshot.symptoms)
+    : storeSymptomLogs;
+
+  const patientName = hasSnapshot ? snapshot.patient_first_name : storeUser!.name;
+  const wU = hasSnapshot ? 'kg' : storeUser!.units === 'metric' ? 'kg' : 'lb';
+
+  // Summary-section bits (medication, dose, startWeight, startDate) only exist
+  // on the dashboard path — the snapshot intentionally does NOT carry them
+  // (SC#3 minimization + Plan 08-01 view definition).
+  const summaryAvailable = !hasSnapshot && storeUser !== null;
   const latest = weights[weights.length - 1];
-  const lost = latest ? u.startWeight - latest.weight : 0;
-  const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
+  const lost = summaryAvailable && latest ? storeUser!.startWeight - latest.weight : 0;
+  const weeks = summaryAvailable
+    ? Math.floor((Date.now() - new Date(storeUser!.startDate).getTime()) / (7 * 86_400_000))
+    : 0;
   const recentInj = injections.slice(0, 12);
   const recentSx = symptoms.slice(0, 20);
   const sxCounts: Record<string, number> = {};
@@ -45,7 +132,9 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
     >
       <div className="space-y-6 leading-relaxed">
         <header>
-          <h2 className="text-[22px] font-bold tracking-tight">{u.name} — GLP-1 Journey Report</h2>
+          <h2 className="text-[22px] font-bold tracking-tight">
+            {patientName} — GLP-1 Journey Report
+          </h2>
           <p className="text-[13px] text-[var(--color-text-secondary)]">
             Generated {new Date().toLocaleDateString()} · LeanShot
           </p>
@@ -60,39 +149,51 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
           {PK_DISCLAIMER_DOCTOR_REPORT}
         </aside>
 
-        <section className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4">
-          <h3 className="text-[14px] font-bold mb-2">Summary</h3>
-          <table className="w-full text-[13px]">
-            <tbody>
-              <Row label="Medication" value={medLabel(u.medication)} bold />
-              <Row label="Current dose" value={`${u.dose} ${u.doseUnit} (weekly)`} bold />
-              <Row label="Started" value={`${formatShort(u.startDate)} (week ${weeks})`} />
-              <Row label="Starting weight" value={`${u.startWeight} ${wU}`} />
-              <Row
-                label="Current weight"
-                value={latest ? `${latest.weight.toFixed(1)} ${wU}` : '—'}
-                bold
-              />
-              <Row
-                label="Total change"
-                value={
-                  <span
-                    className={
-                      lost >= 0
-                        ? 'text-[var(--color-success)] font-bold'
-                        : 'text-[var(--color-danger)] font-bold'
-                    }
-                  >
-                    {lost >= 0 ? '−' : '+'}
-                    {Math.abs(lost).toFixed(1)} {wU} (
-                    {u.startWeight > 0 ? ((lost / u.startWeight) * 100).toFixed(1) : 0}%)
-                  </span>
-                }
-              />
-              <Row label="Total injections" value={String(injections.length)} />
-            </tbody>
-          </table>
-        </section>
+        {summaryAvailable && (
+          <section className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4">
+            <h3 className="text-[14px] font-bold mb-2">Summary</h3>
+            <table className="w-full text-[13px]">
+              <tbody>
+                <Row label="Medication" value={medLabel(storeUser!.medication)} bold />
+                <Row
+                  label="Current dose"
+                  value={`${storeUser!.dose} ${storeUser!.doseUnit} (weekly)`}
+                  bold
+                />
+                <Row
+                  label="Started"
+                  value={`${formatShort(storeUser!.startDate)} (week ${weeks})`}
+                />
+                <Row label="Starting weight" value={`${storeUser!.startWeight} ${wU}`} />
+                <Row
+                  label="Current weight"
+                  value={latest ? `${latest.weight.toFixed(1)} ${wU}` : '—'}
+                  bold
+                />
+                <Row
+                  label="Total change"
+                  value={
+                    <span
+                      className={
+                        lost >= 0
+                          ? 'text-[var(--color-success)] font-bold'
+                          : 'text-[var(--color-danger)] font-bold'
+                      }
+                    >
+                      {lost >= 0 ? '−' : '+'}
+                      {Math.abs(lost).toFixed(1)} {wU} (
+                      {storeUser!.startWeight > 0
+                        ? ((lost / storeUser!.startWeight) * 100).toFixed(1)
+                        : 0}
+                      %)
+                    </span>
+                  }
+                />
+                <Row label="Total injections" value={String(injections.length)} />
+              </tbody>
+            </table>
+          </section>
+        )}
 
         <section>
           <h3 className="text-[15px] font-bold mb-3">Recent injections</h3>
@@ -151,7 +252,7 @@ export function DoctorReport({ open, onClose }: { open: boolean; onClose: () => 
                 <thead>
                   <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
                     <th className="text-left font-semibold py-2">Date</th>
-                    <th className="text-left font-semibold py-2">Symptom</th>
+                    <th className="text-left font-semibold py-2">SymptomLog</th>
                     <th className="text-left font-semibold py-2">Severity</th>
                     <th className="text-left font-semibold py-2">Notes</th>
                   </tr>
