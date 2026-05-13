@@ -116,8 +116,11 @@ export default defineConfig([
       'import-x/no-restricted-paths': ['error', {
         zones: [
           // Zone 1 (ad transport): src/lib/native/ads*.ts must not import health.ts
+          // NOTE: glob pattern is required here because the target is a file (ads.ts),
+          // not a directory. When Phase 20 creates src/lib/native/ads/ as a directory,
+          // change this target to './src/lib/native/ads' (directory match).
           {
-            target: './src/lib/native/ads',
+            target: './src/lib/native/ads*.ts',
             from: './src/lib/native/health.ts',
             message: 'Two-tunnel firewall (Phase 12 D-02 Zone 1): health.ts must not flow into the ad transport. See 12-CONTEXT.md.',
           },
