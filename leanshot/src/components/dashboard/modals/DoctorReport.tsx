@@ -2,6 +2,7 @@ import { Printer } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { DoctorClipboard } from '@/illustrations/DoctorClipboard';
 import { SYMPTOMS_LIST, siteShort } from '@/lib/constants';
 import { PK_DISCLAIMER_DOCTOR_REPORT } from '@/lib/disclaimers';
 import { formatShort } from '@/lib/helpers';
@@ -131,13 +132,16 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
       }
     >
       <div className="space-y-6 leading-relaxed">
-        <header>
-          <h2 className="text-[22px] font-bold tracking-tight">
-            {patientName} — GLP-1 Journey Report
-          </h2>
-          <p className="text-[13px] text-[var(--color-text-secondary)]">
-            Generated {new Date().toLocaleDateString()} · LeanShot
-          </p>
+        <header className="flex items-start gap-4">
+          <DoctorClipboard className="w-14 h-16 shrink-0" />
+          <div className="min-w-0">
+            <h2 className="text-[22px] font-bold tracking-tight">
+              {patientName} — GLP-1 Journey Report
+            </h2>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Generated {new Date().toLocaleDateString()} · LeanShot
+            </p>
+          </div>
         </header>
 
         {/* CONTEXT D-10: DoctorReport PDF watermark parity — see .planning/phases/03-pharmacology-insights-hardening/03-CONTEXT.md */}
