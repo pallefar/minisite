@@ -6,23 +6,38 @@
 
 **Audit:** `tech_debt` — 48/49 REQ-IDs functionally satisfied; 1 partial (CLINIC-07 operator-side dead button, workaround via AuditTab). No functional blockers.
 
-## Next Milestone Goals
+## Current Milestone: v1.2 Polished Launch + Full Monetization + Ad Network
 
-v1.2 to be scoped via `/gsd-new-milestone`. Open themes:
-- Billing / Stripe integration (clinic seats)
-- EHR data import (CSV / FHIR / DEXA)
-- Mobile app (PWA or React Native)
-- Clinic expansion features (operator messaging, custom rank weights, dose-trend alerts)
-- Patient-side analytics dashboard
+**Goal:** Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform product with full monetization, growth loops, and ad-network revenue." Web, mobile, watch — all on the new design system, with Stripe-powered subs/seats/affiliate plus a multi-mode advertising network as primary revenue stream.
+
+**Target features (11 workstreams):**
+
+1. **Design system rollout** — Geist + Geist Mono + Fraunces type system, refreshed color/shadow/spacing/radius tokens, refreshed components (Cards, Button tonal, Pill segmented, Sidebar collapse, Site-rotation v2), new illustrations (AI avatar, streak badges bronze/silver/gold, pen-injector, achievement-shield, activity-rings, doctor-clipboard, heart-pulse, calendar-dose), refreshed marketing site. Bundle staged at `.planning/design-system/`.
+2. **Mobile shells** — Capacitor wrapper for iOS + Android, App Store + Play Store submission (ASO assets, listings, screenshots, app icons, splash screens).
+3. **Watch apps** — Apple Watch SwiftUI companion + WearOS (Kotlin/Jetpack Compose) parity. Surface: next-dose, streak, log-injection complication.
+4. **Health SDK** — HealthKit + Health Connect read-only import (weight, steps, sleep, HR) with permission UI + auto-fill confirmation. **Architectural firewall:** Health data and ad SDKs are strictly isolated (no shared user IDs, no Health signal in ad targeting), Apple privacy-manifest declarations included.
+5. **Owner/admin surface** — Full overview: members, memberships, MRR, churn, billing, affiliate payouts, ad revenue, impersonation, member CRUD, support tooling.
+6. **Monetization (Full Stripe)** — Patient B2C subscriptions (free + paid; paid = ad-free), clinic seat-based billing, Stripe Connect for affiliate payouts with W-9 / W-8BEN tax forms, end-user subscription management UI, pricing page, trial logic, dunning.
+7. **Page builder + landing pages** — In-house drag-and-drop builder with high-converting templates (long-form sales, lead-magnet opt-in, comparison, FAQ, testimonial-driven), SEO config (metadata, sitemap, JSON-LD, OG tags).
+8. **Viral affiliate program** — Custom referral codes, partner dashboard, attribution tracking, payout flow via Stripe Connect, fraud detection, tiered commissions.
+9. **Advertising network** — Three coexisting modes: (a) embed-code slots (AdSense / Outbrain / Taboola / direct-sold), (b) ad-platform integrations (AdMob via Capacitor for iOS + Android, Google Ad Manager for web, optional Meta Audience Network), (c) custom/house ads (LeanShot-served creatives for cross-promo, sponsorships, retention). Admin: per-placement config, revenue dashboard (eCPM / RPM / fill rate / CTR), A/B testing across providers, frequency caps, advertiser block-list (default-block competing GLP-1 brands), tier-based gating. Placement: marketing site + free-tier dashboard surfaces; **no ads on clinic/doctor-share** (B2B trust).
+10. **Launch essentials** — Push notifications (Web Push + APNs + FCM + watch), in-app account deletion (App Store requirement), cookie consent + GDPR DSAR portal, onboarding revamp + Resend lifecycle email (welcome series, milestone, receipts, reminders, password reset).
+11. **v1.1 tech debt sweep** — CLINIC-07 operator-side dead-button, `s.user!` non-null assertion audit (15 occurrences / 14 files), photo trash flow, 6 deferred tests batch-fix, knip / ts-unused-exports in CI.
+
+**Out of v1.2 (deferred):**
+- HIPAA BAA paid activation (stays in "ready posture, not paid")
+- EHR direct integration
 - Group / family accounts
+- Custom rank weights / dose-trend alerts (clinic expansion)
+- **Ads on clinic / doctor-share surfaces** (never — B2B trust)
+- **Ad targeting using HealthKit data** (never — Apple §5.1.3)
 
-Carried-over deferred items (full list in `.planning/v1.1-MILESTONE-AUDIT.md`):
-- Fix CLINIC-07 operator-side dead-button on `ClinicDrillInPage`
-- `s.user!` non-null assertion audit (15 occurrences / 14 files)
-- Photo trash flow
-- HIPAA BAA path (if clinic customers require)
-- Resend domain verification
-- 6 deferred-test batch-fix
+**Hard constraints carried in:**
+- Apple §5.1.3: HealthKit data must never reach ad targeting
+- App Store: user-facing in-app account deletion required
+- EU GDPR: cookie consent + DSAR portal required for EU launch
+
+**New paid prerequisites the user will provision:** Apple Developer Program ($99/yr), Google Play Console ($25 one-time), AdMob account (free), Stripe Connect activation, ad-network publisher accounts (AdSense, optionally Meta Audience Network), Resend domain verification (carry-over from v1.1).
 
 ---
 
