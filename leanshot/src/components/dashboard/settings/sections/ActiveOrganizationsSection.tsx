@@ -25,9 +25,10 @@
  * No `s.user!` non-null assertions anywhere in this file.
  */
 
-import { Building2, Pencil, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Activity, Building2, Pencil, Trash2 } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, IconButton } from '@/components/ui/Button';
+import { PatientActivityModal } from '../PatientActivityModal';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
@@ -109,10 +110,11 @@ interface OrgRowProps {
   row: Row;
   onEdit: (row: Row) => void;
   onRevoke: (row: Row) => void;
+  onViewActivity: (row: Row) => void;
   exiting: boolean;
 }
 
-function OrgRow({ row, onEdit, onRevoke, exiting }: OrgRowProps) {
+function OrgRow({ row, onEdit, onRevoke, onViewActivity, exiting }: OrgRowProps) {
   const orgName = row.orgs.name;
   const role = row.roles?.name ?? 'Member';
   const enabled = countEnabled(row.consent_scope);
@@ -160,6 +162,13 @@ function OrgRow({ row, onEdit, onRevoke, exiting }: OrgRowProps) {
       </div>
 
       <div className="flex flex-col gap-2 shrink-0">
+        <IconButton
+          aria-label={`View activity from ${orgName}`}
+          size="md"
+          onClick={() => onViewActivity(row)}
+        >
+          <Activity className="size-4" />
+        </IconButton>
         <IconButton
           aria-label={`Edit what you share with ${orgName}`}
           size="md"
@@ -253,7 +262,11 @@ export function ActiveOrganizationsSection(): React.ReactElement {
   const [rows, setRows] = useState<Row[]>([]);
   const [editTarget, setEditTarget] = useState<Row | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<Row | null>(null);
+  const [activityTarget, setActivityTarget] = useState<Row | null>(null);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
+
+  // Ref map for "View activity" buttons — used to return focus on modal close.
+  const activityButtonRefs = useRef<Map<string, React.RefObject<HTMLElement | null>>>(new Map());
 
   const toastRef = useRef(toast);
   toastRef.current = toast;
@@ -434,15 +447,22 @@ export function ActiveOrganizationsSection(): React.ReactElement {
         </Card>
       ) : (
         <ul className="space-y-2 list-none p-0">
-          {rows.map((row) => (
-            <OrgRow
-              key={row.id}
-              row={row}
-              exiting={exitingIds.has(row.id)}
-              onEdit={setEditTarget}
-              onRevoke={setRevokeTarget}
-            />
-          ))}
+          {rows.map((row) => {
+            // Lazy-create a stable ref for each row's "View activity" button.
+            if (!activityButtonRefs.current.has(row.id)) {
+              activityButtonRefs.current.set(row.id, React.createRef<HTMLElement>());
+            }
+            return (
+              <OrgRow
+                key={row.id}
+                row={row}
+                exiting={exitingIds.has(row.id)}
+                onEdit={setEditTarget}
+                onRevoke={setRevokeTarget}
+                onViewActivity={setActivityTarget}
+              />
+            );
+          })}
         </ul>
       )}
 
@@ -459,6 +479,15 @@ export function ActiveOrganizationsSection(): React.ReactElement {
         onClose={() => setRevokeTarget(null)}
         onConfirm={handleRevoke}
       />
+
+      {activityTarget && (
+        <PatientActivityModal
+          orgId={activityTarget.org_id}
+          orgName={activityTarget.orgs.name}
+          onClose={() => setActivityTarget(null)}
+          triggerRef={activityButtonRefs.current.get(activityTarget.id)}
+        />
+      )}
     </div>
   );
 }
