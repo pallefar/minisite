@@ -258,16 +258,140 @@ These cut across multiple workstreams. Each future phase's CONTEXT.md must addre
 2. **Pharmacology projection paywall at GA or post-launch test?** — synthesizer recommends test in v1.2.x patches not GA. Lock at Phase 2 CONTEXT.md.
 3. **Page builder embed-provider blocks (Calendly / YouTube / Tally) at v1.2 or v1.3?** — synthesizer recommends v1.3 follow-up. Lock at Phase 3 CONTEXT.md.
 
+
 ---
 
 ## Traceability
 
-REQ-ID → Phase mapping is filled by `gsd-roadmapper` in step 10 of `/gsd-new-milestone`. Pending roadmap creation.
+REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs → 12 phases).
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| (pending — to be filled by gsd-roadmapper) | | |
+| DS-01 | Phase 13 | Pending |
+| DS-02 | Phase 13 | Pending |
+| DS-03 | Phase 13 | Pending |
+| DS-04 | Phase 13 | Pending |
+| DS-05 | Phase 13 | Pending |
+| DS-06 | Phase 13 | Pending |
+| DS-07 | Phase 13 | Pending |
+| DS-08 | Phase 13 | Pending |
+| DS-09 | Phase 13 | Pending |
+| DS-10 | Phase 13 | Pending |
+| DS-11 | Phase 13 | Pending |
+| DS-12 | Phase 13 | Pending |
+| MOBILE-01 | Phase 16 | Pending |
+| MOBILE-02 | Phase 16 | Pending |
+| MOBILE-03 | Phase 16 | Pending |
+| MOBILE-04 | Phase 16 | Pending |
+| MOBILE-05 | Phase 16 | Pending |
+| MOBILE-06 | Phase 16 | Pending |
+| MOBILE-07 | Phase 16 | Pending |
+| MOBILE-08 | Phase 16 | Pending |
+| MOBILE-09 | Phase 16 | Pending |
+| MOBILE-10 | Phase 16 | Pending |
+| WATCH-01 | Phase 21 | Pending |
+| WATCH-02 | Phase 21 | Pending |
+| WATCH-03 | Phase 21 | Pending |
+| WATCH-04 | Phase 21 | Pending |
+| WATCH-05 | Phase 21 | Pending |
+| WATCH-06 | Phase 21 | Pending |
+| WATCH-07 | Phase 21 | Pending |
+| WATCH-08 | Phase 21 | Pending |
+| HEALTH-01 | Phase 18 | Pending |
+| HEALTH-02 | Phase 18 | Pending |
+| HEALTH-03 | Phase 18 | Pending |
+| HEALTH-04 | Phase 18 | Pending |
+| HEALTH-05 | Phase 18 | Pending |
+| HEALTH-06 | Phase 18 | Pending |
+| HEALTH-07 | Phase 18 | Pending |
+| HEALTH-08 | Phase 18 | Pending |
+| ADMIN-01 | Phase 22 | Pending |
+| ADMIN-02 | Phase 22 | Pending |
+| ADMIN-03 | Phase 22 | Pending |
+| ADMIN-04 | Phase 22 | Pending |
+| ADMIN-05 | Phase 22 | Pending |
+| ADMIN-06 | Phase 22 | Pending |
+| ADMIN-07 | Phase 22 | Pending |
+| ADMIN-08 | Phase 22 | Pending |
+| MONEY-01 | Phase 14 | Pending |
+| MONEY-02 | Phase 14 | Pending |
+| MONEY-03 | Phase 14 | Pending |
+| MONEY-04 | Phase 14 | Pending |
+| MONEY-05 | Phase 14 | Pending |
+| MONEY-06 | Phase 16 | Pending |
+| MONEY-07 | Phase 19 | Pending |
+| MONEY-08 | Phase 14 | Pending |
+| MONEY-09 | Phase 14 | Pending |
+| MONEY-10 | Phase 19 | Pending |
+| PAGE-01 | Phase 15 | Pending |
+| PAGE-02 | Phase 15 | Pending |
+| PAGE-03 | Phase 15 | Pending |
+| PAGE-04 | Phase 15 | Pending |
+| PAGE-05 | Phase 15 | Pending |
+| PAGE-06 | Phase 15 | Pending |
+| PAGE-07 | Phase 15 | Pending |
+| PAGE-08 | Phase 15 | Pending |
+| PAGE-09 | Phase 15 | Pending |
+| AFF-01 | Phase 19 | Pending |
+| AFF-02 | Phase 19 | Pending |
+| AFF-03 | Phase 19 | Pending |
+| AFF-04 | Phase 19 | Pending |
+| AFF-05 | Phase 19 | Pending |
+| AFF-06 | Phase 19 | Pending |
+| AFF-07 | Phase 19 | Pending |
+| AFF-08 | Phase 19 | Pending |
+| AFF-09 | Phase 19 | Pending |
+| AFF-10 | Phase 19 | Pending |
+| AD-01 | Phase 20 | Pending |
+| AD-02 | Phase 20 | Pending |
+| AD-03 | Phase 20 | Pending |
+| AD-04 | Phase 20 | Pending |
+| AD-05 | Phase 20 | Pending |
+| AD-06 | Phase 20 | Pending |
+| AD-07 | Phase 20 | Pending |
+| AD-08 | Phase 20 | Pending |
+| AD-09 | Phase 20 | Pending |
+| AD-10 | Phase 20 | Pending |
+| AD-11 | Phase 20 | Pending |
+| AD-12 | Phase 20 | Pending |
+| PUSH-01 | Phase 17 | Pending |
+| PUSH-02 | Phase 17 | Pending |
+| PUSH-03 | Phase 17 | Pending |
+| PUSH-05 | Phase 17 | Pending |
+| DEL-01 | Phase 22 | Pending |
+| DEL-02 | Phase 22 | Pending |
+| GDPR-01 | Phase 22 | Pending |
+| GDPR-02 | Phase 22 | Pending |
+| GDPR-03 | Phase 22 | Pending |
+| ON-01 | Phase 22 | Pending |
+| ON-02 | Phase 22 | Pending |
+| ON-03 | Phase 22 | Pending |
+| DEBT-01 | Phase 23 | Pending |
+| DEBT-02 | Phase 23 | Pending |
+| DEBT-03 | Phase 23 | Pending |
+| DEBT-04 | Phase 23 | Pending |
+| DEBT-05 | Phase 23 | Pending |
+
+### Coverage Summary
+
+| Phase | REQ-IDs | Count |
+|-------|---------|-------|
+| Phase 12 | (none — bootstrap/prereq; owns cross-cutting concerns 2/3/5/6/7) | 0 |
+| Phase 13 | DS-01..12 | 12 |
+| Phase 14 | MONEY-01, 02, 03, 04, 05, 08, 09 | 7 |
+| Phase 15 | PAGE-01..09 | 9 |
+| Phase 16 | MOBILE-01..10, MONEY-06 | 11 |
+| Phase 17 | PUSH-01, 02, 03, 05 | 4 |
+| Phase 18 | HEALTH-01..08 | 8 |
+| Phase 19 | AFF-01..10, MONEY-07, MONEY-10 | 12 |
+| Phase 20 | AD-01..12 | 12 |
+| Phase 21 | WATCH-01..08 | 8 |
+| Phase 22 | ADMIN-01..08, DEL-01, 02, GDPR-01..03, ON-01..03 | 16 |
+| Phase 23 | DEBT-01..05 | 5 |
+| **Total** | | **104** |
+
+**Coverage:** 104/104 v1.2 REQ-IDs mapped to exactly one phase. No orphans. No duplicates.
 
 ---
 
-*REQUIREMENTS.md created 2026-05-13 from `/gsd-new-milestone` per-category review. 104 active REQ-IDs across 11 workstreams.*
+*REQUIREMENTS.md created 2026-05-13 from `/gsd-new-milestone` per-category review. 104 active REQ-IDs across 11 workstreams. Traceability mapping completed by `gsd-roadmapper` 2026-05-13.*

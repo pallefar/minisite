@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Polished Launch + Full Monetization + Ad Network
 status: planning
-last_updated: "2026-05-13T10:50:55.052Z"
+last_updated: "2026-05-13T13:00:00.000Z"
 last_activity: 2026-05-13
 progress:
-  total_phases: 0
+  total_phases: 12
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,29 +17,33 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-10)
+See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 10 — clinic-operator-surface (ready to execute)
+**Current focus:** Phase 12 (Bootstrap & Bundle Foundations) — Not started
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 12 (Bootstrap & Bundle Foundations)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-13 — Milestone v1.2 started
+Status: Not started — roadmap created 2026-05-13; ready for `/gsd-plan-phase 12`
+Last activity: 2026-05-13 — Milestone v1.2 roadmap created (12 phases, 104 REQ-IDs mapped)
 
-### Phase 9 close (2026-05-13)
+### v1.1 close (2026-05-13)
 
-All 11 plans landed on `origin/main` in 6 waves (Wave 1 schema + Wave-0 scaffolds → Wave 2 four parallel UI slices + patient-side scope → Wave 3 two Edge Functions + WorkspaceSwitcher → Wave 4 e2e + close). 14 migrations live on `ytnsipxxmzgaebkqmokp` (000000-000013); 16 SECURITY DEFINER RPCs + has_permission helper + Realtime broadcast trigger + realtime.messages RLS deployed. Bundle topology held: index 12.39 kB gz (Phase 9 working ceiling 24.5 kB); clinic 16.17 kB gz; clinic-settings 7.78 kB gz; clinic-invite ~4.84 kB gz; vendor-supabase 53 kB gz. 16 RTL files + 18 Deno tests + 15 Deno tests (clinic-photo) + 9 Playwright fixtures (Pitfall #8 + photo-access + role-grid) + 7 Playwright fixtures (revoke-latency + realtime negative-space) authored. Deferred items captured below.
+Milestone v1.1 SHIPPED + ARCHIVED + TAGGED 2026-05-13. Tag `v1.1` pushed to `pallefar/minisite`; archive commit `44ad476` on `origin/main`. 11/11 phases · 76/76 plans · 497 commits · +174,668 / −7,207 LOC · 4-day sprint. Onboarding summary at `.planning/reports/MILESTONE_SUMMARY-v1.1.md`; archived ROADMAP at `.planning/milestones/v1.1-ROADMAP.md`; audit at `.planning/v1.1-MILESTONE-AUDIT.md` (verdict `tech_debt`, 48/49 REQ-IDs satisfied).
 
-Progress: [█████████░] 96%
+### v1.2 milestone open (2026-05-13)
+
+12 phases (numbered 12-23, continuing from v1.1) covering 104 REQ-IDs across 11 workstreams. Granularity `fine`, mode `mvp`. Synthesized research at `.planning/research/SUMMARY.md` (HIGH confidence, 6 disagreements resolved). Three open questions to lock at plan-phase: clinic seat metering (Phase 14), pharmacology paywall (Phase 14), embed-provider blocks (Phase 15). Three phases flagged HIGH research priority: Phase 16 (App Store review), Phase 20 (AdMob+GAM+AdSense ETL), Phase 21 (Swift + Kotlin surface). Cross-cutting concerns owned per phase: affiliate ledger × IRS retention (P19+P22 jointly), no-ads-on-B2B (P12 + P20), bundle ceiling 24.5/50 kB gz (P12 sets, every later phase respects), Two-tunnel firewall (P18 implements, P20 audits), App Store Review Checklist (P16 hard gate; P20 + P21 contribute), Resend domain (P12 prereq), Capacitor process model (P16 + P18 + P20 CONTEXT).
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 6
+- Total plans completed (v1.2): 0
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -47,21 +51,25 @@ Progress: [█████████░] 96%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
-| 01 | 6 | - | - |
+| 12 | 0 | — | — |
+| 13 | 0 | — | — |
+| 14 | 0 | — | — |
+| 15 | 0 | — | — |
+| 16 | 0 | — | — |
+| 17 | 0 | — | — |
+| 18 | 0 | — | — |
+| 19 | 0 | — | — |
+| 20 | 0 | — | — |
+| 21 | 0 | — | — |
+| 22 | 0 | — | — |
+| 23 | 0 | — | — |
 
 **Recent Trend:**
 
-- Last 5 plans: —
+- Last 5 plans: — (no plans executed in v1.2 yet)
 - Trend: —
 
 *Updated after each plan completion*
-| Phase 04 P01 | 30 | 6 tasks | 7 files |
-| Phase 04 P03 | ~3.0h | 6 tasks | 16 files |
-| Phase 07 P05 | 18min | 4 tasks | 4 files |
-| Phase 07 P03 | 21 | 2 tasks | 4 files |
-| Phase 07 P04 | 435 | 2 tasks | 5 files |
-| Phase 07 P07 | 150min | - tasks | - files |
 
 ## Accumulated Context
 
@@ -70,30 +78,11 @@ Progress: [█████████░] 96%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Project init: Backend platform = Supabase (not Cloudflare Workers + Better Auth + Neon — supersedes research synthesis)
-- Project init: Sync = Supabase Realtime + Zustand local cache + IndexedDB offline queue (NOT TanStack Query)
-- Project init: Photos move to Supabase Storage in v1 (was v2 in synthesizer's plan)
-- Project init: AI proxy runtime = Supabase Edge Functions (Deno) — same proxy pattern as research-recommended Cloudflare Worker, different runtime
-- Project init: Vertical MVP phase mode (each phase = end-to-end user-visible slice)
-- Roadmap: 10 phases at fine granularity; visible compliance copy lands Phase 2; legal-counsel-led compliance foundations sit at Phase 7 (parallelizable with cloud work)
-- [Phase ?]: Phase 4 mid-execution pivot: Anthropic Claude Sonnet → Moonshot Kimi K2 (direct provider call, not Vercel AI Gateway); see 04-ADDENDUM-MOONSHOT.md
-- [Phase ?]: Supabase project ytnsipxxmzgaebkqmokp provisioned in eu-west-1; rate-limit thresholds 30/60/200, anon cleanup pg_cron daily 03:00 UTC (30-day retention)
-- [Phase ?]: Audit-trail ordering: refused user inputs persist to ai_messages BEFORE the refusal short-circuit fires; refusal also persisted as assistant turn with model='refusal-precheck' (T-04-01 evidence inspectable post-mortem)
-- [Phase ?]: PostgreSQL reserved keyword 'window' requires double-quoting throughout the rate_limit_counters migration (column, PK, INSERT, ON CONFLICT); function parameter p_window is unaffected
-- [Phase ?]: ESLint v9 flat-config refuses to lint files outside config base path; shared/ quality coverage delegated to typecheck + vitest + CI deno-test job
-- [Phase ?]: 70-row adversarial corpus (vs 50 floor): 25 dose-change + 5 prompt-injection + 5 system-extraction + 5 emotional-manipulation + 30 benign-pass
-- [Phase ?]: Plan 07-05: HBNR runbook + founder acknowledgement; ROADMAP SC#3 corrected (no FTC registration exists)
-- [Phase ?]: 07-03 D-01: Hand-rolled WMHMDA CHDP from RCW 19.373.030 primary source per Researcher KF #7 (Termly/iubenda free outputs both fold §4 third parties); manifest-pinned drift gate in e2e/legal-pages.spec.ts
-- [Phase ?]: 07-07 ships account-delete RPC + T+30 pg_cron; 4 deviation migrations handle Supabase quirks — search_path/digest, storage delete bypass, audit cascade FK via custom GUC
-- [Phase ?]: RESTRICTIVE Storage RLS on photos-pending-shred/% — defense-in-depth: even original owner cannot read their pending-shred photos before T+30 hard-delete — D-03 crypto-shred guarantee on free-tier
-- [Phase 9]: has_permission(user_id, org_id, permission_key) SECURITY DEFINER STABLE helper is the SINGLE RLS dispatch primitive for clinic-scoped tables; all RLS policies on memberships/roles/role_permissions/realtime.messages/storage delegate to it (no inline tenancy checks in policies)
-- [Phase 9]: Realtime cross-tenant subscribe uses private channels + realtime.broadcast_changes trigger + realtime.messages RLS — supersedes postgres_changes for any cross-tenant subscription (operator org channel + patient user channel)
-- [Phase 9]: org-deletion cascades require BOTH `app.suppress_audit` GUC + `storage.allow_delete_query` GUC; applied preventively in delete_org RPC (extends Phase 7 finalize_account_deletion gotcha pattern to org-scope)
-- [Phase 9]: D-13 accepted tradeoff — clinic-photo signed URLs have 5-min TTL; revoke kills NEW mints immediately (Layer 2 DB check) but existing URLs stay valid until natural TTL expiry. UX overlay (Realtime broadcast) evicts the operator's open tab within 1s
-- [Phase 9]: Pitfall #11 invariant — clinic-* Edge Functions use JWT-or-token-in-URL auth; NO cookies; CORS allow `*` Origin acceptable (no credentials means no SOP risk)
-- [Phase 9]: Wave-0 ownership rule (B-5, plan-checker iter 1) — the plan that creates Wave-0 scaffolds (App.tsx routing + stub files + RLS proofs + migration push) ALSO flips wave_0_complete + nyquist_compliant in VALIDATION.md immediately after the scaffolds are verified present (Plan 09-01 Task 2). Phase-close plan only flips status: complete (Plan 09-11)
-- [Phase 9]: D-02 anti-enumeration invariant (W-1 reinforcement) — universal `{ok: true, invite_id}` server response shape + universal "Invitation sent" UI copy at every send-invite surface. No branching on email-existence anywhere in the call chain. Source-scan tests + RTL invariant tests gate this
-- [Phase 9]: Stub-overwrite ownership pattern (B-2, plan-checker iter 1) — Wave-1 plan creates App.tsx routing + 4 stub component files; Wave-2 plans OVERWRITE stub bodies in place (never touch App.tsx). Git-diff invariant verified at every Wave-2 plan close
+- v1.2 milestone open (2026-05-13): 12 phases at fine granularity, mvp mode; phase numbering continues from v1.1 (12-23, no reset)
+- v1.2 stack additions (from `.planning/research/STACK.md`): Capacitor 8 + RevenueCat (iOS+Android IAP) + Stripe direct (web subs + clinic seats + Connect Express affiliate payouts) + AdMob (`@capacitor-community/admob@8.0.0`) + GAM/AdSense via GPT script + `@capgo/capacitor-health` (HealthKit + Health Connect single plugin) + native Apple Watch (SwiftUI + WatchConnectivity + SwiftData) + native WearOS (Kotlin + Wear Compose + Tiles 1.4) + `web-push@3.6.7` + `vanilla-cookieconsent@3.1.0` + `@dnd-kit/core@6.3.1` + `react-hook-form@7.75.0` + `jspdf@3.1.0`
+- v1.2 architecture: Polyrepo+ (single repo, sibling native shells; NO Turborepo); page-builder is "Editor/Renderer split with in-house dnd-kit"; ad-firewall named "Two-tunnel firewall"; ad-serving named "Server-decides config, client-fetches creative + hybrid mediation"; watch sync named "Cloud-primary + WatchConnectivity for live"; push named "Single Edge Function push-fanout"; affiliate attribution named "Server-side first-party cookie via Edge Function + Stripe client_reference_id"; account-deletion named "Single Edge Function account-delete with explicit retention exceptions"
+- v1.2 hard constraints: Apple §5.1.3 (HealthKit → ads) + §3.1.1 (Stripe in-app subs forbidden) + §5.1.1(v) (in-app account delete) + GDPR cookie consent + DSAR + IRS 1099 7yr retention
+- v1.2 bundle: 24.5 kB gz target on index; 50 kB hard ceiling; all new SDKs via `sync-defer.ts`; per-chunk ceilings declared in Phase 12
 
 ### Pending Todos
 
@@ -101,14 +90,24 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 7 (Compliance Foundations) requires privacy-law counsel engagement — not engineering-only; treat as external dependency to start sourcing during Phase 1–2 so review is queued before broad public launch
-- Phase 2 includes a hosting-target decision (Vercel / Cloudflare Pages / Netlify) that was deferred to deploy phase per PROJECT.md — surface during Phase 2 planning
-- v2 codebase has zero tests (per CONCERNS.md); Phase 1 must wire Vitest + CI before Phase 3 can land the pharmacology test corpus
-- Hardcoded `claude-sonnet-4-6` model ID in `src/lib/ai.ts:22` is bogus and 404s — Phase 4 fixes; if any user-facing AI work happens before Phase 4, surface a "AI temporarily unavailable" toast
-- REQUIREMENTS.md footer claims 42 v1 requirements but actual count is 48 across the 8 categories — corrected during traceability mapping
-- Wave-2 cross-contamination: commit ee5ee5e bundled 07-02 sibling staged files into 07-05 Task 2 commit (single-repo checkout, no per-agent isolation). See 07-05-SUMMARY.md Deviations §1.
-- **[2026-05-12] Phase 8 plan-phase BLOCKER (repeated):** Two consecutive background-runner spawns for `gsd-plan-phase 8 --auto` have now confirmed the runner lacks the `Task` (subagent-spawning) tool — only `mcp__plugin_mempalace_mempalace__mempalace_diary_write` matched an Agent/subagent ToolSearch. The plan-phase workflow requires spawning `gsd-phase-researcher`, `gsd-planner`, and `gsd-plan-checker` subagents — none can be invoked here. No `RESEARCH.md`, `VALIDATION.md`, or `PLAN.md` files were created on either attempt. **Resolution:** re-run `/gsd-plan-phase 8 --auto` from a foreground Claude Code session (or a runner with the Task tool enabled) so the orchestrator can spawn subagents. Phase 8 directory state at blocker time: `08-CONTEXT.md` + `08-DISCUSSION-LOG.md` present; `has_research=false`, `has_plans=false`. MVP mode is active (set via ROADMAP `**Mode:** mvp`); planner must honor MVP slice ordering when re-run. Stop spawning background runners for plan-phase until the runtime confirms `Task` tool availability.
-- **[2026-05-12] Phase 9 plan-phase BLOCKER (same root cause):** Background-runner instance for `gsd-plan-phase 9 --auto` also lacks the `Task` (subagent-spawning) tool. `ToolSearch select:Task` returned "No matching deferred tools found"; no `Agent`/`Task` tool surfaced in the runner's catalog. The plan-phase workflow at `~/.claude/get-shit-done/workflows/plan-phase.md` requires spawning `gsd-phase-researcher` (step 5), `gsd-pattern-mapper` (step 7.8), `gsd-planner` (step 8), and `gsd-plan-checker` (verification loop in step 9) — none can be invoked. No `RESEARCH.md`, `PATTERNS.md`, `VALIDATION.md`, or `PLAN.md` files were created for Phase 9. **Resolution:** re-run `/gsd-plan-phase 9 --auto` from a foreground Claude Code session (or a runner with the Task tool enabled). Phase 9 directory state at blocker time: `09-CONTEXT.md` (18 locked decisions D-01..D-18; D-07 pulls full role system forward from Phase 10) + `09-DISCUSSION-LOG.md` present; `has_research=false`, `has_plans=false`. Phase 9 mode is `mvp` per orchestrator brief; planner must honor MVP/SPIDR slice ordering and the ROADMAP Phase 9/Phase 10 scope-shift (Phase 10 shrinks to roster ranking + drill-in + audit-log surface). ROADMAP.md Phase 9 + Phase 10 entries also need updating to reflect the D-07 scope expansion BEFORE finalizing plans. Stop spawning background runners for plan-phase until runtime confirms `Task` tool availability — pattern is now confirmed across two consecutive phases (8 and 9).
+- **Phase 12 prereq**: Resend domain `app.leanshot.app` verification (carry-over from v1.1) — must complete before Phase 22 lifecycle email work
+- **Phase 12 prereq**: Hash-hyphen bug in `assert-clinic-bundle-budget.sh` must be fixed before per-chunk ceilings can be declared (per `reference_bundle_budget_hash_hyphen.md`)
+- **Phase 16 research**: App Store review pitfalls compound (Pitfalls 1, 2, 3, 8, 9, 14, 19, 26 + SKAdNetwork). Recommend `/gsd-research-phase 16` before plan-phase
+- **Phase 18 ↔ Phase 20 contract**: Two-tunnel firewall MUST exist as code (ESLint + runtime + manifest) before any AD-* code lands. Phase 18 implements; Phase 20 audits. Sequencing is non-negotiable
+- **Phase 20 research**: AdMob+GAM+AdSense Reporting ETL is a net-new surface. Recommend `/gsd-research-phase 20`
+- **Phase 21 research**: New Swift + Kotlin surface area (Apple Watch SwiftUI + WearOS Kotlin/Compose). Recommend `/gsd-research-phase 21`
+- **Phase 19 + Phase 22 joint owner**: Affiliate ledger × IRS 1099 7yr retention requires `ON DELETE SET NULL` + anonymization (NEVER cascade). Both phases' CONTEXT.md must cross-reference Pitfall 7
+- **Carry-over runner-pool quirk**: `/gsd-manager` background plan/execute dispatch still lacks the Task tool (per memory `reference_gsd_tooling_quirks.md`). Use foreground Claude Code session for plan-phase + execute-phase
+
+### v1.1 Tech Debt Carried into Phase 23
+
+| Item | Source | Status |
+|------|--------|--------|
+| CLINIC-07 operator drill-in "View activity" dead button | v1.1 audit (1 partial REQ-ID) | Open — Phase 23 |
+| `s.user!` non-null assertion audit (15 occurrences / 14 files) | Phase 7 inventory + memory | Open — Phase 23 |
+| Photo trash flow | v1.1 deferred-items | Open — Phase 23 |
+| 6 deferred tests batch-fix | `.planning/deferred-tests.md` + `feedback_defer_then_batch_fix_pattern.md` | Open — Phase 23 |
+| knip + ts-unused-exports CI gate (anti-pattern #6 tooling) | Plan 10-06 WORKSPACE_LOADED defect | Open — Phase 23 |
 
 ## Quick Tasks Completed
 
@@ -117,24 +116,22 @@ None yet.
 | 2026-05-11 | fix-focus-loop-and-console | FocusCard infinite render loop, PostHog placeholder init, deprecated mobile-web-app meta |
 | 2026-05-11 | fix-insights-and-home-render-loop | InsightsTab + HomeTab infinite render loops (`generateInsights` as Zustand selector) |
 | 2026-05-11 | eslint-guard-unstable-selectors | ESLint `no-restricted-syntax` rule blocking `useStore(generateInsights\|pickFocus)` |
-| 2026-05-11 | add-dist-marketing-to-eslint-ignores | Added `dist-marketing/**` to ESLint global ignores — eliminates ~1378 spurious errors from `npx eslint .` |
+| 2026-05-11 | add-dist-marketing-to-eslint-ignores | Added `dist-marketing/**` to ESLint global ignores |
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Items acknowledged and carried forward from v1.1 close (folded into v1.2 phase ownership above):
 
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| Phase 9 infra | Resend domain verification + RESEND_FROM swap (currently sandbox `onboarding@resend.dev` — clinic invites to real patients won't dispatch until domain verified) | Open — orchestrator/user action | 2026-05-13 (Plan 09-06 close) |
-| Phase 9 CI | 6 RLS impersonation specs (rls-orgs/memberships/invites/roles/role-permissions/org-logos-storage) authored but not RUN against live DB — need SUPABASE_URL + SERVICE_ROLE_KEY env in CI | Open — CI infra | 2026-05-13 (Plan 09-01 close) |
-| Phase 9 tests | OrgCreateFlow taken-slug test fixme'd (mockReturnValueOnce queue carry-over; fix: mockReset in beforeEach) | Open — Phase 9 verifier at v1.2 milestone close | 2026-05-13 (Plan 09-02 close, `deferred-tests.md`) |
-| Phase 9 ops | bundle-budget script hash-hyphen glob fix landed Plan 09-03; verify it survives Phase 10 manualChunks additions | Resolved Plan 09-03; monitor | 2026-05-13 |
-| Phase 9 CI gate | GitHub branch-protection job for `share-security-drill` (Phase 8 carry-over) | Open — Phase 10 entry | 2026-05-13 |
-| Phase 9 hardening | Pre-existing 7 SharePage lint errors flagged in Phase 8 ship; clinic surfaces add 0 new lint errors | Open — hardening pass | 2026-05-13 |
-| Phase 9 hardening | `s.user!` latent assertion audit (14 files / 15 occurrences from Phase 7 inventory) | Open — Phase 10+ hardening | 2026-05-13 |
+| Category | Item | Status | Deferred At | New Owner |
+|----------|------|--------|-------------|-----------|
+| Phase 9 infra (v1.1) | Resend domain verification + RESEND_FROM swap | Open | 2026-05-13 (v1.1 Plan 09-06 close) | **Phase 12** (v1.2) |
+| Phase 9 CI (v1.1) | 6 RLS impersonation specs not run against live DB | Open — CI infra | 2026-05-13 | **Phase 23** (sweep) |
+| Phase 9 CI gate (v1.1) | GitHub branch-protection for `share-security-drill` | Open | 2026-05-13 | **Phase 23** (sweep) |
+| Phase 9 hardening (v1.1) | 7 pre-existing SharePage lint errors | Open | 2026-05-13 | **Phase 23** (sweep) |
+| Phase 9 hardening (v1.1) | `s.user!` latent assertion audit (15/14) | Open | 2026-05-13 | **Phase 23 — DEBT-02** |
 
 ## Session Continuity
 
-Last session: 2026-05-13T12:00:00.000Z
-Stopped at: Phase 9 close (11/11 plans + 09-SUMMARY.md + ROADMAP/REQUIREMENTS sync); Phase 10 plan-phase already complete in parallel — ready to execute
-Resume file: .planning/phases/10-clinic-operator-surface/10-01-PLAN.md
+Last session: 2026-05-13T13:00:00.000Z
+Stopped at: v1.2 roadmap created — 12 phases, 104 REQ-IDs mapped to phases, REQUIREMENTS.md traceability table populated
+Resume file: Run `/gsd-plan-phase 12` from a foreground Claude Code session (background runners still lack Task tool per `reference_gsd_tooling_quirks.md`)
