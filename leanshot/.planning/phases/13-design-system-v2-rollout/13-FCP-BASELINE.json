@@ -1,0 +1,15 @@
+{
+  "fcp_ms": 586,
+  "lcp_ms": 594,
+  "captured_sha": "44ad4766deb550935db7d7695f7ad73e5c29719c",
+  "captured_at": "2026-05-13T17:18:00Z",
+  "captured_url": "https://leanshot-app.vercel.app",
+  "lhci_version": "0.15.1",
+  "preset": "desktop",
+  "tolerance_pct": 5,
+  "raw_runs": {
+    "fcp_ms_sorted": [585, 586, 809],
+    "lcp_ms_sorted": [593, 594, 821]
+  },
+  "notes": "Pre-Phase-13 baseline captured against the leanshot-app Vercel production deploy (origin/main SHA 44ad4766). Median of 3 desktop-preset Lighthouse runs at LHCI v0.15.1. Used by .github/workflows/ci.yml lighthouse job + scripts/assert-fcp-lcp-delta.sh to fail any PR whose FCP or LCP delta exceeds tolerance_pct."
+}

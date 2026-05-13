@@ -471,3 +471,10 @@ jobs:
         run: npx --yes @lhci/cli@0.15.1 autorun --collect.url=${{ steps.wait.outputs.url }}
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+      - name: Assert FCP/LCP delta vs Phase 13 baseline (D-07)
+        # `lhci autorun` writes lhr-*.json into ./.lighthouseci at the CI working
+        # directory (repo root, where actions/checkout@v4 placed us). The script
+        # reads tolerance from leanshot/.planning/phases/13-design-system-v2-rollout/13-FCP-BASELINE.json
+        # (NOT hardcoded), so future phases can re-baseline by editing the JSON
+        # only. Fails the PR if FCP or LCP regresses by more than tolerance_pct (5%).
+        run: bash leanshot/scripts/assert-fcp-lcp-delta.sh --lhci-dir=.lighthouseci --baseline=leanshot/.planning/phases/13-design-system-v2-rollout/13-FCP-BASELINE.json

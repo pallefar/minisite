@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#EFEBE0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#F2EDE0" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0B1413" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -16,25 +16,27 @@
       Phase 2.1 perf fix: load font CSS NON-render-blocking. Preload-as-style +
       print-onload swap is the canonical pattern (Filament Group). Combined with
       `display=swap` in the URL, fallback system fonts render immediately and
-      swap to Inter/Fraunces/JetBrains Mono once the font files arrive — without
+      swap to Geist/Geist Mono/Fraunces once the font files arrive — without
       ever blocking FCP/LCP. The <noscript> path keeps fonts working for any
-      crawler/browser without JS.
+      crawler/browser without JS. (Phase 13 v2: swapped Inter+JetBrains Mono
+      to Geist+Geist Mono; Fraunces unchanged. All three <link> URLs MUST stay
+      byte-identical — D-10 + chat1.md landmine 2.)
     -->
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap"
     />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap"
       />
     </noscript>
   </head>
