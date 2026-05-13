@@ -80,7 +80,32 @@ export default defineConfig(({ mode }) => {
             // (.github/workflows/ci.yml) is the regression-prevention layer.
             if (id.includes('src/components/share/')) return 'share';
 
+            // Phase 9 Plan 09-02 — group operator-side clinic surface into a
+            // single `clinic` lazy chunk. Plan 09-04 will own the
+            // `clinic-invite` group (anonymous patient flow), Plan 09-03 the
+            // `clinic-settings` group. Splitting matters because each chunk
+            // pays per-HTTP + parse overhead; grouping by surface keeps the
+            // index gz ceiling intact (per .planning/phases/09-clinic-b2b-
+            // foundations/09-01-PLAN.md bundle topology).
+            if (id.includes('src/components/clinic-invite/')) return 'clinic-invite';
+            if (id.includes('src/components/clinic/settings/')) return 'clinic-settings';
+            if (id.includes('src/components/clinic/')) return 'clinic';
+
             if (id.includes('node_modules')) {
+              // Phase 9 Plan 09-02 — pin @supabase/* to its own vendor chunk
+              // so the operator-clinic surface (which static-imports
+              // src/lib/supabase via src/lib/clinic.ts) doesn't drag the
+              // full Realtime+Postgrest+GoTrue bundle into the 12 kB clinic
+              // chunk ceiling. Multiple lazy chunks consume supabase-js
+              // (clinic + auth-loaded routes + lazy `sync`) so a shared
+              // vendor-supabase chunk is correct.
+              if (
+                /node_modules\/(@supabase\/(supabase-js|realtime-js|postgrest-js|auth-js|gotrue-js|storage-js|functions-js|node-fetch))(\/|$)/.test(
+                  id,
+                )
+              ) {
+                return 'vendor-supabase';
+              }
               if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) {
                 return 'vendor-react';
               }
