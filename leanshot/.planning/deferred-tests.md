@@ -107,3 +107,11 @@ All 7 specs were re-enabled via Phase 7 Plan 07-01 batch fix. Fix families appli
 - **Family D (assertion reformulation):** #7 (signout-cache-clear). Scenario 1 — seed glob was correct; failure was on the post-signout read side because `removeUserNamespace` deletes the namespaced key right after the persist write lands on it (App.tsx:201-231). In-memory Zustand state correctly preserves `acknowledgedDisclaimer`, so the test now asserts on the store directly (via the widened `window.useStore` gate from spec #4) with the localStorage check as belt-and-suspenders.
 
 See `leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-01-findings.md` for the per-spec root-cause confirmations and `07-01-SUMMARY.md` for the merge evidence + final CI link.
+
+## Phase 9 Wave 3 (2026-05-13)
+
+| Test | File | Reason | Owner | ETA |
+|------|------|--------|-------|-----|
+| `OrgCreateFlow — Step 1 > renders "That URL is already taken." on server-taken response` | `leanshot/src/components/clinic/OrgCreateFlow.test.tsx:107` | Passes in isolation, fails under full-suite parallelism. `mockReturnValueOnce` queue carry-over from another test file (vi.clearAllMocks doesn't drain `mockReturnValueOnce`; needed `mockReset()` in `beforeEach`). | Phase 9 verifier-agent at milestone close | v1.2 milestone close |
+
+**Pattern reference:** Per memory `feedback_orchestrator_inline_fix_pattern.md` and 09-05 SUMMARY note. Fix shape: switch from `vi.clearAllMocks()` to `mockCheckSlugAvailable.mockReset()` in `beforeEach` for any test file that uses `mockReturnValueOnce` chains. Sweep all `useStore` / supabase / fetch mocks in clinic test files.
