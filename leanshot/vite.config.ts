@@ -162,7 +162,8 @@ export default defineConfig(({ mode }) => {
       // Phase 4 D-04 — pull in the dual-runtime shared/refusal.test.ts at the
       // repo root so vitest exercises the SAME corpus that the Deno test
       // runner exercises in CI (`supabase/functions/tests/ai-chat-refusal.test.ts`).
-      include: ['src/**/*.test.{ts,tsx}', '../shared/**/*.test.ts'],
+      // Phase 12 D-10/D-11 — extend to include tests/**/*.test.ts for the CSP snapshot test (see leanshot/tests/csp/csp-snapshot.test.ts).
+      include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.ts', '../shared/**/*.test.ts'],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
       // Avoid React 19 StrictMode double-invoke flake (RESEARCH.md Pitfall 6)
       css: false,

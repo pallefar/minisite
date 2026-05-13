@@ -1,0 +1,11 @@
+base-uri 'self';
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://*.posthog.com https://api.anthropic.com;
+default-src 'none';
+font-src 'self' data: https://fonts.gstatic.com;
+form-action 'self';
+frame-src 'none';
+img-src 'self' data: blob:;
+object-src 'none';
+script-src 'self';
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+worker-src 'self' blob:;
