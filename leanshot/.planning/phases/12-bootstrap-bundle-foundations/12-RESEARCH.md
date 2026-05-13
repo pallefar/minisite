@@ -752,7 +752,7 @@ curl -s https://api.resend.com/emails \
 
 ---
 
-## 8. Validation Architecture
+## Validation Architecture
 
 ### Test framework
 
