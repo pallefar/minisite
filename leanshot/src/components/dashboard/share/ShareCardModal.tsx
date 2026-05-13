@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useStreaks } from '@/hooks/useStreaks';
 import { useToast } from '@/hooks/useToast';
+import { StreakBadge, type StreakTier } from '@/illustrations/StreakBadge';
 import { todayStr, cn } from '@/lib/helpers';
 import { medLabelShort } from '@/lib/pharmacology';
 import type { ShareData, Template, TemplateId } from '@/lib/share-card/renderer';
@@ -58,6 +59,16 @@ export function ShareCardModal({ open, onClose }: { open: boolean; onClose: () =
 
   if (!u || !data) return null;
 
+  // DS-10: 4-tier streak badge tier derived from bestStreak (days).
+  const tier: StreakTier =
+    data.bestStreak >= 90
+      ? 'gold'
+      : data.bestStreak >= 30
+        ? 'silver'
+        : data.bestStreak >= 7
+          ? 'bronze'
+          : 'locked';
+
   const download = (): void => {
     const c = canvasRef.current;
     if (!c) return;
@@ -84,6 +95,17 @@ export function ShareCardModal({ open, onClose }: { open: boolean; onClose: () =
   return (
     <Modal open={open} onClose={onClose} title="Your progress card" size="md" mobileFullscreen>
       <div className="flex flex-col gap-4 items-center">
+        {/* DS-10: visible streak badge mapped from bestStreak (visible-DOM
+            preview only — canvas template handled by Phase 4 template-bold.ts). */}
+        <div
+          className="flex items-center gap-2 text-[12px] text-[var(--color-text-secondary)]"
+          aria-label={`Best streak ${data.bestStreak} days — ${tier} tier`}
+        >
+          <StreakBadge tier={tier} className="size-10 shrink-0" />
+          <span className="font-semibold">
+            {data.bestStreak} day{data.bestStreak === 1 ? '' : 's'} best streak
+          </span>
+        </div>
         <div className="w-full max-w-[340px] aspect-[9/16] rounded-2xl overflow-hidden shadow-lg bg-[var(--color-hero-bg)]">
           <canvas ref={canvasRef} width={540} height={960} className="w-full h-full block" />
         </div>

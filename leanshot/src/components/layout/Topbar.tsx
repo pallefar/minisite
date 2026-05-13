@@ -1,7 +1,8 @@
-import { Search, Plus, FileDown, Sun, Moon, Menu, Bot } from 'lucide-react';
+import { Search, Plus, FileDown, Sun, Moon, Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Button, IconButton } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
+import { AIAvatar } from '@/illustrations/AIAvatar';
 import { TAB_TITLES } from '@/lib/constants';
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
@@ -96,7 +97,7 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI, onOpenSettings }: To
           size="sm"
           className="md:hidden"
         >
-          <Bot className="size-5" />
+          <AIAvatar size={20} />
         </IconButton>
         <IconButton
           aria-label="Open menu"
