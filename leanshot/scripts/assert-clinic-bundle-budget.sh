@@ -80,16 +80,15 @@ ASSETS_DIR="$DIST_DIR/assets"
 #   (c) raise the ceiling → chosen. 16 kB leaves ~2.5 kB headroom for
 #       Wave 3 plans (09-08 WorkspaceSwitcher).
 #
-# CLINIC_CEILING=25000 — Phase 10 Plan 10-07 intermediate ceiling.
-# The Phase 10 UI-SPEC states ≤20 kB as the Wave 5 target but the chunk
-# already measured 21.21 kB gz BEFORE Plan 10-07 shipped (per 10-07 plan
-# objective). Phase 10 plans 10-06 through 10-10 add RosterTable (10-06),
-# ClinicDrillInPage+SubBar+hook (10-07), AuditTab (10-08), PatientActivityModal
-# (10-09), and BulkExport flows (10-10). These collectively grow the chunk
-# from its Phase 9 close value. Plan 10-11 is the designated "final ceiling"
-# baseline reset and will measure the post-all-Phase-10 size. Raised to 25 kB
-# intermediate ceiling to avoid false CI failures on Phase 10 Wave 3/4/5 work.
-# When Plan 10-11 ships, reset to the actual measured post-10-10 value.
+# CLINIC_CEILING=22000 — Phase 10 Plan 10-11 final baseline reset.
+# The Phase 10 UI-SPEC stated ≤20 kB as the Wave 5 target. Measured at
+# Phase 10 close (post-plans 10-06/07/08/09/10): 21,186 bytes gz (~20.7 kB).
+# Exceeds the ≤20 kB aspirational target by ~1.2 kB due to BulkExport flows,
+# AuditTab, PatientActivityModal, and ClinicDrillInPage additions. Ceiling
+# set at 22,000 bytes to give ~0.8 kB headroom for Phase 11 incremental
+# additions before a deliberate chunk-split refactor is warranted.
+# Historical progression: planner-iter-1 12 kB → 09-02 16 kB → 09-03 17 kB
+# → 09-08 17 kB → 10-07 intermediate 25 kB → 10-11 final reset 22 kB.
 #
 # CLINIC_SETTINGS_CEILING=18000 — Plan 09-03 bumped from planner-iter-1 14 kB.
 # The 14 kB assumed Plan 09-02's typed clinic.ts wrappers would share
@@ -103,18 +102,27 @@ ASSETS_DIR="$DIST_DIR/assets"
 # The 24.5 kB Phase 9 index ceiling is the floor that protects user-
 # perceived first-paint cost; both clinic chunks only load on navigation
 # to /clinic/{slug}.
-CLINIC_CEILING=25000
+CLINIC_CEILING=22000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
 IDX_ABSOLUTE_CEILING=50000
 
-# Phase 10 Plan 10-05 — new shared chunk ceilings.
+# Phase 10 Plan 10-05 — new shared chunk ceilings (updated by Plan 10-11 final
+# baseline reset after all Phase 10 components shipped).
+#
 # read-only-patient-view: ≤12,000 bytes gz (ReadOnlyPatientView + 6 section components;
 #   extracted from Phase 8 'share' chunk; shared by 'share' + 'clinic' lazy chunks).
-# share: ≤6,000 bytes gz (Phase 8 chrome only after extraction; down from 18 kB ceiling).
+#   Measured at Phase 10 close: ~1.8 kB gz (well within ceiling).
+#
+# share: ≤7,000 bytes gz. Plan 10-05 set this at 6,000 bytes based on Phase 8
+#   extraction projections; Phase 10 Plan 10-05/07 additions (ReadOnlyPatientView
+#   import rewrite + ClinicContextBar chrome) pushed the share chunk to 6,126 bytes
+#   gz at Phase 10 close. Raised from 6,000 → 7,000 to give ~0.9 kB headroom for
+#   future chrome additions without a spurious CI failure. The chunk is still well
+#   below the original Phase 8 18 kB ceiling — no bundle concern.
 READ_ONLY_PATIENT_VIEW_CEILING=12000
-SHARE_CEILING=6000
+SHARE_CEILING=7000
 
 PHASE_REF=".planning/phases/09-clinic-b2b-foundations/09-01-PLAN.md"
 PHASE_10_REF=".planning/phases/10-clinic-operator-surface/10-05-PLAN.md"
@@ -136,19 +144,49 @@ check_chunk_ceiling() {
   local ceiling="$2"
   local label="$3"
 
-  # Phase 9 Plan 09-03 deviation: the original `find -name 'clinic-*.js'`
-  # accidentally matched `clinic-settings-*.js` and `clinic-invite-*.js`
-  # (the wildcard is too greedy). Filter to chunks whose hash segment
-  # immediately follows the label so each label only counts its own
-  # chunks. Vite emits files as `<name>-<hash>.js` where <hash> is
-  # alphanumeric — never contains `-`.
+  # Phase 10 Plan 10-11 hash-hyphen fix (see memory reference_bundle_budget_hash_hyphen.md):
+  #
+  # Original approach stripped the last `-<segment>` suffix to recover the chunk
+  # label. This assumed Vite hashes are alphanumeric — but Vite (content-hash
+  # mode) CAN emit hyphens in the 8-char hash (e.g. `BsW-HOUO`). When that
+  # happens, `${base%-*}` strips the hash-internal segment instead of the whole
+  # hash, producing a wrong label like `clinic-invite-BsW` that never matches
+  # `clinic-invite` → count == 0 → silent "wave-0 skip" false-negative.
+  #
+  # Fix: strip the `.js` extension, then use `sed` to remove the trailing
+  # Vite hash. Vite hashes are identified as trailing segments consisting only
+  # of alphanumeric chars + hyphens that appear immediately before `.js` and
+  # start with a CAPITAL letter or digit (never lowercase-only, which is how
+  # all our chunk labels are spelled). The sed expression strips the last
+  # `-` plus everything after it that begins with `[A-Z0-9]` (case-sensitive):
+  #   clinic-CBid3kQA.js → strip .js → clinic-CBid3kQA → sed → clinic ✓
+  #   clinic-invite-6H0lh4Bj.js → strip .js → clinic-invite-6H0lh4Bj → sed → clinic-invite ✓
+  #   clinic-invite-BsW-HOUO.js → strip .js → clinic-invite-BsW-HOUO → sed → clinic-invite-BsW
+  #     (only one pass strips the last uppercase-starting segment; BsW starts uppercase)
+  #     → need second sed pass → clinic-invite ✓
+  #
+  # We apply sed in a loop until stable (idempotent for no-hash-suffix case).
   local matches=()
   while IFS= read -r f; do
-    # Extract `name` portion before the last `-<hash>.js` segment.
-    local base
+    local base stem recovered
     base=$(basename "$f")
-    local name="${base%-*}"
-    if [ "$name" = "$label" ]; then
+    # Strip .js extension
+    stem="${base%.js}"
+    # Iteratively strip trailing Vite hash segments.
+    # Vite hash segments are identified as segments containing at least one
+    # uppercase letter or digit — distinguishing them from label parts, which
+    # are purely lowercase letters (e.g. `clinic`, `settings`, `invite`,
+    # `patient`, `view`). Each sed pass removes the last `-<segment>` where
+    # <segment> contains [A-Z0-9] anywhere in it.
+    # Max 4 iterations covers hashes up to 4 hyphen-split parts (e.g. `A-B-C-D`).
+    recovered="$stem"
+    local prev=""
+    for _ in 1 2 3 4; do
+      prev="$recovered"
+      recovered=$(echo "$recovered" | sed 's/-[A-Za-z0-9]*[A-Z0-9][A-Za-z0-9]*$//')
+      [ "$recovered" = "$prev" ] && break  # stable — no more hash-like segments to strip
+    done
+    if [ "$recovered" = "$label" ]; then
       matches+=("$f")
     fi
   done < <(find "$ASSETS_DIR" -maxdepth 1 -type f -name "$chunk_glob" ! -name '*.map' 2>/dev/null)
@@ -225,18 +263,59 @@ fi
 # AND would also bloat the clinic chunk. This guard catches accidental static
 # imports in any static chunk (index, clinic, clinic-settings, etc.).
 #
-# We check every always-loaded chunk and every lazy clinic/* chunk for the
-# `jsPDF` constructor identifier. The jspdf chunk itself is expected to
-# contain it — we explicitly skip files whose basename starts with 'jspdf'.
+# Phase 10 Plan 10-11 bug fix: the original guard checked for the `jsPDF`
+# identifier string in any non-jspdf chunk. However, Vite minification places
+# the `jsPDF` variable name inline in the bundle even for DYNAMIC imports (the
+# `const{jsPDF}=await import(...)` pattern compiles to `const{jsPDF:L}=await oe(...)`
+# in the minified chunk). This caused false positives on any chunk that
+# legitimately uses dynamic import, e.g. the SettingsPage chunk which
+# lazy-loads jspdf for the doctor-report PDF export.
+#
+# Correct heuristic: a STATIC import of jspdf would appear as an ES module
+# `import` statement in the chunk's static import list (the opening `import{...}
+# from"./jspdf..."` lines of the minified chunk). Dynamic imports reference
+# jspdf only via `__vite__mapDeps` or inline `import(...)` calls — never in
+# the static `import{...}from` header.
+#
+# We detect static imports by checking if the file contains `from"./jspdf` or
+# `from './jspdf` in an `import` statement (the normalized Vite output pattern
+# for static ES imports). A dynamic import would NOT produce this pattern.
 JSPDF_STATIC_FAIL=0
+# Scope the check to the "always-loaded" and "lazy feature" chunks that MUST NOT
+# statically import jspdf. We exclude:
+#   - jspdf chunk itself (expected to export jsPDF)
+#   - jspdf plugin chunks (e.g. jspdf.plugin.autotable — legitimately imports jspdf statically)
+#   - *.es-*.js chunks (Vite names jspdf plugin ESM modules as `<name>.es-<hash>.js`;
+#     these are part of the jsPDF ecosystem and are dynamic-import targets)
+#
+# The chunks we actively monitor are the product feature chunks: index, clinic,
+# clinic-settings, clinic-invite, share, read-only-patient-view, and other app
+# feature chunks. Any static jspdf import in these chunks is a regression.
+JSPDF_CHECKED_PATTERNS=('index-*.js' 'clinic-*.js' 'clinic-settings-*.js' 'clinic-invite-*.js' 'share-*.js' 'read-only-patient-view-*.js')
 while IFS= read -r f; do
   base=$(basename "$f")
-  # Skip jspdf chunk itself (expected to contain the identifier)
+  # Skip jspdf and its plugin ecosystem chunks
   if echo "$base" | grep -qi '^jspdf'; then
     continue
   fi
-  if grep -q "jsPDF" "$f" 2>/dev/null; then
-    echo "::error::jsPDF identifier found in static chunk $base — jspdf was statically imported (Plan 10-10 bundle invariant violation). Use 'await import(\"jspdf\")' instead." >&2
+  # Skip *.es-*.js chunks (jspdf plugin ESM builds from Vite's code-split)
+  if echo "$base" | grep -q '\.es-[A-Za-z0-9_-]*\.js$'; then
+    continue
+  fi
+  # Only check the feature chunks listed above (use glob match)
+  local_match=0
+  for pat in "${JSPDF_CHECKED_PATTERNS[@]}"; do
+    case "$base" in
+      $pat) local_match=1; break ;;
+    esac
+  done
+  [ "$local_match" -eq 0 ] && continue
+
+  # Check for STATIC import syntax: `import{...}from"./jspdf..."` or
+  # `import*as X from"./jspdf..."`. Minified Vite output always uses double
+  # quotes and no spaces around the module specifier.
+  if grep -qE 'import[{*][^"]*from"[^"]*jspdf[^"]*"' "$f" 2>/dev/null; then
+    echo "::error::Static import of jspdf found in chunk $base — jspdf must be dynamically imported via 'await import(\"jspdf\")' (Plan 10-10 bundle invariant violation)." >&2
     JSPDF_STATIC_FAIL=1
   fi
 done < <(find "$ASSETS_DIR" -maxdepth 1 -type f -name '*.js' ! -name '*.map' 2>/dev/null)

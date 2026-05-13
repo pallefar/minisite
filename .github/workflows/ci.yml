@@ -306,6 +306,113 @@ jobs:
             leanshot/test-results/
           retention-days: 7
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # Phase 10 Plan 10-11 — SC#5 roster-perf gate.
+  # Appended AFTER share-security-drill (HI-2 additive convention from memory
+  # `feedback_planner_iter1_anti_patterns.md`). Validates that a 50-patient
+  # roster renders within 2000ms on the Vercel preview deploy (D-10, D-11).
+  #
+  # Path-scoped: only runs on PRs that touch clinic components, migrations, or
+  # Edge Functions relevant to the roster render path. Uses a `get-changed-files`
+  # step to implement the path filter at job level (GitHub Actions does not
+  # support native per-job path triggers; only the on.push/pull_request.paths
+  # filter exists at workflow level, which would scope ALL jobs).
+  #
+  # Seeds 50 synthetic patients via service-role bypass → runs Playwright
+  # roster-perf spec → cleanup happens inside the spec's afterAll.
+  #
+  # Estimated runtime: ~3 min (30-60s seed + ~1min spec + teardown).
+  # ─────────────────────────────────────────────────────────────────────────
+  roster-perf:
+    name: Roster perf (50-patient SC#5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [share-security-drill]
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Determine changed files to scope this job to Phase 10 roster paths only.
+      # If no relevant files changed, the spec is skipped via the path-check step.
+      - name: Get changed files
+        id: changed
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD 2>/dev/null || echo "")
+          echo "files=$CHANGED" >> "$GITHUB_OUTPUT"
+          RELEVANT=false
+          while IFS= read -r f; do
+            case "$f" in
+              leanshot/src/components/clinic/*) RELEVANT=true; break ;;
+              supabase/migrations/*roster*.sql) RELEVANT=true; break ;;
+              supabase/migrations/20260901000003_*.sql) RELEVANT=true; break ;;
+              supabase/migrations/20260901000004_*.sql) RELEVANT=true; break ;;
+              supabase/functions/clinic-snapshot/*) RELEVANT=true; break ;;
+              supabase/functions/bulk-csv-export/*) RELEVANT=true; break ;;
+            esac
+          done <<< "$CHANGED"
+          echo "relevant=$RELEVANT" >> "$GITHUB_OUTPUT"
+          echo "Roster-perf path gate: relevant=$RELEVANT"
+
+      - uses: actions/setup-node@v4
+        if: steps.changed.outputs.relevant == 'true'
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install dependencies
+        if: steps.changed.outputs.relevant == 'true'
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        if: steps.changed.outputs.relevant == 'true'
+        run: npx playwright install chromium --with-deps
+
+      # Production-shaped build so the clinic lazy chunk serves from the
+      # same preview server. VITE_E2E=true exposes window.useStore (Phase 7 pattern).
+      - name: Build (production-shaped)
+        if: steps.changed.outputs.relevant == 'true'
+        run: npm run build
+        env:
+          VITE_SENTRY_DSN: ''
+          VITE_POSTHOG_KEY: ''
+          VITE_POSTHOG_HOST: ''
+          VITE_ANALYTICS_ENABLED: 'false'
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_E2E: 'true'
+
+      - name: Wait for Vercel preview deployment
+        id: wait
+        if: steps.changed.outputs.relevant == 'true'
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+          check_name: 'leanshot-app – Vercel'
+
+      - name: Run roster-perf spec (SC#5 50-patient render < 2s)
+        if: steps.changed.outputs.relevant == 'true'
+        run: npx playwright test e2e/roster-perf.spec.ts
+        env:
+          CI: 'true'
+          PLAYWRIGHT_BASE_URL: ${{ steps.wait.outputs.url }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload roster-perf artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: roster-perf-results
+          path: |
+            leanshot/playwright-report/
+            leanshot/test-results/
+          retention-days: 7
+
   lighthouse:
     name: Lighthouse (Vercel preview)
     runs-on: ubuntu-latest
