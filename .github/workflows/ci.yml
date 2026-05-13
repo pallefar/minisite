@@ -197,6 +197,23 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Phase 12 Plan 12-03 SC-3 (D-14/D-15) — Clinic ad-free e2e gate.
+      # Asserts zero ad-provider scripts, zero <AdSlot> mounts, and zero
+      # ad-provider network requests on /clinic/*, /share/*, /admin/* routes.
+      # Three-layer defense per cross-cutting concern #2 (CCC-2):
+      #   AD-03 component refusal + AD-02 Edge Function refusal +
+      #   CSP report-only + THIS Playwright gate.
+      # The spec trivially passes in Phase 12 (no ads anywhere). It becomes
+      # a real safety net when Phase 20 ships ad code — preventing accidental
+      # inclusion on B2B surfaces from reaching main.
+      # See: leanshot/e2e/clinic-ad-free.spec.ts
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Phase 12 SC-3 — Clinic ad-free e2e gate
+        run: npx playwright test e2e/clinic-ad-free.spec.ts --reporter=line
+        env:
+          CI: 'true'
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
