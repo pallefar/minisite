@@ -1,359 +1,591 @@
-# Feature Research
+# Feature Research — LeanShot v1.2
 
-**Domain:** GLP-1 / peptide-tracking SaaS with doctor read-share + clinical-coach B2B
-**Researched:** 2026-05-10
-**Confidence:** MEDIUM-HIGH (high on competitor feature set + RPM patterns; medium on doctor-share UX since most consumer GLP-1 trackers ship PDF only)
+**Domain:** Cross-platform health-tracker SaaS (peptide/GLP-1 vertical) — launch polish + multi-revenue monetization + growth loops
+**Researched:** 2026-05-13
+**Confidence:** HIGH on platform-store rules + Stripe/HealthKit constraints; MEDIUM on conversion-tactic specifics; LOW on AdMob+GLP-1 exact wording (policy in flux)
 
-## Scope of This Research
+> Scope guardrail: this file covers ONLY the **10 NEW v1.2 feature areas** from `PROJECT.md`. v1.1-shipped surfaces (dose tracking, drug-level curve, site rotation, AI coach, doctor read-share, clinic operator surface, etc.) are validated and NOT re-analyzed here. The 11th workstream — "v1.1 tech debt sweep" — is a bug list, not a feature landscape, and is out of scope for this document.
 
-LeanShot v2 already implements: injection logging with site rotation, drug-level pharmacology projection (28-day past + 7-day projection), body/weight/photo tracking, nutrition (incl. protein), activity, supplements, mood, sleep, symptoms, rule-based insights, AI coach (BYO Anthropic key), printable doctor report, share cards, streaks, onboarding, guided tour. v2 is **already ahead of the consumer GLP-1 tracker market on tracking surface area** — most competitors don't have this many surfaces.
+> Audience asymmetry rule (carried in from `feedback_regulator_vs_user_audience_pattern.md`, refined by Phase 10 lesson): **end-user-facing UX gets the aggressive-foundations treatment; regulator/process surfaces get the cheapest defensible posture.** Applied per-feature below.
 
-This research is scoped to the **v1 launch milestone**: accounts + cloud sync, doctor read-share (link-based or invite-based), clinic/coach B2B (organization with multiple patients, roster + drill-in). It deliberately does **not** re-research v2's tracking features.
+---
 
-The categories below are organized by **audience**:
+## Cross-Cutting Constraints (apply to every area)
 
-- **PATIENT** — the GLP-1 user (B2C)
-- **DOCTOR** — a clinician viewing one patient's data via a share link
-- **CLINIC** — a coach/clinic operator managing multiple patients via an organization workspace
+These narrow what "table stakes" means for LeanShot and must be enforced everywhere:
 
-## Feature Landscape
+1. **HealthKit / Health Connect data MUST be firewalled from any ad SDK** — separate user IDs, no shared analytics namespace, no Health signal in ad targeting. Apple §5.1.3 is non-negotiable and enforced at review. Source: [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), [Protecting user privacy](https://developer.apple.com/documentation/healthkit/protecting-user-privacy). (HIGH)
+2. **No ads on clinic / doctor-share surfaces** — already locked by PROJECT.md ("B2B trust"). All ad work in this doc applies only to **patient marketing site + free-tier patient dashboard**.
+3. **No drug-brand advertising in our own creatives, and an advertiser block-list defaulting to "all GLP-1 brand names + compound-pharmacy domains"** — Google's healthcare policy + the FTC compounded-GLP-1 NAD ruling make this category a regulatory landmine. Source: [Google AdMob 2026 pharma policy](https://almcorp.com/blog/google-admob-pharmaceutical-policy-2026/), [NAD compounded-GLP-1 advertising](https://www.polsinelli.com/publications/nad-compounded-glp-1-advertising-diet). (HIGH)
+4. **No health-claim subject lines or push copy** — "Lose X lbs this week" / "Your blood sugar is bad" are FTC + Apple §1.4.1 violations. Notification + email copy must be operational ("Time to log your dose") not promissory.
+5. **Account deletion must be in-app, irreversible, and visible** (Apple §5.1.1(v), in force since 2022-06, still enforced 2026). Source: [Offering account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/). (HIGH)
+6. **EU/UK launch requires cookie banner + DSAR portal** (already noted in PROJECT.md hard constraints).
 
-### Table Stakes (Users Expect These)
+---
 
-#### PATIENT — Auth + Cloud Sync (the v1 net-new layer)
+## 1. Native Mobile Shells (Capacitor iOS + Android)
 
-| Feature | Why Expected | Complexity | Notes / Audience |
-|---------|--------------|------------|-------|
-| Email/password signup + login | Every cloud SaaS has it; required for cross-device sync | MEDIUM | PATIENT. Must support magic link or OAuth (Google/Apple) for low-friction onboarding — non-technical audience, password fatigue is real. |
-| Cloud sync across devices | Users assume "I logged on my phone, I see it on my laptop." Top complaint of any local-only app once they have multiple devices. | HIGH | PATIENT. Must keep local-first behavior intact (offline = still works, syncs when online). Conflict-resolution rules needed for the rare concurrent-edit case. |
-| Local-only → account migration | Existing v2 users in `leanshot_v4` must not lose their data when they sign up | MEDIUM | PATIENT. One-shot import on first sign-in. Test path matters — losing weight history would be catastrophic. |
-| Password reset / email verification | Standard auth hygiene | LOW | PATIENT. |
-| Account deletion (GDPR/CCPA) | Legal in EU/CA; ethical everywhere; users on GLP-1s are sensitive about health data | LOW | PATIENT. Must hard-delete, not soft-delete. Disclose retention period. |
-| Data export (JSON/CSV) | Pre-existing in v2 settings; cloud version must preserve it | LOW | PATIENT. Right-of-portability under GDPR; also lets paranoid users feel ownership. |
-| Sign out from all devices | Standard for any account-bound product | LOW | PATIENT. |
-| Privacy policy + terms of service | Required by Apple/Google app stores, by GDPR, by FTC for health apps | LOW | PATIENT. Health-data context elevates the bar (see PITFALLS.md). |
-| Medical disclaimer | "Not medical advice" — required of any tracker that displays clinical math | LOW | PATIENT. Already in `PROJECT.md` PROD-06. Must appear before the first injection log, not buried in settings. |
-
-#### PATIENT — Tracking parity with v2 baseline
-
-These are already built in v2. Listed here to note they are table stakes — losing any one in the cloud migration would feel like a regression.
-
-| Feature | Source | Audience |
-|---------|--------|----------|
-| Injection log with site rotation + next-site nudge | `MedicationTab.tsx`, `SiteRotationCard.tsx` | PATIENT |
-| Drug-level curve (28-day past + 7-day projection) | `MedLevelChart.tsx`, `pharmacology.ts` | PATIENT |
-| Weight + photo tracking with comparison | `BodyTab.tsx`, `PhotoCompareModal.tsx` | PATIENT |
-| Nutrition (protein-first), activity, supplements, mood, sleep, symptoms | `tabs/*.tsx` | PATIENT |
-| Rule-based daily focus + insights | `insights.ts` | PATIENT |
-| Streaks + share cards | `StreaksCard.tsx`, `ShareCardModal.tsx` | PATIENT |
-| Printable doctor report (PDF surface) | `DoctorReport.tsx` | PATIENT |
-| AI coach (BYO key) | `AIChatPanel.tsx`, `ai.ts` | PATIENT |
-
-#### DOCTOR — Read-share view (the v1 net-new B2C-to-clinician handoff)
-
-What other GLP-1 trackers do today: **Shotsy, Pep, Glapp, MeAgain, etc. ship a PDF export, period.** None of them ship a hosted live view that a doctor can open from a link. Mochi/Found/Sequence have provider portals because they're full-stack telehealth — but that bundles prescription, which LeanShot deliberately doesn't do. So LeanShot has an opening to be the first GLP-1 tracker with a real shareable live link surface — with **Epic's "Share Everywhere"** as the prior-art template (one-time code, time-bound, browser-only, no signup).
-
+### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Read-only access to patient's full timeline | If a patient hands a doctor a link expecting them to "see everything," missing data feels broken | MEDIUM | DOCTOR. Mirror the printable report PLUS the live curves. Use existing `DoctorReport.tsx` content as the floor. |
-| Time-bound share (expiry) | Doctors don't need indefinite access; patients need control | LOW | DOCTOR. Default 30/60/90 days. Patient can revoke at any time. |
-| Patient can revoke at any time | Standard of any share link | LOW | PATIENT (control of their data). |
-| Doctor sees scope clearly: which patient, which window, when revoked | Avoid confusion about whose data is on screen | LOW | DOCTOR. Header bar "Viewing [Patient Name] — shared 2026-04-12, expires 2026-07-12, read-only." |
-| Print-friendly version of the doctor view | Many doctors will print before or instead of using the live view; v2 already has the PDF | LOW | DOCTOR. Reuse the existing `DoctorReport.tsx` print mode. |
-| Clear "this is a snapshot, not an EHR" disclaimer | Compliance + sets expectations | LOW | DOCTOR. Avoids false-EHR positioning. |
-| No signup required for the doctor (or 30-second optional account) | Doctor acquisition is hard. If sharing requires the doctor to sign up, share-rate collapses. Apple Health and Epic both got this right with code + DOB pattern. | MEDIUM | DOCTOR. Recommended path: link + access code (numeric) emailed/SMSed by patient. Doctor enters code in browser, sees data. Optional persistent account if they want to bookmark patients. |
+|---|---|---|---|
+| Capacitor wrapper of existing SPA | The web is the codebase; rewrite would tank schedule | S | One-time setup; `@capacitor/core` + iOS + Android projects |
+| App icons + splash screens at every required resolution | Store rejection without them | S | Use `@capacitor/assets` generator |
+| Universal links / app links | Email + share URLs must open the app, not Safari | M | iOS `apple-app-site-association` + Android Asset Links JSON; ties into doctor-share link from v1.1 |
+| Biometric unlock (Face ID / Touch ID / Android Biometric) | Health-data category app on a phone someone else might pick up | M | `@aparajita/capacitor-biometric-auth` + Keychain/Keystore session token storage. Source: [Biometric auth in Capacitor](https://capgo.app/blog/biometric-authentication-in-capacitor-apps/) (HIGH) |
+| Native share sheet for doctor-report PDF + share cards | Web `navigator.share` is partial on iOS Safari; native sheet is the expectation | S | `@capacitor/share` |
+| Offline-first dose log + view (already 80% there from local-first store) | Users WILL be on planes, at gyms, in basements when their dose alarm fires | M | Existing Zustand+persist works; just need a "queued sync" indicator + retry queue for Supabase writes |
+| In-app account deletion (visible from Settings, not buried) | Apple §5.1.1(v), enforced; Google Play has parallel rule | S | Already on v1.2 list as "launch essentials"; reuse the same flow |
+| App Store + Play Store listing assets (screenshots, descriptions, privacy nutrition labels) | Cannot publish without them | M | Privacy nutrition labels MUST declare Health data category if HealthKit is wired |
+| Privacy manifest (`PrivacyInfo.xcprivacy`) declaring tracking domains + reasons | Required at submission since 2024-05; expanded since | S | Auto-generated by most Capacitor plugins; Health plugin needs manual review |
+| Crash reporting (Sentry native bindings or Crashlytics) | Native crashes don't surface in browser Sentry | M | Sentry has Capacitor SDK; replaces v1.1's web-only Sentry |
 
-#### CLINIC — Organization workspace (the v1 net-new B2B layer)
-
-What clinical-coach platforms (Healthie, CoachCare, Withings RPM, AdvancedMD) typically expose. These are mature ecosystem patterns — anything missing from this list will feel "cheap" to a coach considering LeanShot for their practice.
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Create org / clinic workspace at signup | The unit of multi-tenancy; every B2B SaaS does this | MEDIUM | CLINIC. Org name, branding (logo at minimum), timezone. |
-| Invite operators by email | Onboarding the second person on the team is the test of multi-tenancy | LOW | CLINIC. Email invite with token; expires. |
-| Roles: Owner / Admin / Coach / View-only | Coaches don't need to manage billing; admins shouldn't have to see clinical data if they're operations-only | MEDIUM | CLINIC. Minimum 3 roles for v1 (Owner, Coach, Viewer). Can expand later. |
-| Invite patients to org by email | The other half of the workspace. Patient accepts → their account is linked to the org. | MEDIUM | CLINIC + PATIENT. Patient consent is the load-bearing UX — they have to opt in to sharing their data with the org. |
-| Patient roster (list view) with at-a-glance status | Coaches manage 20-200 patients; need to triage who needs attention | MEDIUM | CLINIC. Per-patient row: name, current med + dose, last log, recent symptom severity, weight trend arrow, days-since-last-injection. Sortable + searchable. |
-| Drill-in to one patient's data | Same surface the patient sees, plus possibly a clinical-flavored layout | MEDIUM | CLINIC. Reuse the doctor-share view for v1. Customize later if coaches actually ask. |
-| Audit log of org actions | "Who viewed patient X when, who invited Y" — required for any clinic claiming HIPAA-adjacent posture; expected by enterprise buyers | MEDIUM | CLINIC. Tenant-scoped audit log. Persisted append-only. |
-| Patient can leave the org at any time | Patient-control parity with the doctor-share | LOW | PATIENT. Org loses access; patient's own data stays intact. |
-| Org can suspend / remove a patient | Inverse of leave; org outgrew the patient or vice-versa | LOW | CLINIC. |
-| Per-org branded log-in / patient invitation page (light) | Coaches care a lot about how their patients perceive the tools they use | LOW-MEDIUM | CLINIC. Logo + name on the invitation email and on the first sign-up screen. Avoid full-tenant-domain CNAME for v1 — overkill. |
-
-### Differentiators (Where LeanShot Wins)
-
-LeanShot's existing v2 already differentiates on three axes: **drug-level projection, site-rotation hygiene, and the printable doctor report**. The v1 milestone unlocks two more: **live doctor-share** (none of the consumer GLP-1 trackers have this) and **AI coach with patient context** (most apps either skip this or do shallow chat).
-
+### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Live doctor-share view (link + access code, no doctor signup) | All major consumer GLP-1 trackers (Shotsy, Pep, Glapp, MeAgain) ship PDF only. A live, interactive, evergreen view is a real differentiator. | MEDIUM | DOCTOR. Pattern modeled on Epic's "Share Everywhere" — one-time access code + DOB or numeric secondary factor, time-bound, browser-only. Already has the content layer (the v2 dashboard surfaces). |
-| Drug-level pharmacology curve in the doctor-share view | Doctors who treat GLP-1s are interested in PK timing; almost no consumer apps surface it credibly. v2's `pharmacology.ts` is already implemented — exposing it to the doctor is differentiation that competitors can't catch up on without their own PK engine. | LOW | DOCTOR. Already-built logic, just plumb to the new surface. **Caveat:** the prior-art article (glp1effect.com) is critical of how oversimplified consumer PK charts are — LeanShot should ship with the existing-trial-data overlay (`TRIAL_DATA` in `pharmacology.ts`) and a "this is an average-person model, not a personal PK measurement" caveat. See PITFALLS.md. |
-| Site-rotation hygiene with anatomical visualization | Some apps (Shotsy, Pep) track sites but treat it as a list. Visualizing the body diagram and warning about repeated sites is a hygiene-and-trust feature that doctors will appreciate. | LOW | PATIENT + DOCTOR. v2 has `SiteRotationCard.tsx` already. Surface it in the doctor view too. |
-| AI coach with cloud-side proxy + per-org configuration | v2's BYO key works for hobbyist patients; for clinics, a hosted proxy (clinic provides the OpenAI/Anthropic budget, patients in the org get coaching for free) is a meaningful B2B feature. | HIGH | CLINIC + PATIENT. Bigger ROI for clinics than for patients (clinics see scaled value). Solves the BYO-key UX problem from PROD-05. |
-| Roster view with "needs-attention" intelligence | Bare roster lists exist everywhere (CoachCare, Healthie). Differentiation: rank patients by computed urgency (missed-dose × symptom-severity × weight-trend × streak-break). Built on the same insights engine that powers the patient's own focus card. | MEDIUM | CLINIC. Reuse `pickFocus(state)` and `generateInsights(state)` from `insights.ts`, but as a **prioritization function** instead of a single-user output. |
-| Coach-authored notes on a patient (private to the org) | Healthie has this. CoachCare implies it. Adds value for coaches without crossing into provider-messaging territory. | LOW-MEDIUM | CLINIC. Note attached to a patient, visible to the org only, not to the patient by default. Optional "share note with patient" toggle if requested later. |
-| One-click sharable progress card for community | v2 already has `ShareCardModal.tsx` — extending to "share to my coach" or "share to my care group" is a small feature with high engagement value. | LOW | PATIENT + CLINIC. |
-| Per-patient compliance/data-stewardship summary in the roster | "Last sync: 4h ago. Sharing: enabled. Plan: Wegovy 1.7mg." — the kind of operational detail that signals the platform is serious. | LOW | CLINIC. |
-| Webhook / outbound API for coach automation (optional) | CoachCare-tier integrations. Lets coaches plug LeanShot into their CRM/email flow. | MEDIUM | CLINIC. Defer to v1.1 unless a buyer demands it; nice-to-have. |
-| Rich "muscle preservation" coaching in the AI coach | WeightWatchers' 2026 GLP-1 program built a whole pillar around this. v2 has protein tracking; the AI coach already has context. Need to wire the coaching prompts. | LOW | PATIENT. Marketing differentiator more than engineering effort. |
+|---|---|---|---|
+| Background dose alarm with snooze that fires even when app is killed | Web Push can't do this on iOS; local notifications scheduled at sign-up of a dose can | M | `@capacitor/local-notifications` — schedule on dose-time-set, cancel on log-now. This is a CORE differentiator vs a web bookmark — patients without a separate medication app will keep LeanShot as their reminder. |
+| Quick-log via 3D Touch / long-press home icon | Removes 4 taps from the "log my injection RIGHT NOW" path | S | iOS Home Screen Quick Actions + Android App Shortcuts |
+| Widgets (iOS WidgetKit + Android AppWidget) showing current drug level + next dose | Glanceable; pulls user back into the app | L | Requires per-platform native code (Swift + Kotlin); not pure Capacitor |
+| Camera-shortcut for progress photo from app icon | Body-progress is a high-engagement loop; reduce friction | S | Quick action + jump straight into BodyTab photo capture |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Full native rewrite in SwiftUI + Jetpack Compose | "Feels more native" | 3 codebases, 3× the bug surface, kills the React 19 design-system rollout | Capacitor wrapper; native ONLY for watch + widgets |
+| Custom in-app browser for AI chat / doctor-share view | Avoids Safari View Controller chrome | Apple §4.5 sometimes flags; loses autofill/passkey; worse for the user | Use `@capacitor/browser` (SFSafariViewController) for any out-of-app web |
+| Sync entire localStorage on every app foreground | "Always fresh" | Battery + bandwidth; users have weeks of data | Delta sync triggered by Realtime channel (already in place v1.1) |
+| Push every dose-time as a remote push from server | "Server is source of truth" | Server-driven push has 0.1–5 min latency + can fail silently when phone is offline | Local notifications scheduled on-device; server pushes ONLY for cross-device events (operator alert, payment failed) |
 
-These are tempting features that LeanShot should **deliberately not build** in v1, with explicit alternatives.
+**Complexity overall: L** (10–14 dev days from a clean Capacitor `init` to first TestFlight)
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Doctor-to-patient direct messaging | "It would be great if the doctor could ping the patient with advice." | The moment the platform brokers two-way clinical messages, it functions like a portal of a covered entity, and HIPAA business-associate exposure becomes much more likely. The FTC also takes a hard look at health-app messaging. v1 doesn't have HIPAA infrastructure; opening this door triggers the whole stack (BAAs, encryption-at-rest audits, breach notification). | DOCTOR can leave a private "note to self" attached to a patient (org-only, doctor-side). PATIENT messaging stays inside the AI coach for v1. If clinics demand provider-messaging in v1.x, treat as a separate feature with its own compliance review. |
-| Direct EHR / FHIR / Epic integration | "If we synced into Epic, every patient could share with one click." | Massive integration project (HL7, FHIR R4 mapping, Epic App Orchard onboarding, ~6 month minimum for a real implementation). Each EHR vendor is a separate project. Already explicitly out of scope in PROJECT.md. | The doctor-share link IS the integration surface for v1. PDF/print compatibility for legacy EHR copy-paste workflows. Defer real EHR integration until LeanShot has > 1000 patients across > 10 clinics. |
-| Live video calls / telehealth visits | "Mochi Health does it; CoachCare does it; we should too." | Pulls LeanShot from "tracker + report" into "virtual care" — different product, different compliance posture (HIPAA covered entity definition ramps up), different team (prescribers, dieticians on staff). Not the company we're trying to build. | Coach can use their existing video tool (Doxy, Zoom for Healthcare, Healthie's built-in). LeanShot stays focused on the data layer. |
-| Prescription writing or medication ordering | Feature parity with telehealth competitors. | Triggers DEA, FDA, state medical board, pharmacy regulation — entire universe of compliance that's incompatible with v1's "free, ship fast" thesis. Already explicitly out of scope. | Patient brings a real prescription from their real doctor; LeanShot tracks adherence to it. |
-| Public social feed / community posts | "Like Strava for GLP-1." | Community moderation is a dedicated team. PHI accidentally posted in public feed = mass-disclosure event. Health-stigma + body-image concerns make it a moderation nightmare. Found Health attempted community; complaints about content policing. | Per-clinic group spaces (private, moderated by the coach) — defer to v1.1+ if clinics ask. Share cards (already in v2) are the user's outlet for community sharing on platforms they already use. |
-| Behavioral coaching prescriptions ("eat more vegetables today") | Apps from 2018-2022 leaned hard on this. | A direct quote from search results: "Behavioral coaching rarely comes up as something Redditors value; most users in these communities are information-rich and self-directed." GLP-1 audiences specifically opt out of paternalistic coaching apps. | AI coach answers user-initiated questions (current pattern). Insights are observational ("you've missed 3 protein days this week") not prescriptive ("you SHOULD eat more protein"). |
-| Real-time everything (websockets for cross-device live updates) | "Slack-like real-time." | Tracker data isn't conversational. Real-time adds latency-budget pressure, infrastructure cost, and offline-sync complexity. v2's pull-on-focus pattern is sufficient. | Sync on app open, on log submission, and on a debounced background timer. Local-first remains intact; cloud is the eventually-consistent fallback. |
-| Granular per-data-type sharing controls in the doctor share | "Patient should choose to share weight but not symptoms." | In practice, patients hand the link over and the doctor wants the whole picture. Granular controls become a UX paper-cut and a source of misunderstanding (doctor sees a partial picture and misdiagnoses). Apple Health offers granular sharing and the result is mostly "select all." | Single binary toggle: share or don't. If a patient genuinely wants partial-share, they print a redacted PDF — defer to a v1.x feature only if real users ask. |
-| Native iOS/Android apps | "We need to be in the App Store." | Native cost is disproportionate for a launch where audience-fit is still being validated. Already explicitly out of scope in PROJECT.md. | PWA install. Add-to-home-screen UX is good enough on iOS 18+ and Android 14+; most v2 surfaces are mobile-friendly already. |
-| Per-tenant custom domain (CNAME) for white-labeling | "Big-clinic buyer wants `tracker.bigclinic.com`." | Custom-domain TLS, certificate management, DNS support burden. ROI doesn't appear until enterprise tier with seat count > 50. | Org logo + name on the patient invitation page and report header. Defer custom domain until a paid enterprise tier exists. |
-| Self-serve billing / Stripe integration | "Standard for SaaS." | Already explicitly out of scope (no payments in v1). | Free for everyone in v1. Treat billing as a v2-milestone scope. |
-| Symptom severity AI auto-flagging ("call your doctor now") | Useful in theory; lifesaving in worst case. | Crosses into clinical decision support, which is FDA-regulated medical device territory in 2026 (recent FDA guidance has tightened on AI clinical advice). Even a generic "consult your doctor" pop-up tied to specific data values risks regulation. | Generic "if you feel unwell, talk to your doctor" disclaimer + a prominent contact-doctor CTA, not data-driven. Symptom history visible in doctor share — let the human doctor make the clinical decision. |
-| Connected scale / wearable integration on web | "Withings, Apple Health, Fitbit." | Web app can't natively read HealthKit; would require a companion native app or cumbersome OAuth flow per vendor. Withings has a developer API but it's per-user OAuth. Adds a whole integrations team for a single launch. | Manual weight entry (already in v2). Defer device integrations to v1.1 once one vendor demand is dominant. The most-requested integration based on Reddit threads is Apple Health → if iPhone PWA can read HealthKit through web-equivalent APIs by mid-2026, revisit. |
+---
+
+## 2. Watch Apps (Apple Watch + WearOS)
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Next-dose complication / tile on the watch face | This is the headline reason to install the watch app | M | Apple: WidgetKit complication. WearOS: Tile + Complication APIs. Like MedTick + MediSafe precedent. Source: [MedTick Wear OS](https://play.google.com/store/apps/details?id=com.medtick), [MediSafe Android Wear](https://www.techhive.com/article/602463/medisafe-adds-android-wear-support-to-remind-you-to-take-your-pills.html) (HIGH) |
+| Log injection from watch with confirmation haptic | Streak-friendly; users in the gym/kitchen don't want to pull out a phone | M | Watch app sends "log dose at site X" to phone via WatchConnectivity / Wear Data Layer; phone commits to Supabase |
+| Streak indicator on complication | Reinforcement loop | S | Counts come from existing v1.1 streak engine |
+| Watch notification mirroring (dose reminders) | Notifications shown on watch when phone is locked | S | Automatic if iOS notifications are properly categorized; Android requires `setLocalOnly(false)` |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Heart-rate-on-dose-day correlation card | Pharmacology + HR overlay = real clinical insight, unique to LeanShot | L | Requires HealthKit/Health Connect read; map HR delta vs. baseline on injection days |
+| "Time-to-next-injection" countdown on watch face | Same data point, more visceral than "next dose: 2 days" | S | Complication string update; pulls from `calcMedLevel` already in `pharmacology.ts` |
+| Watch-only flow for "side rotation" reminder when logging | Watch UI shows "last 3 sites used: L-thigh, R-thigh, L-abdomen → suggest R-abdomen" | M | Existing `SiteRotationCard` logic ported to a wrist-sized layout |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Full data entry on watch (food, mood, symptoms, photos) | "Parity!" | Watch screens too small; user friction kills adoption | Mirror reads + dose-log only. Push everything else to phone with a "open on iPhone" button |
+| Heart-rate / blood-oxygen alerts ("your HR is high") | Sounds useful | Crosses into "device used for diagnosis" territory; Apple sometimes flags + we don't want the FDA conversation | Read-only display in context cards; no thresholds, no alarms |
+| Standalone Watch app (no iPhone required) | watchOS 10+ allows it | Cellular Apple Watches are <10% of base; not worth the auth + sync rewrite | Phone-paired only |
+
+**Complexity overall: XL** (separate Swift + Kotlin codebases, app-review cycles, Watch UX iteration)
+
+> NOTE on aggressive-foundations: this is end-user UX (the wrist is the most personal surface there is). Apply max-coverage — don't ship watch v1 with only the complication and skip log-injection. User precedent: `feedback_aggressive_foundations.md`.
+
+---
+
+## 3. Apple Health + Google Health Connect (Read-Only Import)
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Permission UI per data type (weight, steps, sleep, HR) | iOS shows the system permission sheet; we need our pre-prompt explaining WHY for each | M | "Steps, heart rate, sleep each need separate permissions." Source: [HealthKit vs Health Connect](https://www.diversido.io/blog/implementing-healthkit-and-google-fit-in-healthcare-apps---a-guide-for-both-operating-systems) (HIGH). Pre-prompt before system prompt is conversion-critical. |
+| Weight → BodyTab auto-fill | Eliminates duplicate logging | M | Read most-recent body-mass sample; show "Auto-filled from Apple Health" badge with un-link option |
+| Steps → ActivityTab auto-fill | Same | M | Sum daily step count; merge with manual entries with conflict-resolution UI |
+| Sleep → SleepTab auto-fill | Same; sleep is high-value because GLP-1 affects it | M | Sleep stage data preferred over duration-only |
+| Heart-rate → context badge on insights (not its own tab) | HR alone isn't actionable; HR + dose-day is | M | Avg HR per day; surface on InsightsTab card not as a primary metric |
+| "Last synced" timestamp visible | User trust ("is my data fresh?") | S | Cache + display per data type |
+| Hard isolation: Health data path NEVER touches `analytics` or `ad` modules | Apple §5.1.3 audit + legal posture | M | Separate Supabase schema (`health_imports` schema), separate user-id-hash for analytics. Compile-time barrier in TS: separate package, no shared types. Source: [Apple privacy guidelines](https://developer.apple.com/documentation/healthkit/protecting-user-privacy) (HIGH) |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Dose-day HR overlay on med-level chart | Unique combo: pharmacology curve + autonomic response | M | Already have the chart infra (`MedLevelChart.tsx`); add HR line behind drug-level line |
+| Sleep-quality correlation with dose-titration step | "Sleep dropped 12% week you stepped up to 2.4mg" — clinically useful | M | Compare 7-day sleep avg before/after each titration event |
+| Workout-day auto-tag on injection | "You injected within 30 min of a workout 4× this month" | S | Cross-reference HealthKit workouts with injection timestamps |
+| Single source-of-truth chooser UI | "Which app owns weight: LeanShot, Apple Health, Withings?" — clear answer per-metric | M | Persisted per-metric preference; tie-breaker rules surfaced |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Write-back to HealthKit (push our weight logs there) | "Bi-directional sync feels complete" | Triples permission scope; doubles audit surface; Apple is stricter on writes | Read-only v1. Revisit in v1.3 if users ask. |
+| Auto-import blood-glucose / CGM data | Some semaglutide users have CGMs | Crosses into diabetes-management territory (regulated); we are not a diabetes app | Defer. If we do it later, gate behind explicit "I am a diabetic" onboarding flag. |
+| Use HR for AI-coach personalization | Sounds cool | Crosses Apple §5.1.3 "use-based data mining" line if AI coach output ever sees an ad slot | AI coach NEVER reads from `health_imports.*` tables. Compile-time barrier. |
+| Background BGTask polling every 15 min | "Always fresh" | Battery drain; iOS deprioritizes apps that do this | Observer-query subscription model; iOS wakes us when relevant samples arrive. Source: [HealthKit auto-sync notes](https://docs.junction.com/wearables/guides/apple-healthkit) (HIGH) |
+
+**Complexity overall: L** (permission flows + per-metric merge logic + the firewall enforcement)
+
+---
+
+## 4. Owner/Admin Surface
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Members table with search, filter (plan, status, signup date) | Without this, "find user X" requires a SQL console | M | Backed by RLS-bypass service-role reads; owner role only |
+| MRR / ARR / churn / new-signups chart (last 30/90 days) | Business operation; not a vanity metric | M | Stripe webhooks → `billing_events` table → aggregation views. Source: [SaaS admin dashboards](https://www.netsuite.com/portal/resource/articles/erp/saas-dashboards.shtml) (MEDIUM) |
+| User impersonation ("View as this user") | Support cases die without it. **Must be logged + 1-click-revertible + banner-visible.** | L | Issue short-lived signed JWT with `impersonating_uid` claim + display red banner in app while active. Audit-log entry per impersonation. Refines pattern from clinic operator audit-log. |
+| Refunds + subscription cancellation override | Support flows; one bad refund situation without this = ticket pile-up | M | Stripe API call from server-only function; audit-logged |
+| Feature flags (per-user + per-cohort) | Roll out v1.2 features gradually; turn off ad slots if something explodes | M | Simple Supabase table + RLS read by all clients; `flagsmith`-style. Avoid ConfigCat/LaunchDarkly $$ until volume justifies. |
+| Audit log of admin actions | Reusable from v1.1 clinic audit-log infra | S | Same `audit_logs` schema, `actor_type='owner_admin'` |
+| Member CRUD: ban, delete, force-password-reset, change-plan | Compliance + support | M | All actions reuse audit log |
+| Failed-payment / dunning recovery queue | Visibility into the dunning state Stripe is running for us | M | Stripe webhook → `dunning_state` table; show pending retries + manual-retry button |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Affiliate-payout queue (review + approve before Stripe Connect transfer) | Catches fraud before money leaves; manual override saves $ vs auto-payout | M | Hold transfers in `pending_payouts` table; admin approves → triggers Stripe Connect transfer |
+| Ad-revenue dashboard (eCPM / RPM / CTR / fill rate per placement) | This is THE monetization KPI; needs to be first-class | L | Pull from AdMob Reporting API + Ad Manager API + AdSense API + internal house-ad metrics; daily ETL |
+| Cohort retention heatmap (signup week × week-N retention %) | Tells us whether the design-system rollout actually improved retention | M | Standard SQL pivot on `auth.users.created_at` + `user_activity` |
+| One-click "log out all sessions" per user | Security incident response | S | Supabase `auth.admin.signOut(uid)` |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Full Metabase / Superset clone | "Self-service analytics for everyone" | Builds a BI tool, not a SaaS admin panel | Pre-built dashboards for the 6 metrics we actually care about; export-to-CSV for the rest |
+| In-admin SQL console | Power user fantasy | One typo wipes a table; one screenshare shows the world your schema | Use Supabase Studio behind owner SSO for ad-hoc; admin UI for everything operational |
+| Real-time presence of all admins ("X is viewing user Y") | Looks Linear-esque | Adds Realtime channels with zero operational value at our scale | Defer — revisit at >5 admins |
+| Edit-arbitrary-JSON UI for user state | "Power tool" | Schema drift; broken users; impossible to audit | Specific actions (change-plan, reset-onboarding-step) with audit trail; SQL console for edge cases |
+
+> Audience asymmetry note: admin is **end-user surface for the operator (us), not regulator-facing**. Apply aggressive foundations. The operator is going to live in this UI.
+
+**Complexity overall: L**
+
+---
+
+## 5. Full Stripe (Patient Subs + Clinic Seats + Connect Affiliate)
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Pricing page with monthly + annual toggle (annual = ~17% off) | Default conversion pattern | M | Use Stripe Pricing Table embed OR custom page that calls Checkout. Custom = more brand control. Source: [Stripe Billing](https://stripe.com/billing/features) (HIGH) |
+| Free + Paid tier for patient B2C (paid = ad-free + AI without BYO key) | Lowest-friction freemium pattern | M | Free = ads + AI coach BYO. Paid = no ads + LeanShot-provided AI (server-proxied) |
+| 7- or 14-day free trial with no card OR card-on-file (A/B in v1.3, pick one for v1.2) | Default expectation | S | Stripe `trial_period_days` on subscription; pick "card required" for stronger LTV signal. Source: [Stripe trial offers](https://docs.stripe.com/billing/subscriptions/trials) (HIGH) |
+| Stripe Checkout + Customer Portal | Don't build your own card form | S | Hosted; PCI-light; users get update-card / cancel UI for free. Source: [Subscriptions overview](https://docs.stripe.com/billing/subscriptions/overview) (HIGH) |
+| Clinic seat-based billing (per-active-patient OR per-operator-seat) | B2B billing is per-seat by default | M | Decide one metering model in CONTEXT.md. Per-patient = aligns incentive with our DAU; per-operator = predictable. Recommend **per-active-patient** with monthly true-up. |
+| Stripe Connect Express for affiliate payouts | Required for paying affiliates with tax compliance | L | Express accounts; Stripe collects W-9 (US) / W-8BEN (intl); Stripe files 1099-NEC. Source: [Connect W-8/W-9](https://docs.stripe.com/connect/connect-w8-w9-onboarding), [Connect 1099](https://stripe.com/connect/1099) (HIGH) |
+| Dunning (Smart Retries) | Stripe recovers 56% of failed payments with this on | S | Toggle in Stripe Billing settings. Source: [Stripe dunning](https://stripe.com/billing/features) (HIGH) |
+| Cancellation survey | Sources of churn; minimum 1-question | S | Stripe Customer Portal "cancellation reason" feature OR custom |
+| Receipts via Stripe + via Resend (white-label brand) | Both auto-receipt and brand-styled | S | Stripe auto-receipt = default-on. Resend mirror = optional brand polish |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Mid-trial "see your projected pharmacology curve only if you upgrade" paywall | Trial conversion: hide the headline feature behind paid | M | Soft paywall — show 28 days past, blur the 7-day projection. **Risk:** if Core Value depends on the projection, this might tank free-tier engagement. Test cautiously. |
+| Cancellation retention offer ("pause for 1 month free instead?") | Save 10–20% of churn | M | Stripe `pause_collection` on the subscription; custom UI in cancel flow |
+| Clinic billing with patient-attribution (clinic pays for patients who don't have their own sub) | Real B2B value: clinic absorbs cost of churned-from-self-pay patients | L | New billing model — patients can have personal sub OR clinic-sponsored. Conflict resolution if both. **Defer to v1.3 unless a clinic demands it pre-launch.** |
+| Annual plan with one-month-free if billed annually | Standard 17% discount; cleaner story than "%" | S | Two `prices` in Stripe; toggle in pricing page |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Build our own card form | "Brand purity" | PCI scope explosion; chargeback liability; no Apple Pay | Stripe Checkout. Period. |
+| Crypto payments | Web3 vibes | 0% of GLP-1 patients ask; high chargeback risk; tax nightmare | No. |
+| "Lifetime" plans | AppSumo-style cash injection | Caps LTV at one payment; cannibalizes recurring; killer for valuation if we ever raise | No. |
+| Coupon codes in URL without server validation | Marketing wants this | Reddit + Slickdeals will find any unprotected promo | Stripe `promotion_codes` ONLY; server-validated; max-redemption cap |
+| Family / shared-account plans | "Couples both on Ozempic" | Multi-user-per-account explodes RLS + makes the doctor-share story ambiguous | Out-of-scope per PROJECT.md. |
+
+**Complexity overall: XL** (this is the biggest single workstream besides watch — connect onboarding, tax forms, dunning, paywall placement, and clinic seat metering)
+
+---
+
+## 6. In-House Page Builder
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Block library (Hero, Feature, Logos, Pricing, FAQ, CTA, Testimonial, Footer) | The 8 universal SaaS-landing blocks | L | Each block = a React component + JSON schema for editable fields. Pattern: Versoly (300+ blocks), Unbounce (block-based). Source: [SaaS landing page builders](https://pineable.com/public/blog/free-and-paid-saas-landing-page-builders) (MEDIUM) |
+| Drag-and-drop reorder | Editor must be visual, not form-based | M | `dnd-kit` (already a v1.1 dependency in clinic-roster reorder? — verify) or `react-beautiful-dnd` |
+| Template starter pack (Long-form sales, Lead-magnet opt-in, Comparison, FAQ, Testimonial) | "Don't start from blank canvas" | M | 5 templates × 8 blocks each = 40 JSON files we ship |
+| Live preview (mobile + desktop toggle) | Anyone editing a page needs to see what users see | M | iframe with `srcdoc=<rendered JSX>`; mobile = 375×812 viewport |
+| Per-page SEO config (title, description, OG image, canonical, JSON-LD) | Without these we don't rank | M | Edit form per page; render into `<head>` at SSG build time |
+| Publish → static page on `leanshot-marketing.vercel.app/p/{slug}` | The pages ARE the marketing site | M | Vercel ISR or full SSG rebuild on publish. Don't ship dynamic SSR for landing pages (Lighthouse killer). |
+| Form blocks → Resend list-add + analytics event | Lead-magnet opt-in must capture the email somewhere | M | Form submit → Edge Function → `marketing_subscribers` table → Resend audience |
+| Version history (last 10 versions per page) | One bad edit kills a campaign | M | Versioned JSON snapshots in Supabase; revert button |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| A/B testing built in (block-level OR page-level) | Marketing iterates 10× faster | L | Cookie-based bucket assignment + analytics event split; tied to growth experiments |
+| AI-assisted copy ("rewrite this hero for a more medical-trust tone") | Authoring speed boost | M | Wire existing AI coach Edge Function to a "rewrite this block" command |
+| Theme tokens auto-applied from v1.2 design system | Every page on-brand without effort | S | Pages import the same `@theme {}` CSS as the app |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Webflow / Framer parity ("any layout, any time") | "Designer's dream" | Becomes a years-long project; CMS feature creep; we're not Webflow | 8 fixed blocks. Designers can request a new block — added behind a PR review. |
+| Server-side rendered editor with WYSIWYG inline editing | "Notion-like" | DOM-mutation complexity; cursor management; we are not Notion | Form-based block editor + iframe preview. Boring + works. |
+| Allow arbitrary HTML / JS injection | "What if marketing wants a Calendly embed?" | XSS surface in our own domain; risk multiplied if user-facing | Whitelist of embed providers (Calendly, YouTube, Tally) as their own block types. No raw HTML. |
+| Multi-language i18n at v1.2 launch | "Global reach" | We're US-launch first; i18n explodes copy/SEO/dunning/email; defer | English + Spanish (US has ~62M Spanish speakers; GLP-1 demographic overlaps); revisit. **Actually defer to v1.3.** |
+
+**Complexity overall: L** (block library is the heavy lift; editor + preview is medium)
+
+> Audience asymmetry note: this is a marketing/process surface for us (the operator), but the OUTPUT is end-user-facing. Apply aggressive foundations on the rendered blocks; apply minimum-viable on the editor UX.
+
+---
+
+## 7. Viral Affiliate Program
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Unique referral code per partner + `?ref=` URL param | The protocol of every affiliate program | S | 8-char short code; persist in `partners.code` |
+| Cookie-based attribution (30-day window) | Industry standard | S | Set `lsa_ref` cookie on `?ref=` hit; consume on signup |
+| Partner dashboard: clicks / signups / paid / commission earned / payout history | What every affiliate platform shows | M | Pattern from Rewardful, PartnerStack. Source: [SaaS affiliate software](https://userjot.com/blog/saas-affiliate-program-software-2025) (MEDIUM) |
+| Self-referral fraud detection (same email/IP/payment method as partner) | This is the #1 abuse vector | M | Match partner email/IP against new-signup email/IP/Stripe `payment_method.fingerprint`. Source: [Rewardful self-referral detection](https://www.rewardful.com/articles/self-referral-fraud-detection-for-saas-founders) (HIGH) |
+| Stripe Connect payout button → real money to bank | Without payout there's no program | M | Reuses #5 above; tax-form collection is the long pole |
+| Marketing assets (banner kit, copy templates, screenshots) | Partners need ammo | S | Static folder + design-system-styled creatives |
+| Commission rules (recurring or one-time; % or flat) | Founder must be able to tune the program | M | Per-partner override of platform default; effective-from date |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Tiered commission (silver 15% / gold 25% / platinum 35% based on MRR-driven) | Top 1% of partners do 90% of volume — reward them visibly | M | Auto-tier transition on threshold; partner-visible progress bar |
+| Custom landing pages per partner (`/r/coachjane`) | Partners get a co-branded landing — much higher conversion than a `?ref=` link | M | Page builder + partner override of hero copy + auto-applied ref cookie |
+| Two-sided incentive: referred user gets first month 50% off | Higher click-through; lower CAC; standard for B2C SaaS | S | Stripe promotion-code tied to ref code |
+| Public affiliate leaderboard (opt-in) | Social proof + competitiveness | S | Top 10 partners by 30-day MRR-driven; anonymized handles |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| MLM / multi-tier ("partners earn from partners they recruit") | "Viral growth!" | Edges into MLM regulation; almost every legitimate SaaS does NOT do this; trust signal goes the wrong way | Single-tier only |
+| Pay partners in product credit instead of cash | "Save money" | Top partners want money; the tiny ones don't drive material volume anyway | Cash via Connect. Credit is a separate "ambassador" track maybe later. |
+| Pay on click | "Easy attribution" | 100% bot-fraud target | Pay on first paid charge or first month retained |
+| Public affiliate sign-up with auto-approval | "Frictionless" | Coupon-stacking communities will signup en-masse, drop ref links on Reddit, drain budget | Application + 24–48h manual approval for v1; auto-approve for warm referrals |
+
+**Complexity overall: L** (program logic is moderate; the Stripe Connect tax pipeline is what makes it L)
+
+---
+
+## 8. Ad Network (Embed + AdMob/Ad Manager + House Ads)
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| AdMob SDK on mobile (Capacitor plugin) + Ad Manager on web | The two providers Google offers; AdMob = mobile, Ad Manager = web/programmatic | M | `@capacitor-community/admob` for native; GPT (Google Publisher Tag) for web |
+| AdSense as fallback web provider | Lower fill but easier to qualify for | S | Just script tag + ad unit configuration |
+| Tier-based gating (free = ads, paid = no ads) | Without this the upgrade incentive collapses | S | Check `user.tier === 'paid'` in `<AdSlot>` wrapper; return null |
+| Three placement zones: marketing-site sidebar, free-tier dashboard banner, free-tier interstitial after-log | Three are enough; more = clutter | M | Defined slot IDs; component per zone |
+| Frequency cap (1 interstitial per 3–5 min session, or 1 per dose-log event whichever is rarer) | Avoid ad fatigue; preserve retention. Source: [Mobile interstitial best practices](https://yango-ads.com/blog/mobile-interstitial-ads) (HIGH) | S | Client-side localStorage timestamp gate |
+| **Health-data firewall: zero shared user ID, zero shared analytics, no HealthKit data in ad targeting** | Apple §5.1.3; non-negotiable | M | Cross-cutting constraint #1. Enforced by separate Supabase project OR rigorous schema isolation. |
+| Default advertiser block-list: all GLP-1 brand names + compound-pharmacy + telehealth-direct-to-consumer-GLP-1 | Regulatory landmine; users will hate seeing competitor brand ads inside our app | S | Configurable in admin; ship with pre-populated block-list |
+| Revenue dashboard (per placement, per provider) | We can't optimize what we can't see | L | Already in #4 — admin dashboard pulls AdMob + Ad Manager + AdSense reporting APIs |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| House-ad system (cross-promote LeanShot annual plan, clinic-enrollment, AI coach upgrade) | When fill < 100% serve our own creatives; reduces the "blank ad slot" feeling + drives upgrades | M | `house_ads` table + waterfall: AdMob → Ad Manager → AdSense → House. Fill rate stays at 100%. |
+| Per-placement A/B (provider order, ad format) | We can find 10–30% revenue lift with this | M | Bucketed by user ID; analytics event per impression |
+| Rewarded video ("watch a 15s ad → unlock AI coach for 24h") | $15–$30 eCPM vs $5–$8 for interstitial; voluntary so no UX harm. Source: [Mobile ad eCPM data](https://maf.ad/en/blog/mobile-ads-ecpm/) (HIGH) | M | AdMob Rewarded; native-only (web doesn't have a comparable format) |
+| Direct-sold sponsorship slot (e.g., a GLP-1-adjacent supplement brand, vetted) | Higher CPM than programmatic; brand-safe | S | Embed-code slot wired to a sponsored creative; rotates with house ads |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Ads on clinic / doctor-share / settings / onboarding screens | "More inventory" | PROJECT.md hard constraint; B2B trust kills + onboarding conversion tanks | Three zones only: marketing sidebar, dashboard banner (Home tab only), post-log interstitial |
+| Ads using HealthKit-derived data for targeting | Higher CPM | Apple §5.1.3 ban; instant app review rejection; potential FTC + EU regulator action | Contextual targeting only (URL, generic geo); explicit firewall |
+| Auto-playing video ads with sound | High CPM | Single biggest "I'm uninstalling this app" trigger | Muted + opt-in-for-sound only; rewarded format only for sound |
+| Native ads styled to look like LeanShot insight cards | High CTR | Crosses into deceptive; FTC native-ad disclosure rules require "Sponsored" label that defeats the styling | Banner + interstitial with clear "Ad" badge; native only with prominent disclosure |
+| Ads on iPad / large-screen experiences too | "Surface area!" | iPad health-app audience is smaller + more clinical-feeling; ads hurt more there | Phone + web only at v1.2; revisit |
+| Targeting by competitor app installs | "Win their users" | Most platforms ban this for health vertical | Out. |
+
+**Complexity overall: XL** (three providers × three placements × tier gating × admin reporting × the firewall enforcement is the hardest part)
+
+> Health-context anchor: under no circumstances may an ad slot fire on a screen where Health-imported data is visible. Even if the firewall is correct, the optics ARE the message. Enforce at component level: `<AdSlot>` refuses to render if it has a HealthKit-derived ancestor.
+
+---
+
+## 9. Push Notifications
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Permission pre-prompt before system prompt | Standard mobile pattern; ~3× opt-in rate | S | Custom UI explaining categories before triggering iOS/Android system sheet |
+| Dose-reminder push (scheduled local notification) | THE core notification; without it the mobile app is a worse experience than the iPhone Medications app | M | `@capacitor/local-notifications`; scheduled at dose-time-set; cancelled on log-now-from-watch-or-phone |
+| Snooze action (15min / 1h / dismiss) | Industry expectation. Source: [Reminder app notification patterns](https://support.any.do/en/articles/8610107-how-notifications-work-permissions-sounds-daily-push-snooze) (MEDIUM) | S | Notification action buttons; re-schedule on snooze |
+| Categories with per-category toggle in settings: doses, AI insights, clinic operator alerts, streak warnings, payment-failed, marketing | Without per-category control, opt-out rate spikes | M | Per-category iOS UNNotificationCategory + Android channel |
+| Streak-warning push ("you'll lose your 12-day streak in 4 hours") | Engagement loop; works | S | Scheduled local notification |
+| Payment-failed push (cross-device, server-driven) | Required for dunning to work outside email | M | APNs + FCM via Supabase Edge Function; receives Stripe webhook |
+| Quiet hours / smart silencing (no doses pushed during 10pm–7am unless dose actually scheduled in window) | Sleep is sacred; dose is not | S | User-configurable quiet hours + per-notification override |
+| Web Push for browser users | Some users won't install the app | M | Service Worker + Push API; Vercel-hosted VAPID keys |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Adaptive dose-reminder timing ("you usually log around 8:15am — push at 8:05 instead of 8:00") | ML-light personalization; less notification fatigue | M | Last-7-day median log time per user; offset reminder by -10min |
+| Rich-content push with "log now" action without opening app | Reduces friction to log | M | iOS UNNotificationContentExtension + Android quick-reply action; calls Edge Function direct |
+| Clinic-operator alert push to operator app ("3 of your patients missed doses today") | Operational use of push for B2B | S | Same FCM/APNs; gated by operator role |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Marketing/promo push ("New feature! Check it out!") | "Re-engagement" | Highest uninstall correlation of any notification type; users perceive as spam | Limit to a hard cap (1 per month) and only after explicit opt-in for "Product updates"; default OFF |
+| Push every "insight" the rule engine generates | Insights are frequent; pushes would be hourly | Notification fatigue → opt-out → losing the channel | Push max 1 daily insight, picked by rank; rest stay in-app only |
+| Critical Alert authorization for dose reminders | "Sounds even on silent mode" | Apple requires special entitlement + justification; reviewers reject if not life-critical (GLP-1 isn't insulin) | Standard time-sensitive notification; user can elevate manually in Settings |
+| Health-claim copy ("Your A1C is improving!") | Engagement | FTC health-claim rules; we don't have the clinical authority | Operational copy only ("Logged your morning dose? Tap to log.") |
+
+**Complexity overall: M** (per-category settings + Web Push are the long poles)
+
+---
+
+## 10. Lifecycle Email + Onboarding Revamp
+
+### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Welcome email Day 0 | Highest-intent moment in entire lifecycle; aim 60%+ open rate. Source: [SaaS lifecycle email guide](https://mailsoftly.com/blog/email-marketing-for-saas/) (MEDIUM) | S | Resend transactional template; tied to `auth.users` insert webhook |
+| Onboarding sequence (behavior-triggered, not time-triggered) | "Customers hitting first-value within 14 days retain 80%+; vs 35–50% if they don't". Source: [SaaS onboarding email best practices](https://mailsoftly.com/blog/user-onboarding-email-best-practices/) (MEDIUM) | M | Triggered by milestones: signed-up, logged-first-dose, logged-first-weight, completed-onboarding-wizard |
+| Receipt / invoice email | Stripe sends auto-receipt — we just need a Resend-styled mirror | S | Stripe webhook → Resend |
+| Password reset (already in v1.1, but design-system refresh now) | Visual parity with new design | S | Reuse Supabase Auth flow; new Resend template |
+| Clinic-invite email (exists from v1.1) | Re-design to new system | S | Existing template; restyle |
+| Affiliate-attribution email ("You earned $X this month") | Affiliate engagement | S | Monthly Resend send to partners with non-zero payouts |
+| Re-engagement after 7 days of no log | Retention save | M | Triggered by `last_log_at < now() - interval '7 days'` cron |
+| Cancellation save / win-back at +30 days | Standard retention loop | M | Triggered by `subscription_canceled_at + interval '30 days'`; offer is 1 month at 50% |
+| Domain verification + DKIM / SPF / DMARC on `app.leanshot.app` and `mail.leanshot.app` | Without this, email goes to spam | S | Carry-over from v1.1 deferred item per `reference_resend_phase9_wiring.md` |
+| Unsubscribe + per-category email preferences | CAN-SPAM + GDPR | S | Resend audiences + preference center page |
+
+### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Milestone celebration emails (first 7-day streak, first month, first titration step) | Reinforcement loop; high open rate; share-card embedded | S | Triggered by streak engine; share-card image inline |
+| Doctor-share-summary email to the patient when their doctor opens the share link | Loop close + trust signal ("your doctor reviewed your data") | S | Triggered by share-link view event; conditional opt-in |
+| Weekly digest (opt-in): your drug curve + your streak + your insight of the week | Engagement without notification fatigue | M | Background job renders the digest server-side as inline HTML |
+
+### Anti-Features
+| Feature | Why Tempting | Why Don't | Alternative |
+|---|---|---|---|
+| Daily email | "Top of mind" | Unsubscribe magnet | Weekly digest opt-in only |
+| Health-claim subject lines ("Lose 5lbs this week!") | "Higher open rate" | FTC + Apple §1.4.1 | Operational subject lines; trust > clicks |
+| Sharing user data with email-list-buyers / lookalike-audience seeding | "Growth!" | HIPAA-adjacent + GDPR + just bad | Hard no |
+| Behavioral targeting from email opens to ad networks | "Connect the funnel" | Crosses the Health-data firewall if any health attribute leaks | Email engagement stays in Resend; never leaves to ad network |
+
+**Complexity overall: M** (templates are small; the trigger plumbing + preference center + Resend audience setup is the bulk)
+
+> Audience asymmetry note: end-user-facing → aggressive. The cancellation save + milestone emails alone often pay back a quarter's email-tooling spend.
+
+---
 
 ## Feature Dependencies
 
-```text
-[Cloud sync (SYNC-01)]
-    ├──requires──> [Auth (AUTH-01)]
-    │                  └──requires──> [Hosted backend + DB]
-    │
-    ├──enables──> [Doctor read-share (SHARE-01, SHARE-02)]
-    │                  ├──enables──> [Audit log of who viewed what]
-    │                  └──depends-on──> [Per-share access control]
-    │
-    └──enables──> [Clinic org (CLINIC-01, CLINIC-02, CLINIC-03)]
-                       ├──requires──> [Multi-tenant data model]
-                       ├──requires──> [Invite + token system]
-                       ├──requires──> [Roles + permissions]
-                       └──enables──> [Roster + drill-in]
+```
+[1 Capacitor mobile] ──requires──> [10 Lifecycle email] (onboarding wizard touched)
+                  ──requires──> [9 Push notifications] (local notifications API)
+                  ──enables───> [2 Watch apps] (watch app pairs with phone app)
+                  ──enables───> [3 Health SDK] (Capacitor plugin = native bridge)
 
-[Local-only → account migration (SYNC-02)]
-    ├──requires──> [Auth (AUTH-01)]
-    └──requires──> [Cloud sync (SYNC-01)]
+[2 Watch apps] ──requires──> [1 Capacitor mobile] (watch pairs with phone)
+              ──requires──> [9 Push notifications] (watch shows phone's notifications)
 
-[AI coach per-org proxy (differentiator)]
-    ├──requires──> [Hosted backend (from Auth)]
-    ├──requires──> [Org workspace (CLINIC-01)]
-    └──conflicts-with──> [BYO-key model (v2 default)]
-                              └── must coexist via opt-in per-org override
+[3 Health SDK] ──requires──> [1 Capacitor mobile] (HealthKit + Health Connect = native)
+              ──firewall──> [8 Ad network] (HARD architectural barrier, never share data)
 
-[Drug-level curve in doctor view]
-    └──reuses──> [v2 pharmacology.ts] (no new logic, just plumbing)
+[4 Owner/admin] ──enhances──> [5 Stripe] (refund, plan-change, dunning queue all live here)
+               ──enhances──> [7 Affiliate] (payout approval queue)
+               ──enhances──> [8 Ad network] (revenue dashboard)
 
-[Roster "needs attention" ranking]
-    └──reuses──> [v2 insights.ts] but invoked per-patient across the org
+[5 Stripe] ──blocks──> [7 Affiliate] (Connect Express is shared infra; build Stripe first)
+          ──blocks──> [8 Ad network] (tier gating: free=ads, paid=no-ads; needs paid concept first)
+          ──blocks──> [9 Push] (payment-failed push needs Stripe webhook)
+          ──blocks──> [10 Lifecycle email] (receipts + dunning emails)
+
+[6 Page builder] ──enhances──> [7 Affiliate] (custom partner landing pages)
+                ──independent──> everything else (can ship in parallel)
+
+[7 Affiliate] ──requires──> [5 Stripe Connect] (payout rails)
+             ──independent of──> [8 Ad network]
+
+[8 Ad network] ──requires──> [5 Stripe] (tier concept)
+              ──requires──> [4 Owner/admin] (revenue dashboard)
+              ──conflicts──> [3 Health SDK] (firewall, not coexistence)
+
+[9 Push] ──requires──> [1 Capacitor mobile] (local notifications)
+        ──enhances──> [5 Stripe] (dunning recovery push)
+
+[10 Email] ──blocks──> [5 Stripe] (receipts) — but only weakly; Stripe has auto-receipt fallback
+          ──enhances──> [7 Affiliate] (payout notification)
 ```
 
 ### Dependency Notes
 
-- **Auth (AUTH-01) is on the critical path for everything net-new.** Cloud sync, doctor share, and clinic org all depend on it. Build it first.
-- **Multi-tenant data model gates clinic features.** A patient must be addressable as `(orgId?, userId)` from day one — retrofitting org scoping into a single-tenant schema is painful. Do the multi-tenant design even if v1 ships only the patient surface first.
-- **Doctor share and clinic drill-in share the same view.** Build the read-only patient view once; both surfaces consume it. Differentiate by the entry point (single-link doctor vs. logged-in clinic operator) and by the chrome (org-context bar for the clinic surface).
-- **AI coach proxy conflicts with v2's BYO model.** Resolve via per-org opt-in: if you're a patient in an org that has provisioned a key, you use the org's; otherwise you fall back to BYO or no-AI. Decision deferred per PROJECT.md Key Decisions.
-- **Roster intelligence reuses, doesn't duplicate, the insights engine.** `pickFocus(state)` is currently a single-user function returning a single focus item. For roster, we want a `rankPatients(orgState)` that returns an ordered list. Same rules, batched.
+- **[Stripe] is the keystone:** Affiliate (#7) and Ad-network tier gating (#8) both block on it. Build Stripe FIRST, even before the design-system rollout, because every other monetization workstream needs the `tier` field on `auth.users` and the Connect platform account to exist.
+- **[Capacitor mobile #1] blocks the watch + Health + push trio:** all three (#2, #3, #9) need the native bridge. But push (#9) can ship a web-only version earlier on the marketing/web surface.
+- **[Health SDK #3] conflicts (architecturally) with [Ad network #8]:** This isn't a build-order conflict — it's a "compile-time firewall must exist" constraint. The firewall is itself a workstream item, not a phase ordering question.
+- **[Page builder #6] is the most independent workstream:** depends on the design-system rollout (workstream 0) but nothing else. Can run in parallel with everything.
+- **[Lifecycle email #10] and [Stripe #5] are co-dependent:** dunning emails need Stripe webhooks; receipt emails need Stripe charges. Build a thin Resend-templates pass with Stripe-shipped, expand once Stripe is in.
 
-## MVP Definition
+---
 
-### Launch With (v1)
+## MVP Definition for v1.2
 
-Minimum viable product — enough to claim "multi-audience SaaS" and start collecting real signal from each audience.
+### Launch With (the "v1.2 GA" cut)
 
-**Production readiness (PROD-01 through PROD-06):**
+Ruthlessly: what does a peptide-tracker need to call v1.2 "shipped"?
 
-- [ ] App publicly accessible at HTTPS domain
-- [ ] Error tracking (Sentry or similar)
-- [ ] Privacy-respectful product analytics
-- [ ] Pharmacology + insights engines have automated tests
-- [ ] Anthropic key handling decided (proxy vs disclosed BYO)
-- [ ] Medical disclaimer + data-storage explanation visible before first log
+- [ ] **Design system rollout** (workstream 0; precondition for everything else)
+- [ ] **Stripe patient B2C subs (free + paid)** — without paid tier, no monetization story exists
+- [ ] **Stripe clinic seats** — keeps the B2B story honest; we already have clinics in v1.1
+- [ ] **Mobile shells iOS + Android (Capacitor)** — the "cross-platform launch readiness" promise
+- [ ] **Push notifications: dose reminders + snooze (local notifications)** — the table-stakes mobile feature
+- [ ] **HealthKit + Health Connect read-only: weight + steps + sleep** (HR is differentiator, can wait)
+- [ ] **Lifecycle email: welcome, onboarding, receipt, password-reset, clinic-invite, re-engagement** — Resend infra
+- [ ] **Owner/admin surface MVP: members, MRR, churn, impersonation, refunds, audit log** — operational floor
+- [ ] **Ad network MVP: AdMob+Ad Manager on free tier dashboard + marketing sidebar, with house ads as fallback** — revenue story
+- [ ] **Affiliate program v1 (single-tier, manual approval, Stripe Connect payout)** — growth loop
+- [ ] **Page builder: 8 blocks + 3 templates (long-form, lead-magnet, comparison)** — needed for marketing iteration
+- [ ] **Watch apps: Apple Watch + WearOS with next-dose complication + log-from-watch** (minimum)
+- [ ] **Account deletion in-app + cookie consent + DSAR portal** — launch-essential compliance
 
-**Auth + Cloud Sync (AUTH-01, SYNC-01, SYNC-02):**
+### Add After Validation (v1.2.x patches in the 3 months after launch)
 
-- [ ] Email/password OR magic link OR OAuth (one of the three; pick the lightest)
-- [ ] Cloud sync that preserves local-first behavior
-- [ ] Existing-localStorage migration on first sign-in
-- [ ] Sign out, password reset, account deletion
-- [ ] Privacy policy + ToS
+- [ ] Apple Watch HR-on-dose-day correlation card — wait for HealthKit opt-in data on actual users
+- [ ] Adaptive dose-reminder timing (ML-light) — needs sample size
+- [ ] Affiliate tiers (silver/gold/platinum) — wait until a partner does enough volume to justify
+- [ ] Rewarded video ad format — A/B against interstitial after we know baseline RPM
+- [ ] Mid-trial paywall on pharmacology projection — risky; only after we measure free-tier engagement
+- [ ] Page-builder A/B testing — start with manual A/Bs in v1.2; codify after we want 4+ live tests
+- [ ] Custom partner landing pages (`/r/coachjane`) — wait until 10+ active partners
 
-**Doctor Read-Share (SHARE-01, SHARE-02):**
+### Future Consideration (v1.3+)
 
-- [ ] Patient can generate a share link with access code
-- [ ] Doctor opens link + enters code → sees the read-only data view (mirror of `DoctorReport.tsx` content + live charts)
-- [ ] Time-bound (default 90 days), patient-revocable
-- [ ] Header shows scope + expiry + read-only banner
-- [ ] Print-friendly version (reuse v2's `DoctorReport.tsx`)
+- [ ] Clinic-sponsored patient billing (patient doesn't pay; clinic does) — wait for clinic demand
+- [ ] Watch standalone mode (no iPhone required) — cellular-watch adoption too low
+- [ ] HealthKit write-back — wait until "I wish my LeanShot weight showed in Apple Health" hits the feedback inbox 20+ times
+- [ ] Multi-language i18n (Spanish first) — wait until US base is saturated
+- [ ] Family / shared accounts — explicitly out per PROJECT.md
+- [ ] Group / cohort programs (workplace wellness) — separate go-to-market
 
-**Clinic Org B2B (CLINIC-01, CLINIC-02, CLINIC-03):**
-
-- [ ] Org signup + branding (logo, name)
-- [ ] Invite operators (Owner / Coach / View-only — three roles)
-- [ ] Invite patients by email; patient consents
-- [ ] Roster view with sortable status (last log, weight trend, recent symptoms, days since last injection)
-- [ ] "Needs attention" ranking (`rankPatients` function reusing `insights.ts`)
-- [ ] Drill-in to a single patient → reuse the read-only patient view
-- [ ] Audit log of org actions (who viewed which patient when)
-
-**Note on what's NOT in MVP launch:**
-- AI coach proxy (defer to v1.1; v2 BYO continues to work for patients in the meantime)
-- Coach-authored notes on patients (defer to v1.1; coaches can use their existing tools)
-- Webhook/outbound API (defer indefinitely; only build if a buyer asks)
-
-### Add After Validation (v1.x)
-
-Features to add once core launch is working and signal is clear.
-
-- [ ] **AI coach hosted proxy with per-org provisioning** — v2 BYO is a real UX rough edge for clinics. Trigger: first clinic asking for "we want to provide AI to all our patients."
-- [ ] **Coach-authored private notes on patients** — Trigger: coaches asking for "I want to remember this patient is allergic to X."
-- [ ] **Custom symptom list per patient** — Reddit feedback from competitors: users want to add custom symptoms. v2 has a fixed list. Trigger: > 3 unique requests for a missing symptom.
-- [ ] **Menstrual cycle tracking** — Repeatedly requested across competitor reviews. Out of scope for v1 since it's a separate logging surface. Trigger: signal from the patient cohort that cycle context affects GLP-1 efficacy.
-- [ ] **Apple Health import (iOS PWA)** — Top integration request in Reddit threads. Defer to v1.1 to see if PWA HealthKit access matures. Trigger: Apple ships a usable web-side HealthKit bridge OR enough patients ask.
-- [ ] **Withings / connected scale OAuth** — Trigger: > 5% of patients manually entering > 30 weights/month (signal that they have a connected scale and want to skip manual entry).
-- [ ] **Per-org AI prompt customization** — Clinics will eventually want their AI coach to reflect their care philosophy. Trigger: first paying clinic asks.
-- [ ] **Branded patient invitation pages with org logo** — Already in MVP at minimum-viable level (logo + name); enhance to a full marketing landing per org if buyers ask.
-- [ ] **In-app cohort comparisons** — Glapp surfaces "comparison to clinical trial data." Compelling marketing feature. Trigger: enough usage data to justify cohort definitions.
-
-### Future Consideration (v2+)
-
-Features to defer until product-market fit is established, possibly forever.
-
-- [ ] **Native mobile apps** — Stay in PWA until iOS PWA APIs become a real bottleneck.
-- [ ] **EHR / FHIR integration** — Only after > 1000 patients across > 10 clinics, and only with a dedicated integrations engineer.
-- [ ] **Per-tenant custom domain (CNAME)** — Only at enterprise tier with paid plans.
-- [ ] **Patient → coach messaging** — High compliance overhead. Defer until LeanShot has BAAs with covered entities and a HIPAA security program.
-- [ ] **Group programs / cohorts** — Defer until clinics ask for it. CoachCare-tier feature.
-- [ ] **Stripe billing / paid plans** — Out of scope for v1 by explicit decision in PROJECT.md. Later milestone.
-- [ ] **Non-GLP-1 peptides (BPC-157, growth hormone, etc.)** — Out of scope for v1 by explicit decision. Each new peptide class needs its own pharmacology + safety-disclosure content.
-- [ ] **FDA-regulated clinical decision support** — Almost certainly anti-feature for an indefinite period.
+---
 
 ## Feature Prioritization Matrix
 
-Priority for v1 milestone scope. (P1 = must have for v1 launch, P2 = should have for v1, P3 = nice to have, defer to v1.x.)
+| Feature Area | User Value | Implementation Cost | Priority |
+|---|---|---|---|
+| 5. Stripe full | HIGH | XL | P1 |
+| 1. Mobile shells (Capacitor) | HIGH | L | P1 |
+| 9. Push notifications | HIGH | M | P1 |
+| 10. Lifecycle email | MEDIUM | M | P1 |
+| 4. Owner/admin | HIGH (operator) | L | P1 |
+| 3. Health SDK | MEDIUM | L | P1 |
+| 8. Ad network | HIGH (revenue) | XL | P1 |
+| 7. Affiliate | MEDIUM-HIGH | L | P1 |
+| 2. Watch apps | MEDIUM | XL | P1 (but de-scope to "complication + log" only) |
+| 6. Page builder | MEDIUM (us, not users) | L | P1 |
 
-| Feature | Audience | User Value | Implementation Cost | Priority |
-|---------|----------|------------|---------------------|----------|
-| Auth (email/password OR magic link) | PATIENT | HIGH | MEDIUM | P1 |
-| Cloud sync (local-first preserved) | PATIENT | HIGH | HIGH | P1 |
-| localStorage migration on signup | PATIENT | HIGH | MEDIUM | P1 |
-| Account deletion (GDPR) | PATIENT | MEDIUM (legal) | LOW | P1 |
-| Privacy policy + ToS + medical disclaimer | PATIENT | MEDIUM (legal) | LOW | P1 |
-| Sentry / error tracking (PROD-02) | PATIENT (indirect) | HIGH | LOW | P1 |
-| Pharmacology + insights tests (PROD-04) | PATIENT (clinical safety) | HIGH | MEDIUM | P1 |
-| AI key hardening (PROD-05) | PATIENT | MEDIUM | MEDIUM | P1 |
-| Doctor share link with access code | PATIENT + DOCTOR | HIGH | MEDIUM | P1 |
-| Doctor read-only view (live + print) | DOCTOR | HIGH | MEDIUM | P1 |
-| Time-bound + revocable share | PATIENT | MEDIUM | LOW | P1 |
-| Org signup + branding | CLINIC | HIGH | MEDIUM | P1 |
-| Invite operators with 3 roles | CLINIC | HIGH | MEDIUM | P1 |
-| Invite patients with consent flow | CLINIC + PATIENT | HIGH | MEDIUM | P1 |
-| Roster view with sortable status | CLINIC | HIGH | MEDIUM | P1 |
-| "Needs attention" ranking | CLINIC | HIGH | LOW (reuses insights.ts) | P1 |
-| Drill-in to single patient (reuse doctor view) | CLINIC | HIGH | LOW (reuses doctor view) | P1 |
-| Tenant-scoped audit log | CLINIC | MEDIUM (compliance) | MEDIUM | P1 |
-| OAuth (Google/Apple) | PATIENT | MEDIUM | MEDIUM | P2 |
-| AI coach hosted proxy | PATIENT + CLINIC | HIGH (clinic) | HIGH | P2 |
-| Coach-authored private notes | CLINIC | MEDIUM | LOW | P2 |
-| Per-org AI prompt customization | CLINIC | MEDIUM | LOW | P3 |
-| Webhook / outbound API | CLINIC | LOW (until asked) | MEDIUM | P3 |
-| Custom symptom list | PATIENT | MEDIUM | LOW | P3 |
-| Apple Health import (PWA) | PATIENT | HIGH | HIGH (depends on platform) | P3 |
-| Connected scale OAuth | PATIENT | MEDIUM | MEDIUM | P3 |
-| Group programs | CLINIC | LOW (until asked) | HIGH | P3 |
-| Custom domain CNAME | CLINIC | LOW (until enterprise) | HIGH | P3 |
+All ten workstreams are P1 (they're the v1.2 commitment). The matrix instead surfaces:
 
-**Priority key:**
-- **P1** — Must ship in v1 launch.
-- **P2** — Should ship in v1 if scope allows; otherwise first thing in v1.x.
-- **P3** — Nice to have, defer indefinitely until real signal.
+- **Highest cost-to-value:** Ad network and Watch apps. Both should be de-scoped aggressively to their table-stakes core.
+- **Highest leverage:** Stripe (everything else depends on it) and Lifecycle email (touches every workstream's user touchpoint).
+- **Hidden risk:** Health SDK looks medium-cost but the **firewall enforcement work is what makes it L** — separate Supabase schema, separate analytics namespace, separate user-id hashing. Budget for that explicitly.
 
-## Competitor Feature Analysis
+---
 
-Comparison of LeanShot v1 (proposed) to representative competitors. Asterisks (*) indicate features that the v2 codebase already implements.
+## Recommended Build Order (for ROADMAP phase ordering)
 
-| Feature | Shotsy (consumer) | Glapp (consumer) | MeAgain (consumer) | Mochi Health (full telehealth) | Healthie (B2B EHR) | LeanShot v1 |
-|---------|-------------------|------------------|---------------------|-------------------------------|--------------------|--------------------|
-| Injection logging + site rotation | Yes | Yes | Yes | Yes (in-app) | No (it's an EHR) | Yes* |
-| Drug-level / PK projection | Yes (criticized as oversimplified) | Yes | Yes | Limited | No | Yes* (with `TRIAL_DATA` overlay + caveat) |
-| Photo progress | No | No | Yes | Yes | Yes (food photos) | Yes* |
-| Side-effect tracking | Yes | Yes (per-cycle pattern) | Yes | Yes | Yes | Yes* |
-| Nutrition (protein-first) | Limited | No | Yes (focus area) | Yes | Yes (food log) | Yes* |
-| AI coach | No | No | Yes ("Capy") | Limited | No | Yes* (BYO key v2; proxy in v1.1) |
-| Doctor PDF report | Yes | Limited | Yes (reports) | N/A (single-tenant) | Yes (clinical notes) | Yes* |
-| **Live doctor share link** | **No** | **No** | **No** | **No (proprietary portal)** | **N/A (provider-side)** | **Yes (v1 P1)** |
-| Doctor scoped read-only view | No | No | No | No (telehealth model) | Yes (provider EHR) | Yes (v1 P1) |
-| Cloud sync across devices | Yes | Yes | Yes | Yes | Yes | **Yes (v1 P1, net-new)** |
-| Multi-tenant org / clinic workspace | No | No | No | No (single-tenant DTC) | Yes (full B2B) | **Yes (v1 P1, net-new)** |
-| Patient roster for coach | No | No | No | No | Yes | **Yes (v1 P1)** |
-| "Needs attention" intelligence | No | No | No | No | Limited | **Yes (v1 P1, differentiator)** |
-| Real-time provider messaging | No | No | No | Yes (paid telehealth) | Yes | **No (anti-feature)** |
-| Telehealth video visits | No | No | No | Yes | Yes | **No (anti-feature)** |
-| Prescription / refill management | No | No | No | Yes | Yes | **No (anti-feature)** |
-| EHR / FHIR integration | No | No | No | Internal only | Limited | **No (anti-feature for v1)** |
-| Native mobile app | Yes (iOS) | Yes (iOS) + web | Yes | Yes | Yes | **No (PWA only)** |
-| Pricing | Free (premium tier) | Free | Free | $79-$249/mo | Tiered B2B | Free (v1) |
+This is the **dependency-respecting** sequence. Workstreams in the same row can run in parallel.
 
-**Strategic read:**
-- **vs. consumer trackers (Shotsy, Glapp, MeAgain):** LeanShot already wins on tracking surface area. v1 adds doctor-share + clinic B2B that none of them have, opening a new category.
-- **vs. full-stack telehealth (Mochi, Found, Sequence/WW):** LeanShot deliberately doesn't compete on prescription/video/messaging. The thesis is "the data layer your doctor and your tracker share, regardless of who prescribed."
-- **vs. EHR-grade B2B (Healthie, CoachCare):** LeanShot doesn't compete on EHR feature breadth (billing, scheduling, video, charting, full clinical notes). The thesis is "the GLP-1-specific tracker that plugs into a coach's existing stack."
+1. **Phase A — Design system rollout (workstream 0)**
+   - Precondition; touches every surface
+   - Without it, every feature ships in the v1.1 design then gets visually rebuilt — wasteful
+2. **Phase B — Stripe core (workstream 5, B2C subs + clinic seats; defer Connect)**
+   - Unblocks tier-gating for ad network + affiliate-payout infra
+   - Add `tier` column to users, add `stripe_customer_id`, add Customer Portal link
+3. **Phase C — Mobile shells + Push (workstreams 1 + 9, parallel)** — both depend on the design system
+   - Capacitor wrap, store-listing assets, in-app deletion, local notifications
+4. **Phase D — Health SDK + Owner/admin foundation (workstreams 3 + 4, parallel)**
+   - Health needs the Capacitor shell from C
+   - Admin foundation needs the Stripe data from B
+   - **D includes the firewall infrastructure** even before #8 ships, so the architectural barrier exists before any ad code is written
+5. **Phase E — Lifecycle email + Page builder (workstreams 10 + 6, parallel)**
+   - Email triggers off Stripe events from B + onboarding milestones from C
+   - Page builder is independent; ships when capacity allows
+6. **Phase F — Ad network + Affiliate program + Stripe Connect (workstreams 8 + 7, with #5's Connect tail)**
+   - Ad network needs admin reporting from D + tier gating from B
+   - Affiliate needs Stripe Connect (built here) + page builder partner-landings from E (nice-to-have, not blocking)
+7. **Phase G — Watch apps (workstream 2)** — last because:
+   - Depends on phone (C), push (C), Health (D)
+   - Highest unit-cost-per-user-value
+   - Ship complication + log-from-watch only; defer HR correlation to v1.2.x
+8. **Phase H — Tech debt sweep + launch-essentials polish** (CLINIC-07, `s.user!` audit, photo trash, DSAR portal, cookie consent, deferred-tests batch-fix, knip CI)
 
-**The unique slot LeanShot occupies:** GLP-1-specialist, free for patients, with a real live doctor-share, that coaches can use as a roster tool — without becoming a telehealth company. This is a slot **no one in the search results occupies today**.
+### Rationale
+
+- **Stripe first** because tier-gating is the universal precondition.
+- **Capacitor second** because it unblocks the watch + Health + push trio that gives v1.2 its "cross-platform" identity.
+- **Health + Admin in parallel** because they're independent build paths that converge in the firewall-and-reporting infrastructure.
+- **Ads + Affiliate near the end** because they're revenue-extraction features that need the rest of the surface to exist to extract from.
+- **Watch last** because it's the highest-effort, highest-risk-of-rejection workstream and shipping it broken hurts more than shipping it slightly late.
+
+---
+
+## Competitor Feature Analysis (selective — only where it shifts priorities)
+
+| Feature | MyFitnessPal (B2C health) | Mounjaro / Wegovy Companion apps | Rewardful / PartnerStack (affiliate) | Our Approach |
+|---|---|---|---|---|
+| Free + paid + ads | Yes (Premium = $20/mo, ad-free) | Free + brand-funded | N/A | Match: free=ads, paid=ad-free, $9–$12/mo range likely |
+| Apple Health integration | Deep (read + write) | Read-only, limited | N/A | Read-only only; differentiate on dose-day HR correlation |
+| Apple Watch app | Yes, full-featured | Some (Wegovy has a basic one) | N/A | Complication + log-from-watch only; differentiate on streak + dose-countdown |
+| Ad targeting | Demographic + behavioral (NOT health) | None (compliance) | N/A | Contextual only; explicit firewall |
+| Affiliate program | Yes, low-key | None | N/A | Visible program + co-branded landing pages |
+| Page builder | No (uses Webflow externally) | No | No | In-house — competitive moat for our content marketing speed |
+
+---
 
 ## Sources
 
-### Consumer GLP-1 trackers analyzed
-- [6 Best GLP-1 Tracking Apps Compared (LearnMuscles, 2025)](https://learnmuscles.com/blog/2025/11/27/6-best-glp-1-tracking-apps-compared-which-app-actually-works-in-2026/)
-- [13 Best Apps for Tracking Semaglutide Results (MeAgain, 2026)](https://meagain.com/blog/best-app-for-tracking-semaglutide-results)
-- [Estimated Medication Level Charts in GLP-1 Tracking Apps (glp1effect.com)](https://glp1effect.com/p/are-glp-1-app-medication-charts-reliable)
-- [Shotsy GLP-1 Tracker](https://shotsyapp.com/)
-- [Pep GLP-1 Tracker](https://pepglp1.com/)
-- [Glapp](https://glapp.io/)
-- [MeAgain Best Shotsy Alternative](https://meagain.com/alternatives/shotsy)
-- [Pep vs. Shotsy comparison](https://pepglp1.com/pep-vs-shotsy-which-glp-1-medication-tracking-app-reigns-supreme/)
-- [maxbud: GLP-1 AI Tracker](https://apps.apple.com/us/app/maxbud-glp-1-ai-tracker/id6479300175)
-- [GLP AI](https://glpai.app/)
-- [Alnu Health](https://alnu.health/)
-- [Dose AI](https://www.trydoseai.com/)
+### Apple App Store + HealthKit
+- [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) — §5.1.3 + §5.1.1(v) (HIGH)
+- [Protecting user privacy — HealthKit](https://developer.apple.com/documentation/healthkit/protecting-user-privacy) (HIGH)
+- [Offering account deletion in your app](https://developer.apple.com/support/offering-account-deletion-in-your-app/) (HIGH)
+- [iOS App Store Requirements for Health Apps](https://blog.dashsdk.com/app-store-requirements-for-health-apps/) (MEDIUM)
+- [HealthKit vs Health Connect — Practical guide](https://www.diversido.io/blog/implementing-healthkit-and-google-fit-in-healthcare-apps---a-guide-for-both-operating-systems) (MEDIUM)
 
-### Full-stack telehealth competitors
-- [Mochi Health Review (Vaccine Alliance)](https://www.vaccinealliance.org/reviews/mochi-health/)
-- [WeightWatchers 2026 GLP-1 Med+ Program (HIT Consultant)](https://hitconsultant.net/2025/12/17/weight-watchers-launches-new-glp-1-program-and-ai-app-features/)
-- [WeightWatchers Sequence acquisition (Fierce Healthcare)](https://www.fiercehealthcare.com/digital-health/weightwatchers-acquisition-sequence-allows-expansion-remote-prescribing-hot-weight)
-- [GLP-1 Telehealth Monitoring (Diabetes In Control)](https://www.diabetesincontrol.com/glp1-telehealth-monitoring/)
+### Capacitor + Mobile
+- [Capacitor Security guide](https://capacitorjs.com/docs/guides/security) (HIGH)
+- [Biometric auth in Capacitor](https://capgo.app/blog/biometric-authentication-in-capacitor-apps/) (MEDIUM)
+- [Secure storage for offline tokens in Capacitor](https://capgo.app/blog/secure-storage-for-offline-tokens-in-capacitor/) (MEDIUM)
 
-### B2B clinical-coach platforms
-- [Healthie Health Coaching Platform](https://www.gethealthie.com/clinical-focus-health-coaching)
-- [Healthie Patient Portal](https://www.gethealthie.com/patient-portal)
-- [CoachCare Virtual Health Features](https://www.coachcare.com/virtual-health-features/)
-- [CoachCare RPM for Weight Loss](https://www.coachcare.com/2024/12/24/remote-patient-monitoring-for-weight-loss-devices-applications-tips.html)
-- [Withings Health Solutions RPM](https://withingshealthsolutions.com/rpm/)
-- [Optimizing GLP-1 Therapy Through RPM (Prevounce)](https://blog.prevounce.com/optimizing-glp-1-therapy-through-remote-weight-monitoring)
+### Apple Watch + WearOS
+- [ResearchKit and CareKit overview](https://www.researchandcare.org/) (HIGH)
+- [MedTick Wear OS medication reminder](https://play.google.com/store/apps/details?id=com.medtick) (MEDIUM)
+- [MediSafe Android Wear](https://www.techhive.com/article/602463/medisafe-adds-android-wear-support-to-remind-you-to-take-your-pills.html) (MEDIUM)
 
-### Doctor-share / data-sharing patterns
-- [Epic Share Everywhere FAQ](https://shareeverywhere.epic.com/FAQ)
-- [MyChart Sharing Your Medical Record](https://www.mychart.org/Sharing-Your-Medical-Record)
-- [Apple Health Share with Provider FAQ](https://support.apple.com/guide/healthregister/health-app-data-share-with-provider-faq-apd531bc6215/web)
+### Stripe + Monetization
+- [Stripe Billing — Subscriptions overview](https://docs.stripe.com/billing/subscriptions/overview) (HIGH)
+- [Stripe Trial offers](https://docs.stripe.com/billing/subscriptions/trials) (HIGH)
+- [Stripe Connect W-8/W-9 onboarding](https://docs.stripe.com/connect/connect-w8-w9-onboarding) (HIGH)
+- [Stripe Connect 1099](https://stripe.com/connect/1099) (HIGH)
+- [Stripe Billing features (Smart Retries / Customer Portal)](https://stripe.com/billing/features) (HIGH)
+- [Subscription management guide 2026](https://www.subdash.co/blog/stripe-subscription-management-guide) (MEDIUM)
 
-### Compliance + regulatory context
-- [FTC: Collecting, Using, or Sharing Consumer Health Information](https://www.ftc.gov/business-guidance/resources/collecting-using-or-sharing-consumer-health-information-look-hipaa-ftc-act-health-breach)
-- [HHS: Access Right, Health Apps & APIs](https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/access-right-health-apps-apis/index.html)
-- [Digital Health Care Alert: Is Your Health Care App Subject to HIPAA? (Fenwick)](https://www.fenwick.com/insights/publications/digital-health-care-alert-is-your-health-care-app-subject-to-hipaa)
+### Affiliate
+- [Rewardful self-referral fraud detection](https://www.rewardful.com/articles/self-referral-fraud-detection-for-saas-founders) (HIGH)
+- [Best SaaS affiliate software 2026](https://userjot.com/blog/saas-affiliate-program-software-2025) (MEDIUM)
+- [Affiliate tax compliance (W-9 / W-8BEN)](https://www.i-payout.com/blog/affiliate-tax-compliance-made-easy-w-9-w-8ben-and-beyond) (MEDIUM)
 
-### Multi-tenant SaaS patterns
-- [WorkOS: Developer's Guide to SaaS Multi-Tenant Architecture](https://workos.com/blog/developers-guide-saas-multi-tenant-architecture)
-- [Logto: Build a Multi-Tenant SaaS Application](https://blog.logto.io/build-multi-tenant-saas-application)
-- [Clerk: Multi-Tenant Authentication](https://clerk.com/blog/multi-tenant-authentication-what-you-need-to-know)
+### Ad Network
+- [Google AdMob 2026 pharmaceutical policy update](https://almcorp.com/blog/google-admob-pharmaceutical-policy-2026/) (MEDIUM)
+- [Google AdSense pharma policy](https://support.google.com/adspolicy/answer/176031?hl=en) (HIGH)
+- [Mobile ad eCPM benchmarks](https://maf.ad/en/blog/mobile-ads-ecpm/) (MEDIUM)
+- [Mobile interstitial best practices + frequency caps](https://yango-ads.com/blog/mobile-interstitial-ads) (MEDIUM)
+- [App ad revenue benchmarks 2026](https://revenueflex.com/blog/app-ad-revenue-benchmarks-2026/) (MEDIUM)
+- [NAD ruling on compounded-GLP-1 advertising](https://www.polsinelli.com/publications/nad-compounded-glp-1-advertising-diet) (HIGH)
 
-### User feedback / community signal
-- [Mumsnet Shotsy Graphs Discussion](https://www.mumsnet.com/talk/weight-loss-injections/5209828-share-your-shotsy-graphs-mounjaro)
-- [Surprisingly Cool GLP-1 Tracker (glp1effect.com Glapp review)](https://glp1effect.com/p/surprisingly-cool-glp-1-phase-tracker-and-it-s-free)
+### Push + Lifecycle Email
+- [SaaS lifecycle email marketing 2026](https://mailsoftly.com/blog/email-marketing-for-saas/) (MEDIUM)
+- [SaaS onboarding email best practices](https://mailsoftly.com/blog/user-onboarding-email-best-practices/) (MEDIUM)
+- [Welcome email patterns](https://customer.io/learn/lifecycle-marketing/welcome-email-templates) (MEDIUM)
+- [Medication reminder notification patterns](https://www.macworld.com/article/2521302/how-to-adjust-medications-reminders-on-your-iphone-ipad-and-apple-watch.html) (MEDIUM)
+
+### Admin + Page Builder
+- [SaaS Admin Dashboards](https://www.netsuite.com/portal/resource/articles/erp/saas-dashboards.shtml) (MEDIUM)
+- [SaaS Landing Page Builders](https://pineable.com/public/blog/free-and-paid-saas-landing-page-builders) (MEDIUM)
+- [Unbounce landing-page features](https://unbounce.com/) (MEDIUM)
 
 ---
-*Feature research for: GLP-1 tracking SaaS — v1 launch milestone (cloud sync + doctor share + clinic B2B)*
-*Researched: 2026-05-10*
+*Feature research for: LeanShot v1.2 — cross-platform launch + monetization + ad network*
+*Researched: 2026-05-13*
