@@ -1,14 +1,16 @@
 /**
  * Phase 10 Plan 10-06 — RosterTable composition root.
+ * Phase 10 Plan 10-10 — Extended with bulk selection (useRosterSelection hook,
+ *   RosterBulkSelectionBar, header indeterminate checkbox, RosterRow/Card props).
  *
  * Manages:
  *   - Sort state (column + direction; 3rd click reverts to default score DESC)
  *   - Offset/pagination state
- *   - Selection state stub (Plan 10-10 wires it up)
+ *   - Selection state (Plan 10-10: useRosterSelection hook)
  *   - Realtime row signal-column patching (D-16)
  *   - Threshold-cross toast (D-17): score crosses 70 boundary on refetch
  *   - Passive 30s refetch
- *   - PostHog events: clinic_roster_loaded, clinic_roster_sorted
+ *   - PostHog events: clinic_roster_loaded, clinic_roster_sorted, clinic_bulk_selected
  *
  * Desktop (<768px hidden) renders <table> with RosterRow.
  * Mobile renders RosterMobileCard stack.
@@ -35,9 +37,14 @@ import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
 import { useRankRoster } from './use-rank-roster';
 import { useRosterRealtime } from './use-roster-realtime';
 import type { PatientSignalChangePayload } from './use-roster-realtime';
+import { useRosterSelection } from './use-roster-selection';
 import { RosterRow } from './RosterRow';
 import { RosterMobileCard } from './RosterMobileCard';
 import { RosterPagination } from './RosterPagination';
+import { RosterBulkSelectionBar } from './RosterBulkSelectionBar';
+import { BulkExportPDFFlow } from './BulkExportPDFFlow';
+import { BulkExportCSVFlow } from './BulkExportCSVFlow';
+import { BulkOpenInTabsFlow } from './BulkOpenInTabsFlow';
 
 const PAGE_SIZE = 50;
 const REFRESH_INTERVAL_MS = 30_000;
@@ -75,6 +82,8 @@ export interface RosterTableProps {
   onSelectionChange?: (selectedIds: string[]) => void;
 }
 
+type BulkFlowType = 'pdf' | 'csv' | 'tabs' | null;
+
 export function RosterTable({
   orgId,
   slug,
@@ -87,6 +96,7 @@ export function RosterTable({
   const [realtimePatched, setRealtimePatched] = useState<Map<string, Partial<RankRosterRow>>>(
     new Map(),
   );
+  const [activeBulkFlow, setActiveBulkFlow] = useState<BulkFlowType>(null);
 
   const toast = useToast();
   const fetchStartRef = useRef<number>(performance.now());
@@ -100,6 +110,11 @@ export function RosterTable({
     offset,
     limit: PAGE_SIZE,
   });
+
+  // ---- Bulk selection hook -------------------------------------------------
+  const { selected, toggle, toggleAll, clear, isSelected } = useRosterSelection({ orgId });
+  const selectedCount = selected.size;
+  const visibleUserIds = useMemo(() => rows.map((r) => r.user_id), [rows]);
 
   // ---- Threshold-crossing detection ----------------------------------------
   useEffect(() => {
@@ -244,6 +259,15 @@ export function RosterTable({
     refresh();
   };
 
+  // ---- Header "select all visible" checkbox state --------------------------
+  const allVisibleSelected = visibleUserIds.length > 0 && visibleUserIds.every(isSelected);
+  const someVisibleSelected = visibleUserIds.some(isSelected);
+  const headerIndeterminate = someVisibleSelected && !allVisibleSelected;
+
+  const handleHeaderCheckboxClick = () => {
+    toggleAll(visibleUserIds);
+  };
+
   // ---- Column header sort icon --------------------------------------------
   const SortIcon = ({ col }: { col: SortColumn }) => {
     if (sort.column !== col) {
@@ -303,6 +327,19 @@ export function RosterTable({
 
   return (
     <div data-testid="roster-table-container">
+      {/* Bulk selection bar — renders above the table when ≥1 row selected */}
+      {selectedCount > 0 && (
+        <div className="mb-3" data-testid="bulk-selection-bar-wrapper">
+          <RosterBulkSelectionBar
+            count={selectedCount}
+            onClear={clear}
+            onPDF={() => setActiveBulkFlow('pdf')}
+            onCSV={() => setActiveBulkFlow('csv')}
+            onOpenTabs={() => setActiveBulkFlow('tabs')}
+          />
+        </div>
+      )}
+
       {/* Header row: subhead + refresh */}
       <div className="flex items-center justify-between gap-3 mb-4">
         <p className="text-[13px] text-[var(--color-text-secondary)]">
@@ -342,6 +379,56 @@ export function RosterTable({
         >
           <thead>
             <tr role="row" className="border-b border-[var(--color-border)]">
+              {/* Header checkbox: select all visible */}
+              <th role="columnheader" className="pb-2 pl-2 pr-1 w-[40px]">
+                <div
+                  role="checkbox"
+                  aria-checked={allVisibleSelected ? true : headerIndeterminate ? 'mixed' : false}
+                  aria-label="Select all visible patients"
+                  tabIndex={0}
+                  className={cn(
+                    'inline-flex items-center justify-center w-10 h-10 rounded-lg cursor-pointer',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                  )}
+                  onClick={handleHeaderCheckboxClick}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      handleHeaderCheckboxClick();
+                    }
+                  }}
+                >
+                  <span
+                    className={cn(
+                      'w-5 h-5 rounded-md border-2 flex items-center justify-center',
+                      allVisibleSelected
+                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
+                        : headerIndeterminate
+                        ? 'bg-[var(--color-primary)]/50 border-[var(--color-primary)]'
+                        : 'border-[var(--color-border)]',
+                    )}
+                    aria-hidden
+                  >
+                    {allVisibleSelected && (
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                        <path
+                          d="M1 4L3.5 6.5L9 1"
+                          stroke="white"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                    {headerIndeterminate && !allVisibleSelected && (
+                      <svg width="10" height="2" viewBox="0 0 10 2" fill="none">
+                        <path d="M1 1H9" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    )}
+                  </span>
+                </div>
+              </th>
+
               {(
                 [
                   'score',
@@ -392,6 +479,8 @@ export function RosterTable({
                     return next;
                   });
                 }}
+                isSelected={isSelected(row.user_id)}
+                onToggleSelect={toggle}
               />
             ))}
           </tbody>
@@ -407,6 +496,8 @@ export function RosterTable({
             slug={slug}
             orgId={orgId}
             permissionMap={permissionMap}
+            isSelected={isSelected(row.user_id)}
+            onToggleSelect={toggle}
           />
         ))}
       </div>
@@ -422,6 +513,40 @@ export function RosterTable({
             onNext={() => setOffset((prev) => prev + PAGE_SIZE)}
           />
         </div>
+      )}
+
+      {/* Bulk flow modals */}
+      {activeBulkFlow === 'pdf' && (
+        <BulkExportPDFFlow
+          orgId={orgId}
+          slug={slug}
+          selectedIds={[...selected]}
+          permissionMap={permissionMap}
+          onClose={() => {
+            setActiveBulkFlow(null);
+            clear();
+          }}
+        />
+      )}
+      {activeBulkFlow === 'csv' && (
+        <BulkExportCSVFlow
+          orgId={orgId}
+          selectedIds={[...selected]}
+          onClose={() => {
+            setActiveBulkFlow(null);
+            clear();
+          }}
+        />
+      )}
+      {activeBulkFlow === 'tabs' && (
+        <BulkOpenInTabsFlow
+          slug={slug}
+          selectedIds={[...selected]}
+          onClose={() => {
+            setActiveBulkFlow(null);
+            clear();
+          }}
+        />
       )}
     </div>
   );

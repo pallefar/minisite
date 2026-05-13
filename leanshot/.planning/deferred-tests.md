@@ -115,3 +115,12 @@ See `leanshot/.planning/phases/07-compliance-foundations-legal-counsel-led/07-01
 | `OrgCreateFlow — Step 1 > renders "That URL is already taken." on server-taken response` | `leanshot/src/components/clinic/OrgCreateFlow.test.tsx:107` | Passes in isolation, fails under full-suite parallelism. `mockReturnValueOnce` queue carry-over from another test file (vi.clearAllMocks doesn't drain `mockReturnValueOnce`; needed `mockReset()` in `beforeEach`). | Phase 9 verifier-agent at milestone close | v1.2 milestone close |
 
 **Pattern reference:** Per memory `feedback_orchestrator_inline_fix_pattern.md` and 09-05 SUMMARY note. Fix shape: switch from `vi.clearAllMocks()` to `mockCheckSlugAvailable.mockReset()` in `beforeEach` for any test file that uses `mockReturnValueOnce` chains. Sweep all `useStore` / supabase / fetch mocks in clinic test files.
+
+---
+
+## Phase 10 Plan 10-10 Deferred Tests
+
+| Test | File | Reason | Fix Target |
+|------|------|--------|-----------|
+| Test 4: PDF flow calls log_bulk_export_inclusion per patient | `src/components/clinic/roster/BulkExport.test.tsx` | `handleGenerate()`'s sequential async chain (getSession→fetch→rpc) doesn't complete within vitest 4.1.5 / jsdom 29 waitFor polling window. Behavior verified by Deno unit tests + rls-bulk-export.test.ts live DB. | Phase 10 close deferred-tests sweep |
+
