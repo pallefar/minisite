@@ -91,6 +91,28 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Phase 8 Plan 08-06 — Static-import regression guard for the `share`
+      # lazy chunk (HI-2 additive append, third append point in this file:
+      # Plan 08-02 deno-test step → Plan 08-05 share-security-drill job →
+      # this guard). The initial bundle budget gate is enforced in Plan
+      # 08-04 Task 2b (HI-1) — this step's ONLY job is preventing future
+      # PRs from accidentally static-importing `@/components/share/*` into
+      # App.tsx or main.tsx, which would defeat the lazy-load and bloat
+      # the index chunk back over its gz ceiling.
+      #
+      # See: leanshot/.planning/phases/08-doctor-read-share/08-06-PLAN.md
+      # Memory: project_phase5_bundle_regression.md (50 kB gz ceiling).
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Static-import guard for share routes (Phase 8 Plan 08-06)
+        run: |
+          if grep -rn "^import.*'@/components/share/" src/App.tsx src/main.tsx; then
+            echo "FAIL: Static import of @/components/share/* found in App.tsx or main.tsx"
+            echo "      SharePage MUST be React.lazy. See memory project_phase5_bundle_regression.md"
+            exit 1
+          fi
+          echo "Static-import guard: PASS (no static @/components/share/* imports in App.tsx or main.tsx)"
+
       # Production-shaped build with explicitly empty env vars.
       # Asserts S-10: production build with empty Sentry DSN exits 0.
       # Phase 5: ALSO injects VITE_SUPABASE_* so the SPA bundle wired into
