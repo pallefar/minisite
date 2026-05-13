@@ -79,6 +79,12 @@ jobs:
   test-e2e:
     name: E2E smoke + production-build security check
     runs-on: ubuntu-latest
+    # Phase 13 Plan 13-06 D-04 — VR specs depend on Phase 12 invariants:
+    #   - test-unit runs the CSP snapshot test (leanshot/tests/csp/csp-snapshot.test.ts)
+    #     so any CSP regression fails BEFORE the VR diff runs.
+    #   - lint runs the firewall import-x/no-restricted-paths rule (Phase 12 12-02).
+    # If either fails, this job never starts and the VR baselines stay current.
+    needs: [test-unit, lint]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -185,6 +191,29 @@ jobs:
             exit 1
           fi
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Phase 13 Plan 13-06 D-04/D-05/D-06 — Visual regression suite (12
+      # snapshots in e2e/visual/) runs as part of this `npm run test:e2e`
+      # step. Playwright's testDir: './e2e' auto-discovers nested *.spec.ts,
+      # so the VR specs are picked up without a separate step.
+      #
+      # Phase 12 regression gates verified by this workflow (NOT new code,
+      # documenting the cross-job invariant chain):
+      #   - CSP snapshot test (Phase 12 12-04)  — runs in test-unit (vitest);
+      #                                           blocked-by via `needs:` above.
+      #   - Bundle ceiling assertions (12-01)   — assert-bundle-budget.sh /
+      #                                           assert-vendor-react-size.sh above.
+      #   - Firewall ESLint rule (12-02)        — runs in lint job; blocked-by
+      #                                           via `needs:` above.
+      #   - clinic-ad-free e2e (12-03)          — its own step further below;
+      #                                           also runs implicitly here.
+      #   - Hash-hyphen regression (12-01 D-13) — assert-clinic-bundle-budget
+      #                                           hash-hyphen guard above.
+      #
+      # Baselines are NEVER auto-updated here. The opt-in
+      # .github/workflows/visual-baselines.yml workflow (workflow_dispatch only)
+      # is the ONLY place `playwright test --update-snapshots` is invoked.
+      # ─────────────────────────────────────────────────────────────────────
       - name: Run Playwright smoke against production build
         run: npm run test:e2e
         env:
