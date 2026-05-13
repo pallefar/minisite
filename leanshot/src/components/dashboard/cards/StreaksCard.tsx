@@ -2,7 +2,7 @@ import { Flame } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useStreaks } from '@/hooks/useStreaks';
-import { StreakBadge } from '@/illustrations/StreakBadge';
+import { StreakBadge, type StreakTier } from '@/illustrations/StreakBadge';
 
 const ROWS: { key: keyof ReturnType<typeof useStreaks>; label: string }[] = [
   { key: 'weight', label: 'Weight log' },
@@ -23,14 +23,20 @@ export function StreaksCard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {ROWS.map((r) => {
           const count = streaks[r.key];
-          const variant = count >= 90 ? '90d' : count >= 30 ? '30d' : '7d';
-          const locked = count < 7;
+          const tier: StreakTier =
+            count < 7
+              ? 'locked'
+              : count >= 90
+                ? 'gold'
+                : count >= 30
+                  ? 'silver'
+                  : 'bronze';
           return (
             <div
               key={r.label}
               className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 flex items-center gap-3"
             >
-              <StreakBadge variant={variant} className="size-12 shrink-0" locked={locked} />
+              <StreakBadge tier={tier} className="size-12 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[20px] font-bold leading-none numerals-tabular">
                   {count}

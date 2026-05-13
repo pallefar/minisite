@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { useToast } from '@/hooks/useToast';
+import { AIAvatar } from '@/illustrations/AIAvatar';
 import {
   OnboardWelcome,
   OnboardMedication,
@@ -496,16 +497,19 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
 
                 {step === 7 && (
                   <div className="space-y-4">
-                    <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">
-                        You&apos;re{' '}
-                        <span className="font-display italic font-normal text-[var(--color-primary)]">
-                          all set.
-                        </span>
-                      </h1>
-                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Here&apos;s what&apos;s next:
-                      </p>
+                    <div className="flex items-start gap-3">
+                      <AIAvatar size={56} className="shrink-0" />
+                      <div>
+                        <h1 className="text-[26px] font-bold tracking-tight">
+                          You&apos;re{' '}
+                          <span className="font-display italic font-normal text-[var(--color-primary)]">
+                            all set.
+                          </span>
+                        </h1>
+                        <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                          Your AI coach is ready. Here&apos;s what&apos;s next:
+                        </p>
+                      </div>
                     </div>
                     <div className="space-y-2.5">
                       <NextStep
