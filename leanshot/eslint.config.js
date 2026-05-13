@@ -103,6 +103,90 @@ export default defineConfig([
     },
   },
 
+  // Phase 12 Two-tunnel firewall — health.ts is blocked from flowing into the ad-eligible bag (D-02).
+  // The directory-zone rule covers buckets 1, 2a, 3, 4, 5, and Stripe metadata (6 zones);
+  // the *.ad-eligible.ts glob and posthog*.ts wrappers glob are covered by separate
+  // no-restricted-imports rules below. See .planning/phases/12-bootstrap-bundle-foundations/12-CONTEXT.md.
+
+  // Block A: import-x/no-restricted-paths — six zone-based directory restrictions (D-02 buckets 1–6)
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { 'import-x': importXPlugin },
+    rules: {
+      'import-x/no-restricted-paths': ['error', {
+        zones: [
+          // Zone 1 (ad transport): src/lib/native/ads*.ts must not import health.ts
+          {
+            target: './src/lib/native/ads',
+            from: './src/lib/native/health.ts',
+            message: 'Two-tunnel firewall (Phase 12 D-02 Zone 1): health.ts must not flow into the ad transport. See 12-CONTEXT.md.',
+          },
+          // Zone 2a (analytics + posthog directory): src/lib/analytics/* must not import health.ts
+          {
+            target: './src/lib/analytics',
+            from: './src/lib/native/health.ts',
+            message: 'Two-tunnel firewall (Phase 12 D-02 Zone 2a): health.ts must not flow into analytics — PostHog distinctId leak path. See 12-CONTEXT.md.',
+          },
+          // Zone 3 (affiliate): src/lib/affiliate/* must not import health.ts
+          {
+            target: './src/lib/affiliate',
+            from: './src/lib/native/health.ts',
+            message: 'Two-tunnel firewall (Phase 12 D-02 Zone 3): health.ts must not reach affiliate-attribute Edge Function payloads. See 12-CONTEXT.md.',
+          },
+          // Zone 4 (ads bag): src/lib/ads/* must not import health.ts
+          {
+            target: './src/lib/ads',
+            from: './src/lib/native/health.ts',
+            message: 'Two-tunnel firewall (Phase 12 D-02 Zone 4): health.ts must not enter the ads module bag. See 12-CONTEXT.md.',
+          },
+          // Zone 5 (marketing): src/lib/marketing/* must not import health.ts
+          {
+            target: './src/lib/marketing',
+            from: './src/lib/native/health.ts',
+            message: 'Two-tunnel firewall (Phase 12 D-02 Zone 5): health.ts must not enter the marketing module bag. See 12-CONTEXT.md.',
+          },
+          // Zone 6 (Stripe metadata helpers — D-02 bucket 4 part 2):
+          // Silently passing today (src/lib/stripe/ doesn't exist until Phase 14);
+          // activates the moment Phase 14 creates the directory. Phase 14 plan-checker MUST verify.
+          {
+            target: './src/lib/stripe',
+            from: './src/lib/native/health.ts',
+            message: 'Two-tunnel firewall (Phase 12 D-02 Zone 6): health.ts must not reach Stripe metadata helpers (visible to Connect partners + ad-reconciliation tools). See 12-CONTEXT.md.',
+          },
+        ],
+      }],
+    },
+  },
+
+  // Block B: no-restricted-imports — *.ad-eligible.ts naming-convention glob (D-02 bucket 6)
+  // import-x/no-restricted-paths cannot target globs; this separate rule covers the naming convention.
+  {
+    files: ['src/**/*.ad-eligible.ts'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['*/native/health', '*/native/health.ts', '@/lib/native/health'],
+          message: 'Two-tunnel firewall (Phase 12 D-02 supplement): *.ad-eligible.ts files must not import health.ts. See 12-CONTEXT.md.',
+        }],
+      }],
+    },
+  },
+
+  // Block C: no-restricted-imports — posthog*.ts wrappers glob (D-02 Zone 2b)
+  // Covers posthog wrapper files outside src/lib/analytics/ (e.g. src/lib/posthog-client.ts).
+  // Activates when Phase 14/22 creates the wrapper file.
+  {
+    files: ['src/lib/posthog*.ts', 'src/**/posthog*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['*/native/health', '*/native/health.ts', '@/lib/native/health'],
+          message: 'Two-tunnel firewall (Phase 12 D-02 Zone 2b — PostHog wrappers): posthog*.ts files must not import health.ts. See 12-CONTEXT.md.',
+        }],
+      }],
+    },
+  },
+
   // Test files: relax some rules (will execute when Plan 04 wires Vitest)
   // Also disable typed linting (project-based TS rules) for test files since
   // tsconfig.app.json explicitly excludes *.test.{ts,tsx}.
