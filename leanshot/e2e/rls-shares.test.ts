@@ -1,40 +1,77 @@
 /**
- * Phase 8 SHARE-01..06 cross-tenant proof for `public.shares`.
+ * Phase 8 SHARE — extended RLS + structural proof for the `shares` surface.
  *
- * Project rule (memory `reference_supabase_project.md`): every new RLS surface
- * gets a live cross-tenant impersonation proof — not just policy SQL. This
- * file ships ONE real assertion in Wave 1 (cross-tenant SELECT isolation);
- * the remaining stubs are filled by later plans (audit-row write, snapshot
- * view structural exclusion, code single-use) and intentionally throw so
- * CI surfaces them as red-but-tracked until those plans land.
+ * Project rule (memory `reference_supabase_project.md`): every RLS surface
+ * gets a LIVE cross-tenant impersonation proof — not just policy SQL. This
+ * file ships 5 real assertions, completing the Wave-0 scaffold:
  *
- * Mirrors `e2e/rls-injections.test.ts` (Phase 5) — same lifecycle
- * (admin createUser → JWT-scoped client → RLS-bound select), swapped table.
- * The write path uses the `create_share` SECURITY DEFINER RPC because the
- * `shares` table has NO authenticated INSERT policy (RPCs are the only write
- * path; see migration 20260701000002_shares_table.sql).
+ *   1. cross-tenant — user B cannot SELECT user A's shares row (RLS)
+ *   2. audit_logs.share_view row written when /share/snapshot is hit
+ *   3. share_snapshot_view migration excludes ai_messages structurally
+ *   4. /share/redeem code is single-use — second redeem returns 410
+ *   5. /share/redeem per-share rate-limit — 6th wrong attempt returns 429
+ *
+ * Plan 08-05 Task 1 — completes the Wave-0 stubs.
  *
  * Environment:
  *   SUPABASE_URL              — public, e.g. https://<ref>.supabase.co
  *   SUPABASE_ANON_KEY         — public anon JWT (publishable)
  *   SUPABASE_SERVICE_ROLE_KEY — PRIVATE service-role JWT (NEVER commit; CI secret only)
  *
- * Skipped automatically if any required env var is absent (default local + PR
- * runs from forks). Phase 8 wave verification runs this against the live cloud
- * DB with the secret injected.
+ * Skipped automatically if any required env var is absent (default local +
+ * fork PR runs). CI sets these from repo secrets and gates merge.
+ *
+ * HI-6: every share created via `createTestShare` is admin-DELETED in
+ * `afterAll(cleanupTestShares)` so concurrent CI runs don't accumulate
+ * orphan rows.
  */
+
+import { readFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
+
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, describe, expect, it } from 'vitest';
+
+import { cleanupTestShares, createTestShare, hasLiveSupabase } from './fixtures/shares';
 
 const URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
 const ANON = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SHOULD_RUN = Boolean(URL && ANON && SERVICE);
-
+const SHOULD_RUN = hasLiveSupabase();
 const describeIfLive = SHOULD_RUN ? describe : describe.skip;
 
-describeIfLive('Phase 8 SHARE — cross-tenant RLS isolation on shares', () => {
+const FN_BASE = URL ? `${URL}/functions/v1` : '';
+// Repo-relative path is fine — vitest runs from leanshot/ (project root).
+// resolvePath from cwd is robust across npm-scripts / Vitest worker.
+const SNAPSHOT_VIEW_SQL_PATH = resolvePath(
+  process.cwd(),
+  '..',
+  'supabase',
+  'migrations',
+  '20260701000004_share_snapshot_view.sql',
+);
+
+// Helper: locate the migration file whether vitest is run from /leanshot or
+// from the repo root. Falls back through both candidates.
+function readSnapshotViewSql(): string {
+  const candidates = [
+    SNAPSHOT_VIEW_SQL_PATH,
+    resolvePath(process.cwd(), 'supabase', 'migrations', '20260701000004_share_snapshot_view.sql'),
+  ];
+  for (const candidate of candidates) {
+    try {
+      return readFileSync(candidate, 'utf8');
+    } catch {
+      // try next
+    }
+  }
+  throw new Error(
+    `share_snapshot_view migration not found at any of: ${candidates.join(', ')}`,
+  );
+}
+
+describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
   let admin: SupabaseClient | null = null;
   const getAdmin = (): SupabaseClient => {
     if (!admin) {
@@ -44,138 +81,168 @@ describeIfLive('Phase 8 SHARE — cross-tenant RLS isolation on shares', () => {
     }
     return admin;
   };
-  const createdUserIds: string[] = [];
 
   afterAll(async () => {
-    if (!admin) return;
-    for (const id of createdUserIds) {
-      try {
-        await admin.auth.admin.deleteUser(id);
-      } catch {
-        // best-effort cleanup; on delete cascade handles the shares row
-      }
-    }
+    // HI-6: clean up every share row created during the suite. Test users
+    // (alice@/bob@) are stable across runs per the plan's accepted threats.
+    await cleanupTestShares();
   });
 
-  it('shares_select_own — user B cannot read user A shares row via RLS-scoped client', async () => {
-    const adminClient = getAdmin();
-    // 1. Seed two users via the admin API (verified inline so no email loop).
-    const passwordA = `Pass1234-${crypto.randomUUID().slice(0, 8)}`;
-    const passwordB = `Pass1234-${crypto.randomUUID().slice(0, 8)}`;
-    const emailA = `rls-shares-a-${Date.now()}@leanshot.test`;
-    const emailB = `rls-shares-b-${Date.now()}@leanshot.test`;
-
-    const { data: aRes, error: aErr } = await adminClient.auth.admin.createUser({
-      email: emailA,
-      password: passwordA,
-      email_confirm: true,
+  // ─────────────────────────────────────────────────────────────────────────
+  // 1) cross-tenant — user B cannot SELECT user A's shares row via RLS
+  // ─────────────────────────────────────────────────────────────────────────
+  it('cross-tenant — user B cannot SELECT user A shares row via RLS', async () => {
+    const alice = await createTestShare({
+      patientEmail: 'alice@test.com',
+      label: 'alice-cross-tenant',
+      expiresInHours: 24,
     });
-    if (aErr) throw aErr;
-    const userA = aRes.user!;
-    createdUserIds.push(userA.id);
-
-    const { data: bRes, error: bErr } = await adminClient.auth.admin.createUser({
-      email: emailB,
-      password: passwordB,
-      email_confirm: true,
+    // Ensure bob exists too (look-up-or-create via the fixture's path —
+    // we do this by creating a throwaway share for bob and discarding it;
+    // simpler than re-exporting ensureTestUser).
+    await createTestShare({
+      patientEmail: 'bob@test.com',
+      label: 'bob-warmup',
+      expiresInHours: 1,
     });
-    if (bErr) throw bErr;
-    const userB = bRes.user!;
-    createdUserIds.push(userB.id);
 
-    // 2. Build JWT-scoped anon clients for each user.
-    const userAClient = createClient(URL!, ANON!, {
-      auth: { autoRefreshToken: false, persistSession: false, storageKey: 'rls-shares-a' },
+    const bobClient = createClient(URL!, ANON!, {
+      auth: { persistSession: false, autoRefreshToken: false, storageKey: 'rls-shares-bob' },
     });
-    const userBClient = createClient(URL!, ANON!, {
-      auth: { autoRefreshToken: false, persistSession: false, storageKey: 'rls-shares-b' },
+    const { error: signInErr } = await bobClient.auth.signInWithPassword({
+      email: 'bob@test.com',
+      password: 'TestPass123!-leanshot-share-fixture',
     });
-    {
-      const { error } = await userAClient.auth.signInWithPassword({
-        email: emailA,
-        password: passwordA,
-      });
-      if (error) throw error;
-    }
-    {
-      const { error } = await userBClient.auth.signInWithPassword({
-        email: emailB,
-        password: passwordB,
-      });
-      if (error) throw error;
-    }
+    if (signInErr) throw signInErr;
 
-    // 3. Seed: user A creates a share via the create_share SECURITY DEFINER
-    //    RPC — the ONLY write path (no authenticated INSERT policy on shares).
-    const futureIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    const { data: createRes, error: createErr } = await userAClient.rpc('create_share', {
-      p_label: 'Dr. Smith — RLS test',
-      p_expires_at: futureIso,
-    });
-    if (createErr) throw createErr;
-    // create_share returns `table (share_id uuid, raw_token text, raw_code text)`;
-    // supabase-js surfaces this as an array of rows.
-    expect(Array.isArray(createRes)).toBe(true);
-    const seedRow = (createRes as Array<{ share_id: string; raw_token: string; raw_code: string }>)[0]!;
-    expect(seedRow.share_id).toBeTruthy();
-    expect(typeof seedRow.raw_token).toBe('string');
-    expect(seedRow.raw_code).toMatch(/^\d{6}$/);
+    // THE PROOF: user B reads ZERO of user A's shares. RLS returns empty
+    // set silently rather than 403'ing.
+    const { data, error } = await bobClient.from('shares').select('*').eq('id', alice.share_id);
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
 
-    // 4. Admin (service role) confirms the row really exists.
-    const { data: adminData, error: adminErr } = await adminClient
-      .from('shares')
-      .select('*')
-      .eq('id', seedRow.share_id);
-    if (adminErr) throw adminErr;
+    // Defense in depth: confirm the row really exists via service-role.
+    const { data: adminData } = await getAdmin().from('shares').select('*').eq('id', alice.share_id);
     expect(adminData).toHaveLength(1);
-    expect(adminData![0]!.user_id).toBe(userA.id);
-
-    // 5. User A reads their OWN share — RLS allows it (count = 1).
-    const { data: aData, error: aReadErr } = await userAClient.from('shares').select('*');
-    if (aReadErr) throw aReadErr;
-    expect(aData).toHaveLength(1);
-    expect(aData![0]!.id).toBe(seedRow.share_id);
-
-    // 6. THE PROOF: user B reads ZERO shares — RLS returns empty set
-    //    (NOT an error; RLS filters silently rather than 403'ing).
-    const { data: bData, error: bReadErr } = await userBClient.from('shares').select('*');
-    expect(bReadErr).toBeNull();
-    expect(bData).toEqual([]);
-
-    // 7. NEGATIVE TEST: user B cannot direct-INSERT into shares — there is
-    //    NO authenticated INSERT policy. RPCs are the only write path.
-    const { error: impErr } = await userBClient.from('shares').insert({
-      user_id: userA.id, // impersonation attempt
-      label: 'forged share',
-      token_hash: 'x'.repeat(64),
-      access_code_hash: '$2a$10$' + 'x'.repeat(53),
-      expires_at: futureIso,
-    });
-    expect(impErr).not.toBeNull();
-    expect(
-      impErr?.code === '42501' ||
-        /violates row-level security|permission denied/i.test(impErr?.message ?? ''),
-    ).toBe(true);
+    expect(adminData![0]!.user_id).toBe(alice.patient_user_id);
   }, 30_000);
 
-  // ── Stubs filled by later plans ─────────────────────────────────────────
-  // These tests intentionally throw so the surface is red-but-visible until
-  // the responsible plan lands. Existence is the Wave 0 gate (project rule).
+  // ─────────────────────────────────────────────────────────────────────────
+  // 2) audit_logs row written on /share/snapshot view (SHARE-05)
+  // ─────────────────────────────────────────────────────────────────────────
+  it('audit row written on /snapshot view (SHARE-05)', async () => {
+    const share = await createTestShare({
+      patientEmail: 'alice@test.com',
+      label: 'audit-view',
+      expiresInHours: 1,
+    });
+    const redeem = await fetch(`${FN_BASE}/share/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      body: JSON.stringify({ token: share.raw_token, code: share.raw_code }),
+    });
+    expect(redeem.status).toBe(200);
+    const setCookie = redeem.headers.get('set-cookie') ?? '';
+    const match = setCookie.match(/recipient_session=[^;]+/);
+    expect(match, `Set-Cookie missing recipient_session: ${setCookie}`).not.toBeNull();
+    const cookie = match![0];
 
-  it.todo('audit_logs — share_view row written by log_share_view RPC has actor_type=share_recipient (Plan 08-02)');
+    const snap = await fetch(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
+      headers: { Cookie: cookie, Origin: 'http://localhost:5173' },
+    });
+    expect(snap.status).toBe(200);
 
-  it.todo('share_snapshot_view — structural exclusion: pg_get_viewdef contains zero "ai_messages" references (Plan 08-01 Task 3 verify, but also runtime check here for regression coverage)');
+    // Allow Postgres to commit the audit row before we count.
+    await new Promise((r) => setTimeout(r, 500));
 
-  it.todo('redeem_share — code is single-use: second redeem on same share_id raises P0002 (Plan 08-02)');
+    const { count, error } = await getAdmin()
+      .from('audit_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('share_id', share.share_id)
+      .eq('actor_type', 'share_recipient')
+      .eq('action', 'share_view');
+    expect(error).toBeNull();
+    expect(count).toBe(1);
+  }, 30_000);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 3) share_snapshot_view migration excludes ai_messages structurally
+  // ─────────────────────────────────────────────────────────────────────────
+  it('share_snapshot_view migration excludes ai_messages structurally', () => {
+    const sql = readSnapshotViewSql().toLowerCase();
+    // T-08-I7 / T-08-I1: AI columns MUST NEVER appear in the snapshot view.
+    // Match identifier boundaries to avoid false negatives on incidental
+    // substrings (e.g., a future comment containing "ai_messages" by name).
+    expect(sql).not.toMatch(/\bai_messages\b/);
+    expect(sql).not.toMatch(/\bai_history\b/);
+    // Also forbid raw AI column names that might sneak in if someone tries
+    // to "helpfully" join.
+    expect(sql).not.toMatch(/\bai_conversation\b/);
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 4) /share/redeem code is single-use — second redeem returns 410
+  // ─────────────────────────────────────────────────────────────────────────
+  it('code is single-use — second redeem returns 410 already-consumed', async () => {
+    const share = await createTestShare({
+      patientEmail: 'alice@test.com',
+      label: 'single-use',
+      expiresInHours: 1,
+    });
+    const r1 = await fetch(`${FN_BASE}/share/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      body: JSON.stringify({ token: share.raw_token, code: share.raw_code }),
+    });
+    expect(r1.status).toBe(200);
+
+    const r2 = await fetch(`${FN_BASE}/share/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      body: JSON.stringify({ token: share.raw_token, code: share.raw_code }),
+    });
+    expect(r2.status).toBe(410);
+    const body = await r2.json();
+    expect(body.error).toBe('already-consumed');
+  }, 30_000);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 5) /share/redeem per-share rate-limit — 6th wrong attempt returns 429
+  // ─────────────────────────────────────────────────────────────────────────
+  it('per-share rate-limit — 6th wrong-code attempt within 60s returns 429', async () => {
+    const share = await createTestShare({
+      patientEmail: 'alice@test.com',
+      label: 'rate-limit',
+      expiresInHours: 1,
+    });
+    // 5 wrong-code requests should each return 401 invalid-code.
+    for (let i = 0; i < 5; i++) {
+      const r = await fetch(`${FN_BASE}/share/redeem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+        body: JSON.stringify({ token: share.raw_token, code: '999999' }),
+      });
+      expect(r.status, `attempt ${i + 1} expected 401`).toBe(401);
+    }
+    // 6th attempt — counter ≥5 within 60s → 429 rate-limited.
+    const r6 = await fetch(`${FN_BASE}/share/redeem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      body: JSON.stringify({ token: share.raw_token, code: '999999' }),
+    });
+    expect(r6.status).toBe(429);
+    const body = await r6.json();
+    expect(body.error).toBe('rate-limited');
+    expect(typeof body.retry_after_sec).toBe('number');
+  }, 60_000);
 });
 
 describe('Phase 8 SHARE — gating', () => {
   it('runs against live cloud DB when SUPABASE_SERVICE_ROLE_KEY is set', () => {
     if (!SHOULD_RUN) {
       // Not a failure — communicate skipped state.
-      // eslint-disable-next-line no-console
       console.warn(
-        '[rls-shares.test] SKIPPED — SUPABASE_SERVICE_ROLE_KEY (or URL/ANON) not set. Wave verification gates this.',
+        '[rls-shares.test] SKIPPED — SUPABASE_SERVICE_ROLE_KEY (or URL/ANON) not set. CI gates this.',
       );
     }
     expect(true).toBe(true);

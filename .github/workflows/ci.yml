@@ -223,6 +223,67 @@ jobs:
       - name: Run Deno tests (share Edge Function — Plan 08-02)
         run: deno test --allow-all --import-map=supabase/functions/import_map.json supabase/functions/share/
 
+  # ─────────────────────────────────────────────────────────────────────────
+  # Phase 8 Plan 08-05 — 4-failure-mode revocation drill (SC#3) + extended
+  # RLS proof for the `shares` surface. HI-2 ADDITIVE APPEND: this job is
+  # appended AFTER the deno-test job's Plan 08-02 step; Plan 08-06's executor
+  # MUST also append independently rather than consolidating these. See
+  # leanshot/.planning/phases/08-doctor-read-share/08-05-PLAN.md HI-2.
+  #
+  # Required for merge to main — configure via branch protection (note in
+  # Plan 08-05 SUMMARY surfaces this for the user to apply manually; GitHub
+  # branch-protection rules are not workflow-defined).
+  # ─────────────────────────────────────────────────────────────────────────
+  share-security-drill:
+    name: Share security drill (SC#3 4-failure-mode + RLS proof)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      # Production-shaped build so the doctor-share lazy chunk is served from
+      # the same preview server that handles share-happy-path. VITE_E2E=true
+      # exposes window.useStore (Phase 7 07-01 deviation, pattern reused).
+      - name: Build (production-shaped)
+        run: npm run build
+        env:
+          VITE_SENTRY_DSN: ''
+          VITE_POSTHOG_KEY: ''
+          VITE_POSTHOG_HOST: ''
+          VITE_ANALYTICS_ENABLED: 'false'
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_E2E: 'true'
+      - name: Run revocation drill (Playwright)
+        run: npx playwright test e2e/share-revocation-drill.spec.ts
+        env:
+          CI: 'true'
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - name: Run extended RLS proof (Vitest)
+        run: npx vitest run --config vitest-e2e.config.ts e2e/rls-shares.test.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - name: Upload drill artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: share-drill-results
+          path: |
+            leanshot/playwright-report/
+            leanshot/test-results/
+          retention-days: 7
+
   lighthouse:
     name: Lighthouse (Vercel preview)
     runs-on: ubuntu-latest
