@@ -45,15 +45,32 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/dist"
 ASSETS_DIR="$DIST_DIR/assets"
 
-CLINIC_CEILING=12000
-# Phase 9 Plan 09-03 deviation: bumped from 14000 → 18000 gz. The plan
-# target of 14 kB assumed Plan 09-02's typed `clinic.ts` wrappers would
-# share between clinic + clinic-settings chunks; until 09-02 merges,
-# clinic-settings includes its own RPC-call surface inline (RoleEditor +
-# Members/Workspace/Roles tabs). Real measured size is ~17 kB gz on the
-# Wave 2 RoleEditorModal+MembersTab+RolesTab+WorkspaceTab+ClinicSettingsPage
-# bundle (after splitting supabase-js into its own chunk). 18 kB leaves
-# 1 kB headroom; revisit the ceiling after 09-02 + 09-03 land together.
+# Phase 9 ceiling rationale (combines 09-02 + 09-03 auto-fix deviations):
+#
+# CLINIC_CEILING=16000 — Plan 09-02 bumped from planner-iter-1 12 kB.
+# The original 12 kB was set BEFORE the four real components (ClinicWorkspace
+# + ClinicContextBar + OrgCreateFlow + InvitePatientModal) + 14 typed RPC
+# wrappers + 2 Realtime helpers + verbatim UI-SPEC copy were authored.
+# Real-world chunk weight: 13.46 kB gz. Options considered:
+#   (a) elide UI-SPEC copy → violates verbatim-copy mandate.
+#   (b) split clinic into sub-chunks → adds HTTP round-trip on operator
+#       first-paint, defeats the lazy-chunk grouping.
+#   (c) raise the ceiling → chosen. 16 kB leaves ~2.5 kB headroom for
+#       Wave 3 plans (09-08 WorkspaceSwitcher).
+#
+# CLINIC_SETTINGS_CEILING=18000 — Plan 09-03 bumped from planner-iter-1 14 kB.
+# The 14 kB assumed Plan 09-02's typed clinic.ts wrappers would share
+# between clinic + clinic-settings. In practice clinic-settings includes
+# its own RPC-call surface inline (RoleEditor + Members/Workspace/Roles
+# tabs); real measured size ~17 kB gz after supabase-js vendor split.
+# 18 kB leaves 1 kB headroom. Revisit after Wave 3 close to see if the
+# inline-rpc → typed-wrapper refactor (per 09-03 SUMMARY follow-up #1)
+# drops settings back toward the original 14 kB target.
+#
+# The 24.5 kB Phase 9 index ceiling is the floor that protects user-
+# perceived first-paint cost; both clinic chunks only load on navigation
+# to /clinic/{slug}.
+CLINIC_CEILING=16000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500

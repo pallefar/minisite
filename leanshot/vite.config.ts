@@ -80,26 +80,34 @@ export default defineConfig(({ mode }) => {
             // (.github/workflows/ci.yml) is the regression-prevention layer.
             if (id.includes('src/components/share/')) return 'share';
 
-            // Phase 9 Plan 09-03 — group all `src/components/clinic/settings/*`
-            // files into a single `clinic-settings` chunk. ClinicSettingsPage
-            // is already lazy-loaded from App.tsx, so this just ensures
-            // WorkspaceTab + MembersTab + RolesTab + RoleEditorModal land in
-            // the same lazy chunk rather than fragmenting into four small
-            // chunks. The bundle-size CI guard (`assert-clinic-bundle-budget.sh`)
-            // matches `clinic-settings-*.js` to enforce the 14 kB gz ceiling.
-            if (id.includes('src/components/clinic/settings/'))
-              return 'clinic-settings';
-            // Phase 9 Plan 09-02 — clinic workspace shell + invite modal land
-            // in the `clinic` chunk (per its own plan; included here so this
-            // worktree's build emits the expected chunk names even before
-            // 09-02 merges).
-            if (
-              id.includes('src/components/clinic/') &&
-              !id.includes('src/components/clinic/settings/')
-            )
-              return 'clinic';
+            // Phase 9 — group clinic surfaces into separate lazy chunks
+            // (consolidates 09-02 operator surface + 09-03 settings tabs
+            // + 09-04 invite acceptance). Each chunk is lazy-loaded from
+            // App.tsx; splitting matters because each chunk pays per-HTTP
+            // + parse overhead, but grouping by surface keeps the index gz
+            // ceiling intact and preserves cache locality.
+            // Order matters: clinic-invite first (most specific), then
+            // clinic/settings/, then catch-all clinic/. Bundle ceilings
+            // enforced by assert-clinic-bundle-budget.sh.
+            if (id.includes('src/components/clinic-invite/')) return 'clinic-invite';
+            if (id.includes('src/components/clinic/settings/')) return 'clinic-settings';
+            if (id.includes('src/components/clinic/')) return 'clinic';
 
             if (id.includes('node_modules')) {
+              // Phase 9 Plan 09-02 — pin @supabase/* to its own vendor chunk
+              // so the operator-clinic surface (which static-imports
+              // src/lib/supabase via src/lib/clinic.ts) doesn't drag the
+              // full Realtime+Postgrest+GoTrue bundle into the 12 kB clinic
+              // chunk ceiling. Multiple lazy chunks consume supabase-js
+              // (clinic + auth-loaded routes + lazy `sync`) so a shared
+              // vendor-supabase chunk is correct.
+              if (
+                /node_modules\/(@supabase\/(supabase-js|realtime-js|postgrest-js|auth-js|gotrue-js|storage-js|functions-js|node-fetch))(\/|$)/.test(
+                  id,
+                )
+              ) {
+                return 'vendor-supabase';
+              }
               if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) {
                 return 'vendor-react';
               }
