@@ -1,0 +1,33 @@
+{
+  "_scaffold": true,
+  "_instructions": "This file is a SCAFFOLD — it will be replaced with the real Resend API response once app.leanshot.app is verified. To populate this file, run the following after DNS propagates and verification succeeds:\n\n  export RESEND_API_KEY=<your-key>\n  DOMAIN_ID=$(curl -s https://api.resend.com/domains -H \"Authorization: Bearer $RESEND_API_KEY\" | python3 -c \"import json,sys; domains=json.load(sys.stdin)['data']; print(next(d['id'] for d in domains if d['name']=='app.leanshot.app'))\")\n  curl -s \"https://api.resend.com/domains/$DOMAIN_ID\" -H \"Authorization: Bearer $RESEND_API_KEY\" | python3 -m json.tool > leanshot/.planning/phases/12-bootstrap-bundle-foundations/resend-domain-proof.json\n\nVerification check (must pass before committing the real proof):\n  python3 -c \"import json,sys; d=json.load(open('leanshot/.planning/phases/12-bootstrap-bundle-foundations/resend-domain-proof.json')); assert d.get('status') == 'verified', f'expected verified, got {d.get(\\\"status\\\")}'; print('OK', d.get('name'))\"\n\nDO NOT commit this file until status == \\\"verified\\\".\nDO NOT include RESEND_API_KEY in this file.",
+  "status": "pending-verification",
+  "name": "app.leanshot.app",
+  "records_expected": [
+    {
+      "record": "SPF",
+      "type": "TXT",
+      "name": "app.leanshot.app",
+      "value": "v=spf1 include:amazonses.com ~all",
+      "status": "not-verified",
+      "note": "Resend uses Amazon SES as underlying transport. Verify exact value against Resend dashboard after domain add."
+    },
+    {
+      "record": "DKIM",
+      "type": "CNAME",
+      "name": "resend._domainkey.app.leanshot.app",
+      "value": "<provided-by-resend-after-domain-add>",
+      "status": "not-verified",
+      "note": "CNAME target provided by Resend dashboard. May have multiple DKIM selectors — capture ALL."
+    },
+    {
+      "record": "DMARC",
+      "type": "TXT",
+      "name": "_dmarc.app.leanshot.app",
+      "value": "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@leanshot.app; ruf=mailto:dmarc-reports@leanshot.app; fo=1",
+      "status": "not-verified",
+      "note": "p=quarantine per D-17. Tighten to p=reject at Phase 22 after 30-day DMARC report monitoring. dmarc-reports@leanshot.app must be a deliverable address — set up forwarding or change to user's gmail if registrar does not support catch-all."
+    }
+  ],
+  "phase_12_sc4_note": "Phase 12 SC-4 part 2 requires this file to contain status: 'verified' AND the real email proof at resend-real-email-proof.txt. Both are required before 12-05 rows 12-05-01 and 12-05-02 flip to green."
+}

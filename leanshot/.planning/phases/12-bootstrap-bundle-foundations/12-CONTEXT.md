@@ -180,5 +180,28 @@ None — no GSD todos surfaced for Phase 12.
 
 ---
 
+## Phase 12 close addendum (Wave 2 outcomes)
+
+Closed: 2026-05-13 (scaffold committed; vendor verification pending)
+
+- Resend `app.leanshot.app`: ⚠️ pending-dns-verification. DNS records (SPF/DKIM/DMARC) must be published at registrar, then `POST /domains/$DOMAIN_ID/verify` called. Proof scaffold: [`resend-domain-proof.json`](./resend-domain-proof.json). Real email proof: `resend-real-email-proof.txt` (to be created after inbox confirmation). SPF + DKIM + DMARC (`p=quarantine` per D-17) records documented in SUMMARY and resend-domain-proof.json scaffold.
+- Apple Developer Program: ⚠️ pending-provisioning. `APPLE_TEAM_ID` + `APPLE_BUNDLE_ID` not yet captured to Vercel env. Enroll at https://developer.apple.com/programs/. Resume signal: `apple-done`.
+- Google Play Console: ⚠️ pending-provisioning. `PLAY_PACKAGE_NAME` + `PLAY_SERVICE_ACCOUNT_JSON` not yet captured. Register at https://play.google.com/console. Resume signal: `play-done`.
+- Stripe Connect Express: ⚠️ pending-provisioning. TEST-mode keys not yet captured (live-key swap is Phase 14 entry condition per T-PAY-01). Enroll at https://dashboard.stripe.com/connect. Resume signal: `stripe-done`.
+- AdMob + AdSense: deliberately NOT captured (Phase 20 gates per D-05).
+
+Wave 1 outcomes (12-01..04): all four plans completed with ✅ green VALIDATION rows. Firewall ESLint rule (D-02), clinic-ad-free spec (D-14), CSP snapshot test (D-10/D-11), hash-hyphen regression fix (D-13) all shipped.
+
+Phase 12 fully closes when this addendum is committed AND:
+1. `resend-domain-proof.json` contains `"status": "verified"` AND `resend-real-email-proof.txt` exists (resume signal: `resend-done`)
+2. `APPLE_TEAM_ID` + `APPLE_BUNDLE_ID` in Vercel env (resume signal: `apple-done`)
+3. `PLAY_PACKAGE_NAME` in Vercel env + `PLAY_SERVICE_ACCOUNT_JSON` in Supabase secrets (resume signal: `play-done`)
+4. `STRIPE_SECRET_KEY` (sk_test_*) + `STRIPE_PUBLISHABLE_KEY` (pk_test_*) + `STRIPE_CONNECT_CLIENT_ID` (ca_*) in Vercel env (resume signal: `stripe-done`)
+5. All `⚠️ pending` rows in 12-VALIDATION.md flip to `✅ green`
+
+**Per D-05:** Phase 13 (Design System) is unblocked and may start in parallel while vendor reviews are pending. No Phase 13-15 code depends on Apple Dev / Play / Stripe Connect approval. Phase 12 stays in `closing` status until all four resume signals fire. Final signal: `phase-12-credentials-done`.
+
+---
+
 *Phase: 12-bootstrap-bundle-foundations*
 *Context gathered: 2026-05-13*

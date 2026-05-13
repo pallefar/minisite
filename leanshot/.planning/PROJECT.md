@@ -1,5 +1,32 @@
 # LeanShot
 
+## Vendor Accounts
+
+> Authoritative credential capture table per CONTEXT D-06 naming convention. Updated at Phase 12 Wave 2 (2026-05-13). Each vendor row tracks credential names, storage location, capture status, and capture date. Downstream phases read this table as the source of truth for which credentials are available.
+
+| Vendor | Credential names | Stored in | Status | Captured (date) | Notes |
+|--------|------------------|-----------|--------|-----------------|-------|
+| Apple Developer Program | `APPLE_TEAM_ID`, `APPLE_BUNDLE_ID` | Vercel env (production) | ⚠️ pending-provisioning | — | $99/yr; suggested bundle `app.leanshot.ios`. Required for Phase 16 Capacitor iOS shell + TestFlight. Enroll at https://developer.apple.com/programs/. Apple enrollment may take 24-48h for identity verification. |
+| Google Play Console | `PLAY_PACKAGE_NAME`, `PLAY_SERVICE_ACCOUNT_JSON` | `PLAY_PACKAGE_NAME` → Vercel env; `PLAY_SERVICE_ACCOUNT_JSON` → Supabase Function secrets | ⚠️ pending-provisioning | — | $25 one-time; suggested package `app.leanshot.android`. Service-account JSON captured via `supabase secrets set` (NEVER commits to git — T-CRED-01). Required for Phase 16 Android. |
+| Stripe Connect Express | `STRIPE_SECRET_KEY` (`sk_test_*`), `STRIPE_PUBLISHABLE_KEY` (`pk_test_*`), `STRIPE_CONNECT_CLIENT_ID` (`ca_*`) | Vercel env + Supabase Function secrets (`STRIPE_SECRET_KEY` also here for Edge Functions) | ⚠️ pending-provisioning | — | TEST-mode keys at Phase 12 (T-PAY-01); live keys swap in at Phase 14 billing go-live. Connect platform approval 1-2 business days. Enroll at https://dashboard.stripe.com/connect. |
+| Resend | `RESEND_API_KEY`, `RESEND_FROM=LeanShot <noreply@app.leanshot.app>` | Supabase Function secrets (both) | ⚠️ pending-dns-verification | — | `RESEND_API_KEY` and `RESEND_FROM` already exist as Supabase Function secrets from Phase 9. Domain `app.leanshot.app` per D-16; from `noreply@app.leanshot.app` per D-17; DMARC `p=quarantine` initially per D-17. Proof at `.planning/phases/12-bootstrap-bundle-foundations/resend-domain-proof.json` (scaffold — populated after DNS propagation + verification). DMARC tightening to `p=reject` is Phase 22 entry condition. |
+| AdMob | `ADMOB_APP_ID_IOS`, `ADMOB_APP_ID_ANDROID`, `ADMOB_PUBLISHER_ID` | Vercel env (when ready) | **Phase 20 gate** | — | Account created at https://admob.google.com but publisher approval typically 1-2 weeks after stores list the app. NOT a Phase 12 gate per D-05. Apply early; do NOT wait for approval to close Phase 12. |
+| AdSense | `ADSENSE_PUBLISHER_ID` (`ca-pub-...`) | Vercel env (when ready) | **Phase 20 gate** | — | Apply at https://adsense.google.com but approval often needs live deployed app with content (2-4 weeks). NOT a Phase 12 gate per D-05. Circular dependency acknowledged in D-05. |
+
+**Capture verification commands:**
+```bash
+# Vercel env (build-time + Vite edge functions)
+vercel env ls | grep -E '^(APPLE_TEAM_ID|APPLE_BUNDLE_ID|PLAY_PACKAGE_NAME|STRIPE_SECRET_KEY|STRIPE_PUBLISHABLE_KEY|STRIPE_CONNECT_CLIENT_ID)'
+
+# Supabase Function secrets (Deno Edge Functions runtime)
+supabase secrets list --project-ref ytnsipxxmzgaebkqmokp | grep -E '^(RESEND_API_KEY|RESEND_FROM|PLAY_SERVICE_ACCOUNT_JSON|STRIPE_SECRET_KEY)'
+
+# Stripe TEST-mode safety check (T-PAY-01)
+vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_KEY=sk_test_' /tmp/env-check && rm /tmp/env-check
+```
+
+---
+
 ## Current State
 
 **Shipped:** v1.1 (2026-05-13). 11 phases / 76 plans on `origin/main` at commit `b24f26d`. Production live at `https://leanshot-app.vercel.app` (SPA) + `https://leanshot-marketing.vercel.app` (marketing). Supabase project `ytnsipxxmzgaebkqmokp` with 35+ migrations and 7 Edge Functions live (`ai-chat`, `share`, `clinic-invite`, `clinic-photo`, `clinic-snapshot`, `patient-activity`, `bulk-csv-export`). Onboarding summary at `.planning/reports/MILESTONE_SUMMARY-v1.1.md`; archived ROADMAP + REQUIREMENTS in `.planning/milestones/v1.1-*.md`.
