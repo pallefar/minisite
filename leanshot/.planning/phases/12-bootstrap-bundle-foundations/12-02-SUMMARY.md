@@ -191,6 +191,29 @@ This branch MUST NEVER merge into main. Its only purpose is proving the ESLint r
 - Phase 13 (design system) is unblocked by this plan — firewall is live
 - Phase 14 planner MUST note: creating `src/lib/analytics/` or `src/lib/stripe/` directories will immediately activate Zones 2a and 6
 
+## Self-Check: PASSED
+
+| Item | Result |
+|------|--------|
+| health.ts | FOUND |
+| ads.ts | FOUND |
+| push.ts | FOUND |
+| iap.ts | FOUND |
+| deeplink.ts | FOUND |
+| platform.ts | FOUND |
+| 12-CONTEXT.md (with Branch SHA) | FOUND |
+| 12-02-PLAN.md (nyquist_compliant: true) | FOUND |
+| 12-VALIDATION.md (rows green) | FOUND |
+| 12-02-SUMMARY.md | FOUND |
+| Commit 1508040 (Task 1 stubs) | FOUND |
+| Commit 3108a4b (Task 2 firewall blocks) | FOUND |
+| Commit ea3f8cb (Zone 1 glob fix) | FOUND |
+| Commit bc86378 (Task 3 main pathspec) | FOUND |
+| Commit d445c4b (fixture branch) | FOUND |
+| Fixture NOT on main branch | VERIFIED |
+| Zone 1 fires on fixture file (exit code 1) | VERIFIED |
+| 6 zones in resolved config | VERIFIED |
+
 ---
 *Phase: 12-bootstrap-bundle-foundations*
 *Completed: 2026-05-13*
