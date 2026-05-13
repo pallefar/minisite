@@ -8,7 +8,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
+import { CalendarDose } from '@/illustrations/CalendarDose';
 import { EmptyInjections } from '@/illustrations/EmptyInjections';
+import { PenInjector } from '@/illustrations/PenInjector';
 import { VialIllustration } from '@/illustrations/Vial';
 import { SITES, siteShort } from '@/lib/constants';
 import { formatShort, todayStr } from '@/lib/helpers';
@@ -106,7 +108,11 @@ export function MedicationTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Log new injection" icon={<Syringe className="size-4" />} />
+        <CardHeader
+          title="Log new injection"
+          icon={<Syringe className="size-4" />}
+          action={<PenInjector className="w-16" />}
+        />
         <div className="space-y-3">
           <Input
             label="Date & time"
@@ -254,7 +260,9 @@ export function MedicationTab() {
       <Card span={6}>
         <CardHeader title="Titration schedule" icon={<TrendingUp className="size-4" />} />
         {titList ? (
-          <div className="space-y-1.5">
+          <div className="flex gap-4 items-start">
+            <CalendarDose className="w-24 shrink-0" />
+            <div className="flex-1 space-y-1.5">
             {titList.map((t) => {
               const wks = t.w.split('–');
               const start = parseInt(wks[0] ?? '0') || 0;
@@ -283,6 +291,7 @@ export function MedicationTab() {
                 </div>
               );
             })}
+            </div>
           </div>
         ) : (
           <p className="text-[13px] text-[var(--color-text-tertiary)]">

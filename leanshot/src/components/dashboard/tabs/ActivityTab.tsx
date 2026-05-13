@@ -6,6 +6,7 @@ import { Card, CardHeader, StatTile } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
+import { ActivityRings } from '@/illustrations/ActivityRings';
 import { ConnectData } from '@/illustrations/ConnectData';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
@@ -183,6 +184,20 @@ export function ActivityTab() {
       <Card span={5}>
         <CardHeader title="Steps & health" icon={<Footprints className="size-4" />} />
         <div className="space-y-3">
+          <div className="flex items-center gap-4 rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-3">
+            <ActivityRings className="w-20 shrink-0" staticOnly />
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[var(--color-text-tertiary)]">
+                Today
+              </p>
+              <p className="text-[20px] font-bold tracking-tight numerals-tabular leading-none">
+                {(steps[today] ?? 0).toLocaleString()}
+                <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ml-1">
+                  steps
+                </span>
+              </p>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Date"

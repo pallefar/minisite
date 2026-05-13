@@ -2,6 +2,7 @@ import { Flame } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useStreaks } from '@/hooks/useStreaks';
+import { AchievementShield } from '@/illustrations/AchievementShield';
 import { StreakBadge, type StreakTier } from '@/illustrations/StreakBadge';
 
 const ROWS: { key: keyof ReturnType<typeof useStreaks>; label: string }[] = [
@@ -13,6 +14,11 @@ const ROWS: { key: keyof ReturnType<typeof useStreaks>; label: string }[] = [
 
 export function StreaksCard() {
   const streaks = useStreaks();
+  const hasMilestone =
+    streaks.weight >= 30 ||
+    streaks.protein >= 30 ||
+    streaks.supps >= 30 ||
+    streaks.movement >= 30;
   return (
     <Card span={12}>
       <CardHeader
@@ -52,6 +58,17 @@ export function StreaksCard() {
           );
         })}
       </div>
+      {hasMilestone && (
+        <div className="mt-4 p-4 rounded-2xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)] flex items-center gap-3">
+          <AchievementShield className="w-12 h-12 shrink-0" />
+          <div>
+            <p className="text-[13px] font-bold">Milestone unlocked</p>
+            <p className="text-[11px] text-[var(--color-text-secondary)]">
+              30+ day streak achieved
+            </p>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

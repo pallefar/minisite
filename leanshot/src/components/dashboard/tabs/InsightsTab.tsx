@@ -6,6 +6,8 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { EmptyState as EmptyStateInline } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
+import { EmptyInsights } from '@/illustrations/EmptyInsights';
+import { HeartPulse } from '@/illustrations/HeartPulse';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { generateInsights } from '@/lib/insights';
 import { initialState } from '@/lib/storage';
@@ -158,11 +160,18 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Smart insights" icon={<Lightbulb className="size-4" />} />
+        <CardHeader
+          title="Smart insights"
+          icon={<Lightbulb className="size-4" />}
+          action={<HeartPulse className="w-16 h-12 shrink-0" staticOnly />}
+        />
         {insights.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-6">
-            Insights appear as you log more data.
-          </p>
+          <div className="flex flex-col items-center text-center py-2">
+            <EmptyInsights className="w-32 mx-auto mb-3" />
+            <p className="text-[13px] text-[var(--color-text-tertiary)]">
+              Insights appear as you log more data.
+            </p>
+          </div>
         ) : (
           <ul className="space-y-2.5">
             {insights.map((ins, i) => (

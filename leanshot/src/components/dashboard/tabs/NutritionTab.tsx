@@ -4,9 +4,11 @@ import { ProteinChart, NoiseChart } from '@/components/dashboard/charts/SimpleCh
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import { useToast } from '@/hooks/useToast';
+import { EmptyPlate } from '@/illustrations/EmptyPlate';
 import { AIUnavailableError, RateLimitedError, callAIChat } from '@/lib/ai';
 import { todayStr } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
@@ -251,9 +253,12 @@ export function NutritionTab() {
       <Card span={12}>
         <CardHeader title="Today's meals" icon={<ListChecks className="size-4" />} />
         {todayMeals.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">
-            No meals today.
-          </p>
+          <EmptyState
+            inline
+            illustration={<EmptyPlate className="w-32" />}
+            title="No meals logged yet"
+            body="Start logging meals above to track your protein, calories, and food noise on your GLP-1 journey."
+          />
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-[13px]">
