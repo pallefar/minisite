@@ -19,6 +19,8 @@
  * CLAUDE.md + memory `project_phase6_deferred_items.md`).
  */
 
+import type { ConsentScope } from './clinic';
+
 export type { ConsentScope, DataTypeKey, PermissionKey } from './clinic';
 
 // =============================================================================
@@ -58,7 +60,7 @@ export interface SnapshotData {
    * Informs section absence: if consent_scope.photos=false, Photos section is
    * completely absent even if the operator has patient_photos.read permission.
    */
-  consent_scope?: import('./clinic').ConsentScope;
+  consent_scope?: ConsentScope;
 }
 
 // =============================================================================
