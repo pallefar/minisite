@@ -27,24 +27,32 @@ const fromChain = {
   maybeSingle: mockMaybeSingle,
 };
 
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: () => fromChain,
-    storage: {
-      from: () => ({
-        getPublicUrl: (path: string) => ({
-          data: { publicUrl: `https://test.example/${path}` },
+vi.mock('@/lib/supabase', () => {
+  const mockChannelReturn = {
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn().mockReturnThis(),
+  };
+  return {
+    supabase: {
+      from: () => fromChain,
+      storage: {
+        from: () => ({
+          getPublicUrl: (path: string) => ({
+            data: { publicUrl: `https://test.example/${path}` },
+          }),
         }),
-      }),
+      },
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+      channel: vi.fn().mockReturnValue(mockChannelReturn),
+      removeChannel: vi.fn(),
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: 'u-1' } } } }),
+      },
     },
-    rpc: vi.fn(),
-    auth: {
-      getSession: vi
-        .fn()
-        .mockResolvedValue({ data: { session: { user: { id: 'u-1' } } } }),
-    },
-  },
-}));
+  };
+});
 
 // Plan 09-08 — WorkspaceSwitcher subscribes to user-channel for cross-context
 // updates. Stub so the test doesn't depend on real Realtime infra.
@@ -93,31 +101,20 @@ describe('ClinicWorkspace — loading + hydrated', () => {
     expect(screen.getByTestId('clinic-workspace-loading')).toBeInTheDocument();
   });
 
-  it('renders the empty-roster shell + ClinicContextBar once hydrated', async () => {
+  it('renders RosterTable + ClinicContextBar once hydrated (Phase 10 Plan 10-06)', async () => {
     mockMaybeSingle.mockResolvedValueOnce({ data: TEST_ORG, error: null });
     render(<ClinicWorkspace />);
     await screen.findByTestId('clinic-workspace');
     // ContextBar with org name (appears in both bar + page heading)
     expect(screen.getAllByText(TEST_ORG.name).length).toBeGreaterThanOrEqual(2);
-    // Empty-roster heading + body verbatim from UI-SPEC
-    expect(screen.getByRole('heading', { name: /No patients yet/i })).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Invite your first patient by email. They'll see your workspace name and choose what data to share with you.",
-      ),
-    ).toBeInTheDocument();
-    // CTAs
+    // Phase 10: RosterTable renders instead of Phase 9 empty shell. With rpc
+    // mocked to return [] the roster shows empty state (no patients yet).
+    await waitFor(() =>
+      expect(screen.getByText(/No patients yet/i)).toBeInTheDocument(),
+    );
+    // Invite patient CTA (now in roster section header, not empty state)
     expect(screen.getByRole('button', { name: /Invite patient/i })).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: /Customize workspace/i }),
-    ).toBeInTheDocument();
     // Plan 09-08 — real WorkspaceSwitcher mounted in the ContextBar.
-    // Without a mocked auth session + memberships fetch the switcher falls
-    // back to "your personal account" (defer-mount safety, Pitfall #9). The
-    // important assertion is that SOME WorkspaceSwitcher trigger exists with
-    // the canonical aria-label prefix (the placeholder no-op button from
-    // Plan 09-02 is gone). Full context-detection coverage lives in
-    // src/components/layout/WorkspaceSwitcher.test.tsx.
     await waitFor(() =>
       expect(
         screen.getByRole('button', {
@@ -127,10 +124,14 @@ describe('ClinicWorkspace — loading + hydrated', () => {
     );
   });
 
-  it('opens InvitePatientModal when "Invite patient" CTA is clicked', async () => {
+  it('opens InvitePatientModal when "Invite patient" CTA is clicked (Phase 10: button in roster header)', async () => {
     mockMaybeSingle.mockResolvedValueOnce({ data: TEST_ORG, error: null });
     render(<ClinicWorkspace />);
     await screen.findByTestId('clinic-workspace');
+    // Wait for RosterTable to render (loading resolves to empty state with the invite button)
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Invite patient/i })).toBeInTheDocument(),
+    );
     await userEvent.click(screen.getByRole('button', { name: /Invite patient/i }));
     // Modal title is "Invite a patient"
     await waitFor(() =>
