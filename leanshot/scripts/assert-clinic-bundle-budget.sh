@@ -218,5 +218,33 @@ if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi
 
+# Phase 10 Plan 10-10 — jsPDF dynamic-import invariant for ALL always-loaded chunks.
+#
+# BulkExportPDFFlow (Plan 10-10) uses `await import('jspdf')` (DYNAMIC).
+# A static import would regress the bundle CI guard from assert-bundle-budget.sh
+# AND would also bloat the clinic chunk. This guard catches accidental static
+# imports in any static chunk (index, clinic, clinic-settings, etc.).
+#
+# We check every always-loaded chunk and every lazy clinic/* chunk for the
+# `jsPDF` constructor identifier. The jspdf chunk itself is expected to
+# contain it — we explicitly skip files whose basename starts with 'jspdf'.
+JSPDF_STATIC_FAIL=0
+while IFS= read -r f; do
+  base=$(basename "$f")
+  # Skip jspdf chunk itself (expected to contain the identifier)
+  if echo "$base" | grep -qi '^jspdf'; then
+    continue
+  fi
+  if grep -q "jsPDF" "$f" 2>/dev/null; then
+    echo "::error::jsPDF identifier found in static chunk $base — jspdf was statically imported (Plan 10-10 bundle invariant violation). Use 'await import(\"jspdf\")' instead." >&2
+    JSPDF_STATIC_FAIL=1
+  fi
+done < <(find "$ASSETS_DIR" -maxdepth 1 -type f -name '*.js' ! -name '*.map' 2>/dev/null)
+
+if [ "$JSPDF_STATIC_FAIL" -ne 0 ]; then
+  exit 1
+fi
+echo "jsPDF dynamic-import invariant OK: no static jspdf imports detected in non-jspdf chunks"
+
 echo "clinic bundle topology OK"
 exit 0

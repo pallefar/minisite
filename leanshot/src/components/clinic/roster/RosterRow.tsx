@@ -1,20 +1,26 @@
 /**
  * Phase 10 Plan 10-06 — RosterRow.
+ * Phase 10 Plan 10-10 — Extended with bulk selection (isSelected + onToggleSelect).
  *
  * One <tr> row in the desktop RosterTable grid. Renders:
- *   ScoreChip | patient name | last-dose relative-time | weight-trend arrow
+ *   [Checkbox] | ScoreChip | patient name | last-dose relative-time | weight-trend arrow
  *   | recent_symptom_severity N/5 | days-since-injection | missed-dose icon
  *
  * Click handler:
  *   1. Fires PostHog clinic_patient_drilled_in with { org_id, score_bucket }
  *      — FORBIDDEN properties: patient_user_id, patient_name, raw score.
  *   2. Navigates to /clinic/{slug}/patient/{user_id}.
+ *   When onToggleSelect is present and checkbox is clicked:
+ *      - stops propagation (prevents drill-in)
+ *      - calls onToggleSelect(row.user_id)
  *
  * Realtime row flash (D-17): 200ms accent-tint fade-in, respects
  * prefers-reduced-motion via useReducedMotion().
  *
  * Keyboard: tabIndex=0, Enter/Space activates drill-in.
  * Accessibility: role="row", each cell role="gridcell".
+ *
+ * Bulk checkbox: 40×40px hit target, 20×20px visible glyph per UI-SPEC.
  */
 import { useEffect, useRef, useState } from 'react';
 
@@ -35,6 +41,10 @@ export interface RosterRowProps {
   /** When true, the row flashes briefly (Realtime signal update). */
   flash?: boolean;
   onFlashComplete?: () => void;
+  /** Plan 10-10: whether this row is currently selected for bulk action. */
+  isSelected?: boolean;
+  /** Plan 10-10: toggle selection for this row. When provided, checkbox is rendered. */
+  onToggleSelect?: (userId: string) => void;
 }
 
 function relativeTime(iso: string | null): string {
@@ -55,6 +65,8 @@ export function RosterRow({
   permissionMap,
   flash = false,
   onFlashComplete,
+  isSelected = false,
+  onToggleSelect,
 }: RosterRowProps) {
   const reducedMotion = useReducedMotion();
   const [isFlashing, setIsFlashing] = useState(false);
@@ -92,6 +104,11 @@ export function RosterRow({
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent drill-in
+    onToggleSelect?.(row.user_id);
+  };
+
   const daysSince = row.days_since_injection >= 999 ? '—' : `${row.days_since_injection}d`;
   const daysSinceWarning = row.days_since_injection >= 14 && row.days_since_injection < 999;
 
@@ -105,14 +122,61 @@ export function RosterRow({
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]',
         isFlashing && !reducedMotion && 'animate-row-flash',
         isFlashing && reducedMotion && 'opacity-70',
+        isSelected && 'bg-[var(--color-primary)]/5',
       )}
       onClick={handleDrillIn}
       onKeyDown={handleDrillIn}
       data-testid={`roster-row-${row.user_id}`}
+      aria-selected={onToggleSelect ? isSelected : undefined}
     >
+      {/* Checkbox cell — 40×40 hit target, shown when onToggleSelect is provided */}
+      {onToggleSelect && (
+        <td role="gridcell" className="pl-2 pr-1 py-3.5 w-[40px]">
+          <div
+            role="checkbox"
+            aria-checked={isSelected}
+            aria-label={`Select ${row.display_name}`}
+            tabIndex={0}
+            className={cn(
+              'inline-flex items-center justify-center w-10 h-10 rounded-lg cursor-pointer',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+            )}
+            onClick={handleCheckboxClick}
+            onKeyDown={(e) => {
+              if (e.key === ' ' || e.key === 'Enter') {
+                e.stopPropagation();
+                onToggleSelect(row.user_id);
+              }
+            }}
+          >
+            <span
+              className={cn(
+                'w-5 h-5 rounded-md border-2 flex items-center justify-center',
+                isSelected
+                  ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
+                  : 'border-[var(--color-border)] hover:border-[var(--color-primary)]',
+              )}
+              aria-hidden
+            >
+              {isSelected && (
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                  <path
+                    d="M1 4L3.5 6.5L9 1"
+                    stroke="white"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </span>
+          </div>
+        </td>
+      )}
+
       {/* Score chip cell — aria-live announcement co-located here to keep HTML
           valid (span cannot be a direct sibling of td, only inside a td). */}
-      <td role="gridcell" className="pl-4 pr-3 py-3.5 w-[72px]">
+      <td role="gridcell" className={cn('pr-3 py-3.5 w-[72px]', !onToggleSelect && 'pl-4')}>
         {isFlashing && (
           <span ref={ariaLiveRef} role="status" aria-live="polite" className="sr-only">
             {row.display_name.split(' ')[0]}&apos;s data updated.
