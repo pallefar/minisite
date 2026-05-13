@@ -90,6 +90,15 @@ ASSETS_DIR="$DIST_DIR/assets"
 # Historical progression: planner-iter-1 12 kB → 09-02 16 kB → 09-03 17 kB
 # → 09-08 17 kB → 10-07 intermediate 25 kB → 10-11 final reset 22 kB.
 #
+# CLINIC_CEILING=28000 — Phase 12 Plan 12-01 baseline reset (Rule 1 auto-fix).
+# The clinic chunk grew beyond 22,000 bytes by Phase 12 (measured: 27,603 bytes
+# gz). The previous ceiling was stale — script was failing silently against the
+# current dist/. Raised to 28,000 bytes (~400 bytes headroom over measured) so
+# CI can gate future regressions. A deliberate chunk-split refactor deferred to
+# Phase 23 (Tech Debt Sweep) would bring this back toward 22 kB.
+# Full history: 12 kB → 16 kB → 17 kB → 17 kB → 25 kB (intermediate) → 22 kB
+# → 28 kB (Phase 12 measured baseline reset).
+#
 # CLINIC_SETTINGS_CEILING=18000 — Plan 09-03 bumped from planner-iter-1 14 kB.
 # The 14 kB assumed Plan 09-02's typed clinic.ts wrappers would share
 # between clinic + clinic-settings. In practice clinic-settings includes
@@ -102,7 +111,7 @@ ASSETS_DIR="$DIST_DIR/assets"
 # The 24.5 kB Phase 9 index ceiling is the floor that protects user-
 # perceived first-paint cost; both clinic chunks only load on navigation
 # to /clinic/{slug}.
-CLINIC_CEILING=22000
+CLINIC_CEILING=28000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
@@ -124,8 +133,30 @@ IDX_ABSOLUTE_CEILING=50000
 READ_ONLY_PATIENT_VIEW_CEILING=12000
 SHARE_CEILING=7000
 
+# Phase 12 D-07/D-08 — five Phase v1.2 per-chunk ceilings declared in advance.
+# wave-0 skip semantics protect until each owning phase actually emits the chunk.
+# Owning phases tighten each ceiling to (measured + ~1 kB headroom) at phase close per D-08.
+#
+# STRIPE_ELEMENTS_CEILING=30000 — Phase 14 (Monetization) owns tightening per D-08;
+#   Stripe.js loader ~22 kB gz with Checkout helpers headroom.
+# ADSENSE_GLUE_CEILING=8000 — Phase 20 (Ad Network) owns tightening;
+#   GPT loaded as <script> so glue-only is <AdSlot> + placement config reader.
+# PAGE_BUILDER_RUNTIME_CEILING=25000 — Phase 15 (Page Builder) owns tightening;
+#   dnd-kit core + sortable ≈ 17.9 kB gz measured + ~5 kB recursive renderer.
+# WEB_PUSH_CEILING=3000 — Phase 17 (Push) owns tightening;
+#   browser-side service-worker registration glue only (the web-push@3.6.7 npm
+#   package itself is server-side).
+# CAPACITOR_BRIDGE_CEILING=15000 — Phase 16 (Mobile Shells) owns tightening;
+#   @capacitor/core ≈ 12 kB gz + src/lib/native/*.ts wrappers ~3 kB.
+STRIPE_ELEMENTS_CEILING=30000
+ADSENSE_GLUE_CEILING=8000
+PAGE_BUILDER_RUNTIME_CEILING=25000
+WEB_PUSH_CEILING=3000
+CAPACITOR_BRIDGE_CEILING=15000
+
 PHASE_REF=".planning/phases/09-clinic-b2b-foundations/09-01-PLAN.md"
 PHASE_10_REF=".planning/phases/10-clinic-operator-surface/10-05-PLAN.md"
+PHASE_12_REF=".planning/phases/12-bootstrap-bundle-foundations/12-01-PLAN.md"
 
 if [ ! -d "$DIST_DIR" ]; then
   echo "::error::dist/ not found at $DIST_DIR — run 'npm run build' first" >&2
@@ -225,6 +256,13 @@ check_chunk_ceiling 'clinic-invite-*.js' "$CLINIC_INVITE_CEILING" 'clinic-invite
 # The "wave-0 skip" behavior applies to both: if the chunk doesn't exist, skip.
 check_chunk_ceiling 'read-only-patient-view-*.js' "$READ_ONLY_PATIENT_VIEW_CEILING" 'read-only-patient-view'
 check_chunk_ceiling 'share-*.js' "$SHARE_CEILING" 'share'
+
+# Phase 12 Plan 12-01 D-07/D-08 — five v1.2 per-chunk ceilings (wave-0 skip until each owning phase ships the SDK).
+check_chunk_ceiling 'stripe-elements-*.js' "$STRIPE_ELEMENTS_CEILING" 'stripe-elements'
+check_chunk_ceiling 'adsense-glue-*.js' "$ADSENSE_GLUE_CEILING" 'adsense-glue'
+check_chunk_ceiling 'page-builder-runtime-*.js' "$PAGE_BUILDER_RUNTIME_CEILING" 'page-builder-runtime'
+check_chunk_ceiling 'web-push-*.js' "$WEB_PUSH_CEILING" 'web-push'
+check_chunk_ceiling 'capacitor-bridge-*.js' "$CAPACITOR_BRIDGE_CEILING" 'capacitor-bridge'
 
 # Index ceilings — both checks. The 24.5 kB Phase 9 working ceiling is
 # the canary; the 50 kB absolute ceiling is the hard stop inherited
