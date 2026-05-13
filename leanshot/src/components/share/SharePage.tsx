@@ -158,9 +158,6 @@ export function SharePage({ token: tokenProp }: Props = {}) {
 
   // Rendering — read-only patient view (UI-SPEC §"State C")
   const { snapshot, expiresAt, shareId } = state;
-  // Reference shareId so unused-var lint passes — Plan 08-06's print footer
-  // will consume this; the capture from BL-1 lands here.
-  void shareId;
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] pb-16">
@@ -326,9 +323,24 @@ export function SharePage({ token: tokenProp }: Props = {}) {
           </Card>
         </section>
 
-        <footer className="text-[12px] text-[var(--color-text-tertiary)] text-center pt-4 border-t border-[var(--color-border)]">
+        {/*
+          Screen-only footer — hidden in print to avoid duplicating with the
+          print-only footer below (per UI-SPEC §"Print flow" step 4).
+        */}
+        <footer className="text-[12px] text-[var(--color-text-tertiary)] text-center pt-4 border-t border-[var(--color-border)] print:hidden">
           Shared via LeanShot · This window will close automatically when the share expires or is
           revoked.
+        </footer>
+
+        {/*
+          Print-only footer per UI-SPEC §"Print flow" step 4 + BL-1 (Plan 08-02):
+          uses the opaque `share_id` returned by /snapshot — NEVER the patient
+          user_id (which would leak the patient identifier across the trust
+          boundary). slice(0, 8) keeps the printed identifier short.
+        */}
+        <footer className="hidden print:block text-[12px] text-center pt-4 border-t border-[var(--color-border)]">
+          Shared via LeanShot · {new Date().toLocaleDateString()} · Patient ID redacted (share id{' '}
+          {shareId.slice(0, 8)})
         </footer>
       </div>
     </main>
