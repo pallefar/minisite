@@ -16,6 +16,8 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuthFormShell } from './AuthFormShell';
+import AuthView from './AuthView';
 
 vi.mock('./SignInForm', () => ({
   SignInForm: () => <div data-testid="signin-form" />,
@@ -40,9 +42,6 @@ vi.mock('@/illustrations/LoginHero', () => ({
     <div data-testid="login-hero" className={className} />
   ),
 }));
-
-import AuthView from './AuthView';
-import { AuthFormShell } from './AuthFormShell';
 
 function setHash(hash: string): void {
   window.history.replaceState(null, '', window.location.pathname + hash);
