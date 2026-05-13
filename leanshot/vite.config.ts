@@ -80,6 +80,25 @@ export default defineConfig(({ mode }) => {
             // (.github/workflows/ci.yml) is the regression-prevention layer.
             if (id.includes('src/components/share/')) return 'share';
 
+            // Phase 9 Plan 09-03 — group all `src/components/clinic/settings/*`
+            // files into a single `clinic-settings` chunk. ClinicSettingsPage
+            // is already lazy-loaded from App.tsx, so this just ensures
+            // WorkspaceTab + MembersTab + RolesTab + RoleEditorModal land in
+            // the same lazy chunk rather than fragmenting into four small
+            // chunks. The bundle-size CI guard (`assert-clinic-bundle-budget.sh`)
+            // matches `clinic-settings-*.js` to enforce the 14 kB gz ceiling.
+            if (id.includes('src/components/clinic/settings/'))
+              return 'clinic-settings';
+            // Phase 9 Plan 09-02 — clinic workspace shell + invite modal land
+            // in the `clinic` chunk (per its own plan; included here so this
+            // worktree's build emits the expected chunk names even before
+            // 09-02 merges).
+            if (
+              id.includes('src/components/clinic/') &&
+              !id.includes('src/components/clinic/settings/')
+            )
+              return 'clinic';
+
             if (id.includes('node_modules')) {
               if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) {
                 return 'vendor-react';
@@ -99,6 +118,18 @@ export default defineConfig(({ mode }) => {
                 )
               ) {
                 return 'vendor-telemetry';
+              }
+              // Phase 9 Plan 09-03 — group all supabase-js + auth-js + functions-js
+              // + realtime-js + postgrest-js + storage-js into a single
+              // `supabase` chunk. Without this, the supabase client inlines
+              // into whichever lazy chunk first imports it (clinic-settings
+              // would balloon to ~70 kB gz from supabase alone). Plan 09-01
+              // already established `sync-defer` to keep the supabase client
+              // OFF the index static graph; this rule keeps the supabase
+              // payload as ONE shared chunk so multiple clinic surfaces
+              // (settings/workspace/invite) reuse the cached download.
+              if (/node_modules\/@supabase\//.test(id)) {
+                return 'supabase';
               }
               // Any remaining node_modules → fall through to Vite's automatic chunking.
             }
