@@ -485,15 +485,11 @@ export function App() {
     );
   }
   if (view === 'share') {
-    // Phase 8 Plan 08-04 — extract the opaque share token from the hash.
-    // Token is base64url (16..128 chars) per Plan 08-02's TOKEN_PATTERN;
-    // SharePage's `fetchSnapshot` echoes it back to the Edge Function which
-    // validates server-side. We never trust the token here — Edge Function
-    // is the gate.
-    const token = window.location.hash.replace(/^#\/share\//, '');
+    // Phase 8 Plan 08-04 — SharePage reads the token from window.location.hash
+    // itself; keeps the parser inside the lazy chunk to spare the index budget.
     return (
       <Suspense fallback={<FullPageLoader />}>
-        <SharePage token={token} />
+        <SharePage />
       </Suspense>
     );
   }

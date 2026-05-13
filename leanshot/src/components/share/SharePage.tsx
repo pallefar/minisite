@@ -61,10 +61,25 @@ type State =
   | { kind: 'error' };
 
 interface Props {
-  token: string;
+  /**
+   * Optional token override (mostly for tests). When omitted, SharePage reads
+   * the token from `window.location.hash` directly so App.tsx doesn't have to
+   * parse the hash itself (bundle-budget — keeps the regex in the lazy chunk).
+   */
+  token?: string;
 }
 
-export function SharePage({ token }: Props) {
+/** Extract the share token from a hash route like `#/share/<token>`. */
+function tokenFromHash(): string {
+  return typeof window !== 'undefined'
+    ? window.location.hash.replace(/^#\/share\//, '')
+    : '';
+}
+
+export function SharePage({ token: tokenProp }: Props = {}) {
+  // Resolve token once on mount — App.tsx's render branch doesn't pass it so
+  // the hash regex stays inside the lazy chunk and off the index budget.
+  const [token] = useState<string>(() => tokenProp ?? tokenFromHash());
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [doctorReportOpen, setDoctorReportOpen] = useState(true);
 
