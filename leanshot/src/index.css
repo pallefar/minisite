@@ -11,10 +11,10 @@
 @theme {
   /* ---- Color primitives (light) ---- */
   --color-cream-50: #f8f5ec;
-  --color-cream-100: #efebe0; /* page bg */
+  --color-cream-100: #f2ede0; /* page bg (v2) */
   --color-cream-200: #e8e3d5;
   --color-cream-300: #dcd6c4;
-  --color-cream-card: #fdfbf6; /* white-on-cream surface */
+  --color-cream-card: #fefcf7; /* white-on-cream surface (v2) */
 
   --color-teal-950: #0b1413;
   --color-teal-900: #0f302c;
@@ -45,11 +45,11 @@
   --color-surface-soft: #ebe7dc;
   --color-surface-overlay: rgba(26, 42, 40, 0.45);
 
-  --color-border: #e2ddd0;
+  --color-border: #dad3c0; /* v2 stronger neutral */
   --color-border-strong: #d0caba;
 
   --color-text: #16221f;
-  --color-text-secondary: #556660;
+  --color-text-secondary: #4d5e58; /* v2 — 6 % darker for contrast */
   --color-text-tertiary: #8d958f;
   --color-text-on-hero: #ffffff;
   --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
@@ -78,8 +78,8 @@
 
   /* ---- Type scale (modular, 1.18 ratio at the top) ---- */
   --font-display: 'Fraunces', 'Tiempos Headline', 'Domaine Display', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   --text-caption: 0.625rem; /* 10px */
   --text-caption--line-height: 1.4;
@@ -89,7 +89,7 @@
   --text-xs--line-height: 1.45;
   --text-sm: 0.8125rem; /* 13px */
   --text-sm--line-height: 1.5;
-  --text-base: 0.9375rem; /* 15px */
+  --text-base: 1rem; /* 16px floor (v2) */
   --text-base--line-height: 1.55;
   --text-md: 1rem; /* 16px */
   --text-md--line-height: 1.55;
@@ -122,14 +122,14 @@
   /* ---- Spacing scale (4px base) ---- */
   --spacing: 0.25rem;
 
-  /* ---- Shadow ---- */
-  --shadow-xs: 0 1px 2px rgba(22, 34, 31, 0.04);
-  --shadow-sm: 0 2px 4px rgba(22, 34, 31, 0.05);
-  --shadow: 0 6px 16px rgba(22, 34, 31, 0.06);
-  --shadow-md: 0 10px 24px rgba(22, 34, 31, 0.08);
-  --shadow-lg: 0 16px 40px rgba(22, 34, 31, 0.1);
-  --shadow-2xl: 0 32px 80px rgba(22, 34, 31, 0.16);
-  --shadow-hero: 0 24px 60px -12px rgba(15, 48, 44, 0.45);
+  /* ---- Shadow (v2: warm-brown tint rgba(40,32,20) replaces cool rgba(22,34,31)) ---- */
+  --shadow-xs: 0 1px 2px rgba(40, 32, 20, 0.04);
+  --shadow-sm: 0 2px 4px rgba(40, 32, 20, 0.05);
+  --shadow: 0 6px 16px rgba(40, 32, 20, 0.06);
+  --shadow-md: 0 10px 24px rgba(40, 32, 20, 0.08);
+  --shadow-lg: 0 16px 40px rgba(40, 32, 20, 0.1);
+  --shadow-2xl: 0 32px 80px rgba(40, 32, 20, 0.16);
+  --shadow-hero: 0 24px 60px -12px rgba(15, 48, 44, 0.45); /* hero stays teal-tinted */
 
   /* ---- Motion: 3 easings, 4 durations ---- */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -150,6 +150,22 @@
   --animate-orbit: orbit 28s linear infinite;
   --animate-thinking: thinking 1.4s ease-in-out infinite;
   --animate-liquid: liquid-fill 1.2s var(--ease-out-quart);
+
+  /* ---- v2 additions ---- */
+  /* Paper-grain noise overlay — light only (toggled off in [data-theme=dark]). */
+  --grain-noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.16  0 0 0 0 0.13  0 0 0 0 0.08  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.05'/></svg>");
+
+  /* Heading tracking — opt-in utility, not global cascade. */
+  --heading-tracking-tight: -0.01em;
+
+  /* Primary CTA sheen — consumed by Button primary variant in Wave-2 13-02. */
+  --button-primary-sheen-top: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0)
+  );
+  --button-primary-inset-highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --button-primary-inset-shadow-bottom: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
 }
 
 /* ========================================================================
@@ -200,6 +216,9 @@
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
   --shadow-2xl: 0 32px 80px rgba(0, 0, 0, 0.6);
   --shadow-hero: 0 24px 60px -12px rgba(0, 0, 0, 0.6);
+
+  /* v2: no paper-grain overlay in dark — `body { background-image: none }` rule below. */
+  --grain-noise: none;
 }
 
 /* ========================================================================
@@ -227,7 +246,10 @@ body {
   font-size: var(--text-base);
   line-height: 1.55;
   color: var(--color-text);
-  background: var(--color-bg);
+  background-color: var(--color-bg);
+  background-image: var(--grain-noise);
+  background-repeat: repeat;
+  background-size: 200px 200px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'ss01', 'cv11';
@@ -236,6 +258,9 @@ body {
   transition:
     background-color var(--duration-quick) var(--ease-out-quart),
     color var(--duration-quick) var(--ease-out-quart);
+}
+[data-theme='dark'] body {
+  background-image: none;
 }
 button,
 input,
@@ -283,6 +308,11 @@ a {
   font-optical-sizing: auto;
   letter-spacing: -0.03em;
   line-height: 0.96;
+}
+
+/* v2: opt-in heading tracking — Wave-2 components apply this on surface-by-surface basis. */
+.heading-tight {
+  letter-spacing: var(--heading-tracking-tight);
 }
 
 .text-balance {
