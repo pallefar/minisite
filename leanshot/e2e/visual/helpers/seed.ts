@@ -1,8 +1,7 @@
-// IMPORTANT: addInitScript only — never goto/evaluate/reload (see Phase 7 RC4
-// forensic seam + memory `reference_playwright_state_seeding.md`). Seeding
-// localStorage via page.goto + page.evaluate + page.reload races
-// supabase-js INITIAL_SESSION and silently wipes the seed at the
-// localStorage layer.
+// IMPORTANT: addInitScript only — never the goto+eval+refresh antipattern (see
+// Phase 7 RC4 forensic seam + memory `reference_playwright_state_seeding.md`).
+// Seeding localStorage AFTER navigation (then re-navigating) races supabase-js
+// INITIAL_SESSION and silently wipes the seed at the localStorage layer.
 //
 // Shared `addInitScript` payloads for the Phase 13 visual-regression suite.
 // Helpers seed the v4 persisted store + the v4 theme key BEFORE the page
