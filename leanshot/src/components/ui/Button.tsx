@@ -2,13 +2,15 @@ import { Loader2 } from 'lucide-react';
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/helpers';
 
+// Phase 13 D-01 / DS-06: tonal variant for grouped/secondary CTAs.
 export type ButtonVariant =
   | 'primary'
   | 'secondary'
   | 'ghost'
   | 'destructive'
   | 'success'
-  | 'inverse';
+  | 'inverse'
+  | 'tonal';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,6 +20,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leadingIcon?: ReactNode;
   trailingIcon?: ReactNode;
   block?: boolean;
+  /**
+   * Phase 13 DS-06: optional right-aligned count chip rendered after children.
+   * Decorative (aria-hidden); count semantic must live in the surrounding label.
+   */
+  count?: number | string;
 }
 
 const baseClasses =
@@ -43,6 +50,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   success:
     'bg-[var(--color-success)] text-white hover:brightness-95 hover:-translate-y-[1px] shadow-sm',
   inverse: 'bg-white text-[var(--color-hero-bg)] hover:bg-white/90 shadow-sm',
+  tonal:
+    'bg-[var(--color-primary-soft)] text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:brightness-95 hover:-translate-y-[1px] shadow-none border border-transparent',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -56,10 +65,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     className,
     children,
     disabled,
+    count,
     ...rest
   },
   ref,
 ) {
+  // Phase 13 DS-06: chip inverts on dark/saturated variants so it stays legible
+  // on top of primary/destructive/success backgrounds. Tonal/secondary/ghost/inverse
+  // pick up the default soft-on-primary chip.
+  const chipOnDark = variant === 'primary' || variant === 'destructive' || variant === 'success';
   return (
     <button
       ref={ref}
@@ -80,6 +94,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         leadingIcon && <span className="inline-flex shrink-0">{leadingIcon}</span>
       )}
       <span className="inline-flex items-center">{children}</span>
+      {count !== undefined && (
+        <span
+          aria-hidden
+          className={cn(
+            'ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold tabular-nums',
+            chipOnDark
+              ? 'bg-white/20 text-[var(--color-primary-foreground)]'
+              : 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+          )}
+        >
+          {count}
+        </span>
+      )}
       {!loading && trailingIcon && <span className="inline-flex shrink-0">{trailingIcon}</span>}
     </button>
   );
