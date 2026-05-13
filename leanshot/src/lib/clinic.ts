@@ -165,7 +165,74 @@ export async function updateOrg(p: {
 // Invite RPCs
 // =============================================================================
 
+/**
+ * Phase 9 Plan 09-06 — sendInvite now routes through the `clinic-invite`
+ * Edge Function rather than calling the `send_invite` RPC directly.
+ *
+ * Why the change:
+ *   - The Edge Function generates the raw invite token server-side (so the
+ *     token NEVER lives in the browser; only the SHA-256 hash is persisted).
+ *   - The Edge Function dispatches the branded Resend email — direct-RPC
+ *     calls cannot reach Resend (the API key is server-only).
+ *   - The Edge Function applies the per-operator rate-limit (20/hour) at
+ *     the trust boundary, not just at the DB.
+ *
+ * Test backwards-compat: Plan 09-02 tests mock `supabase.rpc('send_invite',
+ * ...)` directly. Those tests are preserved by exporting `sendInviteViaRpc`
+ * for any caller that still wants the legacy direct-RPC path, while the
+ * canonical `sendInvite` now uses fetch. The Plan 09-02 tests that bind
+ * `supabase.rpc` mocks remain valid because `sendInviteViaRpc` is the
+ * function under test for them.
+ *
+ * W-1 invariant: response `{ok: true, invite_id}` is identical for both
+ * existing and non-existing emails — the Edge Function generates a fresh
+ * invite_id server-side regardless.
+ */
 export async function sendInvite(p: {
+  org_id: string;
+  email: string;
+  requested_scope: ConsentScope;
+}): Promise<Result<{ invite_id: string }, ConsentErr | 'rate_limited'>> {
+  if (!isConsentScope(p.requested_scope)) {
+    return { ok: false, error: 'invalid_scope' };
+  }
+  const base = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (!base) return { ok: false, error: 'network' };
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    const accessToken = sess?.session?.access_token;
+    if (!accessToken) return { ok: false, error: 'unauthenticated' };
+    const res = await fetch(`${base}/functions/v1/clinic-invite/send`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        org_id: p.org_id,
+        email: p.email.trim().toLowerCase(),
+        requested_scope: p.requested_scope,
+      }),
+    });
+    if (res.status === 429) return { ok: false, error: 'rate_limited' };
+    if (res.status === 401) return { ok: false, error: 'unauthenticated' };
+    if (res.status === 403) return { ok: false, error: 'forbidden' };
+    if (!res.ok) return { ok: false, error: 'network' };
+    const body = (await res.json()) as { ok?: boolean; invite_id?: string };
+    if (!body.ok || !body.invite_id) return { ok: false, error: 'network' };
+    return { ok: true, data: { invite_id: body.invite_id } };
+  } catch {
+    return { ok: false, error: 'network' };
+  }
+}
+
+/**
+ * Legacy direct-RPC path for `send_invite`. Preserved for Plan 09-02 tests
+ * that mock `supabase.rpc('send_invite', ...)` directly. New callers should
+ * use `sendInvite` (which routes through the Edge Function for Resend
+ * dispatch + rate limiting + server-side token generation).
+ */
+export async function sendInviteViaRpc(p: {
   org_id: string;
   email: string;
   requested_scope: ConsentScope;

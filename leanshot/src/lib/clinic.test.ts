@@ -5,6 +5,9 @@
  * return shape, Postgres-error-code mapping, W-1 invite_id-server-side
  * shape, isConsentScope drift defense, setAuth-before-subscribe ordering).
  */
+/* eslint-disable import-x/order -- vi.mock factories must come BEFORE the
+   imports they affect; this means imports of the mocked module live below
+   the mock block, breaking strict import-grouping. */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRpc = vi.fn();
@@ -66,11 +69,12 @@ vi.mock('@/lib/supabase', () => ({
     removeChannel: vi.fn(),
   },
 }));
-
+import type { ConsentScope } from '@/types/clinic';
 import {
   createOrg,
   updateOrg,
   sendInvite,
+  sendInviteViaRpc,
   cancelInvite,
   acceptInviteExisting,
   acceptInviteNew,
@@ -85,7 +89,6 @@ import {
   checkSlugAvailable,
 } from './clinic';
 import { subscribeToOrgChannel, subscribeToUserChannel } from './clinic-realtime';
-import type { ConsentScope } from '@/types/clinic';
 
 const VALID_SCOPE: ConsentScope = {
   injections: true,
@@ -169,13 +172,13 @@ describe('createOrg', () => {
 // Test 3 — sendInvite W-1 shape (invite_id always returned, no enumeration leak)
 // =============================================================================
 
-describe('sendInvite (W-1)', () => {
+describe('sendInviteViaRpc (W-1) — legacy direct-RPC path', () => {
   it('lowercases + trims email; sends invite_token_hash + scope; returns {invite_id}', async () => {
     mockRpc.mockResolvedValueOnce({
       data: [{ invite_id: 'inv-uuid-123' }],
       error: null,
     });
-    const r = await sendInvite({
+    const r = await sendInviteViaRpc({
       org_id: 'org-1',
       email: '  Karsten@Example.com  ',
       requested_scope: VALID_SCOPE,
@@ -194,13 +197,114 @@ describe('sendInvite (W-1)', () => {
 
   it('rejects invalid consent scope shape (Pitfall #8 jsonb drift)', async () => {
     const partial = { injections: true } as unknown as ConsentScope;
-    const r = await sendInvite({
+    const r = await sendInviteViaRpc({
       org_id: 'org-1',
       email: 'a@b.com',
       requested_scope: partial,
     });
     expect(r).toEqual({ ok: false, error: 'invalid_scope' });
     expect(mockRpc).not.toHaveBeenCalled();
+  });
+});
+
+describe('sendInvite (W-1) — Edge Function path', () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
+    // Provide VITE_SUPABASE_URL via the vitest env stub.
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://stub.supabase.co');
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.unstubAllEnvs();
+  });
+
+  it('POSTs to /functions/v1/clinic-invite/send with Bearer JWT + W-1 response shape', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ ok: true, invite_id: 'inv-uuid-edge' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const r = await sendInvite({
+      org_id: 'org-1',
+      email: '  Karsten@Example.com  ',
+      requested_scope: VALID_SCOPE,
+    });
+    expect(r).toEqual({ ok: true, data: { invite_id: 'inv-uuid-edge' } });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://stub.supabase.co/functions/v1/clinic-invite/send');
+    expect(init.method).toBe('POST');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer t');
+    const body = JSON.parse(init.body as string) as Record<string, unknown>;
+    expect(body.email).toBe('karsten@example.com');
+    expect(body.org_id).toBe('org-1');
+    expect(body.requested_scope).toEqual(VALID_SCOPE);
+    // CRITICAL: client must NOT generate the raw token or hash — Edge Function does.
+    expect(body.invite_token_hash).toBeUndefined();
+    expect(body.token).toBeUndefined();
+  });
+
+  it('rejects invalid consent scope shape BEFORE calling fetch (Pitfall #8)', async () => {
+    const partial = { injections: true } as unknown as ConsentScope;
+    const r = await sendInvite({
+      org_id: 'org-1',
+      email: 'a@b.com',
+      requested_scope: partial,
+    });
+    expect(r).toEqual({ ok: false, error: 'invalid_scope' });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('maps 429 → rate_limited', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'rate_limited' }), { status: 429 }),
+    );
+    const r = await sendInvite({
+      org_id: 'org-1',
+      email: 'a@b.com',
+      requested_scope: VALID_SCOPE,
+    });
+    expect(r).toEqual({ ok: false, error: 'rate_limited' });
+  });
+
+  it('maps 403 → forbidden', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'forbidden' }), { status: 403 }),
+    );
+    const r = await sendInvite({
+      org_id: 'org-1',
+      email: 'a@b.com',
+      requested_scope: VALID_SCOPE,
+    });
+    expect(r).toEqual({ ok: false, error: 'forbidden' });
+  });
+
+  it('returns unauthenticated when there is no session', async () => {
+    mockGetSession.mockResolvedValueOnce({ data: { session: null }, error: null });
+    const r = await sendInvite({
+      org_id: 'org-1',
+      email: 'a@b.com',
+      requested_scope: VALID_SCOPE,
+    });
+    expect(r).toEqual({ ok: false, error: 'unauthenticated' });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('returns network on fetch throw', async () => {
+    fetchSpy.mockRejectedValueOnce(new Error('boom'));
+    const r = await sendInvite({
+      org_id: 'org-1',
+      email: 'a@b.com',
+      requested_scope: VALID_SCOPE,
+    });
+    expect(r).toEqual({ ok: false, error: 'network' });
   });
 });
 

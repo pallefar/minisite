@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
+  "rewrites": [
+    { "source": "/clinic/(.*)", "destination": "/index.html" },
+    { "source": "/clinic-invite/(.*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
