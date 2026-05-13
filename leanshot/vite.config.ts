@@ -68,6 +68,18 @@ export default defineConfig(({ mode }) => {
             // routing CSS into a JS chunk breaks the CSS pipeline (RESEARCH pitfall #1).
             if (id.endsWith('.css')) return undefined;
 
+            // Phase 8 Plan 08-06 — group all `src/components/share/*` files
+            // into a single `share` chunk. SharePage is already lazy-loaded
+            // from App.tsx, so this just ensures CodeEntryScreen,
+            // ShareRevokedScreen, and share-client land in the same lazy
+            // chunk rather than fragmenting into multiple small chunks
+            // (which would each pay the per-chunk HTTP + parse overhead).
+            // Plan 08-04 Task 2b owns the actual share-chunk size assertion
+            // (gz ≤ 18 kB ceiling, currently ~4 kB) — this rule is purely
+            // about grouping. Plan 08-06's static-import CI guard
+            // (.github/workflows/ci.yml) is the regression-prevention layer.
+            if (id.includes('src/components/share/')) return 'share';
+
             if (id.includes('node_modules')) {
               if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) {
                 return 'vendor-react';
