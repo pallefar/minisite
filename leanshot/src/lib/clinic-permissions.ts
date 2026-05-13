@@ -19,8 +19,8 @@
  * cold-load before the active org slice has resolved.
  */
 import { useEffect, useState } from 'react';
-import { supabase } from './supabase';
 import type { PermissionKey } from '@/types/clinic';
+import { supabase } from './supabase';
 
 const cache = new Map<string, boolean>();
 
