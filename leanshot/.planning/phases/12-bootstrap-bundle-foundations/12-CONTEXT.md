@@ -38,6 +38,8 @@
   4. Stripe metadata helpers — any file calling `stripe.customers.update` / `stripe.subscriptions.update` with a `metadata: {...}` arg (Connect partners and ad-reconciliation tools can read these)
   5. Generic ad-eligible bag — `src/lib/ads/*`, `src/lib/marketing/*`, and any file matching `*.ad-eligible.ts`
 - **D-03 (LOCKED, firewall test):** A deliberately-failing fixture file (e.g. `src/lib/native/ads.fixture-violates-firewall.ts`) imports `health.ts` and lives on a `firewall-test-violation` branch that NEVER merges. CI on that branch must fail on the `no-restricted-imports` rule. Doc the branch SHA in CONTEXT so future audits can re-run.
+  Branch SHA: d445c4b9426227fe31bdd05e7b7e0cc2ae115132
+  recorded: 2026-05-13
 - **D-04 (LOCKED, runtime + manifest belt-and-braces):** Phase 12 ships ESLint static check only. The runtime guard in `src/lib/ads/firewall.ts` (aborts AdMob.initialize() if HealthKit permission was ever granted) lands in Phase 18/20 alongside the SDKs. The Privacy Manifest (`PrivacyInfo.xcprivacy`) lands in Phase 16.
 
 ### Phase 12 scope split — code now, credentials trickle
