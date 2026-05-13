@@ -3,7 +3,7 @@
 **Phase:** 13 — Design System v2 Rollout
 **Mode:** standard (mvp granularity in ROADMAP)
 **Total plans:** 6
-**Total waves:** 2
+**Total dispatch waves:** 4 (PR-merge topology stays as 2-PR ladder per D-02)
 **Generated:** 2026-05-13
 **Source artifacts:** 13-CONTEXT.md (17 D-NN decisions), 13-PATTERNS.md (28 analog files), `.planning/design-system/chats/chat1.md` (landmines)
 
@@ -102,7 +102,7 @@ PR-2 of the 2-PR ladder (D-02) bundles waves 2 + 3 + 4 as the second merge group
 ## OUTLINE COMPLETE
 
 **Plan count:** 6
-**Wave count:** 2
-**Parallel-execution batches in Wave 2:** 3 (Batch A: 3 parallel | Batch B: 1 | Batch C: 1)
+**Dispatch wave count:** 4 (Wave 1 SOLO | Wave 2: 13-02 + 13-03 parallel | Wave 3: 13-04 + 13-05 parallel | Wave 4: 13-06)
+**PR-merge topology:** 2-PR ladder per D-02 (PR 1 = wave 1 / PR 2 = waves 2+3+4)
 **Requirements covered:** DS-01..DS-12 (12/12, no gaps)
 **Deferred items respected:** onboarding split-screen, watch complications, pricing page, mobile parity, Storybook, dark-theme login (all out-of-scope per `<deferred>` block in 13-CONTEXT.md)

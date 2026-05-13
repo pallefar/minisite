@@ -143,14 +143,16 @@
 
 ### Inherited from goal text (no re-decision needed)
 
-- **D-10:** Fonts via `<link>` + preconnect in `<head>`, NOT `@import` chain (goal + chat1.md proof).
-- **D-11:** Tokens-only swap lands FIRST (PR 1), components/illustrations/login second (PR 2) — goal phrasing.
-- **D-12:** Sidebar 72↔232 px instant snap, 200 ms inner-content fade — goal phrasing + chat1.md landmine 1.
-- **D-13:** FCP within 5 % of pre-Phase-13 baseline — SC #1; mechanism in D-07.
-- **D-14:** Visual regression snapshot diff on at least 6 surface screens — SC #2; we ship 12 (D-05).
-- **D-15:** Refreshed Card / Button / Pill / Sidebar without layout shift or focus-ring regressions — SC #3.
-- **D-16:** Refreshed AI avatar (organic mesh) across `AIChatPanel`, topbar, onboarding — DS-11.
-- **D-17:** Split-screen login responsive at ≥ 768 px breakpoint, gracefully stacks below — SC #5.
+These restate goal/SC text verbatim; trackable enforcement lives in the plans that already carry the underlying SC/REQ-ID. Each is tagged `[informational]` for the decision-coverage gate per `feedback_planner_iter1_anti_patterns` (gate guidance).
+
+- **D-10 [informational]:** Fonts via `<link>` + preconnect in `<head>`, NOT `@import` chain (goal + chat1.md proof). Enforced by 13-01 Task 2 grep negative assertion.
+- **D-11 [informational]:** Tokens-only swap lands FIRST (PR 1), components/illustrations/login second (PR 2) — goal phrasing. Enforced by frontmatter wave field across all 6 plans + D-02.
+- **D-12 [informational]:** Sidebar 72↔232 px instant snap, 200 ms inner-content fade — goal phrasing + chat1.md landmine 1. Enforced by 13-02 Task 4 grep negative assertion + `data-sidebar` attribute check.
+- **D-13 [informational]:** FCP within 5 % of pre-Phase-13 baseline — SC #1; mechanism in D-07. Enforced by 13-01 Task 4 `assert-fcp-lcp-delta.sh` CI gate.
+- **D-14 [informational]:** Visual regression snapshot diff on at least 6 surface screens — SC #2; we ship 12 (D-05). Enforced by 13-06 spec authoring.
+- **D-15 [informational]:** Refreshed Card / Button / Pill / Sidebar without layout shift or focus-ring regressions — SC #3. Enforced by 13-02 byte-stable `baseClasses` + 13-06 manual focus-ring audit checklist.
+- **D-16 [informational]:** Refreshed AI avatar (organic mesh) across `AIChatPanel`, topbar, onboarding — DS-11. Enforced by 13-03 Task 3 grep import assertions on the 3 consumers.
+- **D-17 [informational]:** Split-screen login responsive at ≥ 768 px breakpoint, gracefully stacks below — SC #5. Enforced by 13-04 Playwright responsive smoke spec.
 
 </decisions>
 
