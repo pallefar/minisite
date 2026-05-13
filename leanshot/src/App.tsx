@@ -58,6 +58,14 @@ const Marketing = lazy(() =>
 );
 const AuthView = lazy(() => import('@/components/auth/AuthView'));
 
+// Phase 8 Plan 08-04 — Doctor read-share lazy chunk. Mounted on the
+// `#/share/<token>` hash route via the top-priority branch in `selectView`
+// below. The chunk is OFF the index static graph; bundle CI (Plan 08-06)
+// asserts `share-*.js.gz` stays under the 18 kB budget (Task 2b verify).
+const SharePage = lazy(() =>
+  import('@/components/share/SharePage').then((m) => ({ default: m.SharePage })),
+);
+
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
 // boundary so Rollup emits four separate small chunks (preserving the 50 kB
@@ -136,7 +144,7 @@ const MigrationModal = lazy(() =>
   import('@/components/sync/MigrationModal').then((m) => ({ default: m.MigrationModal })),
 );
 
-type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard' | 'legal';
+type View = 'marketing' | 'onboarding' | 'auth' | 'dashboard' | 'legal' | 'share';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -178,7 +186,14 @@ function pushViewLog(entry: ViewLogEntry): void {
  * `user`-presence rule decides marketing vs dashboard.
  */
 function selectView(opts: { user: unknown; hash: string }): View {
-  // Phase 7 Plan 07-02 — legal hash routes take TOP priority. A signed-out
+  // Phase 8 Plan 08-04 (Pitfall 9) — `#/share/<token>` takes ABSOLUTE top
+  // priority. Anonymous doctors AND signed-in patients who follow the link
+  // both land on the read-only share view. The token is base64url so it
+  // never contains `/`; `startsWith('#/share/')` is collision-safe with the
+  // sibling `#/legal/` and `#/auth/` branches because their prefixes don't
+  // intersect.
+  if (opts.hash.startsWith('#/share/')) return 'share';
+  // Phase 7 Plan 07-02 — legal hash routes take next priority. A signed-out
   // visitor following a footer link to `#/legal/privacy` should land on the
   // policy page itself, not get bounced to the auth/marketing surface; a
   // signed-in user clicking the same link from the AppShell footer should
@@ -466,6 +481,15 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <AuthView />
+      </Suspense>
+    );
+  }
+  if (view === 'share') {
+    // Phase 8 Plan 08-04 — SharePage reads the token from window.location.hash
+    // itself; keeps the parser inside the lazy chunk to spare the index budget.
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <SharePage />
       </Suspense>
     );
   }
