@@ -223,7 +223,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18 �
 |-------|----------------|--------|-----------|
 | 12. Bootstrap & Bundle Foundations | 0/TBD | Not started | - |
 | 13. Design System v2 Rollout | 0/TBD | Not started | - |
-| 14. Monetization Foundation (Stripe web + clinic seats) | 0/TBD | Not started | - |
+| 14. Monetization Foundation (Stripe web + clinic seats) | 2/8 | In Progress|  |
 | 15. Page Builder + Landing Pages | 0/TBD | Not started | - |
 | 16. Capacitor Mobile Shells (iOS + Android) | 0/TBD | Not started | - |
 | 17. Push Notifications | 0/TBD | Not started | - |
