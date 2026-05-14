@@ -1,17 +1,14 @@
 /**
  * invoice-payment-failed.ts — Handler for `invoice.payment_failed` event.
  *
- * Flips ux_tier='past_due' when invoice fails (D-08 banner trigger).
- * If Stripe still has status='active' (first failure within retry window),
- * this becomes a no-op on ux_tier (mapped value matches current value or
- * Stripe hasn't yet set status='past_due'). Stripe fires subscription.updated
- * with status='past_due' when Smart Retries are exhausted — that handler
- * re-confirms (behavior 2.17).
+ * Writes `ux_tier='past_due'` directly: an `invoice.payment_failed` event by
+ * definition means a charge failed and Stripe dunning has started.
+ * `customer.subscription.updated` (subscription-updated.ts) remains the
+ * authority for the retry-exhausted and recovery transitions via the real
+ * `subscription.status`. Closes CR-04 (D-08 banner trigger was inverted).
  */
 import type Stripe from 'stripe';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
-
-import { mapStripeStatusToUxTier } from './subscription-updated.ts';
 
 export async function handle(event: Stripe.Event, admin: SupabaseClient): Promise<void> {
   const invoice = event.data.object as Stripe.Invoice;
@@ -22,19 +19,11 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
     return;
   }
 
-  // Re-read subscription status from the invoice's embedded subscription_status.
-  // If subscription_status is 'active', the first retry hasn't exhausted — no-op on ux_tier.
-  const subStatus = (
-    (invoice as unknown as { subscription_status?: string }).subscription_status ?? 'active'
-  ) as Stripe.Subscription.Status;
-
-  const uxTier = mapStripeStatusToUxTier(subStatus);
-
   const { error } = await admin
     .from('subscriptions')
     .update({
-      ux_tier: uxTier,
-      status: subStatus,
+      ux_tier: 'past_due',
+      status: 'past_due',
     })
     .eq('id', subId);
 

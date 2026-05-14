@@ -4,9 +4,17 @@
  * Tests for the invoice.payment_failed handler (D-08 banner trigger).
  *
  * Behaviors:
- *  2.16: invoice.payment_failed + subscription.status=past_due → flips ux_tier=past_due
- *  2.17: invoice.payment_failed + subscription.status=active (first failure, retry window) →
- *        no change to ux_tier (still maps to 'paid' from 'active' status)
+ *  2.16: invoice.payment_failed with a valid subId → writes ux_tier=past_due + status=past_due
+ *  2.17: invoice.payment_failed is ALWAYS unconditional — a second payment_failed on any sub
+ *        still writes ux_tier=past_due (idempotent direction; handler reads no subscription status).
+ *        NOTE: The old test 2.17 asserted that a "first failure within retry window" produced
+ *        ux_tier='paid'. That behaviour was the inverted-trigger bug (CR-04): the handler was
+ *        reading the non-existent `invoice.subscription_status` field (always `undefined`),
+ *        defaulting to 'active', then mapping 'active' → 'paid'. The old test encoded the bug.
+ *        The corrected behaviour is: invoice.payment_failed ALWAYS starts dunning (past_due),
+ *        regardless of any prior state. Smart Retries and the recovery path are reflected by
+ *        the separate `invoice.paid` / `customer.subscription.updated` events.
+ *  2.17b: invoice.payment_failed with no subscription_id → no-op (zero update calls)
  */
 
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
@@ -39,7 +47,7 @@ function buildMockAdmin(): [SupabaseClient, () => UpdateCall[]] {
 }
 
 /** Build an invoice.payment_failed event */
-function buildPaymentFailedEvent(subId: string, subscriptionStatus: string): Stripe.Event {
+function buildPaymentFailedEvent(subId: string | null): Stripe.Event {
   return {
     id: 'evt_payment_failed_test',
     object: 'event',
@@ -51,7 +59,6 @@ function buildPaymentFailedEvent(subId: string, subscriptionStatus: string): Str
         id: 'in_failed_test',
         object: 'invoice',
         subscription: subId,
-        subscription_status: subscriptionStatus,
       } as unknown as Stripe.Invoice,
     },
     api_version: '2026-04-22.dahlia',
@@ -60,8 +67,8 @@ function buildPaymentFailedEvent(subId: string, subscriptionStatus: string): Str
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-Deno.test('2.16: payment_failed + status=past_due → ux_tier=past_due', async () => {
-  const event = buildPaymentFailedEvent('sub_past_due_test', 'past_due');
+Deno.test('2.16: payment_failed with valid subId → ux_tier=past_due + status=past_due', async () => {
+  const event = buildPaymentFailedEvent('sub_test_001');
   const [admin, getCalls] = buildMockAdmin();
 
   await handle(event, admin);
@@ -71,20 +78,31 @@ Deno.test('2.16: payment_failed + status=past_due → ux_tier=past_due', async (
   assertEquals(calls[0].table, 'subscriptions');
   assertEquals(calls[0].data.ux_tier, 'past_due');
   assertEquals(calls[0].data.status, 'past_due');
-  assertEquals(calls[0].eqVal, 'sub_past_due_test');
+  assertEquals(calls[0].eqCol, 'id');
+  assertEquals(calls[0].eqVal, 'sub_test_001');
 });
 
-Deno.test('2.17: payment_failed + status=active (first failure, retry window) → ux_tier=paid (no-op)', async () => {
-  // First failure within Smart Retries window — Stripe still has status='active'.
-  // Handler maps 'active' → 'paid', so ux_tier stays 'paid'. This is correct:
-  // Stripe will fire subscription.updated with status='past_due' when retries exhaust.
-  const event = buildPaymentFailedEvent('sub_active_test', 'active');
+Deno.test('2.17: payment_failed is unconditional — second failure still writes past_due (idempotent direction)', async () => {
+  // CR-04 fix: the handler no longer reads invoice.subscription_status (which does not
+  // exist on the Stripe Invoice object). It writes past_due directly and unconditionally.
+  // A second invoice.payment_failed on the same subscription still writes past_due.
+  const event = buildPaymentFailedEvent('sub_test_002');
   const [admin, getCalls] = buildMockAdmin();
 
   await handle(event, admin);
 
   const calls = getCalls();
   assertEquals(calls.length, 1);
-  assertEquals(calls[0].data.ux_tier, 'paid'); // 'active' maps to 'paid' — no premature flip
-  assertEquals(calls[0].data.status, 'active');
+  assertEquals(calls[0].data.ux_tier, 'past_due');
+  assertEquals(calls[0].data.status, 'past_due');
+});
+
+Deno.test('2.17b: payment_failed with no subscription_id → no-op (zero update calls)', async () => {
+  const event = buildPaymentFailedEvent(null);
+  const [admin, getCalls] = buildMockAdmin();
+
+  await handle(event, admin);
+
+  const calls = getCalls();
+  assertEquals(calls.length, 0, 'No update expected when no subscription_id');
 });
