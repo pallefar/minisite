@@ -1,7 +1,9 @@
 ---
 phase: 14-monetization-foundation-stripe-web-clinic-seats
 verified: 2026-05-14T09:15:00Z
-status: human_needed
+status: verified
+human_verification_completed: 2026-05-14T10:55:00Z
+human_verification_evidence: 14-HUMAN-UAT.md (6/6 pass)
 score: 5/5 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -42,16 +44,17 @@ human_verification:
 
 **Phase Goal:** A web user can subscribe to a paid plan via Stripe Checkout (7-day card-required trial), manage their subscription via Stripe Customer Portal, and downstream features gate cleanly on the `tier` field. A clinic owner is billed per-active-patient with monthly true-up via Stripe metered billing. Webhook state from Stripe is the source of truth. Card-failure dunning surfaces a `past_due` banner and a retry-card flow.
 **Verified:** 2026-05-14T09:15:00Z
-**Status:** human_needed
+**Status:** verified
+**Human verification:** Completed 2026-05-14 — all 6 vendor/deploy checkpoints PASS (see `14-HUMAN-UAT.md`)
 **Re-verification:** Yes — after gap closure (plans 14-09, 14-10, 14-11)
 
 ---
 
 ## Summary Judgment
 
-All 7 code-level BLOCKERs and WARNINGs confirmed **RESOLVED** against the actual codebase. Plans 14-09 (CR-01 + CR-02), 14-10 (CR-04), and 14-11 (CR-03 + WR-09 + CR-05 + CR-06) have all landed on main. Every must-have success criterion is now satisfied in code. The only remaining items are 6 vendor/deploy checkpoints that require live Stripe + Supabase credentials and cannot be verified from code alone.
+All 7 code-level BLOCKERs and WARNINGs confirmed **RESOLVED** against the actual codebase. Plans 14-09 (CR-01 + CR-02), 14-10 (CR-04), and 14-11 (CR-03 + WR-09 + CR-05 + CR-06) have all landed on main. Every must-have success criterion is now satisfied in code.
 
-**Status: human_needed** — all code is correct; human must complete vendor deployment checklist before the phase is live-provable end-to-end.
+**Status: verified** — all code correct AND all 6 vendor/deploy checkpoints completed and verified via `14-HUMAN-UAT.md` (6/6 pass, 2026-05-14). One follow-up surfaced during deploy: the `stripe-webhook` Edge Function 500'd on every event until 3 import/config defects were fixed (commits fa21de1/6f04884/9314ec2) — see `.planning/debug/webhook-500-dispatch-error.md`. Caveat: Vercel-env side of `VITE_STRIPE_PRICE_*` not independently re-verified (vercel CLI unavailable in the verification environment).
 
 ---
 
@@ -279,6 +282,13 @@ No new debt markers (`TBD`/`FIXME`/`XXX`) introduced by any of the 3 gap-closure
 ---
 
 ## Human Verification Required
+
+> ✅ **COMPLETED 2026-05-14** — all 6 items below verified PASS via `14-HUMAN-UAT.md`.
+> Edge Functions deployed (stripe-webhook v5, stripe-checkout v3 on ytnsipxxmzgaebkqmokp);
+> all 7 Stripe secrets set; webhook endpoint enabled with all 7 events incl. invoice.upcoming;
+> 4 prices + active meter confirmed via Stripe API; portal config active; migration
+> 20260601000019 confirmed applied to live DB. The webhook required a 3-defect fix during
+> deploy — see `.planning/debug/webhook-500-dispatch-error.md`.
 
 These items require live Stripe/Supabase/Vercel access — they are NOT code gaps. All code is correct. These are the deployment checkpoint items from the original verification, now carrying the CR-06 migration fix.
 
