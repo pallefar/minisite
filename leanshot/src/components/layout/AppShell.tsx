@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
+import { PastDueBanner } from '@/components/billing/PastDueBanner';
 import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 import { Toast } from '@/components/ui/Toast';
 import { cn } from '@/lib/helpers';
@@ -46,6 +47,10 @@ export function AppShell({
         )}
         data-testid="dashboard"
       >
+        {/* Phase 14 Plan 14-06 — PastDueBanner (D-08 always-on chrome).
+            Renders only when tier='past_due'. Returns null for free/paid — zero
+            DOM footprint + zero layout shift. Bare component, no wrapper div. */}
+        <PastDueBanner />
         {/* Phase 9 Plan 09-08 — WorkspaceSwitcher (D-09 + D-14 single-identity affordance).
             Mounted above the topbar so Pitfall #8's "one auth.users + relationship-table
             contexts" invariant is visible on every authenticated route. The switcher

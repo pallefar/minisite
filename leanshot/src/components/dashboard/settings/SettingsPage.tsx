@@ -17,6 +17,8 @@ import {
   Building2,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
+import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
+import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Confirm';
@@ -97,6 +99,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   const resetAll = useStore((s) => s.resetAll);
   const fullState = useStore((s) => s);
   const signedIn = useStore((s) => s.signedIn);
+  // Phase 14 Plan 14-06: billing tier for subscription section conditional render.
+  const tier = useStore((s) => s.tier);
   const toast = useToast();
 
   // Phase 5 D-04: account section visible only for permanent (non-anon) users.
@@ -546,14 +550,48 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             </Section>
           )}
 
+          {/* Phase 14 Plan 14-06 (D-08, D-09, MONEY-03, MONEY-09):
+              Tier-conditional subscription section. Replaces the previous stub.
+              - free: UpgradeCTA with 2-plan selector ($12.99/mo + $132.49/yr).
+              - paid: Active pill + ManageSubscriptionLink (Customer Portal).
+              - past_due: Past-due pill + ManageSubscriptionLink (Customer Portal).
+              Trial-day countdown copy (subscriptions.trial_end) deferred to Phase 14
+              follow-up — "Active" pill covers both trial-active and post-conversion
+              paid states until we wire the trial countdown (NOT a locked decision). */}
           {section === 'subscription' && (
-            <Section title="Subscription" body="Free forever. Pro adds polish.">
-              <Card variant="flat">
-                <p className="text-[14px] font-semibold mb-1">You&apos;re on the Free plan.</p>
-                <p className="text-[13px] text-[var(--color-text-secondary)]">
-                  All 9 dashboard tabs, unlimited tracking, and one progress card template.
-                </p>
-              </Card>
+            <Section
+              title="Subscription"
+              body={
+                tier === 'free'
+                  ? 'Upgrade to Plus to unlock forecast + advanced AI coach.'
+                  : tier === 'past_due'
+                    ? 'Your payment failed. Update your card to keep Plus active.'
+                    : 'You’re on LeanShot Plus.'
+              }
+            >
+              {/* Status pill */}
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    'inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold',
+                    tier === 'free' &&
+                      'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]',
+                    tier === 'paid' && 'bg-[var(--color-success)] text-[var(--color-bg)]',
+                    tier === 'past_due' &&
+                      'bg-[var(--color-warning)] text-[var(--color-warning-foreground)]',
+                  )}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {tier === 'free' && 'Free'}
+                  {tier === 'paid' && 'Active'}
+                  {tier === 'past_due' && 'Past due — update card'}
+                </span>
+              </div>
+
+              {/* Tier-conditional body */}
+              {tier === 'free' && <UpgradeCTA />}
+              {(tier === 'paid' || tier === 'past_due') && <ManageSubscriptionLink />}
             </Section>
           )}
 
