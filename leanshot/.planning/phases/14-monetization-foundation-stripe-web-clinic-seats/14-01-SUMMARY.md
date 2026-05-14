@@ -118,3 +118,8 @@ No new threat surfaces beyond those in the plan's STRIDE register (T-14-01 throu
 **Commits:**
 - d336a62 — feat(14-01): write Stripe subscriptions migration SQL
 - 3ea473b — test(14-01): RLS impersonation proof + active-patient counter pgTAP test
+- c6f4590 — docs(14-01): complete Stripe subscriptions schema plan SUMMARY
+
+## Self-Check: PASSED
+
+All 3 files confirmed present on disk. Both task commits confirmed in git log.
