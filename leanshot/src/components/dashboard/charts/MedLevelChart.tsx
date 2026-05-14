@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { TierGate } from '@/components/billing/TierGate';
 import { useTheme } from '@/hooks/useTheme';
 import { getChartTokens } from '@/lib/chart-theme';
 import { PK_DISCLAIMER_BAND_CAPTION, PK_DISCLAIMER_Y_AXIS } from '@/lib/disclaimers';
@@ -76,6 +77,10 @@ export function MedLevelChart(props: MedLevelChartProps) {
   const storeUser = useStore((s) => s.user);
   const storeInjections = useStore((s) => s.injections);
   const storeWeights = useStore((s) => s.weights);
+  // Phase 14 Plan 14-05 — CONTEXT D-03 (paywall split: past free / future paid)
+  // + D-04 (scope = 7-day forecast layer only). Selector must run BEFORE any
+  // conditional return (Rules of Hooks). Single-primitive selector per CLAUDE.md.
+  const userTier = useStore((s) => s.tier);
   const { theme } = useTheme();
 
   const propInjections = props.injections;
@@ -154,60 +159,67 @@ export function MedLevelChart(props: MedLevelChartProps) {
             borderWidth: 2.4,
             spanGaps: false,
           },
-          {
-            label: 'Projected',
-            data: future,
-            borderColor: t.rose,
-            backgroundColor: t.rose + '20',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 0,
-            borderWidth: 2.4,
-            borderDash: [5, 5],
-            spanGaps: true,
-          },
-          ...(showBand
+          // Phase 14 Plan 14-05 — CONTEXT D-03 + D-04: 7-day forecast layers
+          // (Projected dataset + all confidence bands) gated for paid tier only.
+          // The past-28-day 'Past' dataset above stays always-visible (free).
+          ...(userTier === 'paid'
             ? [
                 {
-                  label: 'Upper bound (Past)',
-                  data: upperPast,
-                  borderColor: 'transparent',
-                  backgroundColor: t.primary + '20',
-                  fill: '+1',
-                  tension: 0.3,
-                  pointRadius: 0,
-                  spanGaps: false,
-                },
-                {
-                  label: 'Lower bound (Past)',
-                  data: lowerPast,
-                  borderColor: 'transparent',
-                  backgroundColor: 'transparent',
-                  fill: false,
-                  tension: 0.3,
-                  pointRadius: 0,
-                  spanGaps: false,
-                },
-                {
-                  label: 'Upper bound (Projected)',
-                  data: upperFuture,
-                  borderColor: 'transparent',
+                  label: 'Projected',
+                  data: future,
+                  borderColor: t.rose,
                   backgroundColor: t.rose + '20',
-                  fill: '+1',
+                  fill: true,
                   tension: 0.3,
                   pointRadius: 0,
+                  borderWidth: 2.4,
+                  borderDash: [5, 5],
                   spanGaps: true,
                 },
-                {
-                  label: 'Lower bound (Projected)',
-                  data: lowerFuture,
-                  borderColor: 'transparent',
-                  backgroundColor: 'transparent',
-                  fill: false,
-                  tension: 0.3,
-                  pointRadius: 0,
-                  spanGaps: true,
-                },
+                ...(showBand
+                  ? [
+                      {
+                        label: 'Upper bound (Past)',
+                        data: upperPast,
+                        borderColor: 'transparent',
+                        backgroundColor: t.primary + '20',
+                        fill: '+1',
+                        tension: 0.3,
+                        pointRadius: 0,
+                        spanGaps: false,
+                      },
+                      {
+                        label: 'Lower bound (Past)',
+                        data: lowerPast,
+                        borderColor: 'transparent',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        spanGaps: false,
+                      },
+                      {
+                        label: 'Upper bound (Projected)',
+                        data: upperFuture,
+                        borderColor: 'transparent',
+                        backgroundColor: t.rose + '20',
+                        fill: '+1',
+                        tension: 0.3,
+                        pointRadius: 0,
+                        spanGaps: true,
+                      },
+                      {
+                        label: 'Lower bound (Projected)',
+                        data: lowerFuture,
+                        borderColor: 'transparent',
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        spanGaps: true,
+                      },
+                    ]
+                  : []),
               ]
             : []),
         ],
@@ -256,6 +268,7 @@ export function MedLevelChart(props: MedLevelChartProps) {
     propWeights,
     propMedication,
     theme,
+    userTier,
   ]);
 
   // Phase 6 Plan 06-01 (D-12 #3): early-return AFTER hooks so the Rules of
@@ -267,11 +280,17 @@ export function MedLevelChart(props: MedLevelChartProps) {
 
   return (
     <>
-      <BaseChart
-        config={config}
-        height={height}
-        ariaLabel="28-day medication level estimate with inter-individual variability band, not a measured serum level"
-      />
+      {/* Phase 14 Plan 14-05 — CONTEXT D-03/D-04: 7-day forecast overlay is
+          gated (blur-upsell) for free users. The TierGate wraps only the chart
+          canvas (not the card chrome) so the card header/legend stays readable.
+          PaywallUpsell overlay appears centered on the blurred chart. */}
+      <TierGate tier="paid" mode="blur-upsell" feature="pharma-forecast">
+        <BaseChart
+          config={config}
+          height={height}
+          ariaLabel="28-day medication level estimate with inter-individual variability band, not a measured serum level"
+        />
+      </TierGate>
       <p className="text-[12px] italic text-[var(--color-text-tertiary)] text-center mt-1">
         {PK_DISCLAIMER_BAND_CAPTION}
       </p>

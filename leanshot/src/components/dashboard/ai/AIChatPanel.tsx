@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { TierGate } from '@/components/billing/TierGate';
 import { Button, IconButton } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/Confirm';
 import { Textarea } from '@/components/ui/Input';
@@ -62,6 +63,11 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
 
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  // Phase 14 Plan 14-05 — CONTEXT D-07: local model selector state.
+  // Wiring to the actual @/lib/ai request payload is deferred to Phase 14
+  // follow-up (the gate visibility is the user-observable unlock).
+  // TODO(14-05): wire chatModel into callAIChat payload in Phase 14 follow-up.
+  const [chatModel, setChatModel] = useState<'sonnet' | 'opus'>('sonnet');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -166,6 +172,21 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                     {busy ? 'Thinking…' : `Knows your ${weeks}-week journey on ${u.medication}.`}
                   </p>
                 </div>
+                {/* Phase 14 Plan 14-05 — CONTEXT D-07: model selector gated
+                    behind TierGate hard-block-cta. Free users see the
+                    PaywallUpsell CTA pill via TierGate's hard-block-cta fallback.
+                    TODO(14-05): wire chatModel value into callAIChat in Phase 14 follow-up. */}
+                <TierGate tier="paid" mode="hard-block-cta" feature="advanced-ai">
+                  <select
+                    aria-label="AI model"
+                    value={chatModel}
+                    onChange={(e) => setChatModel(e.target.value as 'sonnet' | 'opus')}
+                    className="bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[12px] font-semibold rounded-pill px-3 py-1.5 border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                  >
+                    <option value="sonnet">Sonnet</option>
+                    <option value="opus">Opus</option>
+                  </select>
+                </TierGate>
                 <IconButton
                   aria-label="Clear conversation"
                   variant="ghost"
