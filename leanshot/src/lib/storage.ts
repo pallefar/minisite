@@ -18,7 +18,9 @@ import type {
   PendingOp,
   Photo,
   SleepLog,
+  SubscriptionProvider,
   SymptomLog,
+  Tier,
   User,
   Vial,
   WeightLog,
@@ -85,6 +87,16 @@ export interface PersistedState {
    * `useStore` from store.ts).
    */
   migration_state?: MigrationState | null;
+
+  // Phase 14 — Billing (14-05-PLAN.md)
+  /** UX tier derived from Stripe subscription status. Default 'free'. */
+  tier: Tier;
+  /** ISO timestamp from Stripe; null when no active subscription. */
+  current_period_end: string | null;
+  /** Stripe price ID (e.g. 'price_1Q…') or null. */
+  plan_id: string | null;
+  /** Payment provider. null = no active subscription row. */
+  provider: SubscriptionProvider;
 }
 
 export const initialState: PersistedState = {
@@ -112,6 +124,11 @@ export const initialState: PersistedState = {
   // initialised MigrationState shape on first `maybeStartMigration` invocation
   // for an existing v4 user; reset to null on signout (clearUserDataSlices).
   migration_state: null,
+  // Phase 14 D-05: billing defaults. Reset to free on signout (clearUserDataSlices).
+  tier: 'free' as Tier,
+  current_period_end: null,
+  plan_id: null,
+  provider: null as SubscriptionProvider,
 };
 
 /**

@@ -221,6 +221,11 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     pendingOps: fullState.pendingOps,
     verificationBannerDismissedUntil: fullState.verificationBannerDismissedUntil,
     migration_state: fullState.migration_state,
+    // Phase 14 Plan 14-05: billing slice included so PersistedState contract is satisfied.
+    tier: fullState.tier,
+    current_period_end: fullState.current_period_end,
+    plan_id: fullState.plan_id,
+    provider: fullState.provider,
   });
 
   const handleExportJson = async (): Promise<void> => {

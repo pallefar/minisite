@@ -228,3 +228,24 @@ export type TabId =
   | 'insights';
 
 export type Theme = 'light' | 'dark';
+
+// Phase 14 — Billing
+
+/**
+ * UX tier — collapsed from 8 Stripe subscription.status values per RESEARCH Pitfall 6.
+ * active + trialing → 'paid'
+ * past_due + unpaid → 'past_due'
+ * canceled (after period_end) + incomplete_expired + missing row + paused → 'free'
+ * incomplete (initial 23h auth window) → 'free'
+ */
+export type Tier = 'free' | 'paid' | 'past_due';
+
+/** 'revenuecat' lands in Phase 16; null = no active subscription row. */
+export type SubscriptionProvider = 'stripe' | 'revenuecat' | null;
+
+export interface BillingState {
+  tier: Tier;
+  current_period_end: string | null; // ISO timestamp; null when tier='free'
+  plan_id: string | null; // Stripe price ID (e.g. 'price_1Q…') or null
+  provider: SubscriptionProvider;
+}
