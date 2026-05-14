@@ -74,7 +74,7 @@ BEGIN
   VALUES
     (v_p1, gen_random_uuid()::text, 'ozempic', '0.5', 'mg', 'thigh-l', '', now() - interval '7 days'),
     (v_p2, gen_random_uuid()::text, 'ozempic', '0.5', 'mg', 'thigh-r', '', now() - interval '14 days'),
-    (v_p3, gen_random_uuid()::text, 'ozempic', '1.0', 'mg', 'abdomen', '', now() - interval '1 day');
+    (v_p3, gen_random_uuid()::text, 'ozempic', '1.0', 'mg', 'abdomen-ul', '', now() - interval '1 day');
 
   -- Also insert an injection for P5 (revoked) — should NOT be counted.
   INSERT INTO public.injections (user_id, log_id, medication, dose, unit, site, notes, logged_at)

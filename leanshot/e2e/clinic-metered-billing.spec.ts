@@ -141,13 +141,17 @@ test.describe('@phase14 clinic-metered-billing', () => {
       });
 
       // Insert one injection within the last 30 days so D-02 active condition holds.
+      // Column names match live injections schema: log_id (PK component), unit (not dose_unit),
+      // logged_at (timestamptz, not date). medication: 'ozempic' to match SQL test known-good value.
       await admin.from('injections').insert({
         user_id: patientId,
-        date: recentDate.slice(0, 10),
-        medication: 'tirzepatide',
-        dose: 2.5,
-        dose_unit: 'mg',
-        site: 'abdomen',
+        log_id: crypto.randomUUID(),
+        medication: 'ozempic',
+        dose: '0.5',
+        unit: 'mg',
+        site: 'thigh-l',
+        notes: '',
+        logged_at: recentDate,
         created_at: recentDate,
       });
     }
