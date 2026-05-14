@@ -17,7 +17,7 @@
  *   - T-14-07-07: 35-day window guard prevents timestamp-out-of-range
  *     rejections from Stripe (Pitfall 9 + Assumption A10).
  */
-import Stripe from 'stripe';
+import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 // ─── SHA-256 helper (self-contained — no cross-file import from events/*.ts) ──
