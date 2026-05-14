@@ -55,23 +55,28 @@ Source: `src/index.css` `--spacing: 0.25rem` (4px base). Tailwind v4 generates m
 | md | 16px | Panel section padding, property group spacing |
 | lg | 24px | Rail padding (left/right), editor toolbar height |
 | xl | 32px | Preview pane min gutter, card section padding |
-| 2xl | 48px | Landing-page block vertical padding (compact density) |
-| 3xl | 64px | Landing-page block vertical padding (default density) |
-| 4xl | 96px | Landing-page block vertical padding (spacious density) |
-
-**Spacing density mapping (D-06, D-05 block style prop):**
-
-| `spacingDensity` value | Block top/bottom padding |
-|------------------------|--------------------------|
-| `compact` | 48px (2xl) |
-| `default` | 64px (3xl) |
-| `spacious` | 96px (4xl) |
+| 2xl | 48px | General spacing ceiling; also compact-density block padding (see Block Vertical Rhythm below) |
+| 3xl | 64px | Default-density block padding (see Block Vertical Rhythm below) |
 
 **Exceptions:**
 
 - Drag handle touch target: minimum 44px height (a11y — WCAG 2.5.5 touch target size).
 - Viewport toggle buttons (mobile/tablet/desktop preview, D-06): minimum 44x44px touch area even though the visible icon is 20px.
 - Block tree item drag grip: 40px wide × full row height so the grab zone is generous without a hover affordance delay.
+
+---
+
+## Block Vertical Rhythm (rendered landing pages only)
+
+The D-06 `spacingDensity` block style prop controls **vertical section padding on rendered landing-page blocks only**. These are not general UI spacing tokens and are never used in the editor chrome or for any UI-element spacing.
+
+| `spacingDensity` value | Block top/bottom padding | Notes |
+|------------------------|--------------------------|-------|
+| `compact` | 48px | Standard-set value (2xl) |
+| `default` | 64px | Standard-set value (3xl) |
+| `spacious` | 96px | Extended value — rendered-page block sections only |
+
+The 96px spacious value is intentionally outside the standard {4, 8, 16, 24, 32, 48, 64} UI token set because it applies exclusively to block-level vertical rhythm on published pages, not to any interface element or component. It is rendered via inline CSS (`padding-top: 96px; padding-bottom: 96px`) on block wrappers in the `page-render` Edge Function output, and is never referenced by editor chrome components.
 
 ---
 
@@ -90,27 +95,27 @@ The editor chrome uses smaller type than the published output — this is an inf
 | Property heading | 16px | 600 (semibold) | 1.55 | `--text-base` | Property group headings ("Style", "Content", "SEO") |
 | Page/panel title | 18px | 600 (semibold) | 1.5 | `--text-lg` | Editor topbar page title, modal titles |
 
-**Weights in editor: 2 — regular (400) and semibold (600). No medium (500) usage.**
+**Sizes in editor: 3 (13px, 16px, 18px). Weights: 2 — regular (400) and semibold (600). No medium (500) usage.**
 
 ### Published Landing-Page Output
 
-The renderer produces semantic HTML. These are the typographic contracts for each block type, drawn from the design-system v2 token set.
+The renderer produces semantic HTML. These are the typographic contracts for each block type, drawn from the design-system v2 token set. **Maximum 4 distinct sizes.**
 
 | Role | Size | Weight | Line Height | Token | Usage |
 |------|------|--------|-------------|-------|-------|
-| Body copy | 16px | 400 | 1.55 | `--text-base` | Paragraph text in FAQ answers, Image+text body, testimonial quotes |
-| Section label / badge | 13px | 600 | 1.5 | `--text-sm` | Block eyebrow labels ("Features", "Pricing", "FAQ") |
-| Subheading / card title | 22px | 600 | 1.35 | `--text-xl` | Feature grid card titles, testimonial author name, CTA headline |
-| Section heading | 32px | 600 | 1.15 | `--text-3xl` | FAQ section header, Feature grid section header, Testimonial section header |
-| Hero heading (Fraunces) | 56px (desktop) / 32px (mobile) | 400 italic (Fraunces renders italic naturally) | 1.0 | `--text-5xl` / `--text-3xl` | Hero block primary headline only |
-| Hero subheadline | 18px | 400 | 1.5 | `--text-lg` | Hero descriptor below the heading |
+| Label / badge | 13px | 600 | 1.5 | `--text-sm` | Block eyebrow labels ("Features", "Pricing", "FAQ"); feature grid card body; footer copyright |
+| Body copy | 16px | 400 | 1.55 | `--text-base` | Paragraph text in FAQ answers, Image+text body, testimonial quotes, hero subheadline, CTA descriptor, lead form labels |
+| Subheading / card title | 22px | 600 | 1.35 | `--text-xl` | Feature grid card titles, testimonial author name, CTA headline, Image+text heading |
+| Section heading | 32px | 600 | 1.15 | `--text-3xl` | FAQ section header, Feature grid section header, Testimonial section header; also the **mobile Hero heading** (see responsive variant below) |
+
+**Responsive variant — Hero heading:** The Hero block primary headline uses the `section-heading` (32px) token as its base. On screens ≥768px it scales to 56px (`--text-5xl`) via a responsive modifier. This is a viewport-width breakpoint override on the **same semantic role** — not a fifth font size. Declared as: `text-3xl md:text-5xl` (Fraunces, weight 400 italic). No other block type uses the 56px size.
 
 **Weights in rendered output: 2 — regular (400) and semibold (600).**
 
 **Font assignment:**
 - Fraunces: Hero block headings only (editorial moment). No other block type uses Fraunces.
 - Geist: all other text on all surfaces.
-- Geist Mono: not used on public-facing landing pages. Reserved for admin UI numeric displays (revision IDs, timestamps).
+- Geist Mono: not used on public-facing landing pages. Reserved for admin UI numeric displays (revision IDs, timestamps) and Pricing block dollar amounts.
 
 ---
 
@@ -131,10 +136,10 @@ Source: `src/index.css` semantic tokens. Published-page colors MUST use these CS
 
 1. Primary CTA buttons on published landing pages ("Subscribe", "Get started", "Book a call")
 2. Checkout-button block (Pricing block CTA) — wires to Stripe Checkout
-3. "Publish" button in the admin editor toolbar
+3. "Publish page" button in the admin editor toolbar
 4. "Restore" button in the Version History panel (irreversible action — teal, not destructive, because restore is recoverable via re-save)
 5. Active/selected state ring on block tree items when selected (2px ring + `--color-primary-soft` halo)
-6. Focus-visible ring on all interactive elements (per existing `Button.tsx` pattern: `ring-2 ring-[var(--color-primary)]`)
+6. Focus-visible ring on all interactive elements — this inherits the project-wide `Button.tsx` pattern (`ring-2 ring-[var(--color-primary)]`) and is not a new Phase 15 decision
 7. Link text color on published pages
 
 **Accent is NOT used for:** drag handles, property group headers, version history rows, help text, secondary navigation, tab labels, toggle labels, or any decorative purpose.
@@ -188,7 +193,7 @@ Each block is rendered as semantic HTML by `page-render` Edge Function (Deno). T
 
 | Block | Key Visual Rules |
 |-------|-----------------|
-| **Hero** | Full-width. Background: `brand` tone (teal-700 gradient). Heading: Fraunces 56px italic, white. Subheadline: Geist 18px, `--color-text-on-hero-muted`. Primary CTA: white `<a>` styled as `Button` inverse variant. Optional secondary CTA: teal-100 ghost. Illustration slot (right of text on ≥768px, stacked below on mobile). |
+| **Hero** | Full-width. Background: `brand` tone (teal-700 gradient). Heading: Fraunces 32px→56px (≥768px) italic, white. Subheadline: Geist 16px, `--color-text-on-hero-muted`. Primary CTA: white `<a>` styled as `Button` inverse variant. Optional secondary CTA: teal-100 ghost. Illustration slot (right of text on ≥768px, stacked below on mobile). |
 | **CTA** | Full-width. Background: `brand` or `subtle` tone per block style. Heading: Geist 22px semibold. Body: 16px regular. One primary button + optional secondary button. Center-aligned default, left-aligned override. |
 | **FAQ** | Section background: `default` or `subtle`. Section heading: 32px semibold. Accordion items: question 16px semibold, answer 16px regular, `--color-border` separator. Expand/collapse uses a `ChevronDown` lucide icon, rotated 180deg on open (CSS transform, not JS). `aria-expanded` on the trigger, `role="region"` on the panel. |
 | **Pricing** | Section background: `default`. Pricing card(s): `Card` elevated variant. Price: Geist Mono for the dollar amount (numeric). Feature list: lucide `Check` in `--color-success`. CTA: Checkout-button block (see below). Recommended plan: `Card` selected variant (teal ring). |
@@ -227,12 +232,12 @@ Each block is rendered as semantic HTML by `page-render` Edge Function (Deno). T
 **Save:**
 
 - Auto-save on property field blur (debounced 1000ms). Visual feedback: a "Saving..." status in the editor topbar replaces the "Saved" status for the duration of the API call.
-- Explicit "Save" button also present (secondary variant). 
+- Explicit "Save draft" button also present (secondary variant).
 - Every save creates a new `landing_page_revisions` row (D-07 append-only).
 
 **Publish (D-09):**
 
-- "Publish" button (primary variant, teal) in the editor topbar.
+- "Publish page" button (primary variant, teal) in the editor topbar.
 - On click: button enters `loading` state (`aria-busy="true"`, spinner icon).
 - Action: updates `landing_pages.published_revision_id` → triggers Vercel on-demand revalidation via `x-prerender-revalidate` header.
 - On success: button returns to normal, topbar status updates to "Published", StatusBadge changes to sage `published`.
@@ -298,10 +303,10 @@ Each block is rendered as semantic HTML by `page-render` Edge Function (Deno). T
 | Element | Copy |
 |---------|------|
 | Primary CTA — create page | "New page" |
-| Primary CTA — publish | "Publish" |
+| Primary CTA — publish | "Publish page" |
 | Primary CTA — restore revision | "Restore this version" |
 | Primary CTA — upload asset | "Upload image" |
-| Primary CTA — save draft | "Save" |
+| Primary CTA — save draft | "Save draft" |
 | Topbar status — saving | "Saving..." |
 | Topbar status — saved | "Saved" |
 | Topbar status — published | "Published" |
@@ -422,6 +427,7 @@ No third-party component registries are used in this phase. All blocks are built
 | No analytics on published pages (→ Phase 20) | 15-CONTEXT.md D-17 |
 | No shareable draft preview URL | 15-CONTEXT.md D-08 |
 | Publish = on-demand Vercel revalidation (feel-instant) | 15-CONTEXT.md D-09 |
+| spacingDensity compact/default/spacious values | 15-CONTEXT.md D-06 |
 | Color tokens | `src/index.css` `@theme {}` (scanned 2026-05-14) |
 | Typography scale | `src/index.css` `--text-*` tokens (scanned 2026-05-14) |
 | Spacing scale | `src/index.css` `--spacing: 0.25rem` base (4px) |
@@ -435,7 +441,7 @@ No third-party component registries are used in this phase. All blocks are built
 | Block-tree JSON schema (flat array + parent_id) | 15-RESEARCH.md Pattern 1 (Claude's Discretion) |
 | CSP `frame-src` expansion for Calendly/YouTube/Tally | 15-CONTEXT.md canonical_refs CI gates |
 
-**Total decisions pre-populated:** 28 from upstream artifacts, 0 from user questions (all design contract questions were answered by 15-CONTEXT.md + 15-RESEARCH.md + `src/index.css` scan).
+**Total decisions pre-populated:** 29 from upstream artifacts, 0 from user questions (all design contract questions were answered by 15-CONTEXT.md + 15-RESEARCH.md + `src/index.css` scan).
 
 ---
 
@@ -454,4 +460,4 @@ No third-party component registries are used in this phase. All blocks are built
 
 *Phase: 15 — page-builder-landing-pages*
 *UI-SPEC generated: 2026-05-14*
-*Generated by: gsd-ui-researcher*
+*Generated by: gsd-ui-researcher (revision 2 — checker fixes applied)*
