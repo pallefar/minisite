@@ -1,11 +1,11 @@
 base-uri 'self';
-connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://*.posthog.com https://api.anthropic.com;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://*.posthog.com https://api.anthropic.com https://api.stripe.com https://m.stripe.network;
 default-src 'none';
 font-src 'self' data: https://fonts.gstatic.com;
 form-action 'self';
-frame-src 'none';
+frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
 img-src 'self' data: blob:;
 object-src 'none';
-script-src 'self';
+script-src 'self' https://js.stripe.com;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 worker-src 'self' blob:;
