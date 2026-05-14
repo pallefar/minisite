@@ -19,7 +19,7 @@
  */
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import Stripe from 'stripe';
+import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 
 import { BASE_RESPONSE_HEADERS } from './cors.ts';
 
