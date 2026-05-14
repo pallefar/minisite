@@ -1,0 +1,529 @@
+/**
+ * `stripe-checkout` Edge Function — Phase 14 Plan 14-04.
+ *
+ * See: leanshot/.planning/phases/14-monetization-foundation-stripe-web-clinic-seats/14-04-A3-RESULT.md
+ * for the sandbox confirmation context (A3 outcome: PASS — 2-line-item clinic sessions).
+ *
+ * Single Deno.serve dispatcher serving two endpoints by URL pathname:
+ *
+ *   /functions/v1/stripe-checkout/session   POST  JWT-authed user/clinic-owner
+ *   /functions/v1/stripe-checkout/portal    POST  JWT-authed user/clinic-owner
+ *
+ * Invariants enforced:
+ *
+ *   1. **JWT auth via admin.auth.getUser (D-15).** Every request must carry
+ *      `Authorization: Bearer <jwt>`. The admin client resolves the JWT to a
+ *      real user before any Stripe call. Pitfall #11: no cookies, no credentials
+ *      header in CORS.
+ *
+ *   2. **Pitfall 4 (HARD GATE): payment_method_collection: 'always'.**
+ *      Every Checkout session created in /session includes this. Default
+ *      'if_required' + trial = users skip card entry and never convert.
+ *
+ *   3. **D-13: trial_period_days = 7.** Hard-coded; not env-driven. No A/B
+ *      trial-length test in v1.2 per 14-CONTEXT.md deferred.
+ *
+ *   4. **D-01: clinic hybrid billing.** Clinic Checkout attaches BOTH
+ *      STRIPE_PRICE_CLINIC_BASE and STRIPE_PRICE_CLINIC_OVERAGE as line_items,
+ *      each with quantity: 1. A3 = PASS (see 14-04-A3-RESULT.md).
+ *
+ *   5. **D-14: webhook is source of truth.** /session MUST NOT pre-create rows
+ *      in subscriptions. Only stripe_customers / clinic_stripe_customers mapping
+ *      rows are written here (stable Stripe customer ID for repeat checkouts).
+ *
+ *   6. **Pitfall 5 (manual post-deploy step):** Customer Portal return_url must
+ *      be in Stripe Dashboard Portal allow-list. See SUMMARY.md for the exact
+ *      dashboard steps.
+ *
+ *   7. **Pitfall 8 (no upstream error echo):** On stripe.* failure, log to
+ *      console.error and return generic 500. Never JSON.stringify(stripeErr)
+ *      into the response body.
+ *
+ *   8. **Customer mapping idempotency:** SELECT-first, INSERT-on-miss with
+ *      UNIQUE-conflict (23505) re-SELECT fallback for races.
+ *
+ * Stripe SDK: pinned to v19, API version 2026-04-22.dahlia
+ * (see 14-RESEARCH.md §Pattern 1).
+ */
+
+import Stripe from 'https://esm.sh/stripe@19?target=denonext';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { corsHeaders } from './cors.ts';
+
+// =============================================================================
+// Environment helpers (lazy reads — resolved at handler call time, not import)
+// =============================================================================
+
+// Note: env vars are intentionally read lazily (inside getter functions) so
+// that tests can call Deno.env.set() before the first handler invocation.
+// Module-level const reads would capture '' for any var set after import.
+
+function env(name: string, fallback = ''): string {
+  return Deno.env.get(name) ?? fallback;
+}
+
+// Convenience accessors used throughout the handlers.
+const getSupabaseUrl = () => env('SUPABASE_URL');
+const getSupabaseServiceRoleKey = () => env('SUPABASE_SERVICE_ROLE_KEY');
+const getStripeSecretKey = () => env('STRIPE_SECRET_KEY');
+const getPricePlusMonthly = () => env('STRIPE_PRICE_PLUS_MONTHLY');
+const getPricePlusYearly = () => env('STRIPE_PRICE_PLUS_YEARLY');
+const getPriceClinicBase = () => env('STRIPE_PRICE_CLINIC_BASE');
+const getPriceClinicOverage = () => env('STRIPE_PRICE_CLINIC_OVERAGE');
+const getPublicAppOrigin = () => env('PUBLIC_APP_ORIGIN', 'https://app.leanshot.app');
+
+// =============================================================================
+// Stripe SDK (singleton + test-injectable)
+// =============================================================================
+
+// Lazy initialization: the Stripe SDK validates the key format at construction
+// time. We defer construction to the first use so tests can set env vars and
+// swap in a stub via __setStripeForTest before any handler runs.
+// deno-lint-ignore no-explicit-any
+let _stripeInstance: any = null;
+
+// deno-lint-ignore no-explicit-any
+function getStripe(): any {
+  if (_stripeInstance === null) {
+    _stripeInstance = new Stripe(getStripeSecretKey(), {
+      apiVersion: '2026-04-22.dahlia' as Parameters<typeof Stripe>[1]['apiVersion'],
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+  }
+  return _stripeInstance;
+}
+
+// Proxy object: reads _stripeInstance lazily so __setStripeForTest works even
+// after the first import. If a test calls __setStripeForTest(stub), that stub
+// is returned; if not, we lazy-initialize the real Stripe client.
+const stripeInstance = new Proxy({} as Record<string | symbol, unknown>, {
+  // deno-lint-ignore no-explicit-any
+  get(_target: any, prop: string | symbol): unknown {
+    const s = getStripe();
+    const val = s[prop];
+    return typeof val === 'function' ? val.bind(s) : val;
+  },
+});
+
+export function __setStripeForTest(stub: unknown): void {
+  _stripeInstance = stub;
+}
+
+// =============================================================================
+// Admin Supabase client (singleton + test-injectable)
+// =============================================================================
+
+// Lazy initialization: supabase-js validates supabaseUrl at construction time.
+// Tests inject a fake admin via __setAdminForTest before any handler runs.
+// deno-lint-ignore no-explicit-any
+let _adminInstance: any = null;
+
+// deno-lint-ignore no-explicit-any
+function getAdmin(): any {
+  if (_adminInstance === null) {
+    _adminInstance = createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return _adminInstance;
+}
+
+// Proxy object: reads _adminInstance lazily.
+const adminInstance = new Proxy({} as Record<string | symbol, unknown>, {
+  // deno-lint-ignore no-explicit-any
+  get(_target: any, prop: string | symbol): unknown {
+    const a = getAdmin();
+    const val = a[prop];
+    return typeof val === 'function' ? val.bind(a) : val;
+  },
+});
+
+export function __setAdminForTest(fakeAdmin: unknown): void {
+  _adminInstance = fakeAdmin;
+}
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+function jsonResponse(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+function jsonError(status: number, code: string): Response {
+  return jsonResponse(status, { error: code });
+}
+
+function jwtFromReq(req: Request): string | null {
+  const h = req.headers.get('Authorization') ?? '';
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m ? (m[1] ?? null) : null;
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isUUID(s: string): boolean {
+  return UUID_RE.test(s);
+}
+
+// =============================================================================
+// Customer-mapping helpers
+// =============================================================================
+
+/**
+ * Ensure a stripe_customers row exists for the given user.
+ * If missing, creates a Stripe customer and inserts the row.
+ * On UNIQUE conflict (race), re-SELECTs and returns the existing customer ID.
+ */
+async function ensureWebCustomer(user: { id: string; email?: string }): Promise<string> {
+  // deno-lint-ignore no-explicit-any
+  const { data: existing } = await (adminInstance.from('stripe_customers')
+    .select('stripe_customer_id')
+    .eq('user_id', user.id) as any).maybeSingle();
+
+  if (existing?.stripe_customer_id) {
+    return existing.stripe_customer_id as string;
+  }
+
+  // Create Stripe customer
+  let stripeCustomer: { id: string };
+  try {
+    stripeCustomer = await stripeInstance.customers.create({
+      email: user.email,
+      metadata: { user_id: user.id },
+    });
+  } catch (err) {
+    console.error('[stripe-checkout] stripe.customers.create (web) failed', err instanceof Error ? err.message : 'unknown');
+    throw err;
+  }
+
+  // Insert into stripe_customers
+  const { error: insertErr } = await adminInstance.from('stripe_customers').insert({
+    user_id: user.id,
+    stripe_customer_id: stripeCustomer.id,
+  });
+
+  if (insertErr) {
+    // deno-lint-ignore no-explicit-any
+    const pgCode = (insertErr as any).code;
+    if (pgCode === '23505') {
+      // Race: another invocation already inserted. Re-SELECT.
+      // deno-lint-ignore no-explicit-any
+      const { data: race } = await (adminInstance.from('stripe_customers')
+        .select('stripe_customer_id')
+        .eq('user_id', user.id) as any).maybeSingle();
+      if (race?.stripe_customer_id) return race.stripe_customer_id as string;
+    }
+    console.error('[stripe-checkout] stripe_customers insert failed', insertErr.message);
+    throw new Error('customer_mapping_failed');
+  }
+
+  return stripeCustomer.id;
+}
+
+/**
+ * Ensure a clinic_stripe_customers row exists for the given clinic.
+ * If missing, creates a Stripe customer and inserts the row.
+ * On UNIQUE conflict (race), re-SELECTs and returns the existing customer ID.
+ */
+async function ensureClinicCustomer(clinicId: string, ownerEmail: string): Promise<string> {
+  // deno-lint-ignore no-explicit-any
+  const { data: existing } = await (adminInstance.from('clinic_stripe_customers')
+    .select('stripe_customer_id')
+    .eq('clinic_id', clinicId) as any).maybeSingle();
+
+  if (existing?.stripe_customer_id) {
+    return existing.stripe_customer_id as string;
+  }
+
+  // Create Stripe customer
+  let stripeCustomer: { id: string };
+  try {
+    stripeCustomer = await stripeInstance.customers.create({
+      email: ownerEmail,
+      metadata: { clinic_id: clinicId },
+    });
+  } catch (err) {
+    console.error('[stripe-checkout] stripe.customers.create (clinic) failed', err instanceof Error ? err.message : 'unknown');
+    throw err;
+  }
+
+  // Insert into clinic_stripe_customers
+  const { error: insertErr } = await adminInstance.from('clinic_stripe_customers').insert({
+    clinic_id: clinicId,
+    stripe_customer_id: stripeCustomer.id,
+  });
+
+  if (insertErr) {
+    // deno-lint-ignore no-explicit-any
+    const pgCode = (insertErr as any).code;
+    if (pgCode === '23505') {
+      // Race: re-SELECT.
+      // deno-lint-ignore no-explicit-any
+      const { data: race } = await (adminInstance.from('clinic_stripe_customers')
+        .select('stripe_customer_id')
+        .eq('clinic_id', clinicId) as any).maybeSingle();
+      if (race?.stripe_customer_id) return race.stripe_customer_id as string;
+    }
+    console.error('[stripe-checkout] clinic_stripe_customers insert failed', insertErr.message);
+    throw new Error('customer_mapping_failed');
+  }
+
+  return stripeCustomer.id;
+}
+
+// =============================================================================
+// /session handler
+// =============================================================================
+
+type Plan = 'plus_monthly' | 'plus_yearly' | 'clinic';
+
+interface SessionBody {
+  plan?: Plan;
+  clinic_id?: string;
+}
+
+export async function handleSession(req: Request): Promise<Response> {
+  // 1. JWT presence + resolution
+  const jwt = jwtFromReq(req);
+  if (!jwt) return jsonError(401, 'unauthenticated');
+
+  const { data: userData, error: userErr } = await adminInstance.auth.getUser(jwt);
+  if (userErr || !userData?.user) return jsonError(401, 'unauthenticated');
+  const user = userData.user;
+
+  // 2. Parse body
+  let body: SessionBody;
+  try {
+    body = (await req.json()) as SessionBody;
+  } catch {
+    return jsonError(400, 'bad_json');
+  }
+
+  const plan = body.plan;
+  const validPlans: Plan[] = ['plus_monthly', 'plus_yearly', 'clinic'];
+  if (!plan || !validPlans.includes(plan)) {
+    return jsonError(400, 'invalid_plan');
+  }
+
+  // 3. Clinic-specific validation
+  let clinicId: string | undefined;
+  if (plan === 'clinic') {
+    clinicId = (body.clinic_id ?? '').trim();
+    if (!clinicId || !isUUID(clinicId)) {
+      return jsonError(400, 'invalid_clinic_id');
+    }
+
+    // Verify caller is clinic owner (using memberships table — Phase 9 schema)
+    // deno-lint-ignore no-explicit-any
+    const { data: memberRow } = await (adminInstance.from('memberships')
+      .select('memberships.*, roles!inner(name)')
+      .eq('org_id', clinicId)
+      .eq('user_id', user.id)
+      .is('revoked_at', null) as any).maybeSingle();
+
+    // deno-lint-ignore no-explicit-any
+    const roleName = (memberRow as any)?.roles?.name ?? '';
+    if (!memberRow || roleName !== 'Owner') {
+      return jsonError(403, 'forbidden');
+    }
+  }
+
+  // 4. Build line_items
+  // A3 = PASS: clinic uses 2 line_items (base + overage, each quantity 1)
+  type LineItem = { price: string; quantity: number };
+  let lineItems: LineItem[];
+  if (plan === 'plus_monthly') {
+    lineItems = [{ price: getPricePlusMonthly(), quantity: 1 }];
+  } else if (plan === 'plus_yearly') {
+    lineItems = [{ price: getPricePlusYearly(), quantity: 1 }];
+  } else {
+    // clinic — A3 PASS branch: 2 line_items
+    lineItems = [
+      { price: getPriceClinicBase(), quantity: 1 },
+      { price: getPriceClinicOverage(), quantity: 1 },
+    ];
+  }
+
+  // 5. Resolve Stripe customer
+  let customerId: string;
+  try {
+    if (plan === 'clinic' && clinicId) {
+      customerId = await ensureClinicCustomer(clinicId, user.email ?? '');
+    } else {
+      customerId = await ensureWebCustomer({ id: user.id, email: user.email });
+    }
+  } catch {
+    return jsonError(500, 'checkout_failed');
+  }
+
+  // 6. Build success/cancel URLs
+  const isClinic = plan === 'clinic';
+  const basePath = isClinic ? '/clinic/settings' : '/settings';
+  const origin = getPublicAppOrigin();
+  const successUrl = `${origin}${basePath}?from=checkout&session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${origin}${basePath}?from=cancel`;
+
+  // 7. Build subscription_data.metadata
+  const subMetadata: Record<string, string> = isClinic
+    ? { clinic_id: clinicId!, provider: 'stripe', tier_kind: 'clinic' }
+    : { user_id: user.id, provider: 'stripe', tier_kind: 'web' };
+
+  // 8. Create Stripe Checkout session
+  try {
+    const session = await stripeInstance.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      payment_method_collection: 'always',
+      line_items: lineItems,
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: subMetadata,
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      client_reference_id: clinicId ?? user.id,
+    });
+
+    return jsonResponse(200, { url: session.url });
+  } catch (err) {
+    console.error('[stripe-checkout] session create failed', err instanceof Error ? err.message : 'unknown');
+    return jsonError(500, 'checkout_failed');
+  }
+}
+
+// =============================================================================
+// /portal handler
+// =============================================================================
+
+interface PortalBody {
+  clinic_id?: string;
+}
+
+export async function handlePortal(req: Request): Promise<Response> {
+  // 1. JWT presence + resolution
+  const jwt = jwtFromReq(req);
+  if (!jwt) return jsonError(401, 'unauthenticated');
+
+  const { data: userData, error: userErr } = await adminInstance.auth.getUser(jwt);
+  if (userErr || !userData?.user) return jsonError(401, 'unauthenticated');
+  const user = userData.user;
+
+  // 2. Parse body
+  let body: PortalBody;
+  try {
+    body = (await req.json()) as PortalBody;
+  } catch {
+    body = {};
+  }
+
+  const clinicId = body.clinic_id?.trim();
+  const isClinic = !!clinicId && isUUID(clinicId);
+
+  // 3. Verify clinic ownership if clinic mode
+  if (isClinic) {
+    // deno-lint-ignore no-explicit-any
+    const { data: memberRow } = await (adminInstance.from('memberships')
+      .select('memberships.*, roles!inner(name)')
+      .eq('org_id', clinicId)
+      .eq('user_id', user.id)
+      .is('revoked_at', null) as any).maybeSingle();
+
+    // deno-lint-ignore no-explicit-any
+    const roleName = (memberRow as any)?.roles?.name ?? '';
+    if (!memberRow || roleName !== 'Owner') {
+      return jsonError(403, 'forbidden');
+    }
+  }
+
+  // 4. Resolve customer ID (must already exist — portal requires a subscription)
+  let customerId: string | null = null;
+
+  if (isClinic) {
+    // deno-lint-ignore no-explicit-any
+    const { data } = await (adminInstance.from('clinic_stripe_customers')
+      .select('stripe_customer_id')
+      .eq('clinic_id', clinicId) as any).maybeSingle();
+    customerId = (data?.stripe_customer_id as string) ?? null;
+  } else {
+    // deno-lint-ignore no-explicit-any
+    const { data } = await (adminInstance.from('stripe_customers')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id) as any).maybeSingle();
+    customerId = (data?.stripe_customer_id as string) ?? null;
+  }
+
+  if (!customerId) {
+    // Per Pitfall 5 rationale: portal is meaningless without a customer.
+    // No Stripe API call should fire in this branch.
+    return jsonError(404, 'no_subscription');
+  }
+
+  // 5. Build return URL
+  const portalOrigin = getPublicAppOrigin();
+  const returnUrl = isClinic
+    ? `${portalOrigin}/clinic/settings?from=portal`
+    : `${portalOrigin}/settings?from=portal`;
+
+  // 6. Create Stripe Customer Portal session
+  try {
+    const session = await stripeInstance.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: returnUrl,
+    });
+
+    return jsonResponse(200, { url: session.url });
+  } catch (err) {
+    console.error('[stripe-checkout] portal create failed', err instanceof Error ? err.message : 'unknown');
+    return jsonError(500, 'portal_failed');
+  }
+}
+
+// =============================================================================
+// Dispatcher
+// =============================================================================
+
+Deno.serve(async (req: Request): Promise<Response> => {
+  // CORS preflight — applies to ALL endpoints under this function.
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  const url = new URL(req.url);
+  // Supabase Edge Functions are mounted at `/functions/v1/<name>/...`
+  const segments = url.pathname.split('/').filter(Boolean);
+  // Find `stripe-checkout` segment and take the next segment as action.
+  const fnIdx = segments.indexOf('stripe-checkout');
+  const action = fnIdx >= 0 ? (segments[fnIdx + 1] ?? '') : (segments[segments.length - 1] ?? '');
+
+  try {
+    if (action === 'session') {
+      if (req.method !== 'POST') return jsonError(405, 'method_not_allowed');
+      return await handleSession(req);
+    }
+    if (action === 'portal') {
+      if (req.method !== 'POST') return jsonError(405, 'method_not_allowed');
+      return await handlePortal(req);
+    }
+    return jsonError(404, 'unknown_action');
+  } catch (e) {
+    console.error('[stripe-checkout] unhandled', e instanceof Error ? e.message : 'unknown');
+    return jsonError(500, 'internal_error');
+  }
+});
+
+// =============================================================================
+// Internal exports for the Deno test suite
+// =============================================================================
+export const __internal = {
+  handleSession,
+  handlePortal,
+  ensureWebCustomer,
+  ensureClinicCustomer,
+  __setStripeForTest,
+  __setAdminForTest,
+};
