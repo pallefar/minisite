@@ -19,7 +19,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
 
 - [ ] **Phase 12: Bootstrap & Bundle Foundations** - Pre-work: fix hash-hyphen bundle-budget bug, set up Two-tunnel firewall ESLint rule, verify Resend domain, provision Apple Dev / Play Console / Stripe Connect Express accounts (AdMob + AdSense deferred to Phase 20 per CONTEXT D-05), lock CSP + clinic-ad-free Playwright gate
 - [x] **Phase 13: Design System v2 Rollout** - Geist + Fraunces + Geist Mono fonts, refreshed tokens, refreshed Card/Button/Pill/Sidebar/SiteRotation v2, full illustration set, marketing site visually current — tokens-only FIRST so every later phase ships on new tokens
-- [ ] **Phase 14: Monetization Foundation (Stripe web + clinic seats)** - `subscriptions`/`subscription_events`/`stripe_customers` + `stripe-checkout`/`stripe-webhook` Edge Functions + `<TierGate>` + 7-day card-required trial + Customer Portal + clinic per-active-patient metered billing + web dunning — keystone; every downstream gates on `tier` (8/8 plans executed 2026-05-14; verification GAPS_FOUND — 3 code BLOCKERs + deferred vendor setup, see 14-VERIFICATION.md)
+- [x] **Phase 14: Monetization Foundation (Stripe web + clinic seats)** - `subscriptions`/`subscription_events`/`stripe_customers` + `stripe-checkout`/`stripe-webhook` Edge Functions + `<TierGate>` + 7-day card-required trial + Customer Portal + clinic per-active-patient metered billing + web dunning — keystone; every downstream gates on `tier` (8/8 plans executed 2026-05-14; verification GAPS_FOUND — 3 code BLOCKERs + deferred vendor setup, see 14-VERIFICATION.md) (completed 2026-05-14)
 - [ ] **Phase 15: Page Builder + Landing Pages** - `landing_pages` + `landing_page_revisions` + `page-assets` bucket + dnd-kit admin editor (lazy `admin-bundle`) + 8 semantic blocks + 5 templates + per-page SEO panel + version history + `page-render` Edge Function with Vercel ISR + `/pricing` wired to Stripe Checkout
 - [ ] **Phase 16: Capacitor Mobile Shells (iOS + Android)** - `apps/ios/` + `apps/android/` Capacitor 8 shells + native bridge layer (`src/lib/native/`) + RevenueCat IAP (MANDATORY — Apple §3.1.1) + ASO assets + `PrivacyInfo.xcprivacy` + Universal Links / App Links + biometric unlock + WKWebView OOM mitigation (Storage transforms + react-virtuoso) + Sentry Capacitor SDK + native share sheet
 - [ ] **Phase 17: Push Notifications** - `push_tokens` + `notification_log` + `push-fanout` Edge Function fans out to APNs + FCM + Web Push + watch piggy-back; per-category settings + quiet hours + snooze on dose reminders + iOS PWA-≥16.4 detection
@@ -223,7 +223,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18 �
 |-------|----------------|--------|-----------|
 | 12. Bootstrap & Bundle Foundations | 0/TBD | Not started | - |
 | 13. Design System v2 Rollout | 0/TBD | Not started | - |
-| 14. Monetization Foundation (Stripe web + clinic seats) | 10/11 | In Progress|  |
+| 14. Monetization Foundation (Stripe web + clinic seats) | 11/11 | Complete   | 2026-05-14 |
 | 15. Page Builder + Landing Pages | 0/TBD | Not started | - |
 | 16. Capacitor Mobile Shells (iOS + Android) | 0/TBD | Not started | - |
 | 17. Push Notifications | 0/TBD | Not started | - |
