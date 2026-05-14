@@ -21,7 +21,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { fireWebhookEvent, makeStripeEvent } from './fixtures/stripe/stub-webhook';
 import { deleteTestClock } from './fixtures/stripe/test-clock';
@@ -40,6 +40,9 @@ const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const STRIPE_PUBLIC_KEY =
   process.env.STRIPE_PUBLIC_KEY ?? process.env.VITE_STRIPE_PUBLIC_KEY;
+// WR-09: real Billing Meter ID from the bootstrap script (event_name: 'active_patients').
+// Kept separate from HAS_LIVE so the skip reason is specific.
+const STRIPE_METER_ACTIVE_PATIENTS = process.env.STRIPE_METER_ACTIVE_PATIENTS;
 
 const HAS_LIVE = Boolean(
   SERVICE_ROLE && SUPABASE_URL && ANON_KEY && STRIPE_SECRET_KEY && STRIPE_PUBLIC_KEY,
@@ -252,93 +255,58 @@ test.describe('@phase14 clinic-metered-billing', () => {
       });
     }
 
-    // Verify via Stripe API that a meter event was created for the overage.
+    // WR-09: skip inside the test body (NOT at describe-level) when meter env var is absent.
+    // This keeps the skip reason specific and separate from the HAS_LIVE gate.
+    if (!STRIPE_METER_ACTIVE_PATIENTS) {
+      test.skip(true, 'STRIPE_METER_ACTIVE_PATIENTS not set — cannot assert overage meter event');
+      return;
+    }
+
+    // Assert webhook was accepted — a non-2xx response means the handler did not run.
+    expect([200, 202]).toContain(webhookResp.status);
+
+    // Instantiate Stripe client for meter assertion.
     const stripe = new Stripe(STRIPE_SECRET_KEY!, {
       apiVersion: '2026-04-22.dahlia' as Parameters<typeof Stripe>[1]['apiVersion'],
     });
 
-    // Poll for meter event summary — Stripe Billing Meters v1 API.
-    // The event_name 'active_patients' matches the meter created by 14-02 bootstrap.
+    // Billing Meters v1 assertion — poll for the aggregated overage event.
+    // event_name: 'active_patients' was emitted by the invoice.upcoming handler (14-07).
     const startTime = periodStartEpoch;
     const endTime = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
-    // Give Stripe a few seconds to process the meter event.
+    // Give Stripe a few seconds to process the meter event before querying summaries.
     await new Promise<void>((resolve) => setTimeout(resolve, 3_000));
 
-    let meterEventFound = false;
+    let summaries: Awaited<ReturnType<typeof stripe.billing.meterEventSummaries.list>>;
     try {
-      // Try meterEventSummaries.list (preferred — aggregated view).
-      // Requires the Billing Meter to already exist (created by 14-02 bootstrap).
-      // If the meter doesn't exist yet, this will throw and we fall back.
-      const summaries = await stripe.billing.meterEventSummaries.list(
-        'mtr_test_placeholder', // meter ID — would need the real meter ID in production
+      summaries = await stripe.billing.meterEventSummaries.list(
+        STRIPE_METER_ACTIVE_PATIENTS,
         {
           customer: seedResult.stripeCustomerId,
           start_time: startTime,
           end_time: endTime,
         },
       );
-      if (summaries.data.length > 0) {
-        const totalValue = summaries.data.reduce(
-          (sum, s) => sum + (s.aggregated_value ?? 0),
-          0,
-        );
-        test.info().annotations.push({
-          type: 'live-result',
-          description: `meterEventSummaries: ${summaries.data.length} summaries, total value=${totalValue}`,
-        });
-        // Overage should be 1 (11 active - 10 included = 1).
-        meterEventFound = totalValue >= 1;
-      }
-    } catch {
-      // meterEventSummaries requires the real meter ID from the Stripe dashboard.
-      // Fall back to checking the upcoming invoice line items.
-      test.info().annotations.push({
-        type: 'deviation',
-        description: 'meterEventSummaries.list not available (meter ID unknown) — checking upcoming invoice',
-      });
-
-      try {
-        const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
-          customer: seedResult.stripeCustomerId,
-        });
-
-        const meteredLines = upcomingInvoice.lines.data.filter(
-          (line) => line.price?.recurring?.usage_type === 'metered',
-        );
-
-        test.info().annotations.push({
-          type: 'live-result',
-          description: `Upcoming invoice metered lines: ${meteredLines.length}`,
-        });
-
-        // At least one metered line item should exist with quantity >= 1.
-        meterEventFound = meteredLines.some((line) => (line.quantity ?? 0) >= 1);
-      } catch {
-        // If we can't verify via API (e.g., no Stripe Billing Meter configured),
-        // verify via webhook response status alone. This is a best-effort check.
-        test.info().annotations.push({
-          type: 'deviation',
-          description: 'Could not verify meter event via Stripe API — webhook response status used as proxy',
-        });
-        // If webhook returned 200, the handler ran successfully.
-        meterEventFound = webhookResp.status === 200;
-      }
+    } catch (err) {
+      // If the meter ID is configured but the Stripe call itself throws (e.g. the meter
+      // does not exist on this Stripe account), treat that as a skip — not a pass.
+      const msg = err instanceof Error ? err.message : String(err);
+      test.skip(true, `stripe.billing.meterEventSummaries.list threw: ${msg}`);
+      return;
     }
 
+    const totalValue = summaries.data.reduce(
+      (sum, s) => sum + (s.aggregated_value ?? 0),
+      0,
+    );
     test.info().annotations.push({
       type: 'live-result',
-      description: `Meter event found: ${meterEventFound}`,
+      description: `meterEventSummaries: ${summaries.data.length} summaries, total aggregated_value=${totalValue}`,
     });
 
-    // Primary assertion: meter event was created (or webhook succeeded).
-    // Idempotency note: firing the same event twice would be deduplicated by
-    // Stripe's server-side identifier. The Deno-level tests in 14-07 cover
-    // idempotency more directly — we rely on those here.
-    if (!meterEventFound && webhookResp.status !== 200) {
-      throw new Error(
-        `Expected overage meter event to be created for clinic ${clinicId} with 11 active patients`,
-      );
-    }
+    // Primary assertion: overage = 1 (11 active patients − 10 included in base plan).
+    // A configured meter ID that returns zero summaries is a real failure.
+    expect(totalValue).toBe(1);
   });
 });
