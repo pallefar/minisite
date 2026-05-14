@@ -17,6 +17,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import type { Plan } from '@/lib/billing';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 
@@ -26,7 +27,6 @@ const MONTHLY_PRICE_DISPLAY = '$12.99/mo';
 const YEARLY_PRICE_DISPLAY = '$132.49/yr — save 15%';
 
 type PlanTag = 'monthly' | 'yearly';
-type Plan = 'plus_monthly' | 'plus_yearly';
 
 const PLAN_MAP: Record<PlanTag, Plan> = {
   monthly: 'plus_monthly',
