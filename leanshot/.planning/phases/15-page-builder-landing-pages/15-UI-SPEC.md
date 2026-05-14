@@ -1,10 +1,11 @@
 ---
 phase: 15
 slug: page-builder-landing-pages
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-14
+reviewed_at: 2026-05-14
 ---
 
 # Phase 15 — UI Design Contract
