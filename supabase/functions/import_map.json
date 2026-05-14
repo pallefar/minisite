@@ -1,6 +1,7 @@
 {
   "imports": {
     "shared/refusal": "../../shared/refusal.ts",
-    "shared/disclaimers": "../../shared/disclaimers.ts"
+    "shared/disclaimers": "../../shared/disclaimers.ts",
+    "stripe": "https://esm.sh/stripe@19?target=denonext"
   }
 }
