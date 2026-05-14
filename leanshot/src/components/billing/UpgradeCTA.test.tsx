@@ -9,9 +9,9 @@
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 

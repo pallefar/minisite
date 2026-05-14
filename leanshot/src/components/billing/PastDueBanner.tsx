@@ -13,13 +13,13 @@
  * ARIA: role="alert" + aria-live="assertive" — payment failure is an assertive
  * announcement per WCAG SC 4.1.3. Error status uses role="status" + polite.
  */
-import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/helpers';
-import { supabase } from '@/lib/supabase';
-import { useStore } from '@/lib/store';
+import { useState } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 
 export function PastDueBanner() {
   const tier = useStore((s) => s.tier);

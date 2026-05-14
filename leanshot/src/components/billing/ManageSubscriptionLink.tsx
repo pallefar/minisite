@@ -11,8 +11,8 @@
  *   D — No hex literals; all colors via Phase 13 CSS token vars.
  *   G — Zero @stripe/stripe-js imports; portal URL via supabase.functions.invoke.
  */
-import { useState } from 'react';
 import { CreditCard } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { supabase } from '@/lib/supabase';
