@@ -24,6 +24,15 @@
  */
 import type { Tier } from '@/types';
 
+// ─── Plan union ──────────────────────────────────────────────────────────────
+
+/**
+ * Checkout `plan` body field — single source of truth (was duplicated as a
+ * local union in UpgradeCTA.tsx). `'clinic'` added for PaywallUpsell's
+ * clinic-tier upsell. Closed CR-02 (Plan 14-09).
+ */
+export type Plan = 'plus_monthly' | 'plus_yearly' | 'clinic';
+
 // ─── Feature registry ────────────────────────────────────────────────────────
 
 export type FeatureKey = 'pharma-forecast' | 'advanced-ai' | 'ad-free';

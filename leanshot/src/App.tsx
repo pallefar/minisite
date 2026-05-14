@@ -372,6 +372,13 @@ export function App() {
             // now lives in sync-defer's onSignedIn drain branch. The dispatch
             // order inside dispatch() mirrors the original Phase 5 sequence.
             deferOnSignedIn(session.user.id, session);
+            // Phase 14 Plan 14-09 CR-01: sync billing tier from subscriptions
+            // table into Zustand store. Dynamic import keeps billing-sync.ts
+            // off App.tsx's static graph (same Phase 6 D-12 discipline as
+            // deferOnSignedIn). fire-and-forget — auth handler must not block.
+            void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
+              syncBillingTier(session.user.id),
+            );
           }
           break;
         }
@@ -386,6 +393,11 @@ export function App() {
             // Phase 6 D-12: deferred sync init covers the
             // anon-promotion + enqueue-local + pull + subscribe + flush triplet.
             deferOnSignedIn(session.user.id, session);
+            // Phase 14 Plan 14-09 CR-01: sync billing tier on sign-in (same
+            // pattern as INITIAL_SESSION above).
+            void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
+              syncBillingTier(session.user.id),
+            );
           }
           break;
         }
@@ -471,6 +483,26 @@ export function App() {
     };
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
+  }, []);
+
+  // Phase 14 Plan 14-09 CR-01 / CONTEXT D-09: when the browser tab regains focus
+  // after a Customer Portal round-trip, re-sync the billing tier so any
+  // subscription change is reflected within the 10-second budget. Dynamic import
+  // keeps billing-sync.ts off App.tsx's static graph (Phase 6 D-12 discipline).
+  // Guard: only fire for a verified non-anon signed-in user.
+  useEffect(() => {
+    const handleFocus = (): void => {
+      const signedIn = useStore.getState().signedIn;
+      const userId = signedIn?.user?.id;
+      const isAnon = signedIn?.user?.is_anonymous;
+      const isVerified = signedIn?.verified;
+      if (!userId || isAnon || !isVerified) return;
+      void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
+        syncBillingTier(userId),
+      );
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Auto-mint anonymous session when the user lands on the dashboard without

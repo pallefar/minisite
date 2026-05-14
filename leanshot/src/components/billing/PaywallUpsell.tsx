@@ -1,24 +1,33 @@
 /**
- * Phase 14 Plan 14-05 — PaywallUpsell component.
+ * Phase 14 Plan 14-09 — PaywallUpsell component (CR-02 gap closure).
  *
  * Renders a tonal upsell card with an "Upgrade" CTA that redirects to the
- * Stripe Checkout session (Plan 14-04 Edge Function).
+ * Stripe Checkout session via supabase.functions.invoke('stripe-checkout/session', ...).
+ * Mirrors the UpgradeCTA.tsx checkout pattern exactly. Accepts a `plan` prop
+ * (default 'plus_monthly') typed via the shared Plan union from @/lib/billing.
+ *
+ * CR-02 closed: the original fetchCheckoutUrl() posted to a bare
+ * `/functions/v1/stripe-checkout` path (404) with credentials:'include' and no
+ * JWT (401) and no plan body (400). The correct pattern is now via
+ * supabase.functions.invoke('stripe-checkout/session', { body: { plan } }).
  *
  * CRITICAL (RESEARCH Pitfall 10 / CONTEXT D-05 / Pattern G):
  * This component does NOT import @stripe/stripe-js. The Upgrade button fires
- * a plain fetch to the stripe-checkout Edge Function and assigns
- * window.location.href to the returned session URL. No Stripe.js loaded here.
+ * supabase.functions.invoke and assigns window.location.href to the returned
+ * session URL. No Stripe.js loaded here.
  *
  * variant="overlay" — centered card positioned above blurred chart content.
  * variant="cta"     — inline/pill card rendered in place of gated UI element.
  *
- * Plan 14-06 will refactor fetchCheckoutUrl into a shared useUpgradeRedirect()
- * hook. For now it's a thin local async function so 14-05 ships independently.
+ * Existing consumers (MedLevelChart variant="overlay", AIChatPanel variant="cta")
+ * render <PaywallUpsell> without a plan prop — the default 'plus_monthly' ensures
+ * zero edits needed at those call sites.
  */
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import type { FeatureKey } from '@/lib/billing';
+import type { FeatureKey, Plan } from '@/lib/billing';
+import { supabase } from '@/lib/supabase';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -27,6 +36,12 @@ export interface PaywallUpsellProps {
   feature: FeatureKey;
   /** Optional override of upsell headline; defaults derived from feature key. */
   headline?: string;
+  /**
+   * Which plan to send to the checkout endpoint. Defaults to 'plus_monthly'.
+   * Existing consumers (MedLevelChart, AIChatPanel) omit this prop and get
+   * the 'plus_monthly' default — zero changes needed at those call sites.
+   */
+  plan?: Plan;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -42,38 +57,31 @@ function defaultHeadline(feature: FeatureKey): string {
   }
 }
 
-/**
- * fetchCheckoutUrl — thin local helper that POST-requests the Plan 14-04
- * stripe-checkout Edge Function and returns { url: string }.
- *
- * Plan 14-06 will refactor this into a shared useUpgradeRedirect() hook.
- * No @stripe/stripe-js import — direct redirect via window.location.href (Pattern G).
- */
-async function fetchCheckoutUrl(): Promise<{ url: string }> {
-  const base = import.meta.env.VITE_SUPABASE_URL as string;
-  const res = await fetch(`${base}/functions/v1/stripe-checkout`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    throw new Error(`checkout-fetch-failed: ${res.status}`);
-  }
-  return res.json() as Promise<{ url: string }>;
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function PaywallUpsell({ variant, feature, headline }: PaywallUpsellProps) {
+export function PaywallUpsell({
+  variant,
+  feature,
+  headline,
+  plan = 'plus_monthly',
+}: PaywallUpsellProps) {
   const reduced = useReducedMotion();
   const title = headline ?? defaultHeadline(feature);
 
   const handleUpgrade = async (): Promise<void> => {
     try {
-      const { url } = await fetchCheckoutUrl();
-      window.location.href = url;
+      const { data, error } = await supabase.functions.invoke(
+        'stripe-checkout/session',
+        { body: { plan } },
+      );
+      if (error || !data?.url) {
+        // Pattern G / Pitfall 8: do NOT echo upstream error message to UI.
+        console.error('[PaywallUpsell] checkout invoke failed', error?.message ?? 'no-url');
+        return;
+      }
+      // Pattern G: plain redirect, no @stripe/stripe-js required.
+      window.location.href = data.url;
     } catch (err) {
-      // Plan 14-06 will wire a proper toast; for now log silently.
       console.error('[PaywallUpsell] upgrade redirect failed', err);
     }
   };
