@@ -22,6 +22,7 @@ import type { Entity, EntityStatus, MigrationState } from '@/lib/migration';
 import { deferFlush } from '@/lib/sync-defer';
 import type {
   AIMessage,
+  BillingState,
   Cost,
   Injection,
   Meal,
@@ -29,8 +30,10 @@ import type {
   PendingOp,
   Photo,
   SleepLog,
+  SubscriptionProvider,
   SymptomLog,
   TabId,
+  Tier,
   User,
   Vial,
   WeightLog,
@@ -209,6 +212,10 @@ interface Actions {
    * SSE parser in `callAIChat` calls this once per delta.
    */
   updateLastAssistant: (delta: string) => void;
+
+  // Phase 14 Plan 14-05 — billing tier slice.
+  /** Set the billing tier + subscription metadata. All 4 fields persist via partialize. */
+  setTier: (next: Partial<BillingState> & { tier: Tier }) => void;
 
   // Phase 5 Plan 05-02 Task 2 — session + offline write queue + sync gate.
   setSession: (session: Session | null) => void;
@@ -470,6 +477,15 @@ export const useStore = create<Store>()(
         set({ currentTab: tab });
         track('tab_viewed', { tab });
       },
+
+      // Phase 14 Plan 14-05 — billing tier action.
+      setTier: (next) =>
+        set({
+          tier: next.tier,
+          current_period_end: next.current_period_end ?? null,
+          plan_id: next.plan_id ?? null,
+          provider: next.provider ?? null,
+        }),
       showToast: (message, kind = 'success', durationMs) =>
         set({
           toast: {
@@ -1202,6 +1218,12 @@ export const useStore = create<Store>()(
           migrationError: null,
           // CONF-3: PRESERVE through signout. Device-level acknowledgment.
           acknowledgedDisclaimer: state.acknowledgedDisclaimer,
+          // Phase 14 Plan 14-05: reset billing tier cache on signout so the
+          // next signed-in user does not inherit the prior session's tier.
+          tier: 'free' as Tier,
+          current_period_end: null,
+          plan_id: null,
+          provider: null as SubscriptionProvider,
         })),
 
       signOut: async () => {
@@ -1224,6 +1246,12 @@ export const useStore = create<Store>()(
         // pulling supabase-js into the entry chunk).
         const { clearPermissionCache } = await import('@/lib/clinic-permissions');
         clearPermissionCache();
+        // Phase 14 Plan 14-05: clear the billing tier cache so the next
+        // signed-in user does not inherit cached tier decisions made under
+        // the prior auth.uid(). Dynamic import keeps billing.ts off the
+        // store's static graph (mirrors Phase 9 clearPermissionCache pattern).
+        const { clearTierCache } = await import('@/lib/billing');
+        clearTierCache();
         get().clearUserDataSlices();
       },
 
@@ -1896,6 +1924,13 @@ export const useStore = create<Store>()(
         // restarting from scratch. migrationError is NOT persisted — it's
         // re-derived from corruption detection on next sign-in.
         migration_state: state.migration_state,
+        // Phase 14 Plan 14-05: billing tier persists across reload so the
+        // paywall gate state matches the user's actual subscription status
+        // on every mount (before the next webhook event re-confirms it).
+        tier: state.tier,
+        current_period_end: state.current_period_end,
+        plan_id: state.plan_id,
+        provider: state.provider,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.
