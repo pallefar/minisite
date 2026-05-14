@@ -199,6 +199,8 @@ begin
     and m.revoked_at is null
     and r.name = 'View-only'
     and exists (
+      -- CR-06: removed misplaced `LIMIT 1` that bound only to the `symptoms` UNION ALL arm
+      -- — all 5 arms are now checked, so any recent activity table counts the patient.
       select 1 from public.injections i
         where i.user_id = m.user_id and i.created_at > now() - interval '30 days'
       union all
@@ -213,7 +215,6 @@ begin
       union all
       select 1 from public.symptoms s
         where s.user_id = m.user_id and s.created_at > now() - interval '30 days'
-      limit 1
     );
 
   return v_count;

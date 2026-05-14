@@ -5,12 +5,14 @@
 -- Patient role = 'View-only' (the default role assigned on invite acceptance).
 --
 -- Fixture:
---   1 org + 1 Owner membership + 5 patient (View-only) memberships
+--   1 org + 1 Owner membership + 6 patient (View-only) memberships
 --   3 patients: revoked_at IS NULL + recent injection row  → counted
 --   1 patient:  revoked_at IS NULL + NO logs               → excluded (D-02 no-activity)
 --   1 patient:  revoked_at IS NOT NULL + recent injection  → excluded (inactive/revoked)
+--   1 patient:  revoked_at IS NULL + recent weights row ONLY (no injection)
+--               → counted (CR-06 cross-arm proof: weights UNION ALL arm works)
 --
--- Expected: count_active_patients(org_id) = 3
+-- Expected: count_active_patients(org_id) = 4
 --
 -- Run via:
 --   psql "$SUPABASE_DB_URL" -f leanshot/tests/sql/count-active-patients.test.sql
@@ -33,6 +35,7 @@ DECLARE
   v_p3           uuid := gen_random_uuid();  -- active + logs  → counted
   v_p4           uuid := gen_random_uuid();  -- active + NO logs → excluded
   v_p5           uuid := gen_random_uuid();  -- REVOKED + logs  → excluded
+  v_p6           uuid := gen_random_uuid();  -- active + ONLY a weights row → counted (proves cross-arm, CR-06)
 
   v_count        integer;
 BEGIN
@@ -62,7 +65,8 @@ BEGIN
     (v_p1, v_org_id, v_view_role_id, now()),
     (v_p2, v_org_id, v_view_role_id, now()),
     (v_p3, v_org_id, v_view_role_id, now()),
-    (v_p4, v_org_id, v_view_role_id, now());
+    (v_p4, v_org_id, v_view_role_id, now()),
+    (v_p6, v_org_id, v_view_role_id, now());
 
   -- P5: insert then immediately revoke.
   INSERT INTO public.memberships (user_id, org_id, role_id, accepted_at, revoked_at)
@@ -82,14 +86,20 @@ BEGIN
 
   -- P4 intentionally has NO activity logs.
 
+  -- P6: active View-only member whose ONLY recent activity is a weights row — counted ONLY if the
+  --     weights UNION ALL arm works (CR-06 cross-arm proof). No injection row for P6.
+  INSERT INTO public.weights (user_id, weight_id, date, weight, ts)
+  VALUES (v_p6, gen_random_uuid(), to_char(now(), 'YYYY-MM-DD'), 82.5, extract(epoch from now())::bigint);
+  -- created_at defaults to now() → recent, so count_active_patients() counts P6.
+
   -- 5. Call count_active_patients as service_role (auth.uid() = NULL in this context).
   SELECT public.count_active_patients(v_org_id) INTO v_count;
 
-  IF v_count <> 3 THEN
-    RAISE EXCEPTION 'count_active_patients expected 3 active patients, got %  (org: %)', v_count, v_org_id;
+  IF v_count <> 4 THEN
+    RAISE EXCEPTION 'count_active_patients expected 4 active patients, got %  (org: %)', v_count, v_org_id;
   END IF;
 
-  RAISE NOTICE 'count_active_patients test PASSED: returned % (expected 3)', v_count;
+  RAISE NOTICE 'count_active_patients test PASSED: returned % (expected 4)', v_count;
 END $$;
 
 ROLLBACK;
