@@ -26,10 +26,9 @@ if (!process.env.STRIPE_SECRET_KEY) {
   process.exit(1);
 }
 
-// Pin to research-verified API version. Stripe SDK v17 types pin to 2025-02-24.acacia,
-// but the API version string is just a header value — casting via `as any` bypasses
-// the type constraint while keeping the correct runtime behaviour.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Pin to research-verified API version. Stripe SDK v19 types pin to 2025-10-29.clover,
+// but the API version string is just a header value — casting via `as Stripe.LatestApiVersion`
+// bypasses the type constraint while keeping the correct runtime behaviour.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-04-22.dahlia' as Stripe.LatestApiVersion,
 });
