@@ -202,10 +202,10 @@ Deno.test('renderBlock footer: emits <footer>, escapes logoText / navLinks / cop
 
 // ─── renderBlock — unimplemented type ─────────────────────────────────────────
 
-Deno.test('renderBlock: unimplemented type returns empty string (extension point for 15-05..07)', () => {
+Deno.test('renderBlock: unimplemented type returns empty string (extension point for 15-06/07)', () => {
   const html = renderBlock({
     id: 'x1',
-    type: 'faq', // 15-05 adds this case
+    type: 'calendly', // 15-06 adds this case
     parent_id: null,
     order: 0,
     content: {},
@@ -306,4 +306,360 @@ Deno.test('renderNotFound: complete HTML doc with the exact 15-UI-SPEC 404 copy'
   const html = renderNotFound();
   assert(/^<!doctype html/i.test(html.trim()), 'missing doctype');
   assertStringIncludes(html, 'Page not found. It may have been moved or removed.');
+});
+
+// ─── 15-05: renderBlock — faq ──────────────────────────────────────────────────
+
+function faqBlock(overrides: Partial<BlockNode> = {}): BlockNode {
+  return {
+    id: 'fa1',
+    type: 'faq',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'Frequently asked questions',
+      items: [
+        { q: 'First question?', a: 'First answer.' },
+        { q: 'Second question?', a: 'Second answer.' },
+      ],
+    },
+    style: {},
+    ...overrides,
+  };
+}
+
+Deno.test('renderBlock faq: emits a button per item with aria-expanded=false and aria-controls', () => {
+  const html = renderBlock(faqBlock());
+  const buttonMatches = html.match(/<button[^>]*aria-expanded="false"[^>]*aria-controls="[^"]+"/g) ?? [];
+  assertEquals(buttonMatches.length, 2, `expected 2 accordion triggers, got ${buttonMatches.length}: ${html}`);
+});
+
+Deno.test('renderBlock faq: emits a panel per item with role="region" and id matching aria-controls', () => {
+  const html = renderBlock(faqBlock());
+  // Extract aria-controls values
+  const controls = [...html.matchAll(/aria-controls="([^"]+)"/g)].map((m) => m[1]);
+  assertEquals(controls.length, 2, 'expected 2 aria-controls');
+  for (const id of controls) {
+    assertStringIncludes(html, `role="region"`);
+    assertStringIncludes(html, `id="${id}"`);
+  }
+});
+
+Deno.test('renderBlock faq: XSS payload in q is escaped (no live <script>)', () => {
+  const html = renderBlock(
+    faqBlock({
+      content: {
+        heading: 'FAQ',
+        items: [{ q: '<script>alert(1)</script>', a: 'safe' }],
+      },
+    }),
+  );
+  assert(!html.includes('<script>'), `live <script> survived: ${html}`);
+  assertStringIncludes(html, '&lt;script&gt;');
+});
+
+Deno.test('renderBlock faq: hideOnMobile=true emits hide-on-mobile marker', () => {
+  const html = renderBlock(faqBlock({ style: { hideOnMobile: true } }));
+  assertStringIncludes(html, 'hide-on-mobile');
+});
+
+Deno.test('renderBlock faq: backgroundTone=subtle emits the surface-elevated token', () => {
+  const html = renderBlock(faqBlock({ style: { backgroundTone: 'subtle' } }));
+  assertStringIncludes(html, 'var(--color-surface-elevated)');
+});
+
+// ─── 15-05: renderBlock — pricing ──────────────────────────────────────────────
+
+function pricingBlock(overrides: Partial<BlockNode> = {}): BlockNode {
+  return {
+    id: 'pr1',
+    type: 'pricing',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'Pricing',
+      plans: [
+        {
+          name: 'Plus monthly',
+          price: '$12.99',
+          cadence: '/month',
+          features: ['Feature 1', 'Feature 2'],
+          ctaLabel: 'Get started',
+        },
+        {
+          name: 'Annual',
+          price: '$132.49',
+          cadence: '/year',
+          features: ['All Plus features', 'Two months free'],
+          ctaLabel: 'Get started',
+          recommended: true,
+        },
+      ],
+    },
+    style: {},
+    ...overrides,
+  };
+}
+
+Deno.test('renderBlock pricing: wraps price in a Geist Mono token class', () => {
+  const html = renderBlock(pricingBlock());
+  // The price should appear inside an element carrying the Geist Mono token class.
+  assertStringIncludes(html, 'block-pricing__price');
+  // Token-bounded font-family for the price
+  assertStringIncludes(html, 'font-family:Geist Mono');
+  assertStringIncludes(html, '$12.99');
+});
+
+Deno.test('renderBlock pricing: CTA renders as a button-primary styled element with a non-empty aria-label', () => {
+  const html = renderBlock(pricingBlock());
+  // Button primary token class (from --color-primary)
+  assertStringIncludes(html, 'block-pricing__cta');
+  // aria-label present + non-empty
+  const arias = [...html.matchAll(/aria-label="([^"]*)"/g)].map((m) => m[1]);
+  assert(arias.some((a) => a.length > 0), `expected non-empty aria-label, got: ${JSON.stringify(arias)}`);
+  // No Stripe call — render.ts is pure HTML; assert no <script>
+  assert(!html.includes('<script'), '<script> leaked into pricing render');
+});
+
+Deno.test('renderBlock pricing: recommended:true applies the selected-card teal-ring token class', () => {
+  const html = renderBlock(pricingBlock());
+  // Recommended plan emits a selected-card marker class.
+  assertStringIncludes(html, 'block-pricing__plan--recommended');
+});
+
+Deno.test('renderBlock pricing: feature text and plan names are escapeHtml-d', () => {
+  const html = renderBlock(
+    pricingBlock({
+      content: {
+        heading: 'Pricing',
+        plans: [
+          {
+            name: '<b>Plus</b>',
+            price: '$x',
+            cadence: '/mo',
+            features: ['<script>xss</script>'],
+            ctaLabel: 'Go',
+          },
+        ],
+      },
+    }),
+  );
+  assert(!html.includes('<b>Plus</b>'), 'raw <b> survived');
+  assert(!html.includes('<script>xss</script>'), 'raw script in feature survived');
+  assertStringIncludes(html, '&lt;b&gt;Plus&lt;/b&gt;');
+  assertStringIncludes(html, '&lt;script&gt;xss&lt;/script&gt;');
+});
+
+// ─── 15-05: renderBlock — testimonial ──────────────────────────────────────────
+
+function testimonialBlock(overrides: Partial<BlockNode> = {}): BlockNode {
+  return {
+    id: 't1',
+    type: 'testimonial',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'What people say',
+      quotes: [
+        {
+          quote: 'This changed everything for me.',
+          authorName: 'Alex Doe',
+        },
+      ],
+    },
+    style: {},
+    ...overrides,
+  };
+}
+
+Deno.test('renderBlock testimonial: escapes quote and renders authorName', () => {
+  const html = renderBlock(
+    testimonialBlock({
+      content: {
+        quotes: [
+          { quote: '<i>great</i>', authorName: 'Alex' },
+        ],
+      },
+    }),
+  );
+  assert(!html.includes('<i>great</i>'), 'raw <i> survived in quote');
+  assertStringIncludes(html, '&lt;i&gt;great&lt;/i&gt;');
+  assertStringIncludes(html, 'Alex');
+});
+
+Deno.test('renderBlock testimonial: emits <img> with alt when authorPhotoUrl present', () => {
+  const html = renderBlock(
+    testimonialBlock({
+      content: {
+        quotes: [
+          {
+            quote: 'q',
+            authorName: 'Alex',
+            authorPhotoUrl: '/photo.jpg',
+            authorPhotoAlt: 'Alex photo',
+          },
+        ],
+      },
+    }),
+  );
+  assertStringIncludes(html, '<img');
+  assertStringIncludes(html, 'src="/photo.jpg"');
+  assertStringIncludes(html, 'alt="Alex photo"');
+});
+
+Deno.test('renderBlock testimonial: omits <img> when no authorPhotoUrl', () => {
+  const html = renderBlock(testimonialBlock());
+  assert(!html.includes('<img'), `unexpected <img>: ${html}`);
+});
+
+Deno.test('renderBlock testimonial: uses Fraunces italic on the quote', () => {
+  const html = renderBlock(testimonialBlock());
+  assertStringIncludes(html, 'block-testimonial__quote');
+  assertStringIncludes(html, 'font-family:Fraunces');
+  assertStringIncludes(html, 'font-style:italic');
+});
+
+// ─── 15-05: renderBlock — feature-grid ─────────────────────────────────────────
+
+function featureGridBlock(overrides: Partial<BlockNode> = {}): BlockNode {
+  return {
+    id: 'fg1',
+    type: 'feature-grid',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'Features',
+      features: [
+        { iconName: 'Zap', title: 'Fast', body: 'Lightning quick.' },
+        { iconName: 'Heart', title: 'Loved', body: 'Patients love it.' },
+        { iconName: 'Shield', title: 'Safe', body: 'Privacy first.' },
+      ],
+    },
+    style: {},
+    ...overrides,
+  };
+}
+
+Deno.test('renderBlock feature-grid: renders one card per feature with title and body, escaped', () => {
+  const html = renderBlock(
+    featureGridBlock({
+      content: {
+        heading: 'F',
+        features: [
+          { iconName: 'Zap', title: '<x>', body: '<y>' },
+        ],
+      },
+    }),
+  );
+  assertStringIncludes(html, 'block-feature-grid__card');
+  assert(!html.includes('<x>'), 'raw <x> survived');
+  assert(!html.includes('<y>'), 'raw <y> survived');
+  assertStringIncludes(html, '&lt;x&gt;');
+  assertStringIncludes(html, '&lt;y&gt;');
+});
+
+Deno.test('renderBlock feature-grid: emits one card element per feature', () => {
+  const html = renderBlock(featureGridBlock());
+  const cards = html.match(/block-feature-grid__card/g) ?? [];
+  assertEquals(cards.length, 3, `expected 3 cards, got ${cards.length}`);
+});
+
+// ─── 15-05: renderBlock — image-text ───────────────────────────────────────────
+
+function imageTextBlock(overrides: Partial<BlockNode> = {}): BlockNode {
+  return {
+    id: 'it1',
+    type: 'image-text',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'About us',
+      body: 'We make great software.',
+      imageUrl: '/image.jpg',
+      imageAlt: 'Team photo',
+    },
+    style: {},
+    ...overrides,
+  };
+}
+
+Deno.test('renderBlock image-text: alignment=right places image after text', () => {
+  const html = renderBlock(imageTextBlock({ style: { alignment: 'right' } }));
+  const imgIdx = html.indexOf('<img');
+  const headingIdx = html.indexOf('About us');
+  assert(imgIdx !== -1 && headingIdx !== -1, 'expected both image and heading');
+  assert(headingIdx < imgIdx, `expected heading before image for right alignment; heading=${headingIdx} img=${imgIdx}`);
+});
+
+Deno.test('renderBlock image-text: alignment=left places image before text', () => {
+  const html = renderBlock(imageTextBlock({ style: { alignment: 'left' } }));
+  const imgIdx = html.indexOf('<img');
+  const headingIdx = html.indexOf('About us');
+  assert(imgIdx !== -1 && headingIdx !== -1, 'expected both image and heading');
+  assert(imgIdx < headingIdx, `expected image before heading for left alignment; img=${imgIdx} heading=${headingIdx}`);
+});
+
+Deno.test('renderBlock image-text: omits <img> when imageAlt is blank', () => {
+  const html = renderBlock(
+    imageTextBlock({
+      content: {
+        heading: 'h',
+        body: 'b',
+        imageUrl: '/x.jpg',
+        imageAlt: '',
+      },
+    }),
+  );
+  assert(!html.includes('<img'), `unexpected <img> when imageAlt blank: ${html}`);
+  // Heading still rendered
+  assertStringIncludes(html, 'h');
+});
+
+Deno.test('renderBlock image-text: body and heading escaped', () => {
+  const html = renderBlock(
+    imageTextBlock({
+      content: {
+        heading: '<h>',
+        body: '<b>',
+        imageUrl: '/x.jpg',
+        imageAlt: 'alt',
+      },
+    }),
+  );
+  assert(!html.includes('<h>'), 'raw <h> survived');
+  assert(!html.includes('<b>'), 'raw <b> survived');
+  assertStringIncludes(html, '&lt;h&gt;');
+  assertStringIncludes(html, '&lt;b&gt;');
+});
+
+// ─── 15-05: cross-block style invariants ───────────────────────────────────────
+
+Deno.test('renderBlock 15-05 branches: hideOnMobile applied to all 5 new types', () => {
+  const types = ['faq', 'pricing', 'testimonial', 'feature-grid', 'image-text'] as const;
+  const factories: Record<string, () => BlockNode> = {
+    faq: () => faqBlock({ style: { hideOnMobile: true } }),
+    pricing: () => pricingBlock({ style: { hideOnMobile: true } }),
+    testimonial: () => testimonialBlock({ style: { hideOnMobile: true } }),
+    'feature-grid': () => featureGridBlock({ style: { hideOnMobile: true } }),
+    'image-text': () => imageTextBlock({ style: { hideOnMobile: true } }),
+  };
+  for (const t of types) {
+    const html = renderBlock(factories[t]());
+    assert(html.includes('hide-on-mobile'), `${t} did not emit hide-on-mobile`);
+  }
+});
+
+Deno.test('renderBlock 15-05 branches: backgroundTone=brand emits hero-bg token across all 5 new types', () => {
+  const types = ['faq', 'pricing', 'testimonial', 'feature-grid', 'image-text'] as const;
+  const factories: Record<string, () => BlockNode> = {
+    faq: () => faqBlock({ style: { backgroundTone: 'brand' } }),
+    pricing: () => pricingBlock({ style: { backgroundTone: 'brand' } }),
+    testimonial: () => testimonialBlock({ style: { backgroundTone: 'brand' } }),
+    'feature-grid': () => featureGridBlock({ style: { backgroundTone: 'brand' } }),
+    'image-text': () => imageTextBlock({ style: { backgroundTone: 'brand' } }),
+  };
+  for (const t of types) {
+    const html = renderBlock(factories[t]());
+    assert(html.includes('var(--color-hero-bg)'), `${t} did not emit hero-bg token`);
+  }
 });

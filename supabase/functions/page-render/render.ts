@@ -249,6 +249,225 @@ function renderFooter(block: BlockNode): string {
   return `<footer class="${wrapClass}" style="${wrapStyle}"><div class="block-footer__inner">${logoHtml}${navHtml}${copyHtml}</div></footer>`;
 }
 
+// ─── 15-05 block renderers ─────────────────────────────────────────────────────
+//
+// The five branches below mirror the same shape as renderHero / renderCta /
+// renderFooter above: narrow `block.content` to the per-type interface
+// declared in 15-05-PLAN.md `<interfaces>`, escape every interpolated value
+// via `escapeHtml`, route hrefs through `safeHref`, and assemble the section
+// wrapper via `blockWrapperStyle` + `hideOnMobileClass`. The grouped block
+// keeps the new cases co-located so future plans (15-06 embeds, 15-07
+// lead-form) extend at the obvious seam below the group.
+
+interface FaqItem {
+  q: string;
+  a: string;
+}
+
+function renderFaq(block: BlockNode): string {
+  const c = block.content;
+  const heading = escapeHtml(c.heading ?? '');
+  const eyebrow = c.eyebrow ? escapeHtml(c.eyebrow) : '';
+  const rawItems = Array.isArray(c.items) ? (c.items as unknown[]) : [];
+  const itemsHtml = rawItems
+    .map((entry, i) => {
+      if (!entry || typeof entry !== 'object') return '';
+      const item = entry as Partial<FaqItem>;
+      const q = escapeHtml(item.q ?? '');
+      const a = escapeHtml(item.a ?? '');
+      if (!q) return '';
+      const panelId = `faq-${escapeHtml(block.id)}-${i}`;
+      return (
+        `<div class="block-faq__item">` +
+        `<button class="block-faq__trigger" type="button" aria-expanded="false" aria-controls="${panelId}">` +
+        `<span class="block-faq__q">${q}</span>` +
+        `<span class="block-faq__chevron" aria-hidden="true">▾</span>` +
+        `</button>` +
+        `<div class="block-faq__panel" role="region" id="${panelId}"><p class="block-faq__a">${a}</p></div>` +
+        `</div>`
+      );
+    })
+    .filter((s) => s !== '')
+    .join('');
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'left');
+  const wrapClass = `block block-faq${hideOnMobileClass(block.style.hideOnMobile)}`;
+  const eyebrowHtml = eyebrow ? `<p class="block-faq__eyebrow">${eyebrow}</p>` : '';
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-faq__inner">${eyebrowHtml}<h2 class="block-faq__heading">${heading}</h2><div class="block-faq__items">${itemsHtml}</div></div></section>`;
+}
+
+interface PricingPlan {
+  name: string;
+  price: string;
+  cadence: string;
+  features: string[];
+  ctaLabel: string;
+  recommended?: boolean;
+}
+
+function renderPricing(block: BlockNode): string {
+  const c = block.content;
+  const heading = escapeHtml(c.heading ?? '');
+  const eyebrow = c.eyebrow ? escapeHtml(c.eyebrow) : '';
+  const rawPlans = Array.isArray(c.plans) ? (c.plans as unknown[]) : [];
+  const plansHtml = rawPlans
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return '';
+      const plan = entry as Partial<PricingPlan>;
+      const name = escapeHtml(plan.name ?? '');
+      const price = escapeHtml(plan.price ?? '');
+      const cadence = escapeHtml(plan.cadence ?? '');
+      const ctaLabel = escapeHtml(plan.ctaLabel ?? '');
+      const recommended = plan.recommended === true;
+      const features = Array.isArray(plan.features) ? (plan.features as unknown[]) : [];
+      const featuresHtml = features
+        .map((f) => {
+          const text = escapeHtml(f ?? '');
+          if (!text) return '';
+          return `<li class="block-pricing__feature"><span class="block-pricing__check" aria-hidden="true" style="color:var(--color-success);">✓</span><span>${text}</span></li>`;
+        })
+        .filter((s) => s !== '')
+        .join('');
+      const planClass = recommended
+        ? 'block-pricing__plan block-pricing__plan--recommended'
+        : 'block-pricing__plan';
+      const planStyle = recommended
+        ? 'border:2px solid var(--color-primary);box-shadow:0 0 0 4px var(--color-primary-soft);'
+        : 'border:1px solid var(--color-border);';
+      // CTA aria-label includes the plan name so screen-reader users hear which plan they're starting.
+      const ariaLabel = ctaLabel && name ? `${ctaLabel} — ${name}` : (ctaLabel || `Get started — ${name}`);
+      const ctaHtml = ctaLabel
+        ? `<button type="button" class="block-pricing__cta" aria-label="${ariaLabel}" style="background:var(--color-primary);color:var(--color-primary-foreground);">${ctaLabel}</button>`
+        : '';
+      return (
+        `<div class="${planClass}" style="${planStyle}">` +
+        (name ? `<p class="block-pricing__name">${name}</p>` : '') +
+        `<p class="block-pricing__price" style="font-family:Geist Mono,ui-monospace,SFMono-Regular,Menlo,monospace;">` +
+        `<span class="block-pricing__amount">${price}</span>` +
+        `<span class="block-pricing__cadence">${cadence}</span>` +
+        `</p>` +
+        (featuresHtml ? `<ul class="block-pricing__features">${featuresHtml}</ul>` : '') +
+        ctaHtml +
+        `</div>`
+      );
+    })
+    .filter((s) => s !== '')
+    .join('');
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-pricing${hideOnMobileClass(block.style.hideOnMobile)}`;
+  const eyebrowHtml = eyebrow ? `<p class="block-pricing__eyebrow">${eyebrow}</p>` : '';
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-pricing__inner">${eyebrowHtml}<h2 class="block-pricing__heading">${heading}</h2><div class="block-pricing__plans">${plansHtml}</div></div></section>`;
+}
+
+interface TestimonialQuote {
+  quote: string;
+  authorName: string;
+  authorPhotoUrl?: string;
+  authorPhotoAlt?: string;
+}
+
+function renderTestimonial(block: BlockNode): string {
+  const c = block.content;
+  const heading = c.heading ? escapeHtml(c.heading) : '';
+  const eyebrow = c.eyebrow ? escapeHtml(c.eyebrow) : '';
+  const rawQuotes = Array.isArray(c.quotes) ? (c.quotes as unknown[]) : [];
+  const quotesHtml = rawQuotes
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return '';
+      const q = entry as Partial<TestimonialQuote>;
+      const quoteText = escapeHtml(q.quote ?? '');
+      const authorName = escapeHtml(q.authorName ?? '');
+      if (!quoteText) return '';
+      // <img> ONLY when both URL is present AND alt is non-empty (a11y gate).
+      const photoUrl = typeof q.authorPhotoUrl === 'string' ? q.authorPhotoUrl.trim() : '';
+      const photoAlt = typeof q.authorPhotoAlt === 'string' ? q.authorPhotoAlt.trim() : '';
+      const photoHtml =
+        photoUrl && photoAlt
+          ? `<img class="block-testimonial__photo" src="${escapeHtml(safeHref(photoUrl))}" alt="${escapeHtml(photoAlt)}" width="48" height="48" style="border-radius:9999px;width:48px;height:48px;object-fit:cover;">`
+          : '';
+      return (
+        `<figure class="block-testimonial__item">` +
+        `<blockquote class="block-testimonial__quote" style="font-family:Fraunces,Georgia,serif;font-style:italic;font-size:22px;line-height:1.4;margin:0;">${quoteText}</blockquote>` +
+        `<figcaption class="block-testimonial__author">${photoHtml}<span class="block-testimonial__author-name">${authorName}</span></figcaption>` +
+        `</figure>`
+      );
+    })
+    .filter((s) => s !== '')
+    .join('');
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-testimonial${hideOnMobileClass(block.style.hideOnMobile)}`;
+  const eyebrowHtml = eyebrow ? `<p class="block-testimonial__eyebrow">${eyebrow}</p>` : '';
+  const headingHtml = heading ? `<h2 class="block-testimonial__heading">${heading}</h2>` : '';
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-testimonial__inner">${eyebrowHtml}${headingHtml}<div class="block-testimonial__items">${quotesHtml}</div></div></section>`;
+}
+
+interface FeatureGridItem {
+  iconName: string;
+  title: string;
+  body: string;
+}
+
+function renderFeatureGrid(block: BlockNode): string {
+  const c = block.content;
+  const heading = escapeHtml(c.heading ?? '');
+  const eyebrow = c.eyebrow ? escapeHtml(c.eyebrow) : '';
+  const rawFeatures = Array.isArray(c.features) ? (c.features as unknown[]) : [];
+  const featuresHtml = rawFeatures
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return '';
+      const f = entry as Partial<FeatureGridItem>;
+      const title = escapeHtml(f.title ?? '');
+      const body = escapeHtml(f.body ?? '');
+      const iconName = escapeHtml(f.iconName ?? '');
+      if (!title && !body) return '';
+      // Icon: rendered as a glyph wrapper class (lucide-* class hook). The
+      // published page ships zero JS, so the icon visual is a CSS-driven
+      // marker tag with the lucide icon name as a data attribute — Phase 15
+      // does NOT ship lucide-react into the public bundle (D-17).
+      const iconHtml = iconName
+        ? `<span class="block-feature-grid__icon" data-icon="${iconName}" aria-hidden="true" style="color:var(--color-primary);">●</span>`
+        : '';
+      return (
+        `<div class="block-feature-grid__card" style="border:1px solid var(--color-border);padding:24px;border-radius:12px;">` +
+        iconHtml +
+        (title ? `<h3 class="block-feature-grid__title">${title}</h3>` : '') +
+        (body ? `<p class="block-feature-grid__body">${body}</p>` : '') +
+        `</div>`
+      );
+    })
+    .filter((s) => s !== '')
+    .join('');
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-feature-grid${hideOnMobileClass(block.style.hideOnMobile)}`;
+  const eyebrowHtml = eyebrow ? `<p class="block-feature-grid__eyebrow">${eyebrow}</p>` : '';
+  // 3-col on >=1024, 2-col on >=640, 1-col on mobile — pure CSS grid.
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-feature-grid__inner"><div class="block-feature-grid__header">${eyebrowHtml}<h2 class="block-feature-grid__heading">${heading}</h2></div><div class="block-feature-grid__grid" style="display:grid;gap:16px;grid-template-columns:repeat(1,minmax(0,1fr));">${featuresHtml}</div></div></section>`;
+}
+
+function renderImageText(block: BlockNode): string {
+  const c = block.content;
+  const heading = escapeHtml(c.heading ?? '');
+  const body = escapeHtml(c.body ?? '');
+  const rawImageAlt = typeof c.imageAlt === 'string' ? c.imageAlt.trim() : '';
+  const rawImageUrl = typeof c.imageUrl === 'string' ? c.imageUrl.trim() : '';
+  // a11y gate: omit <img> entirely when alt is blank (Threat T-15-05-02).
+  const imgHtml =
+    rawImageAlt && rawImageUrl
+      ? `<img class="block-image-text__img" src="${escapeHtml(safeHref(rawImageUrl))}" alt="${escapeHtml(rawImageAlt)}" width="600" height="400" style="width:100%;height:auto;max-width:600px;aspect-ratio:3/2;object-fit:cover;border-radius:12px;">`
+      : '';
+  const textHtml =
+    `<div class="block-image-text__text">` +
+    (heading ? `<h2 class="block-image-text__heading">${heading}</h2>` : '') +
+    (body ? `<p class="block-image-text__body">${body}</p>` : '') +
+    `</div>`;
+  // alignment controls image position: 'left' (default) = image before text;
+  // 'right' = image after text. 'center' falls back to image-left.
+  const align = block.style.alignment ?? 'left';
+  const orderedHtml = align === 'right' ? `${textHtml}${imgHtml}` : `${imgHtml}${textHtml}`;
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'left');
+  const wrapClass = `block block-image-text${hideOnMobileClass(block.style.hideOnMobile)}`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-image-text__inner" style="display:grid;gap:32px;grid-template-columns:1fr;">${orderedHtml}</div></section>`;
+}
+
 // ─── renderBlock — switch on type ─────────────────────────────────────────────
 
 export function renderBlock(block: BlockNode): string {
@@ -259,8 +478,18 @@ export function renderBlock(block: BlockNode): string {
       return renderCta(block);
     case 'footer':
       return renderFooter(block);
-    // Plans 15-05/06/07 ADD their case names here:
-    //   15-05: faq, pricing, testimonial, feature-grid, image-text
+    // 15-05: five new core landing-page block branches.
+    case 'faq':
+      return renderFaq(block);
+    case 'pricing':
+      return renderPricing(block);
+    case 'testimonial':
+      return renderTestimonial(block);
+    case 'feature-grid':
+      return renderFeatureGrid(block);
+    case 'image-text':
+      return renderImageText(block);
+    // Plans 15-06/07 ADD their case names here:
     //   15-06: calendly, youtube, tally
     //   15-07: lead-form
     default:
