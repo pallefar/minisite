@@ -13,14 +13,15 @@
  * import.meta.env at runtime.
  */
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { buildImageUrl } from './build-image-url';
 
 beforeAll(() => {
   // Stub VITE_SUPABASE_URL so the module under test can build absolute URLs.
   // (Set once globally; individual tests override transformsEnabled per call.)
+  // Safe to stub AFTER the import because buildImageUrl reads import.meta.env
+  // lazily inside each call (not at module load time).
   vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co');
 });
-
-import { buildImageUrl } from './build-image-url';
 
 describe('buildImageUrl — tier-conditional Supabase Storage URL builder', () => {
   it('returns a transform URL when transformsEnabled=true AND a size is supplied', () => {

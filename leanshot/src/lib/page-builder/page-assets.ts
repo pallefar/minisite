@@ -18,7 +18,6 @@
  * re-implement an auth check (T-15-09-02).
  */
 import { supabase } from '@/lib/supabase';
-
 import { buildImageUrl } from './build-image-url';
 
 export const PAGE_ASSETS_BUCKET = 'page-assets';

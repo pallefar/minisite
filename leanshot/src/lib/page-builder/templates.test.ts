@@ -17,7 +17,6 @@
  *      references are re-mapped through the new id table, not stale.
  */
 import { describe, expect, it } from 'vitest';
-
 import type { BlockNode, BlockType } from './block-schema';
 import { TEMPLATES, scaffoldFromTemplate, type TemplateId } from './templates';
 

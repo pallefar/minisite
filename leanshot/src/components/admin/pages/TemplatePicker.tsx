@@ -14,12 +14,12 @@
  *   • Thumbnail <img alt=""> is decorative — name + description carry the
  *     accessible label.
  */
-import type { BlockNode } from '@/lib/page-builder/block-schema';
-import { TEMPLATES, scaffoldFromTemplate, type TemplateId } from '@/lib/page-builder/templates';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
+import type { BlockNode } from '@/lib/page-builder/block-schema';
+import { TEMPLATES, scaffoldFromTemplate, type TemplateId } from '@/lib/page-builder/templates';
 
 export interface TemplatePickerProps {
   open: boolean;
