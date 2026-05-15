@@ -63,10 +63,25 @@ export const PROPERTY_CONFIGS: Partial<Record<BlockType, BlockPropertyConfig>> =
     ],
   },
   pricing: {
+    // 15-10: each plan entry MAY carry an enum-bounded `checkoutPlan` field
+    // (`'plus_monthly'` | `'plus_yearly'`) — render.ts emits the Checkout
+    // button as an <a href> upgrade deep-link when set, and as an inert
+    // <span> otherwise. The editor field is part of the same JSON object
+    // shape (pricing-plans kind); the hint documents the bounded enum so
+    // staff users pick from the two known plans, never a raw price ID
+    // (T-15-10-01 / D-05 token-bounded — no free-form Stripe price input).
     contentFields: [
       { key: 'eyebrow', label: 'Eyebrow', kind: 'text', placeholder: 'Pricing' },
       { key: 'heading', label: 'Heading', kind: 'text' },
-      { key: 'plans', label: 'Plans', kind: 'pricing-plans' },
+      {
+        key: 'plans',
+        label: 'Plans',
+        kind: 'pricing-plans',
+        hint:
+          'JSON array of plan objects: { name, price, cadence, features[], ctaLabel, recommended?, checkoutPlan? }. ' +
+          'checkoutPlan MUST be one of "plus_monthly" or "plus_yearly" (the only two enum-bound Stripe plans) — ' +
+          'any other value renders an inert button with no checkout link.',
+      },
     ],
   },
   testimonial: {

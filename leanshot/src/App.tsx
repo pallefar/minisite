@@ -539,6 +539,133 @@ export function App() {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  // Phase 15 Plan 15-10 — `?upgrade=` deep-link handler.
+  //
+  // The published /pricing page renders Checkout buttons as zero-JS
+  // <a href> links into the SPA: `/#/settings?upgrade={plus_monthly|plus_yearly}`.
+  // The visitor lands in the SPA on the settings hash route; this effect
+  // parses the `upgrade` param out of the hash query, validates it against
+  // the exact two-value enum, and (only for a verified non-anon signed-in
+  // user) opens Settings + invokes the SAME stripe-checkout/session path
+  // UpgradeCTA.tsx already uses (Phase 14 D-09).
+  //
+  // Safety:
+  //   - T-15-10-03: ignore any value not in the enum (no fall-through to a
+  //     default plan, no string passthrough).
+  //   - T-15-10-02: the SPA only ever sends the validated enum tag; the
+  //     server-side stripe-checkout/session re-validates against its own
+  //     allowlist (`validPlans`) and resolves the price from Function secrets.
+  //   - Strip `?upgrade=` after firing so a refresh does not re-trigger.
+  //   - Dynamic-import `@/lib/supabase` to keep it off the static graph
+  //     (Phase 6 D-12 discipline mirroring the billing-sync effect above).
+  //   - If there is no verified signed-in user, fall through to the existing
+  //     auth view (`#/auth/*` already routes there); the hash param survives
+  //     the auth round-trip and the effect re-fires after sign-in.
+  useEffect(() => {
+    const VALID_PLANS = ['plus_monthly', 'plus_yearly'] as const;
+    type ValidPlan = (typeof VALID_PLANS)[number];
+
+    const handleUpgradeParam = (): void => {
+      const hash = window.location.hash;
+      // Hash shape we accept: `#/settings?upgrade=plus_monthly` (or yearly).
+      const qIndex = hash.indexOf('?');
+      if (qIndex < 0) return;
+      const queryString = hash.slice(qIndex + 1);
+      const params = new URLSearchParams(queryString);
+      const raw = params.get('upgrade');
+      if (raw === null) return;
+      if (!(VALID_PLANS as readonly string[]).includes(raw)) {
+        // Out-of-enum value — silently strip so a crafted URL cannot replay.
+        params.delete('upgrade');
+        const remainder = params.toString();
+        const baseHash = hash.slice(0, qIndex);
+        const newHash = remainder === '' ? baseHash : `${baseHash}?${remainder}`;
+        try {
+          history.replaceState(null, '', window.location.pathname + newHash);
+        } catch {
+          /* noop */
+        }
+        return;
+      }
+      const plan = raw as ValidPlan;
+
+      // Strip `?upgrade=` from the URL immediately so a refresh does not
+      // re-trigger and so multiple effect runs do not double-fire the invoke.
+      params.delete('upgrade');
+      const remainder = params.toString();
+      const baseHash = hash.slice(0, qIndex);
+      const newHash = remainder === '' ? baseHash : `${baseHash}?${remainder}`;
+      try {
+        history.replaceState(null, '', window.location.pathname + newHash);
+      } catch {
+        /* sessionStorage / replaceState unavailable; skip — non-fatal. */
+      }
+
+      // Gate: only fire for a verified non-anon signed-in user. If absent,
+      // selectView's hash `#/auth/*` branch will route the user through
+      // sign-in; on SIGNED_IN the effect re-fires (the user can re-trigger
+      // the deep-link from /pricing). For first-time visitors that path is
+      // intentional — checkout requires a real account.
+      const signedIn = useStore.getState().signedIn;
+      const userId = signedIn?.user?.id;
+      const isAnon = signedIn?.user?.is_anonymous;
+      const isVerified = signedIn?.verified;
+      if (!userId || isAnon || !isVerified) {
+        // Stash the route so the post-sign-in restoration in handleAuthEvent
+        // (above) can return the user to the upgrade flow. Reuses the same
+        // sessionStorage key as the Phase 6 double-`#` hotfix.
+        try {
+          sessionStorage.setItem('leanshot_post_auth_route', `#/settings?upgrade=${plan}`);
+        } catch {
+          /* private mode — noop */
+        }
+        // Force the auth view if not already on an auth hash.
+        if (!window.location.hash.startsWith('#/auth/')) {
+          window.location.hash = '#/auth/signin';
+        }
+        return;
+      }
+
+      // Open Settings so the user has visual context for the redirect.
+      setSettingsOpen(true);
+
+      // Invoke stripe-checkout/session via the SAME path UpgradeCTA.tsx uses.
+      // Dynamic-import to keep @/lib/supabase off App.tsx's static graph.
+      void import('@/lib/supabase').then(async ({ supabase }) => {
+        try {
+          const { data, error } = await supabase.functions.invoke(
+            'stripe-checkout/session',
+            { body: { plan } },
+          );
+          if (error || !data?.url) {
+            // Match UpgradeCTA's Pitfall 8 discipline — do NOT echo upstream
+            // error. Toast (best-effort) so the user knows something failed.
+            try {
+              useStore.getState().showToast("Couldn't open Stripe. Try again.", 'error');
+            } catch {
+              /* toast unavailable — noop */
+            }
+            return;
+          }
+          window.location.href = data.url;
+        } catch {
+          try {
+            useStore.getState().showToast("Couldn't open Stripe. Try again.", 'error');
+          } catch {
+            /* noop */
+          }
+        }
+      });
+    };
+
+    // Run on mount AND on every hashchange (the rendered /pricing button's
+    // <a href> mutates the hash, which fires hashchange even within the same
+    // origin/path).
+    handleUpgradeParam();
+    window.addEventListener('hashchange', handleUpgradeParam);
+    return () => window.removeEventListener('hashchange', handleUpgradeParam);
+  }, []);
+
   // Auto-mint anonymous session when the user lands on the dashboard without
   // any session (RESEARCH §12 Q5). This ensures AvatarMenu always has a user
   // to render and Phase 4's AI Coach `signInAnonymously` first-call gating
