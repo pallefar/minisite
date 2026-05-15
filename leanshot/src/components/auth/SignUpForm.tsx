@@ -12,14 +12,22 @@
  * Client-side password policy mirrors the server (CONF-1, RESEARCH §9):
  *   `^(?=.*\d).{8,}$` — 8+ chars including at least one digit.
  */
-import { Mail, KeyRound } from 'lucide-react';
+import { Mail, KeyRound, Ticket } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import { attachEmailToAnon, getSession, signUp } from '@/lib/auth';
+import { useFeatureFlag } from '@/lib/feature-flags';
 
 const PASSWORD_REGEX = /^(?=.*\d).{8,}$/;
+// Phase 19 Plan 19-04 (BL-1 / D-23) — same regex as stripe-checkout +
+// affiliate-attribute. Empty input is valid (the field is optional).
+const REFERRAL_CODE_REGEX = /^[a-z0-9-]{4,80}$/;
+// sessionStorage key picked up by the post-signup checkout-redirect flow
+// (and by any future ?aff_manual=<code> propagation point). Phase 19 Plan
+// 19-09 consumes this; key namespace mirrors leanshot_anthropic_key etc.
+const AFF_MANUAL_SESSION_KEY = 'leanshot_aff_manual';
 
 export function SignUpForm() {
   const [email, setEmail] = useState('');
@@ -28,6 +36,10 @@ export function SignUpForm() {
   const [errPassword, setErrPassword] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
   const [isAnon, setIsAnon] = useState(false);
+  // Phase 19 Plan 19-04 (BL-1 / D-23) — referral-code field gated by flag.
+  const showAffManual = useFeatureFlag('aff_manual_entry');
+  const [affManual, setAffManual] = useState('');
+  const [errAffManual, setErrAffManual] = useState<string | undefined>();
   const toast = useToast();
 
   // Detect anon state on mount (D-05).
@@ -46,12 +58,21 @@ export function SignUpForm() {
     e.preventDefault();
     setErrEmail(undefined);
     setErrPassword(undefined);
+    setErrAffManual(undefined);
     if (!email.trim()) {
       setErrEmail('Email is required');
       return;
     }
     if (!isAnon && !PASSWORD_REGEX.test(password)) {
       setErrPassword('8+ chars including a number');
+      return;
+    }
+    // Phase 19 Plan 19-04 (BL-1 / D-23) — referral code is optional, but if
+    // present must match the format used downstream by stripe-checkout +
+    // affiliate-attribute. Empty input → skip; invalid → inline error + bail.
+    const trimmedAff = affManual.trim();
+    if (showAffManual && trimmedAff.length > 0 && !REFERRAL_CODE_REGEX.test(trimmedAff)) {
+      setErrAffManual('Use 4–80 lowercase letters, digits, or dashes.');
       return;
     }
     setSubmitting(true);
@@ -94,6 +115,18 @@ export function SignUpForm() {
         }
         toast('Check your email to verify your account.', 'success');
       }
+      // Phase 19 Plan 19-04 (BL-1 / D-23) — stash the manual referral code
+      // (when present + valid) for the post-verify checkout-redirect step to
+      // append as `?aff_manual=<code>`. Wrapped in try/catch because private-
+      // mode browsers throw on sessionStorage access (same pattern as the
+      // localStorage wrappers in src/main.tsx + src/hooks/useTheme.ts).
+      if (showAffManual && trimmedAff.length > 0) {
+        try {
+          sessionStorage.setItem(AFF_MANUAL_SESSION_KEY, trimmedAff);
+        } catch {
+          /* noop — best-effort */
+        }
+      }
       window.location.hash = '#/auth/verify-sent';
     } finally {
       setSubmitting(false);
@@ -128,6 +161,25 @@ export function SignUpForm() {
         disabled={submitting}
         aria-invalid={Boolean(errEmail)}
       />
+
+      {showAffManual && !isAnon && (
+        <Input
+          label="Referral code (optional)"
+          type="text"
+          autoComplete="off"
+          leadingIcon={<Ticket className="size-4" aria-hidden />}
+          value={affManual}
+          onChange={(e) => {
+            setAffManual(e.target.value);
+            if (errAffManual) setErrAffManual(undefined);
+          }}
+          error={errAffManual}
+          placeholder="coachjane-a3f2"
+          hint="If a coach or partner shared a referral link, paste their code here."
+          disabled={submitting}
+          aria-invalid={Boolean(errAffManual)}
+        />
+      )}
 
       {!isAnon && (
         <Input
