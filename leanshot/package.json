@@ -23,7 +23,8 @@
     "test:e2e:rls": "vitest run --config vitest-e2e.config.ts",
     "test:visual": "playwright test e2e/visual",
     "test:visual:update": "playwright test e2e/visual --update-snapshots",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check-bundle-budget": "bash scripts/assert-bundle-budget.sh && bash scripts/assert-clinic-bundle-budget.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
