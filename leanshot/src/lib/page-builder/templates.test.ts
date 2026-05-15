@@ -48,9 +48,14 @@ const EXPECTED_IDS: TemplateId[] = [
 ];
 
 describe('TEMPLATES — code-defined catalog', () => {
-  it('has exactly 5 entries with the expected ids', () => {
-    const ids = Object.keys(TEMPLATES).sort();
-    expect(ids).toEqual([...EXPECTED_IDS].sort());
+  it('contains the 5 Phase 15 page templates (catalog may include Phase 19 affiliate extensions)', () => {
+    // Phase 19 (Plan 19-08) extends the catalog with 3 affiliate templates
+    // (`coach`, `story`, `method`). Assert the 5 Phase 15 page-template ids
+    // are present without forcing the catalog to stay exactly-5.
+    const ids = new Set(Object.keys(TEMPLATES));
+    for (const expected of EXPECTED_IDS) {
+      expect(ids.has(expected)).toBe(true);
+    }
   });
 
   it('every template has a non-empty blocks array using only valid BlockTypes', () => {

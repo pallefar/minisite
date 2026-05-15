@@ -34,7 +34,17 @@ export type TemplateId =
   | 'lead-magnet'
   | 'comparison'
   | 'faq'
-  | 'testimonial';
+  | 'testimonial'
+  // Phase 19 — 3 affiliate co-branded landing-page variants (UI-SPEC §"/r/{code}"
+  // lines 212-256). These extend the Phase 15 catalog with the same `Template`
+  // shape but carry a non-`affiliate`-empty `category` so callers can filter.
+  | 'coach'
+  | 'story'
+  | 'method';
+
+/** Top-level grouping. Phase 15 templates default to `'page'`; Phase 19
+ * adds `'affiliate'` for the 3 co-branded /r/{code} variants. */
+export type TemplateCategory = 'page' | 'affiliate';
 
 export interface Template {
   id: TemplateId;
@@ -44,6 +54,8 @@ export interface Template {
   thumbnail: string;
   /** Default JSON-LD type for the page when scaffolded from this template. */
   seoSchemaType: SchemaType;
+  /** Phase 19 — distinguishes affiliate templates from generic page templates. */
+  category: TemplateCategory;
   blocks: BlockNode[];
 }
 
@@ -377,6 +389,191 @@ const TESTIMONIAL_TEMPLATE: BlockNode[] = compile([
 ]);
 
 // ---------------------------------------------------------------------------
+// 6) Phase 19 affiliate templates — `coach` / `story` / `method`
+// ---------------------------------------------------------------------------
+// Block-tree mirrors the SQL seed in
+// supabase/migrations/20270101000009_affiliate_landing_template_seeds.sql.
+// {{slot}} bindings (display_name, photo_path, blurb, calendly_url,
+// testimonial_quote, referral_code) are substituted by the renderer at
+// render time. Phase 19 affiliates do NOT use the Phase 15 editor — the
+// in-code TEMPLATES entries below exist so PartnerTemplatePicker
+// (Plan 19-06b) and the scaffold helper can resolve template metadata.
+
+const COACH_TEMPLATE: BlockNode[] = compile([
+  {
+    type: 'hero',
+    content: {
+      layout: 'split',
+      heading: '{{display_name}}',
+      subheading: '{{blurb}}',
+      ctaLabel: 'Start your free trial',
+      ctaHref: '/signup?aff={{referral_code}}',
+      ctaSecondaryLabel: 'Book a 1:1 with me',
+      ctaSecondaryHref: '{{calendly_url}}',
+      ctaSecondaryShowIf: 'calendly_url',
+      leftSlot: {
+        type: 'PhotoSlot',
+        binding: '{{photo_path}}',
+        fallback: 'InitialsAvatar',
+        size: 'lg',
+      },
+    },
+    style: { backgroundTone: 'brand', alignment: 'left', spacingDensity: 'spacious' },
+  },
+  {
+    type: 'feature-grid',
+    content: {
+      heading: 'Why I recommend LeanShot',
+      cols: 2,
+      items: [
+        { title: 'Every shot tracked', body: 'Injections, side effects, weight — one timeline.' },
+        { title: 'Built-in coach', body: 'Rule-based insights + an AI coach on tap.' },
+        { title: 'Doctor-share view', body: 'One-tap snapshot for clinic visits.' },
+      ],
+    },
+    style: { backgroundTone: 'default', spacingDensity: 'default' },
+  },
+  {
+    type: 'cta',
+    content: {
+      heading: 'Track your GLP-1 journey',
+      body: "Free to start. Your data stays local — sync only when you're ready.",
+      ctaLabel: 'Start free trial',
+      ctaHref: '/signup?aff={{referral_code}}',
+    },
+    style: { backgroundTone: 'brand', alignment: 'center', spacingDensity: 'default' },
+  },
+  {
+    type: 'footer',
+    content: {
+      fineprint: 'Referred by {{display_name}}.',
+      copyright: '© LeanShot',
+      links: [
+        { label: 'Privacy', href: '/legal/privacy' },
+        { label: 'Terms', href: '/legal/terms' },
+      ],
+    },
+    style: { backgroundTone: 'dark', spacingDensity: 'compact' },
+  },
+]);
+
+const STORY_TEMPLATE: BlockNode[] = compile([
+  {
+    type: 'hero',
+    content: {
+      layout: 'testimonial',
+      quote: '{{testimonial_quote}}',
+      attribution: '{{display_name}}',
+      subheading: '{{blurb}}',
+      ctaLabel: 'Start your free trial',
+      ctaHref: '/signup?aff={{referral_code}}',
+      ctaSecondaryLabel: 'Book a 1:1 with me',
+      ctaSecondaryHref: '{{calendly_url}}',
+      ctaSecondaryShowIf: 'calendly_url',
+      attributionSlot: {
+        type: 'PhotoSlot',
+        binding: '{{photo_path}}',
+        fallback: 'InitialsAvatar',
+        size: 'md',
+      },
+    },
+    style: { backgroundTone: 'brand', alignment: 'center', spacingDensity: 'spacious' },
+  },
+  {
+    type: 'feature-grid',
+    content: {
+      heading: "What you'll track",
+      cols: 3,
+      items: [
+        { title: 'Injections', body: 'Every shot + site rotation, automatically.' },
+        { title: 'Body + mood', body: 'Weight, symptoms, sleep, food noise.' },
+        { title: 'Doctor share', body: 'A snapshot in one tap.' },
+      ],
+    },
+    style: { backgroundTone: 'default', spacingDensity: 'default' },
+  },
+  {
+    type: 'cta',
+    content: {
+      heading: 'Try LeanShot free',
+      ctaLabel: 'Start your free trial',
+      ctaHref: '/signup?aff={{referral_code}}',
+    },
+    style: { backgroundTone: 'subtle', alignment: 'center', spacingDensity: 'default' },
+  },
+  {
+    type: 'footer',
+    content: {
+      fineprint: 'Referred by {{display_name}}.',
+      copyright: '© LeanShot',
+      links: [
+        { label: 'Privacy', href: '/legal/privacy' },
+        { label: 'Terms', href: '/legal/terms' },
+      ],
+    },
+    style: { backgroundTone: 'dark', spacingDensity: 'compact' },
+  },
+]);
+
+const METHOD_TEMPLATE: BlockNode[] = compile([
+  {
+    type: 'hero',
+    content: {
+      layout: 'bullets',
+      heading: 'How I work with LeanShot',
+      bullets: [
+        'Stop guessing the curve — see your real drug level day by day',
+        'Rotate injection sites without a notebook',
+        'Watch your weight, mood, and symptoms in one view',
+        'Send your doctor a clean snapshot in one tap',
+        'Ask the AI coach anything in plain English',
+      ],
+      ctaLabel: 'Start your free trial',
+      ctaHref: '/signup?aff={{referral_code}}',
+    },
+    style: { backgroundTone: 'default', alignment: 'left', spacingDensity: 'spacious' },
+  },
+  {
+    type: 'image-text',
+    content: {
+      heading: 'Brought to you by {{display_name}}',
+      body: '{{blurb}}',
+      imageSlot: {
+        type: 'PhotoSlot',
+        binding: '{{photo_path}}',
+        fallback: 'InitialsAvatar',
+        size: 'md',
+      },
+      ctaSecondaryLabel: 'Book a 1:1 with me',
+      ctaSecondaryHref: '{{calendly_url}}',
+      ctaSecondaryShowIf: 'calendly_url',
+    },
+    style: { backgroundTone: 'subtle', alignment: 'left', spacingDensity: 'default' },
+  },
+  {
+    type: 'cta',
+    content: {
+      heading: 'Track your GLP-1 journey',
+      ctaLabel: 'Start free trial',
+      ctaHref: '/signup?aff={{referral_code}}',
+    },
+    style: { backgroundTone: 'brand', alignment: 'center', spacingDensity: 'default' },
+  },
+  {
+    type: 'footer',
+    content: {
+      fineprint: 'Referred by {{display_name}}.',
+      copyright: '© LeanShot',
+      links: [
+        { label: 'Privacy', href: '/legal/privacy' },
+        { label: 'Terms', href: '/legal/terms' },
+      ],
+    },
+    style: { backgroundTone: 'dark', spacingDensity: 'compact' },
+  },
+]);
+
+// ---------------------------------------------------------------------------
 // Catalog
 // ---------------------------------------------------------------------------
 
@@ -387,6 +584,7 @@ export const TEMPLATES: Record<TemplateId, Template> = {
     description: 'Hero, features, social proof, pricing, and CTA — the full pitch.',
     thumbnail: '/assets/page-templates/long-form-sales.webp',
     seoSchemaType: 'WebPage',
+    category: 'page',
     blocks: LONG_FORM_SALES,
   },
   'lead-magnet': {
@@ -395,6 +593,7 @@ export const TEMPLATES: Record<TemplateId, Template> = {
     description: 'Single-purpose page with a native lead form for capturing emails.',
     thumbnail: '/assets/page-templates/lead-magnet.webp',
     seoSchemaType: 'WebPage',
+    category: 'page',
     blocks: LEAD_MAGNET,
   },
   comparison: {
@@ -403,6 +602,7 @@ export const TEMPLATES: Record<TemplateId, Template> = {
     description: 'Show why you win — features, contrasts, and a final CTA.',
     thumbnail: '/assets/page-templates/comparison.webp',
     seoSchemaType: 'WebPage',
+    category: 'page',
     blocks: COMPARISON,
   },
   faq: {
@@ -411,6 +611,7 @@ export const TEMPLATES: Record<TemplateId, Template> = {
     description: 'Frequently asked questions with JSON-LD FAQPage out of the box.',
     thumbnail: '/assets/page-templates/faq.webp',
     seoSchemaType: 'FAQPage',
+    category: 'page',
     blocks: FAQ_TEMPLATE,
   },
   testimonial: {
@@ -419,9 +620,117 @@ export const TEMPLATES: Record<TemplateId, Template> = {
     description: 'Three featured testimonials anchored by a strong hero and CTA.',
     thumbnail: '/assets/page-templates/testimonial.webp',
     seoSchemaType: 'WebPage',
+    category: 'page',
     blocks: TESTIMONIAL_TEMPLATE,
   },
+  // Phase 19 affiliate templates (UI-SPEC §"/r/{code}").
+  coach: {
+    id: 'coach',
+    name: 'The coach',
+    description: 'Photo-forward hero + Calendly CTA. Best when your audience already knows your face.',
+    thumbnail: '/assets/page-templates/affiliate-coach.webp',
+    seoSchemaType: 'WebPage',
+    category: 'affiliate',
+    blocks: COACH_TEMPLATE,
+  },
+  story: {
+    id: 'story',
+    name: 'The story',
+    description: 'Testimonial-forward pull-quote in the hero. Best when you have a strong personal story.',
+    thumbnail: '/assets/page-templates/affiliate-story.webp',
+    seoSchemaType: 'WebPage',
+    category: 'affiliate',
+    blocks: STORY_TEMPLATE,
+  },
+  method: {
+    id: 'method',
+    name: 'The method',
+    description: 'Benefits-list hero, no above-the-fold photo. Best for analytical / educational audiences.',
+    thumbnail: '/assets/page-templates/affiliate-method.webp',
+    seoSchemaType: 'WebPage',
+    category: 'affiliate',
+    blocks: METHOD_TEMPLATE,
+  },
 };
+
+// ---------------------------------------------------------------------------
+// Phase 19 affiliate-template helpers
+// ---------------------------------------------------------------------------
+
+/** Slot-binding keys the affiliate-landing renderer substitutes at render time.
+ * Mirrors UI-SPEC §D-18. */
+export type AffiliateSlotKey =
+  | 'display_name'
+  | 'photo_path'
+  | 'blurb'
+  | 'calendly_url'
+  | 'testimonial_quote'
+  | 'referral_code';
+
+export type AffiliateSlotOverrides = Partial<Record<AffiliateSlotKey, string>>;
+
+/** Return only the 3 affiliate templates from the catalog.
+ *
+ * Consumed by `PartnerTemplatePicker` (Plan 19-06b) and the Phase 19
+ * affiliate-templates vitest suite. The result is intentionally
+ * order-stable (coach → story → method) — that's the visual order shown
+ * to the affiliate. */
+export function getAffiliateTemplates(): Template[] {
+  return (['coach', 'story', 'method'] as const).map((id) => TEMPLATES[id]);
+}
+
+/** Recursively replace `{{slot}}` tokens in any string value of a content/
+ * style object. Non-string leaves pass through. Pure — no side effects.
+ *
+ * Whitespace-tolerant: matches `{{ slot_name }}` or `{{slot_name}}`. */
+function applyOverridesToObject<T>(value: T, overrides: AffiliateSlotOverrides): T {
+  if (typeof value === 'string') {
+    return value.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_match, key: string) => {
+      const replacement = overrides[key as AffiliateSlotKey];
+      return replacement === undefined ? `{{${key}}}` : replacement;
+    }) as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => applyOverridesToObject(v, overrides)) as T;
+  }
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = applyOverridesToObject(v, overrides);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+/** Phase 19 overload: scaffold an affiliate template with slot substitutions.
+ *
+ * Distinct from `scaffoldFromTemplate(id)` (Phase 15) which is the deep-copy
+ * scaffold gate for the page-builder editor. This variant accepts overrides
+ * AND deep-copies so the catalog stays immutable. */
+export function scaffoldAffiliateTemplate(args: {
+  template: 'coach' | 'story' | 'method';
+  overrides?: AffiliateSlotOverrides;
+}): BlockNode[] {
+  const source = TEMPLATES[args.template];
+  const cloned = structuredClone(source.blocks);
+  const remap = new Map<string, string>();
+  for (const b of cloned) {
+    remap.set(b.id, newBlockId());
+  }
+  const overrides = args.overrides ?? {};
+  return cloned.map((b) => {
+    const remappedParent =
+      b.parent_id === null ? null : (remap.get(b.parent_id) ?? null);
+    return {
+      ...b,
+      id: remap.get(b.id)!,
+      parent_id: remappedParent,
+      content: applyOverridesToObject(b.content, overrides),
+      style: applyOverridesToObject(b.style, overrides),
+    };
+  });
+}
 
 // ---------------------------------------------------------------------------
 // scaffoldFromTemplate — the D-14 independence gate
