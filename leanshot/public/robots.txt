@@ -1,0 +1,6 @@
+# Phase 15 Plan 08 — robots.txt. Static file per 15-RESEARCH.md Pattern 5;
+# the dynamic discovery surface is /sitemap.xml (served by the `sitemap`
+# Edge Function).
+User-agent: *
+Allow: /
+Sitemap: https://leanshot.app/sitemap.xml

@@ -300,25 +300,155 @@ Deno.test('renderBlock lead-form: XSS payload in content is escaped', () => {
 
 // ─── renderSeoHead ─────────────────────────────────────────────────────────────
 
-Deno.test('renderSeoHead: stub emits ONLY charset, viewport, title, font preloads', () => {
+// 15-08 — stub minimality test replaced by the full SEO-cascade behavior
+// suite below. The 15-03 stub deliberately emitted ONLY charset/viewport/
+// title/font-preloads as a placeholder for this plan. The new tests prove
+// the real cascade behavior + escape contracts.
+
+Deno.test('renderSeoHead: emits full SEO cascade (title, description, og:*, canonical, JSON-LD, twitter:card)', () => {
   const head = renderSeoHead({
     pageTitle: 'Hello',
-    pageDescription: 'should be ignored by stub',
+    pageDescription: 'A description',
     canonicalUrl: 'https://x/h',
-    ogImage: 'should be ignored by stub',
+    ogImage: 'https://x/og.png',
   });
   assertStringIncludes(head, '<meta charset="utf-8">');
-  assertStringIncludes(head, 'name="viewport"');
   assertStringIncludes(head, '<title>Hello</title>');
-  // Font preloads (UI-SPEC Performance Contract)
+  assertStringIncludes(head, '<meta name="description" content="A description">');
+  assertStringIncludes(head, '<meta property="og:title" content="Hello">');
+  assertStringIncludes(head, '<meta property="og:description" content="A description">');
+  assertStringIncludes(head, '<meta property="og:type" content="website">');
+  assertStringIncludes(head, '<meta property="og:url" content="https://x/h">');
+  assertStringIncludes(head, '<meta property="og:image" content="https://x/og.png">');
+  assertStringIncludes(head, '<meta name="twitter:card" content="summary_large_image">');
+  assertStringIncludes(head, '<link rel="canonical" href="https://x/h">');
+  assertStringIncludes(head, '<script type="application/ld+json">');
+  // Performance preloads still present (UI-SPEC Performance Contract).
   assertStringIncludes(head, 'rel="preload"');
   assertStringIncludes(head, 'Geist');
   assertStringIncludes(head, 'Fraunces');
-  // Stub MUST NOT emit any of the SEO-cascade fields — those are 15-08's job
-  assert(!head.includes('name="description"'), 'stub emitted description meta');
-  assert(!head.toLowerCase().includes('og:'), 'stub emitted og: tags');
-  assert(!head.includes('rel="canonical"'), 'stub emitted canonical link');
-  assert(!head.includes('application/ld+json'), 'stub emitted JSON-LD script');
+});
+
+Deno.test('renderSeoHead: per-page description wins; site_settings.default_description fills when blank', () => {
+  // Per-page blank → falls back to default.
+  const headFallback = renderSeoHead({
+    pageTitle: 'P',
+    pageDescription: '',
+    canonicalUrl: '/p',
+    ogImage: '',
+    siteSettings: { default_description: 'Global default desc' },
+  });
+  assertStringIncludes(headFallback, 'content="Global default desc"');
+  // Per-page set → overrides default.
+  const headOverride = renderSeoHead({
+    pageTitle: 'P',
+    pageDescription: 'Page desc',
+    canonicalUrl: '/p',
+    ogImage: '',
+    siteSettings: { default_description: 'Global default desc' },
+  });
+  assertStringIncludes(headOverride, 'content="Page desc"');
+  assert(
+    !headOverride.includes('Global default desc'),
+    'site_settings default leaked when per-page description was set',
+  );
+});
+
+Deno.test('renderSeoHead: site_name suffix appended to <title> when set', () => {
+  const head = renderSeoHead({
+    pageTitle: 'Hello',
+    pageDescription: '',
+    canonicalUrl: '/h',
+    ogImage: '',
+    siteSettings: { site_name: 'LeanShot' },
+  });
+  assertStringIncludes(head, '<title>Hello — LeanShot</title>');
+});
+
+Deno.test('renderSeoHead: emits favicon link ONLY when site_settings.favicon_url is set', () => {
+  const headOff = renderSeoHead({
+    pageTitle: 'H',
+    pageDescription: '',
+    canonicalUrl: '/h',
+    ogImage: '',
+  });
+  assert(!headOff.includes('rel="icon"'), 'favicon emitted with no site_settings');
+  const headOn = renderSeoHead({
+    pageTitle: 'H',
+    pageDescription: '',
+    canonicalUrl: '/h',
+    ogImage: '',
+    siteSettings: { favicon_url: '/favicon.svg' },
+  });
+  assertStringIncludes(headOn, '<link rel="icon" href="/favicon.svg">');
+});
+
+Deno.test('renderSeoHead: meta description carrying " and < cannot break out of the attribute (T-15-08-02)', () => {
+  const head = renderSeoHead({
+    pageTitle: 'P',
+    pageDescription: 'bad" onerror="alert(1)" <script>x</script>',
+    canonicalUrl: '/p',
+    ogImage: '',
+  });
+  // The escaped value cannot terminate the attribute. No literal `onerror="`
+  // can appear as an attribute outside our intended attributes.
+  assert(!head.includes('"onerror='), 'attribute breakout in description');
+  assertStringIncludes(head, '&quot;');
+  assertStringIncludes(head, '&lt;script&gt;');
+});
+
+Deno.test('renderSeoHead: JSON-LD <script> cannot be terminated by a </script> in the title (T-15-08-01)', () => {
+  const head = renderSeoHead({
+    pageTitle: '</script><img src=x onerror=alert(1)>',
+    pageDescription: '',
+    canonicalUrl: '/p',
+    ogImage: '',
+  });
+  // The <title> is HTML-escaped so the literal </script> in the title context
+  // is also escaped.
+  assert(!head.includes('<title></script>'), 'unescaped </script> in <title>');
+  // The JSON-LD block contains escaped < (\\u003c) — never a literal </script>.
+  // Pull the JSON-LD substring out and assert no literal </script>.
+  const ldIdx = head.indexOf('<script type="application/ld+json">');
+  assert(ldIdx >= 0, 'no JSON-LD <script> tag emitted');
+  const ldEnd = head.indexOf('</script>', ldIdx);
+  // Find the actual closing tag (the only legitimate </script>). The body
+  // between the opening tag and that closing tag must NOT contain another
+  // </script> substring.
+  const innerStart = ldIdx + '<script type="application/ld+json">'.length;
+  const inner = head.slice(innerStart, ldEnd);
+  assert(!inner.includes('</script>'), 'JSON-LD body could terminate the <script> tag');
+  // Inner is the raw JSON-LD output. It must contain the \\u003c escape.
+  assertStringIncludes(inner, '\\u003c');
+});
+
+Deno.test('renderSeoHead: FAQPage schemaType extracts mainEntity from faq blocks', () => {
+  const faq: BlockNode = {
+    id: 'b1',
+    type: 'faq',
+    parent_id: null,
+    order: 0,
+    content: { items: [{ q: 'Q1', a: 'A1' }] },
+    style: {},
+  };
+  const head = renderSeoHead({
+    pageTitle: 'FAQs',
+    pageDescription: 'F',
+    canonicalUrl: '/faq',
+    ogImage: '',
+    blocks: [faq],
+    schemaType: 'FAQPage',
+  });
+  // Pull the JSON-LD payload and assert its structure.
+  const ldStart = head.indexOf('<script type="application/ld+json">') +
+    '<script type="application/ld+json">'.length;
+  const ldEnd = head.indexOf('</script>', ldStart);
+  const ld = head.slice(ldStart, ldEnd);
+  // JSON-LD output has \\u003c-escaped `<`s; replace before parsing.
+  const parsed = JSON.parse(ld.replace(/\\u003c/g, '<'));
+  assertEquals(parsed['@type'], 'FAQPage');
+  assertEquals(parsed.mainEntity?.[0]?.name, 'Q1');
+  assertEquals(parsed.mainEntity?.[0]?.acceptedAnswer?.text, 'A1');
 });
 
 Deno.test('renderSeoHead: pageTitle is escapeHtml-d', () => {

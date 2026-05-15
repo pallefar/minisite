@@ -431,6 +431,15 @@ verify_jwt = true
 [functions.lead-capture]
 verify_jwt = false
 
+# Phase 15 Plan 08 — sitemap is a public crawler endpoint serving sitemap.xml
+# for every PUBLISHED landing page. Search engines (Google, Bing) request
+# /sitemap.xml; 15-02's vercel.json rewrites that path to /functions/v1/sitemap.
+# verify_jwt must be false or the gateway 401s every crawler before the
+# function runs (Pitfall 7). The function's `status='published'` filter is
+# the access-control gate (T-15-08-03); draft slugs are NEVER served.
+[functions.sitemap]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

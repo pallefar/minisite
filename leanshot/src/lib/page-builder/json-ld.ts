@@ -18,7 +18,11 @@
  * its relative path (D-08 / 15-08 plan).
  */
 
-import type { BlockNode } from './block-schema';
+// `.ts` extension is intentional: Deno (the page-render Edge Function
+// runtime) imports this module via a relative path and requires the file
+// suffix. The browser bundler accepts the `.ts` import because
+// `allowImportingTsExtensions: true` is set in tsconfig.app.json.
+import type { BlockNode } from './block-schema.ts';
 
 export type SchemaType = 'WebPage' | 'FAQPage' | 'Product' | 'Article' | 'Event';
 
