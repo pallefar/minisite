@@ -515,6 +515,33 @@ verify_jwt = true
 [functions.affiliate-impression]
 verify_jwt = false
 
+# Phase 19 Plan 19-09 — affiliate-payout is the cron-invoked POST endpoint that
+# fires on the 1st of each month at 00:00 UTC (AFF-06). It iterates eligible
+# pending payouts and calls stripe.transfers.create per affiliate with an
+# idempotency key (D-32). verify_jwt = true at the GATEWAY level + constant-time
+# bearer compare against SUPABASE_SERVICE_ROLE_KEY inside the function. The
+# bearer is sourced by pg_cron from vault.decrypted_secrets (BL-7 — migration
+# 20270101000013). Stripe pin: stripe@19 (W-2 lock from Phase 14 + 19-04).
+# Skips on `stripe_payouts_enabled = false` (Pitfall 7) → status='blocked_onboarding'.
+# Skips when cumulative paid + this amount < tax_threshold_cents (D-31 W-9).
+# On Stripe error → incrementPayoutRetry; 3 attempts then status='failed' +
+# Resend admin alert.
+[functions.affiliate-payout]
+verify_jwt = true
+
+# Phase 19 Plan 19-09 — account-delete is the JWT-gated POST endpoint that
+# orchestrates the D-33 10-step cascade (AFF-10 + MONEY-10). Caller must be the
+# user being deleted (caller.user.id === p_user_id) OR is_staff(caller). 409
+# response with { error: 'open_payouts', eta } when pre-flight finds pending or
+# processing payouts. SQL function finalize_affiliate_cascade (migration
+# 20270101000012) handles steps 2-4 (anonymize, audit-skeleton); the Edge
+# Function orchestrates steps 5-10 (Stripe customer.del, Stripe Connect
+# accounts.del, PaymentIntent cancel, Resend audience.remove, Storage cleanup,
+# auth.admin.deleteUser). payouts rows are RETAINED (IRS 7yr); event tables
+# use FK ON DELETE SET NULL on user_id.
+[functions.account-delete]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
