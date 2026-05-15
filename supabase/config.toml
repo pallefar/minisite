@@ -400,6 +400,14 @@ deno_version = 2
 [functions.stripe-webhook]
 verify_jwt = false
 
+# Phase 15 Plan 03 — page-render is a PUBLIC endpoint for published landing pages.
+# Anonymous visitors (and search-engine crawlers) request /{slug}; no JWT, no
+# cookie. Without verify_jwt = false the gateway 401s every visitor before the
+# function runs (RESEARCH Pitfall 7 / T-15-03-06). The function's own
+# `status='published'` SELECT filter is the access-control gate.
+[functions.page-render]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
