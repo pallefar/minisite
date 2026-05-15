@@ -4,7 +4,8 @@
   "rewrites": [
     { "source": "/clinic/(.*)", "destination": "/index.html" },
     { "source": "/clinic-invite/(.*)", "destination": "/index.html" },
-    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
+    { "source": "/sitemap.xml", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/sitemap" },
+    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
   ],
   "headers": [
     {
