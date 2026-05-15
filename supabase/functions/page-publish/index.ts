@@ -101,6 +101,18 @@ function jwtFromReq(req: Request): string | null {
 interface PublishBody {
   pageId?: string;
   revisionId?: string;
+  // 15-08: optional SEO field updates (PAGE-08). When present, the same
+  // UPDATE statement that re-points published_revision_id also writes
+  // the per-page SEO columns. This is the SiteSettingsPanel-independent
+  // path for setting per-page SEO (an alternative is direct staff-RLS
+  // writes against landing_pages from the editor, which also work).
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    ogImage?: string | null;
+    canonical?: string | null;
+    schemaType?: string | null;
+  };
 }
 
 // =============================================================================
@@ -153,14 +165,25 @@ export async function handlePublish(req: Request): Promise<Response> {
     return jsonError(400, 'revision_mismatch');
   }
 
-  // 6. Re-point published_revision_id (the actual publish action).
+  // 6. Re-point published_revision_id (the actual publish action). 15-08:
+  //    when the body carries `seo` fields, those land in the same UPDATE
+  //    so the publish action is atomic (pointer + SEO together).
+  const updatePayload: Record<string, unknown> = {
+    published_revision_id: revisionId,
+    is_published: true,
+    updated_at: new Date().toISOString(),
+  };
+  if (body.seo && typeof body.seo === 'object') {
+    const s = body.seo;
+    if (typeof s.title === 'string' || s.title === null) updatePayload.seo_title = s.title;
+    if (typeof s.description === 'string' || s.description === null) updatePayload.seo_description = s.description;
+    if (typeof s.ogImage === 'string' || s.ogImage === null) updatePayload.seo_og_image = s.ogImage;
+    if (typeof s.canonical === 'string' || s.canonical === null) updatePayload.seo_canonical = s.canonical;
+    if (typeof s.schemaType === 'string') updatePayload.seo_schema_type = s.schemaType;
+  }
   const { error: updateErr } = await adminInstance
     .from('landing_pages')
-    .update({
-      published_revision_id: revisionId,
-      is_published: true,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('id', pageId);
   if (updateErr) {
     console.error(
@@ -197,6 +220,23 @@ export async function handlePublish(req: Request): Promise<Response> {
         err instanceof Error ? err.message : 'unknown',
       );
     }
+  }
+
+  // 9. 15-08 — also revalidate /sitemap.xml so a newly published slug
+  //    appears immediately in the sitemap (D-09 "publish feels instant").
+  //    Best-effort; failure is non-fatal and the 200 response is unchanged.
+  try {
+    const origin = getSiteOrigin();
+    const token = getVercelBypassToken();
+    await fetch(`${origin}/sitemap.xml`, {
+      method: 'HEAD',
+      headers: { 'x-prerender-revalidate': token },
+    });
+  } catch (err) {
+    console.warn(
+      '[page-publish] sitemap.xml revalidation HEAD failed',
+      err instanceof Error ? err.message : 'unknown',
+    );
   }
 
   return jsonResponse(200, { ok: true, slug });

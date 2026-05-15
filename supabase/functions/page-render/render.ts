@@ -9,6 +9,16 @@ import {
   buildYouTubeIframeHtml,
 } from '../../../leanshot/src/lib/page-builder/embed-src.ts';
 
+// 15-08: import the SHARED HTML / attribute escapers + JSON-LD generator.
+// `escape-html.ts` is a pure dependency-free module — the same logic is
+// MIRRORED locally as `escapeHtml(...)` below to preserve the 15-03 contract,
+// and `escapeAttr` is the attribute-context-safe variant used by the SEO
+// head injection (T-15-08-02). `json-ld.ts` is the auto-generator (D-16); it
+// returns a `<`-escaped JSON string that cannot terminate a `<script>` tag
+// (T-15-08-01).
+import { escapeAttr as escapeAttrShared } from '../../../leanshot/src/lib/page-builder/escape-html.ts';
+import { generateJsonLd, type SchemaType } from '../../../leanshot/src/lib/page-builder/json-ld.ts';
+
 /**
  * Phase 15 Plan 03 — Recursive HTML renderer for published landing pages.
  *
@@ -79,10 +89,30 @@ export interface PageSeo {
   schemaType?: string;
 }
 
+// 15-08: global `site_settings` row shape (per migration 05). The renderer
+// cascades per-page SEO over these defaults (per-page → site_settings →
+// safe fallback).
+export interface SiteSettingsRow {
+  site_name?: string;
+  default_description?: string;
+  favicon_url?: string;
+  default_og_image?: string;
+}
+
 export interface RenderPageInput {
   slug: string;
   seo?: PageSeo;
   blocks: BlockNode[];
+  // 15-08: optional site_settings row threaded through to renderSeoHead.
+  // Optional so render.test.ts's existing fixtures (which don't pass it)
+  // continue to type-check; the index.ts dispatcher fetches the singleton
+  // row and passes it in production. `pageTitle` defaults to the slug when
+  // both per-page seo.title AND page.title are empty.
+  siteSettings?: SiteSettingsRow;
+  // 15-08: page title (column `landing_pages.title`) — separate from
+  // seo.title, used as the cascade fallback for `<title>` when seo.title
+  // is blank. Optional for the same back-compat reason as siteSettings.
+  title?: string;
 }
 
 // ─── escapeHtml — the XSS boundary ─────────────────────────────────────────────
@@ -113,6 +143,17 @@ export function escapeHtml(value: unknown): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/**
+ * 15-08: attribute-context-safe variant of `escapeHtml`. Additionally escapes
+ * `"` and `'` so a user value cannot terminate a double-quoted HTML attribute.
+ * Delegates to the shared `escape-html.ts` module — the same string Logic that
+ * the browser editor uses (so a payload that the editor preview thinks is safe
+ * is also safe in the served HTML).
+ */
+export function escapeAttr(value: unknown): string {
+  return escapeAttrShared(value);
 }
 
 // ─── href validation ───────────────────────────────────────────────────────────
@@ -678,51 +719,153 @@ export interface RenderSeoHeadOpts {
   pageDescription: string;
   canonicalUrl: string;
   ogImage: string;
+  /**
+   * Optional pre-built JSON-LD string. Reserved for future plans (Phase 16+)
+   * that may inject schema-org overrides. 15-08 ignores this field and
+   * ALWAYS auto-generates JSON-LD from `blocks + schemaType` via D-16.
+   */
   jsonLd?: string;
-  siteSettings?: {
-    site_name?: string;
-    default_description?: string;
-    favicon_url?: string;
-    default_og_image?: string;
-  };
+  /**
+   * 15-08 cascade input. The per-page SEO column ("title" / "description" /
+   * "ogImage") wins when set. Otherwise `siteSettings` defaults fill in.
+   * When BOTH are blank, a safe minimal fallback is used (no description
+   * meta emitted, no og:image emitted — the renderer never invents data).
+   */
+  siteSettings?: SiteSettingsRow;
+  /** 15-08 — blocks tree used to auto-generate JSON-LD. */
+  blocks?: BlockNode[];
+  /** 15-08 — JSON-LD schema type. Defaults to 'WebPage' when blank. */
+  schemaType?: string;
 }
 
 /**
- * SEO-head SEAM. THIS plan ships the minimal STUB body below — 15-08
- * REPLACES the body (NOT the signature, NOT the function name) with the
- * full SEO cascade (description, og:*, canonical, favicon, JSON-LD), using
- * `opts.siteSettings` for site-wide defaults that per-page overrides
- * cascade over.
+ * 15-08: SEO-head injection.
  *
- * The seam contract — the function name `renderSeoHead`, the `opts` shape,
- * and the `<head>`-INNER return string (no opening/closing `<head>` tag) —
- * is fixed. Do NOT rename to anything else (e.g. a short `render-head`).
+ * Emits the full `<head>`-inner string for a published page. Every user
+ * value is routed through `escapeHtml` (text-node context) or `escapeAttr`
+ * (attribute context) — see the threat-model T-15-08-02 row.
+ *
+ * Cascade rule: per-page SEO field → site_settings default → safe fallback.
+ *
+ *   <title>          = (seo.title || page.title || slug) — page.title is
+ *                       passed in as opts.pageTitle by renderPage.
+ *                       Suffix " — {site_name}" appended when site_name is
+ *                       set.
+ *   <meta name=description>
+ *                     = seo.description ?? site_settings.default_description
+ *   <meta name=og:image>
+ *                     = seo.ogImage ?? site_settings.default_og_image
+ *   <link rel=canonical>
+ *                     = seo.canonical || `${PUBLIC_MARKETING_ORIGIN}/${slug}`
+ *                       — the canonical URL is precomputed by renderPage and
+ *                       arrives as opts.canonicalUrl already populated.
+ *   <link rel=icon>
+ *                     = site_settings.favicon_url (only emitted when present)
+ *   <script type=application/ld+json>
+ *                     = generateJsonLd({ blocks, title, description, url,
+ *                       schemaType }) — auto-generated from the block tree.
+ *                       The output string is `<`-escaped so it can NEVER
+ *                       terminate the `<script>` tag (T-15-08-01).
  */
 export function renderSeoHead(opts: RenderSeoHeadOpts): string {
-  // SEO seam — 15-08 replaces this body with the full SEO cascade
-  // (description, og:*, canonical, favicon, JSON-LD, site_settings defaults).
-  const title = escapeHtml(opts.pageTitle);
-  return [
+  const ss = opts.siteSettings ?? {};
+  const siteName = (ss.site_name ?? '').trim();
+  const titleRaw = opts.pageTitle ?? '';
+  const titleWithSite = siteName !== '' ? `${titleRaw} — ${siteName}` : titleRaw;
+  const titleHtml = escapeHtml(titleWithSite);
+
+  const description = opts.pageDescription && opts.pageDescription.trim() !== ''
+    ? opts.pageDescription
+    : (ss.default_description ?? '');
+  const descriptionAttr = escapeAttr(description);
+
+  const ogImageRaw = opts.ogImage && opts.ogImage.trim() !== ''
+    ? opts.ogImage
+    : (ss.default_og_image ?? '');
+  const ogImageAttr = escapeAttr(ogImageRaw);
+
+  const canonicalAttr = escapeAttr(opts.canonicalUrl ?? '');
+  const ogTitleAttr = escapeAttr(titleWithSite);
+  const faviconAttr = escapeAttr(ss.favicon_url ?? '');
+
+  // JSON-LD auto-generation (D-16) — the helper returns a `<`-escaped JSON
+  // string so the `<script>` tag CANNOT be terminated by a `</script>` in
+  // the user-authored title or FAQ items (T-15-08-01).
+  const schemaTypeRaw = (opts.schemaType ?? '').trim();
+  const allowedTypes: SchemaType[] = ['WebPage', 'FAQPage', 'Product', 'Article', 'Event'];
+  const schemaType: SchemaType = (allowedTypes as string[]).includes(schemaTypeRaw)
+    ? (schemaTypeRaw as SchemaType)
+    : 'WebPage';
+  const jsonLd = generateJsonLd({
+    blocks: opts.blocks ?? [],
+    title: titleRaw,
+    description,
+    url: opts.canonicalUrl ?? '',
+    schemaType,
+  });
+
+  const parts: string[] = [
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    `<title>${title}</title>`,
-    // UI-SPEC Performance Contract — Geist + Fraunces preloaded
+    `<title>${titleHtml}</title>`,
+  ];
+  if (description !== '') {
+    parts.push(`<meta name="description" content="${descriptionAttr}">`);
+  }
+  if (canonicalAttr !== '') {
+    parts.push(`<link rel="canonical" href="${canonicalAttr}">`);
+  }
+  // OpenGraph tags — emitted on every page; og:type defaults to 'website'.
+  parts.push(`<meta property="og:title" content="${ogTitleAttr}">`);
+  if (description !== '') {
+    parts.push(`<meta property="og:description" content="${descriptionAttr}">`);
+  }
+  parts.push('<meta property="og:type" content="website">');
+  if (canonicalAttr !== '') {
+    parts.push(`<meta property="og:url" content="${canonicalAttr}">`);
+  }
+  if (ogImageRaw !== '') {
+    parts.push(`<meta property="og:image" content="${ogImageAttr}">`);
+  }
+  // Twitter card — pairs with og:* so the page gets a large preview card.
+  parts.push('<meta name="twitter:card" content="summary_large_image">');
+  // Favicon — only when site_settings has set it.
+  if ((ss.favicon_url ?? '').trim() !== '') {
+    parts.push(`<link rel="icon" href="${faviconAttr}">`);
+  }
+  // Performance: keep the Geist + Fraunces preloads from 15-03 (UI-SPEC
+  // Performance Contract — fonts must be discoverable in the initial HTML).
+  parts.push(
     '<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">',
+  );
+  parts.push(
     '<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400;9..144,500&display=swap">',
-  ].join('');
+  );
+  // JSON-LD <script>. The body is pre-escaped — direct interpolation safe.
+  parts.push(`<script type="application/ld+json">${jsonLd}</script>`);
+
+  return parts.join('');
 }
 
 // ─── renderPage — full document ────────────────────────────────────────────────
 
 export function renderPage(page: RenderPageInput): string {
   const seo: PageSeo = page.seo ?? {};
-  const pageTitle = (seo.title && seo.title.trim() !== '') ? seo.title : page.slug;
+  // 15-08 cascade: per-page seo.title → landing_pages.title (page.title) →
+  // slug as last-resort fallback. page.title is threaded through from
+  // index.ts so the slug only surfaces when both are blank.
+  const pageTitle = (seo.title && seo.title.trim() !== '')
+    ? seo.title
+    : (page.title && page.title.trim() !== '' ? page.title : page.slug);
   const canonical = (seo.canonical && seo.canonical.trim() !== '') ? seo.canonical : `/${page.slug}`;
   const head = renderSeoHead({
     pageTitle,
     pageDescription: seo.description ?? '',
     canonicalUrl: canonical,
     ogImage: seo.ogImage ?? '',
+    siteSettings: page.siteSettings,
+    blocks: page.blocks ?? [],
+    schemaType: seo.schemaType,
   });
   const roots = (page.blocks ?? [])
     .filter((b) => b.parent_id === null)

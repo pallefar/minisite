@@ -253,16 +253,20 @@ Deno.test({
       assertEquals(updateArg.published_revision_id, 'r1');
       assertEquals(updateArg.is_published, true);
 
-      // Revalidation HEAD was called with x-prerender-revalidate header.
-      assertEquals(stub.calls.length, 1);
-      const call = stub.calls[0]!;
-      assertEquals(call.init?.method, 'HEAD');
-      const headers = (call.init?.headers ?? {}) as Record<string, string>;
-      assertEquals(headers['x-prerender-revalidate'], 'stub-bypass-token');
-      // URL contains the slug.
-      if (!call.url.includes('launch')) {
-        throw new Error(`expected revalidation URL to contain slug; got ${call.url}`);
-      }
+      // 15-08: Revalidation HEAD was called TWICE — once for the slug
+      // (15-04's per-slug revalidation) and once for /sitemap.xml (15-08's
+      // sitemap revalidation, D-09 "publish feels instant").
+      assertEquals(stub.calls.length, 2);
+      const slugCall = stub.calls.find((c) => c.url.includes('launch') && !c.url.includes('sitemap'));
+      const sitemapCall = stub.calls.find((c) => c.url.includes('sitemap.xml'));
+      if (!slugCall) throw new Error('missing per-slug revalidation HEAD');
+      if (!sitemapCall) throw new Error('missing sitemap.xml revalidation HEAD');
+      assertEquals(slugCall.init?.method, 'HEAD');
+      assertEquals(sitemapCall.init?.method, 'HEAD');
+      const slugHeaders = (slugCall.init?.headers ?? {}) as Record<string, string>;
+      const sitemapHeaders = (sitemapCall.init?.headers ?? {}) as Record<string, string>;
+      assertEquals(slugHeaders['x-prerender-revalidate'], 'stub-bypass-token');
+      assertEquals(sitemapHeaders['x-prerender-revalidate'], 'stub-bypass-token');
     } finally {
       stub.restore();
     }

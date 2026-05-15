@@ -31,7 +31,13 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 import { BASE_RESPONSE_HEADERS, buildCorsHeaders } from './cors.ts';
-import { renderNotFound, renderPage, type BlockNode, type PageSeo } from './render.ts';
+import {
+  renderNotFound,
+  renderPage,
+  type BlockNode,
+  type PageSeo,
+  type SiteSettingsRow,
+} from './render.ts';
 
 // ─── Module-level admin client ──────────────────────────────────────────────
 // Service-role bypasses RLS; we restore access control via the hard
@@ -71,9 +77,25 @@ function htmlHeaders(corsHeaders: Record<string, string>): Record<string, string
 interface PublishedPageRow {
   slug: string;
   status: string;
-  seo: PageSeo | null;
+  // 15-08: per-page SEO is now stored as discrete columns (seo_title, …) on
+  // landing_pages, not a single `seo` jsonb. The handler reads both shapes —
+  // discrete columns when present, falling back to a `seo` jsonb when the
+  // mock test fixtures hand one in (back-compat for existing index.test.ts).
+  seo?: PageSeo | null;
+  title?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_og_image?: string | null;
+  seo_canonical?: string | null;
+  seo_schema_type?: string | null;
   published_revision_id: string | null;
   landing_page_revisions: { blocks: BlockNode[] } | null;
+}
+
+// 15-08: minimal site_settings query shape. The function queries
+// site_settings via SELECT ... LIMIT 1 (singleton).
+interface SiteSettingsQuery {
+  limit(n: number): Promise<{ data: SiteSettingsRow[] | null; error: { message: string } | null }>;
 }
 
 // ─── Admin abstraction (for testability) ─────────────────────────────────────
@@ -91,6 +113,8 @@ export interface PageRenderQueryBuilder {
   select(cols: string): PageRenderQueryBuilder;
   eq(col: string, value: unknown): PageRenderQueryBuilder;
   maybeSingle(): Promise<{ data: PublishedPageRow | null; error: { message: string } | null }>;
+  // 15-08: site_settings query path (`from('site_settings').select(...).limit(1)`).
+  limit?(n: number): Promise<{ data: SiteSettingsRow[] | null; error: { message: string } | null }>;
 }
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
@@ -140,9 +164,16 @@ export async function handleRender(
   // Hard-filter to published rows. Pitfall: depending on schema, "published"
   // may be modeled as `status='published'`. We filter on BOTH that AND on
   // having a non-null published_revision_id (defense in depth — T-15-03-01).
+  //
+  // 15-08: extended SELECT to also pull the per-page discrete SEO columns
+  // (seo_title, seo_description, seo_og_image, seo_canonical,
+  // seo_schema_type, title). The legacy `seo` jsonb column is also pulled
+  // for back-compat with Deno test mocks that have not yet been updated.
   const { data: row, error: queryError } = await client
     .from('landing_pages')
-    .select('slug, status, seo, published_revision_id, landing_page_revisions!published_revision_id(blocks)')
+    .select(
+      'slug, status, seo, title, seo_title, seo_description, seo_og_image, seo_canonical, seo_schema_type, published_revision_id, landing_page_revisions!published_revision_id(blocks)',
+    )
     .eq('slug', slug)
     .eq('status', 'published')
     .maybeSingle();
@@ -168,10 +199,40 @@ export async function handleRender(
     ? row.landing_page_revisions.blocks
     : [];
 
+  // 15-08: build the per-page seo input from discrete columns when present;
+  // fall back to the legacy `seo` jsonb (test fixtures still use it).
+  const seoInput: PageSeo = row.seo ?? {};
+  if (typeof row.seo_title === 'string') seoInput.title = row.seo_title;
+  if (typeof row.seo_description === 'string') seoInput.description = row.seo_description;
+  if (typeof row.seo_og_image === 'string') seoInput.ogImage = row.seo_og_image;
+  if (typeof row.seo_canonical === 'string') seoInput.canonical = row.seo_canonical;
+  if (typeof row.seo_schema_type === 'string') seoInput.schemaType = row.seo_schema_type;
+
+  // 15-08: fetch the singleton site_settings row. Best-effort — when the
+  // table is unreachable (or the test fixture doesn't expose it) we render
+  // with an empty defaults object and the SEO cascade falls through to
+  // per-page values and safe fallbacks.
+  let siteSettings: SiteSettingsRow | undefined;
+  try {
+    const ssBuilder = client.from('site_settings').select('site_name, default_description, favicon_url, default_og_image') as unknown as SiteSettingsQuery;
+    const ssRes = await ssBuilder.limit(1);
+    if (!ssRes.error && Array.isArray(ssRes.data) && ssRes.data.length > 0) {
+      siteSettings = ssRes.data[0];
+    }
+  } catch (err) {
+    // Non-fatal — site_settings is purely cosmetic at the rendering layer.
+    console.warn(
+      '[page-render] site_settings read failed',
+      err instanceof Error ? err.message : 'unknown',
+    );
+  }
+
   const html = renderPage({
     slug: row.slug,
-    seo: row.seo ?? {},
+    title: row.title ?? undefined,
+    seo: seoInput,
     blocks,
+    siteSettings,
   });
 
   return new Response(html, { status: 200, headers });
