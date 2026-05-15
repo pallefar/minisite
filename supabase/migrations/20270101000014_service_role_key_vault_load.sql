@@ -35,5 +35,8 @@ begin
   end if;
 end$$;
 
-comment on schema vault is
-  'BL-7 (Phase 19 Plan 19-09): service_role_key is loaded into vault.secrets via Dashboard → Project Settings → Vault (out-of-band). pg_cron job affiliate-monthly-payout (migration 20270101000011) reads it via vault.decrypted_secrets to authenticate the call to functions/v1/affiliate-payout.';
+-- NOTE: `comment on schema vault` was dropped — service_role does not own the
+-- vault schema on Supabase-managed projects (SQLSTATE 42501). The presence
+-- guard above is sufficient; the operator runbook lives in 19-09-SUMMARY.md
+-- and 19-CONTEXT.md D-33 + BL-7. Future operators reading `\dn+` find the
+-- BL-7 step in those docs instead.
