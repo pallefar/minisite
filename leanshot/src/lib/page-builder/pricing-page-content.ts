@@ -6,7 +6,7 @@
  * the live page. It is consumed by:
  *
  *   • `e2e/fixtures/page-builder/seed-pricing-page.ts` — the e2e seed inserts
- *     this block tree directly into `landing_page_revisions.block_tree` so
+ *     this block tree directly into `landing_page_revisions.blocks` so
  *     the test renders the same page that production serves.
  *   • the manual one-time scaffold (D-14): a staff user imports this block
  *     tree once via the editor's Pricing template; subsequent edits live in

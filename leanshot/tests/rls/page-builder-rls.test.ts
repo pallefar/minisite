@@ -247,7 +247,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
 
     const { data, error } = await client
       .from('landing_page_revisions')
-      .insert({ page_id: draftPage.pageId, block_tree: [{ id: 'b1', type: 'hero' }] })
+      .insert({ page_id: draftPage.pageId, blocks: [{ id: 'b1', type: 'hero' }] })
       .select('id')
       .single();
     expect(error).toBeNull();
@@ -260,7 +260,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
 
     const { data, error } = await client
       .from('landing_page_revisions')
-      .insert({ page_id: draftPage.pageId, block_tree: [] })
+      .insert({ page_id: draftPage.pageId, blocks: [] })
       .select('id');
     expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
   }, 30_000);

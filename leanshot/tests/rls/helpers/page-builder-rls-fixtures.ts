@@ -187,7 +187,7 @@ export async function seedPage(opts: {
     .from('landing_page_revisions')
     .insert({
       page_id: pageId,
-      block_tree: [],
+      blocks: [],
       created_by: opts.createdBy ?? null,
     })
     .select('id')

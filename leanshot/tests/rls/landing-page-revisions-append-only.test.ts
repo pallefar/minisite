@@ -63,7 +63,7 @@ describeIfLive('Phase 15 — landing_page_revisions append-only invariant', () =
 
     const { data, error } = await client
       .from('landing_page_revisions')
-      .update({ block_tree: [{ id: 'forbidden', type: 'hero' }] })
+      .update({ blocks: [{ id: 'forbidden', type: 'hero' }] })
       .eq('id', page.revisionId)
       .select('id');
     // Either trigger fires raising exception (error set) OR RLS hides the row
@@ -75,10 +75,10 @@ describeIfLive('Phase 15 — landing_page_revisions append-only invariant', () =
     const admin = getAdminClient();
     const { data: actual } = await admin
       .from('landing_page_revisions')
-      .select('block_tree')
+      .select('blocks')
       .eq('id', page.revisionId)
       .single();
-    const tree = (actual as { block_tree: unknown[] }).block_tree;
+    const tree = (actual as { blocks: unknown[] }).blocks;
     // Either the original empty array OR the seed's empty array — never 'forbidden'.
     expect(JSON.stringify(tree)).not.toContain('forbidden');
   }, 30_000);
@@ -87,7 +87,7 @@ describeIfLive('Phase 15 — landing_page_revisions append-only invariant', () =
     const admin = getAdminClient();
     const { data, error } = await admin
       .from('landing_page_revisions')
-      .update({ block_tree: [{ id: 'svc-forbidden', type: 'hero' }] })
+      .update({ blocks: [{ id: 'svc-forbidden', type: 'hero' }] })
       .eq('id', page.revisionId)
       .select('id');
     // The trigger raises P0001 — service_role does NOT bypass triggers.

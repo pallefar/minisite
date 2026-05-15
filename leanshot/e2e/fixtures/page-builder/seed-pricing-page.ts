@@ -3,7 +3,7 @@
  *
  * Exports `seedStaffAndPricingPage` — creates an `is_staff = true` Supabase
  * auth user, inserts a `landing_pages` row with slug `pricing`, inserts the
- * matching `landing_page_revisions` row whose `block_tree` JSONB is the
+ * matching `landing_page_revisions` row whose `blocks` JSONB is the
  * authored pricing block tree from `src/lib/page-builder/pricing-page-content`,
  * and re-points `published_revision_id` to that revision so the e2e can
  * `goto /pricing` straight away.
@@ -127,7 +127,7 @@ export async function seedStaffAndPricingPage(): Promise<SeedPricingPageResult> 
     .from('landing_page_revisions')
     .insert({
       page_id: pageId,
-      block_tree: PRICING_PAGE_BLOCKS,
+      blocks: PRICING_PAGE_BLOCKS,
       created_by: userId,
     })
     .select('id')
