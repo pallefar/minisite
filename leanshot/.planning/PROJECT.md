@@ -183,3 +183,16 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 *Last updated: 2026-05-11 after Phase 1 (Quality Gates & Observability Foundation) execution — lint/format/typecheck/unit/e2e gates green locally; CI workflow committed; S-07/S-08/S-09 cloud verification deferred to user (tracked in `phases/01-…/01-HUMAN-UAT.md`).*
+
+## Vendor Accounts (Phase 16 Wave 0)
+
+These accounts were provisioned during Phase 16 Wave 0. Secret values are stored in GitHub Actions Secrets (gh secret list) and, where Edge Functions need server-side access, also in Supabase Function Secrets (supabase secrets list). Do NOT commit secret values to the repo.
+
+| Vendor | Account ID/Slug | Status | Secret Names | Provisioned Plan |
+|--------|-----------------|--------|--------------|-----------------|
+| Apple Developer | Team ID `<TEAM_ID — set via apple-done checkpoint>` | PENDING — complete via Task 3 checkpoint | `APPLE_TEAM_ID`, `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD` | 16-00 (Task 3) |
+| Google Play Console | Package `app.leanshot.android` | PENDING — complete via Task 4 checkpoint | `PLAY_JSON_KEY` (base64) | 16-00 (Task 4) |
+| RevenueCat | Project "LeanShot" | PENDING — 1 entitlement `plus` + 2 products (`app.leanshot.plus.monthly`, `app.leanshot.plus.yearly`) | `RC_API_KEY_IOS`, `RC_API_KEY_ANDROID`, `RC_SECRET_API_KEY`, `REVENUECAT_WEBHOOK_SECRET` | 16-00 (Task 5) |
+| Supabase Pro | Project `ytnsipxxmzgaebkqmokp` | PENDING — upgrade Free → Pro ($25/mo) via Task 6 checkpoint | (uses existing `SUPABASE_*` secrets) | 16-00 (Task 6) |
+| GitHub fastlane-match | `pallefar/leanshot-fastlane-match` | PENDING — create empty private repo via Task 7 checkpoint | `MATCH_GIT_BASIC_AUTHORIZATION` (set in Plan 16-09) | 16-00 (Task 7) |
+| DNS leanshot.app | A/CNAME → Vercel | PENDING — verify `.well-known/` reachable via Task 7 checkpoint | n/a | 16-00 (Task 7) |
