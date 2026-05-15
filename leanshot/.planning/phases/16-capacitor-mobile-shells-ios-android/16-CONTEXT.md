@@ -25,6 +25,7 @@ Wrap the existing LeanShot SPA in Capacitor 8 shells for iOS + Android. Fill the
 
 ### Capacitor 8 plugin set + biometric
 - **D-05:** **Capacitor 8.x** pinned (matches ROADMAP). iOS 14+ minimum deployment target, AndroidX, plugin auto-registration. v7→v8 upgrade NOT needed.
+  - **CORRECTION (RESEARCH override, 2026-05-15):** Capacitor 8 mandates **iOS 15.0** (not 14.0) per capacitorjs.com/docs/updating/8-0, Node 22+, Android minSdk 24 / targetSdk 36, Xcode 26.0+, SPM default. All plans implement iOS 15.0 per R1 in `16-RESEARCH.md` §"Standard Stack" and `16-01-capacitor-scaffold-spm-audit-ios-15-PLAN.md` Task 2. iPhone 12 (OOM-soak target) is iOS-15-capable so this does not narrow the support matrix beyond what was scoped.
 - **D-06:** Biometric plugin = **`@capgo/capacitor-native-biometric`** (matches the @capgo plugin family already chosen for Phase 18 `@capgo/capacitor-health` — consistent maintenance posture). FaceID + TouchID + Android Biometric in one plugin. ~10k weekly downloads, v8-ready.
 - **D-07:** **Full plugin set committed (14 plugins).** Every entry triggers a `PrivacyInfo.xcprivacy` declaration (D-18):
   - Core (11): `@capacitor/core`, `/cli`, `/ios`, `/android`, `/app`, `/preferences`, `/share` (MOBILE-10), `/splash-screen`, `/status-bar`, `/haptics`, `/browser`

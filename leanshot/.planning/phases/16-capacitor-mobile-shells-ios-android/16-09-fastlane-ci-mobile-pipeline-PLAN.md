@@ -14,8 +14,9 @@ files_modified:
   - leanshot/apps/android/fastlane/Fastfile
   - .github/workflows/mobile.yml
   - leanshot/apps/ios/SECRETS.md
+  - leanshot/public/.well-known/assetlinks.json  # NEW (plan-checker iter-1 W-3 fix): substitute UPLOAD_CERT + PLAY_STORE fingerprint placeholders seeded by 16-03 after fastlane match generates the keystore
 autonomous: false
-requirements: [MOBILE-01, MOBILE-02, MOBILE-09]
+requirements: [MOBILE-01, MOBILE-02, MOBILE-06, MOBILE-09]  # MOBILE-06 added 2026-05-15: assetlinks fingerprint substitution (W-3 fix)
 tags: [fastlane, ci, ios-build, android-build, sentry-dsym, testflight, play-internal, match]
 user_setup:
   - service: github-repo-leanshot-fastlane-match
@@ -489,6 +490,31 @@ echo "mobile.yml + SECRETS.md validation: PASS"
 
     If you hit a blocker on any vendor account (Apple Dev approval delay, Play Console KYC pending, Sentry org access), reply with `blocked: <vendor>: <details>` so the orchestrator can defer the dependent UAT in 16-10.
   </resume-signal>
+</task>
+
+<task type="auto">
+  <id>16-09-04</id>
+  <title>Substitute Android signing fingerprints into assetlinks.json (W-3 fix — App Links won't verify otherwise)</title>
+  <read_first>
+    - leanshot/public/.well-known/assetlinks.json (seeded by Plan 16-03 with `UPLOAD_CERT_FINGERPRINT_PLACEHOLDER` + `PLAY_STORE_SIGNING_FINGERPRINT_PLACEHOLDER`)
+    - leanshot/apps/ios/SECRETS.md (Android keystore generated in Task 3 vendor checkpoint)
+    - leanshot/.planning/phases/16-capacitor-mobile-shells-ios-android/16-RESEARCH.md (§"Universal Links + App Links" SHA-256 fingerprint format)
+  </read_first>
+  <action>
+    Step 1 — Extract upload-cert SHA-256: `keytool -list -v -keystore <keystore-path> -alias <alias> -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>/dev/null | grep 'SHA256:' | awk '{print $2}' | head -1`. Save to `UPLOAD_SHA256`.
+
+    Step 2 — Extract Play Store signing-cert SHA-256 via Play Console API: `curl -s -H "Authorization: Bearer $(gcloud auth print-access-token --key-file=$GOOGLE_PLAY_JSON_KEY_PATH)" "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/app.leanshot.android/services/apkSigningCertificates" | jq -r '.certificates[0].sha256'`. If Play Console hasn't yet received the first upload, this returns empty — substitute `UPLOAD_SHA256` for both fingerprints (acceptable until first Play upload, then re-run this task to overwrite with the real Play signing fingerprint).
+
+    Step 3 — In-place substitute both placeholders in `leanshot/public/.well-known/assetlinks.json` using `perl -i -pe` (per project memory `macOS BSD sed quirk`): replace `UPLOAD_CERT_FINGERPRINT_PLACEHOLDER` → `UPLOAD_SHA256`; replace `PLAY_STORE_SIGNING_FINGERPRINT_PLACEHOLDER` → `PLAY_SHA256` (or `UPLOAD_SHA256` if Play empty).
+
+    Step 4 — Verify: `grep -c PLACEHOLDER leanshot/public/.well-known/assetlinks.json` returns 0. `jq '.[0].target.sha256_cert_fingerprints | length' leanshot/public/.well-known/assetlinks.json` returns ≥1.
+
+    Step 5 — Repeat for `app.leanshot.android` entry (Plan 16-03 seeded the file with both `leanshot.app` and `app.leanshot.app` domains; the assetlinks payload covers both bundle hosts).
+  </action>
+  <verify>
+    <automated>! grep -q PLACEHOLDER leanshot/public/.well-known/assetlinks.json &amp;&amp; jq -e '.[0].target.sha256_cert_fingerprints | length >= 1' leanshot/public/.well-known/assetlinks.json</automated>
+  </verify>
+  <done>`leanshot/public/.well-known/assetlinks.json` contains real SHA-256 fingerprints (no PLACEHOLDER strings remain). Android App Links can now verify the digital asset link to `app.leanshot.android`. The 16-03 CI curl-check passes the placeholder-grep gate. Re-run this task after first Play Console upload completes (the Play signing fingerprint may differ from the upload-cert fingerprint).</done>
 </task>
 
 </tasks>

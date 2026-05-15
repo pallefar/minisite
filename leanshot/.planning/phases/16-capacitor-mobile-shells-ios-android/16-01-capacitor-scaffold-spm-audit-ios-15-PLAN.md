@@ -15,8 +15,13 @@ files_modified:
   - leanshot/apps/android/app/build.gradle
   - leanshot/apps/android/app/src/main/AndroidManifest.xml
   - leanshot/.planning/phases/16-capacitor-mobile-shells-ios-android/16-01-SPM-AUDIT.md
+  - leanshot/public/.well-known/apple-app-site-association  # Task 5 — substitute TEAMID placeholder seeded by 16-03 (plan-checker iter-1 W-3 fix)
+  - leanshot/src/components/dashboard/tabs/BodyTab.tsx  # Task 4 — wrap photo grid in VirtuosoGrid + transform URLs (BL-2 fix)
+  - leanshot/src/components/dashboard/modals/PhotoCompareModal.tsx  # Task 4 — adopt Storage transform URLs for comparison thumbs
+  - leanshot/src/components/shared/sections/PhotosSection.tsx  # Task 4 — adopt Storage transform URLs
+  - leanshot/src/lib/photo-url.ts  # Task 4 — new helper: storageTransformUrl(path, opts)
 autonomous: false  # CocoaPods-fallback fork in Task 1 needs human confirmation if SPM audit fails
-requirements: [MOBILE-01, MOBILE-02, MOBILE-08]
+requirements: [MOBILE-01, MOBILE-02, MOBILE-06, MOBILE-08]  # MOBILE-06 added 2026-05-15: Task 5 substitutes TEAMID into AASA (W-3 plan-checker fix)
 tags: [capacitor, ios, android, spm, scaffold, bundle-budget]
 
 must_haves:
@@ -306,6 +311,58 @@ The existing `vendor-telemetry` regex at `vite.config.ts:165` already anchors to
     <automated>cd leanshot &amp;&amp; grep -v '^#' vite.config.ts | grep -qE "return 'capacitor-bridge'" &amp;&amp; grep -v '^#' vite.config.ts | grep -qE 'node_modules\\\\\/\(@capacitor\\\\\/' &amp;&amp; test -f src/lib/native/__capacitor-import-probe.ts &amp;&amp; grep -q "from '@capacitor/core'" src/lib/native/__capacitor-import-probe.ts &amp;&amp; grep -q "__capacitor-import-probe" src/main.tsx &amp;&amp; npm run build 2&gt;&amp;1 | tail -40 &amp;&amp; ls dist/assets/capacitor-bridge-*.js 1&gt;/dev/null 2&gt;&amp;1 &amp;&amp; bash scripts/assert-clinic-bundle-budget.sh 2&gt;&amp;1 | tee /tmp/16-01-budget.log &amp;&amp; ! grep -qi 'wave-0 skip.*capacitor-bridge' /tmp/16-01-budget.log &amp;&amp; grep -qiE 'capacitor-bridge.*(PASS|OK|✓)' /tmp/16-01-budget.log</automated>
   </verify>
   <done>`leanshot/vite.config.ts` has a new manualChunks branch routing `@capacitor/*` + `@revenuecat/purchases-capacitor` + `@capgo/capacitor-native-biometric` + `@sentry/capacitor` to `capacitor-bridge`, placed before the `vendor-telemetry` rule. `leanshot/src/lib/native/__capacitor-import-probe.ts` exists and is side-effect-imported from `main.tsx` (16-02 removes both). `npm run build` produces `dist/assets/capacitor-bridge-*.js`. `bash scripts/assert-clinic-bundle-budget.sh` exits 0, prints a pass-line for capacitor-bridge, and does NOT print `wave-0 skip` for that entry. The chunk is &lt; 15000 bytes gz at this commit (ceiling enforced going forward).</done>
+</task>
+
+<task type="auto" tdd="true">
+  <id>16-01-04</id>
+  <title>Wire VirtuosoGrid + Supabase Storage transforms into photo surfaces (BL-2 fix — MOBILE-08 OOM mitigation)</title>
+  <read_first>
+    - leanshot/src/components/dashboard/tabs/BodyTab.tsx (current `photos.map` render — NOT virtualized; the OOM root cause)
+    - leanshot/src/components/dashboard/modals/PhotoCompareModal.tsx (existing photo URL usage)
+    - leanshot/src/components/shared/sections/PhotosSection.tsx (existing photo URL usage)
+    - leanshot/.planning/phases/16-capacitor-mobile-shells-ios-android/16-RESEARCH.md (§"WKWebView OOM" + §"MOBILE-08 200-Photo OOM Soak Protocol")
+    - leanshot/.planning/phases/16-capacitor-mobile-shells-ios-android/16-CONTEXT.md (D-08: react-virtuoso + Supabase Storage transforms — Pro tier required, secured by 16-00)
+  </read_first>
+  <action>
+    Step 1 — Create `leanshot/src/lib/photo-url.ts` exporting `storageTransformUrl(path: string, opts: { width?: number; height?: number; resize?: 'cover'|'contain'|'fill'; quality?: number }): string`. Builds Supabase Storage transform URL via pattern `/storage/v1/render/image/public/photos/${path}?width=${w}&height=${h}&resize=${r}&quality=${q}` (defaults: width=200, height=200, resize='cover', quality=75 — thumbnail budget). Path passthrough only — no Storage write side effects. Importable from `@/lib/photo-url`.
+
+    Step 2 — Tests-first: `leanshot/src/lib/photo-url.test.ts` with 5 cases: defaults applied, all opts override, special chars in path URL-encoded, empty path throws, very-large width/height clamped to 800.
+
+    Step 3 — Replace the photo-grid renderer in `BodyTab.tsx` with `<VirtuosoGrid>` from `react-virtuoso`. Pass `totalCount={photos.length}`, `itemContent={(i) => <PhotoTile photo={photos[i]} />}`, `listClassName="grid grid-cols-3 gap-2"`, `style={{ height: '70vh' }}`. The `<PhotoTile>` (extracted helper inside BodyTab.tsx or a new sibling component) MUST use `storageTransformUrl(photo.path, { width: 200, height: 200 })` for the grid thumbnail src — NOT the raw Storage URL.
+
+    Step 4 — In `PhotoCompareModal.tsx` and `PhotosSection.tsx`, replace any raw Storage URL construction with `storageTransformUrl(photo.path, { width: 400, height: 400 })` for the side-by-side comparison (larger size, still bounded). Full-resolution view (if any) keeps raw Storage URL behind a user-initiated tap (lazy upgrade).
+
+    Step 5 — Verify the visual output is pixel-equivalent on a 3-photo seed (no regression vs current renderer). Snapshot test or screenshot diff acceptable.
+
+    Step 6 — Confirm `npm run build` does not regress the index chunk gzipped size (react-virtuoso lands in its own chunk per existing manualChunks pattern; check budget script).
+  </action>
+  <verify>
+    <automated>cd leanshot &amp;&amp; npx vitest run src/lib/photo-url.test.ts &amp;&amp; grep -q "VirtuosoGrid" src/components/dashboard/tabs/BodyTab.tsx &amp;&amp; grep -q "storageTransformUrl" src/components/dashboard/tabs/BodyTab.tsx &amp;&amp; grep -q "storageTransformUrl" src/components/dashboard/modals/PhotoCompareModal.tsx &amp;&amp; grep -q "storageTransformUrl" src/components/shared/sections/PhotosSection.tsx &amp;&amp; ! grep -E "photos\.map\(" src/components/dashboard/tabs/BodyTab.tsx &amp;&amp; npm run build &amp;&amp; bash scripts/assert-clinic-bundle-budget.sh</automated>
+  </verify>
+  <done>`src/lib/photo-url.ts` exists with `storageTransformUrl` + 5 passing tests. `BodyTab.tsx` renders via `<VirtuosoGrid>` (not `photos.map`), thumbnail src uses `storageTransformUrl(p.path, {width:200,height:200})`. `PhotoCompareModal.tsx` and `PhotosSection.tsx` both call `storageTransformUrl` for their photo URLs. `npm run build` passes and bundle-budget script exits 0. Plan 16-10's 200-photo soak now has a real virtualized renderer to test against.</done>
+</task>
+
+<task type="auto">
+  <id>16-01-05</id>
+  <title>Substitute TEAMID into AASA seeded by 16-03 (W-3 fix — Universal Links won't work otherwise)</title>
+  <read_first>
+    - leanshot/public/.well-known/apple-app-site-association (seeded by Plan 16-03 with `TEAMID` placeholder per its frontmatter — must exist on disk at this task's run time; if Wave 1 executor pool runs 16-03 first, this task picks it up)
+    - leanshot/.planning/phases/16-capacitor-mobile-shells-ios-android/16-RESEARCH.md (§"AASA Content-Type gotcha")
+    - leanshot/apps/ios/App/App.xcodeproj/project.pbxproj (DEVELOPMENT_TEAM = the Apple Team ID set in Task 2)
+  </read_first>
+  <action>
+    Step 1 — Read APPLE_TEAM_ID from the local secret store seeded by 16-00 (env var `APPLE_TEAM_ID` OR `gh secret get APPLE_TEAM_ID` IF executor has access; otherwise extract via `grep DEVELOPMENT_TEAM leanshot/apps/ios/App/App.xcodeproj/project.pbxproj | head -1 | awk '{print $3}' | tr -d ';'`).
+
+    Step 2 — In-place substitute `TEAMID` literal in `leanshot/public/.well-known/apple-app-site-association` with the resolved 10-character Apple Team ID. Use `perl -i -pe 's/\bTEAMID\b/<TEAM_ID>/g'` per project memory `macOS BSD sed quirk` (perl, not sed, for substitution safety).
+
+    Step 3 — Verify substitution: `grep -E "[A-Z0-9]{10}\.app\.leanshot\.ios" leanshot/public/.well-known/apple-app-site-association` returns ≥1 line and `grep -c TEAMID leanshot/public/.well-known/apple-app-site-association` returns 0.
+
+    Step 4 — If Wave 1 ordering means 16-03 hasn't committed AASA yet, this task SKIPS cleanly with `echo "AASA not yet present — 16-03 must commit first" &amp;&amp; exit 0` (the CI curl gate in 16-03 will catch the placeholder on prod).
+  </action>
+  <verify>
+    <automated>test ! -f leanshot/public/.well-known/apple-app-site-association || { grep -cE '^[A-Z0-9]{10}\.app\.leanshot\.ios' leanshot/public/.well-known/apple-app-site-association &amp;&amp; ! grep -q '\bTEAMID\b' leanshot/public/.well-known/apple-app-site-association; }</automated>
+  </verify>
+  <done>If `leanshot/public/.well-known/apple-app-site-association` exists, the literal `TEAMID` placeholder is replaced with the 10-character Apple Team ID matching the iOS xcode project's `DEVELOPMENT_TEAM`. iOS Universal Links can now resolve the `appID` field. If AASA doesn't exist at this task's run time (16-03 hasn't landed yet), task no-ops cleanly and 16-03's CI curl-check catches the regression on prod.</done>
 </task>
 
 </tasks>

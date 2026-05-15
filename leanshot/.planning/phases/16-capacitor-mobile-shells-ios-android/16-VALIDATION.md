@@ -1,10 +1,11 @@
 ---
 phase: 16
 slug: capacitor-mobile-shells-ios-android
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: plan-checker-approved
+nyquist_compliant: true
+wave_0_complete: false  # flips to true when 16-00 executes
 created: 2026-05-15
+reviewed: 2026-05-15
 ---
 
 # Phase 16 — Validation Strategy

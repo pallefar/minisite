@@ -3,7 +3,11 @@ phase: 16-capacitor-mobile-shells-ios-android
 plan: 02
 type: execute
 wave: 1
-depends_on: ["16-01"]
+depends_on: ["16-00"]
+# Note: 16-02 also requires 16-01's npm install to have committed first (intra-wave ordering, not a wave-level dep).
+# The executor's plan-ID order within Wave 1 handles this: 16-01 → 16-02 → 16-03 by ID; 16-02 imports from
+# @capacitor/* + @capgo/* which 16-01 installs. This depends_on lists only 16-00 to keep `wave = max(deps)+1`
+# arithmetic consistent (plan-checker iter-1 BL-1 fix 2026-05-15).
 files_modified:
   - src/lib/native/platform.ts
   - src/lib/native/deeplink.ts
