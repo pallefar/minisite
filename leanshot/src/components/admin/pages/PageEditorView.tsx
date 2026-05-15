@@ -192,12 +192,13 @@ export function PageEditorView() {
     const res = await publishPage({
       pageId,
       revisionId: latestRevisionId,
+      // camelCase on the wire — matches page-publish Edge Function body shape.
       seo: {
         title: seo.seo_title || null,
         description: seo.seo_description || null,
-        og_image: seo.seo_og_image || null,
+        ogImage: seo.seo_og_image || null,
         canonical: seo.seo_canonical || null,
-        schema_type: seo.seo_schema_type || null,
+        schemaType: seo.seo_schema_type || null,
       },
     });
     if (!res.ok) {

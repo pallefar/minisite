@@ -104,14 +104,15 @@ export interface PublishPageArgs {
   revisionId: string;
   /**
    * Optional per-page SEO update applied atomically with the publish pointer.
-   * Matches the page-publish Edge Function's `seo` body shape (15-08).
+   * Matches the page-publish Edge Function's `seo` body shape (15-08) —
+   * camelCase on the wire; the Edge Function maps to snake_case DB columns.
    */
   seo?: {
     title?: string | null;
     description?: string | null;
-    og_image?: string | null;
+    ogImage?: string | null;
     canonical?: string | null;
-    schema_type?: string | null;
+    schemaType?: string | null;
   };
 }
 
