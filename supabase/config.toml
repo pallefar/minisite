@@ -440,6 +440,23 @@ verify_jwt = false
 [functions.sitemap]
 verify_jwt = false
 
+# Phase 19 Plan 19-02 — affiliate-attribute is the public cookie-set endpoint
+# at /r/{code} (fronted by Vercel rewrite per D-37 #1). Visitors are
+# unauthenticated; verify_jwt MUST be false or the gateway 401s every click
+# before the function runs. The function's own gates are the referral-code
+# regex (^[a-z0-9-]{4,80}$), the affiliates.status='approved' filter (D-25
+# silently no-ops non-approved codes), the per-affiliate Referer-host
+# allowlist (D-28), and the 7-day / 500-clicks-per-day cold-start cap (D-27).
+# All clicks are recorded into public.affiliate_clicks; flagged=true clicks
+# skip the Set-Cookie (attribution suppressed) but still write a click row.
+#
+# BL-4 ordering note (iter-1 revision 2026-05-15): this block is the FIRST
+# Wave-1 writer of supabase/config.toml. Plan 19-03 depends_on:[2] and
+# appends its own [functions.stripe-connect-onboard] block AFTER this one.
+# Plan 19-05 + 19-06 + 19-09 follow the same chain.
+[functions.affiliate-attribute]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
