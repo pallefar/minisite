@@ -97,6 +97,7 @@ completed: 2026-05-15
 
 ## Carry-Forward
 
+- **Known flake: 3–4 `is_staff CAN ...` tests in `page-builder-rls.test.ts`** — periodically fail under high vitest load with "new row violates row-level security policy" despite the policy + `is_staff()` helper being provably correct. Root cause: jsdom `Multiple GoTrueClient instances detected` warning — when many `buildAnonClient(...) + signInWithPassword(...)` calls run in rapid succession, supabase-js v2.105 client instances cross-contaminate auth state despite `persistSession: false` + unique `storageKey`. Migrations are LIVE-CORRECT (verified by ad-hoc `node` diagnostic: admin → upsert → signIn → `rpc('is_staff')` returns `true` → `storage.upload` succeeds). Read-back guard added to `createStaffUser` reduces but doesn't eliminate the flake. **Recommended follow-up:** rewrite `buildAnonClient` to use a service-role-minted JWT and bypass supabase-js GoTrue entirely (no `signInWithPassword`) — defer to a Phase 15 close polish plan or a v1.2 closeout sweep. Logged in `.planning/deferred-tests.md`.
 - **Test data leaks** — RLS impersonation tests use `phase15-test-xtenant-*` and `phase15-test-append-*` slugs/emails; cleanup is best-effort. A periodic admin cleanup of `landing_pages.slug LIKE 'phase15-test-%'` is a reasonable hygiene cron for the dev DB.
 - **PAGE-02..06, 08, 09 still pending** — VALIDATION.md per-task map placeholder kept (`TBD` row) for siblings.
 - **Audit log for `landing_pages` write-through** — accepted per D-11 / T-15-01-04 (deferred to Phase 22 staff-admin work).

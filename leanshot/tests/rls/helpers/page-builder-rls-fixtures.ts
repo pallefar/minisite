@@ -98,6 +98,24 @@ export async function createStaffUser(opts?: { emailPrefix?: string }): Promise<
     .upsert({ id: userId, is_staff: true }, { onConflict: 'id' });
   if (upsertErr) throw new Error(`createStaffUser: profiles upsert failed: ${upsertErr.message}`);
 
+  // Read-back guard — when the test suite runs in parallel against the
+  // shared cloud DB, the upsert's commit can race the subsequent
+  // signInWithPassword + RLS evaluation. Loop until the row reflects
+  // is_staff=true (or fail loudly after ~3s) so downstream RLS tests are not
+  // testing a stale row.
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const { data: probe } = await admin
+      .from('profiles')
+      .select('is_staff')
+      .eq('id', userId)
+      .single();
+    if (probe?.is_staff === true) break;
+    await new Promise((r) => setTimeout(r, 500));
+    if (attempt === 5) {
+      throw new Error(`createStaffUser: profiles.is_staff=true did not propagate for ${userId}`);
+    }
+  }
+
   return { userId, email, password };
 }
 
