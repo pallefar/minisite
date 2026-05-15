@@ -422,6 +422,15 @@ verify_jwt = true
 [functions.page-publish]
 verify_jwt = true
 
+# Phase 15 Plan 07 — lead-capture is a public form-POST endpoint for the native
+# lead-form block (D-12). Visitors are unauthenticated; verify_jwt must be false
+# or the gateway 401s every form submit before the function runs. The function's
+# own spam guards are the honeypot field + per-IP rate-limit (5 per 15 min) +
+# email regex validation; the service-role insert into `public.leads` is the
+# data path. RLS on `leads` (migration 20261101000007) is the read-side gate.
+[functions.lead-capture]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
