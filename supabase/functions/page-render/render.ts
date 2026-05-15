@@ -354,6 +354,44 @@ interface PricingPlan {
   features: string[];
   ctaLabel: string;
   recommended?: boolean;
+  // 15-10: enum-bounded plan tag. When set to one of the two literal values,
+  // the rendered Checkout button becomes an <a href> upgrade deep-link into
+  // the SPA's existing JWT-authed stripe-checkout/session invoke. Any other
+  // value (including a raw price ID) is treated as absent — the button
+  // renders as an inert <span> with no href (T-15-10-01 mitigation).
+  checkoutPlan?: 'plus_monthly' | 'plus_yearly';
+}
+
+// 15-10: app origin used for the upgrade deep-link. Matches the same Function
+// secret + default that `stripe-checkout/index.ts` uses (`getPublicAppOrigin`).
+// Computed once per cold-start; the env-read is `Deno.env.get` so the file
+// stays vanilla Deno TypeScript with no React/DOM imports.
+function getPublicAppOriginForRender(): string {
+  try {
+    // deno-lint-ignore no-explicit-any
+    const env = (globalThis as any).Deno?.env;
+    const value = typeof env?.get === 'function' ? env.get('PUBLIC_APP_ORIGIN') : undefined;
+    if (typeof value === 'string' && value.trim() !== '') return value.trim();
+  } catch {
+    // Non-Deno test runtime (vitest from leanshot/src/* would not reach here
+    // because the editor mirrors block-schema; renderer is Deno-only). Fall
+    // through to the default.
+  }
+  return 'https://app.leanshot.app';
+}
+
+// 15-10: enum allowlist. The render branch validates `checkoutPlan` against
+// this exact set — no fall-through to a default plan, no string passthrough.
+// Mirrors the `validPlans` allowlist in `stripe-checkout/index.ts` minus the
+// `clinic` tier (clinic is not a self-serve upgrade path from a public page).
+const PRICING_CHECKOUT_PLANS = ['plus_monthly', 'plus_yearly'] as const;
+type PricingCheckoutPlan = (typeof PRICING_CHECKOUT_PLANS)[number];
+
+function isPricingCheckoutPlan(value: unknown): value is PricingCheckoutPlan {
+  return (
+    typeof value === 'string' &&
+    (PRICING_CHECKOUT_PLANS as readonly string[]).includes(value)
+  );
 }
 
 function renderPricing(block: BlockNode): string {
@@ -361,6 +399,7 @@ function renderPricing(block: BlockNode): string {
   const heading = escapeHtml(c.heading ?? '');
   const eyebrow = c.eyebrow ? escapeHtml(c.eyebrow) : '';
   const rawPlans = Array.isArray(c.plans) ? (c.plans as unknown[]) : [];
+  const appOrigin = getPublicAppOriginForRender();
   const plansHtml = rawPlans
     .map((entry) => {
       if (!entry || typeof entry !== 'object') return '';
@@ -387,9 +426,35 @@ function renderPricing(block: BlockNode): string {
         : 'border:1px solid var(--color-border);';
       // CTA aria-label includes the plan name so screen-reader users hear which plan they're starting.
       const ariaLabel = ctaLabel && name ? `${ctaLabel} — ${name}` : (ctaLabel || `Get started — ${name}`);
-      const ctaHtml = ctaLabel
-        ? `<button type="button" class="block-pricing__cta" aria-label="${ariaLabel}" style="background:var(--color-primary);color:var(--color-primary-foreground);">${ctaLabel}</button>`
-        : '';
+      // 15-10: Checkout button.
+      //
+      // When the plan content carries a valid `checkoutPlan` enum value, the
+      // button becomes a zero-JS <a href> deep-link into the SPA's existing
+      // JWT-authed stripe-checkout/session invoke. The href is derived ONLY
+      // from the validated enum — a raw price ID can never appear in the
+      // attribute (T-15-10-01).
+      //
+      // When `checkoutPlan` is absent or invalid, the button renders as an
+      // inert <span> with the same styling and NO href — so a staff-authored
+      // Pricing block that forgets the field still LOOKS like a Checkout
+      // button but cannot navigate anywhere (fails-safe).
+      const checkoutPlanValue = isPricingCheckoutPlan(plan.checkoutPlan)
+        ? plan.checkoutPlan
+        : null;
+      let ctaHtml = '';
+      if (ctaLabel) {
+        if (checkoutPlanValue) {
+          // The fragment portion of the URL is a fixed SPA route + ?param —
+          // none of these characters need attribute escaping beyond what
+          // escapeAttr would do for the origin. The `checkoutPlanValue` is
+          // already validated against the literal allowlist above.
+          const href = `${appOrigin}/#/settings?upgrade=${checkoutPlanValue}`;
+          const hrefAttr = escapeAttr(href);
+          ctaHtml = `<a class="block-pricing__cta block-pricing__cta--link" href="${hrefAttr}" aria-label="${ariaLabel}" style="display:inline-block;background:var(--color-primary);color:var(--color-primary-foreground);text-decoration:none;">${ctaLabel}</a>`;
+        } else {
+          ctaHtml = `<span class="block-pricing__cta block-pricing__cta--inert" role="text" aria-label="${ariaLabel}" style="display:inline-block;background:var(--color-primary);color:var(--color-primary-foreground);">${ctaLabel}</span>`;
+        }
+      }
       return (
         `<div class="${planClass}" style="${planStyle}">` +
         (name ? `<p class="block-pricing__name">${name}</p>` : '') +
