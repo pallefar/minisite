@@ -57,25 +57,23 @@ These are the Phase 13 spacing values derived from the `--spacing: 0.25rem` (4px
 
 ## Typography
 
-Phase 16 app-rendered surfaces use 4 sizes drawn from the Phase 13 type scale. No size outside this table may appear in Phase 16 components. Token px equivalents are sourced from `src/index.css` lines 84–107.
+Phase 16 app-rendered surfaces use exactly 4 sizes drawn from the Phase 13 type scale. No size outside this table may appear in Phase 16 components. Token px equivalents are sourced from `src/index.css` lines 84–107.
 
 | Role | Size (token) | px equivalent | Weight | Line Height |
 |------|-------------|---------------|--------|-------------|
+| Label / small detail | `--text-sm` | 13px | 700 (bold) | 1.5 |
 | Body | `--text-base` | 16px | 400 (regular) | 1.55 |
-| Label / price detail | `--text-sm` | 13px | 700 (bold) | 1.5 |
 | Section heading | `--text-xl` | 22px | 700 (bold) | 1.35 |
 | Paywall headline | `--text-2xl` | 26px | 700 (bold) | 1.25 |
 
 **Allowed weights: 400 (regular) and 700 (bold) only.**
 
-Weight mapping from previous draft:
-- 400 (regular) → 400: body text, dismiss links ("Not now"), legal micro-copy, "Use Password" fallback link
-- 600 (semibold) → 700 (bold): label/price detail, savings badge text
-- 700 (bold) → 700 (bold): all headings — unchanged
-- 800 (extrabold) → 700 (bold): paywall headline — Fraunces italic at `--text-2xl` provides sufficient visual distinction without requiring a 4th weight
+Weight mapping:
+- 400 (regular): body text, dismiss links ("Not now"), legal micro-copy, "Use Password" fallback link
+- 700 (bold): label/price detail, savings badge text, all headings, paywall headline — Fraunces italic at `--text-2xl` provides sufficient visual distinction without requiring a 4th weight
 
 **Notes:**
-- Captions (photo date overlays, legal micro-copy below IAP price) use `--text-caption` (10px) at weight 400. This is a modifier of the Body role, not a 5th size. (Previously spec'd at 11px/`--text-micro` and weight 600 — corrected to token px value from `src/index.css:84` and collapsed to weight 400.)
+- Legal micro-copy (below IAP price), savings badge text, date caption overlays on photos, and external indicator captions all use `--text-sm` (13px) at weight 400 or 700 as specified per surface. No sub-13px sizes are used in Phase 16.
 - Fraunces italic accent is reserved for the paywall headline's product name only (same as marketing `<Pricing />` — visual continuity from web to iOS).
 - Geist Mono + `font-variant-numeric: tabular-nums` on all price displays (`$12.99`, `$132.49`). Price numerals use weight 700.
 
@@ -127,17 +125,17 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 - Centered single column, max-width 400px on iPad.
 - Top: product name headline (Fraunces italic, `--text-2xl`, weight 700) + short benefit summary (Geist, `--text-base`, weight 400).
 - Plan options: 2 vertically stacked tiles (monthly / yearly). Each tile is a tappable card (`--color-surface-elevated` background, `--radius-lg` = 20px, `var(--shadow-sm)` elevation). Row gap between tiles: `gap-2` (8px). Selected tile gets `2px solid var(--color-primary)` ring. Unselected: `1px solid var(--color-border)`.
-- Price display: `--text-sm` at weight 700. Yearly tile shows savings badge (`--color-success-soft` background, `--color-success` text, `--text-caption` 10px, weight 700, `--radius-pill`).
+- Price display: `--text-sm` at weight 700. Yearly tile shows savings badge (`--color-success-soft` background, `--color-success` text, `--text-sm` 13px, weight 700, `--radius-pill`).
 - Primary CTA: full-width `<Button variant="primary">Subscribe</Button>` below plan tiles. Shows `aria-busy` spinner while RevenueCat `purchasePlan()` is in flight. Button text does not change during loading (spinner replaces leading icon slot).
 - "Restore Purchases" link: below Subscribe button, text-only (no box), `--text-sm` weight 400, `--color-primary` color, minimum 44px touch target height. Required by Apple §3.1.1.
-- Legal micro-copy: `--text-caption` (10px) at `--color-text-tertiary`, weight 400. Text: "Payment processed by Apple. Subscription renews automatically. Cancel anytime in Settings." (Android: replace "Apple" with "Google Play"). Single paragraph. No background.
+- Legal micro-copy: `--text-sm` (13px) at `--color-text-tertiary`, weight 400. Text: "Payment processed by Apple. Subscription renews automatically. Cancel anytime in Settings." (Android: replace "Apple" with "Google Play"). Single paragraph. No background.
 - Trial eligibility (D-22): if `stripe_trial_used=true`, the "7-day free trial" language is omitted from plan tile copy. Plan tile shows only the recurring price. The component must NOT show "Start free trial" CTA text if user is ineligible.
 
 **Clinic-owner variant (D-24):**
 - Replace entire IAP content with: icon (lucide `Building2`, `--color-text-secondary`, size-5) + body text: "Clinic billing is managed at leanshot.app/clinic/billing" (weight 400, `--text-base`) + a secondary button "Go to Billing Portal" that invokes `@capacitor/browser` to open `https://leanshot.app/clinic/billing` in Safari View Controller.
 - No Subscribe button, no plan tiles, no price display.
 
-**Typography on this surface:** 26px headline + 16px body + 13px plan price label + 10px legal caption. = 4 sizes. Checker-safe.
+**Typography on this surface:** 26px headline + 16px body + 13px plan price label + 13px legal copy. All within the 4-size table.
 
 **OS-rendered:** The StoreKit payment confirmation sheet (appearing after `purchasePlan()`) is OS-rendered. Design tokens N/A.
 
@@ -183,12 +181,14 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 #### 2c. Password Fallback (3-failed-attempts trigger or manual "Use Password")
 
+**Focal point:** Auto-focused password input field
+
 **When shown:** User taps "Use Password" OR 3 consecutive biometric failures.
 
 **Layout:** Modal (framer-motion `Modal` pattern). Single column, centered card.
 - Heading: "Enter your password" — `--text-xl` (22px), weight 700.
 - Password input: existing `<Input type="password" label="Password" />` primitive. Auto-focused.
-- Primary CTA: `<Button variant="primary" block>Unlock</Button>`. `aria-busy` while auth call in flight.
+- Primary CTA: `<Button variant="primary" block>Unlock App</Button>`. `aria-busy` while auth call in flight.
 - Error state (wrong password): inline below input, `--color-danger`, `--text-sm` weight 400: "Incorrect password. Try again."
 - After 5 wrong-password attempts: Show "Forgot password? Reset via email" link — `--text-sm`, weight 400, `--color-primary`. Invokes Supabase password-reset flow.
 
@@ -200,9 +200,9 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 **Layout:** Standard settings row inside existing `<Card>`. Icon (lucide `ScanFace` size-5, `--color-text-secondary`) + label "Face ID / Biometric Unlock" (`--text-base`, weight 700) + description "Unlock without your password" (`--text-sm`, weight 400, `--color-text-secondary`) + toggle (existing Toggle/Switch primitive pattern; `--color-primary` when on).
 
-**Destructive confirmation (disable biometric):** When user turns toggle OFF: inline confirmation row appears below the toggle row (no modal). "Disable biometric unlock?" in `--text-sm` weight 400 + `<Button variant="destructive" size="sm">Disable</Button>` + `<Button variant="ghost" size="sm">Cancel</Button>`. Color for "Disable" button text/border: `--color-danger`. No separate modal — inline is less disruptive for a low-stakes toggle.
+**Destructive confirmation (disable biometric):** When user turns toggle OFF: inline confirmation row appears below the toggle row (no modal). "Disable biometric unlock?" in `--text-sm` weight 400 + `<Button variant="destructive" size="sm">Disable Biometrics</Button>` + `<Button variant="ghost" size="sm">Keep Biometrics</Button>`. Color for "Disable Biometrics" button text/border: `--color-danger`. No separate modal — inline is less disruptive for a low-stakes toggle.
 
-**Typography on this surface (all 4 sub-surfaces combined):** 22px heading + 16px body + 13px label/link + 10px error/legal. = 4 sizes. Checker-safe.
+**Typography on this surface (all 4 sub-surfaces combined):** 22px heading + 16px body + 13px label/link/error. All within the 4-size table.
 
 **OS-rendered:** All biometric prompt dialogs (Face ID animation, fingerprint sensor UX, Android Biometric BottomSheet). Design tokens N/A for those.
 
@@ -251,7 +251,7 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 | Tile border radius | `rounded-xl` = `--radius-xl` (24px) | Yes |
 | Tile border | `1px solid var(--color-border)` | Yes |
 | Tile background | `--color-surface-elevated` | Yes |
-| Date caption overlay | Bottom gradient `from-black/85 to-transparent`, 10px font, white | Yes |
+| Date caption overlay | Bottom gradient `from-black/85 to-transparent`, `--text-sm` (13px) font, white | Yes |
 | Delete button | Top-right `size-6`, `bg-black/60`, `opacity-0 group-hover:opacity-100` | Yes |
 | SwipeToDelete wrapper | Must remain (mobile swipe-to-delete UX) | Yes |
 
@@ -272,7 +272,7 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 ### Surface 5 — Clinic-Owner Stripe Portal Link (In-App Browser)
 
-**Focal point:** "Go to Billing Portal" CTA with external indicator
+**Focal point:** "Open Billing" CTA with external indicator
 
 **REQ-IDs:** MONEY-06 (clinic-owner case), MOBILE-03
 **CONTEXT decisions:** D-24
@@ -286,7 +286,7 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 **Layout (Settings row, replaces/extends `ManageSubscriptionLink` for native platform):**
 - Existing `<ManageSubscriptionLink />` row layout is preserved (Card, flex row, CreditCard icon, label + description, button).
-- ADD: Below description text, add `--text-caption` (10px) caption, weight 400: "Opens Stripe billing in your browser" with lucide `ExternalLink` icon (size-3, `--color-text-tertiary`) inline-left of the text.
+- ADD: Below description text, add `--text-sm` (13px) caption, weight 400: "Opens Stripe billing in your browser" with lucide `ExternalLink` icon (size-3, `--color-text-tertiary`) inline-left of the text.
 - Button text on iOS/Android: "Open Billing" (not "Open Stripe" — avoids brand confusion with the SVC chrome).
 - On tap: `Browser.open({ url: stripePortalUrl, toolbarColor: '#1b4842' })`. The `toolbarColor` tints Safari View Controller's navigation bar to match LeanShot primary (`--color-primary` hex value `#1b4842`). This is a plugin option, not a CSS property.
 - After `Browser.close()` (user taps Done/Back in SVC): app resumes at the same Settings view. No additional action needed.
@@ -332,14 +332,14 @@ All copy for all 5 surfaces.
 | Biometric gate CTA (Android) | "Use Fingerprint" |
 | Biometric gate fallback link | "Use Password" |
 | Password fallback heading | "Enter your password" |
-| Password fallback CTA | "Unlock" |
+| Password fallback CTA | "Unlock App" |
 | Password wrong error | "Incorrect password. Try again." |
 | Password reset link | "Forgot password? Reset via email" |
 | Biometric settings label | "Face ID / Biometric Unlock" |
 | Biometric settings description | "Unlock without your password" |
 | Biometric disable confirmation | "Disable biometric unlock?" |
-| Biometric disable confirm CTA | "Disable" |
-| Biometric disable cancel | "Cancel" |
+| Biometric disable confirm CTA | "Disable Biometrics" |
+| Biometric disable cancel | "Keep Biometrics" |
 | Share button label (all locations) | "Share" (unchanged from current — lucide Share2 icon retained) |
 | Photo gallery empty heading | "No photos yet" (unchanged) |
 | Photo gallery empty body | "Take a photo every 2 weeks. The mirror lies; the receipts don't." (unchanged) |
@@ -409,3 +409,47 @@ These are CSS environment variables, not new spacing tokens.
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
+
+---
+
+## UI-SPEC COMPLETE
+
+**Revision:** iter-2 fixes applied 2026-05-15
+
+### Fix 1 — Copywriting (BLOCK 1 resolved)
+
+All generic and banned CTA labels replaced:
+
+| Old label | New label | Location |
+|-----------|-----------|----------|
+| `"Cancel"` | `"Keep Biometrics"` | Biometric disable cancel button (Surface 2d inline confirmation row) |
+| `"Disable"` | `"Disable Biometrics"` | Biometric disable confirm CTA (Surface 2d inline confirmation row) |
+| `"Unlock"` | `"Unlock App"` | Password fallback CTA (Surface 2c) |
+
+Full copywriting table audited — no remaining single-word-without-noun or generic labels (Cancel/Submit/OK/Save/Click Here). All CTA labels are verb + noun qualified.
+
+### Fix 2 — Typography (BLOCK 2 resolved)
+
+`--text-caption` (10px) row removed entirely from the typography table. The table now has exactly 4 rows:
+
+| Role | Token | px |
+|------|-------|----|
+| Label / small detail | `--text-sm` | 13px |
+| Body | `--text-base` | 16px |
+| Section heading | `--text-xl` | 22px |
+| Paywall headline | `--text-2xl` | 26px |
+
+All former 10px usages remapped to `--text-sm` (13px):
+- Surface 1 legal micro-copy: `--text-caption` 10px weight 400 → `--text-sm` 13px weight 400
+- Surface 1 savings badge: `--text-caption` 10px weight 700 → `--text-sm` 13px weight 700
+- Surface 4 date caption overlay table row: "10px font" → "`--text-sm` (13px) font"
+- Surface 5 external indicator caption: `--text-caption` 10px weight 400 → `--text-sm` 13px weight 400
+
+All "modifier of Body" footnotes and explanations removed. Weight inventory confirmed at exactly 2 (400, 700).
+
+Token verified in `src/index.css` line 90: `--text-sm: 0.8125rem; /* 13px */`
+
+### Fix 3 — Surface 2c Focal Point (FLAG resolved)
+
+Added to Surface 2c (Password Fallback modal):
+> **Focal point:** Auto-focused password input field
