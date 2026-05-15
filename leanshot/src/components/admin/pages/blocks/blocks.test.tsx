@@ -11,7 +11,7 @@
  *   • PROPERTY_CONFIGS exposes a tailored content-field set for each of
  *     `calendly`, `youtube`, `tally`.
  */
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
 import { EMBED_IFRAME_TITLES } from '@/lib/page-builder/embed-src';

@@ -28,7 +28,10 @@ export type FieldKind =
   | 'testimonial-quotes'
   | 'feature-items'
   | 'faq-items'
-  | 'image-url+alt';
+  | 'image-url+alt'
+  // 15-06: embed-provider field kinds — token-bounded, no color/hex/typography.
+  | 'number'
+  | 'boolean';
 
 export interface ContentFieldConfig {
   /** Path into `block.content` — for nested fields use `parent.child`. */
@@ -90,6 +93,49 @@ export const PROPERTY_CONFIGS: Partial<Record<BlockType, BlockPropertyConfig>> =
         kind: 'image-url+alt',
         hint: 'Both URL and alt are required for the image to render.',
       },
+    ],
+  },
+  // ─── 15-06 embed blocks — three tailored per-provider field sets (D-02). ───
+  youtube: {
+    contentFields: [
+      {
+        key: 'videoId',
+        label: 'YouTube video ID',
+        kind: 'text',
+        placeholder: 'dQw4w9WgXcQ',
+        hint: '11-character ID from the YouTube URL (the v= parameter).',
+      },
+      {
+        key: 'startSeconds',
+        label: 'Start time (seconds)',
+        kind: 'number',
+        hint: '0 = play from the beginning.',
+      },
+      { key: 'autoplay', label: 'Autoplay', kind: 'boolean' },
+    ],
+  },
+  calendly: {
+    contentFields: [
+      {
+        key: 'calendlyUrl',
+        label: 'Calendly link',
+        kind: 'text',
+        placeholder: 'https://calendly.com/your-handle/intro',
+        hint: 'Must start with https://calendly.com/',
+      },
+      { key: 'prefillEmail', label: 'Prefill visitor email', kind: 'boolean' },
+    ],
+  },
+  tally: {
+    contentFields: [
+      {
+        key: 'tallyFormUrl',
+        label: 'Tally form link',
+        kind: 'text',
+        placeholder: 'https://tally.so/r/your-form-id',
+        hint: 'Must start with https://tally.so/',
+      },
+      { key: 'hideTitle', label: 'Hide form title', kind: 'boolean' },
     ],
   },
 };

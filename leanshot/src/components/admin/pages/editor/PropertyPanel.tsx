@@ -324,6 +324,42 @@ function GenericContentFields({ block, fields, updateContent }: GenericContentFi
                 onChange={(v) => updateContent({ [f.key]: v })}
               />
             );
+          // 15-06: tailored embed-provider fields (D-02). Token-bounded —
+          // neither kind takes color/hex/typography input.
+          case 'number':
+            return (
+              <Input
+                key={f.key}
+                type="number"
+                label={f.label}
+                hint={f.hint}
+                placeholder={f.placeholder}
+                value={typeof content[f.key] === 'number' ? String(content[f.key]) : ''}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    updateContent({ [f.key]: 0 });
+                    return;
+                  }
+                  const n = Number(raw);
+                  if (Number.isFinite(n)) updateContent({ [f.key]: n });
+                }}
+              />
+            );
+          case 'boolean':
+            return (
+              <label
+                key={f.key}
+                className="flex items-center gap-2 text-[13px]"
+              >
+                <input
+                  type="checkbox"
+                  checked={content[f.key] === true}
+                  onChange={(e) => updateContent({ [f.key]: e.target.checked })}
+                />
+                {f.label}
+              </label>
+            );
           default:
             return null;
         }
