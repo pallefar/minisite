@@ -513,8 +513,12 @@ export function renderBlock(block: BlockNode): string {
     case 'tally':
       // embed-tally
       return renderEmbedTally(block);
-    // Plans 15-07 ADD their case names here:
-    //   15-07: lead-form
+    // 15-07: native lead-form block (D-12) — emits a semantic <form> with a
+    // hidden honeypot field + small inline submit script that POSTs to the
+    // `lead-capture` Edge Function. Markup contract documented in
+    // 15-07-PLAN.md `<interfaces>`.
+    case 'lead-form':
+      return renderLeadForm(block);
     default:
       return '';
   }
@@ -570,6 +574,101 @@ function renderEmbedTally(block: BlockNode): string {
   const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
   const wrapClass = `block block-tally-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
   return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-tally-wrap__inner">${html}</div></section>`;
+}
+
+// ─── 15-07 native lead-form renderer ──────────────────────────────────────────
+//
+// Emits a semantic <form> with:
+//   - <label for> + <input type="email" name="email" required> (HTML5 native
+//     validation per UI-SPEC).
+//   - Optional <label> + <input name="name"> when content.collectName.
+//   - HONEYPOT: <input name="website"> wrapped in an offscreen div
+//     (position:absolute;left:-9999px + aria-hidden + tabindex=-1 +
+//     autocomplete=off). NOT display:none — must remain in the submitted
+//     FormData. Per UI-SPEC.
+//   - Submit <button type="submit"> with content.buttonLabel.
+//   - Inline success region (role="status", data-lead-success).
+//   - Inline error region (role="alert", data-lead-error).
+//   - data-lead-form marker + data-lead-capture-url pointing at the function
+//     path + data-success-message attribute for the inline script.
+//   - Minimal inline <script> performing the fetch POST + status toggle
+//     (≤25 lines, no external deps). Inline-only — the published page ships
+//     zero external JS (D-17).
+//
+// T-15-LF-01: every content string passes through escapeHtml before
+// interpolation; successMessage is escaped as an attribute value.
+// T-15-LF-03: honeypot field is in-DOM but visually offscreen.
+
+function renderLeadForm(block: BlockNode): string {
+  const c = block.content;
+  const heading = escapeHtml(c.heading ?? '');
+  const description = c.description ? escapeHtml(c.description) : '';
+  const buttonLabel = escapeHtml(c.buttonLabel ?? 'Send me access');
+  const successMessage = escapeHtml(c.successMessage ?? '');
+  const collectName = c.collectName === true;
+
+  const formIdSafe = escapeHtml(block.id);
+  const emailId = `lead-${formIdSafe}-email`;
+  const nameId = `lead-${formIdSafe}-name`;
+  const successId = `lead-${formIdSafe}-success`;
+  const errorId = `lead-${formIdSafe}-error`;
+  const captureUrl = '/functions/v1/lead-capture/submit';
+
+  const headingHtml = heading
+    ? `<h2 class="block-lead-form__heading" style="font-family:Geist,system-ui,sans-serif;font-size:22px;font-weight:600;line-height:1.3;margin:0 0 8px 0;">${heading}</h2>`
+    : '';
+  const descriptionHtml = description
+    ? `<p class="block-lead-form__description" style="margin:0 0 24px 0;font-size:16px;line-height:1.55;">${description}</p>`
+    : '';
+  const nameFieldHtml = collectName
+    ? `<label class="block-lead-form__label" for="${nameId}" style="display:block;margin-bottom:12px;">` +
+      `<span class="block-lead-form__label-text" style="display:block;font-size:14px;font-weight:500;margin-bottom:4px;">Name</span>` +
+      `<input id="${nameId}" name="name" type="text" placeholder="Your name" autocomplete="name" style="width:100%;padding:8px 12px;border:1px solid var(--color-border,#d4d4d8);border-radius:8px;font-size:16px;">` +
+      `</label>`
+    : '';
+
+  const innerForm =
+    `<form class="block-lead-form__form" novalidate ` +
+    `data-lead-form="1" ` +
+    `data-lead-capture-url="${captureUrl}" ` +
+    `data-success-message="${successMessage}" ` +
+    `style="max-width:480px;margin:0 auto;text-align:left;">` +
+    headingHtml +
+    descriptionHtml +
+    nameFieldHtml +
+    `<label class="block-lead-form__label" for="${emailId}" style="display:block;margin-bottom:12px;">` +
+    `<span class="block-lead-form__label-text" style="display:block;font-size:14px;font-weight:500;margin-bottom:4px;">Email</span>` +
+    `<input id="${emailId}" name="email" type="email" required placeholder="your@email.com" autocomplete="email" style="width:100%;padding:8px 12px;border:1px solid var(--color-border,#d4d4d8);border-radius:8px;font-size:16px;">` +
+    `</label>` +
+    // HONEYPOT — present in DOM, visually offscreen (T-15-LF-03). NOT display:none.
+    `<div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">` +
+    `<label for="lead-${formIdSafe}-website">Website</label>` +
+    `<input id="lead-${formIdSafe}-website" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">` +
+    `</div>` +
+    `<button type="submit" class="block-lead-form__submit" style="width:100%;margin-top:8px;padding:12px 24px;border-radius:9999px;border:0;background:var(--color-primary,#1e293b);color:var(--color-primary-foreground,#fafafa);font-size:16px;font-weight:500;cursor:pointer;">${buttonLabel}</button>` +
+    `<div id="${successId}" data-lead-success="1" role="status" aria-live="polite" hidden style="margin-top:16px;padding:12px;border-radius:8px;background:var(--color-success-soft,#dcfce7);color:var(--color-success,#166534);"></div>` +
+    `<div id="${errorId}" data-lead-error="1" role="alert" aria-live="assertive" hidden style="margin-top:16px;padding:12px;border-radius:8px;background:var(--color-danger-soft,#fee2e2);color:var(--color-danger,#991b1b);"></div>` +
+    `</form>`;
+
+  // Inline submit script — ≤25 lines, no external deps. Per-form scope via the
+  // form's data-lead-form attribute. Idempotent: the script binds on first load
+  // and the IIFE drops out if re-injected.
+  const inlineScript =
+    `<script>(function(){var f=document.querySelector('form[data-lead-form][data-lead-capture-url="${captureUrl}"]');` +
+    `if(!f||f.__lcBound)return;f.__lcBound=true;` +
+    `var s=f.querySelector('[data-lead-success]');var e=f.querySelector('[data-lead-error]');var btn=f.querySelector('button[type=submit]');` +
+    `f.addEventListener('submit',function(ev){ev.preventDefault();if(e){e.hidden=true;e.textContent='';}` +
+    `var fd=new FormData(f);var body={};fd.forEach(function(v,k){body[k]=v;});` +
+    `if(btn)btn.disabled=true;` +
+    `fetch(f.getAttribute('data-lead-capture-url'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})` +
+    `.then(function(r){if(r.status===429){if(e){e.textContent='Too many submissions. Please wait a few minutes and try again.';e.hidden=false;}if(btn)btn.disabled=false;return;}` +
+    `if(!r.ok){if(e){e.textContent='Please enter a valid email address.';e.hidden=false;}if(btn)btn.disabled=false;return;}` +
+    `if(s){s.textContent=f.getAttribute('data-success-message')||'Thanks!';s.hidden=false;}f.style.display='none';})` +
+    `.catch(function(){if(e){e.textContent='Something went wrong. Please try again.';e.hidden=false;}if(btn)btn.disabled=false;});});})();</script>`;
+
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-lead-form${hideOnMobileClass(block.style.hideOnMobile)}`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-lead-form__inner" style="position:relative;">${innerForm}${inlineScript}</div></section>`;
 }
 
 // ─── renderSeoHead — SEO seam (STUB) ──────────────────────────────────────────

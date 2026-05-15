@@ -138,4 +138,34 @@ export const PROPERTY_CONFIGS: Partial<Record<BlockType, BlockPropertyConfig>> =
       { key: 'hideTitle', label: 'Hide form title', kind: 'boolean' },
     ],
   },
+  // ─── 15-07 native lead-form (D-12) — token-bounded, NO color/hex/typography. ───
+  'lead-form': {
+    contentFields: [
+      {
+        key: 'heading',
+        label: 'Heading',
+        kind: 'text',
+        placeholder: 'Get the free guide',
+      },
+      {
+        key: 'description',
+        label: 'Description',
+        kind: 'textarea',
+        hint: 'Optional supporting copy below the heading.',
+      },
+      {
+        key: 'buttonLabel',
+        label: 'Submit button label',
+        kind: 'text',
+        placeholder: 'Send me access',
+      },
+      {
+        key: 'successMessage',
+        label: 'Success message',
+        kind: 'textarea',
+        hint: 'Shown in-place after a successful submission.',
+      },
+      { key: 'collectName', label: 'Collect name field', kind: 'boolean' },
+    ],
+  },
 };
