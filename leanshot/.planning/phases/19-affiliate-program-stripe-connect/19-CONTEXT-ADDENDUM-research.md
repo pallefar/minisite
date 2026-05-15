@@ -1,12 +1,12 @@
 ---
-supersedes: 19-CONTEXT.md (D-31 partial; adds D-36, D-37)
-trigger: research-phase open questions (Stripe Connect / IRS 1099-NEC 2026 thresholds; renewal semantics)
+supersedes: 19-CONTEXT.md (D-31 partial; adds D-36, D-37, D-38, D-39)
+trigger: research-phase open questions + post-iter-1 plan-checker revisions
 gathered: 2026-05-15
 ---
 
 # Phase 19 — Context Addendum (post-research)
 
-> **Banner:** RESEARCH.md surfaced 2 open questions that needed locking BEFORE plan-phase. Both confirmed with user 2026-05-15. This addendum supersedes the cited rows of `19-CONTEXT.md`. Planner: read this file second (after CONTEXT.md). Plus 2 Wave-0 smoke verifications (Vercel rewrite, Phase 12 stripe-done scope).
+> **Banner:** RESEARCH.md surfaced 2 open questions that needed locking BEFORE plan-phase. Both confirmed with user 2026-05-15. This addendum supersedes the cited rows of `19-CONTEXT.md`. Planner: read this file second (after CONTEXT.md). Plus 2 Wave-0 smoke verifications (Vercel rewrite, Phase 12 stripe-done scope). D-38 + D-39 added during plan-checker iter-1 revision (2026-05-15).
 
 ## D-31 (AMENDED) — W-9 / 1099-NEC threshold
 
@@ -30,7 +30,7 @@ gathered: 2026-05-15
 >
 > **Why:** Matches CONTEXT D-08 "single-tier $10 flat per paid conversion". Bounded total commission liability per converted user. Simpler ledger; no per-renewal state machine.
 >
-> **Test:** Two scenarios — (a) trial → first paid invoice writes one `affiliate_conversions` row; (b) renewal invoice writes ZERO new rows. Both assertions in `affiliate-attribution.test.ts`.
+> **Test:** Two scenarios — (a) trial → first paid invoice writes one `affiliate_conversions` row; (b) renewal invoice writes ZERO new rows. Both assertions in `invoice-paid.test.ts`.
 
 ## D-37 (NEW) — Wave-0 verifications (no user input required, planner adds smoke tasks)
 
@@ -40,17 +40,63 @@ Two verifications surfaced by research that gate later waves:
 
 2. **Phase 12 `stripe-done` checkpoint scope.** Confirm at Wave 1 start whether the Phase 12 Stripe Connect provisioning enabled the **transfers** capability (`stripe.accounts.update({ requested_capabilities: ['transfers'] })`) and hosted tax forms in the Stripe dashboard. If only `card_payments` was enabled in Phase 12, planner adds a one-line task to enable `transfers` via dashboard or API before any `transfers.create` task runs.
 
+## D-38 (NEW — 2026-05-15) — AFF-08 impression-tracking hybrid (v1.2 / v1.3 split)
+
+> **User decision (2026-05-15):** AFF-08 ships **impression tracking in v1.2; ratio-detector deferred to v1.3.**
+>
+> **Why this hybrid:** A naive raw-count Z-score (3σ on 7-day baseline) flags affiliates whose audience genuinely grew over the baseline window. Impression-to-click ratio is the more accurate fraud signal but requires server-side rendering of `/r/{code}` to fire a tracked impression. Shipping the **table now** lets v1.3 retroactively compute baselines without losing 30-90 days of history.
+>
+> **Implementation (v1.2 scope):**
+> 1. **Plan 19-01 schema** adds `public.affiliate_impressions` table:
+>    ```
+>    create table public.affiliate_impressions (
+>      id            uuid primary key default gen_random_uuid(),
+>      affiliate_id  uuid not null references public.affiliates(id) on delete cascade,
+>      ip_24         inet,
+>      ua_hash       text,
+>      referer       text,
+>      created_at    timestamptz not null default now()
+>    );
+>    create index idx_aff_impressions_affiliate_day
+>      on public.affiliate_impressions(affiliate_id, date_trunc('day', created_at));
+>    alter table public.affiliate_impressions enable row level security;
+>    ```
+>    RLS policies (in Plan 19-01 RLS migration): self-select (affiliate sees own), staff-all, service_role insert.
+>    FK `on delete cascade` (not `set null`) — impression rows are not IRS records.
+>
+> 2. **Plan 19-08 impression-insert task** fires on `/r/{code}/landing` render. Planner-decision: best-effort, **non-blocking**, server-side OR client-side. Constraints:
+>    - Non-blocking: must NOT delay landing render. If server-side, fire-and-forget on background promise; if client-side, fire on `useEffect` after mount.
+>    - **Honor Do-Not-Track**: if `Navigator.doNotTrack === '1'` (client) OR request header `DNT: 1` (server) → skip the insert.
+>    - **Honor Sec-CH-* hints**: respect `Sec-CH-UA-Mobile: ?1` etc. for accurate baselines, but the absence of hints is not a fraud signal.
+>    - IP truncated to /24 before insert (PII minimization).
+>    - UA hashed with SHA-256 before insert (PII minimization).
+>
+> 3. **Plan 19-07 explicitly does NOT add a ratio-detector task.** The 3σ raw-count Z-score on `affiliate_clicks` is retained at v1.2; the matview shipped in 19-07 is for clicks only, not impressions.
+>
+> 4. **v1.3 will:** materialize `affiliate_impression_baseline` view + add ratio-anomaly Z-score detector using historical impression data. Schema is already in place from v1.2.
+
+## D-39 (NEW — 2026-05-15) — `payouts.status='reversed'` deferred to v1.3
+
+> **Scope amendment:** `payouts.status` enum drops `'reversed'` from the v1.2 check constraint. Chargeback handling on already-paid payouts (Stripe `transfer.reversed` webhook) is out of scope for v1.2.
+>
+> **v1.2 enum:** `('pending','processing','paid','failed','blocked_onboarding')`.
+> **v1.3 plan:** add `'reversed'` via `alter table ... add constraint ... drop constraint`; wire `transfer.reversed` webhook handler.
+>
+> **Why deferred:** Chargebacks on Stripe Connect transfers are rare (<0.1% rate) and the 60-day eligibility hold from D-30 already mitigates most exposure. Adding `reversed` without a webhook + UI surface is dead config.
+
 ## Planner instructions
 
 When generating `19-NN-NAME-PLAN.md` files:
 
-1. **Read CONTEXT.md first**, then read this addendum to override D-31 rationale and pick up D-36 + D-37.
+1. **Read CONTEXT.md first**, then read this addendum to override D-31 rationale and pick up D-36 + D-37 + D-38 + D-39.
 2. **Affiliate threshold column** is `affiliates.tax_threshold_cents` not a literal — write migration accordingly.
 3. **Webhook filter** must check `invoice.billing_reason` — do NOT write commission rows on renewal events.
 4. **Wave-0 smoke** task is mandatory (Vercel rewrite + Phase 12 capability check); both can run in parallel as 30-min spike tasks; results determine Wave 1 path.
-5. All other D-NN locks in CONTEXT.md remain authoritative.
+5. **AFF-08 impression table** ships in Plan 19-01; **impression-insert** ships in Plan 19-08; Plan 19-07 does NOT get a ratio-detector task.
+6. **payouts.status** enum is the v1.2 reduced set; do NOT include `'reversed'`.
+7. All other D-NN locks in CONTEXT.md remain authoritative.
 
 ---
 
 *Addendum: 19-CONTEXT-ADDENDUM-research.md*
-*Generated: 2026-05-15 via /gsd-plan-phase 19 leanshot — research-phase open-question resolution*
+*Generated: 2026-05-15 via /gsd-plan-phase 19 leanshot — research-phase open-question resolution + plan-checker iter-1 revision*

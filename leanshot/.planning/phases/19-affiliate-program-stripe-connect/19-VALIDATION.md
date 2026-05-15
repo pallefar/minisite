@@ -1,16 +1,17 @@
 ---
 phase: 19
 slug: affiliate-program-stripe-connect
-status: draft
-nyquist_compliant: false
+status: post-iter-1-revision
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-15
+updated: 2026-05-15
 ---
 
-# Phase 19 — Validation Strategy
+# Phase 19 — Validation Strategy (regenerated post plan-checker iter-1)
 
 > Per-phase validation contract for feedback sampling during execution.
-> See `19-RESEARCH.md § Validation Architecture` for full per-task derivation.
+> Regenerated 2026-05-15 to fix BL-5: previous version referenced non-existent plans 19-10/19-11 and wrong test file paths.
 
 ---
 
@@ -23,37 +24,51 @@ created: 2026-05-15
 | **Framework (e2e)** | Playwright @1.49 — existing |
 | **Config file** | `vitest.config.ts`, `playwright.config.ts`, `supabase/functions/<name>/deno.json` |
 | **Quick run command** | `npm run test -- --run` |
-| **Full suite command** | `npm run test && npm run test:e2e && deno test supabase/functions/affiliate-*` |
-| **Estimated runtime** | ~120 s (vitest) + ~90 s (e2e) + ~30 s (deno) ≈ 4 min |
+| **Full suite command** | `npm run test && npm run test:e2e && deno test supabase/functions/affiliate-* supabase/functions/partner-* supabase/functions/account-delete supabase/functions/stripe-*` |
+| **Estimated runtime** | ~150 s (vitest) + ~120 s (e2e) + ~45 s (deno) ≈ 5.5 min |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npm run test -- --run --reporter=verbose <affected-spec>`
-- **After every plan wave:** Run full vitest + deno; e2e if any plan touched routes
-- **Before `/gsd:verify-work`:** Full suite + Playwright cascade-deletion spec must be green
+- **After every task commit:** `npm run test -- --run --reporter=verbose <affected-spec>` OR `deno test <affected-spec>`
+- **After every plan wave:** Full vitest + deno; e2e if any plan touched routes
+- **Before `/gsd-validate-phase`** (Phase 19 routes to validate-phase per I-2 / project memory `feedback_infra_phase_validate_not_verify`, NOT verify-work): full suite + Playwright cascade-deletion spec must be green + `npm run check-bundle-budget` (I-1)
 - **Max feedback latency:** 30 s per affected spec
 
 ---
 
 ## Per-Task Verification Map
 
-> Populated by planner during plan-phase. Placeholder rows below — planner expands per PLAN.md task.
+> Regenerated from the 9 PLAN.md files post-iter-1-revision. Each row pairs a task with its `<verify><automated>` command.
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 19-01-01 | 01 schema | 1 | AFF-01..AFF-10, MONEY-07 | T-19-01 | RLS prevents cross-affiliate read | sql + vitest | `supabase migration up && npm run test affiliates-rls` | ❌ W0 | ⬜ pending |
-| 19-02-01 | 02 affiliate-attribute | 1 | AFF-02 | T-19-02 | HttpOnly cookie set; no XSS path | deno test | `deno test supabase/functions/affiliate-attribute/index.test.ts` | ❌ W0 | ⬜ pending |
-| 19-03-01 | 03 stripe-connect-onboard | 1 | AFF-03 | T-19-03 | account_link single-use | deno test | `deno test supabase/functions/stripe-connect-onboard/index.test.ts` | ❌ W0 | ⬜ pending |
-| 19-04-01 | 04 tier_effective view | 1 | MONEY-07 | T-19-04 | security_invoker honors RLS | sql + vitest | `npm run test tier-effective` | ❌ W0 | ⬜ pending |
-| 19-05-01 | 05 stripe-webhook affiliate | 2 | AFF-04 (conv), D-36 | T-19-05 | renewal filter (no double-pay) | deno test | `deno test supabase/functions/stripe-webhook/affiliate.test.ts` | ❌ W0 | ⬜ pending |
-| 19-06-01 | 06 partner dashboard | 2 | AFF-04 | T-19-06 | role='affiliate' route gate | vitest + Playwright | `npm run test PartnerDashboard && npm run test:e2e partner-dashboard.spec.ts` | ❌ W0 | ⬜ pending |
-| 19-07-01 | 07 apply + admin scaffold | 2 | AFF-05 | T-19-07 | rate-limit on /affiliate POST | vitest | `npm run test affiliate-apply` | ❌ W0 | ⬜ pending |
-| 19-08-01 | 08 fraud signals | 3 | AFF-07, AFF-08 | T-19-08 | IP /24 + fingerprint matching | sql + vitest | `npm run test fraud-flagging` | ❌ W0 | ⬜ pending |
-| 19-09-01 | 09 monthly payout cron | 3 | AFF-06 | T-19-09 | 60-day eligibility filter | deno test + sql | `deno test supabase/functions/affiliate-payout/index.test.ts` | ❌ W0 | ⬜ pending |
-| 19-10-01 | 10 account-delete cascade | 3 | MONEY-10 | T-19-10 | payouts retained; affiliate_ledger anonymized | Playwright | `npm run test:e2e account-deletion-cascade.spec.ts` | ❌ W0 | ⬜ pending |
-| 19-11-01 | 11 landing-page templates | 3 | AFF-09 | T-19-11 | initials fallback (no XSS in name) | vitest | `npm run test landing-template-coach` | ❌ W0 | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|--------|
+| 19-01-T1 | 19-01 schema | 1 | AFF-01, AFF-08, AFF-09, AFF-10, MONEY-07 | T-19-01-S/T/I | RLS + view filters prevent cross-affiliate read; `affiliates_public_view` exposes only 8 non-PII columns | sql (psql + db reset) | `cd /Users/karstenhaldan/minisite && supabase db reset --local --linked=false && supabase db lint --schema=public --level=warning 2>&1 \| tee /tmp/19-01-lint.txt && (grep -E 'SECURITY DEFINER view\|0010_security_definer_view' /tmp/19-01-lint.txt && exit 1 \|\| echo lint clean)` | ⬜ |
+| 19-01-T2 | 19-01 RLS + tests | 1 | AFF-01, AFF-10, MONEY-07 | T-19-01-S/I | Cross-tenant impersonation isolation across 5 tables + public view anon read of approved-only | sql + vitest | `cd /Users/karstenhaldan/minisite && supabase db reset --local && psql "$LOCAL_DB_URL" -f supabase/tests/affiliate_schema.test.sql && psql "$LOCAL_DB_URL" -f supabase/tests/tier_effective_view.test.sql && cd /Users/karstenhaldan/minisite/leanshot && npm run test -- tests/rls/affiliates-rls.test.ts --run` | ⬜ |
+| 19-02-T1 | 19-02 attribute | 1 | AFF-02 | T-19-02-I | Wave-0 Vercel rewrite preserves single Set-Cookie; W-6 dropped `_aff_v` | bash smoke | `bash /Users/karstenhaldan/minisite/leanshot/scripts/wave-0-vercel-rewrite-smoke.sh 2>&1 \| tee /tmp/19-02-task1.log && grep -F 'WAVE-0 SMOKE PASS' /tmp/19-02-task1.log` | ⬜ |
+| 19-02-T2 | 19-02 attribute | 1 | AFF-02 | T-19-02-T/I | Code regex + status='approved' check + Referer fraud filter + cold-start cap | deno test | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/affiliate-attribute/index.test.ts --allow-env --allow-net` | ⬜ |
+| 19-03-T1 | 19-03 connect-onboard | 2 | AFF-03 | T-19-03-S | Wave-0 D-37#2 — Stripe transfers capability + onboarding env vars | human-verify (CLI script) | `bash /Users/karstenhaldan/minisite/leanshot/scripts/wave-0-stripe-transfers-capability.sh` | ⬜ |
+| 19-03-T2 | 19-03 connect-onboard | 2 | AFF-03 | T-19-03-S/I | JIT account_link (5-min TTL never persisted); state-machine; payouts_enabled mirror | deno test | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/stripe-connect-onboard/index.test.ts supabase/functions/partner-account-status/index.test.ts --allow-env --allow-net` | ⬜ |
+| 19-04-T1 | 19-04 checkout | 3 | AFF-02, AFF-03 | T-19-04-T | `?aff=` query + `?aff_manual=` (BL-1) + `_aff` cookie → Stripe metadata; aff_code regex + status='approved' check | deno test | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/stripe-checkout/index.test.ts --allow-env --allow-net` | ⬜ |
+| 19-04-T2 | 19-04 webhook | 3 | AFF-02, AFF-03 | T-19-04-T (D-36) | invoice.paid renewal filter (`subscription_create` only); account.updated mirror | deno test | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/stripe-webhook/events/invoice-paid.test.ts supabase/functions/stripe-webhook/events/account-updated.test.ts --allow-env --allow-net` | ⬜ |
+| 19-04-T3 | 19-04 BL-1 D-23 | 3 | AFF-02 (BL-1) | T-19-04-E | feature_flags table + SignUpForm field + client helper | vitest | `cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/lib/__tests__/feature-flags.test.ts src/components/auth/__tests__/SignUpForm.test.tsx --run` | ⬜ |
+| 19-05-T1 | 19-05 apply | 3 | AFF-05 | T-19-05-S/T | W-5 direct-HTTPS Resend (no SDK); honeypot + rate-limit; InitialsAvatar size budget | deno + vitest | `cd /Users/karstenhaldan/minisite && RESEND_API_KEY=test-stub deno test supabase/functions/affiliate-apply/index.test.ts --allow-env --allow-net && cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/components/ui/__tests__/InitialsAvatar.test.tsx --run && (grep -c 'npm:resend\|esm.sh/resend' /Users/karstenhaldan/minisite/supabase/functions/affiliate-apply/*.ts \|\| true) \| tee /tmp/19-05-resend-grep.txt && [ "$(cat /tmp/19-05-resend-grep.txt \| tr -d '\n')" = "0" ]` | ⬜ |
+| 19-05-T2 | 19-05 apply UI + admin scaffold + route registry | 3 | AFF-05 | T-19-05-I/E | RLS + client gate; ApplyForm validation + AdminScaffold filter; **NO App.tsx mutation (BL-4)** | vitest + git-diff | `cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/components/affiliate src/components/admin --run && (git diff --quiet src/App.tsx \|\| (echo 'BL-4 FAIL'; exit 1))` | ⬜ |
+| 19-06a-T1 | 19-06a partner dashboard | 3 | AFF-04 | T-19-06a-S/I | Role gate; KPI/chart/feed; 10-min poll; **NO App.tsx mutation (BL-4)** | vitest + git-diff | `cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/lib/affiliate src/components/partner/__tests__/PartnerDashboard.test.tsx --run && (git diff --quiet src/App.tsx \|\| (echo 'BL-4 FAIL'; exit 1))` | ⬜ |
+| 19-06b-T1 | 19-06b partner links/payouts/assets + partner-profile-update | 4 | AFF-04, AFF-08 | T-19-06b-T (BL-2 Path A) | partner-profile-update column allowlist; StripeConnectOnboardingCard 4-state; partner-routes.ts; **NO App.tsx mutation (BL-4)** | deno + vitest + git-diff | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/partner-profile-update/index.test.ts --allow-env --allow-net && cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/components/partner/__tests__/StripeConnectOnboardingCard.test.tsx src/components/partner/__tests__/PartnerCustomizeForm.test.tsx --run && (git diff --quiet src/App.tsx \|\| (echo 'BL-4 FAIL'; exit 1))` | ⬜ |
+| 19-07-T1 | 19-07 fraud signals | 2 | AFF-07, AFF-08 | T-19-07-S/T | IP/24 + fingerprint + email-domain trigger with public-email allowlist; matview Z-score baseline | sql + psql | `cd /Users/karstenhaldan/minisite && supabase db reset --local && psql "$LOCAL_DB_URL" -f supabase/tests/flag_conversion_fraud.test.sql && psql "$LOCAL_DB_URL" -f supabase/tests/affiliate_click_baseline.test.sql` | ⬜ |
+| 19-07-T2 | 19-07 ThumbmarkJS + Z-score | 2 | AFF-07, AFF-08 | T-19-07-T | Lazy ThumbmarkJS chunk; Z-score check after 7-day baseline; index ≤ 50 kB gz | vitest + deno + build | `cd /Users/karstenhaldan/minisite/leanshot && npm install && npm run test -- src/lib/affiliate/__tests__/fingerprint.test.ts --run && npm run build && du -b dist/assets/index-*.js.gz 2>/dev/null \| head -1 \| awk '{ if ($1 > 51200) { print "INDEX OVER 50KB GZ"; exit 1 } }' && cd /Users/karstenhaldan/minisite && deno test supabase/functions/affiliate-attribute/index.test.ts --allow-env --allow-net` | ⬜ |
+| 19-08-T1 | 19-08 landing seeds + page-builder catalog | 5 | AFF-09 | T-19-08-S/T/I | 3 template rows seeded; templates.ts catalog extended; (template_choice + view + RLS owned by 19-01) | psql + vitest | `cd /Users/karstenhaldan/minisite && supabase db reset --local && psql "$LOCAL_DB_URL" -c "select count(*) from public.landing_pages where slug like '_template_%';" \| grep -E '^\s+3\s*$' && cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/lib/page-builder/__tests__/affiliate-templates.test.ts --run` | ⬜ |
+| 19-08-T2 | 19-08 impression tracking (BL-8 / D-38) | 5 | AFF-08 (D-38) | T-19-08-T/I | affiliate-impression Edge Function with /24 truncation + UA hash; DNT honor; rate-limit | deno + vitest | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/affiliate-impression/index.test.ts --allow-env --allow-net && cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/lib/affiliate/__tests__/impression.test.ts --run` | ⬜ |
+| 19-08-T3 | 19-08 landing renderers + resolver + route registry | 5 | AFF-09 | T-19-08-T/I | 3 templates render via affiliates_public_view (Plan 19-01); chunks ≤ 12 kB gz; **NO App.tsx mutation (BL-4)** | vitest + build + git-diff | `cd /Users/karstenhaldan/minisite/leanshot && npm run test -- src/components/landing --run && npm run build && du -b dist/assets/LandingTemplate*-*.js.gz 2>/dev/null \| awk '{ if ($1 > 12288) { print "CHUNK OVER 12KB GZ"; exit 1 } }' && (git diff --quiet src/App.tsx \|\| (echo 'BL-4 FAIL'; exit 1))` | ⬜ |
+| 19-08-T4 | 19-08 marketing-assets seed | 5 | AFF-04, AFF-09 | T-19-08-I | Storage bucket has ≥ 8 admin-curated files | human-verify (CLI) | `bash /Users/karstenhaldan/minisite/leanshot/scripts/seed-marketing-assets.sh` | ⬜ |
+| 19-09-T0 | 19-09 vault load | 6 | AFF-06 (BL-7) | T-19-09-I | service_role_key loaded into vault.secrets via Dashboard | human-verify (psql) | `psql "$DATABASE_URL" -c "select count(*) from vault.secrets where name = 'service_role_key';"` | ⬜ |
+| 19-09-T1 | 19-09 affiliate-payout + cron | 6 | AFF-06 | T-19-09-S/T | transfers.create with idempotency; 3-retry; payouts materialization + monthly cron; Vault auth (BL-7); pinned stripe@19 (W-2) | deno test | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/affiliate-payout/index.test.ts --allow-env --allow-net` | ⬜ |
+| 19-09-T2 | 19-09 account-delete cascade | 6 | AFF-10, MONEY-10 | T-19-09-T/PSV | finalize_affiliate_cascade RETURNS TEXT (BL-6); preserves stripe_connect_account_id; 10-step D-33 order; payouts retention | deno + Playwright e2e | `cd /Users/karstenhaldan/minisite && deno test supabase/functions/account-delete/index.test.ts --allow-env --allow-net && cd /Users/karstenhaldan/minisite/leanshot && npm run test:e2e -- tests/e2e/affiliate-account-delete.spec.ts` | ⬜ |
+| 19-09-T3 | 19-09 App.tsx wiring (BL-4) | 6 | AFF-05, AFF-04, AFF-09 | T-19-09-E | Single App.tsx writer; 3 route registries imported + dispatched | tsc + grep | `cd /Users/karstenhaldan/minisite/leanshot && npm run typecheck 2>&1 \| tee /tmp/19-09-task3-tsc.log && (grep -E 'App.tsx' /tmp/19-09-task3-tsc.log \| grep -E 'error TS' && exit 1 \|\| true) && grep -c 'AFFILIATE_APPLY_ROUTES\|PARTNER_ROUTES\|LANDING_ROUTES' src/App.tsx \| grep -E '^[3-9]$'` | ⬜ |
+| 19-09-T4 | 19-09 [BLOCKING] schema push + I-1 bundle | 6 | All P19 | T-19-09 (all) | 13 migrations applied + bundle ceiling green | human-verify (CLI) | `cd /Users/karstenhaldan/minisite && supabase db push --linked && cd /Users/karstenhaldan/minisite/leanshot && npm run check-bundle-budget` | ⬜ |
+| 19-09-T5 | 19-09 Edge Function deploys | 6 | All P19 | T-19-09 (all) | 10 Edge Functions live; 3 cron jobs registered | human-verify (CLI) | `for fn in affiliate-attribute stripe-connect-onboard partner-account-status affiliate-apply partner-profile-update affiliate-impression affiliate-payout account-delete stripe-webhook stripe-checkout; do supabase functions deploy $fn --linked & done; wait` | ⬜ |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -61,14 +76,8 @@ created: 2026-05-15
 
 ## Wave 0 Requirements
 
-- [ ] **Vercel rewrite smoke** (per D-37 #1): deploy stub Edge Function + `vercel.json` rewrite + curl `https://<preview>.vercel.app/r/test` → assert `Set-Cookie: _aff=test; Domain=.leanshot.app` present
-- [ ] **Phase 12 stripe-done capability check** (per D-37 #2): `stripe accounts retrieve <platform_id> --expand capabilities` → assert `capabilities.transfers='active'`; if not, enable in dashboard
-- [ ] `supabase/functions/affiliate-attribute/index.test.ts` — cookie-setting stub
-- [ ] `supabase/functions/stripe-connect-onboard/index.test.ts` — account_link stub
-- [ ] `supabase/functions/affiliate-payout/index.test.ts` — payout-cron stub
-- [ ] `supabase/functions/stripe-webhook/affiliate.test.ts` — invoice.paid + billing_reason filter
-- [ ] `tests/e2e/partner-dashboard.spec.ts`, `tests/e2e/account-deletion-cascade.spec.ts` — Playwright stubs
-- [ ] `src/lib/affiliate/__tests__/` — apply form, fraud signals, tier_effective consumer
+- [ ] **Vercel rewrite smoke** (D-37 #1 — Plan 19-02 Task 1): deploy stub Edge Function + `vercel.json` rewrite + curl `https://leanshot.app/r/test` → assert exactly ONE `Set-Cookie: _aff=test; Domain=.leanshot.app; HttpOnly` (W-6 — no `_aff_v`)
+- [ ] **Stripe Connect transfers-capability check** (D-37 #2 — Plan 19-03 Task 1): `bash leanshot/scripts/wave-0-stripe-transfers-capability.sh` confirms platform's transfers capability + STRIPE_CONNECT_RETURN_URL + STRIPE_CONNECT_REFRESH_URL Function Secrets
 
 ---
 
@@ -77,18 +86,20 @@ created: 2026-05-15
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Stripe Connect Express hosted-onboarding UI (W-9 / W-8BEN forms) | AFF-03 | Stripe-hosted UI; cannot Playwright into Stripe domain | Test affiliate in Stripe Test Mode walks through onboarding → screenshots saved to `19-UAT.md` |
-| Resend email rendering (approval/rejection/payout-paid templates) | AFF-05 | Email-client rendering varies; visual diff in actual Gmail/Outlook | Send approval email to test inbox → screenshot 3 clients → attach to `19-UAT.md` |
+| Resend email rendering (application-received / approval / payout-paid / admin-alert templates) | AFF-05, AFF-06 | Email-client rendering varies; visual diff in actual Gmail/Outlook | Send each email to test inbox → screenshot 3 clients → attach to `19-UAT.md` |
 | 1099-NEC auto-generation at year-end | AFF-06 | Stripe runs the cron; we can only verify config | Confirm Stripe Connect dashboard shows tax-reporting enabled for platform |
+| Supabase Vault availability for project tier | AFF-06 (BL-7) | Vault is a Supabase feature; cannot fully script-test | Plan 19-09 Task 0 — Dashboard load of service_role_key |
+| Marketing-assets visual review | AFF-04, AFF-09 | Subjective branding quality | Plan 19-08 Task 4 — upload + visual confirm |
 
 ---
 
-## Validation Sign-Off
+## Validation Sign-Off (post-iter-1 quality gate)
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30 s per spec
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or are explicit checkpoint:human-verify gates
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (D-37 #1 + #2)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30 s per spec
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ready for /gsd-validate-phase (I-2 routing per project memory `feedback_infra_phase_validate_not_verify`)

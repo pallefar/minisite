@@ -146,7 +146,7 @@
 
 #### Fraud Detection
 - [ ] **AFF-07**: Conversions flagged when converter shares IP / device fingerprint / email domain with referring affiliate; admin reviews in ADMIN-06 queue
-- [ ] **AFF-08**: Clicks rejected when Referer mismatched/missing or impression/click ratio is anomalous per affiliate; admin reviews flagged in queue
+- [ ] **AFF-08**: Clicks rejected when Referer mismatched/missing OR raw-count Z-score ≥3σ above the affiliate's 7-day rolling baseline (D-26). Admin reviews flagged rows in the P22 queue (D-25). **v1.2 scope-amendment (2026-05-15):** ships impression tracking (`affiliate_impressions` table + insert on `/r/{code}` render) so v1.3 has historical baseline; the impression/click ratio anomaly *detector* itself is deferred to v1.3.
 
 ### WS9 — Advertising Network (12 REQ-IDs)
 

@@ -941,27 +941,17 @@ export async function onInvoicePaid(event: Stripe.Event, admin: SupabaseClient) 
 | A7 | Phase 15 `scaffoldFromTemplate` helper can scaffold from a template ID, not just a block-tree literal | Pattern 5 | If wrong: P19 needs a small extension to `templates.ts`. Risk: low; the helper is already pure and tested. |
 | A8 | Affiliate-role claim via `auth.users.app_metadata.role='affiliate'` is recognized by an existing Phase 9/10 route gate that P19 can reuse | Architectural Map | If wrong: P19 must ship a brand-new role-gate. Grep showed `app_metadata` is NOT yet wired in src/; **mitigation: P19 ships the gate as new infrastructure regardless. Reuse claim only.** |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What is the actual user intent for $500 vs $2,000 W-9 threshold?**
-   - What we know: CONTEXT D-31 says "$500 strict (Stripe Connect default)" — research finds Stripe has NO default threshold; platforms must set it. 2026 IRS reporting threshold is $2,000.
-   - What's unclear: Is "$500" a deliberate platform-set policy (we want to collect tax info earlier than IRS requires, for fraud reduction), or a misunderstanding of Stripe defaults?
-   - Recommendation: Plan-phase should produce an inline patch / discuss-phase addendum locking the value. **Default recommendation: $2,000 to match 2026 IRS legal threshold; minimum-viable; lower friction for affiliates earning less than $2k/yr.** If user wants $500 anyway (per the regulator-vs-user audience pattern, this is a regulator decision = trim), revert.
+> All 4 open questions resolved via `19-CONTEXT-ADDENDUM-research.md` (committed 2026-05-15). Inline annotations below.
 
-2. **Does Vercel rewrite preserve `Set-Cookie` headers from upstream Edge Function?**
-   - What we know: Standard Vercel rewrite docs say headers pass through; no explicit `Set-Cookie` carve-out documented either way.
-   - What's unclear: Behavior under cross-origin upstream (Supabase Edge Function) with multi-cookie response.
-   - Recommendation: Plan 19-01 Wave 0 sanity-check: deploy a no-op Edge Function that returns `Set-Cookie: test=1; Domain=.leanshot.app`; route via Vercel rewrite; curl + verify browser receives cookie. 10-minute smoke. If broken, fall back to deploying `affiliate-attribute` as a Vercel Edge Function instead of Supabase Edge Function.
+1. **RESOLVED → 19-CONTEXT-ADDENDUM-research.md § D-31 (AMENDED).** $500 is deliberate fraud-reduction policy (user-confirmed 2026-05-15) — front-loads identity verification well below 2026 IRS legal $2,000 threshold. Implementation via configurable `affiliates.tax_threshold_cents` column (default 50000), not Stripe default. Original wording "Stripe Connect default" was wrong rationale; the $500 number itself stands.
 
-3. **Should `affiliate_conversions` count renewals or only initial subscriptions?**
-   - What we know: CONTEXT D-08 says "$10 commission per paid conversion". The word "conversion" is ambiguous.
-   - What's unclear: Renewal payments — does the affiliate continue earning $10/mo for that user's subscription lifetime, or just the initial month?
-   - Recommendation: Renewals = "conversion" too (this is the standard SaaS-affiliate model — recurring commissions). Pitfall 2 already plans for this technically; planner should verify the user's intent at discuss-phase amendment.
+2. **RESOLVED → 19-CONTEXT-ADDENDUM-research.md § D-37 #1.** Vercel rewrite preservation of `Set-Cookie` is a Wave-0 10-min smoke task in Plan 19-02 Task 1. Asserts `Set-Cookie: _aff=test; Domain=.leanshot.app` is present after rewrite. Fallback: subdomain `r.leanshot.app` pointed at Supabase function URL if smoke fails.
 
-4. **Phase 12 vendor checkpoint `stripe-done` — what's in scope?**
-   - What we know: Per `project_phase12_execute_complete`, the stripe vendor checkpoint enabled Stripe Connect Express.
-   - What's unclear: Did the checkpoint include enabling the `transfers` capability + the W-9 hosted onboarding feature flag in the Stripe dashboard? These are separate Stripe-dashboard toggles.
-   - Recommendation: Plan 19-02 (or whichever plan handles `affiliate-connect-onboard`) starts with a 5-minute Stripe-dashboard verification: `Settings → Connect → Capabilities` shows `transfers: enabled`; `Settings → Connect → Tax forms` shows hosted-collection enabled.
+3. **RESOLVED → 19-CONTEXT-ADDENDUM-research.md § D-36 (NEW).** Renewals do NOT count as conversions (user-confirmed 2026-05-15). `stripe-webhook` filters `invoice.billing_reason = 'subscription_create'` only; renewals (`subscription_cycle`) write zero `affiliate_conversions` rows. Single $10 per converted user; bounded liability per CONTEXT D-08.
+
+4. **RESOLVED → 19-CONTEXT-ADDENDUM-research.md § D-37 #2.** Phase 12 `stripe-done` capability check is a Wave-0 smoke task in Plan 19-03 Task 1. Calls `https://api.stripe.com/v1/account` and asserts `capabilities.transfers === 'active'`. If not active, vendor task added to enable transfers via Stripe dashboard before any `transfers.create` runs.
 
 ## Environment Availability
 
