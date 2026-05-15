@@ -14,6 +14,7 @@ import type { ChangeEvent } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import type { BlockNode, BlockStyle } from '@/lib/page-builder/block-schema';
+import { PROPERTY_CONFIGS } from './property-configs';
 
 export interface PropertyPanelProps {
   selectedBlockId: string | null;
@@ -195,9 +196,180 @@ function ContentFields({ block, updateContent }: ContentFieldsProps) {
     );
   }
 
+  // 15-05: 5 new block types route through the FLAT property-configs registry.
+  // Each entry's `contentFields` is rendered by GenericContentFields below.
+  // Future plans (15-06/07/08) extend the registry without restructuring this
+  // switch — only the existing per-type literal branches above are bespoke.
+  const config = PROPERTY_CONFIGS[block.type];
+  if (config) {
+    return (
+      <GenericContentFields
+        block={block}
+        fields={config.contentFields}
+        updateContent={updateContent}
+      />
+    );
+  }
+
   return (
     <p className="text-[13px] text-[var(--color-text-secondary)]">
       Content fields for this block type land in a later plan.
     </p>
+  );
+}
+
+// ─── Generic field renderer (driven by property-configs) ──────────────────────
+//
+// Renders the flat content-field list for any block type registered in
+// PROPERTY_CONFIGS. Sub-renderers per `kind` are co-located below — adding a
+// new field kind is one local switch arm.
+interface GenericContentFieldsProps {
+  block: BlockNode;
+  fields: import('./property-configs').ContentFieldConfig[];
+  updateContent: (patch: Record<string, unknown>) => void;
+}
+
+function GenericContentFields({ block, fields, updateContent }: GenericContentFieldsProps) {
+  const content = block.content as Record<string, unknown>;
+  return (
+    <div className="flex flex-col gap-3">
+      {fields.map((f) => {
+        switch (f.kind) {
+          case 'text':
+            return (
+              <Input
+                key={f.key}
+                label={f.label}
+                hint={f.hint}
+                placeholder={f.placeholder}
+                value={typeof content[f.key] === 'string' ? (content[f.key] as string) : ''}
+                onChange={(e) => updateContent({ [f.key]: e.target.value })}
+              />
+            );
+          case 'textarea':
+            return (
+              <Textarea
+                key={f.key}
+                label={f.label}
+                hint={f.hint}
+                placeholder={f.placeholder}
+                value={typeof content[f.key] === 'string' ? (content[f.key] as string) : ''}
+                onChange={(e) => updateContent({ [f.key]: e.target.value })}
+              />
+            );
+          case 'image-url+alt':
+            return (
+              <div key={f.key} className="flex flex-col gap-2">
+                <Input
+                  label={f.label + ' URL'}
+                  hint={f.hint}
+                  value={typeof content['imageUrl'] === 'string' ? (content['imageUrl'] as string) : ''}
+                  onChange={(e) => updateContent({ imageUrl: e.target.value })}
+                />
+                <Input
+                  label="Image alt text"
+                  hint="Required — describes the image for screen readers."
+                  value={typeof content['imageAlt'] === 'string' ? (content['imageAlt'] as string) : ''}
+                  onChange={(e) => updateContent({ imageAlt: e.target.value })}
+                />
+              </div>
+            );
+          case 'faq-items':
+            return (
+              <RepeatableJsonField
+                key={f.key}
+                label={f.label}
+                hint="JSON array of {q, a} objects."
+                value={content[f.key]}
+                onChange={(v) => updateContent({ [f.key]: v })}
+              />
+            );
+          case 'pricing-plans':
+            return (
+              <RepeatableJsonField
+                key={f.key}
+                label={f.label}
+                hint="JSON array of plan objects (name, price, cadence, features[], ctaLabel, recommended?)."
+                value={content[f.key]}
+                onChange={(v) => updateContent({ [f.key]: v })}
+              />
+            );
+          case 'testimonial-quotes':
+            return (
+              <RepeatableJsonField
+                key={f.key}
+                label={f.label}
+                hint="JSON array of {quote, authorName, authorPhotoUrl?, authorPhotoAlt?} objects."
+                value={content[f.key]}
+                onChange={(v) => updateContent({ [f.key]: v })}
+              />
+            );
+          case 'feature-items':
+            return (
+              <RepeatableJsonField
+                key={f.key}
+                label={f.label}
+                hint="JSON array of {iconName, title, body} objects."
+                value={content[f.key]}
+                onChange={(v) => updateContent({ [f.key]: v })}
+              />
+            );
+          case 'text-list':
+            return (
+              <RepeatableJsonField
+                key={f.key}
+                label={f.label}
+                hint="JSON array of strings."
+                value={content[f.key]}
+                onChange={(v) => updateContent({ [f.key]: v })}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
+}
+
+// JSON-textarea editor for repeatable structured fields. Slice-2 swaps this
+// for a structured row-editor; for Slice-1 the JSON view keeps the editor
+// usable for staff who are comfortable with shapes.
+function RepeatableJsonField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value: unknown;
+  onChange: (next: unknown) => void;
+}) {
+  const text = (() => {
+    try {
+      return JSON.stringify(value ?? [], null, 2);
+    } catch {
+      return '[]';
+    }
+  })();
+  return (
+    <Textarea
+      label={label}
+      hint={hint}
+      value={text}
+      rows={6}
+      onChange={(e) => {
+        const raw = e.target.value;
+        try {
+          const parsed = JSON.parse(raw);
+          onChange(parsed);
+        } catch {
+          // Keep the textbox text as-is during typing; only commit on valid
+          // JSON parse. We don't surface a parse-error toast here (Slice-1
+          // — the staff user can refer to the hint).
+        }
+      }}
+    />
   );
 }
