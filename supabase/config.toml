@@ -408,6 +408,20 @@ verify_jwt = false
 [functions.page-render]
 verify_jwt = false
 
+# Phase 15 Plan 04 — page-save mutates landing_pages + landing_page_revisions
+# under an is_staff gate. JWT is required (verify_jwt = true, the default) AND
+# the function independently re-verifies profiles.is_staff via the service-role
+# client (T-15-04-01). Append-only invariant on landing_page_revisions is
+# enforced by both function code and DB-level triggers (Plan 15-01).
+[functions.page-save]
+verify_jwt = true
+
+# Phase 15 Plan 04 — page-publish re-points landing_pages.published_revision_id
+# and fires a best-effort x-prerender-revalidate HEAD. Same is_staff posture as
+# page-save (verify_jwt = true + server-side profiles.is_staff check).
+[functions.page-publish]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
