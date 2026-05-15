@@ -2,10 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "rewrites": [
+    { "source": "/r/:code", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/affiliate-attribute?code=:code" },
     { "source": "/clinic/(.*)", "destination": "/index.html" },
     { "source": "/clinic-invite/(.*)", "destination": "/index.html" },
+    { "source": "/affiliate", "destination": "/index.html" },
+    { "source": "/partner/(.*)", "destination": "/index.html" },
+    { "source": "/admin/affiliates", "destination": "/index.html" },
     { "source": "/sitemap.xml", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/sitemap" },
-    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
+    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt|partner|affiliate|r).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
   ],
   "headers": [
     {
