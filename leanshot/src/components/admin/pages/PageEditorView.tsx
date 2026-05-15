@@ -20,17 +20,33 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { Modal } from '@/components/ui/Modal';
 import { Pill } from '@/components/ui/Pill';
 import type { BlockNode, BlockType } from '@/lib/page-builder/block-schema';
 import {
   getPage,
+  listRevisions,
   newBlock,
   publishPage,
   savePage,
+  type PageSeoFields,
+  type RevisionListRow,
 } from '@/lib/page-builder/page-api';
 import { BlockTreePanel } from './editor/BlockTreePanel';
 import { PreviewPane } from './editor/PreviewPane';
 import { PropertyPanel } from './editor/PropertyPanel';
+import { SEOPanel, type SEOFields, type SEOFieldKey } from './editor/SEOPanel';
+import { VersionHistoryPanel } from './editor/VersionHistoryPanel';
+
+const SCAFFOLD_STORAGE_KEY = 'phase15-template-scaffold';
+
+const EMPTY_SEO: SEOFields = {
+  seo_title: '',
+  seo_description: '',
+  seo_og_image: '',
+  seo_canonical: '',
+  seo_schema_type: 'WebPage',
+};
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 type PublishState = 'idle' | 'publishing' | 'published' | 'error';
@@ -39,6 +55,25 @@ function readPageIdFromPath(): string {
   // /admin/pages/{id}  or  /admin/pages/new
   const m = window.location.pathname.match(/^\/admin\/pages\/([^/?#]+)/);
   return m ? (m[1] ?? 'new') : 'new';
+}
+
+function toSeoFields(seo: PageSeoFields): SEOFields {
+  const validTypes = new Set([
+    'WebPage',
+    'Product',
+    'Article',
+    'Service',
+    'Organization',
+  ]);
+  return {
+    seo_title: seo.seo_title,
+    seo_description: seo.seo_description,
+    seo_og_image: seo.seo_og_image,
+    seo_canonical: seo.seo_canonical,
+    seo_schema_type: validTypes.has(seo.seo_schema_type)
+      ? (seo.seo_schema_type as SEOFields['seo_schema_type'])
+      : 'WebPage',
+  };
 }
 
 export function PageEditorView() {
@@ -56,6 +91,30 @@ export function PageEditorView() {
   const [publishState, setPublishState] = useState<PublishState>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  // SEO + history (PAGE-05, PAGE-07).
+  const [seo, setSeo] = useState<SEOFields>(EMPTY_SEO);
+  const [seoOpen, setSeoOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [revisions, setRevisions] = useState<RevisionListRow[]>([]);
+
+  // Template scaffold handoff (PAGE-04): TemplatePicker on /admin/pages
+  // writes a JSON blob into sessionStorage before navigating here; consume it
+  // ONCE on mount for a new draft.
+  useEffect(() => {
+    if (!isNewDraft) return;
+    try {
+      const raw = sessionStorage.getItem(SCAFFOLD_STORAGE_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(SCAFFOLD_STORAGE_KEY);
+      const parsed = JSON.parse(raw) as { blocks?: unknown };
+      if (Array.isArray(parsed.blocks)) {
+        setBlocks(parsed.blocks as BlockNode[]);
+      }
+    } catch {
+      // Best-effort — corrupt scaffold should not block editor.
+    }
+  }, [isNewDraft]);
+
   // Load existing page on mount when not a new draft.
   useEffect(() => {
     if (isNewDraft) return;
@@ -68,6 +127,7 @@ export function PageEditorView() {
         setBlocks(res.value.blocks);
         setIsPublished(res.value.is_published);
         setLatestRevisionId(res.value.latestRevisionId);
+        setSeo(toSeoFields(res.value.seo));
       } else {
         setErrorMessage("Couldn't load this page. Try refreshing.");
       }
@@ -76,6 +136,14 @@ export function PageEditorView() {
       cancelled = true;
     };
   }, [pageId, isNewDraft]);
+
+  // Refresh revision list whenever the history sheet opens (and on first save).
+  useEffect(() => {
+    if (!historyOpen || isNewDraft) return;
+    void listRevisions(pageId).then((res) => {
+      if (res.ok) setRevisions(res.value);
+    });
+  }, [historyOpen, pageId, isNewDraft, latestRevisionId]);
 
   const addBlock = (type: BlockType): void => {
     const b = newBlock(type, blocks);
@@ -113,11 +181,25 @@ export function PageEditorView() {
     setSaveState('saved');
   };
 
+  const handleSeoChange = (field: SEOFieldKey, value: string): void => {
+    setSeo((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handlePublish = async (): Promise<void> => {
     if (!latestRevisionId || pageId === 'new') return;
     setErrorMessage('');
     setPublishState('publishing');
-    const res = await publishPage({ pageId, revisionId: latestRevisionId });
+    const res = await publishPage({
+      pageId,
+      revisionId: latestRevisionId,
+      seo: {
+        title: seo.seo_title || null,
+        description: seo.seo_description || null,
+        og_image: seo.seo_og_image || null,
+        canonical: seo.seo_canonical || null,
+        schema_type: seo.seo_schema_type || null,
+      },
+    });
     if (!res.ok) {
       setPublishState('error');
       setErrorMessage(
@@ -182,6 +264,23 @@ export function PageEditorView() {
             data-testid="add-footer"
           >
             + Footer
+          </Button>
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => setSeoOpen(true)}
+            data-testid="open-seo"
+          >
+            SEO
+          </Button>
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => setHistoryOpen(true)}
+            disabled={isNewDraft}
+            data-testid="open-history"
+          >
+            History
           </Button>
           <Button
             variant="secondary"
@@ -275,6 +374,38 @@ export function PageEditorView() {
           onChange={setBlocks}
         />
       </div>
+
+      <Modal
+        open={seoOpen}
+        onClose={() => setSeoOpen(false)}
+        title="SEO settings"
+        size="md"
+      >
+        <SEOPanel value={seo} onChange={handleSeoChange} />
+      </Modal>
+
+      {!isNewDraft && (
+        <VersionHistoryPanel
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          pageId={pageId}
+          revisions={revisions.map((r) => ({
+            id: r.id,
+            created_at: r.created_at,
+            created_by_email: r.created_by_email,
+          }))}
+          onRestored={() => {
+            setHistoryOpen(false);
+            void getPage(pageId).then((res) => {
+              if (res.ok) {
+                setBlocks(res.value.blocks);
+                setIsPublished(res.value.is_published);
+                setLatestRevisionId(res.value.latestRevisionId);
+              }
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

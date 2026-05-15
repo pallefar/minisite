@@ -103,6 +103,11 @@ const ClinicDrillInPage = lazy(() =>
 // page-save/page-publish Edge Functions are the real security boundary
 // (T-15-04-01). A non-staff user reaching the editor would simply see empty
 // lists and 403 responses on save.
+const AdminSiteSettings = lazy(() =>
+  import('@/components/admin/pages/SiteSettingsPanel').then((m) => ({
+    default: m.SiteSettingsPanel,
+  })),
+);
 const AdminPageList = lazy(() =>
   import('@/components/admin/pages/PageListView').then((m) => ({ default: m.PageListView })),
 );
@@ -211,7 +216,8 @@ type View =
   // `admin-page-editor` matches `/admin/pages/{id}` (including `/admin/pages/new`).
   // `admin-page-list` matches `/admin/pages` exactly.
   | 'admin-page-list'
-  | 'admin-page-editor';
+  | 'admin-page-editor'
+  | 'admin-site-settings';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -298,6 +304,9 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
   }
   if (opts.pathname === '/admin/pages') {
     return opts.user ? 'admin-page-list' : 'auth';
+  }
+  if (opts.pathname === '/admin' || opts.pathname === '/admin/') {
+    return opts.user ? 'admin-site-settings' : 'auth';
   }
   if (opts.user) return 'dashboard';
   return 'marketing';
@@ -811,6 +820,13 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <AdminPageEditor />
+      </Suspense>
+    );
+  }
+  if (view === 'admin-site-settings') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <AdminSiteSettings />
       </Suspense>
     );
   }

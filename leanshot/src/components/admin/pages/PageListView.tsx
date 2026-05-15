@@ -10,11 +10,16 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Pill } from '@/components/ui/Pill';
+import type { BlockNode } from '@/lib/page-builder/block-schema';
 import { listPages, type PageListRow } from '@/lib/page-builder/page-api';
+import { TemplatePicker } from './TemplatePicker';
+
+const SCAFFOLD_STORAGE_KEY = 'phase15-template-scaffold';
 
 export function PageListView() {
   const [rows, setRows] = useState<PageListRow[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +38,18 @@ export function PageListView() {
   }, []);
 
   const goToNew = (): void => {
+    setPickerOpen(true);
+  };
+
+  const handleScaffold = (blocks: BlockNode[]): void => {
+    try {
+      sessionStorage.setItem(
+        SCAFFOLD_STORAGE_KEY,
+        JSON.stringify({ blocks }),
+      );
+    } catch {
+      // Best-effort — private-mode browsers fall through to an empty editor.
+    }
     window.history.pushState(null, '', '/admin/pages/new');
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
@@ -77,6 +94,12 @@ export function PageListView() {
           </Button>
         </Card>
       )}
+
+      <TemplatePicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onScaffold={handleScaffold}
+      />
 
       {rows !== null && rows.length > 0 && (
         <ul className="flex flex-col gap-2" data-testid="page-list">

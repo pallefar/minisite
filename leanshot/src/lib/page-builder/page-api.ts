@@ -35,6 +35,14 @@ export interface PageListRow {
   updated_at: string;
 }
 
+export interface PageSeoFields {
+  seo_title: string;
+  seo_description: string;
+  seo_og_image: string;
+  seo_canonical: string;
+  seo_schema_type: string;
+}
+
 export interface PageLoad {
   id: string;
   slug: string;
@@ -43,6 +51,7 @@ export interface PageLoad {
   published_revision_id: string | null;
   blocks: BlockNode[];
   latestRevisionId: string | null;
+  seo: PageSeoFields;
 }
 
 export type Result<T> =
@@ -93,6 +102,17 @@ export async function savePage(args: SavePageArgs): Promise<Result<SavePageResul
 export interface PublishPageArgs {
   pageId: string;
   revisionId: string;
+  /**
+   * Optional per-page SEO update applied atomically with the publish pointer.
+   * Matches the page-publish Edge Function's `seo` body shape (15-08).
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    og_image?: string | null;
+    canonical?: string | null;
+    schema_type?: string | null;
+  };
 }
 
 export interface PublishPageResult {
@@ -146,7 +166,9 @@ export async function getPage(pageId: string): Promise<Result<PageLoad>> {
   try {
     const { data: pageRow, error: pageErr } = await supabase
       .from('landing_pages')
-      .select('id, slug, title, is_published, published_revision_id')
+      .select(
+        'id, slug, title, is_published, published_revision_id, seo_title, seo_description, seo_og_image, seo_canonical, seo_schema_type',
+      )
       .eq('id', pageId)
       .maybeSingle();
     if (pageErr) return { ok: false, error: pageErr.message };
@@ -175,11 +197,54 @@ export async function getPage(pageId: string): Promise<Result<PageLoad>> {
           (pageRow.published_revision_id as string | null) ?? null,
         blocks,
         latestRevisionId: (revRow?.id as string | undefined) ?? null,
+        seo: {
+          seo_title: (pageRow.seo_title as string | null) ?? '',
+          seo_description: (pageRow.seo_description as string | null) ?? '',
+          seo_og_image: (pageRow.seo_og_image as string | null) ?? '',
+          seo_canonical: (pageRow.seo_canonical as string | null) ?? '',
+          seo_schema_type:
+            (pageRow.seo_schema_type as string | null) ?? 'WebPage',
+        },
       },
     };
   } catch (err) {
     console.error('[page-api] getPage', err instanceof Error ? err.message : 'unknown');
     return { ok: false, error: 'get_failed' };
+  }
+}
+
+export interface RevisionListRow {
+  id: string;
+  created_at: string;
+  created_by_email: string;
+}
+
+/**
+ * List all revisions for a page, newest first. Reads `landing_page_revisions`
+ * directly (RLS-gated: staff-only SELECT). Returns up to 50 most recent.
+ */
+export async function listRevisions(
+  pageId: string,
+): Promise<Result<RevisionListRow[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('landing_page_revisions')
+      .select('id, created_at, created_by')
+      .eq('page_id', pageId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) return { ok: false, error: error.message };
+    const rows: RevisionListRow[] = (data ?? []).map((r) => ({
+      id: r.id as string,
+      created_at: r.created_at as string,
+      // We don't join auth.users (RLS-protected). Best-effort label.
+      created_by_email:
+        (r.created_by as string | null) ?? 'unknown',
+    }));
+    return { ok: true, value: rows };
+  } catch (err) {
+    console.error('[page-api] listRevisions', err instanceof Error ? err.message : 'unknown');
+    return { ok: false, error: 'list_revisions_failed' };
   }
 }
 
