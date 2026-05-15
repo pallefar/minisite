@@ -4,8 +4,8 @@ milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
 status: executing
 stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-05-15T05:01:16.992Z"
-last_activity: 2026-05-15 -- Phase 15 planning complete
+last_updated: "2026-05-15T05:07:07.148Z"
+last_activity: 2026-05-15 -- Phase 15 execution started
 progress:
   total_phases: 15
   completed_phases: 14
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 14 — monetization-foundation-stripe-web-clinic-seats
+**Current focus:** Phase 15 — page-builder-landing-pages
 
 ## Current Position
 
-Phase: 14 (monetization-foundation-stripe-web-clinic-seats) — EXECUTING
-Plan: 1 of 11
-Status: Ready to execute
-Last activity: 2026-05-15 -- Phase 15 planning complete
+Phase: 15 (page-builder-landing-pages) — EXECUTING
+Plan: 1 of 10
+Status: Executing Phase 15
+Last activity: 2026-05-15 -- Phase 15 execution started
 
 ### v1.1 close (2026-05-13)
 
