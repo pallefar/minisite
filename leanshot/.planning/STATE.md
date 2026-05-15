@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
 status: executing
-stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-05-15T05:07:07.148Z"
-last_activity: 2026-05-15 -- Phase 15 execution started
+stopped_at: Phase 15 SHIPPED + UAT done (5/5 items, verifier passed)
+last_updated: "2026-05-15T08:30:00.000Z"
+last_activity: 2026-05-15 -- Phase 15 SHIPPED + UAT done; ready for Phase 16
 progress:
-  total_phases: 15
-  completed_phases: 14
-  total_plans: 108
-  completed_plans: 99
-  percent: 92
+  total_phases: 23
+  completed_phases: 15
+  total_plans: 118
+  completed_plans: 109
+  percent: 65
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 15 — page-builder-landing-pages
+**Current focus:** Phase 16 — capacitor-mobile-shells (next)
 
 ## Current Position
 
-Phase: 15 (page-builder-landing-pages) — EXECUTING
-Plan: 1 of 10
-Status: Executing Phase 15
-Last activity: 2026-05-15 -- Phase 15 execution started
+Phase: 16 (capacitor-mobile-shells) — READY-TO-DISCUSS
+Plan: 0 of TBD
+Status: Phase 15 shipped at HEAD `98009b1`; awaiting `/gsd-discuss-phase 16 leanshot`
+Last activity: 2026-05-15 -- Phase 15 SHIPPED (10/10 plans + 5/5 UAT + verifier passed)
 
 ### v1.1 close (2026-05-13)
 
