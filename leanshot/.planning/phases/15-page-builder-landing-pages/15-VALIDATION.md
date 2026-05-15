@@ -40,7 +40,10 @@ created: 2026-05-14
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | — | — | PAGE-01..09 | — | — | — | — | — | ⬜ pending |
+| 15-01-T1 | 15-01 | 1 | PAGE-01, PAGE-07 | T-15-01-01..05 | 10 migrations + 3 RLS suites (RED) | unit/integration | `cd leanshot && npx vitest run tests/rls/` | ✅ | ✅ green |
+| 15-01-T2 | 15-01 | 1 | PAGE-01, PAGE-07 | T-15-01-01..05 | `supabase db push --linked` applied 10 migrations to ytnsipxxmzgaebkqmokp; RLS suites GREEN live | live cloud DB | `cd leanshot && SUPABASE_*=… npx vitest run tests/rls/` | ✅ | ✅ green |
+| 15-01-T3 | 15-01 | 1 | PAGE-01, PAGE-07 | T-15-01-01..05 | tsc strict + lint + full vitest + migration list sanity | gauntlet | `cd leanshot && npx tsc -b --noEmit && npx vitest run && npx supabase migration list --linked` | ✅ | ✅ green |
+| TBD | — | — | PAGE-02..06, 08, 09 | — | — | — | — | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
