@@ -154,6 +154,19 @@ PAGE_BUILDER_RUNTIME_CEILING=25000
 WEB_PUSH_CEILING=3000
 CAPACITOR_BRIDGE_CEILING=15000
 
+# Phase 15 Plan 15-02 PAGE-02 — admin-bundle chunk ceiling.
+# The admin page-builder editor (12 block components + BlockTreePanel +
+# PropertyPanel + PreviewPane + TemplatePicker + AssetLibraryPicker +
+# VersionHistory + the editor shells) lives in src/components/admin/ and
+# is routed to the `admin-bundle` chunk by vite.config.ts manualChunks.
+# dnd-kit is NOT counted against this ceiling — @dnd-kit/{core,sortable,utilities}
+# are pinned to their own `vendor-dnd-kit` chunk so the editor source weight
+# can be measured independently of the dnd library weight.
+# 60 kB gz ceiling per 15-PATTERNS.md; Phase 15 close tightens to
+# measured + ~1 kB headroom (per D-08 phase-close discipline).
+# wave-0 skip semantics until 15-04 ships src/components/admin/ files.
+ADMIN_BUNDLE_CEILING=60000
+
 PHASE_REF=".planning/phases/09-clinic-b2b-foundations/09-01-PLAN.md"
 PHASE_10_REF=".planning/phases/10-clinic-operator-surface/10-05-PLAN.md"
 PHASE_12_REF=".planning/phases/12-bootstrap-bundle-foundations/12-01-PLAN.md"
@@ -264,6 +277,9 @@ check_chunk_ceiling 'page-builder-runtime-*.js' "$PAGE_BUILDER_RUNTIME_CEILING" 
 check_chunk_ceiling 'web-push-*.js' "$WEB_PUSH_CEILING" 'web-push'
 check_chunk_ceiling 'capacitor-bridge-*.js' "$CAPACITOR_BRIDGE_CEILING" 'capacitor-bridge'
 
+# Phase 15 Plan 15-02 PAGE-02 — admin-bundle chunk (page-builder editor; lazy/staff-only).
+check_chunk_ceiling 'admin-bundle-*.js' "$ADMIN_BUNDLE_CEILING" 'admin-bundle'
+
 # Index ceilings — both checks. The 24.5 kB Phase 9 working ceiling is
 # the canary; the 50 kB absolute ceiling is the hard stop inherited
 # from Phase 6.
@@ -362,6 +378,33 @@ if [ "$JSPDF_STATIC_FAIL" -ne 0 ]; then
   exit 1
 fi
 echo "jsPDF dynamic-import invariant OK: no static jspdf imports detected in non-jspdf chunks"
+
+# Phase 15 Plan 15-02 PAGE-02 — index-chunk no-dnd-kit-static-import guard.
+#
+# The page-builder editor (admin-bundle chunk) static-imports dnd-kit. The
+# editor is reachable ONLY via the lazy /admin/pages/* SPA route — public
+# visitors must never download dnd-kit. Mirrors the jsPDF guard above:
+# if Vite emits a STATIC import statement for any @dnd-kit module in the
+# index chunk, the React.lazy() boundary in App.tsx has been bypassed
+# (PAGE-02 violation; 15-RESEARCH.md Pitfall 2).
+#
+# Detection pattern mirrors the jsPDF guard:
+#   - `import{...}from"@dnd-kit/..."`  (bare specifier — unlikely after Vite resolves)
+#   - `import{...}from"./vendor-dnd-kit..."` (chunk-relative — Vite's emitted form
+#     once manualChunks routes @dnd-kit/* into the vendor-dnd-kit chunk)
+# Either form in the index chunk is a regression.
+#
+# IDX_FILE was resolved above in the index-ceiling check and is still in scope.
+DNDKIT_INDEX_FAIL=0
+if grep -qE 'import[{*][^"]*from"[^"]*(dnd-kit|vendor-dnd-kit)[^"]*"' "$IDX_FILE" 2>/dev/null; then
+  echo "::error::Static import of @dnd-kit found in index chunk — the page builder editor must stay behind a React.lazy() boundary (Pitfall 2 / PAGE-02 violation)." >&2
+  DNDKIT_INDEX_FAIL=1
+fi
+
+if [ "$DNDKIT_INDEX_FAIL" -ne 0 ]; then
+  exit 1
+fi
+echo "dnd-kit index-leak invariant OK: no static @dnd-kit imports in index chunk"
 
 echo "clinic bundle topology OK"
 exit 0
