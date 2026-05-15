@@ -11,8 +11,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   EMBED_IFRAME_TITLES,
+  buildCalendlyIframeHtml,
   buildCalendlySrc,
+  buildTallyIframeHtml,
   buildTallySrc,
+  buildYouTubeIframeHtml,
   buildYouTubeSrc,
 } from './embed-src';
 
@@ -154,5 +157,98 @@ describe('EMBED_IFRAME_TITLES', () => {
     expect(EMBED_IFRAME_TITLES.youtube.length).toBeGreaterThan(0);
     expect(typeof EMBED_IFRAME_TITLES.tally).toBe('string');
     expect(EMBED_IFRAME_TITLES.tally.length).toBeGreaterThan(0);
+  });
+});
+
+// ─── Task 3 — iframe-HTML builders (Deno-renderer seam, pure string contract) ──
+
+describe('buildYouTubeIframeHtml', () => {
+  it('returns a full iframe HTML string with title, sandbox, and youtube-nocookie src for valid input', () => {
+    const html = buildYouTubeIframeHtml({
+      videoId: 'dQw4w9WgXcQ',
+      startSeconds: 0,
+      autoplay: false,
+    });
+    expect(html).toContain('<iframe');
+    expect(html).toContain('title="');
+    expect(html).toContain('sandbox=');
+    expect(html).toContain('youtube-nocookie.com/embed/');
+    expect(html).toContain(EMBED_IFRAME_TITLES.youtube);
+  });
+
+  it('returns NO <iframe substring for hostile videoId (../evil)', () => {
+    const html = buildYouTubeIframeHtml({
+      videoId: '../evil',
+      startSeconds: 0,
+      autoplay: false,
+    });
+    expect(html).not.toContain('<iframe');
+  });
+
+  it('does NOT survive raw hostile chars from a script-injection videoId', () => {
+    const html = buildYouTubeIframeHtml({
+      videoId: '"><script>',
+      startSeconds: 0,
+      autoplay: false,
+    });
+    // Builder must reject the input entirely — no iframe, and the raw payload
+    // must NOT appear in the output (no escape-and-pass).
+    expect(html).not.toContain('<iframe');
+    expect(html).not.toContain('"><script>');
+    expect(html).not.toContain('<script');
+  });
+});
+
+describe('buildCalendlyIframeHtml', () => {
+  it('returns a full iframe HTML string with title, sandbox, and calendly.com src for valid input', () => {
+    const html = buildCalendlyIframeHtml({
+      calendlyUrl: 'https://calendly.com/leanshot/intro',
+      prefillEmail: false,
+    });
+    expect(html).toContain('<iframe');
+    expect(html).toContain('title="');
+    expect(html).toContain('sandbox=');
+    expect(html).toContain('calendly.com');
+    expect(html).toContain(EMBED_IFRAME_TITLES.calendly);
+  });
+
+  it('returns NO <iframe substring for non-calendly.com host', () => {
+    const html = buildCalendlyIframeHtml({
+      calendlyUrl: 'https://calendly.com.evil.com/x',
+      prefillEmail: false,
+    });
+    expect(html).not.toContain('<iframe');
+  });
+});
+
+describe('buildTallyIframeHtml', () => {
+  it('returns a full iframe HTML string with title, sandbox, and tally.so src for valid input', () => {
+    const html = buildTallyIframeHtml({
+      tallyFormUrl: 'https://tally.so/r/wAbC12',
+      hideTitle: true,
+    });
+    expect(html).toContain('<iframe');
+    expect(html).toContain('title="');
+    expect(html).toContain('sandbox=');
+    expect(html).toContain('tally.so');
+    expect(html).toContain(EMBED_IFRAME_TITLES.tally);
+  });
+
+  it('returns NO <iframe substring for non-tally.so host', () => {
+    const html = buildTallyIframeHtml({
+      tallyFormUrl: 'https://tally.so.evil.com/r/x',
+      hideTitle: false,
+    });
+    expect(html).not.toContain('<iframe');
+  });
+});
+
+describe('iframe-HTML builders — never throw', () => {
+  it.each([
+    ['youtube', () => buildYouTubeIframeHtml({ videoId: '', startSeconds: -1, autoplay: true })],
+    ['calendly', () => buildCalendlyIframeHtml({ calendlyUrl: '', prefillEmail: false })],
+    ['tally', () => buildTallyIframeHtml({ tallyFormUrl: 'junk', hideTitle: false })],
+  ])('%s returns a string (not throw) for invalid input', (_label, fn) => {
+    expect(typeof fn()).toBe('string');
   });
 });
