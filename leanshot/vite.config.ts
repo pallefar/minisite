@@ -102,6 +102,26 @@ export default defineConfig(({ mode }) => {
             if (id.includes('src/components/clinic/settings/')) return 'clinic-settings';
             if (id.includes('src/components/clinic/')) return 'clinic';
 
+            // Phase 15 Plan 15-02 — PAGE-02: the entire admin page-builder editor
+            // (BlockTreePanel, PropertyPanel, PreviewPane, TemplatePicker,
+            // AssetLibraryPicker, the 12 block-component editors, etc.) must be
+            // lazy-loaded behind a React.lazy() boundary so public visitors never
+            // download the editor. The `admin-bundle` chunk is staff-only and
+            // gated by the index-chunk no-dnd-kit-static-import CI guard in
+            // scripts/assert-clinic-bundle-budget.sh. Source-path rule MUST come
+            // before the node_modules block so editor source files are routed
+            // by path, not swept into a vendor chunk.
+            if (id.includes('src/components/admin/')) return 'admin-bundle';
+
+            // Phase 15 Plan 15-02 — D-03: page-builder runtime helpers
+            // (block-schema.ts, json-ld.ts, templates.ts) load on published
+            // /{slug} pages rendered via the page-render Edge Function. Kept in
+            // a separate `page-builder-runtime` chunk with a ≤25 kB gz ceiling
+            // (enforced by assert-clinic-bundle-budget.sh). dnd-kit is
+            // explicitly NOT counted against this ceiling — it lives in
+            // `vendor-dnd-kit` (see node_modules rule below).
+            if (id.includes('src/lib/page-builder/')) return 'page-builder-runtime';
+
             if (id.includes('node_modules')) {
               // Phase 9 Plan 09-02 — pin @supabase/* to its own vendor chunk
               // so the operator-clinic surface (which static-imports
@@ -128,6 +148,18 @@ export default defineConfig(({ mode }) => {
               }
               if (/node_modules\/lucide-react(\/|$)/.test(id)) {
                 return 'vendor-icons';
+              }
+              // Phase 15 Plan 15-02 — PAGE-02: pin all three dnd-kit packages
+              // to their own `vendor-dnd-kit` chunk so they are NOT counted
+              // against PAGE_BUILDER_RUNTIME_CEILING and remain staff-only
+              // (both vendor-dnd-kit and admin-bundle are lazy). Anchored
+              // regex avoids `id.includes('dnd-kit')` false-positives. The
+              // scripts/assert-clinic-bundle-budget.sh `dnd-kit index-leak`
+              // guard fails CI on any static @dnd-kit import in the index
+              // chunk (15-RESEARCH.md Pitfall 2). Use legacy `@dnd-kit/core`
+              // API only — DO NOT USE `@dnd-kit/react` (unstable).
+              if (/node_modules\/(@dnd-kit\/(core|sortable|utilities))(\/|$)/.test(id)) {
+                return 'vendor-dnd-kit';
               }
               if (
                 /node_modules\/(@sentry\/react|@sentry\/core|@sentry\/browser|@sentry-internal\/browser-utils|posthog-js)(\/|$)/.test(
