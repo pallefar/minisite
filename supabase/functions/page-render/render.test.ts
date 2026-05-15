@@ -202,16 +202,100 @@ Deno.test('renderBlock footer: emits <footer>, escapes logoText / navLinks / cop
 
 // ─── renderBlock — unimplemented type ─────────────────────────────────────────
 
-Deno.test('renderBlock: unimplemented type returns empty string (extension point for 15-07)', () => {
+Deno.test('renderBlock: unimplemented type returns empty string (default fall-through)', () => {
+  // Forward-contract: assert the `default` branch returns '' so future block
+  // types added to BlockType BEFORE their `case` lands stay safe. 15-05
+  // swapped `'faq'` → `'calendly'`, 15-06 swapped `'calendly'` → `'lead-form'`,
+  // and 15-07 implements `'lead-form'`. The 12-literal BlockType union is now
+  // fully covered by 15-03/05/06/07 — we use a synthetic unknown literal here
+  // to keep the contract pinned for any future BlockType expansion.
   const html = renderBlock({
     id: 'x1',
-    type: 'lead-form', // 15-07 adds this case; 15-06 already implemented calendly/youtube/tally
+    // Cast: this type literal is not in the BlockType union — that is the
+    // point. The default branch must still return ''.
+    type: 'not-yet-implemented' as unknown as BlockNode['type'],
     parent_id: null,
     order: 0,
     content: {},
     style: {},
   });
   assertEquals(html, '');
+});
+
+// ─── renderBlock — lead-form (15-07) ──────────────────────────────────────────
+
+Deno.test('renderBlock lead-form: emits semantic <form> + email field + honeypot + roles', () => {
+  const html = renderBlock({
+    id: 'lf1',
+    type: 'lead-form',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'Get the free guide',
+      description: 'Drop your email below.',
+      buttonLabel: 'Send me access',
+      successMessage: "You're on the list.",
+      collectName: false,
+    },
+    style: {},
+  });
+  assertStringIncludes(html, '<form');
+  assertStringIncludes(html, 'data-lead-form');
+  assertStringIncludes(html, '/functions/v1/lead-capture/submit');
+  assertStringIncludes(html, 'type="email"');
+  assertStringIncludes(html, 'name="email"');
+  assertStringIncludes(html, 'name="website"'); // honeypot
+  assertStringIncludes(html, 'role="status"');
+  assertStringIncludes(html, 'role="alert"');
+  assertStringIncludes(html, 'Send me access');
+  // Honeypot wrapper is offscreen, NOT display:none.
+  assertStringIncludes(html, 'left:-9999px');
+  assert(!/display:\s*none/.test(html.split('aria-hidden="true" style=')[1]?.split('>')[0] ?? ''),
+    'honeypot wrapper must NOT use display:none — the field must remain in the FormData');
+  // collectName=false → no name input.
+  assert(!/<input[^>]*name="name"/.test(html), 'name input must be absent when collectName=false');
+});
+
+Deno.test('renderBlock lead-form: collectName=true renders the name input', () => {
+  const html = renderBlock({
+    id: 'lf2',
+    type: 'lead-form',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: 'Get the free guide',
+      buttonLabel: 'Send me access',
+      successMessage: 'Done',
+      collectName: true,
+    },
+    style: {},
+  });
+  assert(/<input[^>]*name="name"/.test(html), 'name input must be present when collectName=true');
+});
+
+Deno.test('renderBlock lead-form: XSS payload in content is escaped', () => {
+  const html = renderBlock({
+    id: 'lf3',
+    type: 'lead-form',
+    parent_id: null,
+    order: 0,
+    content: {
+      heading: '<script>alert(1)</script>',
+      buttonLabel: '"><img src=x>',
+      successMessage: '<svg onload=alert(2)>',
+      collectName: false,
+    },
+    style: {},
+  });
+  // No raw <script>alert(1)</script> in the heading. The inline submit script
+  // tag itself uses literal <script> — we only assert the user-supplied
+  // payload is escaped, not that the rendered HTML is <script>-free.
+  assert(!html.includes('<script>alert(1)</script>'), 'heading <script> must be escaped');
+  assertStringIncludes(html, '&lt;script&gt;alert(1)&lt;/script&gt;');
+  assertStringIncludes(html, '&quot;&gt;&lt;img src=x&gt;');
+  // successMessage is interpolated as an HTML attribute value; the &quot; and
+  // &lt; escapes prevent attribute-break-out.
+  assertStringIncludes(html, '&lt;svg onload=alert(2)&gt;');
 });
 
 // ─── renderSeoHead ─────────────────────────────────────────────────────────────
