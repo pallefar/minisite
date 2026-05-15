@@ -172,7 +172,7 @@ export async function handleRender(
   const { data: row, error: queryError } = await client
     .from('landing_pages')
     .select(
-      'slug, status, seo, title, seo_title, seo_description, seo_og_image, seo_canonical, seo_schema_type, published_revision_id, landing_page_revisions!published_revision_id(blocks)',
+      'slug, status, title, seo_title, seo_description, seo_og_image, seo_canonical, seo_schema_type, published_revision_id, landing_page_revisions!published_revision_id(blocks)',
     )
     .eq('slug', slug)
     .eq('status', 'published')
