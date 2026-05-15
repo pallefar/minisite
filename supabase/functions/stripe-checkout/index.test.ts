@@ -394,3 +394,249 @@ Deno.test({
     assertEquals(params['customer'], 'cus_clinic_456');
   },
 });
+
+// ---------------------------------------------------------------------------
+// Phase 19 Plan 19-04 — affiliate-code propagation tests (AFF-02, D-23)
+// ---------------------------------------------------------------------------
+//
+// These tests cover the new ?aff= / ?aff_manual= / _aff cookie precedence and
+// the addition of aff_code to subscription_data.metadata + session.metadata.
+// They reuse the same module-level __setStripeForTest / __setAdminForTest seams.
+
+Deno.test({
+  name: '19-04 / Test A: ?aff= + approved affiliate → aff_code in all 3 metadata slots',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-1', email: 'a@b.com' },
+      tables: {
+        affiliates: { id: 'aff-1', status: 'approved' },
+        stripe_customers: { stripe_customer_id: 'cus_existing_123' },
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request(
+      'http://localhost/functions/v1/stripe-checkout/session?aff=valid-code',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer stub-jwt',
+        },
+        body: JSON.stringify({ plan: 'plus_monthly' }),
+      },
+    );
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const { calls } = stripeStub.checkout.sessions.create;
+    assertEquals(calls.length, 1);
+    const params = calls[0]![0] as Record<string, unknown>;
+
+    // Session-level metadata.aff_code
+    const sessMeta = params['metadata'] as Record<string, string>;
+    assertEquals(sessMeta['aff_code'], 'valid-code');
+
+    // subscription_data.metadata.aff_code (canonical — survives renewals).
+    const subData = params['subscription_data'] as Record<string, unknown>;
+    const subMeta = subData['metadata'] as Record<string, string>;
+    assertEquals(subMeta['aff_code'], 'valid-code');
+
+    // client_reference_id unchanged from Phase 14 contract (user.id here).
+    assertEquals(params['client_reference_id'], 'user-uuid-1');
+  },
+});
+
+Deno.test({
+  name: '19-04 / Test B: ?aff= + non-approved affiliate (status=pending) → aff_code is empty string',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-1', email: 'a@b.com' },
+      tables: {
+        affiliates: { id: 'aff-pending', status: 'pending' },
+        stripe_customers: { stripe_customer_id: 'cus_existing_123' },
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request(
+      'http://localhost/functions/v1/stripe-checkout/session?aff=pending-code',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer stub-jwt',
+        },
+        body: JSON.stringify({ plan: 'plus_monthly' }),
+      },
+    );
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const subData = params['subscription_data'] as Record<string, unknown>;
+    const subMeta = subData['metadata'] as Record<string, string>;
+    assertEquals(subMeta['aff_code'], '');
+  },
+});
+
+Deno.test({
+  name: '19-04 / Test C: ?aff=invalid!chars → regex drops, aff_code is empty string',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-1', email: 'a@b.com' },
+      tables: {
+        stripe_customers: { stripe_customer_id: 'cus_existing_123' },
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request(
+      'http://localhost/functions/v1/stripe-checkout/session?aff=' + encodeURIComponent('invalid!chars'),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer stub-jwt',
+        },
+        body: JSON.stringify({ plan: 'plus_monthly' }),
+      },
+    );
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const subData = params['subscription_data'] as Record<string, unknown>;
+    const subMeta = subData['metadata'] as Record<string, string>;
+    assertEquals(subMeta['aff_code'], '');
+  },
+});
+
+Deno.test({
+  name: '19-04 / Test D: no ?aff= + _aff cookie + approved → cookie fallback wins',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-1', email: 'a@b.com' },
+      tables: {
+        affiliates: { id: 'aff-1', status: 'approved' },
+        stripe_customers: { stripe_customer_id: 'cus_existing_123' },
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer stub-jwt',
+        Cookie: '_aff=cookie-code',
+      },
+      body: JSON.stringify({ plan: 'plus_monthly' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const subData = params['subscription_data'] as Record<string, unknown>;
+    const subMeta = subData['metadata'] as Record<string, string>;
+    assertEquals(subMeta['aff_code'], 'cookie-code');
+  },
+});
+
+Deno.test({
+  name: '19-04 / Test E: ?aff_manual=<code> (BL-1 / D-23 manual-entry path) + approved → propagated',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-1', email: 'a@b.com' },
+      tables: {
+        affiliates: { id: 'aff-1', status: 'approved' },
+        stripe_customers: { stripe_customer_id: 'cus_existing_123' },
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request(
+      'http://localhost/functions/v1/stripe-checkout/session?aff_manual=manual-code',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer stub-jwt',
+        },
+        body: JSON.stringify({ plan: 'plus_monthly' }),
+      },
+    );
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const subData = params['subscription_data'] as Record<string, unknown>;
+    const subMeta = subData['metadata'] as Record<string, string>;
+    assertEquals(subMeta['aff_code'], 'manual-code');
+  },
+});
+
+Deno.test({
+  name: '19-04 / Test F: no ?aff=, no cookie, no ?aff_manual= → empty aff_code, checkout proceeds',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-1', email: 'a@b.com' },
+      tables: {
+        stripe_customers: { stripe_customer_id: 'cus_existing_123' },
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer stub-jwt',
+      },
+      body: JSON.stringify({ plan: 'plus_monthly' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const subData = params['subscription_data'] as Record<string, unknown>;
+    const subMeta = subData['metadata'] as Record<string, string>;
+    assertEquals(subMeta['aff_code'], '');
+  },
+});

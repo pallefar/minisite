@@ -48,7 +48,12 @@
 
 import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getCookies } from 'https://deno.land/std@0.224.0/http/cookie.ts';
 import { corsHeaders } from './cors.ts';
+
+// Phase 19 Plan 19-04 — affiliate-code propagation (AFF-02, D-23).
+// Validates the same 4–80 lowercase/digit/dash format used by `affiliate-attribute`.
+const REFERRAL_CODE_PATTERN = /^[a-z0-9-]{4,80}$/;
 
 // =============================================================================
 // Environment helpers (lazy reads — resolved at handler call time, not import)
@@ -277,6 +282,45 @@ async function ensureClinicCustomer(clinicId: string, ownerEmail: string): Promi
 }
 
 // =============================================================================
+// Affiliate-code resolution (Phase 19 Plan 19-04 — AFF-02, D-23)
+// =============================================================================
+
+/**
+ * Resolve an affiliate referral code from the request — best-effort, never blocks.
+ *
+ * Precedence (D-23):
+ *   1. `?aff=<code>`        — Plan 19-02 attribution path (cookie-shadow).
+ *   2. `?aff_manual=<code>` — D-23 / BL-1 manual-entry path (SignUpForm).
+ *   3. `_aff` cookie        — Plan 19-02 cookie fallback (set on /r/{code}).
+ *
+ * Returns `null` on any of: missing, regex fail, lookup error, affiliate not
+ * approved. Never throws — affiliate attribution is best-effort, the checkout
+ * itself must always succeed (V11 silent-no-op contract).
+ */
+async function resolveAffCode(req: Request): Promise<string | null> {
+  const url = new URL(req.url);
+  const affFromQuery = url.searchParams.get('aff');
+  const affManualFromQuery = url.searchParams.get('aff_manual');
+  const affFromCookie = getCookies(req.headers)['_aff'] ?? null;
+  const candidate = affFromQuery ?? affManualFromQuery ?? affFromCookie ?? null;
+
+  if (!candidate || !REFERRAL_CODE_PATTERN.test(candidate)) return null;
+
+  try {
+    // deno-lint-ignore no-explicit-any
+    const { data, error } = await (adminInstance.from('affiliates')
+      .select('id, status')
+      .eq('referral_code', candidate) as any).maybeSingle();
+    if (error) return null;
+    const row = data as { id: string; status: string } | null;
+    if (!row || row.status !== 'approved') return null;
+    return candidate;
+  } catch {
+    return null;
+  }
+}
+
+// =============================================================================
 // /session handler
 // =============================================================================
 
@@ -369,9 +413,14 @@ export async function handleSession(req: Request): Promise<Response> {
   const cancelUrl = `${origin}${basePath}?from=cancel`;
 
   // 7. Build subscription_data.metadata
+  // Phase 19 Plan 19-04: resolve aff code (?aff= → ?aff_manual= → _aff cookie)
+  // and propagate into BOTH session.metadata AND subscription_data.metadata so
+  // invoice.paid renewal events can still read it from the subscription
+  // (RESEARCH Pitfall 2 — session metadata is one-shot, sub metadata persists).
+  const affCode = await resolveAffCode(req);
   const subMetadata: Record<string, string> = isClinic
-    ? { clinic_id: clinicId!, provider: 'stripe', tier_kind: 'clinic' }
-    : { user_id: user.id, provider: 'stripe', tier_kind: 'web' };
+    ? { clinic_id: clinicId!, provider: 'stripe', tier_kind: 'clinic', aff_code: affCode ?? '' }
+    : { user_id: user.id, provider: 'stripe', tier_kind: 'web', aff_code: affCode ?? '' };
 
   // 8. Create Stripe Checkout session
   try {
@@ -384,8 +433,13 @@ export async function handleSession(req: Request): Promise<Response> {
         trial_period_days: 7,
         metadata: subMetadata,
       },
+      // Session-level metadata mirrors the aff code for checkout.session.completed
+      // forward-compat (Phase 14 doesn't wire that handler today but may in v1.3).
+      metadata: { aff_code: affCode ?? '' },
       success_url: successUrl,
       cancel_url: cancelUrl,
+      // client_reference_id remains the clinic_id/user_id linkage (Phase 14 contract).
+      // Aff-code attribution flows through subscription_data.metadata.aff_code.
       client_reference_id: clinicId ?? user.id,
     });
 
