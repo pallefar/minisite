@@ -31,6 +31,10 @@ import {
 
 const describeIfLive = SHOULD_RUN_LIVE_RLS ? describe : describe.skip;
 
+// File-scoped slug prefix — keeps cleanup from clobbering sibling RLS suite's
+// fixtures when vitest runs both files in parallel against the shared cloud DB.
+const APPEND_ONLY_PREFIX = `${TEST_SLUG_PREFIX}append-`;
+
 describeIfLive('Phase 15 — landing_page_revisions append-only invariant', () => {
   let staff: TestUser;
   let page: SeededPage;
@@ -39,13 +43,13 @@ describeIfLive('Phase 15 — landing_page_revisions append-only invariant', () =
     staff = await createStaffUser({ emailPrefix: 'phase15-append-only' });
     page = await seedPage({
       status: 'draft',
-      slug: `${TEST_SLUG_PREFIX}append-${Date.now().toString(36)}`,
+      slug: `${APPEND_ONLY_PREFIX}${Date.now().toString(36)}`,
       createdBy: staff.userId,
     });
   }, 120_000);
 
   afterAll(async () => {
-    await cleanupTestPages(TEST_SLUG_PREFIX);
+    await cleanupTestPages(APPEND_ONLY_PREFIX);
     await deleteTestUser(staff?.userId);
   }, 60_000);
 

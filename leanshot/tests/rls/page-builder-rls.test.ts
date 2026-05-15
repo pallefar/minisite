@@ -47,6 +47,10 @@ import {
 
 const describeIfLive = SHOULD_RUN_LIVE_RLS ? describe : describe.skip;
 
+// File-scoped slug prefix — keeps cleanup from clobbering sibling RLS suite's
+// fixtures when vitest runs both files in parallel against the shared cloud DB.
+const CROSS_TENANT_PREFIX = `${TEST_SLUG_PREFIX}xtenant-`;
+
 describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + bucket)', () => {
   let staff: TestUser;
   let nonStaff: TestUser;
@@ -61,18 +65,18 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
     // 2) Two pages — one draft (only staff can see), one published (anyone can see).
     draftPage = await seedPage({
       status: 'draft',
-      slug: `${TEST_SLUG_PREFIX}draft-${Date.now().toString(36)}`,
+      slug: `${CROSS_TENANT_PREFIX}draft-${Date.now().toString(36)}`,
       createdBy: staff.userId,
     });
     publishedPage = await seedPage({
       status: 'published',
-      slug: `${TEST_SLUG_PREFIX}pub-${Date.now().toString(36)}`,
+      slug: `${CROSS_TENANT_PREFIX}pub-${Date.now().toString(36)}`,
       createdBy: staff.userId,
     });
   }, 120_000);
 
   afterAll(async () => {
-    await cleanupTestPages(TEST_SLUG_PREFIX);
+    await cleanupTestPages(CROSS_TENANT_PREFIX);
     await deleteTestUser(staff?.userId);
     await deleteTestUser(nonStaff?.userId);
   }, 60_000);
@@ -124,7 +128,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
 
     const { data, error } = await client
       .from('landing_pages')
-      .insert({ slug: `${TEST_SLUG_PREFIX}ns-insert-${Date.now()}`, status: 'draft' })
+      .insert({ slug: `${CROSS_TENANT_PREFIX}ns-insert-${Date.now()}`, status: 'draft' })
       .select('id');
     // RLS denies — either error is set OR data is empty (Postgrest returns
     // either depending on policy match shape).
@@ -172,7 +176,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
     const client = buildAnonClient('ph15-st-lp');
     await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
 
-    const slug = `${TEST_SLUG_PREFIX}st-crud-${Date.now()}`;
+    const slug = `${CROSS_TENANT_PREFIX}st-crud-${Date.now()}`;
     const { data: inserted, error: insErr } = await client
       .from('landing_pages')
       .insert({ slug, status: 'draft' })
@@ -272,7 +276,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
 
     const { data, error } = await anon
       .from('leads')
-      .insert({ email: `${TEST_SLUG_PREFIX}anon@leanshot.test`, page_id: publishedPage.pageId })
+      .insert({ email: `${CROSS_TENANT_PREFIX}anon@leanshot.test`, page_id: publishedPage.pageId })
       .select('id');
     expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
   }, 30_000);
@@ -283,14 +287,14 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
 
     const { data, error } = await client
       .from('leads')
-      .insert({ email: `${TEST_SLUG_PREFIX}ns@leanshot.test`, page_id: publishedPage.pageId })
+      .insert({ email: `${CROSS_TENANT_PREFIX}ns@leanshot.test`, page_id: publishedPage.pageId })
       .select('id');
     expect(error !== null || (data?.length ?? 0) === 0).toBe(true);
   }, 30_000);
 
   it('leads: service-role CAN INSERT a lead row', async () => {
     const admin = getAdminClient();
-    const email = `${TEST_SLUG_PREFIX}service@leanshot.test`;
+    const email = `${CROSS_TENANT_PREFIX}service@leanshot.test`;
     const { data, error } = await admin
       .from('leads')
       .insert({ email, page_id: publishedPage.pageId })
@@ -392,7 +396,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
     const client = buildAnonClient('ph15-ns-storage');
     await client.auth.signInWithPassword({ email: nonStaff.email, password: nonStaff.password });
 
-    const path = `${TEST_SLUG_PREFIX}ns-${Date.now()}.png`;
+    const path = `${CROSS_TENANT_PREFIX}ns-${Date.now()}.png`;
     const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]); // PNG sig
     const { data, error } = await client.storage
       .from('page-assets')
@@ -404,7 +408,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
     const client = buildAnonClient('ph15-st-storage');
     await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
 
-    const path = `${TEST_SLUG_PREFIX}st-${Date.now()}.png`;
+    const path = `${CROSS_TENANT_PREFIX}st-${Date.now()}.png`;
     const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const { error: upErr } = await client.storage
       .from('page-assets')
@@ -418,7 +422,7 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   it('page-assets: anon CAN download a known public path', async () => {
     // First upload as staff so there's a deterministic object.
     const admin = getAdminClient();
-    const path = `${TEST_SLUG_PREFIX}public-${Date.now()}.png`;
+    const path = `${CROSS_TENANT_PREFIX}public-${Date.now()}.png`;
     const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const { error: upErr } = await admin.storage
       .from('page-assets')
