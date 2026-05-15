@@ -8,10 +8,12 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
 import { removeUserNamespace, renameStorageNamespace, setActiveStorageUserId } from '@/lib/storage';
 import { useStore } from '@/lib/store';
-// Phase 6 D-12 CI hardening: App.tsx no longer eagerly imports @/lib/sync,
-// @/lib/auth-migration, or @/lib/supabase. All three (and transitively
-// @supabase/supabase-js) move OFF the entry chunk static graph and load
-// after first paint via sync-defer's idle-scheduled dynamic imports.
+// Phase 19 Plan 19-09 (BL-4) — route registries from Plans 19-05 / 19-06b / 19-08.
+// resolvePhase19Route() below matches the current pathname against these
+// three registries (LANDING most-specific → PARTNER prefix → AFFILIATE_APPLY
+// exact/prefix) and returns the matched component to render under Suspense.
+// This is the ONLY Phase 19 plan that mutates App.tsx; the other plans
+// contribute via the registry files instead.
 import {
   autoMintAnonSessionIfMissing,
   deferFlush,
@@ -20,6 +22,13 @@ import {
   deferSetLastWasAnon,
   subscribeAuthStateChanges,
 } from '@/lib/sync-defer';
+import { AFFILIATE_APPLY_ROUTES } from '@/routes/affiliate-apply-routes';
+import { LANDING_ROUTES } from '@/routes/landing-routes';
+import { PARTNER_ROUTES } from '@/routes/partner-routes';
+// Phase 6 D-12 CI hardening: App.tsx no longer eagerly imports @/lib/sync,
+// @/lib/auth-migration, or @/lib/supabase. All three (and transitively
+// @supabase/supabase-js) move OFF the entry chunk static graph and load
+// after first paint via sync-defer's idle-scheduled dynamic imports.
 
 // Tab content modules — lazy-loaded so the initial bundle stays lean.
 const HomeTab = lazy(() =>
@@ -151,6 +160,93 @@ const LegalNotFound = lazy(() =>
     ),
   })),
 );
+
+// Phase 19 Plan 19-09 (BL-4) — pre-construct lazy components ONCE per registry
+// entry. Building the lazy() wrapper inside resolveRoute() on every render
+// would defeat React.lazy's component identity caching (each render would
+// remount the resolved chunk's tree). Module-level lazy is the established
+// pattern in this file (HomeTab / Marketing / SharePage / etc.).
+const LANDING_LAZIES = LANDING_ROUTES.map((r) =>
+  lazy(r.componentLoader as () => Promise<{ default: React.ComponentType<{ code: string }> }>),
+);
+const PARTNER_LAZIES = PARTNER_ROUTES.map((r) =>
+  lazy(r.componentLoader as () => Promise<{ default: React.ComponentType }>),
+);
+const AFFILIATE_APPLY_LAZIES = AFFILIATE_APPLY_ROUTES.map((r) =>
+  lazy(r.componentLoader as () => Promise<{ default: React.ComponentType }>),
+);
+
+interface ResolvedPhase19Route {
+  /** Pre-constructed lazy component to render under Suspense. */
+  Component: React.LazyExoticComponent<React.ComponentType<{ code?: string }>>;
+  /** Capture (only set for landing routes — the affiliate referral code). */
+  code?: string;
+}
+
+/**
+ * Phase 19 Plan 19-09 (BL-4): match the current pathname against the three
+ * Phase-19 route registries. Ordering matters — LANDING is the MOST SPECIFIC
+ * (`/r/{code}/landing`) so it must run before any other `/r/*` match. PARTNER
+ * is a prefix on `/partner` (includes `/partner` exact + `/partner/<anything>`).
+ * AFFILIATE_APPLY contributes `/affiliate` exact + `/admin/affiliates` prefix.
+ *
+ * Returns `null` if no Phase-19 route matches — caller falls through to the
+ * existing selectView() branches.
+ */
+function resolvePhase19Route(pathname: string): ResolvedPhase19Route | null {
+  // LANDING first — `/r/{code}/landing` is the most specific shape.
+  for (let i = 0; i < LANDING_ROUTES.length; i++) {
+    const r = LANDING_ROUTES[i]!;
+    if (r.pathRegex) {
+      const re = new RegExp(r.pathRegex);
+      const m = pathname.match(re);
+      if (m) {
+        return {
+          Component: LANDING_LAZIES[i]! as React.LazyExoticComponent<
+            React.ComponentType<{ code?: string }>
+          >,
+          code: m[1],
+        };
+      }
+    }
+  }
+  // PARTNER — single prefix descriptor (`/partner`).
+  for (let i = 0; i < PARTNER_ROUTES.length; i++) {
+    const r = PARTNER_ROUTES[i]!;
+    if (
+      r.match === 'prefix' &&
+      (pathname === r.path || pathname.startsWith(`${r.path}/`))
+    ) {
+      return {
+        Component: PARTNER_LAZIES[i]! as React.LazyExoticComponent<
+          React.ComponentType<{ code?: string }>
+        >,
+      };
+    }
+  }
+  // AFFILIATE_APPLY — exact + prefix.
+  for (let i = 0; i < AFFILIATE_APPLY_ROUTES.length; i++) {
+    const r = AFFILIATE_APPLY_ROUTES[i]!;
+    if (r.match === 'exact' && pathname === r.path) {
+      return {
+        Component: AFFILIATE_APPLY_LAZIES[i]! as React.LazyExoticComponent<
+          React.ComponentType<{ code?: string }>
+        >,
+      };
+    }
+    if (
+      r.match === 'prefix' &&
+      (pathname === r.path || pathname.startsWith(`${r.path}/`))
+    ) {
+      return {
+        Component: AFFILIATE_APPLY_LAZIES[i]! as React.LazyExoticComponent<
+          React.ComponentType<{ code?: string }>
+        >,
+      };
+    }
+  }
+  return null;
+}
 
 /**
  * Map a `#/legal/*` hash to the lazy component that renders the matching
@@ -736,6 +832,20 @@ export function App() {
       track('disclaimer_required', { surface: 'dashboard' });
     }
   }, [needsDisclaimer]);
+
+  // Phase 19 Plan 19-09 (BL-4) — Phase-19 route registries take priority over
+  // the marketing/dashboard branches. Each entry is its own lazy chunk; the
+  // resolver returns null for non-Phase-19 paths so the existing view-selector
+  // continues to drive marketing/onboarding/dashboard/clinic/etc.
+  const phase19Match = resolvePhase19Route(window.location.pathname);
+  if (phase19Match) {
+    const { Component: Phase19Component, code } = phase19Match;
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <Phase19Component code={code} />
+      </Suspense>
+    );
+  }
 
   if (view === 'marketing') {
     return (
