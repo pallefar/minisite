@@ -202,10 +202,10 @@ Deno.test('renderBlock footer: emits <footer>, escapes logoText / navLinks / cop
 
 // ─── renderBlock — unimplemented type ─────────────────────────────────────────
 
-Deno.test('renderBlock: unimplemented type returns empty string (extension point for 15-05..07)', () => {
+Deno.test('renderBlock: unimplemented type returns empty string (extension point for 15-06/07)', () => {
   const html = renderBlock({
     id: 'x1',
-    type: 'faq', // 15-05 adds this case
+    type: 'calendly', // 15-06 adds this case
     parent_id: null,
     order: 0,
     content: {},
