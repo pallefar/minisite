@@ -18,6 +18,13 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    // Phase 16 16-00: mobile-only Playwright project for IAP flow + 200-photo soak + ASO viewport capture.
+    // Filters by e2e/mobile/** so it never picks up chromium specs.
+    {
+      name: 'mobile',
+      testMatch: /e2e\/mobile\/.*\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 430, height: 932 } },
+    },
   ],
   // CI uses preview build (matches production); local reuses dev server
   webServer: process.env.CI
