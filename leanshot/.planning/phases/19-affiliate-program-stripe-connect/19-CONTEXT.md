@@ -1,8 +1,10 @@
 # Phase 19: Affiliate Program + Stripe Connect — Context
 
 **Gathered:** 2026-05-15
-**Status:** Ready for research / planning
+**Status:** Ready for planning (research complete; addendum merged)
 **Source:** `/gsd-discuss-phase 19 leanshot` — 4 deep-dive areas with user, defaults applied to the rest
+
+> **⚠ READ ALSO:** [`19-CONTEXT-ADDENDUM-research.md`](./19-CONTEXT-ADDENDUM-research.md) — supersedes D-31 rationale; adds D-36 (renewals do not convert) and D-37 (Wave-0 smoke verifications: Vercel rewrite + Phase 12 stripe-done capability check).
 
 <domain>
 
