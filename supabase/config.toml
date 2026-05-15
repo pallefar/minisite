@@ -457,6 +457,27 @@ verify_jwt = false
 [functions.affiliate-attribute]
 verify_jwt = false
 
+# Phase 19 Plan 19-03 — stripe-connect-onboard is the JWT-gated POST endpoint
+# that mints Stripe Connect Express account_link.url onboarding URLs for
+# approved affiliates (D-25). Defensive explicit verify_jwt = true even though
+# it's the default ([[reference-supabase-edge-function-deploy]]). The function
+# resolves the Bearer JWT via admin.auth.getUser, gates on affiliates.status =
+# 'approved', and never persists the account_link.url (Pitfall 6: 5-min TTL,
+# JIT generation per call). accounts.create requests capabilities.transfers
+# (D-37 #2 — load-bearing for Plan 19-09's transfers.create cron).
+[functions.stripe-connect-onboard]
+verify_jwt = true
+
+# Phase 19 Plan 19-03 — partner-account-status is the JWT-gated GET endpoint
+# that drives the partner-dashboard onboarding card's state machine (Plan
+# 19-06). It calls accounts.retrieve and derives a 4-state value (pending /
+# needs_info / active / restricted) from Stripe's requirements + capability
+# flags. It also mirrors acct.payouts_enabled onto affiliates.stripe_payouts_enabled
+# so Plan 19-09's monthly cron can filter without an extra Stripe roundtrip
+# (Pitfall 7).
+[functions.partner-account-status]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
