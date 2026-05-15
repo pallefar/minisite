@@ -478,6 +478,17 @@ verify_jwt = true
 [functions.partner-account-status]
 verify_jwt = true
 
+# Phase 19 Plan 19-05 — affiliate-apply is the PUBLIC unauthenticated POST
+# endpoint serving the /affiliate apply form (D-05 + AFF-05). verify_jwt =
+# false because the form is anonymous-visitor-facing; spam-defense is the
+# honeypot field + per-IPv4-/24 rate-limit (5/15min) implemented in
+# index.ts, NOT JWT validation. Service-role admin client inserts into
+# `affiliates` (bypasses RLS; Plan 19-01 staff_all policy gates SELECT).
+# Resend dispatch uses direct HTTPS POST to api.resend.com/emails (W-5;
+# clones clinic-invite/resend.ts — NO npm:resend SDK).
+[functions.affiliate-apply]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
