@@ -40,12 +40,23 @@ interface AffiliateFixture {
   created_at: string;
 }
 
+interface BaselineFixture {
+  mean_clicks: number | null;
+  stddev_clicks: number | null;
+  days_observed: number | null;
+}
+
 interface FakeAdminOptions {
   affiliate: AffiliateFixture | null;
   affiliateErr?: { message: string } | null;
   clickCount?: number;
   clickCountErr?: { message: string } | null;
   clickInsertErr?: { message: string } | null;
+  // Phase 19 Plan 19-07 — Z-score additions.
+  baseline?: BaselineFixture | null;
+  baselineErr?: { message: string } | null;
+  todayCount?: number;
+  todayCountErr?: { message: string } | null;
 }
 
 interface ClickInsertCapture {
@@ -54,6 +65,7 @@ interface ClickInsertCapture {
   ip: string | null;
   user_agent: string | null;
   referer: string | null;
+  fingerprint: string | null;
   flagged: boolean;
   flag_reason: string | null;
 }
@@ -90,16 +102,22 @@ function buildFakeAdmin(opts: FakeAdminOptions): FakeAdmin {
       }
       if (table === 'affiliate_clicks') {
         return {
-          // SELECT path — { count: 'exact', head: true } for cold-start cap.
+          // SELECT path — { count: 'exact', head: true } for cold-start cap
+          // OR today's-count (Z-score check). Both share the same shape; the
+          // handler only invokes ONE per request (cold-start path and Z-score
+          // path are mutually exclusive on affiliate age).
           select(_cols: string, _options?: unknown) {
             return {
               eq(_col: string, _val: string) {
                 return {
                   gt(_col2: string, _val2: string) {
+                    // todayCount preferred (Z-score path); clickCount fallback
+                    // (cold-start path). Errors mirror.
+                    const useToday = opts.todayCount !== undefined || opts.todayCountErr !== undefined;
                     return Promise.resolve({
                       data: null,
-                      count: opts.clickCount ?? 0,
-                      error: opts.clickCountErr ?? null,
+                      count: useToday ? (opts.todayCount ?? 0) : (opts.clickCount ?? 0),
+                      error: useToday ? (opts.todayCountErr ?? null) : (opts.clickCountErr ?? null),
                     });
                   },
                 };
@@ -110,6 +128,25 @@ function buildFakeAdmin(opts: FakeAdminOptions): FakeAdmin {
           insert(row: ClickInsertCapture) {
             inserted.push(row);
             return Promise.resolve({ data: null, error: opts.clickInsertErr ?? null });
+          },
+        };
+      }
+      if (table === 'affiliate_click_baseline') {
+        // Phase 19 Plan 19-07 — baseline matview lookup for Z-score check.
+        return {
+          select(_cols: string) {
+            return {
+              eq(_col: string, _val: string) {
+                return {
+                  maybeSingle() {
+                    return Promise.resolve({
+                      data: opts.baseline ?? null,
+                      error: opts.baselineErr ?? null,
+                    });
+                  },
+                };
+              },
+            };
           },
         };
       }
@@ -124,13 +161,21 @@ function buildRequest(opts: {
   referer?: string | null;
   userAgent?: string | null;
   xff?: string | null;
+  fingerprint?: string | null;
+  fingerprintQuery?: string | null;
 }): Request {
   const headers = new Headers();
   if (opts.referer !== undefined && opts.referer !== null) headers.set('Referer', opts.referer);
   if (opts.userAgent !== undefined && opts.userAgent !== null) headers.set('User-Agent', opts.userAgent);
   if (opts.xff !== undefined && opts.xff !== null) headers.set('x-forwarded-for', opts.xff);
+  if (opts.fingerprint !== undefined && opts.fingerprint !== null) {
+    headers.set('X-LeanShot-Fingerprint', opts.fingerprint);
+  }
+  const fpQs = opts.fingerprintQuery !== undefined && opts.fingerprintQuery !== null
+    ? `&fp=${encodeURIComponent(opts.fingerprintQuery)}`
+    : '';
   return new Request(
-    `https://leanshot.app/functions/v1/affiliate-attribute?code=${encodeURIComponent(opts.code)}`,
+    `https://leanshot.app/functions/v1/affiliate-attribute?code=${encodeURIComponent(opts.code)}${fpQs}`,
     { method: 'GET', headers },
   );
 }
@@ -285,6 +330,143 @@ Deno.test('6. cold-start affiliate at 500/day cap → flagged=cold_start_cap + N
     assertEquals(fake.inserted.length, 1);
     assertEquals(fake.inserted[0].flagged, true);
     assertEquals(fake.inserted[0].flag_reason, 'cold_start_cap');
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+// ─── Phase 19 Plan 19-07 — Z-score + fingerprint additions ──────────────────
+
+Deno.test('7. mature affiliate, today within baseline (z<3) → NOT flagged', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-z1',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30d — mature
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 12, // z = (12-10)/2 = 1 < 3
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+    }));
+    assertEquals(res.status, 302);
+    assertEquals(countSetCookies(res), 1, 'within-baseline click sets cookie');
+    assertEquals(fake.inserted.length, 1);
+    assertEquals(fake.inserted[0].flagged, false);
+    assertEquals(fake.inserted[0].flag_reason, null);
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('8. mature affiliate, today ≥ mean + 3σ → flagged=z_score_3sigma + NO Set-Cookie', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-z2',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30d — mature
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 20, // z = (20-10)/2 = 5 ≥ 3
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+    }));
+    assertEquals(res.status, 302);
+    assertEquals(countSetCookies(res), 0, 'z-score-flagged click does not set cookie');
+    assertEquals(fake.inserted.length, 1);
+    assertEquals(fake.inserted[0].flagged, true);
+    assertEquals(fake.inserted[0].flag_reason, 'z_score_3sigma');
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('9. baseline days_observed < 7 (cold-start window) → Z-score skipped; cold-start cap is sole gate', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-z3',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2d — cold-start
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 3 }, // would-flag if checked
+    clickCount: 10, // cold-start under cap
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+    }));
+    assertEquals(res.status, 302);
+    // Affiliate is in cold-start window — Z-score branch is bypassed entirely.
+    // Cold-start cap (10 clicks < 500) lets this through.
+    assertEquals(countSetCookies(res), 1, 'cold-start affiliate skips Z-score; cap is sole gate');
+    assertEquals(fake.inserted.length, 1);
+    assertEquals(fake.inserted[0].flagged, false);
+    assertEquals(fake.inserted[0].flag_reason, null);
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('10. fingerprint header captured and persisted onto click row', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-fp1',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 5,
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+      fingerprint: 'fp-thumbmark-abc12345',
+    }));
+    assertEquals(res.status, 302);
+    assertEquals(fake.inserted.length, 1);
+    assertEquals(fake.inserted[0].fingerprint, 'fp-thumbmark-abc12345');
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('11. invalid fingerprint (regex reject) persists as null', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-fp2',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 5,
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+      fingerprint: 'bad fp with spaces!', // fails FINGERPRINT_PATTERN
+    }));
+    assertEquals(res.status, 302);
+    assertEquals(fake.inserted.length, 1);
+    assertEquals(fake.inserted[0].fingerprint, null);
   } finally {
     __resetAdminForTest();
   }

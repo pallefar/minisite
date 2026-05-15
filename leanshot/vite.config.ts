@@ -123,6 +123,16 @@ export default defineConfig(({ mode }) => {
             if (id.includes('src/lib/page-builder/')) return 'page-builder-runtime';
 
             if (id.includes('node_modules')) {
+              // Phase 19 Plan 19-07 — pin @thumbmarkjs/thumbmarkjs to its own
+              // `fingerprint` chunk so it loads ONLY on /signup + the affiliate
+              // apply form (dynamic-import in src/lib/affiliate/fingerprint.ts).
+              // Per 19-RESEARCH.md Pitfall 3: a static import would push index gz
+              // past the Phase 12 ceiling (~21.49 kB → ~35 kB) — the manualChunks
+              // rule plus the dynamic-import in fingerprint.ts together keep the
+              // bundle clean. Target ≤12 kB gz for this chunk.
+              if (/node_modules\/@thumbmarkjs\/thumbmarkjs(\/|$)/.test(id)) {
+                return 'fingerprint';
+              }
               // Phase 9 Plan 09-02 — pin @supabase/* to its own vendor chunk
               // so the operator-clinic surface (which static-imports
               // src/lib/supabase via src/lib/clinic.ts) doesn't drag the

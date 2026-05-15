@@ -76,8 +76,15 @@ const REFERRAL_CODE_PATTERN = /^[a-z0-9-]{4,80}$/;
 const COLD_START_DAYS = 7;
 const COLD_START_CAP_CLICKS_PER_DAY = 500; // D-27
 const MOBILE_APP_UA_PREFIX = 'LeanShot/'; // D-28 exemption
+// Phase 19 Plan 19-07 — Z-score click-fraud (D-26).
+// Affiliates with `days_observed < 7` skip the Z-score check (cold-start cap above handles them).
+const ZSCORE_BASELINE_MIN_DAYS = 7;
+const ZSCORE_THRESHOLD = 3; // 3σ above the affiliate's own daily-mean
+// Fingerprint validation (Plan 19-07): 8-128 chars of [A-Za-z0-9_-] only.
+// Source: client header `X-LeanShot-Fingerprint` OR query param `?fp=...`.
+const FINGERPRINT_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
 
-type FlagReason = 'referer_mismatch' | 'cold_start_cap' | null;
+type FlagReason = 'referer_mismatch' | 'cold_start_cap' | 'z_score_3sigma' | null;
 
 interface AffiliateRow {
   id: string;
@@ -169,13 +176,72 @@ export async function handle(req: Request): Promise<Response> {
       overCap = (count ?? 0) >= COLD_START_CAP_CLICKS_PER_DAY;
     }
 
-    // 6. Flagged decision.
-    const flagged = !refererOk || overCap;
+    // 5b. Z-score check (Plan 19-07; D-26). Skip during the cold-start window —
+    // the matview will have `days_observed < 7` and the cold-start cap above
+    // is the only gate active. After 7 days, today's click count is compared
+    // against the affiliate's own 7-day rolling daily mean+stddev_samp.
+    let zScoreFlagged = false;
+    if (!isColdStart) {
+      const { data: baselineData, error: baselineErr } = await admin
+        .from('affiliate_click_baseline')
+        .select('mean_clicks, stddev_clicks, days_observed')
+        .eq('affiliate_id', affiliate.id)
+        .maybeSingle();
+      if (baselineErr) {
+        console.error('[affiliate-attribute] baseline lookup error', baselineErr.message);
+        return internalError(baseHeaders);
+      }
+      const baseline = baselineData as {
+        mean_clicks: number | null;
+        stddev_clicks: number | null;
+        days_observed: number | null;
+      } | null;
+      if (
+        baseline
+        && (baseline.days_observed ?? 0) >= ZSCORE_BASELINE_MIN_DAYS
+        && baseline.mean_clicks !== null
+        && baseline.stddev_clicks !== null
+        && baseline.stddev_clicks > 0
+      ) {
+        // Today's clicks so far for this affiliate.
+        const todayStartIso = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00Z').toISOString();
+        const { count: todayCount, error: todayErr } = await admin
+          .from('affiliate_clicks')
+          .select('id', { count: 'exact', head: true })
+          .eq('affiliate_id', affiliate.id)
+          .gt('created_at', todayStartIso);
+        if (todayErr) {
+          console.error('[affiliate-attribute] today-count query error', todayErr.message);
+          return internalError(baseHeaders);
+        }
+        const today = todayCount ?? 0;
+        const z = (today - baseline.mean_clicks) / baseline.stddev_clicks;
+        if (z >= ZSCORE_THRESHOLD) {
+          zScoreFlagged = true;
+        }
+      }
+    }
+
+    // 5c. Best-effort fingerprint capture (Plan 19-07). Source-of-truth order:
+    //   header `X-LeanShot-Fingerprint` first, query param `?fp=...` fallback.
+    //   Invalid / missing fingerprint stays null — server-side fraud trigger
+    //   no-ops on null per fraud_trigger_conversion.sql.
+    const fpHeader = req.headers.get('X-LeanShot-Fingerprint');
+    const fpQuery = url.searchParams.get('fp');
+    const fpCandidate = fpHeader ?? fpQuery ?? null;
+    const fingerprint =
+      fpCandidate !== null && FINGERPRINT_PATTERN.test(fpCandidate) ? fpCandidate : null;
+
+    // 6. Flagged decision. Priority order (first match wins):
+    //   referer_mismatch → cold_start_cap → z_score_3sigma.
+    const flagged = !refererOk || overCap || zScoreFlagged;
     const flagReason: FlagReason = !refererOk
       ? 'referer_mismatch'
       : overCap
         ? 'cold_start_cap'
-        : null;
+        : zScoreFlagged
+          ? 'z_score_3sigma'
+          : null;
 
     // 7. INSERT click row (always — even flagged clicks are recorded per D-27).
     const clickIp = firstForwardedFor(req.headers.get('x-forwarded-for'));
@@ -187,6 +253,7 @@ export async function handle(req: Request): Promise<Response> {
         ip: clickIp,
         user_agent: ua === '' ? null : ua,
         referer: refererHeader,
+        fingerprint,
         flagged,
         flag_reason: flagReason,
       });
