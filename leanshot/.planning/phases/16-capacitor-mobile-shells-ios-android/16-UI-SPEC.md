@@ -36,39 +36,48 @@ created: 2026-05-15
 
 ## Spacing Scale
 
-These are the Phase 13 `--space-*` tokens already in `src/index.css`. Phase 16 uses only these values.
+These are the Phase 13 spacing values derived from the `--spacing: 0.25rem` (4px) base in `src/index.css`. Phase 16 uses only values from the standard 8-point set.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| --space-1 | 4px | Icon gaps, tight inline spacing |
-| --space-2 | 8px | Compact element spacing, icon-label gaps |
-| --space-3 | 12px | Intra-group gaps (e.g. plan-option rows) |
-| --space-4 | 16px | Default element and section padding |
-| --space-6 | 24px | Card padding, section gaps |
-| --space-8 | 32px | Layout gaps between major card groups |
-| --space-12 | 48px | Bottom-of-paywall breathing room |
+| Token (Tailwind utility) | Value | Usage |
+|--------------------------|-------|-------|
+| `gap-1` / `p-1` | 4px | Icon gaps, tight inline spacing |
+| `gap-2` / `p-2` | 8px | Compact element spacing, icon-label gaps, photo grid gap, plan-option row rhythm |
+| `p-4` / `gap-4` | 16px | Default element and section padding |
+| `p-6` / `gap-6` | 24px | Card padding, section gaps |
+| `p-8` / `gap-8` | 32px | Layout gaps between major card groups |
+| `p-12` / `gap-12` | 48px | Bottom-of-paywall breathing room |
+
+**No `--space-3` / 12px token exists in Phase 13.** The `src/index.css` `@theme` block only declares `--spacing: 0.25rem` as the Tailwind v4 spacing multiplier — it does not define explicit `--space-N` custom properties. Intra-group gaps (e.g. plan-option rows) use `gap-2` (8px).
 
 **Exceptions:**
-- Photo grid item: `aspect-[3/4]` ratio on each tile (existing invariant from `BodyTab.tsx` — codified here, not new). Gap between tiles: `--space-2` (8px). This is the value react-virtuoso must preserve when it wraps the grid.
-- Mobile safe-area insets: the IAP paywall bottom padding on iPhone must add `env(safe-area-inset-bottom)` on top of `--space-12` to clear the home indicator. This is a platform compositor concern, not a new spacing token.
+- Photo grid item: `aspect-[3/4]` ratio on each tile (existing invariant from `BodyTab.tsx` — codified here, not new). Gap between tiles: `gap-2` (8px). This is the value react-virtuoso must preserve when it wraps the grid.
+- Mobile safe-area insets: the IAP paywall bottom padding on iPhone must add `env(safe-area-inset-bottom)` on top of the `p-12` / 48px token to clear the home indicator. This is a platform compositor concern, not a new spacing token.
 
 ---
 
 ## Typography
 
-Phase 16 app-rendered surfaces use 4 sizes drawn from the Phase 13 type scale. No size outside this table may appear in Phase 16 components.
+Phase 16 app-rendered surfaces use 4 sizes drawn from the Phase 13 type scale. No size outside this table may appear in Phase 16 components. Token px equivalents are sourced from `src/index.css` lines 84–107.
 
 | Role | Size (token) | px equivalent | Weight | Line Height |
 |------|-------------|---------------|--------|-------------|
 | Body | `--text-base` | 16px | 400 (regular) | 1.55 |
-| Label / price detail | `--text-sm` | 14px | 600 (semibold) | 1.5 |
-| Section heading | `--text-xl` | 23px | 700 (bold) | 1.25 |
-| Paywall headline | `--text-2xl` | 28px | 800 (extrabold) | 1.15 |
+| Label / price detail | `--text-sm` | 13px | 700 (bold) | 1.5 |
+| Section heading | `--text-xl` | 22px | 700 (bold) | 1.35 |
+| Paywall headline | `--text-2xl` | 26px | 700 (bold) | 1.25 |
+
+**Allowed weights: 400 (regular) and 700 (bold) only.**
+
+Weight mapping from previous draft:
+- 400 (regular) → 400: body text, dismiss links ("Not now"), legal micro-copy, "Use Password" fallback link
+- 600 (semibold) → 700 (bold): label/price detail, savings badge text
+- 700 (bold) → 700 (bold): all headings — unchanged
+- 800 (extrabold) → 700 (bold): paywall headline — Fraunces italic at `--text-2xl` provides sufficient visual distinction without requiring a 4th weight
 
 **Notes:**
-- Captions (photo date overlays, legal micro-copy below IAP price) use `--text-caption` (11px) at weight 600. This is the same caption role used in `BodyTab.tsx` and `UpgradeCTA.tsx` — it is a modifier of the Label role, not a 5th size.
+- Captions (photo date overlays, legal micro-copy below IAP price) use `--text-caption` (10px) at weight 400. This is a modifier of the Body role, not a 5th size. (Previously spec'd at 11px/`--text-micro` and weight 600 — corrected to token px value from `src/index.css:84` and collapsed to weight 400.)
 - Fraunces italic accent is reserved for the paywall headline's product name only (same as marketing `<Pricing />` — visual continuity from web to iOS).
-- Geist Mono + `font-variant-numeric: tabular-nums` on all price displays (`$12.99`, `$132.49`).
+- Geist Mono + `font-variant-numeric: tabular-nums` on all price displays (`$12.99`, `$132.49`). Price numerals use weight 700.
 
 ---
 
@@ -79,9 +88,9 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 | Role | Token | Light value | Usage |
 |------|-------|-------------|-------|
 | Dominant (60%) | `--color-bg` | `#f2ede0` (cream-100) | App background, WKWebView body |
-| Secondary (30%) | `--color-surface` / `--color-surface-elevated` | `#fefcf7` / `#f4efe2` | Cards, sheet backgrounds, plan-option tiles |
+| Secondary (30%) | `--color-surface` / `--color-surface-elevated` | `#fefcf7` / `#f6f2e8` | Cards, sheet backgrounds, plan-option tiles |
 | Accent (10%) | `--color-primary` | `#1b4842` (teal-700) | CTA buttons, selected-plan ring, "Restore Purchases" link, biometric-prompt opt-in toggle (on state) |
-| Destructive | `--color-danger` | `#cb4f4f` (clay) | Disable-biometric confirmation text only |
+| Destructive | `--color-danger` | `#cf5454` (clay) | Disable-biometric confirmation text only |
 
 **Accent reserved for:**
 1. Primary CTA buttons (`Subscribe`, `Restore Purchases`, `Enable Face ID`)
@@ -96,6 +105,8 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 ## Surface Specifications
 
 ### Surface 1 — `<PricingIOS />` Paywall Fork
+
+**Focal point:** Fraunces italic paywall headline (`--text-2xl`, 26px, weight 700)
 
 **REQ-IDs:** MONEY-06, MOBILE-03
 **CONTEXT decisions:** D-01, D-03, D-13, D-22, D-24
@@ -114,19 +125,19 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 **Layout:**
 - Full-screen modal or route (not a bottom sheet) — height must accommodate 2 plan options + legal copy + restore link without scroll on iPhone SE 3rd gen (375×667 pt).
 - Centered single column, max-width 400px on iPad.
-- Top: product name headline (Fraunces italic, `--text-2xl`) + short benefit summary (Geist, `--text-base`).
-- Plan options: 2 vertically stacked tiles (monthly / yearly). Each tile is a tappable card (`--color-surface-elevated` background, `--radius-lg` = 20px, `var(--shadow-sm)` elevation). Selected tile gets `2px solid var(--color-primary)` ring. Unselected: `1px solid var(--color-border)`.
-- Price display: `--text-base` at weight 600 (semibold). Yearly tile shows savings badge (`--color-success-soft` background, `--color-success` text, `--text-caption` 11px, `--radius-pill`).
+- Top: product name headline (Fraunces italic, `--text-2xl`, weight 700) + short benefit summary (Geist, `--text-base`, weight 400).
+- Plan options: 2 vertically stacked tiles (monthly / yearly). Each tile is a tappable card (`--color-surface-elevated` background, `--radius-lg` = 20px, `var(--shadow-sm)` elevation). Row gap between tiles: `gap-2` (8px). Selected tile gets `2px solid var(--color-primary)` ring. Unselected: `1px solid var(--color-border)`.
+- Price display: `--text-sm` at weight 700. Yearly tile shows savings badge (`--color-success-soft` background, `--color-success` text, `--text-caption` 10px, weight 700, `--radius-pill`).
 - Primary CTA: full-width `<Button variant="primary">Subscribe</Button>` below plan tiles. Shows `aria-busy` spinner while RevenueCat `purchasePlan()` is in flight. Button text does not change during loading (spinner replaces leading icon slot).
 - "Restore Purchases" link: below Subscribe button, text-only (no box), `--text-sm` weight 400, `--color-primary` color, minimum 44px touch target height. Required by Apple §3.1.1.
-- Legal micro-copy: `--text-caption` (11px) at `--color-text-tertiary`. Text: "Payment processed by Apple. Subscription renews automatically. Cancel anytime in Settings." (Android: replace "Apple" with "Google Play"). Single paragraph. No background.
+- Legal micro-copy: `--text-caption` (10px) at `--color-text-tertiary`, weight 400. Text: "Payment processed by Apple. Subscription renews automatically. Cancel anytime in Settings." (Android: replace "Apple" with "Google Play"). Single paragraph. No background.
 - Trial eligibility (D-22): if `stripe_trial_used=true`, the "7-day free trial" language is omitted from plan tile copy. Plan tile shows only the recurring price. The component must NOT show "Start free trial" CTA text if user is ineligible.
 
 **Clinic-owner variant (D-24):**
-- Replace entire IAP content with: icon (lucide `Building2`, `--color-text-secondary`, size-5) + body text: "Clinic billing is managed at leanshot.app/clinic/billing" + a secondary button "Go to Billing Portal" that invokes `@capacitor/browser` to open `https://leanshot.app/clinic/billing` in Safari View Controller.
+- Replace entire IAP content with: icon (lucide `Building2`, `--color-text-secondary`, size-5) + body text: "Clinic billing is managed at leanshot.app/clinic/billing" (weight 400, `--text-base`) + a secondary button "Go to Billing Portal" that invokes `@capacitor/browser` to open `https://leanshot.app/clinic/billing` in Safari View Controller.
 - No Subscribe button, no plan tiles, no price display.
 
-**Typography on this surface:** 28px headline + 16px body + 14px plan price label + 11px legal caption. = 4 sizes. Checker-safe.
+**Typography on this surface:** 26px headline + 16px body + 13px plan price label + 10px legal caption. = 4 sizes. Checker-safe.
 
 **OS-rendered:** The StoreKit payment confirmation sheet (appearing after `purchasePlan()`) is OS-rendered. Design tokens N/A.
 
@@ -142,27 +153,31 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 #### 2a. First-time Enable Screen
 
+**Focal point:** "Enable Face ID" / "Enable Fingerprint" CTA
+
 **When shown:** First app launch after install, OR from Settings toggle, when biometrics are not yet configured.
 
 **Layout:** Centered modal (framer-motion `Sheet` pattern, slides from bottom). Single column.
 - Header: lucide `ScanFace` icon (size-8, `--color-primary`) centered above heading.
-- Heading: "Unlock LeanShot faster" at `--text-xl` (23px), weight 700, centered.
+- Heading: "Unlock LeanShot faster" at `--text-xl` (22px), weight 700, centered.
 - Body: "Use Face ID to open the app without your password." (iOS) / "Use fingerprint to open the app without your password." (Android). `--text-base`, weight 400, `--color-text-secondary`, centered. 2 lines max on 375pt width.
 - Primary CTA: `<Button variant="primary" block>Enable Face ID</Button>` (iOS) / `Enable Fingerprint` (Android). Triggers native biometric enrollment check, then OS prompt.
-- Secondary link: "Not now" — text-only, `--text-sm`, `--color-text-tertiary`, 44px touch target. Dismisses sheet; biometrics remain disabled.
+- Secondary link: "Not now" — text-only, `--text-sm`, weight 400, `--color-text-tertiary`, 44px touch target. Dismisses sheet; biometrics remain disabled.
 - Background: `--color-surface`, `--radius-card` (24px) top corners. Dark overlay behind sheet: `--color-surface-overlay` (rgba(20,36,33,0.50)).
 
 **OS-rendered:** The actual Face ID / fingerprint prompt appears after user taps Enable. Design tokens N/A.
 
 #### 2b. App-Reopen Biometric Gate
 
+**Focal point:** App logo mark + "Unlock LeanShot" heading
+
 **When shown:** App resumes from background when biometric unlock is enabled.
 
 **Layout:** Full-screen overlay (z-index above all app content). `--color-bg` background (no card chrome).
 - Centered: App logo mark (existing `HeroOrbital` or wordmark SVG, whichever is used in onboarding) at 48px height.
-- Below logo: "Unlock LeanShot" heading, `--text-xl`, weight 700.
+- Below logo: "Unlock LeanShot" heading, `--text-xl` (22px), weight 700.
 - Primary CTA: `<Button variant="primary">Use Face ID</Button>` (iOS) / `Use Fingerprint` (Android). Immediately triggers OS biometric prompt on render (no manual tap required on first show; manual tap only if the automatic prompt was dismissed).
-- "Use Password" link: `--text-sm`, `--color-text-secondary`, 44px touch target. Navigates to password-entry modal (2c).
+- "Use Password" link: `--text-sm`, weight 400, `--color-text-secondary`, 44px touch target. Navigates to password-entry modal (2c).
 
 **Empty state N/A.** This surface always has content.
 
@@ -171,27 +186,31 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 **When shown:** User taps "Use Password" OR 3 consecutive biometric failures.
 
 **Layout:** Modal (framer-motion `Modal` pattern). Single column, centered card.
-- Heading: "Enter your password" — `--text-xl`, weight 700.
+- Heading: "Enter your password" — `--text-xl` (22px), weight 700.
 - Password input: existing `<Input type="password" label="Password" />` primitive. Auto-focused.
 - Primary CTA: `<Button variant="primary" block>Unlock</Button>`. `aria-busy` while auth call in flight.
-- Error state (wrong password): inline below input, `--color-danger`, `--text-sm`: "Incorrect password. Try again."
-- After 5 wrong-password attempts: Show "Forgot password? Reset via email" link — `--text-sm`, `--color-primary`. Invokes Supabase password-reset flow.
+- Error state (wrong password): inline below input, `--color-danger`, `--text-sm` weight 400: "Incorrect password. Try again."
+- After 5 wrong-password attempts: Show "Forgot password? Reset via email" link — `--text-sm`, weight 400, `--color-primary`. Invokes Supabase password-reset flow.
 
 #### 2d. Settings Toggle (in existing SettingsPage)
 
+**Focal point:** Biometric toggle switch
+
 **When shown:** Existing `SettingsPage` — this phase adds one row to the Security section (or creates the section if absent).
 
-**Layout:** Standard settings row inside existing `<Card>`. Icon (lucide `ScanFace` size-5, `--color-text-secondary`) + label "Face ID / Biometric Unlock" (`--text-base`, weight 600) + description "Unlock without your password" (`--text-sm`, `--color-text-secondary`) + toggle (existing Toggle/Switch primitive pattern; `--color-primary` when on).
+**Layout:** Standard settings row inside existing `<Card>`. Icon (lucide `ScanFace` size-5, `--color-text-secondary`) + label "Face ID / Biometric Unlock" (`--text-base`, weight 700) + description "Unlock without your password" (`--text-sm`, weight 400, `--color-text-secondary`) + toggle (existing Toggle/Switch primitive pattern; `--color-primary` when on).
 
-**Destructive confirmation (disable biometric):** When user turns toggle OFF: inline confirmation row appears below the toggle row (no modal). "Disable biometric unlock?" in `--text-sm` + `<Button variant="destructive" size="sm">Disable</Button>` + `<Button variant="ghost" size="sm">Cancel</Button>`. Color for "Disable" button text/border: `--color-danger`. No separate modal — inline is less disruptive for a low-stakes toggle.
+**Destructive confirmation (disable biometric):** When user turns toggle OFF: inline confirmation row appears below the toggle row (no modal). "Disable biometric unlock?" in `--text-sm` weight 400 + `<Button variant="destructive" size="sm">Disable</Button>` + `<Button variant="ghost" size="sm">Cancel</Button>`. Color for "Disable" button text/border: `--color-danger`. No separate modal — inline is less disruptive for a low-stakes toggle.
 
-**Typography on this surface (all 4 sub-surfaces combined):** 23px heading + 16px body + 14px label/link + 11px error/legal. = 4 sizes. Checker-safe.
+**Typography on this surface (all 4 sub-surfaces combined):** 22px heading + 16px body + 13px label/link + 10px error/legal. = 4 sizes. Checker-safe.
 
 **OS-rendered:** All biometric prompt dialogs (Face ID animation, fingerprint sensor UX, Android Biometric BottomSheet). Design tokens N/A for those.
 
 ---
 
 ### Surface 3 — Native Share Sheet Trigger UI
+
+**Focal point:** Existing Share button (unchanged)
 
 **REQ-IDs:** MOBILE-10
 **CONTEXT decisions:** D-07 (`@capacitor/share` plugin)
@@ -215,6 +234,8 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 ### Surface 4 — Photo Gallery Virtualization
 
+**Focal point:** Photo grid tiles
+
 **REQ-IDs:** MOBILE-08
 **CONTEXT decisions:** D-08, Claude's Discretion (VirtuosoGrid)
 **Library:** `react-virtuoso` 4.18.7, `VirtuosoGrid` component
@@ -225,7 +246,7 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 | Property | Current value (from `BodyTab.tsx`) | Must preserve |
 |----------|------------------------------------|---------------|
 | Grid columns | `grid-cols-3` (3 columns) | Yes |
-| Gap | `gap-2` = 8px = `--space-2` | Yes |
+| Gap | `gap-2` = 8px | Yes |
 | Tile aspect ratio | `aspect-[3/4]` | Yes |
 | Tile border radius | `rounded-xl` = `--radius-xl` (24px) | Yes |
 | Tile border | `1px solid var(--color-border)` | Yes |
@@ -251,6 +272,8 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 ### Surface 5 — Clinic-Owner Stripe Portal Link (In-App Browser)
 
+**Focal point:** "Go to Billing Portal" CTA with external indicator
+
 **REQ-IDs:** MONEY-06 (clinic-owner case), MOBILE-03
 **CONTEXT decisions:** D-24
 **Plugin:** `@capacitor/browser` (Safari View Controller / Chrome Custom Tab)
@@ -263,12 +286,12 @@ All values are Phase 13 semantic CSS custom properties. No hex literals in compo
 
 **Layout (Settings row, replaces/extends `ManageSubscriptionLink` for native platform):**
 - Existing `<ManageSubscriptionLink />` row layout is preserved (Card, flex row, CreditCard icon, label + description, button).
-- ADD: Below description text, add `--text-caption` (11px) caption: "Opens Stripe billing in your browser" with lucide `ExternalLink` icon (size-3, `--color-text-tertiary`) inline-left of the text.
+- ADD: Below description text, add `--text-caption` (10px) caption, weight 400: "Opens Stripe billing in your browser" with lucide `ExternalLink` icon (size-3, `--color-text-tertiary`) inline-left of the text.
 - Button text on iOS/Android: "Open Billing" (not "Open Stripe" — avoids brand confusion with the SVC chrome).
 - On tap: `Browser.open({ url: stripePortalUrl, toolbarColor: '#1b4842' })`. The `toolbarColor` tints Safari View Controller's navigation bar to match LeanShot primary (`--color-primary` hex value `#1b4842`). This is a plugin option, not a CSS property.
 - After `Browser.close()` (user taps Done/Back in SVC): app resumes at the same Settings view. No additional action needed.
 
-**Error state:** If `stripe-checkout/portal` Edge Function fails: `--color-danger`, `--text-sm`: "Couldn't open billing portal. Try again or visit leanshot.app/clinic/billing."
+**Error state:** If `stripe-checkout/portal` Edge Function fails: `--color-danger`, `--text-sm` weight 400: "Couldn't open billing portal. Try again or visit leanshot.app/clinic/billing."
 
 **Empty state:** N/A — row always visible to clinic-owners on mobile.
 
