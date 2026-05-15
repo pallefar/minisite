@@ -101,6 +101,8 @@ async function dispatch(
     './events/invoice-payment-failed.ts'
   );
   const { handle: handleInvoiceUpcoming } = await import('./events/invoice-upcoming.ts');
+  // Phase 19 Plan 19-04 (AFF-03) — Stripe Connect onboarding state mirror.
+  const { handle: handleAccountUpdated } = await import('./events/account-updated.ts');
 
   switch (event.type) {
     case 'checkout.session.completed':
@@ -121,6 +123,10 @@ async function dispatch(
       break;
     case 'invoice.upcoming':
       await handleInvoiceUpcoming(event, admin);
+      break;
+    case 'account.updated':
+      // Phase 19 Plan 19-04 (AFF-03) — affiliate.stripe_payouts_enabled mirror.
+      await handleAccountUpdated(event, admin);
       break;
     default:
       // Unsubscribed event type — log + no-op + 200 (safe forward-compatibility).
