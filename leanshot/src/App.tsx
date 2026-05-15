@@ -96,6 +96,22 @@ const ClinicDrillInPage = lazy(() =>
   })),
 );
 
+// Phase 15 Plan 15-04 — Admin Pages (Page Builder, /admin/pages/*) lazy chunks.
+// Both components land in the `admin-bundle` chunk per 15-02's vite.config.ts
+// manualChunks rule (matches src/components/admin/*). The client route guard
+// below only gates on `user` presence — server-side is_staff RLS + the
+// page-save/page-publish Edge Functions are the real security boundary
+// (T-15-04-01). A non-staff user reaching the editor would simply see empty
+// lists and 403 responses on save.
+const AdminPageList = lazy(() =>
+  import('@/components/admin/pages/PageListView').then((m) => ({ default: m.PageListView })),
+);
+const AdminPageEditor = lazy(() =>
+  import('@/components/admin/pages/PageEditorView').then((m) => ({
+    default: m.PageEditorView,
+  })),
+);
+
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
 // boundary so Rollup emits four separate small chunks (preserving the 50 kB
@@ -189,7 +205,13 @@ type View =
   | 'clinic-invite'
   // Phase 10 Plan 10-05 — drill-in view for /clinic/{slug}/patient/{user_id}.
   // More-specific than '/clinic/{slug}' — must be ordered BEFORE the base clinic branch.
-  | 'clinic-drill-in';
+  | 'clinic-drill-in'
+  // Phase 15 Plan 15-04 — Page Builder admin surfaces. Path-based routes
+  // (NOT hash) so deep-linking + browser refresh land on the right view.
+  // `admin-page-editor` matches `/admin/pages/{id}` (including `/admin/pages/new`).
+  // `admin-page-list` matches `/admin/pages` exactly.
+  | 'admin-page-list'
+  | 'admin-page-editor';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -264,6 +286,18 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
   }
   if (opts.pathname.startsWith('/clinic/')) {
     return opts.user ? 'clinic' : 'auth';
+  }
+  // Phase 15 Plan 15-04 — admin/pages route branches. More-specific
+  // `/admin/pages/{id}` MUST be tested before `/admin/pages` exact match.
+  // The client route guard is defense-in-depth ONLY (not the security
+  // boundary): RLS + page-save/page-publish is_staff gate enforce auth on
+  // every read/write. A non-staff user reaching the editor sees empty
+  // lists + 403s on save.
+  if (opts.pathname.startsWith('/admin/pages/')) {
+    return opts.user ? 'admin-page-editor' : 'auth';
+  }
+  if (opts.pathname === '/admin/pages') {
+    return opts.user ? 'admin-page-list' : 'auth';
   }
   if (opts.user) return 'dashboard';
   return 'marketing';
@@ -635,6 +669,21 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <ClinicDrillInPage />
+      </Suspense>
+    );
+  }
+  // Phase 15 Plan 15-04 — Page Builder admin surfaces.
+  if (view === 'admin-page-list') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <AdminPageList />
+      </Suspense>
+    );
+  }
+  if (view === 'admin-page-editor') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <AdminPageEditor />
       </Suspense>
     );
   }
