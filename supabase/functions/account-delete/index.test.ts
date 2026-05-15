@@ -248,8 +248,12 @@ Deno.test('T3 — happy path: 10 steps + Resend called with original_email (BL-6
   assertEquals(res.status, 200);
   assertEquals(body.ok, true);
 
-  // BL-6: Resend called with the original (pre-anonymize) email.
-  const resendHit = resendCalls.find((u) => u.includes('preanonymize@example.com'));
+  // BL-6: Resend called with the original (pre-anonymize) email. The path
+  // URL-encodes the email so we accept either form.
+  const encoded = encodeURIComponent('preanonymize@example.com');
+  const resendHit = resendCalls.find(
+    (u) => u.includes('preanonymize@example.com') || u.includes(encoded),
+  );
   assertEquals(typeof resendHit, 'string');
 
   // Step 10 (auth.admin.deleteUser) fired.

@@ -35,8 +35,11 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { incrementPayoutRetry } from './retry.ts';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+// Lazy env reads — at construction time, not import time. Module-level
+// const reads would capture '' for any var set after import (the Deno test
+// suite sets env vars after the import statement).
+const getSupabaseUrl = () => Deno.env.get('SUPABASE_URL') ?? '';
+const getSupabaseServiceRoleKey = () => Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const STRIPE_SECRET_KEY = () => Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 
 const corsHeaders: Record<string, string> = {
@@ -62,10 +65,27 @@ function getStripe(): any {
   return _stripeInstance;
 }
 
-// eslint-disable-next-line prefer-const
-let admin: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+// Lazy admin singleton — same rationale as Stripe above. supabase-js
+// validates supabaseUrl at construction time; if the import happens before
+// Deno.env.set in tests, eager init throws.
+let _adminInstance: SupabaseClient | null = null;
+function getAdmin(): SupabaseClient {
+  if (_adminInstance === null) {
+    _adminInstance = createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return _adminInstance;
+}
+// Proxy reads _adminInstance lazily so __setAdminForTest works after import.
+const admin = new Proxy({} as Record<string | symbol, unknown>, {
+  // deno-lint-ignore no-explicit-any
+  get(_t: any, prop: string | symbol): unknown {
+    const a = getAdmin() as unknown as Record<string | symbol, unknown>;
+    const val = a[prop];
+    return typeof val === 'function' ? (val as (...args: unknown[]) => unknown).bind(a) : val;
+  },
+}) as unknown as SupabaseClient;
 
 // ============================================================================
 // Helpers
@@ -277,10 +297,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // 1. Bearer auth (constant-time compare against SERVICE_ROLE_KEY).
   const bearer = bearerFromReq(req);
-  if (!bearer || !SUPABASE_SERVICE_ROLE_KEY) {
+  const expected = getSupabaseServiceRoleKey();
+  if (!bearer || !expected) {
     return jsonError(401, 'unauthorized');
   }
-  if (!constantTimeEqual(bearer, SUPABASE_SERVICE_ROLE_KEY)) {
+  if (!constantTimeEqual(bearer, expected)) {
     return jsonError(401, 'unauthorized');
   }
 
@@ -301,7 +322,7 @@ export const __internal = {
   constantTimeEqual,
   bearerFromReq,
   setAdminForTest(client: unknown): void {
-    admin = client as SupabaseClient;
+    _adminInstance = client as SupabaseClient;
   },
   setStripeForTest(stub: unknown): void {
     _stripeInstance = stub;

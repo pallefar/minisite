@@ -32,8 +32,10 @@ import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+// Lazy env reads — at construction time, not import time. Same rationale
+// as affiliate-payout's index.ts (Deno test suite sets env after import).
+const getSupabaseUrl = () => Deno.env.get('SUPABASE_URL') ?? '';
+const getSupabaseServiceRoleKey = () => Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const STRIPE_SECRET_KEY = () => Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 const RESEND_API_KEY = () => Deno.env.get('RESEND_API_KEY') ?? '';
 
@@ -62,10 +64,24 @@ function getStripe(): any {
   return _stripeInstance;
 }
 
-// eslint-disable-next-line prefer-const
-let admin: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+// Lazy admin singleton (same rationale as affiliate-payout).
+let _adminInstance: SupabaseClient | null = null;
+function getAdmin(): SupabaseClient {
+  if (_adminInstance === null) {
+    _adminInstance = createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return _adminInstance;
+}
+const admin = new Proxy({} as Record<string | symbol, unknown>, {
+  // deno-lint-ignore no-explicit-any
+  get(_t: any, prop: string | symbol): unknown {
+    const a = getAdmin() as unknown as Record<string | symbol, unknown>;
+    const val = a[prop];
+    return typeof val === 'function' ? (val as (...args: unknown[]) => unknown).bind(a) : val;
+  },
+}) as unknown as SupabaseClient;
 
 // ============================================================================
 // Helpers
@@ -493,7 +509,7 @@ export const __internal = {
   nextPayoutDateIso,
   sha256Hex,
   setAdminForTest(client: unknown): void {
-    admin = client as SupabaseClient;
+    _adminInstance = client as SupabaseClient;
   },
   setStripeForTest(stub: unknown): void {
     _stripeInstance = stub;
