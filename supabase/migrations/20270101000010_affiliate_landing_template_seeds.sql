@@ -20,7 +20,7 @@
 --   - landing_page_revisions: append-only; we WOULD insert a new revision on
 --     every run, so we wrap the revision insert in a guard that only fires
 --     when the page has no published revision yet (NULL published_revision_id
---     OR the existing revision's block_tree differs from the seed).
+--     OR the existing revision's blocks differs from the seed).
 --   - storage.buckets: `on conflict (id) do update` per page-assets analog.
 --
 -- Slot bindings (UI-SPEC §D-18): blocks reference customization fields as
@@ -192,7 +192,7 @@ begin
     select 1 from public.landing_page_revisions
     where page_id = v_coach_page_id
   ) then
-    insert into public.landing_page_revisions (page_id, block_tree)
+    insert into public.landing_page_revisions (page_id, blocks)
     values (
       v_coach_page_id,
       $JSON$
@@ -278,7 +278,7 @@ begin
     select 1 from public.landing_page_revisions
     where page_id = v_story_page_id
   ) then
-    insert into public.landing_page_revisions (page_id, block_tree)
+    insert into public.landing_page_revisions (page_id, blocks)
     values (
       v_story_page_id,
       $JSON$
@@ -365,7 +365,7 @@ begin
     select 1 from public.landing_page_revisions
     where page_id = v_method_page_id
   ) then
-    insert into public.landing_page_revisions (page_id, block_tree)
+    insert into public.landing_page_revisions (page_id, blocks)
     values (
       v_method_page_id,
       $JSON$
