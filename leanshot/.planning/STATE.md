@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
-status: executing
-stopped_at: Phase 15 SHIPPED + UAT done (5/5 items, verifier passed)
-last_updated: "2026-05-15T08:30:00.000Z"
-last_activity: 2026-05-15 -- Phase 15 SHIPPED + UAT done; ready for Phase 16
+status: Phase 16 DEFERRED to v1.2 milestone tail (domain registration prerequisite); next-runnable phase is **17 Push Notifications** but P17/18/21 transitively depend on P16's native shells — likely effective next phase is **19 Affiliate + Stripe Connect** (first domain-independent web-only slot)
+stopped_at: Phase 16 Wave-0 harness merged; vendor checkpoints + remaining waves deferred
+last_updated: "2026-05-15T22:00:00Z"
+last_activity: 2026-05-15 -- Phase 16 Wave 0 harness landed (`eedced3`+`5986ccf`+merge); P16 reordered to milestone tail per user direction (domain not yet registered; Supabase Pro upgrade also deferred to closer to go-live)
 progress:
-  total_phases: 23
+  total_phases: 16
   completed_phases: 15
-  total_plans: 118
+  total_plans: 108
   completed_plans: 109
-  percent: 65
+  percent: 94
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 ## Current Position
 
-Phase: 16 (capacitor-mobile-shells) — READY-TO-DISCUSS
-Plan: 0 of TBD
-Status: Phase 15 shipped at HEAD `98009b1`; awaiting `/gsd-discuss-phase 16 leanshot`
-Last activity: 2026-05-15 -- Phase 15 SHIPPED (10/10 plans + 5/5 UAT + verifier passed)
+Phase: 16 (capacitor-mobile-shells) — **DEFERRED to milestone tail** (domain rego + Supabase Pro upgrade gate)
+Plan: 1 of 11 (Wave-0 harness merged; vendor checkpoints + Waves 1-4 paused)
+Status: Awaiting domain registration. Next-runnable v1.2 phase: 19 (Affiliate + Stripe Connect) — 17/18/21 also block on P16's native shells.
+Last activity: 2026-05-15 -- Phase 16 paused; ROADMAP reordered; harness commits preserved on main
 
 ### v1.1 close (2026-05-13)
 
@@ -133,6 +133,6 @@ Items acknowledged and carried forward from v1.1 close (folded into v1.2 phase o
 
 ## Session Continuity
 
-Last session: 2026-05-14T10:00:53.108Z
-Stopped at: Phase 15 UI-SPEC approved
-Resume file: .planning/phases/15-page-builder-landing-pages/15-UI-SPEC.md
+Last session: 2026-05-15T09:39:51.101Z
+Stopped at: Phase 16 UI-SPEC approved
+Resume file: .planning/phases/16-capacitor-mobile-shells-ios-android/16-UI-SPEC.md

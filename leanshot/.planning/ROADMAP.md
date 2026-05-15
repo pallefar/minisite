@@ -100,21 +100,6 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
 **UI hint**: yes
 **Open questions locked at CONTEXT.md**: (3) Page-builder embed-provider blocks (Calendly / YouTube / Tally) at v1.2 or v1.3.
 
-### Phase 16: Capacitor Mobile Shells (iOS + Android)
-**Goal**: A user installs LeanShot from the App Store and Google Play, signs in, and uses every feature the web app offers (modulo phase-feature dependencies). All native concerns route through `src/lib/native/{health,ads,push,iap,deeplink,platform}.ts` — feature code never touches `@capacitor/*` directly (ESLint enforced). RevenueCat handles iOS+Android in-app subscriptions (MANDATORY — Apple §3.1.1 + Google §3.1.1 forbid Stripe for digital subs). App Store + Play Console accept the submission with a complete `PrivacyInfo.xcprivacy` and Play data-safety form. Universal Links + App Links open the installed app on link tap. The known WKWebView OOM crash on photo gallery is mitigated by Supabase Storage transforms + `react-virtuoso` virtualization. All native crashes land in Sentry.
-**Mode:** mvp
-**Depends on**: Phase 12 (firewall ESLint rule), Phase 13 (new tokens), Phase 14 (Stripe foundation — for cross-platform tier reconciliation prep), Phase 15 (marketing pricing page parity for store review)
-**Requirements**: MOBILE-01, MOBILE-02, MOBILE-03, MOBILE-04, MOBILE-05, MOBILE-06, MOBILE-07, MOBILE-08, MOBILE-09, MOBILE-10, MONEY-06
-**Research flag**: **HIGH** — App Store review pitfalls compound; recommend `/gsd-research-phase` before plan-phase
-**Success Criteria** (what must be TRUE):
-  1. User installs LeanShot from the iOS App Store and the Google Play Store, opens the app, signs in with an existing account, and reaches the dashboard within 10 seconds of first launch — same dashboard the web app shows, same data
-  2. iOS + Android user subscribes via RevenueCat in-app purchase flow (Apple paywall on iOS, Google Play Billing on Android), returns to the app, sees `tier='paid'` reflected; the same user opens the web app and also sees `tier='paid'` (cross-provider tier reconciled — see Phase 19 MONEY-07 for the unification)
-  3. User taps a `leanshot.app/r/...` or `leanshot.app/share/...` link in Mail / Messages on iOS or Android → installed app opens directly to the right route (Universal Links + App Links via `apple-app-site-association` + `assetlinks.json` published from the marketing host)
-  4. User enables biometric unlock (FaceID / TouchID / Android Biometric), closes app, reopens — biometric prompt gates app open; failed biometric falls back to password
-  5. User scrolls 200+ body photos on iPhone 12 (4 GB RAM, lower-end target) without WKWebView OOM crash; Sentry Capacitor SDK reports zero crashes in a 30-minute soak test; native share sheet (`@capacitor/share`) shares dose-log / share-card / doctor-report
-**Plans**: TBD
-**UI hint**: yes
-
 ### Phase 17: Push Notifications
 **Goal**: A user receives the right notification on the right device at the right time — dose reminder (with snooze), AI insight, clinic alert, billing dunning, or marketing — via a single `push-fanout` Edge Function that routes to APNs / FCM / Web Push / watch piggy-back. Quiet hours + frequency caps apply once per user (not per channel). iOS PWA users on ≥16.4 get Web Push if the PWA is installed; otherwise the native Capacitor app gets APNs.
 **Mode:** mvp
@@ -214,10 +199,27 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   5. `knip` + `ts-unused-exports` run in CI on every PR (warn-not-fail initially; escalate to fail after triage); a deliberately-unused export in a test branch triggers the warn → catches the Plan 10-06 WORKSPACE_LOADED-style class of defect before merge
 **Plans**: TBD
 
+### Phase 16: Capacitor Mobile Shells (iOS + Android)
+> **REORDERED to milestone tail 2026-05-15** — original slot was between Phase 15 and Phase 17. Moved to end of v1.2 because user needs to register a new primary domain first (gates AASA, assetlinks, Associated Domains, store-listing domain verification, push topic naming). Phases 17/18/21 transitively depend on this phase's native shells — they remain at their numeric slots but will block on Phase 16 readiness when their planner runs. Phase 16 planning artifacts (CONTEXT/RESEARCH/UI-SPEC/VALIDATION/PATTERNS/11 PLAN.md + 16-00 SUMMARY) are preserved on `main`; Wave-0 harness (vitest-mobile, Capacitor mocks, audit scripts) already merged and reusable when P16 resumes.
+**Goal**: A user installs LeanShot from the App Store and Google Play, signs in, and uses every feature the web app offers (modulo phase-feature dependencies). All native concerns route through `src/lib/native/{health,ads,push,iap,deeplink,platform}.ts` — feature code never touches `@capacitor/*` directly (ESLint enforced). RevenueCat handles iOS+Android in-app subscriptions (MANDATORY — Apple §3.1.1 + Google §3.1.1 forbid Stripe for digital subs). App Store + Play Console accept the submission with a complete `PrivacyInfo.xcprivacy` and Play data-safety form. Universal Links + App Links open the installed app on link tap. The known WKWebView OOM crash on photo gallery is mitigated by Supabase Storage transforms + `react-virtuoso` virtualization. All native crashes land in Sentry.
+**Mode:** mvp
+**Depends on**: Phase 12 (firewall ESLint rule), Phase 13 (new tokens), Phase 14 (Stripe foundation — for cross-platform tier reconciliation prep), Phase 15 (marketing pricing page parity for store review), **NEW: domain registration (user gate, 2026-05-15)**
+**Requirements**: MOBILE-01, MOBILE-02, MOBILE-03, MOBILE-04, MOBILE-05, MOBILE-06, MOBILE-07, MOBILE-08, MOBILE-09, MOBILE-10, MONEY-06
+**Research flag**: **HIGH** — App Store review pitfalls compound; planning artifacts already produced
+**Success Criteria** (what must be TRUE):
+  1. User installs LeanShot from the iOS App Store and the Google Play Store, opens the app, signs in with an existing account, and reaches the dashboard within 10 seconds of first launch — same dashboard the web app shows, same data
+  2. iOS + Android user subscribes via RevenueCat in-app purchase flow (Apple paywall on iOS, Google Play Billing on Android), returns to the app, sees `tier='paid'` reflected; the same user opens the web app and also sees `tier='paid'` (cross-provider tier reconciled — see Phase 19 MONEY-07 for the unification)
+  3. User taps a `leanshot.app/r/...` or `leanshot.app/share/...` link in Mail / Messages on iOS or Android → installed app opens directly to the right route (Universal Links + App Links via `apple-app-site-association` + `assetlinks.json` published from the marketing host)
+  4. User enables biometric unlock (FaceID / TouchID / Android Biometric), closes app, reopens — biometric prompt gates app open; failed biometric falls back to password
+  5. User scrolls 200+ body photos on iPhone 12 (4 GB RAM, lower-end target) without WKWebView OOM crash; Sentry Capacitor SDK reports zero crashes in a 30-minute soak test; native share sheet (`@capacitor/share`) shares dose-log / share-card / doctor-report
+**Plans**: 11 PLAN.md files committed; Wave-0 harness merged (`eedced3` + `5986ccf`). Resume via fresh `/gsd-execute-phase 16 leanshot` after domain is live.
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23
+Phases execute in numeric order with Phase 16 moved to milestone tail: 12 → 13 → 14 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → **16** (gated on new-domain registration)
+> Note: P17/18/21 depend on P16's native shells; they will block at plan-phase or execute-phase until P16 ships. Web-only phases 19/20/22/23 are unblocked and can run in P16's absence.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -225,14 +227,14 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18 �
 | 13. Design System v2 Rollout | 0/TBD | Not started | - |
 | 14. Monetization Foundation (Stripe web + clinic seats) | 11/11 | Complete   | 2026-05-14 |
 | 15. Page Builder + Landing Pages | 0/TBD | Not started | - |
-| 16. Capacitor Mobile Shells (iOS + Android) | 0/TBD | Not started | - |
-| 17. Push Notifications | 0/TBD | Not started | - |
-| 18. HealthKit + Health Connect + Firewall | 0/TBD | Not started | - |
+| 17. Push Notifications | 0/TBD | Not started (blocks on P16) | - |
+| 18. HealthKit + Health Connect + Firewall | 0/TBD | Not started (blocks on P16) | - |
 | 19. Affiliate Program + Stripe Connect | 0/TBD | Not started | - |
 | 20. Ad Network | 0/TBD | Not started | - |
-| 21. Watch Apps (Apple Watch + WearOS) | 0/TBD | Not started | - |
+| 21. Watch Apps (Apple Watch + WearOS) | 0/TBD | Not started (blocks on P16) | - |
 | 22. Owner/Admin + Lifecycle Email + DSAR + Cookie Consent | 0/TBD | Not started | - |
 | 23. v1.1 Tech Debt Sweep + Launch Polish | 0/TBD | Not started | - |
+| 16. Capacitor Mobile Shells (iOS + Android) | 1/11 (Wave 0 harness) | Deferred (domain gate)  | - |
 
 ---
 
