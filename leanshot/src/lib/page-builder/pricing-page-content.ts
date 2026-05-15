@@ -31,6 +31,11 @@ export const PRICING_PAGE_SEO = {
   /** ≤160 chars — keeps SERP truncation safe. */
   description:
     'Track your GLP-1 protocol with drug-level projection and injection-site rotation. Plus plan: $12.99/mo or $132.49/yr — save 15%.',
+  /**
+   * Absolute canonical — required for Lighthouse SEO score (relative `/pricing` flagged invalid).
+   * Hard-coded to the marketing host because Edge-Function-side request origin is unreliable.
+   */
+  canonical: 'https://leanshot.app/pricing',
   /** Allowlisted by `generateJsonLd` in json-ld.ts. */
   schemaType: 'Product' as const,
 };
