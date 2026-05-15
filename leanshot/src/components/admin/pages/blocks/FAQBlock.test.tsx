@@ -16,10 +16,10 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
+import { PROPERTY_CONFIGS } from '../editor/property-configs';
+import { PropertyPanel } from '../editor/PropertyPanel';
 import { FAQBlock } from './FAQBlock';
 import { PricingBlock } from './PricingBlock';
-import { PropertyPanel } from '../editor/PropertyPanel';
-import { PROPERTY_CONFIGS } from '../editor/property-configs';
 
 function faqBlock(): BlockNode {
   return {

@@ -29,6 +29,7 @@ import {
   savePage,
 } from '@/lib/page-builder/page-api';
 import { BlockTreePanel } from './editor/BlockTreePanel';
+import { PreviewPane } from './editor/PreviewPane';
 import { PropertyPanel } from './editor/PropertyPanel';
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -246,20 +247,28 @@ export function PageEditorView() {
           onSelect={setSelectedId}
           onChange={setBlocks}
         />
-        <Card variant="flat" padding="md" className="h-full overflow-auto">
-          <p className="text-[13px] text-[var(--color-text-secondary)]">
-            Live preview lands in plan 15-05.
-          </p>
-          <ul className="mt-4 flex flex-col gap-2 text-[12px]">
-            {blocks
-              .filter((b) => b.parent_id === null)
-              .map((b) => (
-                <li key={b.id} className="px-2 py-1 rounded bg-[var(--color-surface)]">
-                  {b.type}
-                </li>
-              ))}
-          </ul>
-        </Card>
+        {/* 15-05: live preview iframe + viewport toggle. Renders the staff
+            user's own /{slug}?preview=true draft via page-render. For a new
+            unsaved draft (no slug yet) we keep a hint instead of pointing at
+            a broken URL. */}
+        {slug ? (
+          <PreviewPane pageSlug={slug} />
+        ) : (
+          <Card variant="flat" padding="md" className="h-full overflow-auto">
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Fill in the slug and save once to enable the live preview.
+            </p>
+            <ul className="mt-4 flex flex-col gap-2 text-[12px]">
+              {blocks
+                .filter((b) => b.parent_id === null)
+                .map((b) => (
+                  <li key={b.id} className="px-2 py-1 rounded bg-[var(--color-surface)]">
+                    {b.type}
+                  </li>
+                ))}
+            </ul>
+          </Card>
+        )}
         <PropertyPanel
           selectedBlockId={selectedId}
           blocks={blocks}

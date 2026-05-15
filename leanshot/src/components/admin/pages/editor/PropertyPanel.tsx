@@ -14,7 +14,7 @@ import type { ChangeEvent } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Input, Select, Textarea } from '@/components/ui/Input';
 import type { BlockNode, BlockStyle } from '@/lib/page-builder/block-schema';
-import { PROPERTY_CONFIGS } from './property-configs';
+import { PROPERTY_CONFIGS, type ContentFieldConfig } from './property-configs';
 
 export interface PropertyPanelProps {
   selectedBlockId: string | null;
@@ -225,7 +225,7 @@ function ContentFields({ block, updateContent }: ContentFieldsProps) {
 // new field kind is one local switch arm.
 interface GenericContentFieldsProps {
   block: BlockNode;
-  fields: import('./property-configs').ContentFieldConfig[];
+  fields: ContentFieldConfig[];
   updateContent: (patch: Record<string, unknown>) => void;
 }
 
