@@ -500,6 +500,21 @@ verify_jwt = false
 [functions.partner-profile-update]
 verify_jwt = true
 
+# Phase 19 Plan 19-08 — affiliate-impression is the PUBLIC fire-and-forget POST
+# endpoint fired from /r/{code}/landing on mount (D-38 / BL-8). Visitors are
+# anonymous; verify_jwt MUST be false or the gateway 401s every impression
+# ping before the function runs. Defenses are stacked in index.ts:
+#   - per-IPv4-/24 in-memory rate limit (10 / 60s) — same pattern as
+#     affiliate-attribute + affiliate-apply
+#   - affiliate-existence + status='approved' check (silent 200 on miss —
+#     never reveal whether an affiliate_id is valid)
+#   - body validation: UUID-shape affiliate_id, 64-hex ua_hash, ≤500-char referer
+# The function calls `public.insert_affiliate_impression(uuid, text, text, text)`
+# (Plan 19-01 migration 20270101000004a, SECURITY DEFINER) which applies
+# `set_masklen(p_ip::inet, 24)` server-side — the raw IP is never persisted.
+[functions.affiliate-impression]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
