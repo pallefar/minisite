@@ -489,6 +489,17 @@ verify_jwt = true
 [functions.affiliate-apply]
 verify_jwt = false
 
+# Phase 19 Plan 19-06b — partner-profile-update is the JWT-gated POST endpoint
+# that affiliates use to self-edit their `affiliates` row (BL-2 Path A). It
+# enforces a 6-column allowlist server-side (display_name, photo_path, blurb,
+# calendly_url, testimonial_quote, template_choice) — Postgres RLS cannot
+# restrict UPDATE on a per-column basis, so this Edge Function is the canonical
+# write gate. verify_jwt = true is explicit (also the default). user.id is
+# resolved from the Bearer JWT server-side; the WHERE clause never trusts the
+# request body. Per-user rate limit (10 saves / 60s) in index.ts.
+[functions.partner-profile-update]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
