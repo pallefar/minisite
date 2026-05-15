@@ -1,3 +1,14 @@
+// 15-06: import the 3 embed iframe-HTML builders from the PURE embed-src
+// module. The file is dependency-free TypeScript (no DOM, no Deno.*, no
+// React) so Deno resolves it via this relative path with no further setup.
+// The iframe-HTML factoring is MANDATORY here — no <iframe> template literal
+// stays in render.ts (BLOCKER 2 fix from 15-06-PLAN.md).
+import {
+  buildCalendlyIframeHtml,
+  buildTallyIframeHtml,
+  buildYouTubeIframeHtml,
+} from '../../../leanshot/src/lib/page-builder/embed-src.ts';
+
 /**
  * Phase 15 Plan 03 — Recursive HTML renderer for published landing pages.
  *
@@ -489,12 +500,76 @@ export function renderBlock(block: BlockNode): string {
       return renderFeatureGrid(block);
     case 'image-text':
       return renderImageText(block);
-    // Plans 15-06/07 ADD their case names here:
-    //   15-06: calendly, youtube, tally
+    // 15-06: three embed-provider branches. Each branch is a thin wrapper —
+    // it narrows block.content to the per-type shape and CALLS the matching
+    // iframe-HTML helper from embed-src.ts. NO <iframe ...> template literal
+    // is assembled here; the iframe-HTML factoring is the BLOCKER 2 fix.
+    case 'youtube':
+      // embed-youtube
+      return renderEmbedYouTube(block);
+    case 'calendly':
+      // embed-calendly
+      return renderEmbedCalendly(block);
+    case 'tally':
+      // embed-tally
+      return renderEmbedTally(block);
+    // Plans 15-07 ADD their case names here:
     //   15-07: lead-form
     default:
       return '';
   }
+}
+
+// ─── 15-06 embed renderers — thin wrappers around embed-src helpers ───────────
+//
+// Each renderer:
+//   1. Narrows block.content to the matching <embed_content_shapes> shape
+//      with defensive type coercion (BlockNode.content is Record<string,
+//      unknown>; the JSONB store can hand us anything).
+//   2. Calls the matching buildXIframeHtml helper from embed-src.ts. The
+//      helper returns either a complete <iframe>-wrapped HTML string or ''
+//      (safe non-iframe fallback when input is invalid).
+//   3. Wraps the result in the renderer's existing block-section wrapper
+//      (backgroundTone + spacingDensity + hide-on-mobile).
+//
+// NO <iframe ...> template literal lives in this file — the entire iframe
+// HTML comes from embed-src.ts. The iframe `src` therefore comes ONLY from
+// the validated builder output; no raw content values are string-concatenated
+// into HTML here.
+
+function renderEmbedYouTube(block: BlockNode): string {
+  const c = block.content;
+  const html = buildYouTubeIframeHtml({
+    videoId: typeof c.videoId === 'string' ? c.videoId : '',
+    startSeconds:
+      typeof c.startSeconds === 'number' && Number.isFinite(c.startSeconds) ? c.startSeconds : 0,
+    autoplay: c.autoplay === true,
+  });
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-yt-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-yt-wrap__inner">${html}</div></section>`;
+}
+
+function renderEmbedCalendly(block: BlockNode): string {
+  const c = block.content;
+  const html = buildCalendlyIframeHtml({
+    calendlyUrl: typeof c.calendlyUrl === 'string' ? c.calendlyUrl : '',
+    prefillEmail: c.prefillEmail === true,
+  });
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-cal-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-cal-wrap__inner">${html}</div></section>`;
+}
+
+function renderEmbedTally(block: BlockNode): string {
+  const c = block.content;
+  const html = buildTallyIframeHtml({
+    tallyFormUrl: typeof c.tallyFormUrl === 'string' ? c.tallyFormUrl : '',
+    hideTitle: c.hideTitle === true,
+  });
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-tally-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-tally-wrap__inner">${html}</div></section>`;
 }
 
 // ─── renderSeoHead — SEO seam (STUB) ──────────────────────────────────────────
