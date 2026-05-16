@@ -9,7 +9,9 @@ import { initAnalytics } from './lib/analytics';
 // chunk and the bundle-budget CI gate measures it. REMOVED by Plan 16-02
 // Task 1 when `platform.ts` is filled with `Capacitor.getPlatform()`.
 import './lib/native/__capacitor-import-probe';
+import { detectPlatform } from './lib/native/platform';
 import { beforeSend } from './lib/sentry';
+import { initSentryNative } from './lib/sentry-native';
 import { hydrate } from './lib/store';
 import { scheduleSyncInit } from './lib/sync-defer';
 import { deferAnalyticsInit, deferSentryInit } from './lib/telemetry-defer';
@@ -59,15 +61,36 @@ try {
      and let the auth flow degrade — the legacy behavior pre-hotfix. */
 }
 
-// Phase 2.1 perf fix: telemetry init is now DEFERRED to after first paint
-// (was static `Sentry.init(...)` here in Phase 2; that pulled @sentry/* into
-// the entry static graph, auto-preloaded a 93 kB gz vendor-telemetry chunk,
-// and pinned SPA Lighthouse Performance at ~0.76).
+// Phase 16 MOBILE-09: native-platform Sentry init runs SYNCHRONOUSLY here,
+// BEFORE createRoot below, so a crash during hydrate()/first-paint is
+// captured by Sentry Cocoa / Sentry Android (native crash handler is
+// armed once Sentry.init resolves the bridge). The web path's deferred
+// init stays unchanged (Phase 2.1 perf fix below).
 //
-// D-12 (Phase 1) error-capture floor is preserved by `deferSentryInit`'s
-// pre-init `error`/`unhandledrejection` listeners that buffer events until
-// Sentry's dynamic import resolves and drains them.
-deferSentryInit(beforeSend);
+// VITE_SENTRY_RELEASE is set per-platform by fastlane in Plan 16-09:
+// - iOS:     'ios@${CFBundleShortVersionString}'
+// - Android: 'android@${versionName}'
+// The DSN is the SAME Phase 1 project (D-17 — one project, separate
+// releases for symbolication routing).
+//
+// Phase 2.1 perf fix (web path only): telemetry init is DEFERRED to after
+// first paint — was static `Sentry.init(...)` here in Phase 2; that pulled
+// @sentry/* into the entry static graph, auto-preloaded a 93 kB gz
+// vendor-telemetry chunk, and pinned SPA Lighthouse Performance at ~0.76.
+//
+// D-12 (Phase 1) error-capture floor is preserved on web by
+// `deferSentryInit`'s pre-init `error`/`unhandledrejection` listeners that
+// buffer events until Sentry's dynamic import resolves and drains them.
+const _platform = detectPlatform();
+if (_platform === 'ios' || _platform === 'android') {
+  initSentryNative({
+    dsn: (import.meta.env.VITE_SENTRY_DSN as string) ?? '',
+    release: (import.meta.env.VITE_SENTRY_RELEASE as string) ?? `${_platform}@unknown`,
+    beforeSend,
+  });
+} else {
+  deferSentryInit(beforeSend);
+}
 
 // 1) Apply the saved/system theme to the DOM immediately so the first
 //    paint matches and we don't show a flash of the wrong palette.

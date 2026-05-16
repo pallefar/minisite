@@ -17,6 +17,7 @@
  * Safari/Firefox) so the buffer almost always flushes within 1 paint.
  */
 
+import { detectPlatform } from './native/platform';
 import type { beforeSend as BeforeSendFn } from './sentry';
 
 interface BufferedError {
@@ -56,6 +57,13 @@ function uninstallPreInitListeners(): void {
 export function deferSentryInit(beforeSend: typeof BeforeSendFn): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
   if (!dsn) return;
+
+  // Phase 16 MOBILE-09: on native platforms, the synchronous dual-init in
+  // `src/lib/sentry-native.ts` (called from main.tsx BEFORE first render)
+  // owns Sentry init. The deferred web path stays no-op on ios/android so
+  // we don't double-init and double-send events. See `16-04-SUMMARY.md` for
+  // the dual-init contract.
+  if (detectPlatform() !== 'web') return;
 
   installPreInitListeners();
 
