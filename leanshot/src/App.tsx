@@ -134,6 +134,71 @@ const CancelDeletionPage = lazy(() =>
   import('@/pages/cancel-deletion').then((m) => ({ default: m.CancelDeletionPage })),
 );
 
+// Phase 22 Plan 22-12 (Wave 3 integration) — admin/DSAR/email-prefs lazy chunks.
+//
+// Five `/admin/*` surfaces + two `/settings/*` sub-pages. All ship as their
+// own lazy chunks so the index static graph stays under the 50 kB gz ceiling
+// (Phase 6 Plan 06-01 contract). Routing is path-based via the existing
+// selectView() switch + popstate listener pattern (no router; CLAUDE.md
+// "Routing: Intentionally none").
+//
+// Admin gate is defense-in-depth: AdminLayout (which each Admin*Page already
+// wraps itself in) probes profiles.is_staff before rendering anything beyond
+// the loading skeleton. The real security boundary is each admin RPC's
+// `is_staff()` gate (Pattern S1 dual-layer per 22-PATTERNS Wave E) + RLS.
+const AdminMembersPage = lazy(() =>
+  import('@/components/admin/pages/AdminMembersPage').then((m) => ({
+    default: m.AdminMembersPage,
+  })),
+);
+const AdminMemberDetailPage = lazy(() =>
+  import('@/components/admin/pages/AdminMemberDetailPage').then((m) => ({
+    default: m.AdminMemberDetailPage,
+  })),
+);
+const AdminMetricsPage = lazy(() =>
+  import('@/components/admin/pages/AdminMetricsPage').then((m) => ({
+    default: m.AdminMetricsPage,
+  })),
+);
+const AdminCohortsPage = lazy(() =>
+  import('@/components/admin/pages/AdminCohortsPage').then((m) => ({
+    default: m.AdminCohortsPage,
+  })),
+);
+const AdminAffiliatesPage = lazy(() =>
+  import('@/components/admin/pages/AdminAffiliatesPage').then((m) => ({
+    default: m.AdminAffiliatesPage,
+  })),
+);
+const DsarPortalPage = lazy(() =>
+  import('@/components/dsar/DsarPortalPage').then((m) => ({ default: m.DsarPortalPage })),
+);
+const EmailPreferencesPage = lazy(() =>
+  import('@/components/dashboard/settings/EmailPreferencesPage').then((m) => ({
+    default: m.EmailPreferencesPage,
+  })),
+);
+
+// Phase 22 Plan 22-12 — three always-on overlay components (banners + cookie
+// consent bootstrap). All three are EAGER imports because:
+//   - ImpersonationBanner: returns null when !useImpersonation().active
+//   - SoftDeleteCountdownBanner: returns null when !row || impersonating
+//   - CookieConsentBootstrap: returns null + schedules dynamic-import of
+//     vanilla-cookieconsent through the Pattern 4 gate (consent-defer.ts);
+//     the heavy library itself stays off the index static graph by virtue of
+//     the dynamic import inside scheduleConsentInit().
+//
+// Each component is tiny (< 200 LoC) and contributes < 1 kB gz to the index
+// chunk. Verified post-build by the Task 4 bundle check.
+import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
+import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBanner';
+import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCountdownBanner';
+// Phase 22 Plan 22-06 — D-08 per-user feature flag overrides. loadOverrides()
+// is the post-auth hook consumer; clearOverrideCache() is the SIGNED_OUT
+// hook consumer. Wiring lands in this plan; see useEffect blocks below.
+import { clearOverrideCache, loadOverrides } from '@/lib/consent/feature-flag-overrides';
+
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
 // boundary so Rollup emits four separate small chunks (preserving the 50 kB
@@ -326,7 +391,25 @@ type View =
   // `admin-page-list` matches `/admin/pages` exactly.
   | 'admin-page-list'
   | 'admin-page-editor'
-  | 'admin-site-settings';
+  | 'admin-site-settings'
+  // Phase 22 Plan 22-12 — Wave 3 admin surfaces. Paths:
+  //   /admin/members              → admin-members
+  //   /admin/members/{user_id}    → admin-member-detail (drill-in)
+  //   /admin/metrics              → admin-metrics
+  //   /admin/cohorts              → admin-cohorts
+  //   /admin/affiliates           → admin-affiliates (review queue)
+  //   /admin/affiliates/review    → admin-affiliates (alias kept in selectView)
+  //   /settings/privacy/dsar      → dsar
+  //   /settings/email-preferences → email-prefs
+  // All gated on user presence; AdminLayout's is_staff probe + RPC gates
+  // form the actual security boundary (Pattern S1 dual-layer).
+  | 'admin-members'
+  | 'admin-member-detail'
+  | 'admin-metrics'
+  | 'admin-cohorts'
+  | 'admin-affiliates'
+  | 'dsar'
+  | 'email-prefs';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -416,6 +499,42 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
   }
   if (opts.pathname === '/admin' || opts.pathname === '/admin/') {
     return opts.user ? 'admin-site-settings' : 'auth';
+  }
+  // Phase 22 Plan 22-12 — Wave 3 admin paths. Order: more-specific drill-in
+  // (`/admin/members/{user_id}`) before the bare `/admin/members` list, and
+  // both AFTER the Phase 15 `/admin/pages*` branches above so page-builder
+  // routes still win on their own paths.
+  if (opts.pathname.match(/^\/admin\/members\/[^/]+$/)) {
+    return opts.user ? 'admin-member-detail' : 'auth';
+  }
+  if (opts.pathname === '/admin/members' || opts.pathname === '/admin/members/') {
+    return opts.user ? 'admin-members' : 'auth';
+  }
+  if (opts.pathname === '/admin/metrics' || opts.pathname === '/admin/metrics/') {
+    return opts.user ? 'admin-metrics' : 'auth';
+  }
+  if (opts.pathname === '/admin/cohorts' || opts.pathname === '/admin/cohorts/') {
+    return opts.user ? 'admin-cohorts' : 'auth';
+  }
+  // `/admin/affiliates` covers both the bare path and the `/review` sub-route
+  // — AdminAffiliatesPage internally shows the review queue.
+  if (opts.pathname.startsWith('/admin/affiliates')) {
+    return opts.user ? 'admin-affiliates' : 'auth';
+  }
+  // Phase 22 Plan 22-11 — DSAR portal sub-page. Gated on user presence (the
+  // RPC requires auth.uid()); selectView routes anon to auth so the user can
+  // sign in first, then is bounced back via the existing `?` hash flow.
+  if (
+    opts.pathname === '/settings/privacy/dsar' ||
+    opts.pathname === '/settings/privacy/dsar/'
+  ) {
+    return opts.user ? 'dsar' : 'auth';
+  }
+  if (
+    opts.pathname === '/settings/email-preferences' ||
+    opts.pathname === '/settings/email-preferences/'
+  ) {
+    return opts.user ? 'email-prefs' : 'auth';
   }
   // Phase 22 Plan 22-05 — /cancel-deletion is anonymous-OK (HMAC token
   // is the auth). Match exact path; trailing-slash tolerated.
@@ -536,6 +655,11 @@ export function App() {
             void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
               syncBillingTier(session.user.id),
             );
+            // Phase 22 Plan 22-12 — D-08 per-user feature-flag overrides.
+            // Populate the overrides cache once per session (idempotent +
+            // best-effort; logs + swallows errors so a Supabase outage
+            // degrades to "PostHog default" rather than blocking sign-in).
+            void loadOverrides(session.user.id);
           }
           break;
         }
@@ -555,6 +679,9 @@ export function App() {
             void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
               syncBillingTier(session.user.id),
             );
+            // Phase 22 Plan 22-12 — D-08 per-user feature-flag overrides
+            // (same rationale as INITIAL_SESSION above).
+            void loadOverrides(session.user.id);
           }
           break;
         }
@@ -575,6 +702,11 @@ export function App() {
           // between this call and the clearUserDataSlices that follows.
           deferOnSignedOut(prevUserId);
           useStore.getState().clearUserDataSlices();
+          // Phase 22 Plan 22-12 — D-08: drop the per-user feature-flag
+          // override cache so the next signed-in user starts from PostHog
+          // defaults until their own loadOverrides() resolves. Mirrors the
+          // namespaced-localStorage wipe in spirit.
+          clearOverrideCache();
           // Phase 5 G2 (05-UAT.md gap #2 missing item #2): wipe the prior
           // user's namespaced localStorage residue + revert the adapter to
           // the universal key so any subsequent anon activity lands there.
@@ -851,6 +983,25 @@ export function App() {
     }
   }, [needsDisclaimer]);
 
+  // Phase 22 Plan 22-12 — Wave 3 always-on overlays. Mounted as siblings of
+  // every view branch via the `globalOverlays` const below so the cookie
+  // banner shows on marketing (anonymous visitor path) AND the impersonation
+  // / soft-delete banners show on every signed-in surface. Each component
+  // self-gates to null when its condition isn't met, so unconditional mount
+  // is safe + the only correct way to honor UI-SPEC line 317 (banner priority
+  // is encoded inside SoftDeleteCountdownBanner via its `impersonating` ref).
+  //
+  // CookieConsentBootstrap returns null; mounting it once on any view is
+  // sufficient — the side-effect (scheduleConsentInit) is idempotent at the
+  // module level.
+  const globalOverlays = (
+    <>
+      <ImpersonationBanner />
+      <SoftDeleteCountdownBanner />
+      <CookieConsentBootstrap />
+    </>
+  );
+
   // Phase 19 Plan 19-09 (BL-4) — Phase-19 route registries take priority over
   // the marketing/dashboard branches. Each entry is its own lazy chunk; the
   // resolver returns null for non-Phase-19 paths so the existing view-selector
@@ -859,48 +1010,66 @@ export function App() {
   if (phase19Match) {
     const { Component: Phase19Component, code } = phase19Match;
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <Phase19Component code={code} />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <Phase19Component code={code} />
+        </Suspense>
+      </>
     );
   }
 
   if (view === 'marketing') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <Marketing onStart={() => setView('onboarding')} />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <Marketing onStart={() => setView('onboarding')} />
+        </Suspense>
+      </>
     );
   }
   if (view === 'onboarding') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <Onboarding onCancel={() => setView('marketing')} onComplete={() => setView('dashboard')} />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <Onboarding onCancel={() => setView('marketing')} onComplete={() => setView('dashboard')} />
+        </Suspense>
+      </>
     );
   }
   if (view === 'auth') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <AuthView />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AuthView />
+        </Suspense>
+      </>
     );
   }
   if (view === 'share') {
     // Phase 8 Plan 08-04 — SharePage reads the token from window.location.hash
     // itself; keeps the parser inside the lazy chunk to spare the index budget.
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <SharePage />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <SharePage />
+        </Suspense>
+      </>
     );
   }
   if (view === 'legal') {
     const LegalPage = selectLegalPage(window.location.hash);
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <LegalPage />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <LegalPage />
+        </Suspense>
+      </>
     );
   }
   // Phase 9 Plan 09-01 — 3 clinic surfaces. Each is its own lazy chunk;
@@ -908,54 +1077,151 @@ export function App() {
   // selection is owned by selectView() above.
   if (view === 'clinic-invite') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <ClinicInvitePage />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <ClinicInvitePage />
+        </Suspense>
+      </>
     );
   }
   if (view === 'clinic-settings') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <ClinicSettingsPage />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <ClinicSettingsPage />
+        </Suspense>
+      </>
     );
   }
   if (view === 'clinic') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <ClinicWorkspace />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <ClinicWorkspace />
+        </Suspense>
+      </>
     );
   }
   // Phase 10 Plan 10-05 — drill-in route: /clinic/{slug}/patient/{user_id}.
   // Stub file; Plan 10-07 overwrites ClinicDrillInPage with the real implementation.
   if (view === 'clinic-drill-in') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <ClinicDrillInPage />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <ClinicDrillInPage />
+        </Suspense>
+      </>
     );
   }
   // Phase 15 Plan 15-04 — Page Builder admin surfaces.
   if (view === 'admin-page-list') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <AdminPageList />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminPageList />
+        </Suspense>
+      </>
     );
   }
   if (view === 'admin-page-editor') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <AdminPageEditor />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminPageEditor />
+        </Suspense>
+      </>
     );
   }
   if (view === 'admin-site-settings') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <AdminSiteSettings />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminSiteSettings />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 22 Plan 22-12 — Wave 3 admin surfaces (ADMIN-01/02/05/06/08).
+  if (view === 'admin-members') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminMembersPage />
+        </Suspense>
+      </>
+    );
+  }
+  if (view === 'admin-member-detail') {
+    // Extract userId from `/admin/members/{user_id}` for the drill-in.
+    const userIdMatch = window.location.pathname.match(/^\/admin\/members\/([^/]+)$/);
+    const userId = userIdMatch?.[1];
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminMemberDetailPage userId={userId} />
+        </Suspense>
+      </>
+    );
+  }
+  if (view === 'admin-metrics') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminMetricsPage />
+        </Suspense>
+      </>
+    );
+  }
+  if (view === 'admin-cohorts') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminCohortsPage />
+        </Suspense>
+      </>
+    );
+  }
+  if (view === 'admin-affiliates') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminAffiliatesPage />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 22 Plan 22-11 — DSAR portal (GDPR-03).
+  if (view === 'dsar') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <DsarPortalPage />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 22 Plan 22-11 — Email preference center (ON-03).
+  if (view === 'email-prefs') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <EmailPreferencesPage />
+        </Suspense>
+      </>
     );
   }
   // Phase 22 Plan 22-05 — /cancel-deletion landing for HMAC cancel-link
@@ -963,14 +1229,18 @@ export function App() {
   // RPC outcomes (success / invalid / expired / vault_missing / no_token).
   if (view === 'cancel-deletion') {
     return (
-      <Suspense fallback={<FullPageLoader />}>
-        <CancelDeletionPage />
-      </Suspense>
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <CancelDeletionPage />
+        </Suspense>
+      </>
     );
   }
 
   return (
     <>
+      {globalOverlays}
       <AppShell
         onLogDose={() => setTab('medication')}
         onOpenReport={() => setReportOpen(true)}

@@ -25,6 +25,12 @@
  * here is safe — the entire module sits in a lazy chunk.
  */
 import * as CookieConsent from 'vanilla-cookieconsent';
+// Phase 22 plan 22-12 — vanilla-cookieconsent's stylesheet is REQUIRED for
+// the banner to render (without it the modal is in the DOM but invisible).
+// The import is a side-effect-only `import` that Vite bundles into the same
+// lazy chunk as this module, preserving the Pattern 4 dynamic-import gate
+// (consent-config + its CSS both stay off the index static graph).
+import 'vanilla-cookieconsent/dist/cookieconsent.css';
 
 import { upsertConsentRecord } from '@/lib/consent/consent-records';
 
@@ -45,6 +51,26 @@ interface VercelGeoWindow extends Window {
 
 function readGeoCountry(): string | undefined {
   if (typeof window === 'undefined') return undefined;
+  // Phase 22 plan 22-12 — `?force_geo=eu|us|de|fr|...` query-param override
+  // for e2e tests + manual smoke. Honored before window.__VERCEL_GEO__ so a
+  // test can deterministically exercise either branch of the EU/US fork.
+  // Production never sets this param; Vercel geo header drives the
+  // window.__VERCEL_GEO__ value normally.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const forced = params.get('force_geo');
+    if (forced) {
+      const up = forced.toUpperCase();
+      // `eu` is a meta-token: choose any EU member state (DE picked here).
+      if (up === 'EU') return 'DE';
+      // `us` is the non-EU sentinel.
+      if (up === 'US') return 'US';
+      // Otherwise treat as an ISO country code (already uppercased).
+      return up;
+    }
+  } catch {
+    /* URLSearchParams unavailable or window.location.search missing — fall through */
+  }
   return (window as VercelGeoWindow).__VERCEL_GEO__?.country;
 }
 
@@ -112,7 +138,24 @@ export function initCookieConsent(): void {
   // hook, so default-state-first ordering is preserved.
   applyDefaultConsentState(isEU);
 
+  // Phase 22 plan 22-12 — bot-hiding escape hatch for e2e tests.
+  // vanilla-cookieconsent v3 defaults `hideFromBots: true` and Playwright's
+  // chromium sets navigator.webdriver=true, so the modal would never appear
+  // under test even though the library initialized cleanly. The `?force_geo=`
+  // query param is the test-only signal (production never sets it, so this
+  // is safe to bind 1:1).
+  const isTestHarness = (() => {
+    try {
+      return typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('force_geo');
+    } catch {
+      return false;
+    }
+  })();
+
   void CookieConsent.run({
+    // Production keeps the v3 default (true). Tests (`?force_geo=eu|us`)
+    // disable it so Playwright can drive the modal.
+    hideFromBots: !isTestHarness,
     guiOptions: {
       consentModal: {
         layout: 'box inline',          // UI-SPEC §banner: bottom slide-up
