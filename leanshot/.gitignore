@@ -19,3 +19,14 @@ dist/stats.html
 stats.html
 .vercel
 .env*.local
+
+# Phase 16 — Capacitor native projects (build artifacts only; source dirs committed)
+apps/ios/App/Pods/
+apps/ios/App/build/
+apps/ios/App/Pods.xcodeproj/
+apps/ios/DerivedData/
+apps/android/.gradle/
+apps/android/build/
+apps/android/app/build/
+**/xcuserdata/
+**/*.xcworkspace/xcuserdata/
