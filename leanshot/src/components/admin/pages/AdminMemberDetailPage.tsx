@@ -15,7 +15,7 @@
  *
  * Route wiring into App.tsx is plan 22-12.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { MemberActivityTab } from '@/components/admin/members/MemberActivityTab';
 import { MemberAuditTab } from '@/components/admin/members/MemberAuditTab';
@@ -23,6 +23,20 @@ import { MemberBillingTab } from '@/components/admin/members/MemberBillingTab';
 import { MemberFlagsTab } from '@/components/admin/members/MemberFlagsTab';
 import { MemberProfileTab } from '@/components/admin/members/MemberProfileTab';
 import { MemberStripeTab } from '@/components/admin/members/MemberStripeTab';
+import type { RefundCharge } from '@/components/admin/members/RefundModal';
+
+// Lazy-load the admin Stripe-action modals so the /admin/members detail page
+// doesn't pull modal code into the admin-bundle critical path. Pattern S1
+// established in Phase 19 admin-bundle manualChunks split.
+const RefundModal = lazy(() =>
+  import('@/components/admin/members/RefundModal').then((m) => ({ default: m.RefundModal })),
+);
+const CancelSubModal = lazy(() =>
+  import('@/components/admin/members/CancelSubModal').then((m) => ({ default: m.CancelSubModal })),
+);
+const CompSubModal = lazy(() =>
+  import('@/components/admin/members/CompSubModal').then((m) => ({ default: m.CompSubModal })),
+);
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -83,6 +97,15 @@ interface DetailContentProps {
 function MemberDetailContent({ userId }: DetailContentProps) {
   const [member, setMember] = useState<Member | null | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<TabKey>(() => readActiveTabFromUrl());
+  // Plan 22-07 modal mount state. Each modal is lazy-loaded so the JS only
+  // ships when an admin actually opens one. Context (charge / subscription_id
+  // / period_end) is captured at open-time so the modal renders without
+  // re-pulling data.
+  const [refundCtx, setRefundCtx] = useState<RefundCharge | null>(null);
+  const [cancelCtx, setCancelCtx] = useState<{ subscriptionId: string; periodEnd: string } | null>(
+    null,
+  );
+  const [compCtx, setCompCtx] = useState<{ subscriptionId: string } | null>(null);
 
   useEffect(() => {
     writeActiveTabToUrl(activeTab);
@@ -137,11 +160,22 @@ function MemberDetailContent({ userId }: DetailContentProps) {
       case 'profile':
         return <MemberProfileTab member={member} />;
       case 'billing':
-        return <MemberBillingTab userId={member.user_id} />;
+        return (
+          <MemberBillingTab
+            userId={member.user_id}
+            onOpenCancel={(ctx) => setCancelCtx(ctx)}
+            onOpenComp={(ctx) => setCompCtx(ctx)}
+          />
+        );
       case 'activity':
         return <MemberActivityTab userId={member.user_id} />;
       case 'stripe':
-        return <MemberStripeTab userId={member.user_id} />;
+        return (
+          <MemberStripeTab
+            userId={member.user_id}
+            onOpenRefund={(charge) => setRefundCtx(charge)}
+          />
+        );
       case 'flags':
         return <MemberFlagsTab userId={member.user_id} />;
       case 'audit':
@@ -194,18 +228,16 @@ function MemberDetailContent({ userId }: DetailContentProps) {
             <Button
               variant="ghost"
               size="sm"
-              disabled
-              title="Cancel flow lands in plan 22-07"
-              aria-label="Cancel subscription"
+              onClick={() => setActiveTab('billing')}
+              aria-label="Billing actions (cancel / comp)"
             >
-              Cancel
+              Billing actions
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              disabled
-              title="Refund flow lands in plan 22-07"
-              aria-label="Refund last charge"
+              onClick={() => setActiveTab('stripe')}
+              aria-label="Refund a charge"
             >
               Refund
             </Button>
@@ -236,6 +268,41 @@ function MemberDetailContent({ userId }: DetailContentProps) {
       <div role="tabpanel" aria-label={`${activeTab} tab`}>
         {tabContent}
       </div>
+
+      {/* Plan 22-07 admin Stripe-action modals. Each is mounted lazily on first open. */}
+      <Suspense fallback={null}>
+        {refundCtx && (
+          <RefundModal
+            isOpen
+            charges={[refundCtx]}
+            targetUserId={member.user_id}
+            targetUserEmail={member.email}
+            onClose={() => setRefundCtx(null)}
+            onSuccess={() => setRefundCtx(null)}
+          />
+        )}
+        {cancelCtx && (
+          <CancelSubModal
+            isOpen
+            targetUserId={member.user_id}
+            targetUserEmail={member.email}
+            subscriptionId={cancelCtx.subscriptionId}
+            periodEnd={cancelCtx.periodEnd}
+            onClose={() => setCancelCtx(null)}
+            onSuccess={() => setCancelCtx(null)}
+          />
+        )}
+        {compCtx && (
+          <CompSubModal
+            isOpen
+            targetUserId={member.user_id}
+            targetUserEmail={member.email}
+            subscriptionId={compCtx.subscriptionId}
+            onClose={() => setCompCtx(null)}
+            onSuccess={() => setCompCtx(null)}
+          />
+        )}
+      </Suspense>
     </>
   );
 }

@@ -101,8 +101,8 @@ describe('<MembersTable /> — Phase 22 Plan 22-06', () => {
     const labels = items.map((i) => i.textContent?.trim());
     expect(labels).toEqual([
       'Impersonate',
-      'Refund last charge',
-      'Cancel subscription',
+      'Refund a charge…',
+      'Cancel subscription…',
       'Deactivate',
       'Override feature flag',
       'View detail',
