@@ -1,0 +1,60 @@
+name: Mobile Privacy Manifest Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leanshot/apps/ios/App/App/PrivacyInfo.xcprivacy'
+      - 'leanshot/scripts/audit-privacy-manifest.mjs'
+      - 'leanshot/scripts/audit-privacy-manifest.test.mjs'
+      - 'leanshot/package.json'
+      - 'leanshot/package-lock.json'
+      - 'leanshot/apps/android/data-safety.md'
+      - '.github/workflows/mobile-privacy-audit.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'leanshot/apps/ios/App/App/PrivacyInfo.xcprivacy'
+      - 'leanshot/scripts/audit-privacy-manifest.mjs'
+      - 'leanshot/scripts/audit-privacy-manifest.test.mjs'
+      - 'leanshot/package.json'
+      - 'leanshot/package-lock.json'
+      - 'leanshot/apps/android/data-safety.md'
+      - '.github/workflows/mobile-privacy-audit.yml'
+
+concurrency:
+  group: mobile-privacy-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  audit-privacy-manifest:
+    name: Audit PrivacyInfo + Data Safety parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run audit-privacy-manifest self-tests
+        run: npm run audit:privacy:test
+
+      - name: Run audit-privacy-manifest (strict mode)
+        run: npm run audit:privacy:strict
+
+      - name: Verify data-safety.md exists and mirrors iOS PrivacyInfo
+        run: |
+          test -f apps/android/data-safety.md
+          grep -q "NSPrivacyCollectedDataType" apps/android/data-safety.md
+          grep -q "Source-of-truth cross-reference" apps/android/data-safety.md
