@@ -91,6 +91,15 @@ export default defineConfig([
           message:
             'A useStore selector cannot invoke pickFocus|generateInsights — the returned value is a new reference each call. Subscribe to slices and useMemo() the deriver instead.',
         },
+        // Phase 23 D-05 (DEBT-02 regression guard): ban *.user! non-null assertions.
+        // The Phase 22/23 audit confirmed 0 occurrences in production code. This rule
+        // prevents regression. Use early returns, typed guards (`if (!s.user) return null;`),
+        // or Auth-required boundary components instead. See Phase 23 Plan 23-01 closeout.
+        {
+          selector: "TSNonNullExpression[expression.type='MemberExpression'][expression.property.name='user']",
+          message:
+            '`*.user!` non-null assertions are banned (project anti-pattern). Use early returns, typed guards (`if (!s.user) return null;`), or Auth-required boundary components instead. See `s.user!` audit closeout in Phase 23 (DEBT-02).',
+        },
       ],
     },
     languageOptions: {
@@ -196,11 +205,15 @@ export default defineConfig([
   // Disable import-x/no-unresolved for test files because vitest/@testing-library
   // packages are not installed until Plan 04.
   {
-    files: ['src/**/*.test.{ts,tsx}', 'e2e/**/*.{ts,tsx}', 'src/test-setup.ts', '../shared/**/*.test.ts'],
+    files: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}', 'src/test-setup.ts', '../shared/**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'react-refresh/only-export-components': 'off',
       'import-x/no-unresolved': 'off',
+      // Test files may legitimately use `.user!` on Supabase admin responses and
+      // test-assertion data where nullability is guaranteed by test setup.
+      // The production-code ban (Phase 23 D-05 / DEBT-02) does not apply to tests.
+      'no-restricted-syntax': 'off',
     },
     languageOptions: {
       parserOptions: {
