@@ -22,8 +22,8 @@
  */
 
 import type { ComponentType } from 'react';
-import type { BlockNode } from '@/lib/page-builder/block-schema';
 import type { Platform } from '@/lib/native/platform';
+import type { BlockNode } from '@/lib/page-builder/block-schema';
 
 // ─── per-page SEO (PAGE-05) ──────────────────────────────────────────────────
 

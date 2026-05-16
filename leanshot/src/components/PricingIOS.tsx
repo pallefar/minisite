@@ -31,7 +31,6 @@
  */
 import { Building2, Check, ExternalLink } from 'lucide-react';
 import { useEffect, useState, type ReactElement } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import {
   checkTrialEligibility,
