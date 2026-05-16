@@ -269,36 +269,45 @@ test.describe('@phase07 account-delete COMPL-06: end-to-end happy path', () => {
       .first()
       .click({ timeout: 30_000 });
     await page.getByRole('button', { name: /^privacy$/i }).click();
-    await page.getByRole('button', { name: /^Delete my account…/i }).click();
+    // Phase 22 Plan 22-05: settings-side button is now "Delete account"
+    // (UI-SPEC line 567) instead of "Delete my account…".
+    await page.getByRole('button', { name: /^Delete account$/ }).click();
 
     // Modal verbatim copy assertions (e2e + RTL share the same substrings).
-    // Scope every getByText inside the dialog locator because the Privacy
-    // section's "30-day soft-delete. Undo via support…" caption also
-    // matches `/30-day soft-delete/i` from the page root.
-    const modal = page.getByRole('dialog', { name: /Delete my account/i });
+    // Phase 22 Plan 22-05: modal title is "Delete account" (no longer
+    // "Delete my account"); body intro + bullets per UI-SPEC §Copywriting
+    // line 569-570; typed-confirm is the literal "DELETE MY ACCOUNT"
+    // phrase, not the user's email.
+    const modal = page.getByRole('dialog', { name: /^Delete account$/i });
     await expect(modal).toBeVisible();
-    await expect(modal.getByText(/This starts a 30-day soft-delete/i)).toBeVisible();
-    await expect(modal.getByText(/locked location/i)).toBeVisible();
+    await expect(
+      modal.getByText('This will permanently delete your LeanShot account, including:'),
+    ).toBeVisible();
     await expect(modal.getByText(/Same-email re-signup/i)).toBeVisible();
+    await expect(modal.getByText(/7 years per IRS requirements/i)).toBeVisible();
 
     // ──────────────────────────────────────────────────────────────────
-    // 4. Typed-confirm gate.
+    // 4. Typed-confirm gate — Phase 22 UI-SPEC line 572-573 requires the
+    //    literal "DELETE MY ACCOUNT" (case-sensitive, exact match).
     // ──────────────────────────────────────────────────────────────────
-    const confirmBtn = page.getByRole('button', {
-      name: /Schedule deletion in 30 days/i,
-    });
+    // The destructive button shares its accessible name with the modal
+    // title — scope by dialog and pick the button (not the heading).
+    const confirmBtn = modal.getByRole('button', { name: /^Delete account$/ });
     await expect(confirmBtn).toBeDisabled();
 
-    const input = page.getByLabel(/Type your email to confirm/i);
-    await input.fill('wrong@x.com');
+    const input = page.getByLabel(/Type DELETE MY ACCOUNT to confirm/);
+    // Mismatch (lowercase) — UI-SPEC says case-sensitive exact match.
+    await input.fill('delete my account');
     await expect(confirmBtn).toBeDisabled();
 
-    await input.fill(email);
+    // Exact match — should enable.
+    await input.fill('DELETE MY ACCOUNT');
     await expect(confirmBtn).toBeEnabled();
 
-    // Case-insensitive + trim.
-    await input.fill(`  ${email.toUpperCase()}  `);
-    await expect(confirmBtn).toBeEnabled();
+    // Email value left intentionally unused — Phase 22 typed-confirm is
+    // phrase-based, not email-based. Keeping the variable for the audit
+    // assertions later in this spec.
+    void email;
 
     // ──────────────────────────────────────────────────────────────────
     // 5. Confirm — RPC fires, sessions deleted, redirected to auth view.

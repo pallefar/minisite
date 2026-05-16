@@ -39,17 +39,21 @@ export class AccountDeleteError extends Error {
 }
 
 /**
- * Returns true iff `typed` (trimmed, lowercased) equals `email` (trimmed,
- * lowercased) AND `email` is a non-empty string. The DeleteAccountModal uses
- * this to gate its destructive button. Case-insensitive because users
- * shouldn't have to remember whether they registered as `Foo@bar.com` or
- * `foo@bar.com`; trim because mobile keyboards auto-insert trailing spaces.
+ * Phase 22 Plan 22-05 — typed-confirm gate now compares against the literal
+ * "DELETE MY ACCOUNT" per 22-UI-SPEC §Copywriting lines 572-573 (was
+ * `email` match in Phase 7 — switched because UI-SPEC locks the new copy
+ * exactly, and case-sensitive exact-match is a stricter destructive-action
+ * gate than email-typed-back).
+ *
+ * Exact match, case-sensitive, trimmed only at the edges (mobile keyboards
+ * still auto-insert trailing spaces). The 2-arg overload from Phase 7 is
+ * preserved as an optional second parameter so any orphan callers don't
+ * break — the second arg is ignored.
  */
-export function typedConfirmMatches(typed: string, email: string | null | undefined): boolean {
-  if (typeof email !== 'string') return false;
-  const normalizedEmail = email.trim().toLowerCase();
-  if (normalizedEmail.length === 0) return false;
-  return typed.trim().toLowerCase() === normalizedEmail;
+export const TYPED_CONFIRM_PHRASE = 'DELETE MY ACCOUNT';
+
+export function typedConfirmMatches(typed: string, _legacyEmail?: string | null): boolean {
+  return typed.trim() === TYPED_CONFIRM_PHRASE;
 }
 
 interface SupabaseRpcError {

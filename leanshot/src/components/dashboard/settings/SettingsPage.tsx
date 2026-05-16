@@ -483,10 +483,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                * non-anon auth.users.last_sign_in_at timestamp. */}
               {isPermanent && (
                 <div className="pt-3 border-t border-[var(--color-border)]">
-                  <h3 className="text-[14px] font-semibold mb-1">Delete my account</h3>
+                  <h3 className="text-[14px] font-semibold mb-1">Delete account</h3>
                   <p className="text-[12px] text-[var(--color-text-secondary)] mb-2">
-                    30-day soft-delete. Undo via support email within the window; after that,
-                    irreversible.
+                    7-day soft-delete. Cancel from the email we&apos;ll send you (or from the
+                    in-app banner) within the window; after that, irreversible.
                   </p>
                   <Button
                     variant="destructive"
@@ -494,7 +494,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                     leadingIcon={<Trash2 className="size-4" />}
                     onClick={() => setDeleteOpen(true)}
                   >
-                    Delete my account…
+                    Delete account
                   </Button>
                 </div>
               )}

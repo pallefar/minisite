@@ -87,10 +87,12 @@ export function SignUpForm() {
       } else {
         const { error } = await signUp(email.trim(), password);
         if (error) {
-          // Phase 7 Plan 07-07 (D-03): if the address collides with an
-          // already-registered (or in-pending-shred-window) account,
-          // surface the richer copy so the user understands the email is
-          // locked for 30 days post-delete. Supabase reports both cases as
+          // Phase 7 Plan 07-07 (D-03) → Phase 22 Plan 22-05: if the address
+          // collides with an already-registered (or in-pending-shred-window)
+          // account, surface the richer copy so the user understands the
+          // email is locked for 7 days post-delete (Conflict #2: window was
+          // 30d in Phase 7; backend cron is now 7d per 22-01 File 01).
+          // Supabase reports both cases as
           // "User already registered" / sqlstate 23505 — we can't (and
           // shouldn't) distinguish them from the anon JWT context because
           // `pending_account_deletions` SELECT is RLS-scoped to owner. The
@@ -104,7 +106,7 @@ export function SignUpForm() {
             (error as any).code === '23505';
           if (isAlreadyRegistered) {
             setErrEmail(
-              'This email is associated with a recently deleted account. After the 30-day window it will be released for sign-up, or contact support at help@leanshot.app to restore it.',
+              'This email is associated with a recently deleted account. After the 7-day window it will be released for sign-up, or contact support at help@leanshot.app to restore it.',
             );
             return;
           }

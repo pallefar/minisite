@@ -127,7 +127,7 @@ export function TermsOfService() {
             >
               Privacy Policy § How long we retain
             </a>{' '}
-            applies — a 30-day undo window followed by hard deletion.
+            applies — a 7-day undo window followed by hard deletion.
           </p>
         </section>
 
