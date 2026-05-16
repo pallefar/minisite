@@ -1,22 +1,59 @@
 /**
- * Phase 22 plan 22-01 Wave 0 scaffold — useImpersonationReadOnly hook (ADMIN-03).
- * Owner of impl: plan 22-04.
+ * Phase 22 plan 22-09 — useImpersonationReadOnly tests (ADMIN-03).
  *
- * Behaviors deferred:
- *   - Returns disabled=true when JWT app_metadata.impersonator_id is set
- *   - Provides a wrapper that intercepts mutating store actions and shows a toast
+ * Behaviors:
+ *   1. When useImpersonation().active === false → {disabled: false, props: {}}
+ *   2. When active === true → {disabled: true, props: {disabled: true, 'aria-disabled': true,
+ *      title: 'Read-only during impersonation'}}
+ *
+ * Hook is the CLIENT-side UX gate; RLS write-deny policies
+ * (migration 20270601000012_impersonation_write_deny_policies.sql) are the
+ * actual security boundary (defense-in-depth).
  */
-import { describe, it } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useImpersonationReadOnly } from '@/components/impersonation/useImpersonationReadOnly';
 
-describe('useImpersonationReadOnly (Phase 22 ADMIN-03)', () => {
-  it.skip('returns disabled=true under impersonation [DEFERRED — Wave 0 scaffold; impl in plan 22-04]', () => {
-    void useImpersonationReadOnly;
+const mockUseImpersonation = vi.fn();
+vi.mock('@/components/impersonation/useImpersonation', () => ({
+  useImpersonation: () => mockUseImpersonation(),
+}));
+
+describe('useImpersonationReadOnly (Phase 22 ADMIN-03 / plan 22-09)', () => {
+  beforeEach(() => {
+    mockUseImpersonation.mockReset();
   });
-  it.skip('intercepts mutating actions with read-only toast [DEFERRED — Wave 0 scaffold; impl in plan 22-04]', () => {
-    void useImpersonationReadOnly;
+
+  it('returns {disabled: false, props: {}} when impersonation is inactive', () => {
+    mockUseImpersonation.mockReturnValue({
+      active: false,
+      impersonatorId: null,
+      targetEmail: null,
+      targetUserId: null,
+      secondsRemaining: 0,
+      endImpersonation: vi.fn(),
+    });
+    const { result } = renderHook(() => useImpersonationReadOnly());
+    expect(result.current.disabled).toBe(false);
+    expect(result.current.props).toEqual({});
+  });
+
+  it('returns disabled props with tooltip when impersonation is active', () => {
+    mockUseImpersonation.mockReturnValue({
+      active: true,
+      impersonatorId: '11111111-1111-4111-8111-111111111111',
+      targetEmail: 'patient@example.com',
+      targetUserId: '22222222-2222-4222-8222-222222222222',
+      secondsRemaining: 1500,
+      endImpersonation: vi.fn(),
+    });
+    const { result } = renderHook(() => useImpersonationReadOnly());
+    expect(result.current.disabled).toBe(true);
+    expect(result.current.props).toEqual({
+      disabled: true,
+      'aria-disabled': true,
+      title: 'Read-only during impersonation',
+    });
   });
 });
-
-// Wave 0 scaffold per .planning/phases/22-…/22-RESEARCH.md §Validation Architecture — DEFERRED implementation owner: 22-04
