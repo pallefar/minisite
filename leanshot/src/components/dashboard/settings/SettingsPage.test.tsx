@@ -210,3 +210,74 @@ describe('SettingsPage — Phase 7 D-05 Recovery / restore-from-backup', () => {
     expect(replaceCalls).toHaveLength(0);
   });
 });
+
+/**
+ * Phase 22 plan 22-11 (GDPR-03 + ON-03): SettingsPage nav extension.
+ *
+ * Two new link-out NAV entries:
+ *   - "Privacy & DSAR"     → window.location.assign('/settings/privacy/dsar')
+ *   - "Email preferences"  → window.location.assign('/settings/email-preferences')
+ *
+ * Both items also call `onClose()` so the modal disappears before navigation.
+ */
+describe('SettingsPage — Phase 22 plan 22-11 nav extensions (GDPR-03 + ON-03)', () => {
+  beforeEach(() => {
+    useStore.setState({
+      user: {
+        name: 'Test',
+        medication: 'tirzepatide',
+        startDate: '2026-01-01',
+        startWeight: 100,
+        goalWeight: 80,
+        dose: 2.5,
+        doseUnit: 'mg',
+        units: 'metric',
+        proteinTarget: 130,
+        calorieTarget: 1800,
+        fiberTarget: 30,
+        waterTarget: 8,
+        goal: 'fat-loss',
+        liftingLevel: 'beginner',
+        sex: 'male',
+        activityLevel: 'moderate',
+      } as never,
+    });
+  });
+
+  it('renders "Privacy & DSAR" + "Email preferences" nav entries', () => {
+    render(<SettingsPage open onClose={() => {}} />);
+    const nav = screen.getByRole('navigation', { name: /settings sections/i });
+    expect(nav.querySelector('[data-nav-id="privacy-dsar"]')).toBeTruthy();
+    expect(nav.querySelector('[data-nav-id="email-preferences"]')).toBeTruthy();
+  });
+
+  it('clicking "Privacy & DSAR" calls onClose + navigates to /settings/privacy/dsar', async () => {
+    const onClose = vi.fn();
+    const assignSpy = vi.fn();
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { ...window.location, assign: assignSpy },
+    });
+    render(<SettingsPage open onClose={onClose} />);
+    const nav = screen.getByRole('navigation', { name: /settings sections/i });
+    const btn = nav.querySelector('[data-nav-id="privacy-dsar"]') as HTMLButtonElement;
+    await userEvent.click(btn);
+    expect(onClose).toHaveBeenCalled();
+    expect(assignSpy).toHaveBeenCalledWith('/settings/privacy/dsar');
+  });
+
+  it('clicking "Email preferences" calls onClose + navigates to /settings/email-preferences', async () => {
+    const onClose = vi.fn();
+    const assignSpy = vi.fn();
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { ...window.location, assign: assignSpy },
+    });
+    render(<SettingsPage open onClose={onClose} />);
+    const nav = screen.getByRole('navigation', { name: /settings sections/i });
+    const btn = nav.querySelector('[data-nav-id="email-preferences"]') as HTMLButtonElement;
+    await userEvent.click(btn);
+    expect(onClose).toHaveBeenCalled();
+    expect(assignSpy).toHaveBeenCalledWith('/settings/email-preferences');
+  });
+});
