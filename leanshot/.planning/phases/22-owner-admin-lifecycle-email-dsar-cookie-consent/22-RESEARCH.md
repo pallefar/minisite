@@ -958,32 +958,22 @@ export function isFeatureEnabled(key: string): boolean {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Cancellation link for soft-delete: signed JWT or signed URL?**
-   - What we know: token must be unguessable, time-bound, single-use.
-   - What's unclear: project doesn't yet have a generic "signed URL" helper for non-Storage paths. Two options: (a) sign a JWT with HS256 + Vault-stored key (simplest), (b) use Supabase's existing email-OTP confirm pattern (heavier but consistent).
-   - Recommendation: HS256 JWT with Vault-stored `CANCEL_DELETION_HMAC_KEY` secret; verify in `cancel_account_deletion(token)` RPC by decoding + comparing user_id + initiated_at. Lock at plan time.
+   - RESOLVED: HS256 JWT with Vault-stored `CANCEL_DELETION_HMAC_KEY` secret; verify in `cancel_account_deletion(token)` RPC by decoding + comparing user_id + initiated_at. Implemented by plan 22-01 File 14 (RPC + Vault secret) + plan 22-02 lifecycle-transactional `deletion_scheduled` template (JWT mint).
 
 2. **Should `clinic-invite` Resend dispatch be retrofitted to use the new shared D-03 health check helper?**
-   - What we know: D-03 defines the health-check pattern for new lifecycle fns. `clinic-invite/resend.ts` predates it.
-   - What's unclear: retrofitting risks regressing P9 ship behavior; not retrofitting means an inconsistency.
-   - Recommendation: OUT OF SCOPE for P22 (defer to P23 polish sweep). Flag in P22 SUMMARY.md follow-ups.
+   - RESOLVED: OUT OF SCOPE for P22; deferred to P23 polish sweep. Will be flagged in P22 SUMMARY.md follow-ups. Rationale: retrofitting risks regressing the shipped P9 clinic-invite behavior with no v1.2 customer-facing benefit.
 
 3. **Does the existing 30-day cron need to be UNSCHEDULED + re-scheduled, or can we ALTER FUNCTION it?**
-   - What we know: pg_cron schedules a SQL string at a schedule. The function body update + same schedule should work without unschedule/reschedule.
-   - What's unclear: any drift between cron's snapshot of the function body vs the current definition.
-   - Recommendation: `CREATE OR REPLACE FUNCTION` for the body change; leave the cron entry alone. Verify in staging.
+   - RESOLVED: `CREATE OR REPLACE FUNCTION` for the body change; leave the cron entry alone. Verified via 22-01 File 01 (migration replaces the function body in place); pg_cron resolves the current function definition at each invocation, so no schedule drift.
 
 4. **DSAR export of PostHog events — how do we read PostHog events server-side?**
-   - What we know: PostHog has a REST API (`/api/projects/{id}/events`) but rate-limited.
-   - What's unclear: whether 30-day SLA + manual admin processing is fast enough that we can pull PostHog at export time, or whether we need a daily snapshot.
-   - Recommendation: pull at export time (synchronous Edge Fn call to PostHog REST API with user_id filter). If user has > 10k events, page the API. Document the PostHog `PERSONAL_API_KEY` Function secret requirement.
+   - RESOLVED: synchronous pull at export time via Edge Fn call to PostHog REST API with user_id filter. PostHog `PERSONAL_API_KEY` declared as a Supabase Function secret in 22-04 plan. If `events > 10k`, paginate via PostHog's `next` cursor.
 
 5. **Cohort heatmap "Show all" performance at 26+ weeks**
-   - What we know: 26 weeks × 91 days = 2366 cells; 1 year × 91 days = 4732 cells. CSS-grid renders both fine.
-   - What's unclear: matview row count at scale; query plan after 6 months of users.
-   - Recommendation: ship it; revisit if `cohort_retention` query > 200ms or matview refresh > 10s. v1.3 pagination/virtualization fallback documented.
+   - RESOLVED: ship as designed; revisit only if `cohort_retention` matview query > 200ms or refresh > 10s in production telemetry. v1.3 fallback to pagination/virtualization documented in plan 22-08 must_haves.
 
 ---
 

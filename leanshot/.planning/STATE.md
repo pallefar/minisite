@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
-status: Phase 16 DEFERRED to v1.2 milestone tail (domain registration prerequisite); next-runnable phase is **17 Push Notifications** but P17/18/21 transitively depend on P16's native shells — likely effective next phase is **19 Affiliate + Stripe Connect** (first domain-independent web-only slot)
-stopped_at: Phase 16 Wave-0 harness merged; vendor checkpoints + remaining waves deferred
-last_updated: "2026-05-15T22:00:00Z"
-last_activity: 2026-05-15 -- Phase 16 Wave 0 harness landed (`eedced3`+`5986ccf`+merge); P16 reordered to milestone tail per user direction (domain not yet registered; Supabase Pro upgrade also deferred to closer to go-live)
+status: executing
+stopped_at: Phase 16 UI-SPEC approved
+last_updated: "2026-05-16T05:18:40.838Z"
+last_activity: 2026-05-16 -- Phase 22 planning complete
 progress:
-  total_phases: 16
-  completed_phases: 15
-  total_plans: 108
-  completed_plans: 109
-  percent: 94
+  total_phases: 18
+  completed_phases: 16
+  total_plans: 141
+  completed_plans: 120
+  percent: 85
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 16 — capacitor-mobile-shells (next)
+**Current focus:** Phase 19 — affiliate-program-stripe-connect
 
 ## Current Position
 
-Phase: 16 (capacitor-mobile-shells) — **DEFERRED to milestone tail** (domain rego + Supabase Pro upgrade gate)
-Plan: 1 of 11 (Wave-0 harness merged; vendor checkpoints + Waves 1-4 paused)
-Status: Awaiting domain registration. Next-runnable v1.2 phase: 19 (Affiliate + Stripe Connect) — 17/18/21 also block on P16's native shells.
-Last activity: 2026-05-15 -- Phase 16 paused; ROADMAP reordered; harness commits preserved on main
+Phase: 19 (affiliate-program-stripe-connect) — EXECUTING
+Plan: 1 of 10
+Status: Ready to execute
+Last activity: 2026-05-16 -- Phase 22 planning complete
 
 ### v1.1 close (2026-05-13)
 
