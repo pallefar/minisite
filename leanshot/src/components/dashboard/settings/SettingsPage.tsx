@@ -49,6 +49,12 @@ type Section =
   | 'goals'
   | 'notifications'
   | 'privacy'
+  // Phase 22 plan 22-11 (ON-03 + GDPR-03): two link-out entries that navigate
+  // to dedicated `/settings/*` sub-pages (full pages, not modal sections).
+  // The runtime click handler intercepts these IDs and calls
+  // `window.location.assign` + onClose instead of `setSection`.
+  | 'email-preferences'
+  | 'privacy-dsar'
   | 'shares'
   // Phase 9 Plan 09-01 — Active organizations sits between 'shares' and
   // 'recovery'. Plan 09-05 overwrites the stub component.
@@ -57,6 +63,16 @@ type Section =
   | 'subscription'
   | 'data'
   | 'dev';
+
+/**
+ * Phase 22 plan 22-11: link-out NAV IDs. Clicking these navigates to a
+ * dedicated `/settings/*` route instead of swapping the modal section.
+ * Routing wiring (App.tsx selectView branches) lands in plan 22-12.
+ */
+const LINK_OUT_NAV: Partial<Record<Section, string>> = {
+  'email-preferences': '/settings/email-preferences',
+  'privacy-dsar': '/settings/privacy/dsar',
+};
 
 // Phase 4 D-03: 'ai' section + apiKeyStorage helper removed (BYO key UX
 // retired). Streamed AI now flows through the server-side ai-chat Edge
@@ -72,6 +88,14 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'goals', label: 'Goals', Icon: Target },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
+  // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
+  // entry — click navigates to /settings/privacy/dsar instead of swapping the
+  // modal section. Surfaces immediately under Privacy so the related items
+  // cluster visually.
+  { id: 'privacy-dsar', label: 'Privacy & DSAR', Icon: Shield },
+  // Phase 22 plan 22-11 (ON-03): self-serve email preference center. Link-out
+  // entry — click navigates to /settings/email-preferences.
+  { id: 'email-preferences', label: 'Email preferences', Icon: Mail },
   // Phase 8 Plan 08-03 (D-04): Active shares sits between Privacy and Recovery
   // per 08-UI-SPEC §"Component Inventory" (SettingsPage NAV extension). Surfaces
   // the patient's create-share + revoke + audit-log aggregate UI.
@@ -311,11 +335,22 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           <ul className="flex md:flex-col gap-1 overflow-x-auto scrollbar-none -mx-2 md:mx-0 px-2">
             {NAV.map(({ id, label, Icon }) => {
               const active = section === id;
+              const linkOutHref = LINK_OUT_NAV[id];
               return (
                 <li key={id} className="shrink-0">
                   <button
-                    onClick={() => setSection(id)}
+                    onClick={() => {
+                      if (linkOutHref) {
+                        // Phase 22 plan 22-11: link-out — navigate to a
+                        // dedicated /settings/* route + close the modal.
+                        onClose();
+                        window.location.assign(linkOutHref);
+                        return;
+                      }
+                      setSection(id);
+                    }}
                     aria-current={active ? 'page' : undefined}
+                    data-nav-id={id}
                     className={cn(
                       'inline-flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-left text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                       active
