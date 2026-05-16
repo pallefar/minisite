@@ -1,11 +1,22 @@
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { lazy, Suspense, useEffect, useState } from 'react';
+// Phase 16 Plan 16-02 Task 5 — BiometricGate is intentionally a direct
+// (non-lazy) import: it must render BEFORE first paint of dashboard content
+// when biometric unlock is enabled, and the gate-active derivation lives at
+// the top of App() so a Suspense boundary would otherwise flash app content.
+// Component is small (<3 kB gz expected) and stays within the 50 kB index gz
+// ceiling (verified post-build by Task 5 verify step).
+import { BiometricGate } from '@/components/BiometricGate';
 import { DisclaimerModal } from '@/components/dashboard/DisclaimerModal';
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
+// Phase 16 Plan 16-02 Task 5 — Universal Link / App Link dispatcher install
+// (MOBILE-06 client half). Idempotency guard inside installDeepLinkHandler
+// protects against StrictMode double-mount.
+import { installDeepLinkHandler } from '@/lib/native/deeplink';
 import { removeUserNamespace, renameStorageNamespace, setActiveStorageUserId } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 // Phase 19 Plan 19-09 (BL-4) — route registries from Plans 19-05 / 19-06b / 19-08.
@@ -575,6 +586,20 @@ export function App() {
   const [reportOpen, setReportOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
 
+  // Phase 16 Plan 16-02 Task 5 — biometric session-unlock state. Initialized
+  // false; set true on successful biometric (or password fallback) auth. The
+  // `leanshot_biometric_enabled` localStorage flag is a TEMPORARY hook until
+  // a downstream plan migrates it to a Zustand slice on signedIn.user (see
+  // 16-02-SUMMARY follow-up note).
+  const [biometricUnlocked, setBiometricUnlocked] = useState(false);
+
+  // Phase 16 Plan 16-02 Task 5 — install Universal Link / App Link dispatcher
+  // (MOBILE-06 client half). Idempotency guard inside installDeepLinkHandler
+  // protects against StrictMode double-mount.
+  useEffect(() => {
+    installDeepLinkHandler();
+  }, []);
+
   // Keep view aligned to user state + hash + pathname. Phase 9 added
   // path-based routes (/clinic/*, /clinic-invite/*); listen to popstate
   // alongside hashchange so back/forward navigation between clinic and
@@ -982,6 +1007,40 @@ export function App() {
       track('disclaimer_required', { surface: 'dashboard' });
     }
   }, [needsDisclaimer]);
+
+  // Phase 16 Plan 16-02 Task 5 — BiometricGate early-return wrap. When the
+  // user has biometric unlock enabled (TEMPORARY localStorage flag — see
+  // 16-02-SUMMARY for the Zustand-slice migration follow-up) AND they have
+  // not yet unlocked this JS session, render ONLY the BiometricGate. The
+  // gate-active boolean is computed inline so the localStorage read happens
+  // every render (cheap; bypasses sessionStorage staleness on cold boots).
+  //
+  // On successful unlock, `setBiometricUnlocked(true)` flips the flag and the
+  // next render falls through to the normal view branches.
+  //
+  // `onPasswordSubmit` is a stub that throws — the real Supabase
+  // signInWithPassword wiring lands in a downstream plan (likely 16-05 or a
+  // deferred follow-up). See 16-02-SUMMARY §"Carry-over follow-ups".
+  const biometricGateActive =
+    !biometricUnlocked &&
+    typeof window !== 'undefined' &&
+    (() => {
+      try {
+        return window.localStorage.getItem('leanshot_biometric_enabled') === '1';
+      } catch {
+        return false;
+      }
+    })();
+  if (biometricGateActive) {
+    return (
+      <BiometricGate
+        onUnlock={() => setBiometricUnlocked(true)}
+        onPasswordSubmit={async (_pw) => {
+          throw new Error('password fallback not yet wired — see Phase 16 follow-up');
+        }}
+      />
+    );
+  }
 
   // Phase 22 Plan 22-12 — Wave 3 always-on overlays. Mounted as siblings of
   // every view branch via the `globalOverlays` const below so the cookie
