@@ -29,6 +29,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { mintTestJwt } from './helpers/jwt';
 import {
   SHOULD_RUN_LIVE_RLS,
   SUPABASE_ANON_KEY,
@@ -173,8 +174,14 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('landing_pages: is_staff user CAN INSERT / UPDATE / DELETE', async () => {
-    const client = buildAnonClient('ph15-st-lp');
-    await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
+    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
+    // Eliminates the supabase-js v2.105 Multiple GoTrueClient cross-contamination
+    // flake documented in [[reference_rls_fixture_gotrueclient_flake]].
+    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const slug = `${CROSS_TENANT_PREFIX}st-crud-${Date.now()}`;
     const { data: inserted, error: insErr } = await client
@@ -242,8 +249,12 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('landing_page_revisions: is_staff CAN INSERT a new revision', async () => {
-    const client = buildAnonClient('ph15-st-rev-ins');
-    await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
+    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
+    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const { data, error } = await client
       .from('landing_page_revisions')
@@ -313,8 +324,12 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('leads: is_staff CAN SELECT', async () => {
-    const client = buildAnonClient('ph15-st-leads-sel');
-    await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
+    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
+    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const { data, error } = await client.from('leads').select('id').limit(50);
     expect(error).toBeNull();
@@ -360,8 +375,12 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('site_settings: is_staff CAN UPDATE', async () => {
-    const client = buildAnonClient('ph15-st-ss');
-    await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
+    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
+    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const { data: rows } = await client.from('site_settings').select('id, site_name');
     const id = (rows![0] as { id: string }).id;
@@ -405,8 +424,12 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('page-assets: is_staff CAN upload and delete a test image', async () => {
-    const client = buildAnonClient('ph15-st-storage');
-    await client.auth.signInWithPassword({ email: staff.email, password: staff.password });
+    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
+    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const path = `${CROSS_TENANT_PREFIX}st-${Date.now()}.png`;
     const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
