@@ -194,11 +194,11 @@
 
 #### Carry-over Fixes
 - [ ] **DEBT-01**: Clinic operator drill-in "View activity" button navigates to per-patient activity view (CLINIC-07 partial fix from v1.1 audit; `ClinicDrillInPage.tsx:287-292`)
-- [ ] **DEBT-02**: All 15 `s.user!` non-null assertions across 14 files replaced with typed guards / early returns / Auth-required boundaries
+- [x] **DEBT-02**: Audit verified 0 `s.user!` non-null assertions in production code; ESLint `no-restricted-syntax` rule prevents regression (Phase 23 Plan 23-01 closeout 2026-05-16)
 - [ ] **DEBT-03**: User soft-deletes photo → 30-day restore window in Trash UI → permanent delete on day-31 with Storage retention policy
 
 #### Tooling
-- [ ] **DEBT-04**: 6 deferred tests from `.planning/deferred-tests.md` re-enabled in CI (batch-fix per `feedback_defer_then_batch_fix_pattern.md`)
+- [x] **DEBT-04**: All 28 deferred test markers (audited 2026-05-16, see `.planning/deferred-tests.md`) registered with fix-plan; CI lint enforces registry entry for every new defer (9 deferred-with-fix-plan + 19 env-gated entries; `scripts/audit-deferred-tests.mjs` in lint job, Phase 23 Plan 23-01 closeout 2026-05-16)
 - [ ] **DEBT-05**: knip + ts-unused-exports run in CI (warn-not-fail initially, escalate to fail after triage) — catches the Plan 10-06 WORKSPACE_LOADED-style unused-export defects (anti-pattern #6)
 
 ---
@@ -367,9 +367,9 @@ REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs �
 | ON-02 | Phase 22 | Pending |
 | ON-03 | Phase 22 | Pending |
 | DEBT-01 | Phase 23 | Pending |
-| DEBT-02 | Phase 23 | Pending |
+| DEBT-02 | Phase 23 | Complete (Plan 23-01) |
 | DEBT-03 | Phase 23 | Pending |
-| DEBT-04 | Phase 23 | Pending |
+| DEBT-04 | Phase 23 | Complete (Plan 23-01) |
 | DEBT-05 | Phase 23 | Pending |
 
 ### Coverage Summary
