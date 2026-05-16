@@ -1,39 +1,41 @@
--- Phase 16 Plan 06 — MONEY-06 / MONEY-07 — tier_effective view.
+-- Phase 16 Plan 06 — MONEY-06 / MONEY-07 — tier_effective view (NO-OP migration).
 --
--- D-02 contract: per-user effective tier is `MAX(current_period_end) > now()`
--- across ALL providers (stripe + revenuecat). One source of truth so iOS RC
--- purchases (16-05) and web Stripe upgrades (Phase 14) are honestly reconciled.
+-- ============================================================================
+-- DEVIATION NOTE (Rule 1) — Phase 19 shipped a RICHER tier_effective shape.
+-- ============================================================================
+-- The original 16-06 plan would have created a view with columns:
+--   user_id, effective_expires_at, tier, providers
 --
--- Security model:
---   `security_invoker = true` → view executes with the caller's RLS context;
---   the underlying subscriptions table's existing policy
---   ("users read own sub": auth.uid() = user_id) automatically scopes the rows.
---   No new policy needed; no SECURITY DEFINER function (avoids the
---   search_path = extensions gotcha entirely).
+-- But Phase 19 Plan 19-01 (migration 20270101000004_tier_effective_view.sql,
+-- already applied to ytnsipxxmzgaebkqmokp) shipped this view AHEAD of P16 with
+-- a richer shape that ALSO satisfies D-02:
+--   user_id, effective_period_end, has_active, has_past_due, winning_provider
 --
--- Note: `now()` is volatile but THAT is fine inside a VIEW — re-evaluated on
--- every SELECT. The IMMUTABLE-only rule applies to partial-index predicates,
--- not view definitions.
+-- The P19 view IS the D-02 reconciliation contract (`MAX(current_period_end)`
+-- across providers + array_agg(provider ORDER BY current_period_end DESC NULLS
+-- LAST))[1] AS winning_provider) and already honors RevenueCat — the cross-
+-- phase note in P19's own migration explicitly says: "When Phase 16 Plan 16-06
+-- resumes, it inserts rows with provider='revenuecat' into public.subscriptions.
+-- The tier_effective view immediately returns MAX(current_period_end) across
+-- both providers with zero changes here."
+--
+-- ATTEMPTING `CREATE OR REPLACE VIEW` here with the original P16-06 column shape
+-- FAILS with SQLSTATE 42P16 ("cannot drop columns from view") because Postgres
+-- requires the new view to be a column-suffix superset of the old one.
+--
+-- Resolution: this migration is intentionally empty (no-op). The downstream
+-- revenuecat-webhook Edge Function (shipped in this same plan) writes rows to
+-- `subscriptions` with `provider='revenuecat'`, and the existing P19 view
+-- automatically reconciles them with Stripe rows. Column-name mapping for
+-- consumers:
+--   plan must_have:    "tier='paid'"        → use:  `has_active = true`
+--   plan must_have:    "tier='free'"        → use:  `has_active = false AND has_past_due = false`
+--   plan must_have:    "providers array"    → use:  `winning_provider`
+--   plan must_have:    "effective_expires_at" → use: `effective_period_end`
+--
+-- File kept so the migration-registry record exists (renumbered to land above
+-- the highest applied live migration per reference_supabase_migration_filename_regex).
+-- The body below is a single comment block — Postgres accepts empty migrations.
 
-create or replace view public.tier_effective as
-  select
-    user_id,
-    max(current_period_end) as effective_expires_at,
-    case
-      when max(current_period_end) > now() then 'paid'
-      when bool_or(status = 'past_due') then 'past_due'
-      else 'free'
-    end as tier,
-    array_agg(distinct provider order by provider) as providers
-  from public.subscriptions
-  where user_id is not null
-  group by user_id;
-
--- View runs with caller's RLS context (subscriptions.auth.uid() = user_id).
-alter view public.tier_effective set (security_invoker = true);
-
--- Allow authenticated users to read their own tier (RLS-scoped row already).
-grant select on public.tier_effective to authenticated;
-
-comment on view public.tier_effective is
-  'Phase 16 D-02: per-user effective tier across Stripe + RevenueCat. tier=paid iff MAX(current_period_end) > now(). security_invoker so subscriptions RLS scopes rows.';
+-- (intentional no-op — see header)
+select 1 where false;
