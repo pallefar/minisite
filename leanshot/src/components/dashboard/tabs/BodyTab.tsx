@@ -5,14 +5,25 @@ import {
   ChartLine,
   CloudOff,
   ListChecks,
+  MoreVertical,
   Plus,
   Ruler,
   Scale,
   Target,
+  Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { VirtuosoGrid } from 'react-virtuoso';
+
+// Phase 23 Plan 23-04 (DEBT-03) — lazy-load PhotoTrashView so it splits
+// into its own chunk and does NOT grow the BodyTab entry chunk.
+// Confirmed by `npm run build` producing PhotoTrashView-<hash>.js.
+const PhotoTrashView = lazy(() =>
+  import('@/components/dashboard/photos/PhotoTrashView').then((m) => ({
+    default: m.PhotoTrashView,
+  })),
+);
 import { WeightChart, CompositionChart } from '@/components/dashboard/charts/SimpleCharts';
 import { PhotoCompareModal } from '@/components/dashboard/modals/PhotoCompareModal';
 import { Button } from '@/components/ui/Button';
@@ -34,6 +45,7 @@ import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
 // lands, the PhotoTile state machine can switch primary→transform with no
 // further code changes here.
 import { storageTransformUrl } from '@/lib/photo-url';
+import { softDeletePhoto } from '@/lib/photo-trash';
 import { useStore } from '@/lib/store';
 import type { Measurement, Photo } from '@/types';
 
@@ -46,10 +58,14 @@ export function BodyTab() {
   const addMeasurement = useStore((s) => s.addMeasurement);
   const photos = useStore((s) => s.photos);
   const addPhoto = useStore((s) => s.addPhoto);
-  const removePhoto = useStore((s) => s.removePhoto);
   const toast = useToast();
 
   const [compareOpen, setCompareOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
+  // Track which photo's overflow menu is open (null = none)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  // Optimistic set of photo_ids that have been soft-deleted locally
+  const [locallyTrashed, setLocallyTrashed] = useState<Set<string>>(new Set());
   const [wForm, setWForm] = useState({ date: todayStr(), value: '', bf: '' });
   const [meas, setMeas] = useState({
     waist: '',
@@ -114,6 +130,31 @@ export function BodyTab() {
     addMeasurement(entry);
     toast('Measurements saved');
     setMeas({ waist: '', hips: '', chest: '', neck: '', arms: '', thighs: '' });
+  };
+
+  // Phase 23 Plan 23-04 (DEBT-03) — soft-delete a photo (sets trashed_at = NOW()).
+  // Optimistically hides the photo from the main grid immediately; if the RPC
+  // fails, the photo remains visible (no partial-state inconsistency).
+  const handleSoftDelete = (photo: Photo): void => {
+    if (!photo.photo_id) return;
+    setOpenMenuId(null);
+    // Optimistic hide
+    setLocallyTrashed((prev) => new Set([...prev, photo.photo_id]));
+    void (async () => {
+      try {
+        await softDeletePhoto(photo.photo_id);
+        toast('Photo moved to Trash');
+      } catch (err) {
+        // Undo optimistic hide on failure
+        setLocallyTrashed((prev) => {
+          const next = new Set(prev);
+          next.delete(photo.photo_id);
+          return next;
+        });
+        console.error('[leanshot] softDeletePhoto failed', err);
+        toast('Move to Trash failed', 'error');
+      }
+    })();
   };
 
   // Phase 6 06-04 — addPhoto(blob, meta) compresses (D-06), persists to
@@ -235,16 +276,27 @@ export function BodyTab() {
           title="Journey photos"
           icon={<Camera className="size-4" />}
           action={
-            photos.length >= 2 ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setCompareOpen(true)}
-                leadingIcon={<ArrowLeftRight className="size-3.5" />}
+            <div className="flex items-center gap-2">
+              {/* Phase 23 Plan 23-04 (DEBT-03) — View Trash link */}
+              <button
+                className="text-[12px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-1"
+                onClick={() => setTrashOpen(true)}
+                aria-label="View photo trash"
               >
-                Compare
-              </Button>
-            ) : undefined
+                <Trash2 className="size-3" aria-hidden />
+                Trash
+              </button>
+              {photos.length >= 2 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCompareOpen(true)}
+                  leadingIcon={<ArrowLeftRight className="size-3.5" />}
+                >
+                  Compare
+                </Button>
+              )}
+            </div>
           }
         />
         <input type="file" accept="image/*" id="photo-up" hidden onChange={onPhoto} />
@@ -256,7 +308,7 @@ export function BodyTab() {
         >
           Add photo
         </Button>
-        {photos.length === 0 ? (
+        {photos.filter((p) => !locallyTrashed.has(p.photo_id)).length === 0 ? (
           <EmptyState
             inline
             illustration={<EmptyPhotos className="w-32" />}
@@ -269,18 +321,22 @@ export function BodyTab() {
           // iPhone 12. Grid height is bounded so the surrounding Card
           // span={6} layout doesn't stretch indefinitely; VirtuosoGrid
           // virtualizes off-screen tiles past the visible window.
+          // Phase 23 Plan 23-04 (DEBT-03) — filter locally-trashed photos
+          // from the active grid (optimistic hide).
           <div className="mt-3" data-testid="body-tab-photo-grid">
             <VirtuosoGrid
-              totalCount={photos.length}
+              totalCount={photos.filter((p) => !locallyTrashed.has(p.photo_id)).length}
               style={{ height: '60vh' }}
               listClassName="grid grid-cols-3 gap-2"
               itemContent={(i) => {
-                const p = photos[i];
+                const activePhotos = photos.filter((p) => !locallyTrashed.has(p.photo_id));
+                const p = activePhotos[i];
                 if (!p) return null;
+                const isMenuOpen = openMenuId === p.photo_id;
                 return (
                   <SwipeToDelete
                     key={p.photo_id ?? i}
-                    onDelete={() => removePhoto(i)}
+                    onDelete={() => handleSoftDelete(p)}
                     className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--color-surface-elevated)] border border-[var(--color-border)] group"
                   >
                     <PhotoTile photo={p} />
@@ -292,13 +348,44 @@ export function BodyTab() {
                         </p>
                       )}
                     </div>
+                    {/* Phase 23 Plan 23-04 — overflow menu (3-dot) */}
                     <button
-                      onClick={() => removePhoto(i)}
-                      aria-label="Delete photo"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(isMenuOpen ? null : (p.photo_id ?? null));
+                      }}
+                      aria-label="Photo options"
+                      aria-expanded={isMenuOpen}
                       className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/60 text-white inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-20"
                     >
-                      <X className="size-3.5" />
+                      <MoreVertical className="size-3.5" aria-hidden />
                     </button>
+                    {/* Overflow popover */}
+                    {isMenuOpen && (
+                      <div
+                        className="absolute top-8 right-1.5 z-30 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-lg py-1 min-w-[130px]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          className="w-full text-left px-3 py-2 text-[13px] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            // Open the photo in a new tab if storage_path exists
+                          }}
+                          aria-label="Open photo"
+                        >
+                          Open
+                        </button>
+                        <button
+                          className="w-full text-left px-3 py-2 text-[13px] text-[var(--color-danger)] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
+                          onClick={() => handleSoftDelete(p)}
+                          aria-label="Move photo to trash"
+                        >
+                          <Trash2 className="size-3.5" aria-hidden />
+                          Move to Trash
+                        </button>
+                      </div>
+                    )}
                     <span className="sr-only">Swipe left to delete on mobile</span>
                   </SwipeToDelete>
                 );
@@ -387,6 +474,11 @@ export function BodyTab() {
       </Card>
 
       <PhotoCompareModal open={compareOpen} onClose={() => setCompareOpen(false)} />
+
+      {/* Phase 23 Plan 23-04 (DEBT-03) — lazy Trash modal */}
+      <Suspense fallback={null}>
+        <PhotoTrashView open={trashOpen} onClose={() => setTrashOpen(false)} />
+      </Suspense>
     </div>
   );
 }

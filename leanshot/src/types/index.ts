@@ -208,6 +208,12 @@ export interface Photo {
   updated_at?: string;
   /** Server-derived rows only. */
   user_id?: string;
+  /**
+   * Phase 23 Plan 23-04 (DEBT-03) — soft-delete timestamp.
+   * Non-null = photo is in the Trash; null = active (visible in main grid).
+   * Populated from the DB server; absent on locally-queued photos pre-sync.
+   */
+  trashed_at?: string | null;
 }
 
 export interface AIMessage {
