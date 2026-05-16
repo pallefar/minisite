@@ -47,5 +47,19 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>LeanShot uses Face ID to unlock your medication and body data so a stranger can't see them if your phone is unattended.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>STUB — Phase 18 fills with the actual HealthKit read scope. Required string is present so Xcode validates.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LeanShot saves your progress photos so you can compare them over time. Photos stay on your device unless you choose to share them.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>LeanShot saves progress photos you capture in the app to your photo library if you choose to export.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>LeanShot uses the camera to capture progress photos for your body-recomposition timeline.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>itms-apps</string>
+	</array>
 </dict>
 </plist>
