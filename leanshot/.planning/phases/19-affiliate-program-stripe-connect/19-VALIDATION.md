@@ -103,3 +103,63 @@ updated: 2026-05-15
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** ready for /gsd-validate-phase (I-2 routing per project memory `feedback_infra_phase_validate_not_verify`)
+
+---
+
+## Validation Audit 2026-05-16 (post-execute, inline orchestrator audit)
+
+**Status:** PARTIAL — local env constraints prevent full closure; Deno tests CI-gated; live infra checks need user-controlled env vars.
+
+| Metric | Count |
+|--------|-------|
+| Tasks audited | 26 |
+| Verified COVERED locally | 11 (all vitest + cron presence + migration push + Edge Fn deploy) |
+| CI-gated (Deno tests) | 9 |
+| Env-gated (live smokes / e2e) | 4 |
+| Genuine gaps (go-live blockers) | 1 (BL-7 Vault) |
+| Escalated impl bugs | 0 |
+
+### Per-task delta (only changed rows; rest of map preserved above)
+
+| Task ID | New Status | Evidence |
+|---------|-----------|----------|
+| 19-01-T1/T2 | ⏸ CI-gated | `supabase db reset --local` blocked by pre-existing baseline ordering (`20260601000019 → public.orgs` predates `20260801000002_orgs.sql`). Phase 19 19-01 worked around via psql + stubs in CI; local audit cannot rerun. The 14 migrations applied successfully against the LIVE DB via `supabase db push --linked` (orchestrator ran 2026-05-15, exit 0). Cron jobs + tables + functions all present (verified below). |
+| 19-02-T1 (D-37 #1) | 🟡 deferred | Smoke script committed at `leanshot/scripts/wave-0-vercel-rewrite-smoke.sh`. Needs Vercel deploy of latest main + `STRIPE_SECRET_KEY`. Moved to Manual-Only. |
+| 19-02-T2 | ⏸ CI-gated | Deno not installed in orchestrator env. Tests pass per 19-02 SUMMARY (9/9 in 8ms). |
+| 19-03-T1 (D-37 #2) | 🟡 deferred | Smoke script committed. Needs `STRIPE_SECRET_KEY` in env. Moved to Manual-Only. |
+| 19-03-T2 | ⏸ CI-gated | Deno tests pass per 19-03 SUMMARY (13/13). |
+| 19-04-T1/T2 | ⏸ CI-gated | Deno tests pass per 19-04 SUMMARY (15/15). |
+| 19-04-T3 | ✅ verified | Covered by full vitest suite pass (1023/0/0 — see Test Infrastructure update). |
+| 19-05-T1 | ⏸ CI-gated (Deno) + ✅ vitest | InitialsAvatar test passed in full suite. Resend grep verified W-5 (no `npm:resend` in `affiliate-apply/`). |
+| 19-05-T2 | ✅ verified | Vitest pass + `git diff --quiet src/App.tsx` against Wave-3 base (verifier confirmed BL-4 single-writer is 19-09). |
+| 19-06a-T1 | ✅ verified | Full vitest suite pass. |
+| 19-06b-T1 | ⏸ Deno + ✅ vitest + ✅ git-diff | partner-profile-update Deno gated to CI. |
+| 19-07-T1 | ⏸ requires local psql + CI | SQL tests pass per 19-07 SUMMARY (12 cases across 2 files). Orchestrator has no local Postgres. |
+| 19-07-T2 | ✅ verified | Fingerprint vitest in full suite; index gz **14.56 kB / 15.03 kB** (well under 50 kB ceiling); Deno CI-gated. |
+| 19-08-T1/T2/T3 | ⏸ Deno + ✅ vitest + ✅ migration | Landing template seeds applied (verified — `landing_pages.slug like '_template_%'` present after live push). Deno tests pass per 19-08 SUMMARY (4/4). |
+| 19-08-T4 | 🟡 deferred | Marketing assets bucket created; upload of 8-12 files deferred to admin Dashboard. Moved to Manual-Only. |
+| 19-09-T0 (Vault) | ❌ NOT LOADED | **Verified via live DB query** `SELECT name FROM vault.decrypted_secrets WHERE name='service_role_key'` → 0 rows. This is the GO-LIVE BLOCKER: monthly payout cron will auth-fail on first 1st-of-month tick. User must add via Dashboard. Moved to Manual-Only with **load-bearing** flag. |
+| 19-09-T1/T2 | ⏸ CI-gated (Deno) + Playwright skipped | Cascade Playwright spec exists; `npx playwright test e2e/account-deletion-cascade.spec.ts` → 1 test, **1 skipped** (env-gated on STRIPE_SECRET_KEY / SUPABASE_SERVICE_ROLE_KEY). |
+| 19-09-T3 | ✅ verified | `App.tsx:25-27` + `:169-229` wires all 3 route registries (per 19-VERIFICATION evidence). |
+| 19-09-T4 (BLOCKING db push + bundle) | ✅ verified | Live DB push 2026-05-15 (14 migrations applied; 2 mid-fixes: filename regex + block_tree→blocks). Bundle 15.03 kB gz << 50 kB ceiling. |
+| 19-09-T5 (Edge Fn deploys) | ✅ verified | 10 Edge Functions deployed (orchestrator 2026-05-15 exit 0 on all). |
+
+### Live infrastructure confirmations (CLI evidence captured this audit)
+
+| Check | Result | Command |
+|-------|--------|---------|
+| Vitest full suite | ✅ 1023 pass / 43 skipped / 0 fail | `npm run test -- --run` |
+| Phase 19 cron jobs | ✅ all 4 live | `SELECT jobname, schedule FROM cron.job WHERE jobname LIKE 'affiliate-%'` → `affiliate-click-baseline-refresh @ 0 1 * * *`, `affiliate-conversions-confirm @ 15 0 * * *`, `affiliate-monthly-payout @ 0 0 1 * *`, `affiliate-payouts-materialize @ 30 0 * * *` |
+| Vault service_role_key | ❌ MISSING | `SELECT name FROM vault.decrypted_secrets WHERE name='service_role_key'` → 0 rows |
+| Cascade Playwright e2e | 🟡 env-gated skip | `npx playwright test e2e/account-deletion-cascade.spec.ts` → 1 skipped (no error) |
+
+### Updates applied
+- `wave_0_complete` stays `false` (D-37 #1 + #2 smokes deferred; documented as Manual-Only)
+- `nyquist_compliant` stays `true` — the 11 verified-locally + 9 CI-gated + 4 env-gated cover every REQ-ID with at least one automated path (CI is the canonical run for Deno; Phase 19 was approved with this categorization at plan time)
+- Manual-Only table extended with 5 vendor passes (Vault, D-37 #1, D-37 #2, Resend DNS, marketing-assets upload)
+
+### Recommendation
+
+Phase 19 is Nyquist-compliant against its automated/manual-only contract. The single **load-bearing go-live blocker is BL-7 Vault setup** — without it the monthly cron auth fails silently at first 1st-of-month tick. The remaining 4 deferred passes (D-37 #1, D-37 #2, Resend DNS, marketing assets) are nice-to-have-pre-launch but don't break daily operations.
+
+Routing per [[feedback-infra-phase-validate-not-verify]]: validate-phase audit complete; move to `/gsd-audit-milestone` when v1.2 ships, or proceed to Phase 20 (Advertising Network) — Phase 19 has no Phase-19 internal carry-overs blocking the next phase.
