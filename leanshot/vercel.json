@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
+  "installCommand": "npm install --legacy-peer-deps --update-sentry-capacitor",
   "redirects": [
     { "source": "/signin", "destination": "/#/auth/signin", "permanent": false },
     { "source": "/signup", "destination": "/#/auth/signup", "permanent": false },
