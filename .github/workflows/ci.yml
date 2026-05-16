@@ -28,6 +28,12 @@ jobs:
           cache-dependency-path: leanshot/package-lock.json
       - run: npm ci
       - run: npm run lint
+      # Phase 23 Plan 23-01 D-12 — deferred-tests registry enforcement.
+      # Fails CI if any test.fixme / xtest / non-env-gated test.skip is missing
+      # a `// see deferred-tests.md#<anchor>` comment. This enforces that every
+      # deferred test ships with a registry entry and a fix-plan.
+      - name: Deferred-tests registry audit
+        run: node scripts/audit-deferred-tests.mjs
 
   format-check:
     name: Format check
