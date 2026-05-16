@@ -54,6 +54,17 @@ export function initSentryNative(args: InitSentryNativeArgs): void {
   const platform = Capacitor.getPlatform();
   if (platform !== 'ios' && platform !== 'android') return;
 
+  // Version-skew nominal-type bridge (one-place tax, runtime-identical):
+  // @sentry/capacitor@4.0.0 nests its own @sentry/core@10.43.0 copy, so its
+  // Integration/ErrorEvent/Client types are nominally distinct from our root
+  // @sentry/core@10.52.0 types (used by @sentry/react in the rest of the app).
+  // The shapes are structurally identical — Sentry 10.x kept these stable
+  // across patches — so the cast at the call boundary is safe. Tracked for
+  // re-removal when @sentry/capacitor relaxes the peer-pin in a future patch.
+  // See 16-04-VERIFIED-SIGNATURE.md § Compatibility Waiver.
+  type CapInit = typeof sentryCapacitorInit;
+  type CapOptions = Parameters<CapInit>[0];
+  type CapSecondArg = Parameters<CapInit>[1];
   sentryCapacitorInit(
     {
       dsn: args.dsn,
@@ -62,8 +73,8 @@ export function initSentryNative(args: InitSentryNativeArgs): void {
       // D-11: errors-only — no Replay, Tracing, Profiling, or Feedback.
       // Mirrors `telemetry-defer.ts` line 68 web init.
       integrations: [],
-    },
-    sentryReactInit,
+    } as unknown as CapOptions,
+    sentryReactInit as unknown as CapSecondArg,
   );
 
   _initialized = true;
