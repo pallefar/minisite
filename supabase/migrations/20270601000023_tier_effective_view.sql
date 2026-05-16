@@ -1,0 +1,41 @@
+-- Phase 16 Plan 06 — MONEY-06 / MONEY-07 — tier_effective view (NO-OP migration).
+--
+-- ============================================================================
+-- DEVIATION NOTE (Rule 1) — Phase 19 shipped a RICHER tier_effective shape.
+-- ============================================================================
+-- The original 16-06 plan would have created a view with columns:
+--   user_id, effective_expires_at, tier, providers
+--
+-- But Phase 19 Plan 19-01 (migration 20270101000004_tier_effective_view.sql,
+-- already applied to ytnsipxxmzgaebkqmokp) shipped this view AHEAD of P16 with
+-- a richer shape that ALSO satisfies D-02:
+--   user_id, effective_period_end, has_active, has_past_due, winning_provider
+--
+-- The P19 view IS the D-02 reconciliation contract (`MAX(current_period_end)`
+-- across providers + array_agg(provider ORDER BY current_period_end DESC NULLS
+-- LAST))[1] AS winning_provider) and already honors RevenueCat — the cross-
+-- phase note in P19's own migration explicitly says: "When Phase 16 Plan 16-06
+-- resumes, it inserts rows with provider='revenuecat' into public.subscriptions.
+-- The tier_effective view immediately returns MAX(current_period_end) across
+-- both providers with zero changes here."
+--
+-- ATTEMPTING `CREATE OR REPLACE VIEW` here with the original P16-06 column shape
+-- FAILS with SQLSTATE 42P16 ("cannot drop columns from view") because Postgres
+-- requires the new view to be a column-suffix superset of the old one.
+--
+-- Resolution: this migration is intentionally empty (no-op). The downstream
+-- revenuecat-webhook Edge Function (shipped in this same plan) writes rows to
+-- `subscriptions` with `provider='revenuecat'`, and the existing P19 view
+-- automatically reconciles them with Stripe rows. Column-name mapping for
+-- consumers:
+--   plan must_have:    "tier='paid'"        → use:  `has_active = true`
+--   plan must_have:    "tier='free'"        → use:  `has_active = false AND has_past_due = false`
+--   plan must_have:    "providers array"    → use:  `winning_provider`
+--   plan must_have:    "effective_expires_at" → use: `effective_period_end`
+--
+-- File kept so the migration-registry record exists (renumbered to land above
+-- the highest applied live migration per reference_supabase_migration_filename_regex).
+-- The body below is a single comment block — Postgres accepts empty migrations.
+
+-- (intentional no-op — see header)
+select 1 where false;
