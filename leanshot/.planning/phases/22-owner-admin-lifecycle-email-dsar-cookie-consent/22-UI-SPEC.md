@@ -1,7 +1,8 @@
 ---
 phase: 22
 slug: owner-admin-lifecycle-email-dsar-cookie-consent
-status: draft
+status: approved
+reviewed_at: 2026-05-16
 shadcn_initialized: false
 preset: none
 created: 2026-05-16
