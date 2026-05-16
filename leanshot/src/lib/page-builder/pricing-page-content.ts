@@ -21,7 +21,9 @@
  * generator allowlist in `json-ld.ts`.
  */
 
+import type { ComponentType } from 'react';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
+import type { Platform } from '@/lib/native/platform';
 
 // ─── per-page SEO (PAGE-05) ──────────────────────────────────────────────────
 
@@ -134,3 +136,28 @@ export const PRICING_PAGE_BLOCKS: BlockNode[] = [
     },
   },
 ];
+
+// ─── Phase 16 Plan 16-05 — platform-aware pricing component switch ────────────
+/**
+ * Returns the React component that should render `/pricing` on the current
+ * platform.
+ *
+ * • ios / android → dynamic-imports `@/components/PricingIOS` so its body
+ *   (and the @revenuecat/purchases-capacitor surface it uses) never enters
+ *   the web entry chunk. The caller awaits the promise + renders the result.
+ * • web / capacitor-web → null. The caller should fall back to rendering
+ *   the existing `PRICING_PAGE_BLOCKS` tree (Phase 15 invariant).
+ *
+ * Used by the published `/pricing` runtime to keep Apple §3.1.1 / Google §3.1.1
+ * compliance (StoreKit/Play Billing on native; Stripe Checkout on web) under
+ * the SAME slug + the SAME SEO surface.
+ */
+export async function getPricingComponent(
+  platform: Platform,
+): Promise<ComponentType | null> {
+  if (platform === 'ios' || platform === 'android') {
+    const m = await import('@/components/PricingIOS');
+    return m.default;
+  }
+  return null;
+}
