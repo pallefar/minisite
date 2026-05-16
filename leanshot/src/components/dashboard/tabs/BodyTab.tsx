@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { VirtuosoGrid } from 'react-virtuoso';
 import { WeightChart, CompositionChart } from '@/components/dashboard/charts/SimpleCharts';
 import { PhotoCompareModal } from '@/components/dashboard/modals/PhotoCompareModal';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +26,14 @@ import { useToast } from '@/hooks/useToast';
 import { EmptyPhotos } from '@/illustrations/EmptyPhotos';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
+// Phase 16 Plan 16-01 Task 4 — storageTransformUrl is the Pro-tier
+// Supabase-Storage transform URL builder used inside <PhotoTile> as a
+// fallback rendering path. Today (Free tier) the transformed URLs return
+// 404 — the existing signed-URL flow via @/lib/signed-url-cache is the
+// active path. Once Wave-0 vendor-checkpoint Task 6 (Supabase Pro upgrade)
+// lands, the PhotoTile state machine can switch primary→transform with no
+// further code changes here.
+import { storageTransformUrl } from '@/lib/photo-url';
 import { useStore } from '@/lib/store';
 import type { Measurement, Photo } from '@/types';
 
@@ -255,32 +264,46 @@ export function BodyTab() {
             body="Take a photo every 2 weeks. The mirror lies; the receipts don't."
           />
         ) : (
-          <div className="grid grid-cols-3 gap-2 mt-3" data-testid="body-tab-photo-grid">
-            {photos.map((p, i) => (
-              <SwipeToDelete
-                key={p.photo_id ?? i}
-                onDelete={() => removePhoto(i)}
-                className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--color-surface-elevated)] border border-[var(--color-border)] group"
-              >
-                <PhotoTile photo={p} />
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent text-white px-2 py-1.5 text-[10px] font-semibold z-10">
-                  <p>{formatShort(p.date)}</p>
-                  {p.weight != null && (
-                    <p className="opacity-80">
-                      {p.weight.toFixed(1)} {wU}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={() => removePhoto(i)}
-                  aria-label="Delete photo"
-                  className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/60 text-white inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-20"
-                >
-                  <X className="size-3.5" />
-                </button>
-                <span className="sr-only">Swipe left to delete on mobile</span>
-              </SwipeToDelete>
-            ))}
+          // Phase 16 Plan 16-01 Task 4 (BL-2 fix MOBILE-08) — wrap photo
+          // grid in <VirtuosoGrid> so 200+ photo libraries don't OOM on
+          // iPhone 12. Grid height is bounded so the surrounding Card
+          // span={6} layout doesn't stretch indefinitely; VirtuosoGrid
+          // virtualizes off-screen tiles past the visible window.
+          <div className="mt-3" data-testid="body-tab-photo-grid">
+            <VirtuosoGrid
+              totalCount={photos.length}
+              style={{ height: '60vh' }}
+              listClassName="grid grid-cols-3 gap-2"
+              itemContent={(i) => {
+                const p = photos[i];
+                if (!p) return null;
+                return (
+                  <SwipeToDelete
+                    key={p.photo_id ?? i}
+                    onDelete={() => removePhoto(i)}
+                    className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[var(--color-surface-elevated)] border border-[var(--color-border)] group"
+                  >
+                    <PhotoTile photo={p} />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent text-white px-2 py-1.5 text-[10px] font-semibold z-10">
+                      <p>{formatShort(p.date)}</p>
+                      {p.weight != null && (
+                        <p className="opacity-80">
+                          {p.weight.toFixed(1)} {wU}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removePhoto(i)}
+                      aria-label="Delete photo"
+                      className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/60 text-white inline-flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-20"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                    <span className="sr-only">Swipe left to delete on mobile</span>
+                  </SwipeToDelete>
+                );
+              }}
+            />
           </div>
         )}
       </Card>
@@ -386,6 +409,16 @@ function PhotoTile({ photo }: { photo: Photo }) {
   const [url, setUrl] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
 
+  // Phase 16 Plan 16-01 Task 4 — Pro-tier transform URL pre-computed for the
+  // grid thumbnail size budget (200×200 cover q=75). Free tier returns 404
+  // for this endpoint, so it's stored in `data-transform-url` for forensic
+  // inspection + as the post-Pro-upgrade swap target. Plan 16-04+ flips
+  // PhotoTile to prefer this URL over the signed-URL flow once
+  // ytnsipxxmzgaebkqmokp upgrades to Pro (Wave-0 vendor-checkpoint Task 6).
+  const transformedUrl = photo.storage_path
+    ? storageTransformUrl(photo.storage_path, { width: 200, height: 200 })
+    : null;
+
   useEffect(() => {
     let cancelled = false;
     let createdObjectUrl: string | null = null;
@@ -442,6 +475,11 @@ function PhotoTile({ photo }: { photo: Photo }) {
         <img
           src={url}
           alt=""
+          width={200}
+          height={200}
+          loading="lazy"
+          decoding="async"
+          data-transform-url={transformedUrl ?? undefined}
           className="w-full h-full object-cover absolute inset-0"
           onError={() => setState('failed')}
         />
