@@ -1,0 +1,36 @@
+<!--
+Phase 16 Plan 16-08 -- EN Google Play Console listing copy.
+Character budgets are guardrails (validated by Task 2 automated verify),
+NOT part of the copy. NO emojis. Compliance disclaimer mandatory.
+Play allows slightly denser keyword phrasing than Apple but still avoid
+medical-advice claims.
+-->
+
+## Title
+LeanShot: GLP-1 Tracker
+
+## Short description
+Drug-level curve + injection-site rotation for GLP-1 patients. Local-first.
+
+## Full description
+LeanShot turns your GLP-1 journey into one picture you actually understand.
+
+The headline is your drug-level curve: 28 days of past doses and 7 days projected forward using real pharmacology math for semaglutide, tirzepatide, liraglutide, and other GLP-1 peptides. See exactly when your level is climbing, holding, or about to dip, so you can time your next dose with intent instead of guesswork.
+
+Pair it with smart injection-site rotation. LeanShot remembers every site you have used, flags the ones that need to rest, and suggests the next one so you avoid lipohypertrophy and absorption drops.
+
+Around the curve, log everything that affects your treatment:
+
+- Body metrics (weight, measurements, progress photos)
+- Food and macros (with low-friction logging)
+- Activity, steps, and workouts
+- Mood, sleep, and side-effect symptoms
+- Supplements and water
+
+A rule-based coach plus an optional AI coach (your own Anthropic key) connect the dots and surface patterns. When you visit your doctor, share a clean PDF or read-only link instead of fumbling through screenshots.
+
+Designed local-first: LeanShot works fully offline and your data lives on your device by default. Export or delete it anytime. A web version is available at leanshot.app for cross-device access.
+
+Built for the GLP-1 community: semaglutide (Ozempic, Wegovy), tirzepatide (Mounjaro, Zepbound), liraglutide (Saxenda, Victoza), and adjacent peptides. Track weight loss, side effects, titration schedules, and dose timing in one place.
+
+IMPORTANT: LeanShot is not a medical device and does not provide medical advice. Always discuss treatment changes with your prescriber.
