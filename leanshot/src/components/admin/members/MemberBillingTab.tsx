@@ -12,11 +12,13 @@
  */
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
 
 interface SubscriptionRow {
+  id: string;
   status: string;
   current_period_end: string | null;
   plan_id: string | null;
@@ -25,6 +27,10 @@ interface SubscriptionRow {
 
 export interface MemberBillingTabProps {
   userId: string;
+  /** Phase 22 plan 22-07 — caller-provided callbacks to open admin Stripe action modals.
+   * The modals themselves mount in AdminMemberDetailPage so they can survive a tab swap. */
+  onOpenCancel?: (input: { subscriptionId: string; periodEnd: string }) => void;
+  onOpenComp?: (input: { subscriptionId: string }) => void;
 }
 
 function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral' {
@@ -43,7 +49,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'neutral
   }
 }
 
-export function MemberBillingTab({ userId }: MemberBillingTabProps) {
+export function MemberBillingTab({ userId, onOpenCancel, onOpenComp }: MemberBillingTabProps) {
   const [sub, setSub] = useState<SubscriptionRow | null | undefined>(undefined);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ export function MemberBillingTab({ userId }: MemberBillingTabProps) {
     (async () => {
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('status, current_period_end, plan_id, provider')
+        .select('id, status, current_period_end, plan_id, provider')
         .eq('user_id', userId)
         .maybeSingle();
       if (cancelled) return;
@@ -105,6 +111,33 @@ export function MemberBillingTab({ userId }: MemberBillingTabProps) {
               </dd>
             </div>
           </dl>
+        )}
+        {sub && (onOpenCancel || onOpenComp) && (
+          <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-[var(--color-border)]">
+            {onOpenComp && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onOpenComp({ subscriptionId: sub.id })}
+              >
+                Grant comp
+              </Button>
+            )}
+            {onOpenCancel && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  onOpenCancel({
+                    subscriptionId: sub.id,
+                    periodEnd: sub.current_period_end ?? '',
+                  })
+                }
+              >
+                Cancel subscription
+              </Button>
+            )}
+          </div>
         )}
       </Card>
 

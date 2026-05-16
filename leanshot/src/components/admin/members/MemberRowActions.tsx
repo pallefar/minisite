@@ -66,16 +66,17 @@ export function MemberRowActions({ userId, email, onImpersonate }: MemberRowActi
       },
     },
     {
+      // Plan 22-07: route to Stripe tab on the detail page; RefundModal opens
+      // from the per-charge action there (real charge context is required).
       key: 'refund',
-      label: 'Refund last charge',
-      disabled: true,
-      disabledReason: 'Refund modal lands in plan 22-07',
+      label: 'Refund a charge…',
+      href: `/admin/members/${userId}?tab=stripe`,
     },
     {
+      // Plan 22-07: route to Billing tab where Cancel/Comp buttons live.
       key: 'cancel',
-      label: 'Cancel subscription',
-      disabled: true,
-      disabledReason: 'Cancel flow lands in plan 22-07',
+      label: 'Cancel subscription…',
+      href: `/admin/members/${userId}?tab=billing`,
     },
     {
       key: 'deactivate',
