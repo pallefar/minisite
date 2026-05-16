@@ -10,6 +10,7 @@ import { BiometricGate } from '@/components/BiometricGate';
 import { DisclaimerModal } from '@/components/dashboard/DisclaimerModal';
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
+import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCountdownBanner';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
@@ -17,6 +18,11 @@ import { track } from '@/lib/analytics';
 // (MOBILE-06 client half). Idempotency guard inside installDeepLinkHandler
 // protects against StrictMode double-mount.
 import { installDeepLinkHandler } from '@/lib/native/deeplink';
+// Phase 16 Plan 16-05 — platform fork for the `?upgrade=` deep link + the
+// Realtime `subscriptions:user_id=eq.X` listener (D-25). detectPlatform()
+// drives the ios/android branch; the iap.ts module is dynamic-imported in
+// the handler body so the RC SDK stays off App.tsx's static graph.
+import { detectPlatform } from '@/lib/native/platform';
 import { removeUserNamespace, renameStorageNamespace, setActiveStorageUserId } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 // Phase 19 Plan 19-09 (BL-4) — route registries from Plans 19-05 / 19-06b / 19-08.
@@ -204,7 +210,6 @@ const EmailPreferencesPage = lazy(() =>
 // chunk. Verified post-build by the Task 4 bundle check.
 import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
 import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBanner';
-import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCountdownBanner';
 // Phase 22 Plan 22-06 — D-08 per-user feature flag overrides. loadOverrides()
 // is the post-auth hook consumer; clearOverrideCache() is the SIGNED_OUT
 // hook consumer. Wiring lands in this plan; see useEffect blocks below.
@@ -819,6 +824,68 @@ export function App() {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  // Phase 16 Plan 16-05 — Realtime tier-flip listener (D-25).
+  //
+  // Subscribes to `subscriptions:user_id=eq.{userId}` postgres_changes so
+  // any RC webhook write (Plan 16-06) — or any Stripe-webhook write (Phase
+  // 14) — re-derives `tier` in the running native app within ~5s. Mirrors
+  // the Phase 9/10 `clinic-realtime.ts` channel + cleanup pattern and the
+  // RLS posture: the user can only subscribe to their own `user_id` row.
+  //
+  // The handler dynamic-imports `@/lib/billing-sync` and calls the existing
+  // `syncBillingTier(userId)` re-read of the subscriptions row → store tier
+  // (same path as the focus-handler effect above). Dynamic-import keeps
+  // supabase + billing-sync off App.tsx's static graph.
+  //
+  // Gate: dashboard-only AND verified non-anon user (same gate as focus).
+  // Cleanup: `await channel.unsubscribe()` so signedIn → signedOut → signedIn
+  // cycles don't leak channels.
+  useEffect(() => {
+    if (view !== 'dashboard') return;
+    const signedIn = useStore.getState().signedIn;
+    const userId = signedIn?.user?.id;
+    const isAnon = signedIn?.user?.is_anonymous;
+    const isVerified = signedIn?.verified;
+    if (!userId || isAnon || !isVerified) return;
+    type ChannelHandle = { unsubscribe(): Promise<unknown> };
+    let channel: ChannelHandle | null = null;
+    void (async () => {
+      const { supabase } = await import('@/lib/supabase');
+      const c = supabase.channel(`subscriptions:user_id=eq.${userId}`);
+      const onChange = (): void => {
+        void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
+          syncBillingTier(userId),
+        );
+      };
+      c.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'subscriptions',
+          filter: `user_id=eq.${userId}`,
+        },
+        onChange,
+      ).on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'subscriptions',
+          filter: `user_id=eq.${userId}`,
+        },
+        onChange,
+      );
+      await c.subscribe();
+      channel = c as unknown as ChannelHandle;
+    })();
+    return () => {
+      if (channel) {
+        void channel.unsubscribe();
+      }
+    };
+  }, [view]);
+
   // Phase 15 Plan 15-10 — `?upgrade=` deep-link handler.
   //
   // The published /pricing page renders Checkout buttons as zero-JS
@@ -909,6 +976,45 @@ export function App() {
       // Open Settings so the user has visual context for the redirect.
       setSettingsOpen(true);
 
+      // Phase 16 Plan 16-05 — platform fork for native shells. Apple §3.1.1
+      // and Google Play §3.1.1 forbid serving Stripe Checkout for digital
+      // subscriptions on iOS / Android — route through RevenueCat instead.
+      // Dynamic-imports iap.ts so the RC SDK stays off App.tsx's static
+      // graph (Phase 6 D-12 discipline mirroring billing-sync above). The
+      // success path is silent: the Realtime listener installed below will
+      // flip `tier` within ~5s when the RC webhook (Plan 16-06) writes the
+      // subscriptions row. CRITICAL: early `return` so we do NOT fall through
+      // to the web stripe-checkout invoke — Apple review would fail.
+      const platform = detectPlatform();
+      if (platform === 'ios' || platform === 'android') {
+        const productId =
+          plan === 'plus_monthly'
+            ? 'app.leanshot.plus.monthly'
+            : 'app.leanshot.plus.yearly';
+        void (async (): Promise<void> => {
+          try {
+            const { configureRC, purchaseSubscription } = await import(
+              '@/lib/native/iap'
+            );
+            await configureRC(userId);
+            const result = await purchaseSubscription(productId);
+            if (result.cancelled) return; // sheet dismissed — silent, no toast.
+            // success path: Realtime channel propagates the tier flip; no
+            // local mutation here.
+          } catch {
+            try {
+              useStore
+                .getState()
+                .showToast("Couldn't complete purchase. Try again.", 'error');
+            } catch {
+              /* toast unavailable — noop */
+            }
+          }
+        })();
+        return;
+      }
+
+      // ─── Web branch (Phase 15 Plan 15-10 byte-stable invariant) ─────────
       // Invoke stripe-checkout/session via the SAME path UpgradeCTA.tsx uses.
       // Dynamic-import to keep @/lib/supabase off App.tsx's static graph.
       void import('@/lib/supabase').then(async ({ supabase }) => {
