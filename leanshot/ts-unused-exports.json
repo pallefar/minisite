@@ -1,0 +1,20 @@
+{
+  "_comment": "Configuration for ts-unused-exports baseline script (check-unused-baseline.sh). These options are read by the script and translated to CLI flags. ts-unused-exports itself does not read this file.",
+  "tsconfig": "tsconfig.app.json",
+  "ignoreFilesRegex": [
+    ".*\\.config\\.(ts|js|mjs)$",
+    ".*\\.test\\.(ts|tsx)$",
+    ".*\\.spec\\.(ts|tsx)$",
+    "src/test-setup\\.ts$",
+    "src/vite-env\\.d\\.ts$"
+  ],
+  "excludePathsFromReport": [
+    ".planning",
+    "supabase",
+    "e2e",
+    "scripts",
+    "dist",
+    "dist-marketing",
+    "node_modules"
+  ]
+}
