@@ -40,20 +40,20 @@ created: 2026-05-16
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | ADMIN-01 | T-22-AUTHZ | Only `is_staff=true` reaches admin scaffolding routes | unit + e2e | `npm test -- AdminMembersTable` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ADMIN-02 | T-22-FIN | Financial metrics use `tier_effective` view; not raw `tier` | unit | `npm test -- FinancialMetricsCard` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ADMIN-03 | T-22-IMP | Read-only impersonation: RLS denies writes when `app_metadata.impersonator_id` is set | live-DB RLS | `npm test -- impersonation-write-deny.rls.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ADMIN-04 | T-22-AUDIT | Every refund / sub-cancel / comp emits `audit_logs` row visible to both owner and affected user | unit + RLS | `npm test -- admin-actions.audit.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ADMIN-05 | T-22-FLAG | `feature_flag_overrides` consulted before PostHog SDK; expired rows fall through | unit | `npm test -- feature-flag-overrides.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ADMIN-06 | T-22-AFFL | Affiliate review queue writes `confirmed` status; cron upstream sees `confirmed → payouts` (closes Phase 19 status-graph gap) | live-DB + Deno | `(cd supabase/functions && deno test affiliate-review)` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ADMIN-08 | T-22-RET | Cohort heatmap query returns expected `signup_week × week_offset → DAU%` matrix from fixture | unit + SQL | `npm test -- cohort-heatmap.sql.test.ts` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | DEL-01 | T-22-CASC | 10-step cascade runs in order; CI cascade-completeness test verifies every user-scoped table is empty post-delete except retention exceptions | Deno + cascade test | `(cd supabase/functions && deno test account-delete)` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | DEL-02 | T-22-GRACE | 7-day soft-delete: cancellable from email; cron flips `pending → deleted` exactly on day 8 | Deno + cron test | `(cd supabase/functions && deno test soft-delete-grace)` | ❌ W0 | ⬜ pending |
-| Task 2+3 | 22-10 | 2 | GDPR-01 | T-22-57 / T-22-60 / T-22-61 | Bottom slide-up cookie banner (vanilla-cookieconsent + Consent Mode v2) with granular Essential/Analytics/Marketing/Personalization toggles; EU default off + US default analytics-on (CCPA); Pattern 4 dynamic-import gate keeps lib off index chunk; Pitfall 7 acceptedService() granularity | vitest unit + Playwright e2e (deferred to plan 22-12 once mount is wired) | `npm test -- consent-defer consent-config CookieConsentBootstrap` | ✅ ship | ✅ green (12/12 unit) |
-| Task 3 | 22-10 | 2 | GDPR-02 | T-22-56 / T-22-59 | `consent_records` table stores per-decision audit row server-side (append-only per GDPR Art. 7(1)); PostHog SDK loads via dynamic import only after `acceptedCategory('analytics')` returns true (existing telemetry-defer wiring respects gtag default state) | vitest unit (7/7) | `npm test -- consent-records` | ✅ ship | ✅ green (7/7 unit) |
-| TBD | TBD | TBD | GDPR-03 | T-22-DSAR | DSAR export bundle includes Postgres + Storage + Stripe + PostHog + affiliate (hashed for others); 30-day SLA enforced via `dsar_requests`; cross-user emails SHA-256 redacted | Deno + bundle assertion | `(cd supabase/functions && deno test dsar-export)` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ON-02 | T-22-LIFECYCLE | 5 lifecycle Edge Fns share `_shared/resend-domain-health-check.ts`; pre-verify: log + skip + 200; post-verify: send | Deno | `(cd supabase/functions && deno test lifecycle-)` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | ON-03 | T-22-PREFS | Preference center: subscribe/unsubscribe writes `email_preferences`; lifecycle Fns consult it before send | Deno + unit | `(cd supabase/functions && deno test preference-update)` | ❌ W0 | ⬜ pending |
+| 22-06-T1, 22-12-T1 | 22-06, 22-12 | 2, 3 | ADMIN-01 | T-22-AUTHZ | Only `is_staff=true` reaches admin scaffolding routes (AdminLayout is_staff probe + RPC gate dual-layer per Pattern S1); App.tsx /admin/* lazy routes wired in 22-12-T1 | unit + e2e | `npm test -- AdminMembersPage AdminMemberDetailPage MembersTable` | ✓ landed | ✅ green |
+| 22-08-T1 | 22-08 | 2 | ADMIN-02 | T-22-FIN | Financial metrics use `tier_effective` view (not raw `tier`); AdminMetricsKpiStrip + MrrChart shipped | unit | `npm test -- AdminMetricsPage AdminMetricsKpiStrip AdminMetricsMrrChart` | ✓ landed | ✅ green |
+| 22-09-T1, 22-09-T2, 22-12-T2 | 22-09, 22-12 | 2, 3 | ADMIN-03 | T-22-IMP | Read-only impersonation: A1 PROBE PASS `app_metadata.impersonator_id` direct read; 51 RLS deny policies (migration 12) block writes; useImpersonationReadOnly defense-in-depth; admin-impersonation-write-deny RLS test asserts 17 tables × INSERT all denied | live-DB RLS + unit | `npm run test:e2e:rls -- admin-impersonation-write-deny rls-audit-logs-impersonation` + `npm test -- ImpersonationBanner useImpersonationReadOnly` | ✓ landed | ✅ green |
+| 22-03-T1, 22-03-T2 | 22-03 | 1 | ADMIN-04 | T-22-AUDIT | Refund/cancel/comp emit `audit_logs` row visible to both owner + affected user; Edge Fns admin-refund + admin-cancel + admin-comp wired | unit + Deno | `npm test -- RefundModal CancelSubModal CompSubModal` + `(cd supabase/functions && deno test admin-refund admin-cancel admin-comp)` | ✓ landed | ✅ green |
+| 22-06-T2, 22-12-T1 | 22-06, 22-12 | 2, 3 | ADMIN-05 | T-22-FLAG | `feature_flag_overrides` consulted before PostHog SDK via `isFeatureEnabledWithOverride`; expired rows fall through; loadOverrides() wired into App.tsx post-auth hook in 22-12-T1; clearOverrideCache on SIGNED_OUT | unit + live-DB RLS | `npm test -- feature-flag-overrides MemberFlagsTab` + `npm run test:e2e:rls -- rls-feature-flag-overrides` | ✓ landed | ✅ green |
+| 22-07-T1, 22-07-T2 | 22-07 | 2 | ADMIN-06 | T-22-AFFL | Affiliate review queue writes `confirmed` status; cron upstream sees `confirmed → payouts` (closes Phase 19 status-graph gap surfaced in [[feedback-status-machine-transition-owner]]) | unit + Deno | `npm test -- AdminAffiliatesReviewQueue` + `(cd supabase/functions && deno test affiliate-review)` | ✓ landed | ✅ green |
+| 22-08-T2 | 22-08 | 2 | ADMIN-08 | T-22-RET | Cohort heatmap query returns expected `signup_week × week_offset → DAU%` matrix from fixture; k-anonymity min-bucket-size policy enforced | unit + SQL | `npm test -- CohortHeatmap AdminCohortsPage` | ✓ landed | ✅ green |
+| 22-05-T1, 22-05-T2 | 22-05 | 2 | DEL-01 | T-22-CASC | 10-step cascade runs in order; SoftDeleteCountdownBanner mounted in 22-12-T1; CancelDeletionPage wired; cancel link HMAC-token RPC validates | Deno + cascade test | `(cd supabase/functions && deno test account-delete)` + `npm test -- SoftDeleteCountdownBanner DeleteAccountModal cancel-deletion` | ✓ landed | ✅ green |
+| 22-01-T1, 22-12-T3 | 22-01, 22-12 | 0, 3 | DEL-02 | T-22-GRACE | 7-day soft-delete: cancellable from email; cron flips `pending → deleted` exactly on day 8 (back-date 8d → finalized; back-date 6d → row remains within grace) | live-DB cron + Deno | `npm run test:e2e:rls -- cron-finalize-7day` + `(cd supabase/functions && deno test soft-delete-grace)` | ✓ landed | ✅ green |
+| 22-10-T2, 22-10-T3, 22-12-T1, 22-12-T3 | 22-10, 22-12 | 2, 3 | GDPR-01 | T-22-57 / T-22-60 / T-22-61 | Bottom slide-up cookie banner (vanilla-cookieconsent v3 + Consent Mode v2) with granular Essential/Analytics/Marketing/Personalization toggles; EU default off + US default analytics-on (CCPA); Pattern 4 dynamic-import gate keeps lib off index chunk; Pitfall 7 acceptedService() granularity; CookieConsentBootstrap mounted in App.tsx in 22-12-T1; Playwright covers banner + geo defaults | vitest unit + Playwright e2e | `npm test -- consent-defer consent-config CookieConsentBootstrap` + `npx playwright test e2e/cookie-consent.spec.ts e2e/cookie-consent-geo.spec.ts` | ✓ landed | ✅ green (12/12 unit + 3/3 playwright pass) |
+| 22-10-T3, 22-12-T2 | 22-10, 22-12 | 2, 3 | GDPR-02 | T-22-56 / T-22-59 | `consent_records` table stores per-decision audit row server-side (append-only per GDPR Art. 7(1)); PostHog SDK loads via dynamic import only after `acceptedCategory('analytics')` returns true (existing telemetry-defer wiring respects gtag default state); RLS test asserts cross-tenant deny + DELETE blocked | vitest unit + live-DB RLS | `npm test -- consent-records` + `npm run test:e2e:rls -- rls-consent-records` | ✓ landed | ✅ green (7/7 unit + RLS green) |
+| 22-04-T1, 22-04-T2, 22-11-T1, 22-11-T2, 22-12-T1, 22-12-T2 | 22-04, 22-11, 22-12 | 1, 2, 3 | GDPR-03 | T-22-DSAR | DSAR export bundle includes Postgres + Storage + Stripe + PostHog + affiliate (hashed for others); 30-day SLA via `dsar_requests`; cross-user emails SHA-256 redacted; 5-min cron tick (migration 21) picks up pending rows; DsarPortalPage mounted in 22-12-T1; RLS test covers `dsar_requests` + `dsar-exports` storage cross-tenant | Deno + bundle assertion + live-DB RLS | `(cd supabase/functions && deno test dsar-export)` + `npm test -- DsarPortalPage dsar-export-client` + `npm run test:e2e:rls -- rls-dsar-requests rls-dsar-exports-storage` | ✓ landed | ✅ green |
+| 22-02-T1, 22-02-T2 | 22-02 | 1 | ON-02 | T-22-LIFECYCLE | 5 lifecycle Edge Fns share `_shared/resend-domain-health-check.ts`; pre-verify: log + skip + 200; post-verify: send. D-03 vendor-gated send pattern per [[reference-vendor-gated-send-health-check]] | Deno | `(cd supabase/functions && deno test resend-domain-health-check lifecycle-welcome-series lifecycle-behavior-triggered lifecycle-retention lifecycle-transactional lifecycle-preference-update)` | ✓ landed | ✅ green |
+| 22-11-T3 | 22-11 | 2 | ON-03 | T-22-PREFS | Preference center: subscribe/unsubscribe writes consent_records.email_preferences via lifecycle-preference-update Edge Fn; lifecycle Fns consult it before send; EmailPreferencesPage mounted in 22-12-T1 | Deno + unit | `(cd supabase/functions && deno test preference-update)` + `npm test -- EmailPreferencesPage` | ✓ landed | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -94,11 +94,38 @@ created: 2026-05-16
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies (planner fills per-task rows after PLAN.md generation)
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s (unit) / < 360s (full)
-- [ ] `nyquist_compliant: true` set in frontmatter (post-planning)
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (planner filled per-task rows in plan 22-12 Task 4)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify (each plan's tasks have inline `<verify><automated>` blocks)
+- [x] Wave 0 covers all MISSING references (35 scaffolds shipped in plan 22-01; all turned on by closing plans 22-02..22-12)
+- [x] No watch-mode flags (npm test runs `vitest run`; e2e is one-shot Playwright)
+- [x] Feedback latency < 120s (unit) / < 360s (full) — unit ~25s, Deno ~45s, Playwright ~3.6s for plan 22-12 spec set
+- [ ] `nyquist_compliant: true` set in frontmatter (post-`/gsd-verify-work` — verifier-owned flip per sign-off rule + Pre-emptive warning 6)
 
-**Approval:** pending
+**Approval:** pending verifier sign-off
+
+---
+
+## Plan-by-Plan Coverage
+
+| Plan | REQ-IDs | Wave | Tests added (file/spec count) | Tests green | Notes |
+|------|---------|------|-------------------------------|-------------|-------|
+| 22-01 | (Wave 0 setup — scaffolds for all 14 REQ-IDs) | 0 | 35 scaffolds + 14 migrations + Edge Fns + Storage bucket | (turned on in later plans) | A1 PROBE PASS (336ms); 51-policy migration; 14 scaffold files |
+| 22-02 | ON-02 | 1 | 6 Deno (resend-domain-health-check + 5 lifecycle Fns) | 6 | D-03 vendor-gated send pattern |
+| 22-03 | ADMIN-03, ADMIN-04 | 1 | 9 vitest + 1 Deno (admin-refund/cancel/comp Edge Fns) | 10 | A1 PROBE PASS Option A |
+| 22-04 | GDPR-03 | 1 | 8 vitest + 1 Deno (dsar-export 9-step orchestrator) | 9 | SHA-256 affiliate-email hashing |
+| 22-05 | DEL-01, DEL-02 | 2 | 12 vitest (SoftDeleteCountdownBanner + DeleteAccountModal + cancel-deletion) | 12 | 7-day grace + HMAC cancel-link |
+| 22-06 | ADMIN-01, ADMIN-05 | 2 | 17 vitest (AdminLayout + members table + drill-in + feature-flag-overrides + role system) | 17 | Pattern S1 dual-layer is_staff gate |
+| 22-07 | ADMIN-04, ADMIN-06 | 2 | 11 vitest + 1 Deno (AdminAffiliatesReviewQueue + admin-affiliate-review Edge Fn) | 12 | Closes Phase 19 status-graph gap |
+| 22-08 | ADMIN-02, ADMIN-08 | 2 | 10 vitest (AdminMetricsPage + AdminCohortsPage + CohortHeatmap) | 10 | `tier_effective` view consumer + k-anonymity |
+| 22-09 | ADMIN-03 | 2 | 12 vitest (ImpersonationBanner + useImpersonationReadOnly) | 12 | UX defense-in-depth over RLS policies |
+| 22-10 | GDPR-01, GDPR-02 | 2 | 22 vitest (consent-defer + consent-config + consent-records + CookieConsentBootstrap) | 22 | Pattern 4 dynamic-import gate; INSERT-only audit |
+| 22-11 | GDPR-03, ON-03 | 2 | 33 vitest (DsarPortalPage + EmailPreferencesPage + dsar-export-client) + 1 SQL migration | 33 | 5-min Vault-gated cron tick |
+| 22-12 | (Wave 3 integration — covers all 14) | 3 | 17 e2e/RLS (5 RLS + 2 vitest-live + 5 Playwright + Wave 0 scaffold turn-ons) | 8 pass / 9 env-skip locally; full green on live cloud DB | App.tsx integration + bundle ceiling enforcement |
+
+**Totals:**
+- 14/14 REQ-IDs covered with explicit Task ID + Plan + Wave provenance
+- 8 D-NN decisions implemented (D-02 carved out per CONTEXT — ON-01 onboarding revamp deferred to P22b; explicit carve-out test in plan 22-12)
+- 12 plans shipped (22-01..22-12)
+- ~190 tests added across vitest + Deno + Playwright
+- Bundle index gz: 17.70 kB vs 50 kB ceiling (~35% utilization)
+- 0 stubs leaked into production paths (jsPDF v1.3 placeholder is documented seam)
