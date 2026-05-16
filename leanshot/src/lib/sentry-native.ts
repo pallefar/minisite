@@ -28,7 +28,7 @@ import { init as sentryReactInit } from '@sentry/react';
 import type { beforeSend as BeforeSendFn } from './sentry';
 
 export interface InitSentryNativeArgs {
-  /** Sentry DSN. Same Phase 1 project per D-17 (separate releases for symbolication routing). */
+  /** Sentry DSN. Per-platform project (leanshot-ios or leanshot-android under org `optimizenet`); see 16-CONTEXT-ADDENDUM-sentry-per-platform-projects.md (supersedes D-17 single-project model). */
   dsn: string;
   /** Per-platform release tag, shape `ios@<ver>` or `android@<ver>` per D-17. */
   release: string;

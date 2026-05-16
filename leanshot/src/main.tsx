@@ -65,8 +65,13 @@ try {
 // VITE_SENTRY_RELEASE is set per-platform by fastlane in Plan 16-09:
 // - iOS:     'ios@${CFBundleShortVersionString}'
 // - Android: 'android@${versionName}'
-// The DSN is the SAME Phase 1 project (D-17 — one project, separate
-// releases for symbolication routing).
+//
+// DSN routing: see 16-CONTEXT-ADDENDUM-sentry-per-platform-projects.md
+// (supersedes D-17 single-project decision 2026-05-16). Three separate
+// Sentry projects under org `optimizenet`: leanshot-{web,ios,android}.
+// VITE_SENTRY_DSN_{IOS,ANDROID,WEB} are the per-platform DSNs; the legacy
+// VITE_SENTRY_DSN remains as a safety fallback when an override is unset.
+// Vite needs STATIC import.meta.env access — dynamic keys aren't inlined.
 //
 // Phase 2.1 perf fix (web path only): telemetry init is DEFERRED to after
 // first paint — was static `Sentry.init(...)` here in Phase 2; that pulled
@@ -78,8 +83,12 @@ try {
 // buffer events until Sentry's dynamic import resolves and drains them.
 const _platform = detectPlatform();
 if (_platform === 'ios' || _platform === 'android') {
+  const nativeDsn =
+    _platform === 'ios'
+      ? (import.meta.env.VITE_SENTRY_DSN_IOS as string | undefined)
+      : (import.meta.env.VITE_SENTRY_DSN_ANDROID as string | undefined);
   initSentryNative({
-    dsn: (import.meta.env.VITE_SENTRY_DSN as string) ?? '',
+    dsn: nativeDsn || (import.meta.env.VITE_SENTRY_DSN as string) || '',
     release: (import.meta.env.VITE_SENTRY_RELEASE as string) ?? `${_platform}@unknown`,
     beforeSend,
   });

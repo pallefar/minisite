@@ -48,14 +48,21 @@ function uninstallPreInitListeners(): void {
 /**
  * Schedule Sentry init after first paint without blocking the entry chunk.
  *
- * If `VITE_SENTRY_DSN` is unset we skip entirely (matches the static-init
- * `enabled: !!VITE_SENTRY_DSN` short-circuit).
+ * DSN routing: see 16-CONTEXT-ADDENDUM-sentry-per-platform-projects.md
+ * (supersedes D-17 single-project decision 2026-05-16). Per-platform
+ * VITE_SENTRY_DSN_WEB takes precedence; legacy VITE_SENTRY_DSN stays as a
+ * safety fallback so any deploy that hasn't migrated env vars still works.
+ *
+ * If neither is set we skip entirely (silent no-op — same pre-addendum
+ * behavior).
  *
  * @param beforeSend  Pure scrubber from `./sentry` (type-only import, doesn't
  *                    drag @sentry/react into this module's chunk).
  */
 export function deferSentryInit(beforeSend: typeof BeforeSendFn): void {
-  const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+  const dsn =
+    (import.meta.env.VITE_SENTRY_DSN_WEB as string | undefined) ||
+    (import.meta.env.VITE_SENTRY_DSN as string | undefined);
   if (!dsn) return;
 
   // Phase 16 MOBILE-09: on native platforms, the synchronous dual-init in
