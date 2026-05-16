@@ -171,6 +171,31 @@ export default defineConfig(({ mode }) => {
               if (/node_modules\/(@dnd-kit\/(core|sortable|utilities))(\/|$)/.test(id)) {
                 return 'vendor-dnd-kit';
               }
+              // Phase 16 Plan 16-01 Task 3 — capacitor-bridge chunk.
+              // Routes the four native-bridge package families that ship at
+              // P16 into a single shared chunk so the existing 15 kB gz
+              // ceiling at scripts/assert-clinic-bundle-budget.sh:155
+              // (CAPACITOR_BRIDGE_CEILING=15000) actively enforces from this
+              // commit forward instead of logging `wave-0 skip`.
+              //
+              // Coverage:
+              //   - @capacitor/<any>        — core, app, share, preferences, etc.
+              //   - @revenuecat/purchases-capacitor — IAP (Plan 16-05/06)
+              //   - @capgo/capacitor-native-biometric — biometric (Plan 16-02)
+              //   - @sentry/capacitor       — native crash reporting (Plan 16-04)
+              //
+              // MUST be placed BEFORE the vendor-telemetry rule below so that
+              // @sentry/capacitor lands in capacitor-bridge rather than being
+              // swept into vendor-telemetry. (@sentry/capacitor is NOT in
+              // the vendor-telemetry regex, but forward-compat: if a future
+              // edit broadens that regex, this rule still wins via ordering.)
+              if (
+                /node_modules\/(@capacitor\/[^/]+|@revenuecat\/purchases-capacitor|@capgo\/capacitor-native-biometric|@sentry\/capacitor)(\/|$)/.test(
+                  id,
+                )
+              ) {
+                return 'capacitor-bridge';
+              }
               if (
                 /node_modules\/(@sentry\/react|@sentry\/core|@sentry\/browser|@sentry-internal\/browser-utils|posthog-js)(\/|$)/.test(
                   id,
