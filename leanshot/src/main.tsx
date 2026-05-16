@@ -4,11 +4,6 @@ import { App } from './App';
 import './index.css';
 import { applyThemeToDOM } from './hooks/useTheme';
 import { initAnalytics } from './lib/analytics';
-// Phase 16 Plan 16-01 Task 3 — side-effect import anchors @capacitor/core
-// into the static graph so the `capacitor-bridge` manualChunks rule emits a
-// chunk and the bundle-budget CI gate measures it. REMOVED by Plan 16-02
-// Task 1 when `platform.ts` is filled with `Capacitor.getPlatform()`.
-import './lib/native/__capacitor-import-probe';
 import { detectPlatform } from './lib/native/platform';
 import { beforeSend } from './lib/sentry';
 import { initSentryNative } from './lib/sentry-native';
