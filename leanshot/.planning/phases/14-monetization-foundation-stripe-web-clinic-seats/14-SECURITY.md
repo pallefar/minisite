@@ -1,6 +1,7 @@
 ---
 phase: 14-monetization-foundation-stripe-web-clinic-seats
 audit_date: 2026-05-14
+re_audit_date: 2026-05-16
 auditor: gsd-security-auditor (claude-sonnet-4-6)
 asvs_level: L1
 block_on: high
@@ -10,6 +11,8 @@ threats_accept: 10
 threats_closed: 42
 threats_open: 0
 status: SECURED
+re_audit_trigger: Phase 19 drift in stripe-webhook/index.ts (559388b) and stripe-checkout/index.ts (30f8fb5)
+phase_19_followup_flags: 5  # P19-F1..P19-F5 — informational, evaluated at /gsd-secure-phase 19
 ---
 
 # Phase 14 Security Audit
@@ -134,3 +137,40 @@ The original `invoice-payment-failed.ts` read `invoice.subscription_status` (a n
 
 ### count_active_patients() LIMIT 1 fix (CR-06)
 Migration `20260601000019_stripe_subscriptions.sql` lines 201-218 confirm the UNION ALL EXISTS subquery has no misplaced `LIMIT 1`. All 5 activity table arms (injections, weights, meals, workouts, symptoms) are checked. The comment at line 202 explicitly documents the CR-06 fix.
+
+---
+
+## Security Audit 2026-05-16 (re-pass after Phase 19 drift)
+
+| Metric | Count |
+|--------|-------|
+| Threats found | 42 (unchanged) |
+| Closed | 42 |
+| Open | 0 |
+| Status | **SECURED** |
+
+### Drift trigger
+
+Two audited files were modified post the 2026-05-14 audit:
+- `supabase/functions/stripe-webhook/index.ts` — commit `559388b feat(19-04): invoice.paid affiliate conversion (D-36 renewal)`. Phase 19 added an `account.updated` dispatch arm + an `invoice.paid` affiliate-conversion handler hook.
+- `supabase/functions/stripe-checkout/index.ts` — commit `30f8fb5 feat(19-04): propagate aff_code from ?aff/?aff_manual/_aff cookie`. Phase 19 added a `resolveAffCode()` helper + propagation into Checkout session metadata.
+
+### Re-verification verdict
+
+All six `stripe-webhook` threat mitigations (T-14-03-S1/T1/T2/I1/I2/E1) verified structurally identical at new line numbers — the new `account.updated` arm is reachable only after the unconditional `constructEventAsync` HMAC gate (lines 164-179), and the `handleInvoicePaid` hook runs inside the post-idempotency `dispatch()` call (line 208). All four `stripe-checkout` threat mitigations (T-14-04-01/02/08/10) verified intact — `resolveAffCode(req)` is called at line 420, strictly after JWT validation (lines 336-341) and Owner-role check (lines 367-378); `aff_code` is placed only in metadata fields, never in URL construction.
+
+`stripe-webhook/cors.ts`, `stripe-webhook/events/invoice-upcoming.ts`, and migration `20260601000019_stripe_subscriptions.sql` not modified since prior audit — original grep evidence still holds.
+
+### Phase 19 follow-up flags (NOT Phase 14 threats — for Phase 19's own security audit)
+
+These are new attack surface introduced by Phase 19 into the Phase 14 code paths. They do not affect Phase 14 SECURED status but should be evaluated when `/gsd-secure-phase 19` runs.
+
+- **P19-F1** — `aff_code` length-cap relies on `REFERRAL_CODE_PATTERN` `{4,80}` at `stripe-checkout/index.ts:56`. Adequate vs Stripe's 500-char metadata ceiling; Phase 19 auditor confirms.
+- **P19-F2** — `_aff` cookie HttpOnly enforcement lives in Plan 19-02 `affiliate-attribute` Edge Function, NOT at this read site. Phase 19 auditor must verify the Set-Cookie header in that function.
+- **P19-F3** — `readAffCodeFromInvoice` (`invoice-paid.ts:50-68`) reads `aff_code` from Stripe payload without regex validation. Constrained by T-14-03-S1 (HMAC verify) so adversary needs webhook secret. Defense-in-depth: add regex gate.
+- **P19-F4** — `resolveAffCode` uses `adminInstance` (service role) for the affiliates lookup. By-design but Phase 19 auditor should confirm `affiliates` table has no columns that must be hidden from the service-role path.
+- **P19-F5** — `invoice-paid.ts:125-126` throws `'affiliate-lookup-failed'` on DB error → propagates to dispatcher → 500 → Stripe 24h retry curve. A persistent DB error would loop retries against the already-succeeded Phase 14 tier-sync path. Phase 19 auditor should evaluate making this a no-op log rather than a throw.
+
+### Re-pass note
+
+All 42 Phase 14 threats CLOSED. Original audit (2026-05-14) verdict carries forward unchanged. The 5 Phase 19 follow-up flags are informational forward-pointers — they will be evaluated when Phase 19 is secured separately. Phase 14 ready for milestone-close.
