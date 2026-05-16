@@ -1,23 +1,47 @@
 /**
- * Phase 22 plan 22-01 Wave 0 scaffold — CookieConsentBootstrap (GDPR-01).
- * Owner of impl: plan 22-10 (cookie consent + PostHog defer).
+ * Phase 22 plan 22-10 — CookieConsentBootstrap (GDPR-01).
  *
- * Behaviors deferred:
- *   - Dynamic-import of vanilla-cookieconsent gated until after requestIdleCallback
- *   - Banner mounts at bottom slide-up position
- *   - 3 buttons: Reject all | Customize | Accept all
+ * Behaviors covered:
+ *   1. Component renders null (no DOM output — the banner library writes its
+ *      own DOM directly to document.body once loaded).
+ *   2. Mount calls scheduleConsentInit() exactly once.
+ *   3. Re-render does NOT re-invoke scheduleConsentInit() (idempotent
+ *      useEffect deps).
  */
-import { describe, it } from 'vitest';
+import { render } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const scheduleConsentInitSpy = vi.fn();
+
+vi.mock('@/lib/consent/consent-defer', () => ({
+  scheduleConsentInit: () => scheduleConsentInitSpy(),
+}));
 
 import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
 
 describe('CookieConsentBootstrap (Phase 22 GDPR-01)', () => {
-  it.skip('dynamic-imports vanilla-cookieconsent after requestIdleCallback [DEFERRED — Wave 0 scaffold; impl in plan 22-10]', () => {
-    void CookieConsentBootstrap;
+  beforeEach(() => {
+    scheduleConsentInitSpy.mockReset();
   });
-  it.skip('renders bottom slide-up banner with 3 buttons [DEFERRED — Wave 0 scaffold; impl in plan 22-10]', () => {
-    void CookieConsentBootstrap;
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('renders no DOM output (banner library mounts itself once loaded)', () => {
+    const { container } = render(<CookieConsentBootstrap />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('mount calls scheduleConsentInit() exactly once', () => {
+    render(<CookieConsentBootstrap />);
+    expect(scheduleConsentInitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-render does NOT re-invoke scheduleConsentInit() (idempotent useEffect deps)', () => {
+    const { rerender } = render(<CookieConsentBootstrap />);
+    rerender(<CookieConsentBootstrap />);
+    rerender(<CookieConsentBootstrap />);
+    expect(scheduleConsentInitSpy).toHaveBeenCalledTimes(1);
   });
 });
-
-// Wave 0 scaffold per .planning/phases/22-…/22-RESEARCH.md §Validation Architecture — DEFERRED implementation owner: 22-10
