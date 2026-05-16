@@ -1,17 +1,70 @@
 /**
- * Phase 22 plan 22-01 Wave 0 scaffold — lifecycle-behavior-triggered Edge Function (ON-02).
- * Owner of impl: plan 22-07.
+ * Deno tests for `lifecycle-behavior-triggered` Edge Function — Phase 22 plan 22-02 (ON-02).
  *
- * Behaviors deferred:
- *   T1 first-injection event → first_injection email
- *   T2 7-day streak event → streak_achieved email
- *   T3 missed-dose-day-3 → missed_dose email
- *   T4 unverified domain → 200 + skip counter++
+ * Test plan:
+ *   T1 health-check fails → 200 + skipped:true, no fetch
+ *   T2 health-check ok + no eligible recipients → 200 + sent:0
  */
 import { assertEquals } from 'jsr:@std/assert@^1';
 
-Deno.test('lifecycle-behavior-triggered Wave 0 scaffold', () => {
-  assertEquals(true, true);
+Deno.env.set('SUPABASE_URL', 'http://localhost:54321');
+Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key');
+Deno.env.set('SITE_URL', 'https://app.leanshot.app');
+
+const { __internal } = await import('./index.ts');
+
+function emptyFakeAdmin(): unknown {
+  return {
+    rpc: () => Promise.resolve({ data: null, error: null }),
+    from: () => ({
+      select: () => ({
+        gt: () => Promise.resolve({ data: [], error: null }),
+        order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
+        eq: () => ({
+          order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
+          limit: () => Promise.resolve({ data: [], error: null }),
+          lt: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
+        }),
+      }),
+      upsert: () => Promise.resolve({ data: null, error: null }),
+    }),
+    auth: { admin: { getUserById: () => Promise.resolve({ data: { user: null }, error: null }) } },
+  };
+}
+
+Deno.test('T1 — health-check fails → 200 + skipped:true', async () => {
+  Deno.env.delete('RESEND_API_KEY');
+  __internal.setAdminForTest(emptyFakeAdmin());
+  try {
+    const req = new Request('http://localhost/lifecycle-behavior-triggered', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-service-role-key' },
+    });
+    const res = await __internal.handleRun(req);
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(body.skipped, true);
+  } finally {
+    __internal.resetAdminForTest();
+  }
 });
 
-// Wave 0 scaffold per .planning/phases/22-…/22-RESEARCH.md §Validation Architecture — DEFERRED implementation owner: 22-07
+Deno.test('T2 — health ok + no recipients → 200 + sent:0', async () => {
+  Deno.env.set('RESEND_API_KEY', 'test-stub');
+  __internal.setAdminForTest(emptyFakeAdmin());
+  try {
+    const req = new Request('http://localhost/lifecycle-behavior-triggered', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-service-role-key' },
+    });
+    const res = await __internal.handleRun(req);
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(body.ok, true);
+    assertEquals(body.sent, 0);
+    assertEquals(body.processed, 0);
+  } finally {
+    __internal.resetAdminForTest();
+    Deno.env.delete('RESEND_API_KEY');
+  }
+});
