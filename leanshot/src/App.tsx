@@ -126,6 +126,14 @@ const AdminPageEditor = lazy(() =>
   })),
 );
 
+// Phase 22 Plan 22-05 — /cancel-deletion landing page. Its own lazy chunk
+// keeps it OFF the index static graph (50 kB gz ceiling preserved per
+// Phase 6 Plan 06-01). Activated by the `cancel-deletion` branch in
+// selectView() below when window.location.pathname === '/cancel-deletion'.
+const CancelDeletionPage = lazy(() =>
+  import('@/pages/cancel-deletion').then((m) => ({ default: m.CancelDeletionPage })),
+);
+
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
 // boundary so Rollup emits four separate small chunks (preserving the 50 kB
@@ -307,6 +315,11 @@ type View =
   // Phase 10 Plan 10-05 — drill-in view for /clinic/{slug}/patient/{user_id}.
   // More-specific than '/clinic/{slug}' — must be ordered BEFORE the base clinic branch.
   | 'clinic-drill-in'
+  // Phase 22 Plan 22-05 — /cancel-deletion landing for HMAC cancel links.
+  // Anonymous-OK: the HMAC token IS the auth (per plan 22-01 File 14 grant
+  // to anon+authenticated); user may be signed out across devices when the
+  // email link is clicked.
+  | 'cancel-deletion'
   // Phase 15 Plan 15-04 — Page Builder admin surfaces. Path-based routes
   // (NOT hash) so deep-linking + browser refresh land on the right view.
   // `admin-page-editor` matches `/admin/pages/{id}` (including `/admin/pages/new`).
@@ -403,6 +416,11 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
   }
   if (opts.pathname === '/admin' || opts.pathname === '/admin/') {
     return opts.user ? 'admin-site-settings' : 'auth';
+  }
+  // Phase 22 Plan 22-05 — /cancel-deletion is anonymous-OK (HMAC token
+  // is the auth). Match exact path; trailing-slash tolerated.
+  if (opts.pathname === '/cancel-deletion' || opts.pathname === '/cancel-deletion/') {
+    return 'cancel-deletion';
   }
   if (opts.user) return 'dashboard';
   return 'marketing';
@@ -937,6 +955,16 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <AdminSiteSettings />
+      </Suspense>
+    );
+  }
+  // Phase 22 Plan 22-05 — /cancel-deletion landing for HMAC cancel-link
+  // verification. Anonymous-OK; no auth gate. The page itself handles
+  // RPC outcomes (success / invalid / expired / vault_missing / no_token).
+  if (view === 'cancel-deletion') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <CancelDeletionPage />
       </Suspense>
     );
   }
