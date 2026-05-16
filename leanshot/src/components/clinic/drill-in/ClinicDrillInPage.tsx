@@ -33,7 +33,7 @@
  * Policy: no Zustand store reads (this is a clinic surface; all auth is via supabase JWT).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ClinicContextBar } from '@/components/clinic/ClinicContextBar';
 import { ReadOnlyPatientView } from '@/components/shared/ReadOnlyPatientView';
 import { Button } from '@/components/ui/Button';
@@ -45,6 +45,16 @@ import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { useToast } from '@/hooks/useToast';
 import { ClinicDrillInSubBar } from './ClinicDrillInSubBar';
 import { useClinicSnapshot } from './use-clinic-snapshot';
+
+// ---------------------------------------------------------------------------
+// PatientActivityModal — lazy-loaded to keep the drill-in entry chunk lean.
+// Dynamic import creates a code-split boundary; the modal is only downloaded
+// when the operator first opens it (not on initial page load).
+// ---------------------------------------------------------------------------
+
+const PatientActivityModal = lazy(() =>
+  import('./PatientActivityModal').then((m) => ({ default: m.PatientActivityModal })),
+);
 
 // ---------------------------------------------------------------------------
 // URL parsing helpers
@@ -177,6 +187,9 @@ export function ClinicDrillInPage() {
   // overridden on 403 to unmount the blocked section in-place (T-10-07-01).
   const [localPermissionMap, setLocalPermissionMap] = useState<ReadOnlyPermissionMap | null>(null);
 
+  // PatientActivityModal open flag (Plan 23-03 DEBT-01 closeout).
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+
   // Update local permissionMap whenever a new snapshot loads.
   useEffect(() => {
     if (snapshot?.permission_map) {
@@ -284,11 +297,10 @@ export function ClinicDrillInPage() {
     navigateToRoster(slug);
   }, [slug, orgId]);
 
-  // View activity callback — Plan 10-09 wires the modal.
-  // Until then, this is a safe no-op that warns in dev.
+  // View activity callback — Plan 23-03 DEBT-01 closeout.
+  // Opens PatientActivityModal for the currently drill-in patient.
   const handleViewActivity = useCallback(() => {
-    // TODO Plan 10-09 — open PatientActivityModal
-    console.warn('[ClinicDrillInPage] PatientActivityModal not yet available (Plan 10-09).');
+    setIsActivityModalOpen(true);
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -432,6 +444,19 @@ export function ClinicDrillInPage() {
           )
         )}
       </main>
+
+      {/* PatientActivityModal — lazy-loaded, only mounted when open (DEBT-01 closeout). */}
+      {patientId && (
+        <Suspense fallback={null}>
+          {isActivityModalOpen && (
+            <PatientActivityModal
+              patientId={patientId}
+              open={isActivityModalOpen}
+              onClose={() => setIsActivityModalOpen(false)}
+            />
+          )}
+        </Suspense>
+      )}
     </div>
   );
 }
