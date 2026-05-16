@@ -1,0 +1,231 @@
+/**
+ * Phase 22 Plan 22-10 — Pattern 3: vanilla-cookieconsent v3 config with
+ * Google Consent Mode v2 bridge (GDPR-01 banner).
+ *
+ * D-07 from 22-CONTEXT.md: bottom slide-up modal with Accept all / Reject all
+ * / Customize, inline-expand to 4 categories (Essential / Analytics /
+ * Marketing / Personalization).
+ *
+ * Geo-aware defaults (T-22-58 fail-safe direction):
+ *   - EU country code     → analytics OFF until explicit grant.
+ *   - US country code     → analytics ON by default (CCPA opt-out model).
+ *   - Unknown/null geo    → analytics OFF (privacy-default fallback when
+ *                            window.__VERCEL_GEO__ is unavailable; corrects
+ *                            the literal `!isEU` flip in 22-RESEARCH §Pattern 3
+ *                            which would silently default to US treatment on
+ *                            edge cases per T-22-58).
+ *
+ * Pitfall 7 compliance (22-RESEARCH §Pitfalls): analytics category declares
+ * `services: { posthog: {...} }` so `acceptedService('posthog', 'analytics')`
+ * works for the per-service Consent Mode v2 distinction
+ * (analytics_storage vs ad_storage).
+ *
+ * Bundle contract: this module is reached ONLY via the dynamic-import gate
+ * in src/lib/consent/consent-defer.ts. Value-importing `vanilla-cookieconsent`
+ * here is safe — the entire module sits in a lazy chunk.
+ */
+import * as CookieConsent from 'vanilla-cookieconsent';
+
+import { upsertConsentRecord } from '@/lib/consent/consent-records';
+
+/**
+ * 27 EU member states + UK (post-Brexit, still GDPR-equivalent under UK GDPR).
+ * Source: 22-RESEARCH §Specifics line 142.
+ */
+const EU_COUNTRIES = new Set([
+  'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI',
+  'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT',
+  'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB',
+]);
+
+interface VercelGeoWindow extends Window {
+  __VERCEL_GEO__?: { country?: string };
+  dataLayer?: unknown[];
+}
+
+function readGeoCountry(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return (window as VercelGeoWindow).__VERCEL_GEO__?.country;
+}
+
+/**
+ * Privacy-default direction for unknown geo: treat as EU.
+ * Matches T-22-58 ("fail-safe direction"); corrects the literal
+ * `country ? EU.includes(country) : false` from 22-RESEARCH which would
+ * incorrectly default to US treatment when Vercel geo headers are missing.
+ */
+function computeIsEU(country: string | undefined): boolean {
+  if (!country) return true; // privacy-default
+  return EU_COUNTRIES.has(country);
+}
+
+/**
+ * Push a Consent Mode v2 update to gtag's dataLayer.
+ *
+ * NOTE: Google's Consent Mode v2 reference impl uses
+ * `dataLayer.push(arguments)` (the arguments object) — preserve that shape
+ * so gtag.js's deserializer reads positional args correctly. The `_args`
+ * rest param is required by TypeScript so callers get a typed signature
+ * even though we read from `arguments` at runtime.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function gtag(..._args: unknown[]): void {
+  const w = window as VercelGeoWindow;
+  if (!w.dataLayer) w.dataLayer = [];
+  // eslint-disable-next-line prefer-rest-params
+  w.dataLayer.push(arguments);
+}
+
+function applyDefaultConsentState(isEU: boolean): void {
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: isEU ? 'denied' : 'granted',
+    functionality_storage: 'granted',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+  });
+}
+
+function updateGtagConsent(): void {
+  gtag('consent', 'update', {
+    analytics_storage: CookieConsent.acceptedCategory('analytics') ? 'granted' : 'denied',
+    ad_storage: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
+    ad_user_data: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
+    ad_personalization: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
+    personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
+  });
+}
+
+/**
+ * GDPR-01 banner init — called once by `loadConsent()` in consent-defer.ts.
+ * Returns void so the caller doesn't need to await the modal-creation promise.
+ */
+export function initCookieConsent(): void {
+  const country = readGeoCountry();
+  const isEU = computeIsEU(country);
+
+  // Consent Mode v2 spec: default state MUST be set before any gtag('config')
+  // (i.e. before PostHog/GA/Pixel SDK loads). Banner loads via idle callback
+  // post-paint; PostHog's existing telemetry-defer waits on the same idle
+  // hook, so default-state-first ordering is preserved.
+  applyDefaultConsentState(isEU);
+
+  void CookieConsent.run({
+    guiOptions: {
+      consentModal: {
+        layout: 'box inline',          // UI-SPEC §banner: bottom slide-up
+        position: 'bottom right',
+        equalWeightButtons: true,
+      },
+      preferencesModal: {
+        layout: 'box',                 // inline-expand customise per D-07
+      },
+    },
+    cookie: { name: 'cc_cookie', expiresAfterDays: 182 },
+    categories: {
+      necessary: { enabled: true, readOnly: true },
+      analytics: {
+        enabled: !isEU,                // CCPA opt-out (US ON; EU/unknown OFF)
+        autoClear: {
+          cookies: [
+            { name: /^ph_/ },         // PostHog
+            { name: /^_ga/ },         // Google Analytics
+            { name: 'posthog_disabled' },
+          ],
+        },
+        services: {
+          // Pitfall 7: per-service declaration enables
+          // CookieConsent.acceptedService('posthog', 'analytics') for
+          // Consent Mode v2's analytics_storage gate.
+          posthog: {
+            label: 'PostHog product analytics',
+          },
+        },
+      },
+      marketing: {
+        enabled: false,
+        autoClear: {
+          cookies: [
+            { name: '_fbp' },
+            { name: 'fr' },
+          ],
+        },
+        services: {
+          // Forward-compat per D-07 + 22-RESEARCH Pattern 3 — Meta + AdSense
+          // hooks land here when P20 (mobile ads / web ads) ships.
+          adsense: { label: 'Google AdSense' },
+          meta_pixel: { label: 'Meta Pixel (Facebook)' },
+        },
+      },
+      personalization: { enabled: false },
+    },
+    language: {
+      default: 'en',
+      translations: {
+        en: {
+          consentModal: {
+            title: 'We value your privacy',
+            description: isEU
+              ? 'We use cookies to keep the app working, measure how it’s used, and improve your experience. You can accept all, reject all, or customize your choices. Essential cookies are always on. <a href="/privacy" target="_blank">Privacy policy</a>'
+              : 'We use cookies to keep the app working, measure how it’s used, and improve your experience. Essential cookies are always on. You can opt out of analytics any time. <a href="/privacy" target="_blank">Privacy policy</a>',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Reject all',
+            showPreferencesBtn: 'Customize',
+          },
+          preferencesModal: {
+            title: 'Cookie preferences',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Reject all',
+            savePreferencesBtn: 'Save preferences',
+            closeIconLabel: 'Close',
+            sections: [
+              {
+                title: 'Essential cookies',
+                description:
+                  'Required for sign-in, account state, and security. These cannot be turned off.',
+                linkedCategory: 'necessary',
+              },
+              {
+                title: 'Analytics cookies',
+                description:
+                  'Help us understand which features people use and where they get stuck. We use PostHog with strict data minimization.',
+                linkedCategory: 'analytics',
+              },
+              {
+                title: 'Marketing cookies',
+                description:
+                  'Used to measure ad campaigns we run on Meta or Google. Off by default.',
+                linkedCategory: 'marketing',
+              },
+              {
+                title: 'Personalization cookies',
+                description:
+                  'Used to remember in-app preferences across devices. Off by default.',
+                linkedCategory: 'personalization',
+              },
+              {
+                title: 'Further information',
+                description:
+                  'Questions? Read our <a href="/privacy" target="_blank">privacy policy</a> or email privacy@leanshot.app.',
+              },
+            ],
+          },
+        },
+      },
+    },
+    onFirstConsent: ({ cookie }) => {
+      updateGtagConsent();
+      void upsertConsentRecord(cookie);
+    },
+    onConsent: ({ cookie }) => {
+      updateGtagConsent();
+      void upsertConsentRecord(cookie);
+    },
+    onChange: ({ cookie }) => {
+      updateGtagConsent();
+      void upsertConsentRecord(cookie);
+    },
+  });
+}
