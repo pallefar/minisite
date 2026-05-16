@@ -28,6 +28,12 @@ jobs:
           cache-dependency-path: leanshot/package-lock.json
       - run: npm ci
       - run: npm run lint
+      # Phase 23 Plan 23-01 D-12 — deferred-tests registry enforcement.
+      # Fails CI if any test.fixme / xtest / non-env-gated test.skip is missing
+      # a `// see deferred-tests.md#<anchor>` comment. This enforces that every
+      # deferred test ships with a registry entry and a fix-plan.
+      - name: Deferred-tests registry audit
+        run: node scripts/audit-deferred-tests.mjs
 
   format-check:
     name: Format check
@@ -75,6 +81,11 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Phase 23 Plan 23-05 — service-role-minted JWT injection for page-builder-rls
+          # staff tests. Used by tests/rls/helpers/jwt.ts (mintTestJwt). Required for
+          # the 4 is_staff CAN ... tests to prove staff RLS paths without GoTrueClient.
+          # Source: Supabase dashboard > Settings > API > JWT Secret (project ytnsipxxmzgaebkqmokp).
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
 
   test-e2e:
     name: E2E smoke + production-build security check
