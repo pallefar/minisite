@@ -400,6 +400,14 @@ deno_version = 2
 [functions.stripe-webhook]
 verify_jwt = false
 
+# Phase 16 Plan 06 — RevenueCat posts webhook events with a Bearer auth token
+# (REVENUECAT_WEBHOOK_AUTH) + optional HMAC-SHA256 signature header
+# (REVENUECAT_WEBHOOK_SECRET), NOT a Supabase user JWT. verify_jwt must be false
+# or every RC delivery is rejected with 401 at the gateway before the function
+# runs. The function enforces its own Bearer + (optional) HMAC gates internally.
+[functions.revenuecat-webhook]
+verify_jwt = false
+
 # Phase 15 Plan 03 — page-render is a PUBLIC endpoint for published landing pages.
 # Anonymous visitors (and search-engine crawlers) request /{slug}; no JWT, no
 # cookie. Without verify_jwt = false the gateway 401s every visitor before the
