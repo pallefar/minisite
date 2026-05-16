@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.2
-milestone_name: milestone
-status: completed
+milestone_name: Tech Debt Sweep + Launch Polish
+status: Phase 22 shipped — pushed 157 commits to origin/main (v1.2 catch-up)
 stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-05-16T07:13:29.253Z"
-last_activity: 2026-05-16 -- Phase 22 marked complete
+last_updated: "2026-05-16T07:17:50.788Z"
+last_activity: 2026-05-16
 progress:
   total_phases: 12
   completed_phases: 6
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 Phase: 22 — COMPLETE
 Plan: 2 of 12 (Wave 0 SHIPPED; Wave 1 ready)
-Status: Phase 22 complete
-Last activity: 2026-05-16 -- Phase 22 marked complete
+Status: Phase 22 shipped — pushed 157 commits to origin/main (v1.2 catch-up)
+Last activity: 2026-05-16
 
 ### v1.1 close (2026-05-13)
 
