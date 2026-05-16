@@ -28,8 +28,9 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Suspense } from 'react';
+import { PatientActivityModal, formatRelativeTs } from './PatientActivityModal';
 
 // ---------------------------------------------------------------------------
 // Shared mock state (set per-test in beforeEach)
@@ -108,20 +109,11 @@ vi.mock('@/lib/supabase', () => {
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
-      // eslint-disable-next-line react/jsx-no-useless-fragment
       <div {...props}>{children}</div>
     ),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-
-// ---------------------------------------------------------------------------
-// Import component AFTER mocks
-// ---------------------------------------------------------------------------
-
-// Dynamic import to ensure mocks are registered first.
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import { PatientActivityModal, formatRelativeTs } from './PatientActivityModal';
 
 // ---------------------------------------------------------------------------
 // Test helpers — sample data fixtures

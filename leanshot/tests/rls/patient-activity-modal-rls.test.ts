@@ -304,8 +304,7 @@ describeIfLive('Phase 23 Plan 23-03 — PatientActivityModal RLS cross-tenant is
 describe('Phase 23 Plan 23-03 RLS — gating', () => {
   it('runs against live cloud DB when SUPABASE_SERVICE_ROLE_KEY is set', () => {
     if (!SHOULD_RUN) {
-      // eslint-disable-next-line no-console
-      console.warn(
+      console.warn(  
         '[patient-activity-modal-rls.test] SKIPPED — SUPABASE_SERVICE_ROLE_KEY (or URL/ANON) not set. Wave verification gates this.',
       );
     }

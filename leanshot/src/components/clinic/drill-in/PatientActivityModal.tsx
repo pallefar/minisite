@@ -31,12 +31,12 @@
  * No non-null bang assertions on session user — Phase 23 DEBT-02 ESLint rule enforces this.
  */
 
-import { useEffect, useState } from 'react';
 import { Activity, Camera, Frown, Syringe, Utensils, Weight } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { supabase } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
 // Types
