@@ -17,8 +17,8 @@
     { "source": "/partner/(.*)", "destination": "/index.html" },
     { "source": "/admin/affiliates", "destination": "/index.html" },
     { "source": "/share/(.*)", "destination": "/index.html" },
-    { "source": "/sitemap.xml", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/sitemap" },
-    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt|partner|affiliate|r|\\.well-known|signin|signup|reset-password|verify-email|legal).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
+    { "source": "/sitemap.xml", "has": [{ "type": "host", "value": "leanshot.app" }], "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/sitemap" },
+    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt|partner|affiliate|r|\\.well-known|signin|signup|reset-password|verify-email|legal).+)", "has": [{ "type": "host", "value": "leanshot.app" }], "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
   ],
   "headers": [
     {
