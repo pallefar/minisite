@@ -1,0 +1,7 @@
+{
+  "knip_warns": 164,
+  "tue_warns": 227,
+  "captured_at": "2026-05-16T12:45:00Z",
+  "captured_from_commit": "2abf8730a3950d37885ec5c6e14b17f359a18a55",
+  "notes": "Initial baseline from Phase 23 Plan 23-02. knip_warns counts: 15 unused files + 52 unused exports + 41 unused types + 56 duplicate export pairs (164 total). tue_warns counts modules (files) with >=1 unused export after D-15 path exclusions (227 modules). Upgrade posture per D-17: gate fails only when current > baseline (warn-on-new). Set baseline to 0 after cleanup PR to enforce fail-on-any-warn."
+}
