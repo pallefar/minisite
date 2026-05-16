@@ -17,6 +17,12 @@
 import { useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { formatShort } from '@/lib/helpers';
+// Phase 16 Plan 16-01 Task 4 — Pro-tier Supabase Storage transform URL
+// builder. In viewerMode='share' / 'clinic' the `storage_path` field is
+// pre-substituted by the Edge Function with a signed URL; the helper is
+// referenced here to mark the surface for the post-Pro-upgrade swap
+// (Wave-0 Task 6). Until then, `data-transform-url` is the swap target.
+import { storageTransformUrl } from '@/lib/photo-url';
 import type { SnapshotData } from '@/types/snapshot';
 
 export interface PhotosSectionProps {
@@ -46,19 +52,32 @@ export function PhotosSection({ data, viewerMode: _viewerMode, orgId: _orgId, on
           <p className="text-[13px] text-[var(--color-text-tertiary)]">No photos shared.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {data.map((p) => (
-              <figure key={p.id} className="flex flex-col gap-1">
-                <img
-                  src={p.storage_path}
-                  alt={`Body photo from ${formatShort(p.taken_at)}`}
-                  className="w-full h-auto rounded-md border border-[var(--color-border)]"
-                  loading="lazy"
-                />
-                <figcaption className="text-[11px] text-[var(--color-text-tertiary)]">
-                  {formatShort(p.taken_at)}
-                </figcaption>
-              </figure>
-            ))}
+            {data.map((p) => {
+              // Phase 16 Plan 16-01 Task 4 — Pro-tier transform URL for the
+              // read-only share/clinic view (400×400 budget). Today the
+              // `p.storage_path` field is a pre-signed URL from the Edge
+              // Function; Wave-0 Task 6 (Pro upgrade) enables the swap.
+              const transformedUrl = p.storage_path
+                ? storageTransformUrl(p.storage_path, { width: 400, height: 400 })
+                : null;
+              return (
+                <figure key={p.id} className="flex flex-col gap-1">
+                  <img
+                    src={p.storage_path}
+                    alt={`Body photo from ${formatShort(p.taken_at)}`}
+                    width={400}
+                    height={400}
+                    decoding="async"
+                    data-transform-url={transformedUrl ?? undefined}
+                    className="w-full h-auto rounded-md border border-[var(--color-border)]"
+                    loading="lazy"
+                  />
+                  <figcaption className="text-[11px] text-[var(--color-text-tertiary)]">
+                    {formatShort(p.taken_at)}
+                  </figcaption>
+                </figure>
+              );
+            })}
           </div>
         )}
       </Card>

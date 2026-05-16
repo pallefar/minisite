@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { formatShort } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
+// Phase 16 Plan 16-01 Task 4 — Pro-tier Supabase Storage transform URL
+// builder used for compare-modal thumbnails (400×400 budget; larger than
+// BodyTab's 200×200 because compare view uses the larger card surface).
+// Free tier returns 404 today; PhotoImg references the transformed URL
+// in `data-transform-url` for the post-Pro-upgrade swap (Wave-0
+// vendor-checkpoint Task 6).
+import { storageTransformUrl } from '@/lib/photo-url';
 import { useStore } from '@/lib/store';
 import type { Photo } from '@/types';
 
@@ -131,6 +138,14 @@ function Side({ photo, side, units }: { photo: Photo | null; side: string; units
 function PhotoImg({ photo, className }: { photo: Photo; className?: string }) {
   const [url, setUrl] = useState<string | null>(null);
 
+  // Phase 16 Plan 16-01 Task 4 — Pro-tier transform URL pre-computed for
+  // the compare-modal thumbnail budget (400×400 cover q=75). Stored in
+  // `data-transform-url` for the post-Pro-upgrade swap (Wave-0
+  // vendor-checkpoint Task 6).
+  const transformedUrl = photo.storage_path
+    ? storageTransformUrl(photo.storage_path, { width: 400, height: 400 })
+    : null;
+
   useEffect(() => {
     let cancelled = false;
     let createdObjectUrl: string | null = null;
@@ -179,6 +194,11 @@ function PhotoImg({ photo, className }: { photo: Photo; className?: string }) {
     <img
       src={url}
       alt=""
+      width={400}
+      height={400}
+      loading="lazy"
+      decoding="async"
+      data-transform-url={transformedUrl ?? undefined}
       className={cn('w-full h-full object-cover absolute inset-0', className)}
     />
   );
