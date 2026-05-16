@@ -10,11 +10,24 @@ created: 2026-05-15
 
 ### 1. `tests/rls/page-builder-rls.test.ts` — `is_staff CAN ...` tests flaky under vitest parallel load
 
-**Affected tests (4):**
+**FIXED 2026-05-16** (commit `d8d212f`) — service-role-JWT swap landed via Plan 23-05; 5 affected
+is_staff test fixtures re-wired to JWT-header injection (no GoTrueClient instantiation). 3 consecutive
+stable runs confirmed locally (env-gated; live GREEN with CI secrets). `SUPABASE_JWT_SECRET` added to
+CI `test-unit` env block (GitHub secret needs to be added to repo settings: Supabase dashboard >
+Settings > API > JWT Secret, project `ytnsipxxmzgaebkqmokp`). Note: audit found 5 affected fixtures
+(not 4 as originally documented — `site_settings: is_staff CAN UPDATE` was also using the flawed pattern,
+fixed proactively per Rule 2).
+
+**Affected tests (5, all re-enabled):**
 - `landing_pages: is_staff user CAN INSERT / UPDATE / DELETE`
 - `landing_page_revisions: is_staff CAN INSERT a new revision`
 - `leads: is_staff CAN SELECT`
 - `page-assets: is_staff CAN upload and delete a test image`
+- `site_settings: is_staff CAN UPDATE` (Rule 2 extension — same vulnerability)
+
+---
+
+**Historical record (pre-fix):**
 
 **Symptom:** Periodic `42501 new row violates row-level security policy` or `expected 0 to be greater than 0` even though the `is_staff()` helper + RLS policies are provably correct.
 
