@@ -27,7 +27,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
 - [x] **Phase 19: Affiliate Program + Stripe Connect** - `affiliates` + `affiliate_links` + `affiliate_clicks` + `affiliate_conversions` + `payouts` tables + `affiliate-attribute` Edge Function (server-side cookie, defeats Safari ITP) + Stripe Connect Express W-9/W-8BEN/1099-NEC + partner dashboard + fraud detection + co-branded `/r/{code}` landing pages + $10 single-tier flat + unified cross-provider tier (RevenueCat+Stripe) + account-deletion Stripe cascade
 - [ ] **Phase 20: Ad Network (AdMob + GAM/AdSense + house ads)** - `ad_placements` + `ad_impressions` + `ad_revenue_daily` + `ad_blocklist` + `house_ads` + `<AdSlot>` (refuses on `/clinic/*` / `/share/*` / paid tier) + AdMob mobile-only + GPT lazy-loaded after consent + AdSense fallback waterfall + rewarded video + default GLP-1 advertiser block-list + `ad-config` + `ad-revenue-ingest` daily ETL + ATT prompt + SKAdNetwork IDs + ads.txt/app-ads.txt
 - [ ] **Phase 21: Watch Apps (Apple Watch + WearOS)** - `apps/watch-ios/` (Swift+SwiftUI+WatchConnectivity+SwiftData) + `apps/watch-android/` (Kotlin+Compose for Wear+Wearable Data Layer) + next-dose complication/tile + streak badge + log-injection with haptic + hybrid sync (cloud-primary + WatchConnectivity live) + standalone REST fallback + dose-day HR overlay
-- [ ] **Phase 22: Owner/Admin + Lifecycle Email + DSAR + Cookie Consent** - Members table + MRR/ARR/churn + impersonation with red banner + audit-logged refunds + feature-flag overrides + affiliate-payout review queue + ad-revenue dashboard + cohort retention heatmap + in-app account deletion ≤3 taps + `account-delete` cascade Edge Function (Stripe + Connect + Resend + Storage + RLS) + `dsar-export` Edge Function + vanilla-cookieconsent + Consent Mode v2 + preference center + Resend lifecycle templates on new design tokens + revamped 7-step onboarding
+- [ ] **Phase 22: Owner/Admin + Lifecycle Email + DSAR + Cookie Consent** - Members table + MRR/ARR/churn + impersonation with red banner + audit-logged refunds + feature-flag overrides + affiliate-payout review queue + cohort retention heatmap + in-app account deletion ≤3 taps + `account-delete` cascade Edge Function (Stripe + Connect + Resend + Storage + RLS) + `dsar-export` Edge Function + vanilla-cookieconsent + Consent Mode v2 + preference center + Resend lifecycle templates on new design tokens (ad-revenue dashboard carved out to Phase 20 per CONTEXT D-01; revamped 7-step onboarding deferred to Phase 22b per CONTEXT D-02)
 - [ ] **Phase 23: v1.1 Tech Debt Sweep + Launch Polish** - CLINIC-07 operator drill-in "View activity" wiring + `s.user!` audit (15 occurrences / 14 files) + photo trash flow + 6 deferred tests batch-fix + knip + ts-unused-exports CI gate + final ASO polish
 
 ## Phase Details
@@ -65,8 +65,24 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   3. User interacts with refreshed Card (5 variants), Button (tonal + counter chips + loading), Pill (segmented + count badges + icon-only), and Sidebar (instant 72↔232px collapse + 200ms inner fade) without layout shift or focus-ring regressions
   4. User sees the new illustration set on every surface that previously had v1 art: AI avatar (organic-mesh), streak badges (bronze/silver/gold/locked), site-rotation v2 with zone labels + numbered dots, pen-injector, achievement-shield, activity-rings, doctor-clipboard, heart-pulse, calendar-dose, 4 empty states, hero-orbital
   5. User signs in via the new split-screen login page (form left, hero illustration right) — verified responsive at ≥768px breakpoint and gracefully stacking below
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 12 plans across 4 waves
+  - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
+    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+  - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
+    - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
+    - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
+    - [ ] 22-04-PLAN.md — dsar-export Edge Function + pdf-render + dsar_request RPCs (GDPR-03)
+  - Wave 2 (parallel — UI + cross-cutting; depends on 22-01 + Wave-1 outputs):
+    - [ ] 22-05-PLAN.md — DEL-01 modal sweep (30d→7d) + SoftDeleteCountdownBanner + cancel-link route (DEL-01, DEL-02)
+    - [ ] 22-06-PLAN.md — AdminLayout + Members table + Member drill-in (6 tabs) + feature-flag overrides wrapper (ADMIN-01, ADMIN-05)
+    - [ ] 22-07-PLAN.md — RefundModal + CancelSubModal + CompSubModal + AdminAffiliatesReviewQueue (ADMIN-04, ADMIN-06 closes Phase 19 BL-11 status-graph gap)
+    - [ ] 22-08-PLAN.md — AdminMetricsPage + CohortHeatmap CSS-grid (ADMIN-02, ADMIN-08)
+    - [ ] 22-09-PLAN.md — ImpersonationBanner + useImpersonation + useImpersonationReadOnly hooks (ADMIN-03)
+    - [ ] 22-10-PLAN.md — vanilla-cookieconsent + Consent Mode v2 + consent_records audit (GDPR-01, GDPR-02)
+    - [ ] 22-11-PLAN.md — DsarPortalPage + EmailPreferencesPage + SettingsPage sub-page links (GDPR-03 UI, ON-03)
+  - Wave 3 (closeout — integration + RLS proofs + VALIDATION):
+    - [ ] 22-12-PLAN.md — App.tsx wiring (3 banners + 4 lazy routes + loadOverrides) + 12 e2e/RLS proofs + VALIDATION.md per-task rows
+**UI hint**: yes (UI-SPEC shipped 2026-05-16, ui-checker 6/6 PASS first iteration)
 
 ### Phase 14: Monetization Foundation (Stripe web + clinic seats)
 **Goal**: A web user can subscribe to a paid plan via Stripe Checkout (7-day card-required trial), manage their subscription via Stripe Customer Portal, and downstream features gate cleanly on the `tier` field. A clinic owner is billed per-active-patient (synthesizer recommendation) with monthly true-up via Stripe metered billing. Webhook state from Stripe is the source of truth — the DB never drifts. Card-failure dunning surfaces a `past_due` banner and a retry-card flow.
@@ -80,8 +96,24 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   3. Clinic owner adds their 11th patient → Stripe metered billing line item is incremented for the current period → end-of-month invoice reflects the per-active-patient charge for all 11
   4. User's card fails mid-cycle → Stripe Smart Retries kick in (retries 1/3/5) → user sees `past_due` banner in UI + receives Stripe-driven dunning email; banner clears on successful retry
   5. Visitor sees a pricing page (built via Phase 15 PAGE-09 wire-up later) with a comparison table; clicking "Subscribe" lands them on live Stripe Checkout with the correct price ID; `<TierGate>` correctly blocks premium features for `tier='free'` users
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 12 plans across 4 waves
+  - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
+    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+  - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
+    - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
+    - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
+    - [ ] 22-04-PLAN.md — dsar-export Edge Function + pdf-render + dsar_request RPCs (GDPR-03)
+  - Wave 2 (parallel — UI + cross-cutting; depends on 22-01 + Wave-1 outputs):
+    - [ ] 22-05-PLAN.md — DEL-01 modal sweep (30d→7d) + SoftDeleteCountdownBanner + cancel-link route (DEL-01, DEL-02)
+    - [ ] 22-06-PLAN.md — AdminLayout + Members table + Member drill-in (6 tabs) + feature-flag overrides wrapper (ADMIN-01, ADMIN-05)
+    - [ ] 22-07-PLAN.md — RefundModal + CancelSubModal + CompSubModal + AdminAffiliatesReviewQueue (ADMIN-04, ADMIN-06 closes Phase 19 BL-11 status-graph gap)
+    - [ ] 22-08-PLAN.md — AdminMetricsPage + CohortHeatmap CSS-grid (ADMIN-02, ADMIN-08)
+    - [ ] 22-09-PLAN.md — ImpersonationBanner + useImpersonation + useImpersonationReadOnly hooks (ADMIN-03)
+    - [ ] 22-10-PLAN.md — vanilla-cookieconsent + Consent Mode v2 + consent_records audit (GDPR-01, GDPR-02)
+    - [ ] 22-11-PLAN.md — DsarPortalPage + EmailPreferencesPage + SettingsPage sub-page links (GDPR-03 UI, ON-03)
+  - Wave 3 (closeout — integration + RLS proofs + VALIDATION):
+    - [ ] 22-12-PLAN.md — App.tsx wiring (3 banners + 4 lazy routes + loadOverrides) + 12 e2e/RLS proofs + VALIDATION.md per-task rows
+**UI hint**: yes (UI-SPEC shipped 2026-05-16, ui-checker 6/6 PASS first iteration)
 **Open questions locked at CONTEXT.md**: (1) Clinic seat metering: per-active-patient vs per-operator. (2) Pharmacology projection paywall at GA or v1.2.x test.
 
 ### Phase 15: Page Builder + Landing Pages
@@ -96,8 +128,24 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   3. Published landing page is served as static HTML via `page-render` Edge Function + Vercel ISR — visitor's browser does NOT download the editor React bundle (verified by Network tab) and Lighthouse score on the page is ≥ 90 Performance + ≥ 95 Accessibility
   4. Per-page SEO panel writes title / description / OG tags / canonical / JSON-LD into rendered HTML; `sitemap.xml` + `robots.txt` auto-include all published pages; search-engine crawler simulator (Lighthouse SEO + manual `curl` of OG meta) confirms tags present
   5. `/pricing` page uses the Pricing template + Checkout-button block wired to live Stripe price IDs (MONEY-08 consumer); clicking the button takes the visitor straight to Stripe Checkout
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 12 plans across 4 waves
+  - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
+    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+  - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
+    - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
+    - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
+    - [ ] 22-04-PLAN.md — dsar-export Edge Function + pdf-render + dsar_request RPCs (GDPR-03)
+  - Wave 2 (parallel — UI + cross-cutting; depends on 22-01 + Wave-1 outputs):
+    - [ ] 22-05-PLAN.md — DEL-01 modal sweep (30d→7d) + SoftDeleteCountdownBanner + cancel-link route (DEL-01, DEL-02)
+    - [ ] 22-06-PLAN.md — AdminLayout + Members table + Member drill-in (6 tabs) + feature-flag overrides wrapper (ADMIN-01, ADMIN-05)
+    - [ ] 22-07-PLAN.md — RefundModal + CancelSubModal + CompSubModal + AdminAffiliatesReviewQueue (ADMIN-04, ADMIN-06 closes Phase 19 BL-11 status-graph gap)
+    - [ ] 22-08-PLAN.md — AdminMetricsPage + CohortHeatmap CSS-grid (ADMIN-02, ADMIN-08)
+    - [ ] 22-09-PLAN.md — ImpersonationBanner + useImpersonation + useImpersonationReadOnly hooks (ADMIN-03)
+    - [ ] 22-10-PLAN.md — vanilla-cookieconsent + Consent Mode v2 + consent_records audit (GDPR-01, GDPR-02)
+    - [ ] 22-11-PLAN.md — DsarPortalPage + EmailPreferencesPage + SettingsPage sub-page links (GDPR-03 UI, ON-03)
+  - Wave 3 (closeout — integration + RLS proofs + VALIDATION):
+    - [ ] 22-12-PLAN.md — App.tsx wiring (3 banners + 4 lazy routes + loadOverrides) + 12 e2e/RLS proofs + VALIDATION.md per-task rows
+**UI hint**: yes (UI-SPEC shipped 2026-05-16, ui-checker 6/6 PASS first iteration)
 **Open questions locked at CONTEXT.md**: (3) Page-builder embed-provider blocks (Calendly / YouTube / Tally) at v1.2 or v1.3.
 
 ### Phase 17: Push Notifications
@@ -189,7 +237,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
 **Goal**: The owner / admin can see everything material to running LeanShot: members table with search/filter, financial metrics (MRR / ARR / churn / clinic seat utilization), impersonation with red-banner audit trail, refunds / sub-cancels / comps with full audit, feature-flag overrides, affiliate-payout review queue (consumes Phase 19 fraud signals), ad-revenue dashboard (consumes Phase 20 daily ETL), and cohort retention heatmap. Patients can delete their account in ≤3 taps from in-app settings (App Store §5.1.1(v) compliance) with the full cascade running through `account-delete` Edge Function (Stripe + Connect + Resend + Storage + RLS + retention exceptions). EU visitors see cookie consent with granular Essential / Analytics / Marketing / Personalization toggles (Consent Mode v2). DSAR portal lets users export their data in JSON + PDF (30-day SLA). Lifecycle email templates (welcome / behavior-triggered / transactional / retention) all ship on new design tokens. Revamped 7-step onboarding incorporates watch pairing + Health permission + push permission + affiliate-attribution capture.
 **Mode:** mvp
 **Depends on**: Every prior phase's data (final cross-cutting layer)
-**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08, DEL-01, DEL-02, GDPR-01, GDPR-02, GDPR-03, ON-01, ON-02, ON-03
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-08, DEL-01, DEL-02, GDPR-01, GDPR-02, GDPR-03, ON-02, ON-03 (ADMIN-07 carved out to Phase 20 per CONTEXT D-01; ON-01 deferred to Phase 22b per CONTEXT D-02)
 **Research flag**: Marginal (DSAR contract-test pattern is novel)
 **Success Criteria** (what must be TRUE):
   1. Owner opens admin → sees members table sortable by tier / signup / last-active / clinic / country / billing status → impersonates a user → sees red banner ("Impersonating user@example.com — 30 min remaining") → operates as the user → returns to admin → `audit_logs` carries the impersonation entry visible to both owner and impersonated user
@@ -197,8 +245,24 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   3. EU visitor lands on marketing site → sees cookie consent banner (vanilla-cookieconsent + Consent Mode v2) with granular Essential / Analytics / Marketing / Personalization toggles defaulted off → grants Analytics → PostHog loads via dynamic `import()` AFTER consent; same visitor in US sees Analytics default on (CCPA); `consent_records` row stores the consent state server-side for audit
   4. User opens DSAR portal → requests data export → receives email link → downloads a JSON + PDF bundle including data from Postgres + Storage photos + Stripe payment history + PostHog event log + affiliate ledger (anonymized for others' rows) within the 30-day SLA
   5. New user goes through revamped 7-step onboarding on new design tokens → watch-pairing step (skippable) → Health-permission step (skippable) → push-permission step → affiliate-attribution auto-captures from cookie if present → 24 hours after signup receives welcome email day-0 from `noreply@app.leanshot.app` on new design tokens (Resend domain verified in Phase 12)
-**Plans**: TBD
-**UI hint**: yes
+**Plans:** 12 plans across 4 waves
+  - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
+    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+  - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
+    - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
+    - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
+    - [ ] 22-04-PLAN.md — dsar-export Edge Function + pdf-render + dsar_request RPCs (GDPR-03)
+  - Wave 2 (parallel — UI + cross-cutting; depends on 22-01 + Wave-1 outputs):
+    - [ ] 22-05-PLAN.md — DEL-01 modal sweep (30d→7d) + SoftDeleteCountdownBanner + cancel-link route (DEL-01, DEL-02)
+    - [ ] 22-06-PLAN.md — AdminLayout + Members table + Member drill-in (6 tabs) + feature-flag overrides wrapper (ADMIN-01, ADMIN-05)
+    - [ ] 22-07-PLAN.md — RefundModal + CancelSubModal + CompSubModal + AdminAffiliatesReviewQueue (ADMIN-04, ADMIN-06 closes Phase 19 BL-11 status-graph gap)
+    - [ ] 22-08-PLAN.md — AdminMetricsPage + CohortHeatmap CSS-grid (ADMIN-02, ADMIN-08)
+    - [ ] 22-09-PLAN.md — ImpersonationBanner + useImpersonation + useImpersonationReadOnly hooks (ADMIN-03)
+    - [ ] 22-10-PLAN.md — vanilla-cookieconsent + Consent Mode v2 + consent_records audit (GDPR-01, GDPR-02)
+    - [ ] 22-11-PLAN.md — DsarPortalPage + EmailPreferencesPage + SettingsPage sub-page links (GDPR-03 UI, ON-03)
+  - Wave 3 (closeout — integration + RLS proofs + VALIDATION):
+    - [ ] 22-12-PLAN.md — App.tsx wiring (3 banners + 4 lazy routes + loadOverrides) + 12 e2e/RLS proofs + VALIDATION.md per-task rows
+**UI hint**: yes (UI-SPEC shipped 2026-05-16, ui-checker 6/6 PASS first iteration)
 
 ### Phase 23: v1.1 Tech Debt Sweep + Launch Polish
 **Goal**: Close out the carry-over items from v1.1 that have been waiting since the milestone audit. Final pre-launch polish on ASO assets. CI gains knip + ts-unused-exports to prevent the Plan 10-06 WORKSPACE_LOADED-style unused-export defects from recurring (anti-pattern #6 tooling).
