@@ -1,9 +1,9 @@
 ---
 phase: 22
 slug: owner-admin-lifecycle-email-dsar-cookie-consent
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: verified
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-16
 ---
 
@@ -99,9 +99,9 @@ created: 2026-05-16
 - [x] Wave 0 covers all MISSING references (35 scaffolds shipped in plan 22-01; all turned on by closing plans 22-02..22-12)
 - [x] No watch-mode flags (npm test runs `vitest run`; e2e is one-shot Playwright)
 - [x] Feedback latency < 120s (unit) / < 360s (full) — unit ~25s, Deno ~45s, Playwright ~3.6s for plan 22-12 spec set
-- [ ] `nyquist_compliant: true` set in frontmatter (post-`/gsd-verify-work` — verifier-owned flip per sign-off rule + Pre-emptive warning 6)
+- [x] `nyquist_compliant: true` set in frontmatter (flipped 2026-05-16 by gsd-verifier — see 22-VERIFICATION.md)
 
-**Approval:** pending verifier sign-off
+**Approval:** VERIFIED 2026-05-16 by gsd-verifier (status: passed; 14/14 REQ-IDs satisfied; see 22-VERIFICATION.md)
 
 ---
 
