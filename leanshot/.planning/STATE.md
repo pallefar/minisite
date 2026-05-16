@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
-status: Phase 22 shipped — pushed 157 commits to origin/main (v1.2 catch-up)
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-05-16T07:17:50.788Z"
+status: Phase 16 in-flight — 8/11 plans shipped; Sentry projects + H+I audit closed; awaiting Apple Dev + Play + vendor paste-backs
+stopped_at: Phase 16 vendor credential checklist (Sections A/B/C/D3/E/F/G)
+last_updated: "2026-05-16T10:00:00.000Z"
 last_activity: 2026-05-16
 progress:
   total_phases: 12
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 22 — Owner/Admin + Lifecycle Email + DSAR + Cookie Consent
+**Current focus:** Phase 16 — Capacitor Mobile Shells (resumed after `leanshot.app` domain registration; awaiting Apple Dev enrollment + Play Console + vendor paste-backs to ship plans 16-09 + 16-10)
 
 ## Current Position
 
-Phase: 22 — COMPLETE
-Plan: 2 of 12 (Wave 0 SHIPPED; Wave 1 ready)
-Status: Phase 22 shipped — pushed 157 commits to origin/main (v1.2 catch-up)
+Phase: 16 — IN-FLIGHT (plans 16-00..16-08 shipped; 16-03 partial-on-credential-block; 16-09 + 16-10 not started)
+Plan: 8 of 11 plans complete (16-00 / 16-01 / 16-02 / 16-04 / 16-05 / 16-06 / 16-07 / 16-08)
+Status: Phase 16 H+I audit closed end-to-end 2026-05-16 — see `phases/16-capacitor-mobile-shells-ios-android/16-AUDIT-DEFERRED-SEO-AND-AASA.md`. SPA-domain split fixed (app.leanshot.app live + cross-domain redirects + SPA-fallback catchall scoped via `has: host=X`). Sentry per-platform projects created + DSNs wired (D-17 superseded — see 16-CONTEXT-ADDENDUM-sentry-per-platform-projects.md). Awaiting paste-backs to finish Sections A/B/C/D3/E/F/G of `phases/16-capacitor-mobile-shells-ios-android/16-09-CREDENTIALS-CHECKLIST.md`.
 Last activity: 2026-05-16
 
 ### v1.1 close (2026-05-13)

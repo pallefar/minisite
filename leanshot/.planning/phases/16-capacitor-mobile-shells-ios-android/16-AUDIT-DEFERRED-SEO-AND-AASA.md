@@ -96,3 +96,22 @@ curl -sS https://leanshot.app/ | grep -cE 'og:|twitter:'
 - Related: [[project-phase8-wave1-executed]] (Phase 8 SharePage path routing)
 - Related: [[reference-supabase-auth-traps]] (D-3 password-reset flow)
 - Related: 16-CONTEXT.md D-11 (AASA path categories — origin of the `/faq` path)
+
+## Audit closeout state (snapshot 2026-05-16 end-of-session)
+
+| Surface | State |
+|---|---|
+| H+I audit (vercel rewrites, sitemap, OG tags, legal/auth routing, SPA fallback) | ✅ CLOSED — all smoke green, see "Final smoke battery" output captured in session transcript |
+| `app.leanshot.app` HTTPS + SPA fallback | ✅ live (domain moved leanshot-marketing → leanshot-app via REST; DNS A 76.76.21.21 added; cert provisioned; SPA-fallback catchall scoped to `has: host=app.leanshot.app`) |
+| `leanshot.app` page-render catchall + sitemap | ✅ live, scoped to `has: host=leanshot.app` (no longer leaks onto SPA domain) |
+| Cross-domain redirects /signin /signup /reset-password /verify-email /legal/:slug | ✅ 307 → `https://app.leanshot.app/#/…` |
+| Sentry per-platform DSNs (web + iOS + Android) | ✅ Vercel env wired for web; iOS+Android DSNs are build-time vars for fastlane (Section D2 of checklist) |
+| Carry-forward to credential checklist (user-gated) | Sections A/B/C/D3/E/F/G — see checklist; Apple Dev + Play Console deliberately deferred to milestone tail per user direction |
+| D-1 og-image.png (1200×630 PNG) | OPEN — design asset, blocks rich social-share previews on leanshot.app |
+| D-2 `/faq` AASA destination | OPEN — either ship FAQ landing or remove from AASA at 16-03 re-execute |
+| D-3 `/reset-password` mapping verification | OPEN — needs live email-link test post Apple Dev approval |
+| D-4 Content-Type `text/plain` on sitemap.xml + page-render | ACCEPTED RISK for v1.2 (Supabase Edge Function gateway override; search engines tolerate) |
+| D-5 Search Console + Bing Webmaster submission | OPEN — post-launch browser action |
+| D-6 Cookie consent banner smoke | OPEN — needs EU IP or Playwright MCP geo-override |
+| D-7 DSAR + account-delete smoke | DSAR route reachable (`/settings/privacy/dsar` → SPA) confirmed via curl 2026-05-16; functional smoke deferred to authed test account |
+| Sentry bootstrap token (sntryu_2e95...) | REVOKED 2026-05-16 by user; new CI token deferred until fastlane (16-09) actually needs it |
