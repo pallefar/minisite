@@ -171,22 +171,27 @@ function makeReq(body: Record<string, unknown>, bearer = 'caller-jwt'): Request 
   });
 }
 
+// Real UUIDv4 fixtures (must match UUID_RE in production code).
+const ADMIN_1 = '11111111-1111-4111-8111-111111111111';
+const USER_2 = '22222222-2222-4222-8222-222222222222';
+const ADMIN_3 = '33333333-3333-4333-8333-333333333333';
+
 function defaultState(): FakeState {
   return {
     profiles: [
-      { id: 'admin-uuid-1111', is_staff: true, email: 'admin@leanshot.app' },
-      { id: 'user-uuid-2222', is_staff: false, email: 'user@example.com' },
-      { id: 'admin-uuid-3333', is_staff: true, email: 'admin2@leanshot.app' },
+      { id: ADMIN_1, is_staff: true, email: 'admin@leanshot.app' },
+      { id: USER_2, is_staff: false, email: 'user@example.com' },
+      { id: ADMIN_3, is_staff: true, email: 'admin2@leanshot.app' },
     ],
     users: [
-      { id: 'admin-uuid-1111', email: 'admin@leanshot.app', app_metadata: {} },
-      { id: 'user-uuid-2222', email: 'user@example.com', app_metadata: {} },
-      { id: 'admin-uuid-3333', email: 'admin2@leanshot.app', app_metadata: {} },
+      { id: ADMIN_1, email: 'admin@leanshot.app', app_metadata: {} },
+      { id: USER_2, email: 'user@example.com', app_metadata: {} },
+      { id: ADMIN_3, email: 'admin2@leanshot.app', app_metadata: {} },
     ],
     auditInserts: [],
     updateUserByIdCalls: [],
     generateLinkCalls: [],
-    callerUserId: 'admin-uuid-1111',
+    callerUserId: ADMIN_1,
   };
 }
 
@@ -196,10 +201,10 @@ function defaultState(): FakeState {
 
 Deno.test('T1 — non-staff caller returns 403 forbidden + no audit row', async () => {
   const state = defaultState();
-  state.callerUserId = 'user-uuid-2222'; // non-staff caller
+  state.callerUserId = USER_2; // non-staff caller
   __internal.setAdminForTest(makeFakeAdmin(state));
   const res = await __internal.handle(
-    makeReq({ action: 'start', target_user_id: 'admin-uuid-3333' }),
+    makeReq({ action: 'start', target_user_id: ADMIN_3 }),
   );
   assertEquals(res.status, 403);
   const body = await res.json();
@@ -210,10 +215,10 @@ Deno.test('T1 — non-staff caller returns 403 forbidden + no audit row', async 
 
 Deno.test('T2 — self-impersonation returns 400 cannot_impersonate_self', async () => {
   const state = defaultState();
-  state.callerUserId = 'admin-uuid-1111';
+  state.callerUserId = ADMIN_1;
   __internal.setAdminForTest(makeFakeAdmin(state));
   const res = await __internal.handle(
-    makeReq({ action: 'start', target_user_id: 'admin-uuid-1111' }),
+    makeReq({ action: 'start', target_user_id: ADMIN_1 }),
   );
   assertEquals(res.status, 400);
   const body = await res.json();
@@ -223,10 +228,10 @@ Deno.test('T2 — self-impersonation returns 400 cannot_impersonate_self', async
 
 Deno.test('T3 — target is also is_staff returns 400 cannot_impersonate_admin', async () => {
   const state = defaultState();
-  state.callerUserId = 'admin-uuid-1111';
+  state.callerUserId = ADMIN_1;
   __internal.setAdminForTest(makeFakeAdmin(state));
   const res = await __internal.handle(
-    makeReq({ action: 'start', target_user_id: 'admin-uuid-3333' }),
+    makeReq({ action: 'start', target_user_id: ADMIN_3 }),
   );
   assertEquals(res.status, 400);
   const body = await res.json();
@@ -236,11 +241,11 @@ Deno.test('T3 — target is also is_staff returns 400 cannot_impersonate_admin',
 
 Deno.test('T4 — happy path start: updateUserById + generateLink + audit row', async () => {
   const state = defaultState();
-  state.callerUserId = 'admin-uuid-1111';
+  state.callerUserId = ADMIN_1;
   __internal.setAdminForTest(makeFakeAdmin(state));
   const before = Date.now();
   const res = await __internal.handle(
-    makeReq({ action: 'start', target_user_id: 'user-uuid-2222' }),
+    makeReq({ action: 'start', target_user_id: USER_2 }),
   );
   const after = Date.now();
   assertEquals(res.status, 200);
@@ -254,9 +259,9 @@ Deno.test('T4 — happy path start: updateUserById + generateLink + audit row', 
   // updateUserById called with correct app_metadata
   assertEquals(state.updateUserByIdCalls.length, 1);
   const call = state.updateUserByIdCalls[0]!;
-  assertEquals(call.id, 'user-uuid-2222');
+  assertEquals(call.id, USER_2);
   const meta = (call.attrs as { app_metadata: Record<string, unknown> }).app_metadata;
-  assertEquals(meta.impersonator_id, 'admin-uuid-1111');
+  assertEquals(meta.impersonator_id, ADMIN_1);
   assert(typeof meta.impersonation_exp === 'number');
 
   // generateLink called with type=magiclink + target email
@@ -268,22 +273,22 @@ Deno.test('T4 — happy path start: updateUserById + generateLink + audit row', 
   assertEquals(state.auditInserts.length, 1);
   const audit = state.auditInserts[0]!;
   assertEquals(audit.action, 'impersonate_start');
-  assertEquals(audit.impersonator_id, 'admin-uuid-1111');
-  assertEquals(audit.target_user_id, 'user-uuid-2222');
-  assertEquals(audit.user_id, 'admin-uuid-1111'); // caller is the actor
+  assertEquals(audit.impersonator_id, ADMIN_1);
+  assertEquals(audit.target_user_id, USER_2);
+  assertEquals(audit.user_id, ADMIN_1); // caller is the actor
 });
 
 Deno.test('T5 — happy path end: clears app_metadata + writes impersonate_end audit row', async () => {
   const state = defaultState();
-  state.callerUserId = 'admin-uuid-1111';
+  state.callerUserId = ADMIN_1;
   // Set target's existing impersonation state so 'end' has something to clear
   state.users[1]!.app_metadata = {
-    impersonator_id: 'admin-uuid-1111',
+    impersonator_id: ADMIN_1,
     impersonation_exp: Date.now() + 1000,
   };
   __internal.setAdminForTest(makeFakeAdmin(state));
   const res = await __internal.handle(
-    makeReq({ action: 'end', target_user_id: 'user-uuid-2222' }),
+    makeReq({ action: 'end', target_user_id: USER_2 }),
   );
   assertEquals(res.status, 200);
   assertEquals(state.updateUserByIdCalls.length, 1);
@@ -294,17 +299,17 @@ Deno.test('T5 — happy path end: clears app_metadata + writes impersonate_end a
   assertEquals(meta.impersonation_exp, null);
   assertEquals(state.auditInserts.length, 1);
   assertEquals(state.auditInserts[0]!.action, 'impersonate_end');
-  assertEquals(state.auditInserts[0]!.impersonator_id, 'admin-uuid-1111');
-  assertEquals(state.auditInserts[0]!.target_user_id, 'user-uuid-2222');
+  assertEquals(state.auditInserts[0]!.impersonator_id, ADMIN_1);
+  assertEquals(state.auditInserts[0]!.target_user_id, USER_2);
 });
 
 Deno.test('T6 — end when no active impersonation returns 200 (idempotent)', async () => {
   const state = defaultState();
-  state.callerUserId = 'admin-uuid-1111';
+  state.callerUserId = ADMIN_1;
   // target has NO impersonator_id set
   __internal.setAdminForTest(makeFakeAdmin(state));
   const res = await __internal.handle(
-    makeReq({ action: 'end', target_user_id: 'user-uuid-2222' }),
+    makeReq({ action: 'end', target_user_id: USER_2 }),
   );
   assertEquals(res.status, 200);
   const body = await res.json();
