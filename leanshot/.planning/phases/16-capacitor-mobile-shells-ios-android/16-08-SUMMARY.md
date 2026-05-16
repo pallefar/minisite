@@ -118,6 +118,8 @@ LeanShot is a GLP-1 tracker. The two plausible App Store / Play Store categories
 
 **Recommendation:** Health & Fitness (matches PROJECT.md "Not yet a HIPAA covered entity" stance + the in-copy disclaimer). Confirm before submitting in Plan 16-09.
 
+**DECISION 2026-05-16 (user):** **Health & Fitness** locked. Aligns with PROJECT.md positioning + avoids the Medical-category clinical-references / HCP-review rejection risk surfaced in [[reference-phase7-research-findings]]. Use this category for both App Store + Play Store at first submission in Plan 16-09. If later re-positioning warrants Medical, re-submission of the binary is required (App Store doesn't allow category change without re-review).
+
 ### D. Final marketing-copy sign-off
 
 The drafted copy is autonomous-default-ready, but final submission should have human review for:

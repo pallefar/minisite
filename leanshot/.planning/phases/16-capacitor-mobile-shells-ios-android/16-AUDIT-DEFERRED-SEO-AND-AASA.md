@@ -107,9 +107,9 @@ curl -sS https://leanshot.app/ | grep -cE 'og:|twitter:'
 | Cross-domain redirects /signin /signup /reset-password /verify-email /legal/:slug | ✅ 307 → `https://app.leanshot.app/#/…` |
 | Sentry per-platform DSNs (web + iOS + Android) | ✅ Vercel env wired for web; iOS+Android DSNs are build-time vars for fastlane (Section D2 of checklist) |
 | Carry-forward to credential checklist (user-gated) | Sections A/B/C/D3/E/F/G — see checklist; Apple Dev + Play Console deliberately deferred to milestone tail per user direction |
-| D-1 og-image.png (1200×630 PNG) | OPEN — design asset, blocks rich social-share previews on leanshot.app |
-| D-2 `/faq` AASA destination | OPEN — either ship FAQ landing or remove from AASA at 16-03 re-execute |
-| D-3 `/reset-password` mapping verification | OPEN — needs live email-link test post Apple Dev approval |
+| D-1 og-image.png (1200×630 PNG) | **STUB SHIPPED 2026-05-16** — Playwright MCP screenshot of `https://leanshot.app/` marketing landing at 1200×630 viewport, saved to `leanshot/public/og-image.png` (220KB). Not launch-quality (literal page screenshot, not a designed marketing card) but unblocks social-share previews. **Open follow-up:** commission a designed OG card before launch announcement (designer pass — same one that produces 18 ASO screenshots in 16-08 Task 4 can produce this). |
+| D-2 `/faq` AASA destination | **DECISION 2026-05-16** — ship FAQ stub via Phase 15 page-builder when FAQ copy is ready. AASA `/faq` path STAYS. Until FAQ landing page is published, `/faq` continues to 404 (acceptable per user direction — non-launch-critical link path). When publishing: just add a `faq` slug via page-builder admin; page-render Edge Function on `leanshot.app/faq` will start serving without further code/AASA changes. |
+| D-3 `/reset-password` mapping verification | **PENDING USER SMOKE** — user will trigger a real reset email at `https://app.leanshot.app/#/auth/forgot-password`, paste the landing URL back. Will confirm whether `set-new-password` is correct vs needs change to `forgot-password`. Cross-domain redirect in vercel.json updates trivially if mapping is wrong. |
 | D-4 Content-Type `text/plain` on sitemap.xml + page-render | ACCEPTED RISK for v1.2 (Supabase Edge Function gateway override; search engines tolerate) |
 | D-5 Search Console + Bing Webmaster submission | OPEN — post-launch browser action |
 | D-6 Cookie consent banner smoke | OPEN — needs EU IP or Playwright MCP geo-override |
