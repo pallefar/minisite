@@ -1,5 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Phase 16 16-08: the `aso` ASO-capture project is opt-in via either
+// `--project=aso` on the CLI or `PLAYWRIGHT_RUN_ASO=1` in the env. Without
+// this gate, the bare `playwright test` invocation in `npm run test` would
+// pull in 6 viewport tests for marketing-asset generation (not a regression
+// gate). Including it only when explicitly requested keeps the default CI
+// suite lean while preserving discoverability via `--project=aso --list`.
+const ASO_OPT_IN =
+  process.env.PLAYWRIGHT_RUN_ASO === '1' ||
+  process.argv.some((a) => a === '--project=aso' || a === 'aso');
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -16,6 +26,11 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      // Phase 16 16-08: exclude the ASO capture spec from the default run so
+      // it stays opt-in via `--project=aso`. Without this, chromium (which has
+      // no testMatch override) sweeps e2e/aso/** because the root testMatch
+      // accepts every *.spec.ts.
+      testIgnore: /e2e\/aso\/.*\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'] },
     },
     // Phase 16 16-00: mobile-only Playwright project for IAP flow + 200-photo soak + ASO viewport capture.
@@ -25,6 +40,21 @@ export default defineConfig({
       testMatch: /e2e\/mobile\/.*\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 430, height: 932 } },
     },
+    // Phase 16 16-08: opt-in ASO multi-viewport capture project. Invoke via
+    // `npx playwright test --project=aso` OR `PLAYWRIGHT_RUN_ASO=1 npx playwright test`.
+    // Per-test setViewportSize handles the 6 D-19 viewports; we don't bake a
+    // single viewport into `use` here because each test rewrites it. The
+    // project is conditionally included (see ASO_OPT_IN above) so the default
+    // CI suite stays lean.
+    ...(ASO_OPT_IN
+      ? [
+          {
+            name: 'aso',
+            testMatch: /e2e\/aso\/.*\.spec\.ts$/,
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
   ],
   // CI uses preview build (matches production); local reuses dev server
   webServer: process.env.CI
