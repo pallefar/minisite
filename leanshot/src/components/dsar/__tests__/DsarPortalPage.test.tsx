@@ -18,6 +18,16 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DsarPortalPage } from '@/components/dsar/DsarPortalPage';
+import { DsarStatusCard } from '@/components/dsar/DsarStatusCard';
+import type { DsarRequestRow } from '@/lib/dsar/dsar-export-client';
+import { renderDsarPdf } from '@/lib/dsar/dsar-pdf-render';
+
+// NOTE: Imports under test sit above so import-x/order is satisfied, but the
+// vi.mock calls below are hoisted by Vitest's compiler to run BEFORE these
+// imports resolve at runtime. Mock-state variables (`mockRpc`, `mockFrom`,
+// etc.) are intentionally NOT referenced inside the vi.mock factories'
+// captured closures so the hoist ordering is safe.
 
 // ─── Mock supabase (network) ──────────────────────────────────────────────────
 
@@ -73,13 +83,6 @@ const toastSpy = vi.fn();
 vi.mock('@/hooks/useToast', () => ({
   useToast: () => toastSpy,
 }));
-
-// ─── Imports under test (after mocks are wired) ───────────────────────────────
-
-import { DsarPortalPage } from '@/components/dsar/DsarPortalPage';
-import { DsarStatusCard } from '@/components/dsar/DsarStatusCard';
-import { renderDsarPdf } from '@/lib/dsar/dsar-pdf-render';
-import type { DsarRequestRow } from '@/lib/dsar/dsar-export-client';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

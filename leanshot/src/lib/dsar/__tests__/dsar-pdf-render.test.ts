@@ -13,7 +13,6 @@
  * index.test.ts`) — that's the only path that actually renders at v1.2.
  */
 import { describe, expect, it } from 'vitest';
-
 import { renderDsarPdf } from '@/lib/dsar/dsar-pdf-render';
 
 describe('dsar-pdf-render (Phase 22 GDPR-03 v1.3 placeholder)', () => {

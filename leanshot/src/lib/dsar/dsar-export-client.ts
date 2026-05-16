@@ -20,8 +20,8 @@
  *   - 'forbidden' — RLS denial on SELECT (defensive)
  *   - 'unknown' — anything else
  */
-import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 export type DsarRequestStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
 

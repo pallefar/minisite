@@ -8,9 +8,9 @@
  *   - rejected → rejection_reason + "Contact support" link
  *   - `aria-live="polite"` on the badge so a transitioning status announces
  */
-import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import {
   formatExpiryDate,
   type DsarRequestRow,

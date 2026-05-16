@@ -23,8 +23,8 @@
  *   welcome=true, behavior_triggered=true, retention=true, weekly_digest=false, affiliate=true
  *   (matches the lifecycle Fns' opt-in posture at v1.2; user can opt out at any time.)
  */
-import { useCallback, useEffect, useState } from 'react';
 import { Mail } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Pill, PillGroup } from '@/components/ui/Pill';

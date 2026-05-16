@@ -19,15 +19,13 @@
  * Server cascade is owned by `supabase/functions/dsar-export` (plan 22-04) —
  * the cron tick (plan 22-11 migration 21) picks pending rows up every 5min.
  */
-import { useCallback, useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
-import { useStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
 import {
   DsarError,
   getDsarRequest,
@@ -36,6 +34,8 @@ import {
   subscribeDsarRequests,
   type DsarRequestRow,
 } from '@/lib/dsar/dsar-export-client';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { DsarStatusCard } from './DsarStatusCard';
 
 const STATUS_LABEL_MAP: Record<DsarRequestRow['status'], string> = {
