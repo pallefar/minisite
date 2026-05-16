@@ -29,7 +29,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { mintTestJwt } from './helpers/jwt';
+import { getUserAccessToken } from './helpers/admin-session';
 import {
   SHOULD_RUN_LIVE_RLS,
   SUPABASE_ANON_KEY,
@@ -174,12 +174,13 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('landing_pages: is_staff user CAN INSERT / UPDATE / DELETE', async () => {
-    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
-    // Eliminates the supabase-js v2.105 Multiple GoTrueClient cross-contamination
-    // flake documented in [[reference_rls_fixture_gotrueclient_flake]].
-    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    // ES256-era admin-minted access_token via plain fetch — no GoTrueClient
+    // instantiation, no SUPABASE_JWT_SECRET. Project migrated to ES256
+    // signing (HS256 key is "previously_used"); local mintTestJwt no longer
+    // validates. See helpers/admin-session.ts header for the full pivot rationale.
+    const accessToken = await getUserAccessToken(staff.email);
     const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
@@ -249,10 +250,10 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('landing_page_revisions: is_staff CAN INSERT a new revision', async () => {
-    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
-    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    // ES256-era admin-minted access_token — see helpers/admin-session.ts.
+    const accessToken = await getUserAccessToken(staff.email);
     const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
@@ -324,10 +325,10 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('leads: is_staff CAN SELECT', async () => {
-    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
-    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    // ES256-era admin-minted access_token — see helpers/admin-session.ts.
+    const accessToken = await getUserAccessToken(staff.email);
     const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
@@ -375,10 +376,10 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('site_settings: is_staff CAN UPDATE', async () => {
-    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
-    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    // ES256-era admin-minted access_token — see helpers/admin-session.ts.
+    const accessToken = await getUserAccessToken(staff.email);
     const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
@@ -424,10 +425,10 @@ describeIfLive('Phase 15 RLS — cross-tenant impersonation proof (4 surfaces + 
   }, 30_000);
 
   it('page-assets: is_staff CAN upload and delete a test image', async () => {
-    // Service-role-minted JWT injected directly — no GoTrueClient instantiation.
-    const jwt = await mintTestJwt({ sub: staff.userId, role: 'authenticated', aud: 'authenticated' });
+    // ES256-era admin-minted access_token — see helpers/admin-session.ts.
+    const accessToken = await getUserAccessToken(staff.email);
     const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 

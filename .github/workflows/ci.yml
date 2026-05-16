@@ -81,11 +81,14 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # Phase 23 Plan 23-05 — service-role-minted JWT injection for page-builder-rls
-          # staff tests. Used by tests/rls/helpers/jwt.ts (mintTestJwt). Required for
-          # the 4 is_staff CAN ... tests to prove staff RLS paths without GoTrueClient.
-          # Source: Supabase dashboard > Settings > API > JWT Secret (project ytnsipxxmzgaebkqmokp).
-          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          # Phase 23 Plan 23-05 (PIVOT 2026-05-16) — staff RLS fixtures use
+          # tests/rls/helpers/admin-session.ts which calls /auth/v1/admin/generate_link
+          # + /auth/v1/verify via plain fetch (ES256-era compatible; no JWT secret
+          # needed). The original mintTestJwt approach was abandoned after the
+          # project migrated to ES256 asymmetric signing (HS256 key marked
+          # "previously_used" in /v1/projects/{ref}/config/auth/signing-keys).
+          # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + SUPABASE_ANON_KEY above are
+          # all that's required — no SUPABASE_JWT_SECRET env line.
 
   test-e2e:
     name: E2E smoke + production-build security check
