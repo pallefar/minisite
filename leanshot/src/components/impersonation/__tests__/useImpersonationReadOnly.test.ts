@@ -12,7 +12,6 @@
  */
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { useImpersonationReadOnly } from '@/components/impersonation/useImpersonationReadOnly';
 
 const mockUseImpersonation = vi.fn();

@@ -16,9 +16,8 @@
  * via the banner — see ImpersonationBanner).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { endImpersonation as endImpersonationApi } from '@/lib/admin/admin-impersonate';
 import { supabase } from '@/lib/supabase';
 

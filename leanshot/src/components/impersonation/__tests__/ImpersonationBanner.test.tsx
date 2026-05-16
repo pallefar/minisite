@@ -14,7 +14,6 @@
  */
 import { render, screen, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBanner';
 
 const mockUseImpersonation = vi.fn();
