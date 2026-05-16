@@ -33,6 +33,86 @@
 
 import { test } from '@playwright/test';
 
+// Seed a demo user into localStorage before each page load so the dashboard
+// renders for ASO capture (vs the marketing/onboarding gate). Pattern mirrors
+// e2e/settings-export.spec.ts. T-16-08-01: non-PII demo identity only.
+const STORAGE_KEY = 'leanshot_v4';
+const SEEDED_USER = {
+  name: 'Demo',
+  medication: 'tirzepatide',
+  startDate: '2026-01-01',
+  startWeight: 100,
+  height: 175,
+  age: 35,
+  sex: 'male',
+  bodyFat: null,
+  goalWeight: 80,
+  goal: 'fat-loss',
+  dose: '2.5',
+  doseUnit: 'mg',
+  units: 'metric',
+  proteinTarget: 130,
+  calorieTarget: 1800,
+  fiberTarget: 30,
+  waterTarget: 8,
+  injectionDay: 1,
+  activityLevel: 'moderate',
+  liftingLevel: 'beginner',
+  createdAt: '2026-01-01T00:00:00.000Z',
+};
+const SEEDED_PERSISTED_STATE = {
+  state: {
+    user: SEEDED_USER,
+    injections: [
+      { id: 'i1', date: '2026-04-15T09:00:00.000Z', dose: 2.5, site: 'thigh-left', medication: 'tirzepatide', doseUnit: 'mg' },
+      { id: 'i2', date: '2026-04-22T09:00:00.000Z', dose: 2.5, site: 'thigh-right', medication: 'tirzepatide', doseUnit: 'mg' },
+      { id: 'i3', date: '2026-04-29T09:00:00.000Z', dose: 5, site: 'abdomen-left', medication: 'tirzepatide', doseUnit: 'mg' },
+      { id: 'i4', date: '2026-05-06T09:00:00.000Z', dose: 5, site: 'abdomen-right', medication: 'tirzepatide', doseUnit: 'mg' },
+    ],
+    symptoms: [],
+    weights: [
+      { date: '2026-04-15', weight: 100 },
+      { date: '2026-04-22', weight: 99.2 },
+      { date: '2026-04-29', weight: 98.1 },
+      { date: '2026-05-06', weight: 97.4 },
+      { date: '2026-05-13', weight: 96.6 },
+    ],
+    measurements: [],
+    meals: [],
+    water: {},
+    foodNoise: {},
+    workouts: [],
+    steps: {},
+    supplements: {},
+    mood: [],
+    sleep: [],
+    nsvs: [],
+    photos: [],
+    vials: [],
+    aiHistory: [],
+    costs: [],
+    acknowledgedDisclaimer: 'v1',
+    pendingOps: [],
+    verificationBannerDismissedUntil: null,
+    migration_state: null,
+  },
+  version: 8,
+};
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(
+    ([key, val, tourKey]) => {
+      try {
+        localStorage.setItem(key as string, val as string);
+        localStorage.setItem(tourKey as string, '1');
+      } catch {
+        /* private-mode — capture will fall back to marketing/onboarding */
+      }
+    },
+    [STORAGE_KEY, JSON.stringify(SEEDED_PERSISTED_STATE), 'leanshot_tour_seen_v4'],
+  );
+});
+
 // CONTEXT D-19 -- six store-required marketing viewports.
 // Width / height match Apple + Google current ASO requirements (2025).
 type StoreSurface = 'ios' | 'android';
