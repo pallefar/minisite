@@ -204,7 +204,7 @@ export function PrivacyPolicy() {
               <strong className="text-[var(--color-text)]">
                 Settings → Privacy → Delete account
               </strong>
-              , a 30-day undo window applies. At day 30, your data is hard-deleted: the per-user
+              , a 7-day undo window applies. At day 7, your data is hard-deleted: the per-user
               encryption key for your photos is destroyed, every row of your data in our 9 sync
               tables is cascade-deleted, and your photos in Supabase Storage are erased. A minimal
               audit-log skeleton (timestamps and SHA-256 hashes of your user ID — no plaintext PII)
@@ -231,9 +231,9 @@ export function PrivacyPolicy() {
             </li>
             <li>
               <strong className="text-[var(--color-text)]">Delete your account.</strong> Settings →
-              Privacy → Delete account → type your email to confirm. A 30-day undo window is
-              available via a magic link emailed to you at the time of deletion. After 30 days the
-              deletion is irreversible by design.
+              Privacy → Delete account → type DELETE MY ACCOUNT to confirm. A 7-day undo window
+              is available via an HMAC-signed cancel link emailed to you at the time of deletion
+              (and an in-app banner). After 7 days the deletion is irreversible by design.
             </li>
             <li>
               <strong className="text-[var(--color-text)]">Correct your data.</strong> Every entry

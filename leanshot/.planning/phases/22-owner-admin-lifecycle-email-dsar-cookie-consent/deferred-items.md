@@ -33,6 +33,32 @@
      deferable per UI-SPEC; if regulator audience pushes back, fold into a
      Phase 22b Edge Function variant of upsertConsentRecord.
 
+## From Plan 22-05 (sibling-plan-owned scaffold failures)
+
+5. **5 Wave 0 scaffold test files fail at load — sibling Wave 2/3 plans own**
+   - Files (per executor SCOPE BOUNDARY: out of scope for 22-05):
+     - `src/components/admin/members/__tests__/RefundModal.test.tsx` —
+       owner: ADMIN refund plan (TBD Wave 2/3); module
+       `@/components/admin/members/RefundModal` not yet shipped.
+     - `src/components/impersonation/__tests__/ImpersonationBanner.test.tsx` —
+       owner: plan 22-04; module
+       `@/components/impersonation/ImpersonationBanner` not yet shipped.
+     - `src/components/impersonation/__tests__/useImpersonationReadOnly.test.ts` —
+       owner: plan 22-04; module
+       `@/components/impersonation/useImpersonationReadOnly` not yet shipped.
+     - `src/components/dsar/__tests__/DsarPortalPage.test.tsx` — owner:
+       plan 22-11; module `@/components/dsar/DsarPortalPage` not yet shipped.
+     - `src/lib/dsar/__tests__/dsar-pdf-render.test.ts` — owner: plan 22-11;
+       module `@/lib/dsar/dsar-pdf-render` not yet shipped.
+   - Cause: Wave 0 scaffolds (commit `eea3017`) for sibling plans; vitest
+     reports "Failed to resolve import" at load time even though `it.skip`
+     bodies are inert. Same root cause as Item #1 from 22-10.
+   - Action: each owning plan must ship its module body OR convert to
+     stub-only scaffold. Until then, the test files fail at load — not
+     22-05 regressions. Plan 22-05's own scaffold
+     (`SoftDeleteCountdownBanner.test.tsx` + `account-delete-cancel.spec.ts`)
+     was completed by this plan and is now green.
+
 4. **Phase 12 firewall `window.__VERCEL_GEO__` global not yet exposed**
    - `consent-config.ts` reads `window.__VERCEL_GEO__?.country` for the
      EU/US default split. If Phase 12 only emits the header server-side

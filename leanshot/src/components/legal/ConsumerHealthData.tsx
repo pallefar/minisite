@@ -222,12 +222,13 @@ export function ConsumerHealthData() {
           <li className="leading-relaxed">
             <strong>Delete.</strong> Open <em>Settings → Account → Delete my account</em>, type the
             confirmation phrase, and confirm. We mark the account deleted immediately, sign you out
-            of every session, and move your photos to a locked location. You have a 30-day window in
-            which you can email us to undo the deletion. After 30 days, the per-user encryption key
-            for your data is destroyed, every row of your consumer health data is cascade-deleted,
-            and your photos are permanently erased — that operation is irreversible by design. If
-            you sign up again with the same email during the 30-day window, that is treated as a
-            brand-new account; your prior data remains pending shred and is not restored.
+            of every session, and move your photos to a locked location. You have a 7-day window in
+            which you can cancel via the HMAC-signed link in the confirmation email (or via the
+            in-app banner). After 7 days, the per-user encryption key for your data is destroyed,
+            every row of your consumer health data is cascade-deleted, and your photos are
+            permanently erased — that operation is irreversible by design. If you sign up again
+            with the same email during the 7-day window, that is treated as a brand-new account;
+            your prior data remains pending shred and is not restored.
           </li>
           <li className="leading-relaxed">
             <strong>Appeal.</strong> If you believe we have not honored a rights request, email{' '}
@@ -265,7 +266,7 @@ export function ConsumerHealthData() {
           </li>
           <li className="leading-relaxed">
             <strong>Retention.</strong> Consumer health data is retained until you delete your
-            account. After deletion plus the 30-day undo window, your data is unrecoverable. A
+            account. After deletion plus the 7-day undo window, your data is unrecoverable. A
             skeleton audit row (timestamp plus irreversibly hashed user identifier and IP) is
             retained indefinitely to comply with breach-investigation and incident-response
             obligations under the FTC Health Breach Notification Rule. The skeleton never contains

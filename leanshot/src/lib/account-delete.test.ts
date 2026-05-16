@@ -45,33 +45,31 @@ beforeEach(() => {
   }
 });
 
-describe('typedConfirmMatches', () => {
+describe('typedConfirmMatches (Phase 22 Plan 22-05 — literal phrase gate)', () => {
   it('returns false for empty typed input', () => {
-    expect(typedConfirmMatches('', 'a@b.com')).toBe(false);
+    expect(typedConfirmMatches('')).toBe(false);
   });
 
-  it('returns false when email is null', () => {
-    expect(typedConfirmMatches('a@b.com', null)).toBe(false);
+  it('returns true for the exact UI-SPEC phrase "DELETE MY ACCOUNT"', () => {
+    expect(typedConfirmMatches('DELETE MY ACCOUNT')).toBe(true);
   });
 
-  it('returns false when email is undefined', () => {
-    expect(typedConfirmMatches('a@b.com', undefined)).toBe(false);
+  it('returns true with leading/trailing whitespace (mobile keyboard autoinsert)', () => {
+    expect(typedConfirmMatches('  DELETE MY ACCOUNT  ')).toBe(true);
   });
 
-  it('returns true on case-insensitive + trimmed match', () => {
-    expect(typedConfirmMatches('  A@B.com  ', 'a@b.com')).toBe(true);
+  it('returns false for the lowercased phrase (case-sensitive per UI-SPEC §line 310)', () => {
+    expect(typedConfirmMatches('delete my account')).toBe(false);
   });
 
-  it('returns true on exact match', () => {
-    expect(typedConfirmMatches('a@b.com', 'a@b.com')).toBe(true);
+  it('returns false for a partial or different phrase', () => {
+    expect(typedConfirmMatches('DELETE')).toBe(false);
+    expect(typedConfirmMatches('DELETE MY ACCT')).toBe(false);
   });
 
-  it('returns false for different emails', () => {
-    expect(typedConfirmMatches('different@b.com', 'a@b.com')).toBe(false);
-  });
-
-  it('returns false when email is empty string', () => {
-    expect(typedConfirmMatches('', '')).toBe(false);
+  it('legacy 2-arg overload still accepted (email arg ignored)', () => {
+    expect(typedConfirmMatches('DELETE MY ACCOUNT', 'user@example.com')).toBe(true);
+    expect(typedConfirmMatches('user@example.com', 'user@example.com')).toBe(false);
   });
 });
 
