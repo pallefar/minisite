@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.2
-milestone_name: Tech Debt Sweep + Launch Polish
-status: executing
-stopped_at: Phase 22 plan 22-01 SHIPPED
-last_updated: "2026-05-16T07:05:00.000Z"
-last_activity: 2026-05-16 -- Phase 22 plan 22-01 Wave 0 SHIPPED (16 migrations live, A1 PROBE PASS)
+milestone_name: milestone
+status: completed
+stopped_at: Phase 16 UI-SPEC approved
+last_updated: "2026-05-16T07:13:29.253Z"
+last_activity: 2026-05-16 -- Phase 22 marked complete
 progress:
-  total_phases: 18
-  completed_phases: 16
-  total_plans: 141
-  completed_plans: 121
-  percent: 86
+  total_phases: 12
+  completed_phases: 6
+  total_plans: 65
+  completed_plans: 56
+  percent: 50
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 ## Current Position
 
-Phase: 22 (Owner/Admin + Lifecycle Email + DSAR + Cookie Consent) — EXECUTING
+Phase: 22 — COMPLETE
 Plan: 2 of 12 (Wave 0 SHIPPED; Wave 1 ready)
-Status: Executing Phase 22
-Last activity: 2026-05-16 -- Phase 22 plan 22-01 Wave 0 SHIPPED (16 migrations live on ytnsipxxmzgaebkqmokp; 35 test scaffolds in place; A1 PROBE PASS @ 336ms unlocks Option A impersonation for plan 22-04; Vault `CANCEL_DELETION_HMAC_KEY` is the only outstanding vendor pass; commits f15799f + eea3017 + 78e3e1f)
+Status: Phase 22 complete
+Last activity: 2026-05-16 -- Phase 22 marked complete
 
 ### v1.1 close (2026-05-13)
 
