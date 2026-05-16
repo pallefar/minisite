@@ -67,7 +67,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   5. User signs in via the new split-screen login page (form left, hero illustration right) — verified responsive at ≥768px breakpoint and gracefully stacking below
 **Plans:** 12 plans across 4 waves
   - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
-    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+    - [x] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 PROBE PASS + supabase db push --linked SHIPPED 2026-05-16 [commits f15799f + eea3017 + 78e3e1f]
   - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
     - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
     - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
@@ -98,7 +98,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   5. Visitor sees a pricing page (built via Phase 15 PAGE-09 wire-up later) with a comparison table; clicking "Subscribe" lands them on live Stripe Checkout with the correct price ID; `<TierGate>` correctly blocks premium features for `tier='free'` users
 **Plans:** 12 plans across 4 waves
   - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
-    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+    - [x] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 PROBE PASS + supabase db push --linked SHIPPED 2026-05-16 [commits f15799f + eea3017 + 78e3e1f]
   - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
     - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
     - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
@@ -130,7 +130,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   5. `/pricing` page uses the Pricing template + Checkout-button block wired to live Stripe price IDs (MONEY-08 consumer); clicking the button takes the visitor straight to Stripe Checkout
 **Plans:** 12 plans across 4 waves
   - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
-    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+    - [x] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 PROBE PASS + supabase db push --linked SHIPPED 2026-05-16 [commits f15799f + eea3017 + 78e3e1f]
   - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
     - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
     - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)
@@ -247,7 +247,7 @@ Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform
   5. New user goes through revamped 7-step onboarding on new design tokens → watch-pairing step (skippable) → Health-permission step (skippable) → push-permission step → affiliate-attribution auto-captures from cookie if present → 24 hours after signup receives welcome email day-0 from `noreply@app.leanshot.app` on new design tokens (Resend domain verified in Phase 12)
 **Plans:** 12 plans across 4 waves
   - Wave 0 (foundation — schema + scaffolds + BLOCKING db push):
-    - [ ] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 Postman probe + supabase db push --linked [BLOCKING]
+    - [x] 22-01-PLAN.md — 16 migrations + 35 test scaffolds + A1 PROBE PASS + supabase db push --linked SHIPPED 2026-05-16 [commits f15799f + eea3017 + 78e3e1f]
   - Wave 1 (parallel — backend Edge Functions; depends on 22-01):
     - [ ] 22-02-PLAN.md — _shared/resend-domain-health-check + 5 lifecycle Edge Functions + 12 templates (ON-02)
     - [ ] 22-03-PLAN.md — admin-impersonate + admin-stripe-action Edge Functions (ADMIN-03, ADMIN-04)

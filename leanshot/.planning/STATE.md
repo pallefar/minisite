@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
 status: executing
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-05-16T05:18:40.838Z"
-last_activity: 2026-05-16 -- Phase 22 planning complete
+stopped_at: Phase 22 plan 22-01 SHIPPED
+last_updated: "2026-05-16T07:05:00.000Z"
+last_activity: 2026-05-16 -- Phase 22 plan 22-01 Wave 0 SHIPPED (16 migrations live, A1 PROBE PASS)
 progress:
   total_phases: 18
   completed_phases: 16
   total_plans: 141
-  completed_plans: 120
-  percent: 85
+  completed_plans: 121
+  percent: 86
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 19 — affiliate-program-stripe-connect
+**Current focus:** Phase 22 — Owner/Admin + Lifecycle Email + DSAR + Cookie Consent
 
 ## Current Position
 
-Phase: 19 (affiliate-program-stripe-connect) — EXECUTING
-Plan: 1 of 10
-Status: Ready to execute
-Last activity: 2026-05-16 -- Phase 22 planning complete
+Phase: 22 (Owner/Admin + Lifecycle Email + DSAR + Cookie Consent) — EXECUTING
+Plan: 2 of 12 (Wave 0 SHIPPED; Wave 1 ready)
+Status: Executing Phase 22
+Last activity: 2026-05-16 -- Phase 22 plan 22-01 Wave 0 SHIPPED (16 migrations live on ytnsipxxmzgaebkqmokp; 35 test scaffolds in place; A1 PROBE PASS @ 336ms unlocks Option A impersonation for plan 22-04; Vault `CANCEL_DELETION_HMAC_KEY` is the only outstanding vendor pass; commits f15799f + eea3017 + 78e3e1f)
 
 ### v1.1 close (2026-05-13)
 
