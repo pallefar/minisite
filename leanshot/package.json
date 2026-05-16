@@ -44,6 +44,7 @@
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
     "@revenuecat/purchases-capacitor": "^13.1.1",
+    "@sentry/capacitor": "^4.0.0",
     "@sentry/react": "^10.52.0",
     "@supabase/supabase-js": "^2.105.4",
     "@thumbmarkjs/thumbmarkjs": "^1.9.0",
