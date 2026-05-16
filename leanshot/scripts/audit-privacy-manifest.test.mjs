@@ -8,7 +8,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
@@ -126,16 +126,8 @@ function writeFixtures(opts) {
 function runScript(manifestPath, packageJsonPath, { strict = false } = {}) {
   const args = [SCRIPT, `--manifest=${manifestPath}`, `--package-json=${packageJsonPath}`];
   if (strict) args.push('--strict');
-  try {
-    const stdout = execFileSync('node', args, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] });
-    return { code: 0, stdout, stderr: '' };
-  } catch (e) {
-    return {
-      code: e.status ?? 1,
-      stdout: e.stdout?.toString() ?? '',
-      stderr: e.stderr?.toString() ?? '',
-    };
-  }
+  const r = spawnSync('node', args, { encoding: 'utf-8' });
+  return { code: r.status ?? 0, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
 }
 
 // ---------- Tests (5 behavior cases) ----------
