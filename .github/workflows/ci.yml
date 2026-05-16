@@ -513,3 +513,28 @@ jobs:
         # (NOT hardcoded), so future phases can re-baseline by editing the JSON
         # only. Fails the PR if FCP or LCP regresses by more than tolerance_pct (5%).
         run: bash leanshot/scripts/assert-fcp-lcp-delta.sh --lhci-dir=.lighthouseci --baseline=leanshot/.planning/phases/13-design-system-v2-rollout/13-FCP-BASELINE.json
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Phase 23 Plan 23-02 — DEBT-05: Unused exports baseline gate (D-16/D-18).
+  # Runs knip + ts-unused-exports and exits non-zero ONLY when the current
+  # warn count EXCEEDS the committed baseline in
+  # .github/workflows/baselines/unused-exports.json.
+  # Posture: warn-on-new (allows existing tech debt, blocks new dead code).
+  # Per D-17: when a cleanup PR drives baseline to 0, the gate automatically
+  # enforces fail-on-any-warn without any workflow change.
+  # No `needs:` dependency — runs in parallel with lint/typecheck/test-unit
+  # for fast PR feedback (D-18 signal-only, not a blocker for downstream jobs).
+  # ─────────────────────────────────────────────────────────────────────────
+  unused-check:
+    name: Unused exports check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+      - name: Baseline diff (knip + ts-unused-exports)
+        run: bash scripts/check-unused-baseline.sh
