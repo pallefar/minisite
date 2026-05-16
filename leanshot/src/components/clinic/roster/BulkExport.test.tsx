@@ -227,6 +227,7 @@ describe('BulkExport — PDF flow', () => {
     await waitFor(() => expect(jsPDF).toHaveBeenCalled(), { timeout: 5000 });
   });
 
+  // see deferred-tests.md#24-srccomponentsclinicrosterBulkExportteststsx--pdf-audit-row-call-not-assertable-in-jsdom
   it.skip(
     'Test 4: PDF flow calls log_bulk_export_inclusion per patient [DEFERRED — see deferred-tests.md]',
     async () => {

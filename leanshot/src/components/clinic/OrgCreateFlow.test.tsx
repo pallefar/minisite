@@ -108,7 +108,7 @@ describe('OrgCreateFlow — Step 1', () => {
   // Test-pollution from another file's `mockReturnValueOnce` queue carry-over
   // (see `feedback_orchestrator_inline_fix_pattern.md` + 09-05 SUMMARY note on
   // vi.clearAllMocks() not draining mockReturnValueOnce — use mockReset).
-  // Tracked in .planning/deferred-tests.md; batch-fix at milestone close.
+  // see deferred-tests.md#23-srccomponentsclinicorgcreateflowteststsx--url-already-taken-test-deferred-on-mock-contamination
   it.skip('renders "That URL is already taken." on server-taken response [DEFERRED — see .planning/deferred-tests.md]', async () => {
     mockCheckSlugAvailable.mockResolvedValueOnce({ available: false, reason: 'taken' });
     render(<OrgCreateFlow />);

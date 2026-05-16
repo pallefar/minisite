@@ -205,6 +205,7 @@ test.describe('@phase06 SC#4 third leg — LWW conflict toast on losing device',
   });
 
   // DEFERRED (round 2): RC5 budget/cross-test Realtime contamination — see leanshot/.planning/debug/phase7-e2e-rc4-state-wipe-race.md. RC1-RC4 product fixes shipped; this failure is test-infrastructure only.
+  // see deferred-tests.md#5-e2eoffline-conflict-toastspects--rc5-lww-conflict-toast-on-losing-device
   test.fixme('two contexts edit same weight offline; loser sees "We kept your most recent edit." toast', async ({
     browser,
   }) => {

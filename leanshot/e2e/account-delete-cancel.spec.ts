@@ -79,6 +79,7 @@ test.describe('/cancel-deletion route (Phase 22 Plan 22-05)', () => {
  * the 3-part token (uid.epoch.hex_hmac) matching the cancel_account_deletion
  * RPC contract.
  */
+// see deferred-tests.md#8-e2eaccount-delete-cancelspects--hmac-cancel-link-test-deferred-on-vault-key
 test.skip('account-delete cancel via HMAC link [DEFERRED — Vault key not yet loaded; see 22-01/22-02 SUMMARY]', async () => {
   // Placeholder body — full round-trip to land when CANCEL_DELETION_HMAC_KEY
   // is loaded into Supabase Vault (22-01 deferred vendor pass).

@@ -29,6 +29,7 @@ test.describe('@phase05 SC#3: signout clears cache + lands on marketing (CONF-2 
   });
 
   // DEFERRED (round 2): RC5 — account-menu button never found in CI. Possibly independent post-signin render bug; see leanshot/.planning/debug/phase7-e2e-rc4-state-wipe-race.md. RC1-RC4 product fixes shipped.
+  // see deferred-tests.md#7-e2esignout-cache-clearspects--rc5-signout-returns-to-marketing-test
   test.fixme('signout returns to marketing (CONF-2) and preserves acknowledgedDisclaimer (CONF-3)', async ({
     page,
   }) => {

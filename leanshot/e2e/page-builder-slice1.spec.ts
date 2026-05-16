@@ -135,6 +135,7 @@ test.describe('@phase15 Slice 1 — page-builder editor', () => {
       // For Plan 15-04's CI green: the interaction assertions above cover
       // the editor surface; the live round-trip is a follow-up for the next
       // PR after the orchestrator deploys + creates a staff seed user.
+      // see deferred-tests.md#9-e2epage-builder-slice1spects--full-live-round-trip-pending-staff-seed--edge-function-deploy
       test.fixme(
         true,
         'Full live round-trip pends live-backend staff seed + Edge Function deploy (deferred to post-orchestrator-deploy follow-up; tracked in 15-04-SUMMARY.md)',
