@@ -1,0 +1,26 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.app.leanshot.ios",
+        "paths": [
+          "/signin",
+          "/signup",
+          "/reset-password",
+          "/verify-email",
+          "/share/*",
+          "/r/*",
+          "/clinic/*",
+          "/clinic-invite/*",
+          "/",
+          "/pricing",
+          "/faq"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.app.leanshot.ios"]
+  }
+}

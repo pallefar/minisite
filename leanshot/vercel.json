@@ -9,9 +9,21 @@
     { "source": "/partner/(.*)", "destination": "/index.html" },
     { "source": "/admin/affiliates", "destination": "/index.html" },
     { "source": "/sitemap.xml", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/sitemap" },
-    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt|partner|affiliate|r).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
+    { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt|partner|affiliate|r|\\.well-known).+)", "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" }
   ],
   "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
