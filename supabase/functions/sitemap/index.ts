@@ -65,6 +65,29 @@ export function __setAdminForTest(fakeAdmin: unknown): void {
 
 const CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=86400';
 
+/**
+ * Hardcoded SPA-served URLs that should appear in the sitemap alongside
+ * DB-backed builder pages. Added 2026-05-16 after H+I audit found the
+ * sitemap was emitting just one URL (/pricing) — apex + legal pages were
+ * invisible to search engines.
+ *
+ * Lastmod for these is fixed at the launch-date floor (the sitemap
+ * function has no per-route content-edit timestamp for SPA-served pages);
+ * crawlers treat absent/static lastmod as "check sometimes" which is the
+ * correct posture for evergreen content.
+ *
+ * NOTE: Auth paths (/signin, /signup, /reset-password, /verify-email) are
+ * INTENTIONALLY EXCLUDED — they're 308-redirected to hash routes via
+ * vercel.json and we don't want search engines indexing the auth surface.
+ */
+const STATIC_URLS: ReadonlyArray<{ path: string; lastmod?: string }> = [
+  { path: '/' },
+  { path: '/legal/privacy' },
+  { path: '/legal/terms' },
+  { path: '/legal/consumer-health' },
+  { path: '/legal/disclaimer' },
+];
+
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -131,15 +154,23 @@ export async function handleSitemap(client: SitemapAdminClient): Promise<Respons
   // status='published' row without a revision pointer cannot render).
   const validRows = (rows ?? []).filter((r) => r.slug && r.published_revision_id);
 
-  const urlEntries = validRows
-    .map((r) => {
-      const loc = `${origin}/${escapeXml(r.slug)}`;
-      const lastmod = r.updated_at
-        ? `    <lastmod>${escapeXml(new Date(r.updated_at).toISOString())}</lastmod>\n`
-        : '';
-      return `  <url>\n    <loc>${loc}</loc>\n${lastmod}  </url>`;
-    })
-    .join('\n');
+  const dbEntries = validRows.map((r) => {
+    const loc = `${origin}/${escapeXml(r.slug)}`;
+    const lastmod = r.updated_at
+      ? `    <lastmod>${escapeXml(new Date(r.updated_at).toISOString())}</lastmod>\n`
+      : '';
+    return `  <url>\n    <loc>${loc}</loc>\n${lastmod}  </url>`;
+  });
+
+  const staticEntries = STATIC_URLS.map((u) => {
+    const loc = u.path === '/' ? `${origin}/` : `${origin}${u.path}`;
+    const lastmod = u.lastmod
+      ? `    <lastmod>${escapeXml(u.lastmod)}</lastmod>\n`
+      : '';
+    return `  <url>\n    <loc>${loc}</loc>\n${lastmod}  </url>`;
+  });
+
+  const urlEntries = [...staticEntries, ...dbEntries].join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">\n${urlEntries}\n</urlset>\n`;
 
