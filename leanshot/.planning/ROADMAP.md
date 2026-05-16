@@ -312,7 +312,7 @@ Phases execute in numeric order with Phase 16 moved to milestone tail: 12 → 13
 | 20. Ad Network | 0/TBD | Not started | - |
 | 21. Watch Apps (Apple Watch + WearOS) | 0/TBD | Not started (blocks on P16) | - |
 | 22. Owner/Admin + Lifecycle Email + DSAR + Cookie Consent | 0/TBD | Not started | - |
-| 23. v1.1 Tech Debt Sweep + Launch Polish | 0/TBD | Not started | - |
+| 23. v1.1 Tech Debt Sweep + Launch Polish | 1/5 | In Progress|  |
 | 16. Capacitor Mobile Shells (iOS + Android) | 1/11 (Wave 0 harness) | Deferred (domain gate)  | - |
 
 ---

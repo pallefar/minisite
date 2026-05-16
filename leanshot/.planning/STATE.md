@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
-status: Phase 16 in-flight — 8/11 plans shipped; Sentry projects + H+I audit closed; awaiting Apple Dev + Play + vendor paste-backs
-stopped_at: Phase 16 vendor credential checklist (Sections A/B/C/D3/E/F/G)
-last_updated: "2026-05-16T10:00:00.000Z"
+status: executing
+stopped_at: Phase 16 UI-SPEC approved
+last_updated: "2026-05-16T12:35:07.114Z"
 last_activity: 2026-05-16
 progress:
-  total_phases: 12
-  completed_phases: 6
-  total_plans: 65
-  completed_plans: 56
-  percent: 50
+  total_phases: 19
+  completed_phases: 17
+  total_plans: 146
+  completed_plans: 140
+  percent: 89
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 ## Current Position
 
 Phase: 16 — IN-FLIGHT (plans 16-00..16-08 shipped; 16-03 partial-on-credential-block; 16-09 + 16-10 not started)
-Plan: 8 of 11 plans complete (16-00 / 16-01 / 16-02 / 16-04 / 16-05 / 16-06 / 16-07 / 16-08)
-Status: Phase 16 H+I audit closed end-to-end 2026-05-16 — see `phases/16-capacitor-mobile-shells-ios-android/16-AUDIT-DEFERRED-SEO-AND-AASA.md`. SPA-domain split fixed (app.leanshot.app live + cross-domain redirects + SPA-fallback catchall scoped via `has: host=X`). Sentry per-platform projects created + DSNs wired (D-17 superseded — see 16-CONTEXT-ADDENDUM-sentry-per-platform-projects.md). Awaiting paste-backs to finish Sections A/B/C/D3/E/F/G of `phases/16-capacitor-mobile-shells-ios-android/16-09-CREDENTIALS-CHECKLIST.md`.
+Plan: 9 of 11 plans complete (16-00 / 16-01 / 16-02 / 16-04 / 16-05 / 16-06 / 16-07 / 16-08)
+Status: Ready to execute
 Last activity: 2026-05-16
 
 ### v1.1 close (2026-05-13)
@@ -38,7 +38,7 @@ Milestone v1.1 SHIPPED + ARCHIVED + TAGGED 2026-05-13. Tag `v1.1` pushed to `pal
 
 12 phases (numbered 12-23, continuing from v1.1) covering 104 REQ-IDs across 11 workstreams. Granularity `fine`, mode `mvp`. Synthesized research at `.planning/research/SUMMARY.md` (HIGH confidence, 6 disagreements resolved). Three open questions to lock at plan-phase: clinic seat metering (Phase 14), pharmacology paywall (Phase 14), embed-provider blocks (Phase 15). Three phases flagged HIGH research priority: Phase 16 (App Store review), Phase 20 (AdMob+GAM+AdSense ETL), Phase 21 (Swift + Kotlin surface). Cross-cutting concerns owned per phase: affiliate ledger × IRS retention (P19+P22 jointly), no-ads-on-B2B (P12 + P20), bundle ceiling 24.5/50 kB gz (P12 sets, every later phase respects), Two-tunnel firewall (P18 implements, P20 audits), App Store Review Checklist (P16 hard gate; P20 + P21 contribute), Resend domain (P12 prereq), Capacitor process model (P16 + P18 + P20 CONTEXT).
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -133,6 +133,6 @@ Items acknowledged and carried forward from v1.1 close (folded into v1.2 phase o
 
 ## Session Continuity
 
-Last session: 2026-05-15T09:39:51.101Z
+Last session: 2026-05-16T12:35:07.106Z
 Stopped at: Phase 16 UI-SPEC approved
-Resume file: .planning/phases/16-capacitor-mobile-shells-ios-android/16-UI-SPEC.md
+Resume file: None
