@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion — Revenue + Depth + B2B + HIPAA + M4 Community
-status: Roadmap created
-stopped_at: Phase 25 context gathered
-last_updated: "2026-05-17T11:10:58.166Z"
-last_activity: 2026-05-17 — v1.3 roadmap created (26 phases, 204 REQ-IDs across 24 workstreams)
+status: executing
+stopped_at: Phase 25 plan-phase, step 5 (Spawn gsd-phase-researcher) — subagent dispatch tool (Task/Agent) not exposed in this background-mode subagent context
+last_updated: "2026-05-17T11:15:26.308Z"
+last_activity: 2026-05-17 -- Phase 24 planning complete
 progress:
-  total_phases: 26
+  total_phases: 27
   completed_phases: 0
-  total_plans: 1
+  total_plans: 8
   completed_plans: 0
   percent: 0
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 Phase: Not started (roadmap created; awaiting plan-phase on Phase 24)
 Plan: —
-Status: Roadmap created
-Last activity: 2026-05-17 — v1.3 roadmap created (26 phases, 204 REQ-IDs across 24 workstreams)
+Status: Ready to execute
+Last activity: 2026-05-17 -- Phase 24 planning complete
 
 ### v1.3 milestone open (2026-05-17)
 
@@ -104,6 +104,10 @@ Progress: [          ] 0%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 50 added (2026-05-17): Admin-Curated RAG Knowledge Base — Peptide/Topic Research Scraper Feeding AI Tips + Newsletters
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
@@ -159,11 +163,82 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-17T11:10:58.159Z
-Stopped at: Phase 25 context gathered
+Last session: 2026-05-17T13:15:00.000Z
+Stopped at: Phase 25 plan-phase, step 5 (Spawn gsd-phase-researcher) — subagent dispatch tool (Task/Agent) not exposed in this background-mode subagent context
 Resume file: .planning/phases/25-hipaa-audit-hardening-vendor-baa-chain/25-CONTEXT.md
+
+## Phase 25 plan-phase blocker (2026-05-17)
+
+**Blocker:** The orchestrator was invoked via `Skill(gsd-plan-phase 25 --auto --skip-ui)` inside a background-mode subagent. The plan-phase workflow needs to spawn three subagents in sequence (`gsd-phase-researcher` → `gsd-planner` → `gsd-plan-checker`), but the `Task`/`Agent` tool is not available in this subagent context (confirmed via `ToolSearch select:Task` returning no match). Per parent-prompt instructions ("Background mode: do NOT use AskUserQuestion. If blocker, write to STATE.md and stop"), workflow halted before the researcher spawn.
+
+**State on disk:**
+
+- `.planning/phases/25-hipaa-audit-hardening-vendor-baa-chain/25-CONTEXT.md` — present (17 decisions D-01..D-17, 18 REQs HIPAA-01..18) ✓
+- `.planning/phases/25-hipaa-audit-hardening-vendor-baa-chain/25-DISCUSSION-LOG.md` — present ✓
+- `25-RESEARCH.md` — NOT created
+- `25-VALIDATION.md` — NOT created (needs Validation Architecture section from RESEARCH.md)
+- `25-PATTERNS.md` — NOT created
+- `*-PLAN.md` — NONE
+- `has_research=false`, `has_plans=false`, `plan_count=0`, `phase_status=Pending`
+
+**Pre-flight verified (workflow steps 1–4):**
+
+- gsd-sdk init.plan-phase JSON parsed cleanly (researcher=sonnet, planner=opus, checker=sonnet)
+- CONTEXT.md loaded — 17 D-XX decisions, 18 REQ-IDs (HIPAA-01..18), 3 concurrent workstreams (vendor BAA chain, engineering controls, compliance/process)
+- `--skip-ui` flag honored — UI-SPEC gate (step 5.6) skips
+- `nyquist_validation_enabled=true` — VALIDATION.md required after RESEARCH.md produces Validation Architecture
+- Phase 24 is referenced as load-bearing prerequisite (`audit_logs`, admin shell manifest, `_shared/posthog-server.ts`, `disable_session_recording_on_url` base regex)
+
+**Resume options for operator (run from a top-level Claude Code session, NOT from a nested subagent):**
+
+1. **Re-invoke at top level:** `/gsd-plan-phase 25 --auto --skip-ui` — top-level Claude Code has the `Task` tool and can dispatch the researcher → planner → checker chain. This is the recommended path.
+
+2. **Manual subagent invocation:** From a top-level session, drive the three steps individually:
+   ```
+   /gsd-research-phase 25            # or invoke gsd-phase-researcher directly via Task
+   # then VALIDATION.md is created automatically if Research has "## Validation Architecture"
+   /gsd-plan-phase 25 --skip-ui      # skips re-research because RESEARCH.md now exists
+   ```
+
+3. **Skip research (faster, lower fidelity):** `/gsd-plan-phase 25 --skip-research --skip-ui` — planner works from CONTEXT.md + REQUIREMENTS.md only. Acceptable for Phase 25 because CONTEXT.md is already dense (17 locked decisions); risk is Nyquist Dimension 8 failures at plan-checker time.
+
+**Planner outline guidance (pre-computed during this session — saves planner one pass):**
+
+Based on the 17 decisions + 3 concurrent workstreams in CONTEXT.md and the [[feedback_parallel_chunked_planning]] threshold (≥5 plans triggers chunked planning), Phase 25 is likely **8–10 plans across 3 waves**:
+
+| Plan | Objective | Wave | Depends on | REQs | Key files / decisions |
+|------|-----------|------|------------|------|-----------------------|
+| 25-01 | `vendor_baa_chain` migration + RLS deny + nightly cron seed | 1 | — | HIPAA-12, HIPAA-13 | new migration; D-12 |
+| 25-02 | `phi_access_log` migration + `log_phi_access` SECURITY DEFINER RPC + patient-side viewer route | 1 | — | HIPAA-14 | new migration; D-07, D-08 |
+| 25-03 | `_shared/email-router.ts` (AWS SES via `@aws-sdk/client-sesv2` + Resend) + health-check stub | 1 | — | HIPAA-03 (D-03) | new shared module; gated per [[reference_vendor_gated_send_health_check]] |
+| 25-04 | Anthropic dual-credential router in `ai-chat` Edge Fn + `_shared/anthropic-baa-allowlist.ts` BAA-scope guard + Deno test for refusal path | 1 | — | HIPAA-04, HIPAA-07 | D-13, D-14 (success criterion #1 — refusal path tested) |
+| 25-05 | `scripts/lint-stripe-phi.ts` + CI workflow step + `scripts/stripe-phi-keywords.json` | 1 | — | HIPAA-08 (D-09) | success criterion #2 |
+| 25-06 | `scripts/audit-sentry-mask.ts` + `scripts/sentry-mask-required-props.json` + CI step + PostHog `disable_session_recording_on_url` regex extension in `src/main.tsx` | 1 | — | HIPAA-16, HIPAA-17 | D-15, D-16; success criterion #5; coordinate with Phase 24 base regex |
+| 25-07 | Clinician MFA hard-cut at `/clinic/*` (Vercel Routing Middleware extension of Phase 24 admin aal2 + patient optional-MFA Settings UI + step-up on sensitive patient actions | 2 | 25-01, P24 admin shell | HIPAA-15, HIPAA-11 | D-10, D-11 |
+| 25-08 | `/admin/compliance` page (new Phase 24 admin-shell module entry) — vendor_baa_chain UI + expiry banner + subprocessor-diff feed + Drata sync status; subprocessor-diff weekly cron Edge Fn | 2 | 25-01, P24 admin shell manifest | HIPAA-01, HIPAA-12, HIPAA-13 | D-12; success criterion #3 |
+| 25-09 | Written policy bundle under `/legal/hipaa/` (7 markdown files per D-06) + Drata onboarding stub + annual risk-assessment template | 3 | — (founder/process; can ship in parallel) | HIPAA-02, HIPAA-05, HIPAA-06, HIPAA-09, HIPAA-10, HIPAA-18 | D-05, D-06, D-17; vendor-gated by Drata 6wk lead time |
+| 25-10 | Phase 24 coordination patch — confirm `_shared/posthog-server.ts` ownership, ensure `audit_logs` migration shipped first, extend admin role enum reuse | 1 | — (read-only verification) | (none — coordination plan) | dependency assertions; small |
+
+Wave-1 has 7 parallel plans (25-01..06 + 25-10 verification); Wave-2 (25-07, 25-08) blocks on admin-shell + vendor_baa_chain; Wave-3 (25-09) is process/policy and can ship anytime within phase window. This shape satisfies [[feedback_parallel_chunked_planning]] — fire per-plan planners in parallel via `run_in_background` once at top level.
+
+**Cross-cutting concerns the planner must enforce:**
+
+- [[reference_supabase_migration_filename_regex]] — strict `<14-digit>_name.sql` (no letter suffix)
+- [[reference_supabase_migration_gotchas]] — SECURITY DEFINER `set search_path = public, extensions`; RLS deny on append-only tables
+- [[reference_vendor_gated_send_health_check]] — wraps 25-03 (SES) and 25-09 (Drata) for the 4–8 week vendor lead window
+- [[reference_rls_fixture_gotruechient_flake]] — RLS tests for `vendor_baa_chain` and `phi_access_log` use admin.generateLink + /auth/v1/verify pattern (ES256-compat)
+- Phase 24 `_shared/posthog-server.ts` and `audit_logs` migration ownership — Phase 25 plans must NOT duplicate; verify Phase 24 ships first or coordinate file-level ownership in 25-10
+- Bundle ceilings (Phase 24 D-18..20) — Phase 25 adds NO new client-side chunk; `/admin/compliance` lives inside admin-shell 30 kB ceiling (per CONTEXT.md Integration Points)
+
+**Risks the planner / checker must surface:**
+
+- D-13/D-14 dual-credential split — secrets storage (Supabase Function secrets vs Vercel env) is "Claude's Discretion"; recommend Function secrets to keep secrets out of build pipeline
+- D-09 PHI keyword list — initial 22 keywords; CI lint must false-positive-allowlist via inline `// stripe-phi-lint:allow reason='...'` comments
+- Vendor BAA `signed_at` pre-stubbing — Plan 25-01 may insert rows with `status='pending'` then flip to `signed` as each of 6 vendor calls closes during Wave 0 (per "Claude's Discretion" note)
+- D-08 patient PHI-access viewer in Settings — UX touch despite `--skip-ui` flag; planner should produce minimal admin-shell-style list view, not a full UI-SPEC contract
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 24 leanshot` to plan Phase 24 (Foundation — Modular Admin Shell + Event Taxonomy + Server-side PostHog)
-- In PARALLEL: kick off Wave-0 vendor calls for Phase 25 BAA chain (Resend, Anthropic Enterprise, PostHog tier, Supabase Team+HIPAA, Vercel HIPAA, Sentry Business, Meta Ads App Review)
+- **PRIMARY:** Re-invoke `/gsd-plan-phase 25 --auto --skip-ui` from a top-level Claude Code session (NOT nested under a Skill/Task) so the orchestrator can spawn researcher/planner/checker subagents.
+- In PARALLEL (still owed from Phase 24 Wave 0): kick off the 6 vendor BAA calls (Supabase Team+HIPAA, Vercel HIPAA addon, Sentry Business, Anthropic Enterprise, AWS SES via AWS Artifact, PostHog tier decision) + Drata SOC 2 Type I onboarding. All have 4–8 week lead times; engineering plans 25-03/04/08/09 ship behind health-check stubs per [[reference_vendor_gated_send_health_check]] until BAA `signed_at` populated in `vendor_baa_chain`.
+- Coordinate Phase 24 plan-phase first OR mark 25-10 as a verification gate before 25-08 ships, since Phase 25 reads admin-shell manifest + `_shared/posthog-server.ts` + `audit_logs` from Phase 24.

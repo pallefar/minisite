@@ -452,6 +452,16 @@
 7. **Meta App Review (Dev → Standard tier)** — Phase 33 prerequisite; 2-4 week vendor lead time.
 8. **First-clinic-deal price floor** — $1,864-4,364/mo HIPAA vendor burn → finance conversation; affects clinic-tier pricing model.
 
+### Phase 50: Admin-Curated RAG Knowledge Base — Peptide/Topic Research Scraper Feeding AI Tips + Newsletters
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 49
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 50 to break down)
+
 ---
 
 *Last updated: 2026-05-17 — v1.3 roadmap created (26 phases, 204 REQ-IDs, 24 workstreams). Foundation-first → HIPAA-engineering-parallel-with-vendor → 3 strategic tracks (Revenue / B2B / User-depth) → M4 Community closeout.*
