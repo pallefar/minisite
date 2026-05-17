@@ -1,99 +1,61 @@
 /**
- * Phase 22 Plan 22-06 — AdminLayout shell with is_staff client gate + sub-nav.
+ * Phase 22 Plan 22-06 → Phase 24 Plan 24-03 — AdminLayout shell.
  *
- * UX layer ONLY — the security boundary is each admin RPC's is_staff()
- * gate (Pattern S1 dual-layer, 22-PATTERNS Wave E). This component:
- *   1. Resolves profiles.is_staff for the current user (mirrors
- *      AdminAffiliatesScaffold Phase 19 lines 82-108 verbatim).
- *   2. Renders nothing while the probe resolves (no flash of forbidden
- *      message for a staff user with a slow getUser).
- *   3. Renders <NotAuthorizedCard /> for non-staff.
- *   4. Renders the sub-nav + children for staff.
+ * Phase 24 refactor (Plan 24-03):
+ *   - Removed hard-coded nav array; manifest-driven nav via AdminShell.
+ *   - Added `admin_role` fetch alongside `is_staff` for module-level role gating.
+ *   - Two rendering modes:
+ *     A) No `children` prop → renders AdminShell (manifest-driven routing).
+ *        App.tsx will migrate to this mode progressively as v1.3 phases ship.
+ *     B) `children` prop provided → legacy mode for existing v1.2 pages that
+ *        wrap AdminLayout directly (AdminMembersPage, AdminMetricsPage, etc.).
+ *        These pages continue to work until migrated to be pure content
+ *        components rendered BY AdminShell.
  *
- * App.tsx wiring (React.lazy) is intentionally deferred to plan 22-12 to
- * avoid shared-file choreography per the planner's Pre-emptive warning 4.
+ * UX layer ONLY — the security boundary is each admin RPC's is_staff() /
+ * is_admin_at_least() gate (Pattern S1 dual-layer, 22-PATTERNS Wave E,
+ * extended by Plan 24-01). This component:
+ *   1. Resolves profiles.is_staff for the current user.
+ *   2. Resolves profiles.admin_role for module-level role gating (Phase 24 D-04).
+ *   3. Renders nothing while the probe resolves (no flash of forbidden message).
+ *   4. Renders <NotAuthorizedCard /> for non-staff.
+ *   5a. [Mode A] Renders AdminShell (nav + module content) for staff.
+ *   5b. [Mode B] Renders the surrounding chrome + children for legacy pages.
  */
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/Card';
 import { supabase } from '@/lib/supabase';
+import AdminShell, { NotAuthorizedCard } from '@/components/admin/AdminShell';
+import type { AdminRole } from '@/lib/admin/roles';
 
-export type AdminNavKey = 'members' | 'metrics' | 'cohorts' | 'affiliates';
-
-interface AdminNavLink {
-  key: AdminNavKey;
-  label: string;
-  href: string;
+interface AdminProbeState {
+  isStaff: boolean | undefined;
+  adminRole: AdminRole | null;
 }
 
-const ADMIN_NAV: AdminNavLink[] = [
-  { key: 'members', label: 'Members', href: '/admin/members' },
-  { key: 'metrics', label: 'Metrics', href: '/admin/metrics' },
-  { key: 'cohorts', label: 'Cohorts', href: '/admin/cohorts' },
-  { key: 'affiliates', label: 'Affiliates', href: '/admin/affiliates' },
-];
-
+/** Legacy props — kept for v1.2 pages that pass `active`, `heading`, `children`. */
 export interface AdminLayoutProps {
-  /** Which sub-nav link is active (for aria-current and styling). */
-  active: AdminNavKey;
-  /** Page heading rendered at the top of the main area. */
-  heading: string;
-  /** Optional right-aligned action cluster in the header. */
+  /**
+   * @deprecated v1.2 compat — which sub-nav link is active.
+   * Ignored in Mode A (AdminShell-based routing).
+   */
+  active?: string;
+  /** Page heading rendered at the top of the main area (Mode B only). */
+  heading?: string;
+  /** Optional right-aligned action cluster in the header (Mode B only). */
   headerAction?: ReactNode;
-  children: ReactNode;
+  /**
+   * Content to render inside the layout (Mode B — legacy pages).
+   * Omit to use Mode A (AdminShell manages all routing).
+   */
+  children?: ReactNode;
 }
 
-function NotAuthorizedCard() {
-  return (
-    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-6">
-      <Card variant="flat" padding="lg" className="max-w-md mx-auto mt-12 text-center">
-        <h1 className="text-xl font-semibold mb-2">This area is for admins only</h1>
-        <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-          You don&apos;t have access to the admin console.
-        </p>
-        <a
-          href="/"
-          className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-        >
-          Back to home →
-        </a>
-      </Card>
-    </main>
-  );
-}
-
-function AdminSubNav({ active }: { active: AdminNavKey }) {
-  return (
-    <nav
-      aria-label="Admin sections"
-      className="border-b border-[var(--color-border)] bg-[var(--color-surface)]"
-    >
-      <ul className="flex flex-wrap gap-1 px-4 md:px-6 py-2">
-        {ADMIN_NAV.map((link) => {
-          const isActive = link.key === active;
-          return (
-            <li key={link.key}>
-              <a
-                href={link.href}
-                aria-current={isActive ? 'page' : undefined}
-                className={
-                  isActive
-                    ? 'inline-flex items-center h-8 px-3 rounded-pill text-[13px] font-semibold bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
-                    : 'inline-flex items-center h-8 px-3 rounded-pill text-[13px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-elevated)]'
-                }
-              >
-                {link.label}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
-}
-
-export function AdminLayout({ active, heading, headerAction, children }: AdminLayoutProps) {
-  const [isStaff, setIsStaff] = useState<boolean | undefined>(undefined);
+export function AdminLayout({ heading, headerAction, children }: AdminLayoutProps) {
+  const [probe, setProbe] = useState<AdminProbeState>({
+    isStaff: undefined,
+    adminRole: null,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -101,41 +63,61 @@ export function AdminLayout({ active, heading, headerAction, children }: AdminLa
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData?.user?.id;
       if (!uid) {
-        if (!cancelled) setIsStaff(false);
+        if (!cancelled) setProbe({ isStaff: false, adminRole: null });
         return;
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_staff')
+        .select('is_staff, admin_role')
         .eq('id', uid)
         .maybeSingle();
-      const staff = (profile as { is_staff?: boolean } | null)?.is_staff === true;
-      if (!cancelled) setIsStaff(staff);
+      const p = profile as { is_staff?: boolean; admin_role?: AdminRole | null } | null;
+      const staff = p?.is_staff === true;
+      const role = p?.admin_role ?? null;
+      if (!cancelled) setProbe({ isStaff: staff, adminRole: role });
     })().catch(() => {
-      if (!cancelled) setIsStaff(false);
+      if (!cancelled) setProbe({ isStaff: false, adminRole: null });
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (isStaff === undefined) {
+  // Still resolving — render nothing to avoid flash of forbidden message.
+  if (probe.isStaff === undefined) {
     return null;
   }
-  if (!isStaff) {
+
+  // Not staff at all — Pattern S1 first gate.
+  if (!probe.isStaff) {
     return <NotAuthorizedCard />;
   }
 
+  // Staff confirmed.
+  if (children) {
+    // Mode B: legacy wrapper — render surrounding chrome + children.
+    // Used by v1.2 pages (AdminMembersPage, AdminMetricsPage, etc.) that
+    // pass their own content as children.
+    return (
+      <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+        <AdminShell adminRole={probe.adminRole} navOnly />
+        <main className="p-4 md:p-6">
+          {heading && (
+            <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
+              {headerAction && <div className="shrink-0">{headerAction}</div>}
+            </header>
+          )}
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  // Mode A: AdminShell manages routing.
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      <AdminSubNav active={active} />
-      <main className="p-4 md:p-6">
-        <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
-          {headerAction && <div className="shrink-0">{headerAction}</div>}
-        </header>
-        {children}
-      </main>
+      <AdminShell adminRole={probe.adminRole} />
     </div>
   );
 }
