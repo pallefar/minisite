@@ -8,8 +8,13 @@ import { detectPlatform } from './lib/native/platform';
 import { beforeSend } from './lib/sentry';
 import { initSentryNative } from './lib/sentry-native';
 import { hydrate } from './lib/store';
+// Phase 28 Plan 28-05 ORG-06: supabase singleton for wireAuthInvalidation.
+import { supabase } from './lib/supabase';
 import { scheduleSyncInit } from './lib/sync-defer';
 import { deferAnalyticsInit, deferSentryInit } from './lib/telemetry-defer';
+// Phase 28 Plan 28-05 ORG-06: USER_UPDATED invalidation — extracted helper
+// for testability; wired between hydrate() and createRoot.render() below.
+import { wireAuthInvalidation } from './lib/wire-auth-invalidation';
 import type { Theme } from './types';
 
 // Phase 6 hotfix: Supabase implicit-grant email-link flow returns the access
@@ -122,6 +127,13 @@ try {
 // 2) Synchronously rehydrate Zustand from localStorage BEFORE first render.
 //    This avoids flashing the marketing page for already-onboarded users.
 void hydrate().then(() => {
+  // Phase 28 Plan 28-05 ORG-06 — invalidate org slice on Auth USER_UPDATED
+  // (CONTEXT D-02). Registered AFTER hydrate() so the store is rehydrated
+  // before the listener fires, and BEFORE createRoot.render() so the app
+  // boots with the listener active from the first render cycle.
+  // T-28-05-02 mitigation: stale role after admin removed from org mid-session.
+  wireAuthInvalidation(supabase);
+
   const root = createRoot(document.getElementById('root')!);
   root.render(
     <StrictMode>

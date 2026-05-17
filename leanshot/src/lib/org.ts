@@ -21,8 +21,8 @@
  * Bypassing surfaceCheck on the client just sends a request the server denies.
  */
 
-import { useStore } from './store';
 import type { OrgContext, OrgRole, CurrentOrgContext } from '@/types/org';
+import { useStore } from './store';
 
 // Re-export types so consumers only need one import when working with org context.
 export type { OrgContext, OrgRole, CurrentOrgContext };
