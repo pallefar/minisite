@@ -33,7 +33,7 @@
 - [ ] **DS-09**: User sees Site-rotation v2 with zone labels + numbered dots on body diagram
 - [ ] **DS-10**: User sees streak badge set (bronze / silver / gold / locked) across StreaksCard, ShareCardModal, and watch complications
 - [ ] **DS-11**: User chats with refreshed AI avatar (organic-mesh design) across AIChatPanel, topbar, onboarding
-- [ ] **DS-12**: User sees full illustration set deployed (pen-injector, achievement-shield, activity-rings, doctor-clipboard, heart-pulse, calendar-dose, 4 empty states, hero-orbital)
+- [x] **DS-12**: User sees full illustration set deployed — all 8 net-new illustrations wired 2026-05-13/14 via Plan 13-07 follow-up (PenInjector + CalendarDose in MedicationTab, AchievementShield in StreaksCard, ActivityRings in ActivityTab, DoctorClipboard in DoctorReport, HeartPulse + EmptyInsights in InsightsTab, EmptyPlate in NutritionTab; HeroOrbital already wired in HeroCard + Landing). P13 BLOCKER closed; VERIFICATION re-verified 2026-05-17.
 
 ### WS2 — Mobile Shells (10 REQ-IDs)
 
@@ -278,7 +278,7 @@ REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs �
 | DS-09 | Phase 13 | Pending |
 | DS-10 | Phase 13 | Pending |
 | DS-11 | Phase 13 | Pending |
-| DS-12 | Phase 13 | Pending |
+| DS-12 | Phase 13 | Complete (Plan 13-07 follow-up, re-verified 2026-05-17) |
 | MOBILE-01 | Phase 16 | Pending |
 | MOBILE-02 | Phase 16 | Pending |
 | MOBILE-03 | Phase 16 | Pending |
