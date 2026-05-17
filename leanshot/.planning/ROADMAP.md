@@ -80,6 +80,7 @@
   4. Admin views the audit log diff viewer with before/after JSONB and confirms RLS denies updates/deletes on `audit_logs` rows
   5. Per-chunk bundle ceilings (admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB) are declared in CI and `npm run build` fails when any chunk exceeds its ceiling
 **Plans**: TBD
+
 **UI hint**: yes
 
 ### Phase 25: HIPAA Audit Hardening + Vendor BAA Chain
@@ -92,7 +93,17 @@
   3. `vendor_baa_chain` row exists for each of Supabase / Vercel / Sentry / Anthropic / AWS SES / PostHog with `baa_signed_at` + `baa_expiry_at` columns populated; a weekly subprocessor-diff cron alerts on subprocessor changes
   4. `_shared/email-router.ts` routes PHI emails through AWS SES and non-PHI through Resend, switched by template `phi:boolean` flag; consumer ai-chat vs clinical-context ai-chat branches on `org_id IS NOT NULL`
   5. Sentry `data-sentry-mask` is asserted on every PHI input via a CI lint; PostHog `disable_session_recording_on_url` regex covers `/clinic/*`, `/patient/*`, `/admin/users/*`, `/dose-log/*`, `/share/*`, `/auth/*`
-**Plans**: TBD
+**Plans**: 10 plans
+- [ ] 25-01-PLAN.md — vendor_baa_chain + subprocessor_snapshots + admin module-seed migrations + 6 vendor seed rows + RLS integration test [Wave 1]
+- [ ] 25-02-PLAN.md — phi_access_log table + log_phi_access SECDEF RPC + patient Settings "Who has viewed my data" viewer + RLS test [Wave 1]
+- [ ] 25-03-PLAN.md — _shared/email-router.ts (Resend↔SES PHI split) + ses-bounce-webhook Edge Fn + ses_suppression_list table — vendor-gated Pattern S4 [Wave 1]
+- [ ] 25-04-PLAN.md — _shared/anthropic-baa-allowlist.ts + resolve-org-id stub + ai-chat 3-way branch (consumer Moonshot / clinical Anthropic / BAA-pending) [Wave 1]
+- [ ] 25-05-PLAN.md — scripts/lint-stripe-phi.ts + 23-keyword JSON + CI step (HIPAA-08) [Wave 1]
+- [ ] 25-06-PLAN.md — scripts/audit-sentry-mask.ts + PHI-prop JSON + CI step (HIPAA-16); baseline scan documented [Wave 2 — sequential ci.yml with 25-05]
+- [ ] 25-07-PLAN.md — PostHog session-replay PHI guard hook + analytics.ts global default (HIPAA-17 per RESEARCH correction #1) [Wave 1]
+- [ ] 25-08-PLAN.md — clinician MFA hard-cut guard + setup modal + patient optional MFA card + requireStepUp for sensitive actions + Playwright e2e [Wave 2]
+- [ ] 25-09-PLAN.md — baa-expiry-check + subprocessor-diff Edge Fns + pg_cron schedules + admin Compliance page (BaaChainTable + ExpiryBanner + SubprocessorDiffFeed) [Wave 2]
+- [ ] 25-10-PLAN.md — 7 HIPAA policy markdowns + Notion mirror script + Drata/training/risk-assessment human checkpoints [Wave 3]
 
 ### Phase 26: Multi-Tier Affiliate (Standard / Gold / Lifetime)
 **Goal**: Existing v1.2 affiliate program graduates to tiered commissions with stamped-at-conversion-time accounting and Lifetime recurring payouts.
