@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.3
-milestone_name: Platform Expansion — Revenue + Depth + B2B + HIPAA
+milestone_name: Platform Expansion — Revenue + Depth + B2B + HIPAA + M4 Community
 status: planning
-last_updated: "2026-05-17T09:58:14.763Z"
+last_updated: "2026-05-17T12:00:00.000Z"
 last_activity: 2026-05-17
 progress:
-  total_phases: 0
+  total_phases: 26
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,33 +17,48 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
+See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 16 — Capacitor Mobile Shells (resumed after `leanshot.app` domain registration; awaiting Apple Dev enrollment + Play Console + vendor paste-backs to ship plans 16-09 + 16-10)
+**Current focus:** v1.3 roadmap created — Phase 24 (Foundation: Modular Admin Shell + Event Taxonomy + Server-side PostHog) is the next plan-phase target.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap created; awaiting plan-phase on Phase 24)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-17 — Milestone v1.3 started
+Status: Roadmap created
+Last activity: 2026-05-17 — v1.3 roadmap created (26 phases, 204 REQ-IDs across 24 workstreams)
 
-### v1.1 close (2026-05-13)
+### v1.3 milestone open (2026-05-17)
 
-Milestone v1.1 SHIPPED + ARCHIVED + TAGGED 2026-05-13. Tag `v1.1` pushed to `pallefar/minisite`; archive commit `44ad476` on `origin/main`. 11/11 phases · 76/76 plans · 497 commits · +174,668 / −7,207 LOC · 4-day sprint. Onboarding summary at `.planning/reports/MILESTONE_SUMMARY-v1.1.md`; archived ROADMAP at `.planning/milestones/v1.1-ROADMAP.md`; audit at `.planning/v1.1-MILESTONE-AUDIT.md` (verdict `tech_debt`, 48/49 REQ-IDs satisfied).
+26 phases (numbered 24-49, continuing from v1.2). Granularity `fine`, mode `yolo`. 204 REQ-IDs across 24 workstreams. Synthesized research at `.planning/research/SUMMARY.md` (HIGH confidence, 8 open questions resolved at plan-phase).
 
-### v1.2 milestone open (2026-05-13)
+**Phase ordering rationale:**
+- Foundation (P24) first — load-bearing for measurement-dependent phases
+- HIPAA engineering (P25) PARALLEL with vendor/legal from Wave 0
+- Affiliate (P26) standalone
+- Admin extensions (P27) bundled — shared infra for P28/30/34/37
+- Clinic orgs (P28→29→30→31) sequential — each blocks the next
+- i18n (P32) PARALLEL with clinic track
+- Ad ETL (P33) after foundation
+- Onboarding (P34) blocks paywall A/B (P39) — activation event lock-in
+- Gamification (P35) + Review (P36) + Helpdesk (P37) — review→helpdesk routing
+- Recommender (P38) blocks on HIPAA decision + SAVE (P40) for win-back
+- A/B trifecta (P39) bundled
+- Polish closeout (P40, P41, P42)
+- M4 Community (P43→44→45→46→47→48→49) closes milestone with membership tier + feed + spaces + courses + events + moderation + search/digests
 
-12 phases (numbered 12-23, continuing from v1.1) covering 104 REQ-IDs across 11 workstreams. Granularity `fine`, mode `mvp`. Synthesized research at `.planning/research/SUMMARY.md` (HIGH confidence, 6 disagreements resolved). Three open questions to lock at plan-phase: clinic seat metering (Phase 14), pharmacology paywall (Phase 14), embed-provider blocks (Phase 15). Three phases flagged HIGH research priority: Phase 16 (App Store review), Phase 20 (AdMob+GAM+AdSense ETL), Phase 21 (Swift + Kotlin surface). Cross-cutting concerns owned per phase: affiliate ledger × IRS retention (P19+P22 jointly), no-ads-on-B2B (P12 + P20), bundle ceiling 24.5/50 kB gz (P12 sets, every later phase respects), Two-tunnel firewall (P18 implements, P20 audits), App Store Review Checklist (P16 hard gate; P20 + P21 contribute), Resend domain (P12 prereq), Capacitor process model (P16 + P18 + P20 CONTEXT).
+### v1.2 close (2026-05-17)
 
-Progress: [██████████] 96%
+Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
+
+Progress: [          ] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v1.2): 0
+- Total plans completed (v1.3): 0
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -51,22 +66,36 @@ Progress: [██████████] 96%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 12 | 0 | — | — |
-| 13 | 0 | — | — |
-| 14 | 0 | — | — |
-| 15 | 0 | — | — |
-| 16 | 0 | — | — |
-| 17 | 0 | — | — |
-| 18 | 0 | — | — |
-| 19 | 0 | — | — |
-| 20 | 0 | — | — |
-| 21 | 0 | — | — |
-| 22 | 0 | — | — |
-| 23 | 0 | — | — |
+| 24 | 0 | — | — |
+| 25 | 0 | — | — |
+| 26 | 0 | — | — |
+| 27 | 0 | — | — |
+| 28 | 0 | — | — |
+| 29 | 0 | — | — |
+| 30 | 0 | — | — |
+| 31 | 0 | — | — |
+| 32 | 0 | — | — |
+| 33 | 0 | — | — |
+| 34 | 0 | — | — |
+| 35 | 0 | — | — |
+| 36 | 0 | — | — |
+| 37 | 0 | — | — |
+| 38 | 0 | — | — |
+| 39 | 0 | — | — |
+| 40 | 0 | — | — |
+| 41 | 0 | — | — |
+| 42 | 0 | — | — |
+| 43 | 0 | — | — |
+| 44 | 0 | — | — |
+| 45 | 0 | — | — |
+| 46 | 0 | — | — |
+| 47 | 0 | — | — |
+| 48 | 0 | — | — |
+| 49 | 0 | — | — |
 
 **Recent Trend:**
 
-- Last 5 plans: — (no plans executed in v1.2 yet)
+- Last 5 plans: — (no plans executed in v1.3 yet)
 - Trend: —
 
 *Updated after each plan completion*
@@ -78,78 +107,61 @@ Progress: [██████████] 96%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- v1.2 milestone open (2026-05-13): 12 phases at fine granularity, mvp mode; phase numbering continues from v1.1 (12-23, no reset)
-- v1.2 stack additions (from `.planning/research/STACK.md`): Capacitor 8 + RevenueCat (iOS+Android IAP) + Stripe direct (web subs + clinic seats + Connect Express affiliate payouts) + AdMob (`@capacitor-community/admob@8.0.0`) + GAM/AdSense via GPT script + `@capgo/capacitor-health` (HealthKit + Health Connect single plugin) + native Apple Watch (SwiftUI + WatchConnectivity + SwiftData) + native WearOS (Kotlin + Wear Compose + Tiles 1.4) + `web-push@3.6.7` + `vanilla-cookieconsent@3.1.0` + `@dnd-kit/core@6.3.1` + `react-hook-form@7.75.0` + `jspdf@3.1.0`
-- v1.2 architecture: Polyrepo+ (single repo, sibling native shells; NO Turborepo); page-builder is "Editor/Renderer split with in-house dnd-kit"; ad-firewall named "Two-tunnel firewall"; ad-serving named "Server-decides config, client-fetches creative + hybrid mediation"; watch sync named "Cloud-primary + WatchConnectivity for live"; push named "Single Edge Function push-fanout"; affiliate attribution named "Server-side first-party cookie via Edge Function + Stripe client_reference_id"; account-deletion named "Single Edge Function account-delete with explicit retention exceptions"
-- v1.2 hard constraints: Apple §5.1.3 (HealthKit → ads) + §3.1.1 (Stripe in-app subs forbidden) + §5.1.1(v) (in-app account delete) + GDPR cookie consent + DSAR + IRS 1099 7yr retention
-- v1.2 bundle: 24.5 kB gz target on index; 50 kB hard ceiling; all new SDKs via `sync-defer.ts`; per-chunk ceilings declared in Phase 12
+- v1.3 milestone open (2026-05-17): 26 phases at fine granularity, yolo mode; phase numbering continues from v1.2 (24-49, no reset)
+- v1.3 stack additions (from `.planning/research/STACK.md`): react-i18next 15.7.4 + posthog-node 5.10.4 (Edge Fn) + pgvector + openai 6.13.0 (embeddings via AI Gateway) + @tanstack/react-query 5.x + react-table 8.x + react-virtual 3.x + react-markdown 9.x + remark-gfm + rehype-sanitize + dompurify 3.2.7 + canvas-confetti 1.9.3 + Resend Inbound + Better Stack + Meta/Google/TikTok ad SDKs + AWS SES (PHI path)
+- v1.3 architecture: EXTENDS v1.2 (no rewrite); NEW org-context layer in `src/lib/org.ts`; NEW JWT `app_metadata.org_ids` claim with 336ms propagation window
+- v1.3 hard constraints: HIPAA BAA chain (6 vendors) + Stripe never signs BAA (PHI lint) + dual Anthropic credentials + activation event locks PAYWALL/REVIEW/RECOMMEND + page-builder canonical-link discipline + App/Play native review-prompt unconditional + i18n via `?lang=es` query (not `/es/` path)
+- v1.3 bundle: 50 kB gz index hard ceiling; per-chunk ceilings declared in P24 — admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB
+- v1.3 vendor cost when HIPAA chain activates: +$1,864-4,364/mo (Supabase Team+addon $924, Vercel Pro+addon $350, Sentry Business $80, Anthropic Enterprise $500-2K, PostHog Boost optional $0-2K, AWS SES ~$10)
 
 ### Pending Todos
 
-None yet.
+None yet — roadmap just created. Phase 24 plan-phase is the next runnable.
 
 ### Blockers/Concerns
 
-- **Phase 12 prereq**: Resend domain `app.leanshot.app` verification (carry-over from v1.1) — must complete before Phase 22 lifecycle email work
-- **Phase 12 prereq**: Hash-hyphen bug in `assert-clinic-bundle-budget.sh` must be fixed before per-chunk ceilings can be declared (per `reference_bundle_budget_hash_hyphen.md`)
-- **Phase 16 research**: App Store review pitfalls compound (Pitfalls 1, 2, 3, 8, 9, 14, 19, 26 + SKAdNetwork). Recommend `/gsd-research-phase 16` before plan-phase
-- **Phase 18 ↔ Phase 20 contract**: Two-tunnel firewall MUST exist as code (ESLint + runtime + manifest) before any AD-* code lands. Phase 18 implements; Phase 20 audits. Sequencing is non-negotiable
-- **Phase 20 research**: AdMob+GAM+AdSense Reporting ETL is a net-new surface. Recommend `/gsd-research-phase 20`
-- **Phase 21 research**: New Swift + Kotlin surface area (Apple Watch SwiftUI + WearOS Kotlin/Compose). Recommend `/gsd-research-phase 21`
-- **Phase 19 + Phase 22 joint owner**: Affiliate ledger × IRS 1099 7yr retention requires `ON DELETE SET NULL` + anonymization (NEVER cascade). Both phases' CONTEXT.md must cross-reference Pitfall 7
-- **Carry-over runner-pool quirk**: `/gsd-manager` background plan/execute dispatch still lacks the Task tool (per memory `reference_gsd_tooling_quirks.md`). Use foreground Claude Code session for plan-phase + execute-phase
+- **Phase 25 Wave-0 vendor calls (kick off immediately):** Resend BAA, Anthropic Enterprise pricing, PostHog tier decision, Supabase Team+HIPAA upgrade, Vercel HIPAA add-on, Sentry Business, Meta Ads App Review. Vendor + legal work runs PARALLEL with engineering from Wave 0; 4-8 week lead time.
+- **Phase 34 activation event lock-in** is load-bearing for P39 + P36 + P38; CONTEXT.md decision MUST land before any of those plan-phase.
+- **Phase 28 multi-tenant `org_id` axis** is the largest schema slab (16+ tables); cross-tenant impersonation proof test required per table.
+- **Phase 33 Meta App Review (Dev → Standard tier)** has 2-4 week vendor lead time — start application during P24/25 to avoid blocking P33 entry.
+- **Carry-over runner-pool quirk**: `/gsd-manager` background plan/execute dispatch still lacks the Task tool. Use foreground Claude Code session for plan-phase + execute-phase.
 
-### v1.1 Tech Debt Carried into Phase 23
+### v1.2 Tech Debt + v1.3-deferred (carry-over to v1.4)
 
-| Item | Source | Status |
-|------|--------|--------|
-| CLINIC-07 operator drill-in "View activity" dead button | v1.1 audit (1 partial REQ-ID) | Open — Phase 23 |
-| `s.user!` non-null assertion audit (15 occurrences / 14 files) | Phase 7 inventory + memory | Open — Phase 23 |
-| Photo trash flow | v1.1 deferred-items | Open — Phase 23 |
-| 6 deferred tests batch-fix | `.planning/deferred-tests.md` + `feedback_defer_then_batch_fix_pattern.md` | Open — Phase 23 |
-| knip + ts-unused-exports CI gate (anti-pattern #6 tooling) | Plan 10-06 WORKSPACE_LOADED defect | Open — Phase 23 |
+Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
+
+| Category | Item | Carried to |
+|----------|------|-----------|
+| Mobile | Phase 16 Capacitor (MOBILE-01..10 + MONEY-06, 11 REQs; 9/11 plans shipped) | v1.4 |
+| Mobile | Phase 17 Push Notifications (4 REQs) | v1.4 |
+| Mobile | Phase 18 HealthKit + Two-tunnel Firewall (8 REQs) | v1.4 |
+| Mobile | Phase 20 Ad Network (12 REQs) | v1.4 |
+| Mobile | Phase 21 Watch Apps (8 REQs) | v1.4 |
+| Onboarding | P22b ON-01 onboarding revamp | now subsumed by v1.3 ONBOARD workstream (P34) — revisit at v1.4 scoping |
+| Tech debt | v1.2-era Vault `service_role_key` Vendor pass + unused-check baseline drift | v1.4 |
 
 ## Quick Tasks Completed
+
+(Carried forward from v1.2; new quick tasks tracked from v1.3 forward)
 
 | Date | Slug | Summary |
 |------|------|---------|
 | 2026-05-11 | fix-focus-loop-and-console | FocusCard infinite render loop, PostHog placeholder init, deprecated mobile-web-app meta |
-| 2026-05-11 | fix-insights-and-home-render-loop | InsightsTab + HomeTab infinite render loops (`generateInsights` as Zustand selector) |
-| 2026-05-11 | eslint-guard-unstable-selectors | ESLint `no-restricted-syntax` rule blocking `useStore(generateInsights\|pickFocus)` |
+| 2026-05-11 | fix-insights-and-home-render-loop | InsightsTab + HomeTab infinite render loops |
+| 2026-05-11 | eslint-guard-unstable-selectors | ESLint `no-restricted-syntax` rule blocking `useStore(generateInsights|pickFocus)` |
 | 2026-05-11 | add-dist-marketing-to-eslint-ignores | Added `dist-marketing/**` to ESLint global ignores |
 
 ## Deferred Items
 
-Items acknowledged and carried forward from v1.1 close (folded into v1.2 phase ownership above):
-
-| Category | Item | Status | Deferred At | New Owner |
-|----------|------|--------|-------------|-----------|
-| Phase 9 infra (v1.1) | Resend domain verification + RESEND_FROM swap | Open | 2026-05-13 (v1.1 Plan 09-06 close) | **Phase 12** (v1.2) |
-| Phase 9 CI (v1.1) | 6 RLS impersonation specs not run against live DB | Open — CI infra | 2026-05-13 | **Phase 23** (sweep) |
-| Phase 9 CI gate (v1.1) | GitHub branch-protection for `share-security-drill` | Open | 2026-05-13 | **Phase 23** (sweep) |
-| Phase 9 hardening (v1.1) | 7 pre-existing SharePage lint errors | Open | 2026-05-13 | **Phase 23** (sweep) |
-| Phase 9 hardening (v1.1) | `s.user!` latent assertion audit (15/14) | Open | 2026-05-13 | **Phase 23 — DEBT-02** |
-
-Items acknowledged at v1.2 close (2026-05-17):
-
-| Category | Item | Status | Notes |
-|----------|------|--------|-------|
-| Debug session | phase7-e2e-post-signin-render | blocked (v1.1 era) | Stale carry-over; Phase 7 archived to milestones/v1.1-phases — debug record kept for forensic reference only |
-| Debug session | phase7-e2e-rc4-state-wipe-race | blocked (v1.1 era) | Same — Phase 7 archived |
-| UAT gap | Phase 01 — 01-HUMAN-UAT.md (3 scenarios) | partial (v1.0 era) | Phase 01 shipped pre-Nyquist; HUMAN-UAT items captured at v1.0 era, not actioned in v1.1 or v1.2 |
-| UAT gap | Phase 02 — 02-HUMAN-UAT.md | unknown (v1.0 era) | Same vintage; no open scenarios |
-| UAT gap | Phase 08 — 08-UAT.md | blocked (v1.1 era) | No open scenarios; status string is stale |
-| Verification gap | Phase 01 — 01-VERIFICATION.md | human_needed (v1.0 era) | Pre-Nyquist; Phase 01 has VALIDATION.md instead |
-| Verification gap | Phase 02 — 02-VERIFICATION.md | human_needed (v1.0 era) | Same |
-
-**Phase 16 descope (2026-05-17 round 2):** Phase 16 vendor closeout in flight at v1.2 close (Apple Dev + Play Console + Supabase Pro enrollments running). 11 REQs (MOBILE-01..10 + MONEY-06) descoped to v1.4. Plans 16-00..16-08 shipped + on disk; 16-03/16-09/16-10 remain unexecuted. Resume path: v1.4 milestone absorbs these + the prior 33 deferred REQs (PUSH/HEALTH/AD/WATCH/ON-01).
+(See PROJECT.md and v1.2-MILESTONE-AUDIT.md for full deferred-items log carried over from v1.1 and v1.2.)
 
 ## Session Continuity
 
-Last session: 2026-05-16T12:35:07.106Z
-Stopped at: Phase 16 UI-SPEC approved
+Last session: 2026-05-17T12:00:00.000Z
+Stopped at: v1.3 roadmap created
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run `/gsd-plan-phase 24 leanshot` to plan Phase 24 (Foundation — Modular Admin Shell + Event Taxonomy + Server-side PostHog)
+- In PARALLEL: kick off Wave-0 vendor calls for Phase 25 BAA chain (Resend, Anthropic Enterprise, PostHog tier, Supabase Team+HIPAA, Vercel HIPAA, Sentry Business, Meta Ads App Review)
