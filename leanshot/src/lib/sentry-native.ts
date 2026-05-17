@@ -24,7 +24,6 @@
 import { Capacitor } from '@capacitor/core';
 import { init as sentryCapacitorInit } from '@sentry/capacitor';
 import { init as sentryReactInit } from '@sentry/react';
-
 import type { beforeSend as BeforeSendFn } from './sentry';
 
 export interface InitSentryNativeArgs {

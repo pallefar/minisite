@@ -8,8 +8,8 @@
  *   T7: Patient (auth.uid() = patient_user_id) CAN read their own link rows
  *       (patient-self-read path per CONTEXT D-17).
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

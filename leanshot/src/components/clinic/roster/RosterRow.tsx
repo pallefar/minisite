@@ -22,13 +22,11 @@
  *
  * Bulk checkbox: 40×40px hit target, 20×20px visible glyph per UI-SPEC.
  */
-import { useEffect, useRef, useState } from 'react';
-
 import { AlertCircle, ArrowDown, ArrowUp, Minus } from 'lucide-react';
-
-import { cn } from '@/lib/helpers';
-import { CLINIC_EVENTS, scoreBucket } from '@/lib/clinic-events';
+import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { CLINIC_EVENTS, scoreBucket } from '@/lib/clinic-events';
+import { cn } from '@/lib/helpers';
 import type { RankRosterRow } from '@/types/snapshot';
 import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { ScoreChip } from './ScoreChip';

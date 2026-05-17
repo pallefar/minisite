@@ -1,0 +1,43 @@
+- generic [ref=e312]:
+  - img [ref=e363]
+  - generic [ref=e315]:
+    - generic [ref=e318]: 25%
+    - generic [ref=e374]:
+      - generic [ref=e375]:
+        - heading "Your medication" [level=1] [ref=e376]
+        - paragraph [ref=e377]: We'll tailor everything to your med.
+      - generic [ref=e378]:
+        - generic [ref=e379]: GLP-1 medication
+        - combobox "GLP-1 medication" [ref=e381] [cursor=pointer]:
+          - option "Select…" [selected]
+          - option "Ozempic (semaglutide)"
+          - option "Wegovy (semaglutide)"
+          - option "Mounjaro (tirzepatide)"
+          - option "Zepbound (tirzepatide)"
+          - option "Rybelsus (oral semaglutide)"
+          - option "Saxenda (liraglutide)"
+          - option "Trulicity (dulaglutide)"
+          - option "Retatrutide"
+          - option "Compounded semaglutide"
+          - option "Compounded tirzepatide"
+      - generic [ref=e382]:
+        - generic [ref=e383]:
+          - generic [ref=e384]: Current dose
+          - textbox "Current dose" [ref=e386]:
+            - /placeholder: "0.5"
+        - generic [ref=e387]:
+          - generic [ref=e388]: Unit
+          - combobox "Unit" [ref=e390] [cursor=pointer]:
+            - option "mg" [selected]
+            - option "units"
+            - option "ml"
+      - generic [ref=e391]:
+        - generic [ref=e392]: Start date
+        - textbox "Start date" [ref=e394]: 2026-05-12
+    - generic [ref=e354]:
+      - button "Back" [ref=e395] [cursor=pointer]:
+        - img [ref=e397]
+        - generic [ref=e356]: Back
+      - button "Continue" [active] [ref=e357] [cursor=pointer]:
+        - generic [ref=e358]: Continue
+        - img [ref=e360]

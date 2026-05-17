@@ -9,8 +9,8 @@
  * Emits the validated CustomRange on Apply; calls onClose on Cancel.
  */
 import { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import type { CustomRange } from './use-audit-events';
 
 export interface AuditCustomRangeModalProps {

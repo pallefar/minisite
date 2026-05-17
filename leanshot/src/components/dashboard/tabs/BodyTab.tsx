@@ -44,8 +44,8 @@ import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
 // active path. Once Wave-0 vendor-checkpoint Task 6 (Supabase Pro upgrade)
 // lands, the PhotoTile state machine can switch primary→transform with no
 // further code changes here.
-import { storageTransformUrl } from '@/lib/photo-url';
 import { softDeletePhoto } from '@/lib/photo-trash';
+import { storageTransformUrl } from '@/lib/photo-url';
 import { useStore } from '@/lib/store';
 import type { Measurement, Photo } from '@/types';
 

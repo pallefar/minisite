@@ -9,8 +9,8 @@
  * Environment: requires SUPABASE_URL + SUPABASE_ANON_KEY + SUPABASE_SERVICE_ROLE_KEY.
  * Skipped automatically when env not set.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

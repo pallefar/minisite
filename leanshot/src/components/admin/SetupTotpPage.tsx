@@ -22,8 +22,8 @@
  */
 import { useState, useEffect } from 'react';
 import { Card, CardHeader } from '@/components/ui/Card';
-import { supabase } from '@/lib/supabase';
 import { enrollTotp, verifyTotp } from '@/lib/admin/totp';
+import { supabase } from '@/lib/supabase';
 
 type Phase = 'enrolling' | 'awaiting-code' | 'verifying' | 'showing-codes' | 'confirming' | 'error';
 

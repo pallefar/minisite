@@ -1,0 +1,198 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - img [ref=e7]
+      - text: LeanShot
+    - generic [ref=e9]:
+      - button "Dark mode" [ref=e10] [cursor=pointer]:
+        - img [ref=e11]
+      - button "Get started" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]: Get started
+        - img [ref=e16]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - img [ref=e22]
+        - text: Built for serious GLP-1 users
+      - heading "Maximize your GLP-1 journey. Lose fat. Keep muscle." [level=1] [ref=e24]:
+        - text: Maximize your GLP-1 journey.
+        - text: Lose fat. Keep muscle.
+      - paragraph [ref=e25]: Clinical tracking for Ozempic, Wegovy, Mounjaro, and Zepbound. Med-level curves, vial supply, AI food logging, doctor reports, and an expert chat — all in one warm, calm place.
+      - generic [ref=e26]:
+        - button "Start free" [ref=e27] [cursor=pointer]:
+          - generic [ref=e28]: Start free
+          - img [ref=e30]
+        - button "See features" [ref=e32] [cursor=pointer]:
+          - generic [ref=e33]: See features
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - img [ref=e36]
+          - text: Local-only data
+        - generic [ref=e39]:
+          - img [ref=e40]
+          - text: No card needed
+    - generic [ref=e43]:
+      - img [ref=e45]
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - paragraph [ref=e63]: GLP-1 LEVEL · 7-day
+          - paragraph [ref=e64]: Peak → trough
+        - img [ref=e65]
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e76]: Half-life
+            - generic [ref=e77]: 7d
+          - generic [ref=e78]:
+            - generic [ref=e79]: Phase
+            - generic [ref=e80]: Titration
+          - generic [ref=e81]:
+            - generic [ref=e82]: Adherence
+            - generic [ref=e83]: 92%
+  - generic [ref=e84]:
+    - generic [ref=e85]:
+      - heading "What no other tracker does" [level=2] [ref=e86]
+      - paragraph [ref=e87]: Built around the science of GLP-1 — not retrofitted from a generic habit app.
+    - generic [ref=e88]:
+      - generic [ref=e89]:
+        - img [ref=e92]
+        - img [ref=e109]
+        - heading "Real pharmacology" [level=3] [ref=e112]
+        - paragraph [ref=e113]: Half-life curves modelled to your specific medication, not a generic line. Know peak vs trough.
+      - generic [ref=e114]:
+        - img [ref=e117]
+        - img [ref=e123]
+        - heading "AI that knows your data" [level=3] [ref=e133]
+        - paragraph [ref=e134]: Context-aware coach that has read your week — not a generic LLM that makes up advice.
+      - generic [ref=e135]:
+        - img [ref=e138]
+        - img [ref=e149]
+        - heading "Doctor-ready in one tap" [level=3] [ref=e151]
+        - paragraph [ref=e152]: Auto-generated PDF summarizes your dose, sites, side effects, and trends. Bring it to every visit.
+  - generic [ref=e153]:
+    - generic [ref=e154]:
+      - heading "From real patients." [level=2] [ref=e155]
+      - paragraph [ref=e156]: Names changed at request. Reviews from public communities of GLP-1 users.
+    - generic [ref=e157]:
+      - figure "Karsten B. Mounjaro · 14 weeks" [ref=e158]:
+        - generic [ref=e159]: “
+        - blockquote [ref=e160]: Finally a tracker that knows the difference between a half-life and a streak. The med-level curve alone is worth it.
+        - generic [ref=e161]:
+          - paragraph [ref=e162]: Karsten B.
+          - paragraph [ref=e163]: Mounjaro · 14 weeks
+      - figure "Priya S. Wegovy · 9 months" [ref=e164]:
+        - generic [ref=e165]: “
+        - blockquote [ref=e166]: I bring the doctor report to every visit. My endo asked which app it was so she could recommend it.
+        - generic [ref=e167]:
+          - paragraph [ref=e168]: Priya S.
+          - paragraph [ref=e169]: Wegovy · 9 months
+      - figure "Daniel R. Ozempic · 6 months" [ref=e170]:
+        - generic [ref=e171]: “
+        - blockquote [ref=e172]: Site rotation reminders saved me from another nasty bruise. The app respects how serious this is.
+        - generic [ref=e173]:
+          - paragraph [ref=e174]: Daniel R.
+          - paragraph [ref=e175]: Ozempic · 6 months
+  - generic [ref=e176]:
+    - generic [ref=e177]:
+      - heading "Honest pricing." [level=2] [ref=e178]
+      - paragraph [ref=e179]: No data harvesting. No ads. Optional Pro pays for the AI.
+    - generic [ref=e180]:
+      - generic [ref=e181]:
+        - heading "Free" [level=3] [ref=e183]
+        - generic [ref=e184]:
+          - generic [ref=e185]: $0
+          - generic [ref=e186]: /forever
+        - paragraph [ref=e187]: Everything most people need.
+        - list [ref=e188]:
+          - listitem [ref=e189]:
+            - img [ref=e190]
+            - generic [ref=e192]: All 9 dashboard tabs
+          - listitem [ref=e193]:
+            - img [ref=e194]
+            - generic [ref=e196]: Med-level curves
+          - listitem [ref=e197]:
+            - img [ref=e198]
+            - generic [ref=e200]: Vial & supply tracking
+          - listitem [ref=e201]:
+            - img [ref=e202]
+            - generic [ref=e204]: Doctor-ready report
+          - listitem [ref=e205]:
+            - img [ref=e206]
+            - generic [ref=e208]: Local-only data
+          - listitem [ref=e209]:
+            - img [ref=e210]
+            - generic [ref=e212]: 1 progress card template
+        - button "Start free" [ref=e213] [cursor=pointer]:
+          - generic [ref=e214]: Start free
+      - generic [ref=e215]:
+        - generic [ref=e216]:
+          - heading "Pro" [level=3] [ref=e217]
+          - generic [ref=e218]: Most popular
+        - generic [ref=e219]:
+          - generic [ref=e220]: $5
+          - generic [ref=e221]: /month
+        - paragraph [ref=e222]: For people serious about their journey.
+        - list [ref=e223]:
+          - listitem [ref=e224]:
+            - img [ref=e225]
+            - generic [ref=e227]: Everything in Free
+          - listitem [ref=e228]:
+            - img [ref=e229]
+            - generic [ref=e231]: AI coach with full context
+          - listitem [ref=e232]:
+            - img [ref=e233]
+            - generic [ref=e235]: 3 progress card templates
+          - listitem [ref=e236]:
+            - img [ref=e237]
+            - generic [ref=e239]: Apple Health import
+          - listitem [ref=e240]:
+            - img [ref=e241]
+            - generic [ref=e243]: Priority support
+          - listitem [ref=e244]:
+            - img [ref=e245]
+            - generic [ref=e247]: Cancel anytime
+        - button "Try Pro" [ref=e248] [cursor=pointer]:
+          - generic [ref=e249]: Try Pro
+  - generic [ref=e250]:
+    - heading "Common questions." [level=2] [ref=e252]
+    - generic [ref=e253]:
+      - button "Is my data shared with anyone?" [ref=e255] [cursor=pointer]:
+        - generic [ref=e256]: Is my data shared with anyone?
+        - img [ref=e257]
+      - button "Will this replace my doctor?" [ref=e260] [cursor=pointer]:
+        - generic [ref=e261]: Will this replace my doctor?
+        - img [ref=e262]
+      - button "How accurate are the medication-level curves?" [ref=e265] [cursor=pointer]:
+        - generic [ref=e266]: How accurate are the medication-level curves?
+        - img [ref=e267]
+      - button "Does AI cost extra?" [ref=e270] [cursor=pointer]:
+        - generic [ref=e271]: Does AI cost extra?
+        - img [ref=e272]
+      - button "Can I export my data?" [ref=e275] [cursor=pointer]:
+        - generic [ref=e276]: Can I export my data?
+        - img [ref=e277]
+  - contentinfo [ref=e279]:
+    - generic [ref=e280]:
+      - generic [ref=e281]:
+        - generic [ref=e282]:
+          - img [ref=e284]
+          - text: LeanShot
+        - paragraph [ref=e286]: An educational tracking tool. Not medical advice. Always consult your prescriber.
+      - generic [ref=e287]:
+        - paragraph [ref=e288]: Trust
+        - list [ref=e289]:
+          - listitem [ref=e290]:
+            - img [ref=e291]
+            - text: Local-only by default
+          - listitem [ref=e294]:
+            - img [ref=e295]
+            - text: No third-party analytics
+          - listitem [ref=e297]:
+            - img [ref=e298]
+            - text: Open data export
+      - generic [ref=e300]:
+        - paragraph [ref=e301]: Legal
+        - list [ref=e302]:
+          - listitem [ref=e303]: Privacy policy
+          - listitem [ref=e304]: Terms of service
+          - listitem [ref=e305]: Medical disclaimer
+    - generic [ref=e306]: © 2026 LeanShot · Your data lives on your device

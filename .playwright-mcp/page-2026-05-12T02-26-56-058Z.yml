@@ -1,0 +1,13 @@
+- generic [ref=e315]:
+  - generic [ref=e318]: 0%
+  - generic [ref=e320]:
+    - generic [ref=e321]:
+      - heading "Before you start" [level=1] [ref=e322]
+      - paragraph [ref=e323]: A quick note before we set things up.
+    - generic [ref=e324]:
+      - paragraph [ref=e325]:
+        - strong [ref=e326]: Not medical advice.
+        - text: LeanShot helps you track GLP-1 medications, body metrics, food, activity, and symptoms. The drug-level chart shows a modeled estimate based on population pharmacokinetics — not a measured serum level. Always consult your healthcare provider for clinical decisions.
+      - paragraph [ref=e327]: Your data stays on this device unless you choose to sync. We do not share your health data with third parties.
+      - button "I understand" [ref=e328] [cursor=pointer]:
+        - generic [ref=e329]: I understand

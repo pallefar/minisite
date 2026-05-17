@@ -16,9 +16,9 @@
  * This prevents D-19 regressions (meta-auditing patient transparency views).
  */
 
-import { type RefObject } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { type RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mock supabase (network) ──────────────────────────────────────────────────

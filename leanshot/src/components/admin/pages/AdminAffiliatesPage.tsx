@@ -13,8 +13,8 @@
  * For now this page is the canonical mount point for the conversion review
  * surface defined in UI-SPEC §/admin/affiliates lines 268-274.
  */
-import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminAffiliatesReviewQueue } from '@/components/admin/AdminAffiliatesReviewQueue';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 export function AdminAffiliatesPage() {
   return (

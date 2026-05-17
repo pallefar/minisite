@@ -128,7 +128,7 @@ export function useClinicSnapshot(opts: {
   }, [orgId, patientId]);
 
   // Re-run on mount and every time refresh() is called (fetchTick changes).
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     void fetchSnapshot();
     return () => {

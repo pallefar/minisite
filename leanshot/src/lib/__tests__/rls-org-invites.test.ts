@@ -7,8 +7,8 @@
  *   T5: User A cannot UPDATE/DELETE org_invites of Org Y.
  *   T6: send_org_invite returns identical shape for existing vs nonexistent email (W-1).
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

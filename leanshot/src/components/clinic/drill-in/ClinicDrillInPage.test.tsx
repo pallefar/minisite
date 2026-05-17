@@ -17,8 +17,8 @@
  * is captured inside the factory closure. See Plan 10-06 RosterTable.test.tsx for precedent.
  */
 
-import { Suspense } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---- Shared toast tracking at module level (accessible to all tests) ----------
@@ -218,7 +218,7 @@ beforeEach(() => {
   setupFetchMock({});
   mockRpc.mockResolvedValue({ data: null, error: null });
   pushStateSpy = vi.spyOn(window.history, 'pushState').mockImplementation(() => undefined);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   delete (window as any).posthog;
 });
 
@@ -306,7 +306,7 @@ describe('Test 3 — permission gating (canViewPhotos=false)', () => {
 describe('Test 4 — log_clinic_view fires ONCE per section on first mount', () => {
   it('supabase.rpc(log_clinic_view) called once per visible section with PostHog', async () => {
     const mockCapture = vi.fn();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (window as any).posthog = { capture: mockCapture };
 
     renderDrillIn();

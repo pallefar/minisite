@@ -10,7 +10,6 @@
  * BlockType / BlockNode / BlockStyle / RESERVED_SLUGS.
  */
 import { describe, expect, it } from 'vitest';
-
 import {
   RESERVED_SLUGS,
   isReservedSlug,

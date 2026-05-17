@@ -10,7 +10,6 @@
  * passive 30s refresh + manual refresh button in RosterTable.
  */
 import { useEffect } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 export interface PatientSignalChangePayload {

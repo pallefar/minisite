@@ -9,8 +9,8 @@
  *       - INSERT with invalid scope fails with check_violation / 22023.
  *       - INSERT with valid Phase 9 ConsentScope succeeds.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

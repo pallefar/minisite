@@ -16,7 +16,6 @@
  * inside the ES2022 / DOM Lib target per CLAUDE.md.
  */
 import { Fragment, useMemo } from 'react';
-
 import { EmptyState } from '@/components/ui/EmptyState';
 
 export interface CohortCell {

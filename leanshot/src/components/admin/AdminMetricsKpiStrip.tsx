@@ -8,9 +8,9 @@
  * UI-SPEC §/admin/metrics line 263 (KPI strip 4 sub-cards span={3}).
  * Copywriting per UI-SPEC lines 504-507.
  */
-import { useCountUp } from '@/hooks/useCountUp';
 import { Card } from '@/components/ui/Card';
 import { Sparkline } from '@/components/ui/Sparkline';
+import { useCountUp } from '@/hooks/useCountUp';
 
 export interface AdminMetricsKpiStripProps {
   mrrCents: number;

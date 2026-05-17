@@ -71,7 +71,7 @@ describe('AuditLogModule', () => {
     vi.clearAllMocks();
     // Reset the mock to return empty by default; each test overrides
     vi.mocked(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       (vi as any).importMock,
     );
   });

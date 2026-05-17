@@ -10,7 +10,6 @@
  */
 import type { ChartConfiguration } from 'chart.js';
 import { useMemo } from 'react';
-
 import { BaseChart } from '@/components/dashboard/charts/BaseChart';
 import { Card } from '@/components/ui/Card';
 import type { ChurnSeriesBin } from '@/lib/admin/admin-metrics';

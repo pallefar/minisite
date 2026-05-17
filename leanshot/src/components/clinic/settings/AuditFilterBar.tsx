@@ -13,13 +13,13 @@
  *   FORBIDDEN: actual member uuid, actual action enum value, actual date range.
  *   ALLOWED: filter_type enum, boolean presence flags.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
 import posthog from 'posthog-js';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { supabase } from '@/lib/supabase';
-import type { TimeRangePreset, CustomRange } from './use-audit-events';
 import { AuditCustomRangeModal } from './AuditCustomRangeModal';
+import type { TimeRangePreset, CustomRange } from './use-audit-events';
 
 // ── Action enum (16 values from UI-SPEC) ─────────────────────────────────────
 

@@ -8,7 +8,6 @@
  *   T4: default period is '30d' when omitted.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { fetchMetrics } from '@/lib/admin/admin-metrics';
 
 const mockRpc = vi.fn();

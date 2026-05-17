@@ -25,8 +25,8 @@
  * `useFeatureFlag` call returns the default (`false`). The SignUpForm field
  * gated by `aff_manual_entry` simply stays hidden — the form keeps working.
  */
-import { useEffect, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react';
 
 // ─── Module state ────────────────────────────────────────────────────────────
 const flagCache = new Map<string, boolean>();

@@ -68,7 +68,7 @@ export default function StepUpTotpPage({ onComplete, next: _next }: StepUpTotpPa
       }
     });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+     
   }, []);
 
   // ---------------------------------------------------------------------------

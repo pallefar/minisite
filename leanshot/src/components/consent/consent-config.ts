@@ -94,7 +94,7 @@ function computeIsEU(country: string | undefined): boolean {
  * rest param is required by TypeScript so callers get a typed signature
  * even though we read from `arguments` at runtime.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 function gtag(..._args: unknown[]): void {
   const w = window as VercelGeoWindow;
   if (!w.dataLayer) w.dataLayer = [];

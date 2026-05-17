@@ -7,12 +7,11 @@
  * D-22: per-included-patient audit is handled server-side by the Edge Function.
  */
 import { useState } from 'react';
-
-import { supabase } from '@/lib/supabase';
-import { CLINIC_EVENTS } from '@/lib/clinic-events';
-import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
+import { CLINIC_EVENTS } from '@/lib/clinic-events';
+import { supabase } from '@/lib/supabase';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 

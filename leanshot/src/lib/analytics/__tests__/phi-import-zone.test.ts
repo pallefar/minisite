@@ -6,8 +6,8 @@
  * that imports from events.phi.ts and assert the lint result includes
  * import-x/no-restricted-paths error.
  */
-import { describe, it, expect } from 'vitest';
 import { join, resolve } from 'node:path';
+import { describe, it, expect } from 'vitest';
 
 // Path to the repo root (leanshot/) — eslint.config.js lives here
 const REPO_ROOT = resolve(

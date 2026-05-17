@@ -15,10 +15,8 @@
  *
  * Bulk checkbox: 40×40 hit target (shown when onToggleSelect is provided).
  */
-import { useRef } from 'react';
-
 import { AlertCircle, ArrowDown, ArrowUp, Minus } from 'lucide-react';
-
+import { useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { CLINIC_EVENTS, scoreBucket } from '@/lib/clinic-events';
 import { cn } from '@/lib/helpers';

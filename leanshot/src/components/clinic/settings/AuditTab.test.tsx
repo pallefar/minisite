@@ -120,9 +120,9 @@ function setPath(p: string): void {
 
 // ── Imports after mocks ───────────────────────────────────────────────────────
 
-import { ClinicSettingsPage } from './ClinicSettingsPage';
-import { AuditTab } from './AuditTab';
 import { AuditCustomRangeModal } from './AuditCustomRangeModal';
+import { AuditTab } from './AuditTab';
+import { ClinicSettingsPage } from './ClinicSettingsPage';
 
 // ── Setup helpers ─────────────────────────────────────────────────────────────
 

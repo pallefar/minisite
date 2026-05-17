@@ -9,8 +9,8 @@
  * 5. TAXO-06 reconciliation marker present in events.ts header.
  */
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
 import { EVENTS, type EventName, type PayloadOf } from './events';

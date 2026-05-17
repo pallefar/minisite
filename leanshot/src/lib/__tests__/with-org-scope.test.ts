@@ -20,7 +20,6 @@
  * The fake client has a minimal thenable query builder so the withOrgScope Proxy
  * can intercept .from() calls, track .eq() filter calls, and gate .then() resolution.
  */
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------

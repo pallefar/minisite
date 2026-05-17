@@ -7,7 +7,6 @@
  * error boundary handles auth-bounce).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-
 import { supabase } from '@/lib/supabase';
 import type { RankRosterRow } from '@/types/snapshot';
 
@@ -84,7 +83,7 @@ export function useRankRoster({
       abortRef.current = true;
     };
     // revision is intentionally included so refresh() triggers a new fetch
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [fetchData, revision]);
 
   const refresh = useCallback(() => {

@@ -18,7 +18,6 @@
  * Note: Billing reuses AdminAffiliatesPage as its v1.3 foundation (affiliate payouts
  * are the billing surface in scope; full billing dashboard arrives in a later phase).
  */
-import type { ComponentType } from 'react';
 import {
   Users as UsersIcon,
   FileText as FileTextIcon,
@@ -33,6 +32,7 @@ import {
   Settings as SettingsIcon,
   Shield as ShieldIcon,
 } from 'lucide-react';
+import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
 
 export interface AdminModule {

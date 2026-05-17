@@ -12,10 +12,10 @@
  * via the `onOpenRefund` callback.
  */
 import { CreditCard } from 'lucide-react';
+import type { RefundCharge } from '@/components/admin/members/RefundModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import type { RefundCharge } from '@/components/admin/members/RefundModal';
 
 export interface MemberStripeTabProps {
   userId: string;

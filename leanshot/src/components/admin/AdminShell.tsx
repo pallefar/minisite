@@ -25,11 +25,11 @@
  * We access the global `posthog` instance via the `posthog-js` module (which is already
  * in the vendor-telemetry chunk and loaded before admin routes are reachable).
  */
-import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from 'react';
 import posthog from 'posthog-js';
+import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from 'react';
+import { Card } from '@/components/ui/Card';
 import { ADMIN_MODULES, type AdminModule } from '@/lib/admin/modules';
 import { hasMinRole, type AdminRole } from '@/lib/admin/roles';
-import { Card } from '@/components/ui/Card';
 
 // ---------------------------------------------------------------------------
 // NotAuthorizedCard — local inline variant matching AdminLayout's card.
@@ -102,8 +102,8 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
 
   const visibleModules = useMemo(
     () => ADMIN_MODULES.filter((m) => isModuleVisible(m, adminRole)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- forceUpdate triggers re-memo
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
+     
     [adminRole],
   );
 

@@ -15,20 +15,20 @@
  * PHI contract: only booleans are sent to PostHog via clinic_audit_tab_opened
  * and clinic_audit_filter_applied (delegated to AuditFilterBar).
  */
-import { useEffect, useRef, useState } from 'react';
 import posthog from 'posthog-js';
+import { useEffect, useRef, useState } from 'react';
+import { RosterPagination } from '@/components/clinic/roster/RosterPagination';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Button } from '@/components/ui/Button';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
-import { RosterPagination } from '@/components/clinic/roster/RosterPagination';
+import { AuditFilterBar, DEFAULT_FILTER_STATE } from './AuditFilterBar';
+import { AuditRow } from './AuditRow';
 import {
   useAuditEvents,
   type TimeRangePreset,
   type CustomRange,
 } from './use-audit-events';
-import { AuditFilterBar, DEFAULT_FILTER_STATE } from './AuditFilterBar';
-import { AuditRow } from './AuditRow';
 
 const RETENTION_DISMISSED_KEY = 'clinic_audit_retention_dismissed';
 const PAGE_SIZE = 50;

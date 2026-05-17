@@ -15,7 +15,6 @@
  * per UI-SPEC typography contract.
  */
 import { useState } from 'react';
-
 import { CLINIC_EVENTS, scoreBucket } from '@/lib/clinic-events';
 import { ScoreBreakdownPopover } from './ScoreBreakdownPopover';
 

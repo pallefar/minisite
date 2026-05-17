@@ -1,0 +1,25 @@
+- generic [ref=e315]:
+  - navigation [ref=e316]:
+    - button "Back to LeanShot home" [ref=e317] [cursor=pointer]:
+      - img [ref=e319]
+      - text: LeanShot
+  - main [ref=e321]:
+    - generic [ref=e322]:
+      - heading "Sign in" [level=1] [ref=e324]
+      - generic [ref=e325]:
+        - generic [ref=e326]: Email*
+        - generic [ref=e327]:
+          - img [ref=e329]
+          - textbox "Email" [ref=e332]: alice@test.com
+        - paragraph [ref=e347]: Invalid email or password.
+      - generic [ref=e333]:
+        - generic [ref=e334]: Password*
+        - generic [ref=e335]:
+          - img [ref=e337]
+          - textbox "Password" [ref=e340]: TestPass123!-leanshot-share-fixture
+      - button "Sign in" [ref=e341] [cursor=pointer]:
+        - generic [ref=e342]: Sign in
+      - generic [ref=e343]:
+        - link "Forgot password?" [ref=e344] [cursor=pointer]:
+          - /url: "#/auth/forgot"
+        - button "Email me a sign-in link instead" [ref=e345] [cursor=pointer]

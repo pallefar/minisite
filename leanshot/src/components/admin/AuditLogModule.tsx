@@ -14,8 +14,8 @@
  * Pattern: D-15 full before/after JSONB; diff computed client-side.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
 import {

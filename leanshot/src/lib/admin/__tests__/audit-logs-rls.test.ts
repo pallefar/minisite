@@ -25,8 +25,6 @@
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-
-// eslint-disable-next-line import-x/no-restricted-paths
 import { getUserAccessToken } from '../../../../tests/rls/helpers/admin-session';
 
 // ---------------------------------------------------------------------------

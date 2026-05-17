@@ -11,7 +11,6 @@
  * Default-export for App.tsx React.lazy() route registration in plan 22-12.
  */
 import { useEffect, useState } from 'react';
-
 import { CohortHeatmap, type CohortCell } from '@/components/admin/cohorts/CohortHeatmap';
 import { Card } from '@/components/ui/Card';
 import { supabase } from '@/lib/supabase';

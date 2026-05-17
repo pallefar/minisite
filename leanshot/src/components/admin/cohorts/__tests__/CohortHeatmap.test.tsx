@@ -15,7 +15,6 @@
  */
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-
 import { CohortHeatmap, type CohortCell } from '@/components/admin/cohorts/CohortHeatmap';
 
 function makeRows(weeks: number, daysPerWeek: number, fixed?: Partial<CohortCell>): CohortCell[] {

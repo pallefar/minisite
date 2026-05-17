@@ -79,8 +79,8 @@ vi.mock('jspdf', () => {
 // Import after mocks
 import { supabase } from '@/lib/supabase';
 import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
-import { RosterTable } from './RosterTable';
 import { BulkExportPDFFlow } from './BulkExportPDFFlow';
+import { RosterTable } from './RosterTable';
 
 // Typed mock accessors
 const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>;
@@ -160,7 +160,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   delete (window as any).posthog;
   // Unstub globals (fetch) but NOT vi.restoreAllMocks() which would restore vi.mock module mocks
   vi.unstubAllGlobals();
@@ -375,7 +375,7 @@ describe('BulkExport — mobile long-press', () => {
 describe('BulkExport — PostHog PHI safety', () => {
   it('Test 9: bulk events have count+action; NO patient ids', async () => {
     const capturedEvents: Array<{ name: string; props: Record<string, unknown> }> = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     (window as any).posthog = {
       capture: (name: string, props: Record<string, unknown>) => {
         capturedEvents.push({ name, props });

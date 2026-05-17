@@ -35,8 +35,8 @@ import { formatShort } from '@/lib/helpers';
 import type { SnapshotResponse } from '@/types/share';
 import type { SnapshotData } from '@/types/snapshot';
 import { CodeEntryScreen } from './CodeEntryScreen';
-import { ShareRevokedScreen } from './ShareRevokedScreen';
 import { fetchSnapshot } from './share-client';
+import { ShareRevokedScreen } from './ShareRevokedScreen';
 
 // Phase 10 Plan 10-05 — ReadOnlyPatientView is in the new shared chunk
 // 'read-only-patient-view'. The share chunk lazy-imports from it so the

@@ -1,0 +1,153 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - button "LeanShot home" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - navigation "Primary navigation" [ref=e8]:
+      - button "Today" [ref=e9] [cursor=pointer]:
+        - img [ref=e11]
+        - generic: Today
+      - button "Medication" [ref=e14] [cursor=pointer]:
+        - img [ref=e15]
+        - generic: Medication
+      - button "Side effects" [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - generic: Side effects
+      - button "Body" [active] [ref=e25] [cursor=pointer]:
+        - img [ref=e26]
+        - generic: Body
+      - button "Nutrition" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+        - generic: Nutrition
+      - button "Activity" [ref=e33] [cursor=pointer]:
+        - img [ref=e34]
+        - generic: Activity
+      - button "Stack" [ref=e36] [cursor=pointer]:
+        - img [ref=e37]
+        - generic: Stack
+      - button "Mood" [ref=e40] [cursor=pointer]:
+        - img [ref=e41]
+        - generic: Mood
+      - button "Wins" [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+        - generic: Wins
+    - generic [ref=e51]:
+      - button "Ask LeanShot AI" [ref=e52] [cursor=pointer]:
+        - img [ref=e53]
+      - button "Switch to dark mode" [ref=e56] [cursor=pointer]:
+        - img [ref=e57]
+      - button "Open settings" [ref=e59] [cursor=pointer]:
+        - img [ref=e60]
+      - button "Open profile" [ref=e64] [cursor=pointer]: T
+  - main [ref=e65]:
+    - generic [ref=e66]:
+      - generic [ref=e67]:
+        - heading "Body" [level=1] [ref=e688]
+        - paragraph [ref=e69]: The whole picture, not just the scale
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - img [ref=e72]
+          - textbox "Search across the app" [ref=e75]:
+            - /placeholder: Jump to weight, food, mood…
+        - button "Export" [ref=e76] [cursor=pointer]:
+          - img [ref=e78]
+          - generic [ref=e83]: Export
+        - button "Log dose" [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]: Log dose
+          - img [ref=e87]
+      - img [ref=e89]
+    - generic [ref=e690]:
+      - generic [ref=e691]:
+        - generic [ref=e692]: Current weight
+        - generic [ref=e693]: —kg
+      - generic [ref=e694]:
+        - generic [ref=e695]: Total lost
+        - generic [ref=e696]: 0.0kg
+      - generic [ref=e697]:
+        - generic [ref=e698]: Goal progress
+        - generic [ref=e699]: 0%
+      - generic [ref=e700]:
+        - generic [ref=e701]: Est. lean mass
+        - generic [ref=e702]: Log BF%
+      - generic [ref=e703]:
+        - generic [ref=e705]:
+          - img [ref=e707]
+          - heading "vs. clinical trial average" [level=2] [ref=e711]
+        - generic [ref=e712]:
+          - generic [ref=e713]:
+            - paragraph [ref=e714]: Your loss at week 18
+            - paragraph [ref=e715]: 0.0%
+          - generic [ref=e716]:
+            - paragraph [ref=e717]: Trial average
+            - paragraph [ref=e718]: 9.0%
+        - paragraph [ref=e719]:
+          - text: Trial averages don't reflect everyone — your pace is your own.
+          - emphasis [ref=e720]: STEP/SURMOUNT data.
+      - generic [ref=e721]:
+        - generic [ref=e723]:
+          - img [ref=e725]
+          - heading "Log weight" [level=2] [ref=e729]
+        - generic [ref=e730]:
+          - generic [ref=e731]:
+            - generic [ref=e732]:
+              - generic [ref=e733]: Date
+              - textbox "Date" [ref=e735]: 2026-05-11
+            - generic [ref=e736]:
+              - generic [ref=e737]: Weight (kg)
+              - spinbutton "Weight (kg)" [ref=e739]
+          - generic [ref=e740]:
+            - generic [ref=e741]: Body fat % (optional)
+            - spinbutton "Body fat % (optional)" [ref=e743]
+          - button "Save weight" [ref=e744] [cursor=pointer]:
+            - generic [ref=e745]: Save weight
+      - generic [ref=e746]:
+        - generic [ref=e748]:
+          - img [ref=e750]
+          - heading "Body measurements" [level=2] [ref=e756]
+        - generic [ref=e757]:
+          - generic [ref=e758]:
+            - generic [ref=e759]: Waist
+            - spinbutton "Waist" [ref=e761]
+          - generic [ref=e762]:
+            - generic [ref=e763]: Hips
+            - spinbutton "Hips" [ref=e765]
+          - generic [ref=e766]:
+            - generic [ref=e767]: Chest
+            - spinbutton "Chest" [ref=e769]
+          - generic [ref=e770]:
+            - generic [ref=e771]: Neck
+            - spinbutton "Neck" [ref=e773]
+          - generic [ref=e774]:
+            - generic [ref=e775]: Arms
+            - spinbutton "Arms" [ref=e777]
+          - generic [ref=e778]:
+            - generic [ref=e779]: Thighs
+            - spinbutton "Thighs" [ref=e781]
+        - button "Save measurements" [ref=e782] [cursor=pointer]:
+          - generic [ref=e783]: Save measurements
+      - generic [ref=e784]:
+        - generic [ref=e786]:
+          - img [ref=e788]
+          - heading "Weight trajectory" [level=2] [ref=e791]
+        - img "Weight trajectory" [ref=e793]
+      - generic [ref=e794]:
+        - generic [ref=e796]:
+          - img [ref=e798]
+          - heading "Journey photos" [level=2] [ref=e801]
+        - button "Add photo" [ref=e802] [cursor=pointer]:
+          - img [ref=e804]
+          - generic [ref=e805]: Add photo
+        - generic [ref=e806]:
+          - img [ref=e808]
+          - generic [ref=e819]:
+            - heading "No photos yet" [level=3] [ref=e820]
+            - paragraph [ref=e821]: Take a photo every 2 weeks. The mirror lies; the receipts don't.
+      - generic [ref=e822]:
+        - generic [ref=e824]:
+          - img [ref=e826]
+          - heading "Lean vs fat" [level=2] [ref=e829]
+        - img "Body composition" [ref=e831]
+      - generic [ref=e832]:
+        - generic [ref=e834]:
+          - img [ref=e836]
+          - heading "Weight history" [level=2] [ref=e839]
+        - paragraph [ref=e840]: Log your first weight above.

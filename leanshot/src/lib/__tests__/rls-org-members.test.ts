@@ -6,8 +6,8 @@
  *   T4: User A CANNOT INSERT a member into Org Y (RLS denial / 42501).
  *   T5: User A CANNOT UPDATE/DELETE org_members rows in Org Y.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,
@@ -82,7 +82,7 @@ describeIfLive('P28 RLS — org_members cross-tenant isolation', () => {
   }, 30_000);
 
   it('T5: User A cannot DELETE org_members rows in Org Y', async () => {
-    const { orgY, sessA } = fixture;
+    const { sessA } = fixture;
     if (!orgYMemberRowId) return;
     await sessA.client.from('org_members').delete().eq('id', orgYMemberRowId);
     // Row must still exist.

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /**
  * Phase 28 Plan 01 — RLS test fixture helper.
  *
@@ -25,9 +26,13 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPA
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 
 // Lazy-init admin client (service-role).
+// Test-fixture exception: RLS tests need a service-role client to seed cross-tenant scenarios
+// (createOrg as admin, then assert User A cannot read Org B as the test subject).
+// withOrgScope is the production guard; test setup is its own context and predates RLS evaluation.
 let _admin: SupabaseClient | null = null;
 export function getAdmin(): SupabaseClient {
   if (!_admin) {
+    // eslint-disable-next-line leanshot/no-raw-service-role-client -- test fixture; see comment above
     _admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });

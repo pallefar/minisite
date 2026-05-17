@@ -16,7 +16,6 @@
  * Default-export for App.tsx React.lazy() route registration in plan 22-12.
  */
 import { useEffect, useMemo, useState } from 'react';
-
 import { AdminMetricsClinicSeatList } from '@/components/admin/AdminMetricsClinicSeatList';
 import { AdminMetricsKpiStrip } from '@/components/admin/AdminMetricsKpiStrip';
 import { AdminMetricsMrrChart } from '@/components/admin/AdminMetricsMrrChart';

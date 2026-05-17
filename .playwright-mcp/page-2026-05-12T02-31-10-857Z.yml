@@ -1,0 +1,301 @@
+- generic [ref=e2]:
+  - generic [ref=e504]:
+    - complementary [ref=e505]:
+      - button "LeanShot home" [ref=e506] [cursor=pointer]:
+        - img [ref=e507]
+      - navigation "Primary navigation" [ref=e509]:
+        - button "Today" [ref=e510] [cursor=pointer]:
+          - img [ref=e512]
+          - generic: Today
+        - button "Medication" [ref=e515] [cursor=pointer]:
+          - img [ref=e516]
+          - generic: Medication
+        - button "Side effects" [ref=e523] [cursor=pointer]:
+          - img [ref=e524]
+          - generic: Side effects
+        - button "Body" [ref=e526] [cursor=pointer]:
+          - img [ref=e527]
+          - generic: Body
+        - button "Nutrition" [ref=e530] [cursor=pointer]:
+          - img [ref=e531]
+          - generic: Nutrition
+        - button "Activity" [ref=e534] [cursor=pointer]:
+          - img [ref=e535]
+          - generic: Activity
+        - button "Stack" [ref=e537] [cursor=pointer]:
+          - img [ref=e538]
+          - generic: Stack
+        - button "Mood" [ref=e541] [cursor=pointer]:
+          - img [ref=e542]
+          - generic: Mood
+        - button "Wins" [ref=e545] [cursor=pointer]:
+          - img [ref=e546]
+          - generic: Wins
+      - generic [ref=e552]:
+        - button "Ask LeanShot AI" [ref=e553] [cursor=pointer]:
+          - img [ref=e554]
+        - button "Switch to dark mode" [ref=e557] [cursor=pointer]:
+          - img [ref=e558]
+        - button "Open settings" [ref=e560] [cursor=pointer]:
+          - img [ref=e561]
+        - button "Open profile" [ref=e565] [cursor=pointer]: U
+    - main [ref=e566]:
+      - generic [ref=e567]:
+        - generic [ref=e568]:
+          - heading "Today" [level=1] [ref=e569]
+          - paragraph [ref=e570]: Your GLP-1 journey at a glance
+        - generic [ref=e571]:
+          - generic [ref=e572]:
+            - img [ref=e573]
+            - textbox "Search across the app" [ref=e576]:
+              - /placeholder: Jump to weight, food, mood…
+          - button "Export" [ref=e577] [cursor=pointer]:
+            - img [ref=e579]
+            - generic [ref=e584]: Export
+          - button "Log dose" [ref=e585] [cursor=pointer]:
+            - generic [ref=e586]: Log dose
+            - img [ref=e588]
+          - button "Account menu" [ref=e590] [cursor=pointer]: UA
+        - img [ref=e593]
+      - generic [ref=e594]:
+        - generic [ref=e595]:
+          - img [ref=e597]
+          - generic [ref=e599]:
+            - paragraph [ref=e600]: Good evening,
+            - paragraph [ref=e601]: UAT ·
+        - generic [ref=e602]:
+          - generic [ref=e603]:
+            - generic [ref=e605]: Mood
+            - generic [ref=e606]: Not yet
+          - generic [ref=e607]:
+            - img [ref=e608]
+            - generic [ref=e610]: Energy
+            - generic [ref=e611]: —
+      - generic [ref=e613]:
+        - generic [ref=e615]:
+          - img [ref=e617]
+          - generic [ref=e619]:
+            - paragraph [ref=e620]: Today's focus
+            - heading "You're ahead of today" [level=2] [ref=e621]
+            - paragraph [ref=e622]: Protein in. Stack run. Shot tracked. Take a walk and stack tomorrow's win.
+          - button "See your wins" [ref=e623] [cursor=pointer]:
+            - generic [ref=e624]: See your wins
+            - img [ref=e626]
+        - generic [ref=e628]:
+          - img
+          - generic [ref=e631]:
+            - generic [ref=e632]:
+              - generic [ref=e633]: Ozempic
+              - generic [ref=e634]: 0.5 mg
+            - generic [ref=e635]: Rx · Ozempic
+          - generic [ref=e636]:
+            - paragraph [ref=e637]: Lost
+            - paragraph [ref=e638]: 0.0kg
+            - paragraph [ref=e639]: Week 18 · Maintenance phase · Lock in habits.
+          - generic [ref=e640]:
+            - generic [ref=e641]:
+              - paragraph [ref=e642]: 0%
+              - paragraph [ref=e643]: Goal
+            - generic [ref=e645]:
+              - paragraph [ref=e646]: "1"
+              - paragraph [ref=e647]: Injections
+            - generic [ref=e649]:
+              - paragraph [ref=e650]:
+                - text: "0"
+                - generic [ref=e651]: /150g
+              - paragraph [ref=e652]: Protein today
+          - generic [ref=e653]:
+            - generic [ref=e654]:
+              - paragraph [ref=e655]: Titration timeline
+              - paragraph [ref=e656]: Tap a step in the medication tab to learn more
+            - generic [ref=e657]:
+              - button "0.25 mg Wk 1–4" [ref=e659] [cursor=pointer]:
+                - generic [ref=e662]: 0.25 mg
+                - generic [ref=e663]: Wk 1–4
+              - button "0.5 mg Wk 5–8" [ref=e666] [cursor=pointer]:
+                - generic [ref=e669]: 0.5 mg
+                - generic [ref=e670]: Wk 5–8
+              - button "1.0 mg Now · Wk 9+" [ref=e673] [cursor=pointer]:
+                - generic [ref=e677]: 1.0 mg
+                - generic [ref=e678]: Now · Wk 9+
+              - button "2.0 mg Now · Wk If needed" [ref=e681] [cursor=pointer]:
+                - generic [ref=e685]: 2.0 mg
+                - generic [ref=e686]: Now · Wk If needed
+        - generic [ref=e687]:
+          - generic [ref=e688]:
+            - generic [ref=e689]:
+              - img [ref=e691]
+              - heading "GLP-1 level" [level=2] [ref=e694]
+            - generic [ref=e696]: Peak now
+          - generic [ref=e700]:
+            - generic [ref=e701]:
+              - generic [ref=e702]: "99"
+              - generic [ref=e703]: "%"
+              - generic [ref=e704]: est.
+            - generic [ref=e705]:
+              - img [ref=e706]
+              - generic [ref=e709]:
+                - text: Next shot in
+                - strong [ref=e710]: 6d 22h
+          - generic [ref=e711]:
+            - generic [ref=e712]: Now
+            - generic [ref=e713]: Day 3
+            - generic [ref=e714]: Day 6
+          - generic [ref=e715]:
+            - img [ref=e716]
+            - generic [ref=e722]: Appetite may return
+          - generic [ref=e723]:
+            - generic [ref=e724]:
+              - paragraph [ref=e725]: Peak
+              - paragraph [ref=e726]: Day 1–2
+              - paragraph [ref=e727]: Eat slow
+            - generic [ref=e728]:
+              - paragraph [ref=e729]: Trough
+              - paragraph [ref=e730]: Day 6–7
+              - paragraph [ref=e731]: Hunger rises
+        - generic [ref=e732]:
+          - generic [ref=e733]:
+            - generic [ref=e734]:
+              - img [ref=e736]
+              - heading "Injection site" [level=2] [ref=e743]
+            - button "Open medication tab" [ref=e745] [cursor=pointer]:
+              - img [ref=e746]
+          - img "Body diagram with injection sites" [ref=e750]:
+            - generic "abdomen ul — next" [ref=e760]
+            - generic "abdomen ur — empty" [ref=e762]
+            - generic "abdomen ll — empty" [ref=e764]
+            - generic "abdomen lr — empty" [ref=e766]
+            - generic "thigh l — empty" [ref=e768]
+            - generic "thigh r — empty" [ref=e770]
+            - generic "arm l — empty" [ref=e772]
+            - generic "arm r — empty" [ref=e774]
+          - generic [ref=e775]:
+            - generic [ref=e776]: Recent · avoid
+            - generic [ref=e778]: 2 weeks ago
+            - generic [ref=e780]: Next
+        - generic [ref=e782]:
+          - generic [ref=e783]:
+            - generic [ref=e784]:
+              - img [ref=e786]
+              - heading "Effectiveness" [level=2] [ref=e789]
+            - button "Open body tab" [ref=e791] [cursor=pointer]:
+              - img [ref=e792]
+          - generic [ref=e795]:
+            - generic [ref=e796]:
+              - generic [ref=e797]:
+                - generic [ref=e798]: Body weight
+                - generic [ref=e799]:
+                  - generic [ref=e800]: ↓ 0.0 kg
+                  - text: 100.0 kg
+              - progressbar "Body weight" [ref=e801]
+            - generic [ref=e803]:
+              - generic [ref=e804]:
+                - generic [ref=e805]: Goal progress
+                - generic [ref=e806]: 0%
+              - progressbar "Goal progress" [ref=e807]
+            - generic [ref=e808]:
+              - generic [ref=e809]:
+                - generic [ref=e810]: Protein today
+                - generic [ref=e811]: 0/150g
+              - progressbar "Protein today" [ref=e812]
+            - generic [ref=e813]:
+              - generic [ref=e814]:
+                - generic [ref=e815]: Adherence (7d)
+                - generic [ref=e816]: 0%
+              - progressbar "Adherence (7d)" [ref=e817]
+          - generic [ref=e818]:
+            - generic [ref=e819]: Since Jan 1 · Week 18
+            - button "Full report" [ref=e820] [cursor=pointer]
+        - generic [ref=e821]:
+          - generic [ref=e822]:
+            - generic [ref=e823]:
+              - img [ref=e825]
+              - heading "Side effects" [level=2] [ref=e827]
+            - button "Log" [ref=e829] [cursor=pointer]:
+              - img [ref=e831]
+              - generic [ref=e832]: Log
+          - generic [ref=e833]:
+            - img [ref=e835]
+            - generic [ref=e841]:
+              - heading "No symptoms this week" [level=3] [ref=e842]
+              - paragraph [ref=e843]: That's a good sign — track if anything new shows up.
+        - generic [ref=e844]:
+          - generic [ref=e845]:
+            - generic [ref=e846]:
+              - img [ref=e848]
+              - heading "Your streaks" [level=2] [ref=e850]
+            - generic [ref=e852]: Keep it going
+          - generic [ref=e853]:
+            - generic [ref=e854]:
+              - img [ref=e855]:
+                - generic [ref=e860]: 7d
+              - generic [ref=e861]:
+                - paragraph [ref=e862]: 0days
+                - paragraph [ref=e863]: Weight log
+            - generic [ref=e864]:
+              - img [ref=e865]:
+                - generic [ref=e870]: 7d
+              - generic [ref=e871]:
+                - paragraph [ref=e872]: 0days
+                - paragraph [ref=e873]: Protein hit
+            - generic [ref=e874]:
+              - img [ref=e875]:
+                - generic [ref=e880]: 7d
+              - generic [ref=e881]:
+                - paragraph [ref=e882]: 0days
+                - paragraph [ref=e883]: Stack run
+            - generic [ref=e884]:
+              - img [ref=e885]:
+                - generic [ref=e890]: 7d
+              - generic [ref=e891]:
+                - paragraph [ref=e892]: 0days
+                - paragraph [ref=e893]: Active days
+        - generic [ref=e894]:
+          - generic [ref=e896]:
+            - img [ref=e898]
+            - heading "Quick log" [level=2] [ref=e900]
+          - generic [ref=e901]:
+            - button "Injection" [ref=e902] [cursor=pointer]:
+              - img [ref=e904]
+              - generic [ref=e911]: Injection
+            - button "Weight" [ref=e912] [cursor=pointer]:
+              - img [ref=e914]
+              - generic [ref=e918]: Weight
+            - button "Meal" [ref=e919] [cursor=pointer]:
+              - img [ref=e921]
+              - generic [ref=e924]: Meal
+            - button "Symptom" [ref=e925] [cursor=pointer]:
+              - img [ref=e927]
+              - generic [ref=e929]: Symptom
+            - button "Mood" [ref=e930] [cursor=pointer]:
+              - img [ref=e932]
+              - generic [ref=e935]: Mood
+            - button "Stack" [ref=e936] [cursor=pointer]:
+              - img [ref=e938]
+              - generic [ref=e941]: Stack
+            - button "Workout" [ref=e942] [cursor=pointer]:
+              - img [ref=e944]
+              - generic [ref=e946]: Workout
+            - button "Ask AI" [ref=e947] [cursor=pointer]:
+              - img [ref=e949]
+              - generic [ref=e952]: Ask AI
+        - generic [ref=e953]:
+          - generic [ref=e955]:
+            - img [ref=e957]
+            - heading "Today's insight" [level=2] [ref=e959]
+          - paragraph [ref=e960]: Keep logging — insights appear once you have a few days of data.
+    - status [ref=e961]:
+      - img [ref=e962]
+      - generic [ref=e964]: Welcome back — your AI chat history is saved to your account.
+  - dialog "Guided tour":
+    - button "Close tour" [ref=e965]
+    - generic [ref=e966]:
+      - generic [ref=e967]:
+        - generic [ref=e968]: Step 1 of 6
+        - button "Skip tour" [ref=e969] [cursor=pointer]:
+          - img [ref=e970]
+      - heading "Your hero card" [level=3] [ref=e973]
+      - paragraph [ref=e974]: At-a-glance summary — total lost, current phase, today's protein, and your titration timeline.
+      - button "Next" [ref=e984] [cursor=pointer]:
+        - generic [ref=e985]: Next
+        - img [ref=e987]

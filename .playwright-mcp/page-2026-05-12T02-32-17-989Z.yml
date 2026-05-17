@@ -1,0 +1,206 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - button "LeanShot home" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - navigation "Primary navigation" [ref=e8]:
+      - button "Today" [ref=e9] [cursor=pointer]:
+        - img [ref=e11]
+        - generic: Today
+      - button "Medication" [active] [ref=e14] [cursor=pointer]:
+        - img [ref=e15]
+        - generic: Medication
+      - button "Side effects" [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - generic: Side effects
+      - button "Body" [ref=e25] [cursor=pointer]:
+        - img [ref=e26]
+        - generic: Body
+      - button "Nutrition" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+        - generic: Nutrition
+      - button "Activity" [ref=e33] [cursor=pointer]:
+        - img [ref=e34]
+        - generic: Activity
+      - button "Stack" [ref=e36] [cursor=pointer]:
+        - img [ref=e37]
+        - generic: Stack
+      - button "Mood" [ref=e40] [cursor=pointer]:
+        - img [ref=e41]
+        - generic: Mood
+      - button "Wins" [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+        - generic: Wins
+    - generic [ref=e51]:
+      - button "Ask LeanShot AI" [ref=e52] [cursor=pointer]:
+        - img [ref=e53]
+      - button "Switch to dark mode" [ref=e56] [cursor=pointer]:
+        - img [ref=e57]
+      - button "Open settings" [ref=e59] [cursor=pointer]:
+        - img [ref=e60]
+      - button "Open profile" [ref=e64] [cursor=pointer]: U
+  - main [ref=e65]:
+    - generic [ref=e66]:
+      - generic [ref=e67]:
+        - heading "Medication" [level=1] [ref=e472]
+        - paragraph [ref=e69]: Injections, vials, and your med-level curve
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - img [ref=e72]
+          - textbox "Search across the app" [ref=e75]:
+            - /placeholder: Jump to weight, food, mood…
+        - button "Export" [ref=e76] [cursor=pointer]:
+          - img [ref=e78]
+          - generic [ref=e83]: Export
+        - button "Log dose" [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]: Log dose
+          - img [ref=e87]
+        - button "Account menu" [ref=e89] [cursor=pointer]: UA
+      - img [ref=e92]
+    - generic [ref=e474]:
+      - generic [ref=e475]:
+        - generic [ref=e476]: Current dose
+        - generic [ref=e477]: 0.5mg
+      - generic [ref=e478]:
+        - generic [ref=e479]: Last shot
+        - generic [ref=e480]: 0d ago
+      - generic [ref=e481]:
+        - generic [ref=e482]: Total injections
+        - generic [ref=e483]: "1"
+      - generic [ref=e484]:
+        - generic [ref=e485]: Doses remaining
+        - generic [ref=e486]: —
+      - generic [ref=e487]:
+        - generic [ref=e488]:
+          - generic [ref=e489]:
+            - img [ref=e491]
+            - heading "Estimated medication levels" [level=2] [ref=e494]
+          - generic [ref=e496]: Half-life · 7.0d
+        - img "28-day medication level estimate with inter-individual variability band, not a measured serum level" [ref=e498]
+        - paragraph [ref=e499]: Estimate · ~30% inter-individual variation
+        - paragraph [ref=e500]: Solid line = past · dashed = projected from your dose pattern
+      - generic [ref=e501]:
+        - generic [ref=e503]:
+          - img [ref=e505]
+          - heading "Log new injection" [level=2] [ref=e512]
+        - generic [ref=e513]:
+          - generic [ref=e514]:
+            - generic [ref=e515]: Date & time
+            - textbox "Date & time" [ref=e517]: 2026-05-12T02:32
+          - generic [ref=e518]:
+            - generic [ref=e519]:
+              - generic [ref=e520]: Dose
+              - textbox "Dose" [ref=e522]:
+                - /placeholder: "0.5"
+                - text: "0.5"
+            - generic [ref=e523]:
+              - generic [ref=e524]: Unit
+              - combobox "Unit" [ref=e526] [cursor=pointer]:
+                - option "mg" [selected]
+                - option "units"
+                - option "ml"
+          - generic [ref=e527]:
+            - paragraph [ref=e528]: Site (rotate weekly)
+            - generic [ref=e529]:
+              - button "Abd UL" [ref=e530] [cursor=pointer]
+              - button "Abd UR" [ref=e531] [cursor=pointer]
+              - button "Abd LL" [ref=e532] [cursor=pointer]
+              - button "Abd LR" [ref=e533] [cursor=pointer]
+              - button "Thigh L" [ref=e534] [cursor=pointer]
+              - button "Thigh R" [ref=e535] [cursor=pointer]
+              - button "Arm L" [ref=e536] [cursor=pointer]
+              - button "Arm R" [ref=e537] [cursor=pointer]
+          - generic [ref=e538]:
+            - generic [ref=e539]: Notes
+            - textbox "Notes" [ref=e541]
+          - button "Log injection" [ref=e542] [cursor=pointer]:
+            - generic [ref=e543]: Log injection
+      - generic [ref=e544]:
+        - generic [ref=e545]:
+          - generic [ref=e546]:
+            - img [ref=e548]
+            - heading "Vials & supply" [level=2] [ref=e552]
+          - button "Add vial" [ref=e554] [cursor=pointer]:
+            - img [ref=e556]
+            - generic [ref=e557]: Add vial
+        - generic [ref=e558]:
+          - img [ref=e560]
+          - generic [ref=e571]:
+            - heading "No vials tracked yet" [level=3] [ref=e572]
+            - paragraph [ref=e573]: Add your current vial to track refills and prevent gaps.
+          - button "Add vial" [ref=e575] [cursor=pointer]:
+            - img [ref=e577]
+            - generic [ref=e578]: Add vial
+      - generic [ref=e579]:
+        - generic [ref=e581]:
+          - img [ref=e583]
+          - heading "Titration schedule" [level=2] [ref=e586]
+        - generic [ref=e587]:
+          - generic [ref=e588]:
+            - generic [ref=e589]: 0.25 mg
+            - generic [ref=e590]:
+              - strong [ref=e591]: Wk 1–4
+              - text: — Tolerance only.
+          - generic [ref=e592]:
+            - generic [ref=e593]: 0.5 mg
+            - generic [ref=e594]:
+              - strong [ref=e595]: Wk 5–8
+              - text: — First therapeutic.
+          - generic [ref=e596]:
+            - generic [ref=e597]: 1.0 mg
+            - generic [ref=e598]:
+              - strong [ref=e599]: Wk 9+
+              - text: — Standard maintenance.
+            - generic [ref=e600]: You
+          - generic [ref=e604]:
+            - generic [ref=e605]: 2.0 mg
+            - generic [ref=e606]:
+              - strong [ref=e607]: Wk If needed
+              - text: — Max for some.
+            - generic [ref=e608]: You
+      - generic [ref=e612]:
+        - generic [ref=e614]:
+          - img [ref=e616]
+          - heading "Recent injections" [level=2] [ref=e619]
+        - table [ref=e621]:
+          - rowgroup [ref=e622]:
+            - row "Date Dose Site" [ref=e623]:
+              - columnheader "Date" [ref=e624]
+              - columnheader "Dose" [ref=e625]
+              - columnheader "Site" [ref=e626]
+              - columnheader [ref=e627]
+          - rowgroup [ref=e628]:
+            - row "May 12 0.5 mg — Delete injection on May 12" [ref=e629]:
+              - cell "May 12" [ref=e630]
+              - cell "0.5 mg" [ref=e631]
+              - cell "—" [ref=e632]
+              - cell "Delete injection on May 12" [ref=e633]:
+                - button "Delete injection on May 12" [ref=e634] [cursor=pointer]:
+                  - img [ref=e635]
+      - generic [ref=e638]:
+        - generic [ref=e639]:
+          - generic [ref=e640]:
+            - img [ref=e642]
+            - heading "Cost tracker" [level=2] [ref=e645]
+          - button "Add expense" [ref=e647] [cursor=pointer]:
+            - img [ref=e649]
+            - generic [ref=e650]: Add expense
+        - generic [ref=e651]:
+          - generic [ref=e652]:
+            - paragraph [ref=e653]: Total
+            - paragraph [ref=e654]: $0
+          - generic [ref=e655]:
+            - paragraph [ref=e656]: Per dose
+            - paragraph [ref=e657]: $0
+          - generic [ref=e658]:
+            - paragraph [ref=e659]: Last 30 days
+            - paragraph [ref=e660]: $0
+          - generic [ref=e661]:
+            - paragraph [ref=e662]: Annual projected
+            - paragraph [ref=e663]: $0
+        - generic [ref=e664]:
+          - generic [ref=e665]:
+            - heading "No expenses tracked" [level=3] [ref=e666]
+            - paragraph [ref=e667]: Add your first to see cost-per-dose, monthly spend, and an annual projection.
+          - button "Add expense" [ref=e669] [cursor=pointer]:
+            - img [ref=e671]
+            - generic [ref=e672]: Add expense

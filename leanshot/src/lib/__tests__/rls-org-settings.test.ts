@@ -6,8 +6,8 @@
  *   T4: User A cannot INSERT into org_settings of Org Y.
  *   T5: User A cannot UPDATE org_settings of Org Y.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import path from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

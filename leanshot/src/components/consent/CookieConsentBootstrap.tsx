@@ -13,7 +13,6 @@
  * src/lib/consent/consent-defer.ts).
  */
 import { useEffect } from 'react';
-
 import { scheduleConsentInit } from '@/lib/consent/consent-defer';
 
 export function CookieConsentBootstrap(): null {

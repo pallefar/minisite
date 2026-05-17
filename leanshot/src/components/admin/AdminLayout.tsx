@@ -35,11 +35,11 @@
  */
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { supabase, assertAal2 } from '@/lib/supabase';
 import AdminShell, { NotAuthorizedCard } from '@/components/admin/AdminShell';
 import SetupTotpPage from '@/components/admin/SetupTotpPage';
 import StepUpTotpPage from '@/components/admin/StepUpTotpPage';
 import type { AdminRole } from '@/lib/admin/roles';
+import { supabase, assertAal2 } from '@/lib/supabase';
 
 /** Possible states for the combined probe (staff + role + has_totp + aal2). */
 type ProbeStatus =

@@ -15,12 +15,10 @@
  * when an action is confirmed (fired by the Flow components; this component
  * fires clinic_bulk_selected when the action menu opens).
  */
-import { useRef, useState } from 'react';
-
 import { ChevronDown, FileSpreadsheet, FileText, X } from 'lucide-react';
-
-import { cn } from '@/lib/helpers';
+import { useRef, useState } from 'react';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
+import { cn } from '@/lib/helpers';
 
 export type BulkAction = 'pdf' | 'csv' | 'tabs';
 

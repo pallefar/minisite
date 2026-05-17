@@ -8,11 +8,10 @@
  * on page load). This component just opens the tabs.
  */
 import { useState } from 'react';
-
-import { CLINIC_EVENTS } from '@/lib/clinic-events';
-import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
+import { CLINIC_EVENTS } from '@/lib/clinic-events';
 
 const TAB_CAP = 5;
 

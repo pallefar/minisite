@@ -98,7 +98,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   delete (window as any).posthog;
 });
 

@@ -1,0 +1,72 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - button "LeanShot home" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - navigation "Primary navigation" [ref=e8]:
+      - button "Today" [ref=e9] [cursor=pointer]:
+        - img [ref=e11]
+        - generic: Today
+      - button "Medication" [ref=e14] [cursor=pointer]:
+        - img [ref=e15]
+        - generic: Medication
+      - button "Side effects" [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - generic: Side effects
+      - button "Body" [ref=e25] [cursor=pointer]:
+        - img [ref=e26]
+        - generic: Body
+      - button "Nutrition" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+        - generic: Nutrition
+      - button "Activity" [ref=e33] [cursor=pointer]:
+        - img [ref=e34]
+        - generic: Activity
+      - button "Stack" [ref=e36] [cursor=pointer]:
+        - img [ref=e37]
+        - generic: Stack
+      - button "Mood" [ref=e40] [cursor=pointer]:
+        - img [ref=e41]
+        - generic: Mood
+      - button "Wins" [ref=e44] [cursor=pointer]:
+        - img [ref=e45]
+        - generic: Wins
+    - generic [ref=e51]:
+      - button "Ask LeanShot AI" [ref=e52] [cursor=pointer]:
+        - img [ref=e53]
+      - button "Switch to dark mode" [ref=e56] [cursor=pointer]:
+        - img [ref=e57]
+      - button "Open settings" [ref=e59] [cursor=pointer]:
+        - img [ref=e60]
+      - button "Open profile" [ref=e64] [cursor=pointer]: U
+  - main [ref=e65]:
+    - generic [ref=e66]:
+      - generic [ref=e67]:
+        - heading "Today" [level=1] [ref=e68]
+        - paragraph [ref=e69]: Your GLP-1 journey at a glance
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - img [ref=e72]
+          - textbox "Search across the app" [ref=e75]:
+            - /placeholder: Jump to weight, food, mood…
+        - button "Export" [ref=e76] [cursor=pointer]:
+          - img [ref=e78]
+          - generic [ref=e83]: Export
+        - button "Log dose" [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]: Log dose
+          - img [ref=e87]
+        - button "Account menu" [ref=e89] [cursor=pointer]: "?"
+      - img [ref=e92]
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - img [ref=e96]
+        - generic [ref=e98]:
+          - paragraph [ref=e99]: Good evening,
+          - paragraph [ref=e100]: UAT ·
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - generic [ref=e104]: Mood
+          - generic [ref=e105]: Not yet
+        - generic [ref=e106]:
+          - img [ref=e107]
+          - generic [ref=e109]: Energy
+          - generic [ref=e110]: —

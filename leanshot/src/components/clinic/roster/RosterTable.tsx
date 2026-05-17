@@ -23,28 +23,26 @@
  *
  * Realtime patches only signal columns in-place WITHOUT re-firing the RPC.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
 import { ArrowDown, ArrowUp, ArrowUpDown, RefreshCw } from 'lucide-react';
-
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { cn } from '@/lib/helpers';
-import { CLINIC_EVENTS, scoreBucket } from '@/lib/clinic-events';
 import { useToast } from '@/hooks/useToast';
+import { CLINIC_EVENTS, scoreBucket } from '@/lib/clinic-events';
+import { cn } from '@/lib/helpers';
 import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
+import { BulkExportCSVFlow } from './BulkExportCSVFlow';
+import { BulkExportPDFFlow } from './BulkExportPDFFlow';
+import { BulkOpenInTabsFlow } from './BulkOpenInTabsFlow';
+import { RosterBulkSelectionBar } from './RosterBulkSelectionBar';
+import { RosterMobileCard } from './RosterMobileCard';
+import { RosterPagination } from './RosterPagination';
+import { RosterRow } from './RosterRow';
 import { useRankRoster } from './use-rank-roster';
 import { useRosterRealtime } from './use-roster-realtime';
 import type { PatientSignalChangePayload } from './use-roster-realtime';
 import { useRosterSelection } from './use-roster-selection';
-import { RosterRow } from './RosterRow';
-import { RosterMobileCard } from './RosterMobileCard';
-import { RosterPagination } from './RosterPagination';
-import { RosterBulkSelectionBar } from './RosterBulkSelectionBar';
-import { BulkExportPDFFlow } from './BulkExportPDFFlow';
-import { BulkExportCSVFlow } from './BulkExportCSVFlow';
-import { BulkOpenInTabsFlow } from './BulkOpenInTabsFlow';
 
 const PAGE_SIZE = 50;
 const REFRESH_INTERVAL_MS = 30_000;

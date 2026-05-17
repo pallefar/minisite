@@ -38,11 +38,11 @@ import { ClinicContextBar } from '@/components/clinic/ClinicContextBar';
 import { ReadOnlyPatientView } from '@/components/shared/ReadOnlyPatientView';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/hooks/useToast';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { supabase } from '@/lib/supabase';
 import type { Org } from '@/types/clinic';
 import type { ReadOnlyPermissionMap } from '@/types/snapshot';
-import { useToast } from '@/hooks/useToast';
 import { ClinicDrillInSubBar } from './ClinicDrillInSubBar';
 import { useClinicSnapshot } from './use-clinic-snapshot';
 
