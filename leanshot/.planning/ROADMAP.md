@@ -125,7 +125,7 @@ Plans:
 - [ ] 26-06-PLAN.md — affiliate-lifetime-recurring monthly cron Edge Fn (AFFTIER-04)
 - [ ] 26-07-PLAN.md — stripe-webhook charge.refunded + charge.dispute.created handlers + BLOCKING schema push + Stripe Dashboard HUMAN-UAT (AFFTIER-04 + D-06)
 
-$1: Modular Admin Shell Extensions
+### Phase 27: Modular Admin Shell Extensions
 **Goal**: Bulk actions + cohort builder + command palette + funnel anomaly detector unlock shared infrastructure for Phases 28, 30, 34, 37.
 **Depends on**: Phase 24 (admin shell)
 **Requirements**: ADMIN-04, ADMIN-05, ADMIN-06, TAXO-03, TAXO-05
