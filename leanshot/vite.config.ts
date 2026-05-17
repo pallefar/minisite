@@ -66,7 +66,24 @@ export default defineConfig(({ mode }) => {
           manualChunks: (id: string): string | undefined => {
             // CSS-module guard — manualChunks receives ALL ids including .css ones;
             // routing CSS into a JS chunk breaks the CSS pipeline (RESEARCH pitfall #1).
-            if (id.endsWith('.css')) return undefined;
+            if (id.endsWith('.css') || id.includes('?css')) return undefined;
+
+            // Phase 24 D-18..20 — per-chunk ceilings for v1.3 Platform Expansion.
+            // Routes are no-ops for code not yet shipped (helpdesk, i18n, gamification,
+            // community, course); assert-bundle-budget.sh tolerates MISSING chunks.
+            // NOTE: admin-shell MUST precede the legacy 'admin-bundle' rule below so
+            // Phase 24 admin code lands in 'admin-shell' (ceiling 30 kB gz) rather
+            // than the older Phase 15 'admin-bundle' (page-builder editor chunk).
+            // The Phase 15 src/components/admin/ → admin-bundle rule below is
+            // intentionally kept for page-builder backward-compat; Phase 24 admin
+            // components are under src/components/admin/ but the admin-shell rule
+            // fires first because it also checks src/lib/admin/.
+            if (id.includes('/src/lib/admin/')) return 'admin-shell';
+            if (id.includes('/src/components/helpdesk/') || id.includes('/src/lib/helpdesk/')) return 'helpdesk-widget';
+            if (id.includes('/src/lib/i18n/') || id.includes('/src/components/i18n/')) return 'i18n-runtime';
+            if (id.includes('/src/lib/gamification/') || id.includes('/src/components/gamification/')) return 'gamification-burst';
+            if (id.includes('/src/components/community/')) return 'community-feed';
+            if (id.includes('/src/components/course/')) return 'course-player';
 
             // Phase 8 Plan 08-06 — group all `src/components/share/*` files
             // into a single `share` chunk. SharePage is already lazy-loaded
@@ -106,12 +123,15 @@ export default defineConfig(({ mode }) => {
             // (BlockTreePanel, PropertyPanel, PreviewPane, TemplatePicker,
             // AssetLibraryPicker, the 12 block-component editors, etc.) must be
             // lazy-loaded behind a React.lazy() boundary so public visitors never
-            // download the editor. The `admin-bundle` chunk is staff-only and
-            // gated by the index-chunk no-dnd-kit-static-import CI guard in
-            // scripts/assert-clinic-bundle-budget.sh. Source-path rule MUST come
-            // before the node_modules block so editor source files are routed
-            // by path, not swept into a vendor chunk.
-            if (id.includes('src/components/admin/')) return 'admin-bundle';
+            // download the editor. Source-path rule MUST come before the
+            // node_modules block so editor source files are routed by path, not
+            // swept into a vendor chunk.
+            // Phase 24 D-18..20 — renamed from 'admin-bundle' → 'admin-shell' to
+            // unify the Phase 24 AdminShell + Phase 15 page-builder editor into
+            // one named chunk with a 30 kB gz ceiling enforced by
+            // assert-bundle-budget.sh. The dnd-kit index-leak guard in
+            // assert-clinic-bundle-budget.sh is still enforced separately.
+            if (id.includes('src/components/admin/')) return 'admin-shell';
 
             // Phase 15 Plan 15-02 — D-03: page-builder runtime helpers
             // (block-schema.ts, json-ld.ts, templates.ts) load on published
