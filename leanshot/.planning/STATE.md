@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 28 Wave 2 complete — 28-03 JWT hook + 28-04 HMAC realtime + 28-05 org-context layer all shipped
-last_updated: "2026-05-17T18:30:00Z"
-last_activity: 2026-05-17 -- Phase 28 Wave 2 merged (28-03 + 28-04 + 28-05); Wave 3 (28-06 RouteOrgGuard) ready
+stopped_at: Completed 28-06-PLAN.md
+last_updated: "2026-05-17T16:13:50.466Z"
+last_activity: 2026-05-17
 progress:
   total_phases: 27
   completed_phases: 1
   total_plans: 40
-  completed_plans: 14
+  completed_plans: 15
   percent: 4
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 ## Current Position
 
 Phase: 28 — IN PROGRESS
-Plan: 4 of 8 (Plans 00, 01, 02, 03 complete)
-Status: Wave 2 partial — 28-03 JWT hook shipped; 28-04 (HMAC realtime) next
-Last activity: 2026-05-17 -- Phase 28 Plan 03 JWT custom_access_token_hook + WorkspaceSwitcher propagation UX executed
+Plan: 5 of 8 (Plans 00, 01, 02, 03 complete)
+Status: Ready to execute
+Last activity: 2026-05-17
 
 ### v1.3 milestone open (2026-05-17)
 
@@ -54,7 +54,7 @@ Last activity: 2026-05-17 -- Phase 28 Plan 03 JWT custom_access_token_hook + Wor
 
 Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
 
-Progress: [███░░░░░░░] 25%
+Progress: [████░░░░░░] 38%
 
 ## Performance Metrics
 
@@ -101,6 +101,7 @@ Progress: [███░░░░░░░] 25%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 28 P06 | 8 minutes | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,7 @@ Recent decisions affecting current work:
 - v1.3 hard constraints: HIPAA BAA chain (6 vendors) + Stripe never signs BAA (PHI lint) + dual Anthropic credentials + activation event locks PAYWALL/REVIEW/RECOMMEND + page-builder canonical-link discipline + App/Play native review-prompt unconditional + i18n via `?lang=es` query (not `/es/` path)
 - v1.3 bundle: 50 kB gz index hard ceiling; per-chunk ceilings declared in P24 — admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB
 - v1.3 vendor cost when HIPAA chain activates: +$1,864-4,364/mo (Supabase Team+addon $924, Vercel Pro+addon $350, Sentry Business $80, Anthropic Enterprise $500-2K, PostHog Boost optional $0-2K, AWS SES ~$10)
+- [Phase ?]: OrgInviteAcceptance created inline; Playwright e2e gated on PLAYWRIGHT_RUN_P28=1; usePhiAccessLogger added for PHI audit
 
 ### Pending Todos
 
@@ -165,9 +167,9 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-17T14:11:37.803Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-clinic-organizations-schema-rls-hardening/28-CONTEXT.md
+Last session: 2026-05-17T16:13:50.459Z
+Stopped at: Completed 28-06-PLAN.md
+Resume file: None
 
 ## Phase 25 plan-phase blocker (2026-05-17)
 
