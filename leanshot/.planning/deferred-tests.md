@@ -378,3 +378,5 @@ and to satisfy the `audit-deferred-tests.mjs` anchor-check requirement.
 | EG-27 | `src/lib/admin/__tests__/audit-logs-rls.test.ts` | `SHOULD_RUN` / `describeIfLive` | 24 |
 | EG-28 | `src/lib/admin/__tests__/audit-trigger.test.ts` (T5 GUC suppress) | `SHOULD_RUN` / `describeIfLive`; T5 placeholder until Plan 24-05 ships `_test_suppress_helper` RPC | 24-05 |
 | EG-29 | `src/lib/admin/__tests__/backup-codes.test.ts` | `SHOULD_RUN` / `describeIfLive`; [PLAN-24-05-SWAP] consume stub → real RPC at Plan 24-05 ship | 24-05 |
+| EG-30 | `e2e/admin-mfa-middleware.spec.ts` | `PLAYWRIGHT_RUN_ADMIN_MFA=1` + `HAS_LIVE`; T1+T2 gate tests; full aal2 step-up requires live Supabase with real MFA factors | 24-05 |
+| EG-31 | `e2e/admin-mfa-enroll.spec.ts` T2 | `test.skip` — full enrollment requires otplib + live TOTP code generation from QR URI secret; T1 (QR render check) is env-gated HAS_LIVE | 24-05 |

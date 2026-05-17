@@ -45,3 +45,36 @@ export const supabase: SupabaseClient = createClient(RESOLVED_URL, RESOLVED_ANON
     storageKey: 'sb-leanshot-auth',
   },
 });
+
+/**
+ * Phase 24 Plan 24-05 — Pattern S1 aal2 assertion helper.
+ *
+ * D-09: every admin session requires aal2 step-up (TOTP verified).
+ * Reads the current session's access_token JWT and checks the `aal` claim.
+ *
+ * Returns true if the active session has aal='aal2' (TOTP step-up completed).
+ * Returns false if no session or aal='aal1' (step-up required).
+ *
+ * NOTE: This is a UX-layer check only (Pattern S1 client gate).
+ * The server-side enforcement is in every admin SECURITY DEFINER function
+ * which checks `(auth.jwt() ->> 'aal') = 'aal2'` directly in Postgres.
+ */
+export async function assertAal2(): Promise<boolean> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return false;
+  const aal = parseJwtAal(token);
+  return aal === 'aal2';
+}
+
+function parseJwtAal(token: string): string | null {
+  try {
+    const parts = token.split('.');
+    const payload = parts[1];
+    if (!payload) return null;
+    const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof json.aal === 'string' ? json.aal : null;
+  } catch {
+    return null;
+  }
+}
