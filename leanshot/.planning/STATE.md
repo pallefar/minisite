@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 28 SHIPPED 8/8 — EXTENSION-CONTRACT + admin manifest preview merged; unblocks P29/P30/P31
-last_updated: "2026-05-17T19:00:00Z"
-last_activity: 2026-05-17 -- Phase 28 (Clinic Organizations — Schema + RLS Hardening) SHIPPED 8/8 plans across 5 waves
+stopped_at: Phase 29 context gathered
+last_updated: "2026-05-17T16:36:11.791Z"
+last_activity: 2026-05-17
 progress:
   total_phases: 27
   completed_phases: 2
   total_plans: 40
   completed_plans: 16
-  percent: 4
+  percent: 7
 ---
 
 # Project State
@@ -167,9 +167,9 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-17T16:13:50.459Z
-Stopped at: Completed 28-06-PLAN.md
-Resume file: None
+Last session: 2026-05-17T16:36:11.784Z
+Stopped at: Phase 29 context gathered
+Resume file: .planning/phases/29-org-subscriptions-per-patient-metered-billing/29-CONTEXT.md
 
 ## Phase 25 plan-phase blocker (2026-05-17)
 
