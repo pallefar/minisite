@@ -1,0 +1,42 @@
+name: Bundle Budget + TAXO-06 Gates
+
+# Phase 24 D-18..20 — per-chunk bundle ceiling enforcement + TAXO-06 reconciliation gate.
+# Hard-fails on any chunk overage or missing TAXO-06 marker.
+# See scripts/assert-bundle-budget.sh and scripts/check-taxo-06-reconciliation.sh.
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  build-and-assert:
+    name: Bundle ceilings + TAXO-06 gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: leanshot
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: Per-chunk bundle ceilings (D-18..20 hard-fail)
+        run: bash scripts/assert-bundle-budget.sh
+
+      - name: Hash-hyphen regression (assert-bundle-budget.sh regex correctness)
+        run: bash scripts/test-hash-hyphen-regression.sh
+
+      - name: TAXO-06 reconciliation marker gate (D-10)
+        run: bash scripts/check-taxo-06-reconciliation.sh
