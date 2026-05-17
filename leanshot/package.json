@@ -28,7 +28,8 @@
     "test:visual:update": "playwright test e2e/visual --update-snapshots",
     "test:watch": "vitest",
     "check-bundle-budget": "bash scripts/assert-bundle-budget.sh && bash scripts/assert-clinic-bundle-budget.sh",
-    "unused-check": "bash scripts/check-unused-baseline.sh"
+    "unused-check": "bash scripts/check-unused-baseline.sh",
+    "sync-posthog": "npx tsx scripts/sync-posthog-event-defs.ts"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",
