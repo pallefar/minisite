@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+
+<title>Buttons — sizes & states</title>
+<link rel="stylesheet" href="_card.css">
+<style></style>
+</head>
+<body>
+<div class="preview">
+
+<style>
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; font-weight: 600; font-size: 13px; border: none; cursor: pointer; transition: all 200ms; }
+  .btn-primary { background: linear-gradient(180deg, rgba(255,255,255,0.12), transparent 50%), var(--color-primary); color: #fff; box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.12); }
+  .btn-sm { height: 32px; padding: 0 12px; font-size: 12px; }
+  .btn-lg { height: 48px; padding: 0 22px; font-size: 14px; gap: 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<div class="col">
+  <div class="row">
+    <button class="btn btn-primary btn-sm">Sign in</button>
+    <button class="btn btn-primary">Log dose</button>
+    <button class="btn btn-primary btn-lg">Continue <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+  <div class="row">
+    <button class="btn btn-primary" style="opacity:0.5;cursor:not-allowed;box-shadow:none;">Disabled</button>
+    <button class="btn btn-primary" style="background:linear-gradient(180deg, rgba(255,255,255,0.16), transparent 55%), var(--color-primary-hover);transform:translateY(-1px);box-shadow:var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.14);">Hover</button>
+    <button class="btn btn-primary" style="transform:translateY(0.5px);">Pressed</button>
+    <button class="btn btn-primary" style="box-shadow:0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);">Focus</button>
+    <button class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="animation:spin 0.8s linear infinite"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>
+      Loading
+    </button>
+  </div>
+</div>
+<p class="eyebrow" style="margin-top:14px;">Focus ring uses bg-offset + primary outline (high-contrast, theme-safe)</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320" fill="none" aria-hidden="true">
+  <defs>
+    <radialGradient id="hero-glow" cx="0.5" cy="0.45" r="0.55">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.42)"></stop>
+      <stop offset="60%" stop-color="rgba(255,255,255,0.08)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"></stop>
+    </radialGradient>
+    <linearGradient id="hero-leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.35)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.08)"></stop>
+    </linearGradient>
+    <linearGradient id="hero-stroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.85)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.45)"></stop>
+    </linearGradient>
+  </defs>
+  <circle cx="160" cy="160" r="120" fill="url(#hero-glow)"></circle>
+  <g transform="rotate(-22 160 160)">
+    <ellipse cx="160" cy="160" rx="138" ry="55" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" stroke-dasharray="3 7"></ellipse>
+  </g>
+  <circle cx="36" cy="160" r="5" fill="white" opacity="0.96"></circle>
+  <circle cx="56" cy="92" r="2.5" fill="white" opacity="0.7"></circle>
+  <g transform="rotate(22 160 160)">
+    <ellipse cx="160" cy="160" rx="138" ry="55" stroke="rgba(255,255,255,0.4)" stroke-width="1.1" stroke-dasharray="2 8"></ellipse>
+  </g>
+  <circle cx="284" cy="160" r="3.5" fill="white" opacity="0.85"></circle>
+  <circle cx="248" cy="240" r="2" fill="white" opacity="0.55"></circle>
+  <circle cx="160" cy="160" r="100" stroke="rgba(255,255,255,0.18)" stroke-width="1"></circle>
+  <circle cx="160" cy="160" r="74" stroke="rgba(255,255,255,0.32)" stroke-width="1"></circle>
+  <path d="M160 80 C200 110 208 140 200 168 C194 198 178 226 160 244 C142 226 126 198 120 168 C112 140 120 110 160 80 Z" fill="url(#hero-leaf)" stroke="url(#hero-stroke)" stroke-width="1.6" stroke-linejoin="round"></path>
+  <path d="M160 92 L160 232" stroke="rgba(255,255,255,0.45)" stroke-width="1" stroke-linecap="round"></path>
+  <path d="M160 130 Q172 138 178 152 M160 130 Q148 138 142 152 M160 168 Q174 178 182 196 M160 168 Q146 178 138 196" stroke="rgba(255,255,255,0.36)" stroke-width="1" stroke-linecap="round"></path>
+  <circle cx="160" cy="160" r="14" fill="rgba(255,255,255,0.18)"></circle>
+  <circle cx="160" cy="160" r="4" fill="white"></circle>
+</svg>

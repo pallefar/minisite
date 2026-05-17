@@ -1,0 +1,300 @@
+/* =========================================================================
+   LEANSHOT — Design Tokens
+   "Clinical warmth": cream surfaces, deep-teal primaries, Fraunces italic
+   accents for editorial moments. Adapted from src/index.css (v2).
+
+   Use:
+     <link rel="stylesheet" href="colors_and_type.css">
+     <body class="ls">  ← scopes type defaults
+
+   Tokens are exposed as CSS custom properties only — no framework needed.
+   Pair with the Geist / Geist Mono / Fraunces Google Fonts link injected
+   into your HTML's <head>:
+
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+
+   We load fonts via <link> (not @import) so they resolve reliably even in
+   nested-iframe contexts.
+   ========================================================================= */
+
+:root {
+  /* ---- Color primitives (light) ---------------------------------------- */
+  --cream-50:    #fbf7ed;
+  --cream-100:   #f2ede0;   /* page bg — cleaner, less saturated than v1 */
+  --cream-200:   #ebe5d4;
+  --cream-300:   #ddd5be;
+  --cream-card:  #fefcf7;   /* surface — touch cleaner */
+
+  --teal-950: #0a1413;
+  --teal-900: #0e2f2b;
+  --teal-800: #123c36;
+  --teal-700: #1b4842;    /* primary, hero */
+  --teal-600: #265850;    /* hero gradient stop — slightly lighter for more depth */
+  --teal-500: #2f665e;
+  --teal-400: #4a8b81;
+  --teal-300: #6fcbb8;    /* primary in dark mode */
+  --teal-200: #a8cdc4;
+  --teal-100: #dceae5;    /* slightly cooler primary-soft */
+
+  --sage:        #3fae73;   /* slightly more saturated success — reads as "go" */
+  --sage-soft:   #d8efe1;
+  --rose:        #ef9d86;
+  --rose-soft:   #fbe1d7;
+  --amber:       #dba844;
+  --amber-soft:  #f6e8c8;
+  --orange:      #e07346;
+  --clay:        #cb4f4f;
+  --clay-soft:   #f7d6d6;
+  --sky:         #4eafc1;
+
+  /* ---- Semantic tokens (light) ---------------------------------------- */
+  --color-bg:               var(--cream-100);
+  --color-surface:          var(--cream-card);
+  --color-surface-elevated: #f4efe2;          /* warmer, more visible against cream */
+  --color-surface-soft:     #ebe5d4;
+  --color-surface-overlay:  rgba(20, 36, 33, 0.50);   /* deeper teal overlay */
+
+  --color-border:           #dad3c0;          /* slightly more visible against cream */
+  --color-border-strong:    #c8c0aa;
+
+  --color-text:             #14201c;          /* deeper "ink" for primary text */
+  --color-text-secondary:   #4d5e58;          /* ~6% darker for better contrast */
+  --color-text-tertiary:    #7d857f;
+  --color-text-on-hero:     #ffffff;
+  --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
+
+  --color-primary:            var(--teal-700);
+  --color-primary-hover:      #133430;
+  --color-primary-soft:       var(--teal-100);
+  --color-primary-foreground: #ffffff;
+
+  --color-hero-bg:    var(--teal-700);
+  --color-hero-bg-2:  var(--teal-600);
+  --color-hero-bg-3:  #2f6e66;       /* mesh stop */
+
+  --color-success:      var(--sage);
+  --color-success-soft: var(--sage-soft);
+  --color-warning:      var(--orange);
+  --color-warning-soft: var(--rose-soft);
+  --color-danger:       var(--clay);
+  --color-danger-soft:  var(--clay-soft);
+  --color-info:         var(--teal-700);
+  --color-info-soft:    var(--teal-100);
+
+  --color-grid-line:  #e8e3d5;
+  --color-chart-tick: #66716c;
+  --color-skeleton:   #e8e3d5;
+
+  /* ---- Type families --------------------------------------------------- */
+  --font-display: 'Fraunces', 'Tiempos Headline', Georgia, serif;
+  --font-sans:    'Geist', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'Geist Mono', ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  /* ---- Type scale (modular, 1.18 ratio at the top) -------------------- */
+  --text-caption: 0.6875rem;  /* 11px */
+  --text-micro:   0.75rem;    /* 12px */
+  --text-xs:      0.8125rem;  /* 13px */
+  --text-sm:      0.875rem;   /* 14px */
+  --text-base:    1rem;       /* 16px — bumped from 15 for readability */
+  --text-md:      1.0625rem;  /* 17px */
+  --text-lg:      1.1875rem;  /* 19px */
+  --text-xl:      1.4375rem;  /* 23px */
+  --text-2xl:     1.75rem;    /* 28px */
+  --text-3xl:     2.125rem;   /* 34px */
+  --text-4xl:     2.75rem;    /* 44px */
+  --text-5xl:     3.625rem;   /* 58px */
+  --text-display: 4.25rem;    /* 68px hero */
+
+  /* ---- Radii ---------------------------------------------------------- */
+  --radius-xs:   0.375rem;
+  --radius-sm:   0.625rem;
+  --radius:      0.875rem;
+  --radius-md:   1rem;
+  --radius-lg:   1.25rem;
+  --radius-xl:   1.5rem;
+  --radius-card: 1.5rem;      /* the bento radius */
+  --radius-pill: 999px;
+
+  /* ---- Spacing -------------------------------------------------------- */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-7:  1.75rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* ---- Shadows — warm-tinted, multi-layer (paper raised off the page) - */
+  --shadow-xs:   0 1px 1px  rgba(40, 32, 20, 0.05);
+  --shadow-sm:   0 1px 2px  rgba(40, 32, 20, 0.05),
+                 0 2px 6px  rgba(40, 32, 20, 0.04);
+  --shadow:      0 1px 2px  rgba(40, 32, 20, 0.05),
+                 0 8px 24px -8px rgba(40, 32, 20, 0.10);
+  --shadow-md:   0 2px 4px  rgba(40, 32, 20, 0.05),
+                 0 14px 30px -10px rgba(40, 32, 20, 0.12);
+  --shadow-lg:   0 4px 8px  rgba(40, 32, 20, 0.06),
+                 0 24px 48px -16px rgba(40, 32, 20, 0.18);
+  --shadow-2xl:  0 8px 16px rgba(40, 32, 20, 0.08),
+                 0 36px 80px -24px rgba(40, 32, 20, 0.28);
+  --shadow-hero: 0 24px 60px -12px rgba(15, 48, 44, 0.50),
+                 0 8px 20px -8px  rgba(15, 48, 44, 0.30);
+
+  /* ---- Motion --------------------------------------------------------- */
+  --ease-out-quart:    cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring:       cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-instant:    100ms;
+  --duration-quick:      200ms;
+  --duration-standard:   300ms;
+  --duration-deliberate: 500ms;
+}
+
+/* ---- Dark theme ---------------------------------------------------------- */
+[data-theme='dark'] {
+  --color-bg:               #0a1413;
+  --color-surface:          #16201e;
+  --color-surface-elevated: #1d2a28;
+  --color-surface-soft:     #16201e;
+  --color-surface-overlay:  rgba(0, 0, 0, 0.6);
+
+  --color-border:        #253331;
+  --color-border-strong: #354542;
+
+  --color-text:              #ebe6d8;
+  --color-text-secondary:    #b5bdb8;
+  --color-text-tertiary:     #7a857f;
+  --color-text-on-hero:      #ffffff;
+  --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
+
+  --color-primary:            #6fcbb8;
+  --color-primary-hover:      #8ad6c5;
+  --color-primary-soft:       #1a2c29;
+  --color-primary-foreground: #0b1413;
+
+  --color-hero-bg:   #0f302c;
+  --color-hero-bg-2: #143e38;
+  --color-hero-bg-3: #1b564b;
+
+  --color-success:      #6fcb97;
+  --color-success-soft: #1a2d27;
+  --color-warning:      #e37748;
+  --color-warning-soft: #2e211d;
+  --color-danger:       #da6f6f;
+  --color-danger-soft:  #2e1b1b;
+  --color-info:         #6fcbb8;
+  --color-info-soft:    #1a2c29;
+
+  --color-grid-line:  #1f2c2a;
+  --color-chart-tick: #a8b0ab;
+  --color-skeleton:   #1f2c2a;
+
+  /* Dark shadows — heavier, deep cool tint */
+  --shadow-xs:   0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.35),
+                 0 2px 6px rgba(0, 0, 0, 0.30);
+  --shadow:      0 1px 2px rgba(0, 0, 0, 0.35),
+                 0 8px 24px -8px rgba(0, 0, 0, 0.45);
+  --shadow-md:   0 2px 4px rgba(0, 0, 0, 0.40),
+                 0 14px 30px -10px rgba(0, 0, 0, 0.55);
+  --shadow-lg:   0 4px 8px rgba(0, 0, 0, 0.45),
+                 0 24px 48px -16px rgba(0, 0, 0, 0.65);
+  --shadow-hero: 0 24px 60px -12px rgba(0, 0, 0, 0.70),
+                 0 8px 20px -8px  rgba(0, 0, 0, 0.50);
+}
+
+/* =========================================================================
+   Type defaults — scope under .ls or apply globally
+   ========================================================================= */
+.ls,
+body.ls {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv11';
+  text-rendering: optimizeLegibility;
+}
+
+/* Semantic headings ----------------------------------------------------- */
+.ls h1, .ls-h1 {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+.ls h2, .ls-h2 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-2xl);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+.ls h3, .ls-h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  line-height: 1.35;
+}
+.ls h4, .ls-h4 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+.ls p {
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+/* The signature: editorial italic accent inline with sans headings */
+.ls-display, .font-display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  letter-spacing: -0.03em;
+  line-height: 0.96;
+  color: var(--color-primary);
+}
+
+/* Eyebrows / labels */
+.ls-eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+}
+.ls-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+}
+
+/* Body */
+.ls-body  { font-size: var(--text-base); line-height: 1.55; }
+.ls-small { font-size: var(--text-sm);   line-height: 1.5;  color: var(--color-text-secondary); }
+.ls-xs    { font-size: var(--text-xs);   line-height: 1.45; color: var(--color-text-tertiary); }
+
+/* Mono / numerals */
+.ls-mono, .font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum';
+}
+.numerals-tabular { font-variant-numeric: tabular-nums; }

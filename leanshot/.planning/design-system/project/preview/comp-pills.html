@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+
+<title>Pills — variants</title>
+<link rel="stylesheet" href="_card.css">
+<style></style>
+</head>
+<body>
+<div class="preview">
+
+<style>
+  .pill { display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text);font-size:13px;font-weight:500;cursor:pointer;transition:all 200ms; }
+  .pill:hover { border-color: var(--color-border-strong); background: var(--color-surface-elevated); }
+  .pill[data-active="true"] { background: var(--color-primary); border-color: var(--color-primary); color: #fff; box-shadow: var(--shadow-sm); }
+  .pill-sm { height: 30px; padding: 0 12px; font-size: 12px; }
+  .pill-icon { width: 36px; padding: 0; justify-content: center; }
+  .pill-count { display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 6px;border-radius:999px;background:var(--color-surface-elevated);color:var(--color-text-secondary);font-size:10px;font-weight:700;margin-left:2px; }
+  .pill[data-active="true"] .pill-count { background: rgba(255,255,255,0.22); color: #fff; }
+  .pill-segment { display:inline-flex;padding:3px;background:var(--color-surface-elevated);border:1px solid var(--color-border);border-radius:999px; }
+  .pill-segment .pill { height:28px;padding:0 12px;font-size:12px;background:transparent;border:0;color:var(--color-text-secondary); }
+  .pill-segment .pill:hover { background: transparent; color: var(--color-text); }
+  .pill-segment .pill[data-active="true"] { background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-sm); }
+</style>
+<div class="col">
+  <div>
+    <p class="eyebrow" style="margin-bottom:6px;">Filters with counts</p>
+    <div class="row" style="gap:6px;">
+      <button class="pill" data-active="true">All<span class="pill-count">12</span></button>
+      <button class="pill">Ozempic<span class="pill-count">3</span></button>
+      <button class="pill">Mounjaro<span class="pill-count">7</span></button>
+      <button class="pill">Wegovy<span class="pill-count">2</span></button>
+    </div>
+  </div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:6px;">Segmented control</p>
+    <div class="pill-segment" role="tablist">
+      <button class="pill" data-active="true">Week</button>
+      <button class="pill">Month</button>
+      <button class="pill">Quarter</button>
+      <button class="pill">All time</button>
+    </div>
+  </div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:6px;">Icon-only + small</p>
+    <div class="row" style="gap:6px;">
+      <button class="pill pill-icon" aria-label="Filter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
+      <button class="pill pill-icon" data-active="true" aria-label="Grid"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></button>
+      <button class="pill pill-icon" aria-label="List"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></button>
+      <button class="pill pill-sm">7d</button>
+      <button class="pill pill-sm" data-active="true">28d</button>
+      <button class="pill pill-sm">90d</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

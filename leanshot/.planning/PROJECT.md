@@ -35,20 +35,49 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 
 **Previously shipped:** v1.1 (2026-05-13). 11 phases / 76 plans. Multi-audience SaaS — B2C patient cloud sync + doctor read-share + clinic B2B operator surface. Archived ROADMAP/REQUIREMENTS in `.planning/milestones/v1.1-*.md`.
 
+## Current Milestone: v1.3 Platform Expansion — Revenue + Depth + B2B + HIPAA
+
+**Started:** 2026-05-17 (via `/gsd-new-milestone v1.3`).
+
+**Goal:** Triple-bet release that lands paying clinics under BAA, deepens consumer product on web, and tightens unit economics before v1.4 mobile launch. Foundation layer (modular admin + event taxonomy + PostHog hardening) underpins all three strategic bets. Megamilestone scope per user's 2026-05-17 brief; Path 1 chosen (mobile v1.4 slips a quarter).
+
+**Target features (5 workstreams):**
+
+1. **Foundation (M1-gaps + M5a)** — Modular admin shell routing + bulk actions (CSV/tag/comp/ban/force-reset) + admin 2FA enforcement + per-module Edge Function permission checks; canonical event taxonomy versioned in repo + server-side PostHog capture for adblock-eaten events (signup/payment/activation) + cohort builder + session-replay PII masking. Builds on v1.2 Phase 22 admin foundation (~60% of M1 already shipped).
+2. **A — Revenue / Growth** — Multi-tier affiliate (Standard/Gold/Lifetime commission rates, payout schedule, attribution window) + mid-trial paywall A/B test (variant during trial after activation event, PostHog variants, conversion+refund+retention measured) + page-builder A/B (constrained block editor, Vike pre-render, PostHog flag traffic split) + hourly ad ETL (Vercel Cron → Meta/Google/TikTok Ads APIs → Supabase, joined with PostHog for true CAC by source).
+3. **B — Product Depth (web)** — Embed-provider blocks (Calendly + YouTube + Tally with per-provider sandboxing, lazy loading, consent gating) + pharmacology paywall test (Pro-gate interactions/dosing/contraindications; reputational-risk line decided up front) + Spanish i18n (`react-i18next` infrastructure + full Spanish localization of UI/transactional emails/KB articles).
+4. **C — B2B Clinic + HIPAA** — `organizations` + `org_members` + `org_subscriptions` tables + Stripe Billing for orgs (per-patient metering or seat license) + patient invite flow (clinic → magic link → patient onboards under org) + org admin role + clinic-side dashboard + optional white-label theming + custom rank weights/dose-trend alerts (deferred from v1.2 Out of Scope) + **HIPAA BAA chain** (Supabase Enterprise + BAA, Vercel Enterprise BAA, Resend BAA or switch to Paubox/AWS SES, Sentry Business BAA, OpenAI/Anthropic Zero Data Retention + BAA, audit-log hardening, MFA enforcement, periodic access reviews, employee security training, written policies, annual risk assessment). 4-8 weeks parallel compliance work alongside engineering.
+5. **User-facing depth + retention engine (M2 + M3 + M6 core + M5b partial + M7 selective)** — M2 Onboarding Overhaul (value-first preview, magic link + Google + Apple, mobile parity ≥44px tap targets, activation-event definition, admin drag-and-drop step builder, A/B via PostHog) + M3 Gamification engine (XP/levels/freeze tokens/leaderboards/weekly challenges; DS-10 visuals shipped in v1.2) + M3 Review Prompt engine (two-stage: internal NPS → external review or in-app feedback ticket) + M6 Helpdesk core (ticket schema + in-app widget + email-to-ticket via Resend Inbound + AI assist via Claude for draft replies/tagging/routing + CSAT) + M5b partial (recommender via pgvector + weekly Claude summary email) + M7 selective (cancellation flow with save offers, smart notifications, PWA + offline mode, dark mode, accessibility WCAG 2.2 AA, public status page via Better Stack).
+
+**Out of v1.3 (deferred):**
+- M4 Membership/Community (Skool-style) — too large (~6-8 phases on its own); v1.5 candidate
+- M5b full (anomaly detection + churn model) — needs more event-data maturity; v1.5
+- M6 App Store / Play review-ingestion — defers to v1.4 (no app in stores yet to monitor)
+- Mobile push (web push only in v1.3) — v1.4 with native shells
+
+**Hard constraints:**
+- A + C compete for legal/finance attention — accepted; deliberate sequencing (affiliate-tax-forms vs HIPAA-BAA-negotiations)
+- C + mobile-same-quarter forbidden per brief — honored (v1.4 slips a quarter)
+- HIPAA work starts immediately in parallel (legal/policy/vendor, not engineering bandwidth) so first clinic deal can land mid-v1.3 not end
+
+**Estimated scope:** ~16-20 phases starting at Phase 24, ~5-8 months. v2.0-scale release under v1.3 label.
+
 ## Next Milestone Goals
 
-**v1.3 (next milestone) — NEW FEATURES ONLY:**
-- Items from the v1.2-scoping "synthesizer deferred" list (clinic-sponsored patient billing, multi-language i18n, multi-tier affiliate program, page-builder block-level A/B, embed-provider blocks, mid-trial pharmacology paywall test, etc.)
-- Scope via `/gsd-new-milestone` to draft fresh REQUIREMENTS.md + ROADMAP.
-
-**v1.4 (deferred + tech-debt absorber) — 44 carry-over REQs + tech debt + new features:**
+**v1.4 (deferred + tech-debt absorber) — 44 carry-over REQs + tech debt + Mx items NOT in v1.3:**
 - Phase 16 Mobile Shells (MOBILE-01..10 + MONEY-06, 11 REQs; 9/11 plans shipped + on disk, 16-03/09/10 + vendor closeout outstanding)
 - Phase 17 Push Notifications (4 REQs)
 - Phase 18 HealthKit + Two-tunnel Firewall (8 REQs)
 - Phase 20 Ad Network (12 REQs)
 - Phase 21 Watch Apps (8 REQs)
-- P22b Onboarding revamp ON-01 (1 REQ)
-- All v1.2-era tech debt (Vault `service_role_key` Vendor pass, unused-check baseline drift, etc.)
+- P22b Onboarding revamp ON-01 (1 REQ) — *NOTE: now subsumed into v1.3 M2 if v1.3 ships first; revisit at v1.4 scoping*
+- M6 App Store / Play review-ingestion hub (depends on mobile shells)
+- All v1.3-era tech debt + Vault `service_role_key` Vendor pass + unused-check baseline drift
+
+**v1.5 candidates (post-v1.4):**
+- M4 Membership / Community (Skool-style: posts + comments + courses + events + moderation + Mux video)
+- M5b full AI personalization (anomaly detection + churn model + win-back automation)
+- M7 continuous items not in v1.3 (deeper localization beyond Spanish, advanced cancellation save-offers)
 
 ## Archived: v1.2 Milestone (shipped 2026-05-17)
 
@@ -199,7 +228,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 after v1.2 milestone close — 7 active phases shipped (12, 13, 14, 15, 19, 22, 23 = 60/60 active REQs); 5 phases descoped to v1.4 (16, 17, 18, 20, 21 + ON-01 = 44 REQs). v1.3 is next (new features only); v1.4 absorbs deferred + tech debt.*
+*Last updated: 2026-05-17 — v1.3 megamilestone OPENED (Path 1: Revenue + Depth + B2B + HIPAA + foundation + onboarding/gamification/helpdesk/AI-personalization-partial). ~16-20 phases at Phase 24+, 5-8 month estimate. v1.4 mobile slips a quarter per user direction.*
 
 ## Vendor Accounts (Phase 16 Wave 0)
 

@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" width="520" height="520" fill="none" aria-hidden="true">
+  <defs>
+    <radialGradient id="lh-glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0%" stop-color="rgba(168,205,196,0.45)"></stop>
+      <stop offset="55%" stop-color="rgba(168,205,196,0.08)"></stop>
+      <stop offset="100%" stop-color="rgba(168,205,196,0)"></stop>
+    </radialGradient>
+    <linearGradient id="lh-leaf" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.42)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.05)"></stop>
+    </linearGradient>
+    <linearGradient id="lh-card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.16)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.04)"></stop>
+    </linearGradient>
+    <linearGradient id="lh-curve-stroke" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.95)"></stop>
+      <stop offset="100%" stop-color="rgba(168,205,196,0.95)"></stop>
+    </linearGradient>
+    <linearGradient id="lh-curve-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"></stop>
+    </linearGradient>
+    <linearGradient id="lh-vial-glass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.30)"></stop>
+      <stop offset="50%" stop-color="rgba(255,255,255,0.05)"></stop>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.08)"></stop>
+    </linearGradient>
+    <linearGradient id="lh-vial-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(168,205,196,0.9)"></stop>
+      <stop offset="100%" stop-color="rgba(15,48,44,0.8)"></stop>
+    </linearGradient>
+  </defs>
+
+  
+  <circle cx="260" cy="240" r="200" fill="url(#lh-glow)"></circle>
+
+  
+  <g opacity="0.7">
+    <ellipse cx="260" cy="260" rx="230" ry="92" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" stroke-dasharray="3 9" transform="rotate(-18 260 260)"></ellipse>
+    <ellipse cx="260" cy="260" rx="200" ry="80" stroke="rgba(255,255,255,0.30)" stroke-width="1" stroke-dasharray="2 10" transform="rotate(18 260 260)"></ellipse>
+  </g>
+
+  
+  <circle cx="260" cy="260" r="160" stroke="rgba(255,255,255,0.10)" stroke-width="1"></circle>
+  <circle cx="260" cy="260" r="124" stroke="rgba(255,255,255,0.18)" stroke-width="1"></circle>
+
+  
+  <path d="M 260 100 C 330 150 348 200 332 260 C 322 320 296 380 260 416 C 224 380 198 320 188 260 C 172 200 190 150 260 100 Z" fill="url(#lh-leaf)" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linejoin="round"></path>
+  <path d="M 260 116 L 260 408" stroke="rgba(255,255,255,0.32)" stroke-width="0.8"></path>
+  <path d="M 260 178 Q 282 192 292 218 M 260 178 Q 238 192 228 218&#xA;           M 260 232 Q 286 248 298 280 M 260 232 Q 234 248 222 280&#xA;           M 260 290 Q 282 304 290 332 M 260 290 Q 238 304 230 332" stroke="rgba(255,255,255,0.28)" stroke-width="0.8" stroke-linecap="round"></path>
+
+  
+  <g transform="translate(80 88) rotate(-12)">
+    <rect x="-2" y="0" width="48" height="14" rx="3" fill="rgba(255,255,255,0.95)"></rect>
+    <rect x="-4" y="14" width="52" height="8" rx="2" fill="rgba(220,214,196,0.95)"></rect>
+    <rect x="0" y="22" width="44" height="110" rx="6" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.45)" stroke-width="1.4"></rect>
+    <rect x="2" y="68" width="40" height="62" rx="4" fill="url(#lh-vial-fill)" opacity="0.85"></rect>
+    <rect x="0" y="22" width="44" height="110" rx="6" fill="url(#lh-vial-glass)"></rect>
+    <rect x="6" y="84" width="32" height="22" fill="rgba(255,255,255,0.90)" rx="1"></rect>
+    <text x="22" y="94" font-family="Geist, Inter, sans-serif" font-size="6" font-weight="700" fill="#1b4842" text-anchor="middle" letter-spacing="0.08em">LEANSHOT</text>
+    <text x="22" y="102" font-family="Geist Mono, monospace" font-size="6" font-weight="600" fill="#16221f" text-anchor="middle">2.5mg/0.5ml</text>
+  </g>
+
+  
+  <g transform="translate(320 64)">
+    <rect x="0" y="0" width="160" height="80" rx="14" fill="url(#lh-card)" stroke="rgba(255,255,255,0.18)" stroke-width="1"></rect>
+    <text x="14" y="22" font-family="Geist, Inter, sans-serif" font-size="9" font-weight="700" fill="rgba(255,255,255,0.7)" letter-spacing="0.08em">GLP-1 LEVEL</text>
+    <text x="14" y="52" font-family="Geist, Inter, sans-serif" font-size="32" font-weight="800" fill="#fff" letter-spacing="-0.04em">82%</text>
+    <text x="62" y="52" font-family="Geist, Inter, sans-serif" font-size="11" font-weight="600" fill="rgba(255,255,255,0.6)">peak now</text>
+    
+    <path d="M 14 70 Q 38 56 62 60 T 110 50 T 146 64" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
+    <circle cx="62" cy="60" r="2" fill="#fff"></circle>
+    <circle cx="146" cy="64" r="2.5" fill="#f2a893"></circle>
+  </g>
+
+  
+  <g transform="translate(396 384)">
+    <circle cx="0" cy="0" r="32" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.25)" stroke-width="1"></circle>
+    <circle cx="0" cy="0" r="22" fill="rgba(243,201,90,0.4)"></circle>
+    <circle cx="0" cy="0" r="14" fill="#f0c75a"></circle>
+    <text x="0" y="4" text-anchor="middle" font-family="Geist, Inter, sans-serif" font-weight="800" font-size="14" fill="#5a4108" letter-spacing="-0.04em">30</text>
+  </g>
+
+  
+  <g transform="translate(72 410)">
+    <rect x="0" y="0" width="150" height="56" rx="14" fill="url(#lh-card)" stroke="rgba(255,255,255,0.18)" stroke-width="1"></rect>
+    <text x="14" y="18" font-family="Geist, Inter, sans-serif" font-size="8" font-weight="700" fill="rgba(255,255,255,0.7)" letter-spacing="0.08em">LOST</text>
+    <text x="14" y="44" font-family="Geist, Inter, sans-serif" font-size="22" font-weight="800" fill="#fff" letter-spacing="-0.04em">4.2</text>
+    <text x="50" y="44" font-family="Geist, Inter, sans-serif" font-size="12" font-weight="500" fill="rgba(255,255,255,0.6)">kg</text>
+    
+    <path d="M 90 42 L 100 36 L 110 38 L 120 28 L 130 30 L 138 22" stroke="#6fcbb8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+  </g>
+
+  
+  <circle cx="40" cy="220" r="4" fill="#fff" opacity="0.6"></circle>
+  <circle cx="490" cy="280" r="3" fill="#fff" opacity="0.5"></circle>
+  <circle cx="120" cy="40" r="2" fill="#fff" opacity="0.7"></circle>
+  <circle cx="470" cy="170" r="2" fill="#fff" opacity="0.5"></circle>
+</svg>

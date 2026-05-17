@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="88" height="88" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="ring-move" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2a893"></stop>
+      <stop offset="100%" stop-color="#cf5454"></stop>
+    </linearGradient>
+    <linearGradient id="ring-ex" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a8cdc4"></stop>
+      <stop offset="100%" stop-color="#1b4842"></stop>
+    </linearGradient>
+    <linearGradient id="ring-stand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5ab7c7"></stop>
+      <stop offset="100%" stop-color="#2f665e"></stop>
+    </linearGradient>
+  </defs>
+
+  
+  <circle cx="44" cy="44" r="36" stroke="#f2a893" stroke-opacity="0.15" stroke-width="8"></circle>
+  <circle cx="44" cy="44" r="36" stroke="url(#ring-move)" stroke-width="8" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="45" transform="rotate(-90 44 44)"></circle>
+
+  
+  <circle cx="44" cy="44" r="25" stroke="#a8cdc4" stroke-opacity="0.18" stroke-width="8"></circle>
+  <circle cx="44" cy="44" r="25" stroke="url(#ring-ex)" stroke-width="8" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="63" transform="rotate(-90 44 44)"></circle>
+
+  
+  <circle cx="44" cy="44" r="14" stroke="#5ab7c7" stroke-opacity="0.18" stroke-width="8"></circle>
+  <circle cx="44" cy="44" r="14" stroke="url(#ring-stand)" stroke-width="8" stroke-linecap="round" stroke-dasharray="88" stroke-dashoffset="0" transform="rotate(-90 44 44)"></circle>
+</svg>

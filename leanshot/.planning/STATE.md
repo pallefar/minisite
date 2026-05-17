@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Tech Debt Sweep + Launch Polish
-status: Awaiting next milestone
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-05-17T09:28:54.114Z"
-last_activity: 2026-05-17 — Milestone v1.2 completed and archived
+milestone: v1.3
+milestone_name: Platform Expansion — Revenue + Depth + B2B + HIPAA
+status: planning
+last_updated: "2026-05-17T09:58:14.763Z"
+last_activity: 2026-05-17
 progress:
-  total_phases: 19
-  completed_phases: 18
-  total_plans: 146
-  completed_plans: 144
-  percent: 95
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 ## Current Position
 
-Phase: Milestone v1.2 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-17 — Milestone v1.2 completed and archived
+Status: Defining requirements
+Last activity: 2026-05-17 — Milestone v1.3 started
 
 ### v1.1 close (2026-05-13)
 

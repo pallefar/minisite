@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+
+<title>Inputs</title>
+<link rel="stylesheet" href="_card.css">
+<style></style>
+</head>
+<body>
+<div class="preview">
+
+<div class="col">
+  <div>
+    <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);display:block;margin-bottom:6px;">EMAIL</label>
+    <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;display:flex;align-items:center;">
+      <input type="email" value="you@leanshot.app" style="flex:1;background:transparent;border:none;outline:none;padding:12px 16px;font-size:14px;color:var(--color-text);">
+    </div>
+  </div>
+  <div>
+    <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);display:block;margin-bottom:6px;">DOSE</label>
+    <div style="background:var(--color-surface);border:1px solid var(--color-primary);border-radius:12px;display:flex;align-items:center;box-shadow:0 0 0 3px var(--color-primary-soft);">
+      <span style="padding-left:14px;color:var(--color-text-tertiary);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3a1 1 0 0 1-1.4 0l-2.6-2.6a1 1 0 0 1 0-1.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg></span>
+      <input type="text" value="2.5" style="flex:1;background:transparent;border:none;outline:none;padding:12px 12px 12px 8px;font-size:14px;font-variant-numeric:tabular-nums;">
+      <span style="padding-right:14px;color:var(--color-text-tertiary);font-size:13px;">mg</span>
+    </div>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:6px;">Focused · 1 px primary border + 3 px primary-soft ring</p>
+  </div>
+  <div>
+    <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-secondary);display:block;margin-bottom:6px;">EMAIL <span style="color:var(--color-warning);">*</span></label>
+    <div style="background:var(--color-surface);border:1px solid var(--color-danger);border-radius:12px;display:flex;align-items:center;box-shadow:0 0 0 3px var(--color-danger-soft);">
+      <input type="email" value="bad-address" style="flex:1;background:transparent;border:none;outline:none;padding:12px 16px;font-size:14px;color:var(--color-text);">
+    </div>
+    <p style="font-size:12px;color:var(--color-danger);margin-top:6px;">Enter a valid email address.</p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

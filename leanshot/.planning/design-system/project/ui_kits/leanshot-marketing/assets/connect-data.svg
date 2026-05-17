@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" width="200" height="160" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="cd-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#deebe6"></stop>
+      <stop offset="100%" stop-color="#a8cdc4"></stop>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="36" width="60" height="80" rx="10" fill="url(#cd-grad)" stroke="#1b4842" stroke-width="1.4"></rect>
+  <rect x="28" y="46" width="44" height="6" rx="3" fill="#1b4842" opacity="0.7"></rect>
+  <rect x="28" y="58" width="32" height="4" rx="2" fill="#1b4842" opacity="0.4"></rect>
+  <rect x="28" y="68" width="38" height="4" rx="2" fill="#1b4842" opacity="0.4"></rect>
+  <circle cx="50" cy="94" r="14" fill="#fdfbf6" stroke="#1b4842" stroke-width="1.4"></circle>
+  <path d="M44 94 L48 98 L56 90" stroke="#45b077" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+
+  <path d="M85 76 Q100 60 115 76" stroke="#1b4842" stroke-width="1.6" stroke-dasharray="4 4" fill="none"></path>
+  <circle cx="100" cy="68" r="3" fill="#1b4842"></circle>
+
+  <rect x="120" y="36" width="60" height="80" rx="10" fill="#fdfbf6" stroke="#1b4842" stroke-width="1.4"></rect>
+  <circle cx="150" cy="62" r="10" fill="#e0af4e" opacity="0.3"></circle>
+  <circle cx="150" cy="62" r="6" fill="#e0af4e"></circle>
+  <path d="M130 88 L138 80 L146 88 L154 76 L162 84 L170 72" stroke="#1b4842" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+  <rect x="130" y="98" width="40" height="3" rx="1.5" fill="#1b4842" opacity="0.3"></rect>
+  <rect x="130" y="105" width="28" height="3" rx="1.5" fill="#1b4842" opacity="0.3"></rect>
+</svg>

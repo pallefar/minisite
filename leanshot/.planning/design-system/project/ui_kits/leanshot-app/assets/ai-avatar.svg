@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="88" height="88" fill="none" aria-hidden="true">
+  <defs>
+    
+    <radialGradient id="ai-halo" cx="0.5" cy="0.45" r="0.55">
+      <stop offset="0%" stop-color="#a8cdc4" stop-opacity="0.35"></stop>
+      <stop offset="60%" stop-color="#a8cdc4" stop-opacity="0.06"></stop>
+      <stop offset="100%" stop-color="#a8cdc4" stop-opacity="0"></stop>
+    </radialGradient>
+    
+    <radialGradient id="ai-core1" cx="0.35" cy="0.28" r="0.7">
+      <stop offset="0%" stop-color="#c5e5dc"></stop>
+      <stop offset="40%" stop-color="#6fcbb8"></stop>
+      <stop offset="100%" stop-color="#1b4842"></stop>
+    </radialGradient>
+    
+    <radialGradient id="ai-core2" cx="0.7" cy="0.75" r="0.45">
+      <stop offset="0%" stop-color="#f2a893" stop-opacity="0.55"></stop>
+      <stop offset="100%" stop-color="#f2a893" stop-opacity="0"></stop>
+    </radialGradient>
+    
+    <radialGradient id="ai-glint" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </radialGradient>
+    
+    <radialGradient id="ai-shadow" cx="0.5" cy="0.65" r="0.5">
+      <stop offset="60%" stop-color="#000" stop-opacity="0"></stop>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.18"></stop>
+    </radialGradient>
+    
+    <clipPath id="ai-clip">
+      <path d="M 44 12 C 60 12 74 22 76 38 C 78 54 70 66 58 72 C 46 78 32 76 22 66 C 12 56 10 40 18 28 C 24 18 34 12 44 12 Z"></path>
+    </clipPath>
+  </defs>
+
+  
+  <circle cx="44" cy="44" r="42" fill="url(#ai-halo)"></circle>
+  
+  <circle cx="44" cy="44" r="36" stroke="#1b4842" stroke-width="0.4" stroke-opacity="0.18" stroke-dasharray="1 3"></circle>
+  <circle cx="44" cy="44" r="30" stroke="#1b4842" stroke-width="0.4" stroke-opacity="0.10"></circle>
+
+  
+  <g clip-path="url(#ai-clip)">
+    <path d="M 44 12 C 60 12 74 22 76 38 C 78 54 70 66 58 72 C 46 78 32 76 22 66 C 12 56 10 40 18 28 C 24 18 34 12 44 12 Z" fill="url(#ai-core1)"></path>
+    
+    <ellipse cx="62" cy="60" rx="22" ry="18" fill="url(#ai-core2)"></ellipse>
+    
+    <path d="M 44 12 C 60 12 74 22 76 38 C 78 54 70 66 58 72 C 46 78 32 76 22 66 C 12 56 10 40 18 28 C 24 18 34 12 44 12 Z" fill="url(#ai-shadow)"></path>
+  </g>
+  
+  <path d="M 44 12 C 60 12 74 22 76 38 C 78 54 70 66 58 72 C 46 78 32 76 22 66 C 12 56 10 40 18 28 C 24 18 34 12 44 12 Z" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"></path>
+
+  
+  <ellipse cx="33" cy="30" rx="11" ry="6" fill="url(#ai-glint)" transform="rotate(-18 33 30)"></ellipse>
+
+  
+  <circle cx="74" cy="22" r="2.4" fill="#fff" opacity="0.9"></circle>
+  <circle cx="74" cy="22" r="4.5" fill="none" stroke="#fff" stroke-width="0.5" stroke-opacity="0.4"></circle>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="88" height="88" fill="none" aria-hidden="true">
+  <defs>
+    <radialGradient id="ais-core" cx="0.35" cy="0.28" r="0.7">
+      <stop offset="0%" stop-color="#c5e5dc"></stop>
+      <stop offset="40%" stop-color="#6fcbb8"></stop>
+      <stop offset="100%" stop-color="#1b4842"></stop>
+    </radialGradient>
+  </defs>
+  <circle cx="44" cy="44" r="36" fill="url(#ais-core)"></circle>
+  <ellipse cx="34" cy="32" rx="9" ry="5" fill="#fff" opacity="0.45" transform="rotate(-18 34 32)"></ellipse>
+</svg>

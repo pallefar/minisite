@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 160" width="100" height="160" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="vial-liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8cdc4"></stop>
+      <stop offset="100%" stop-color="#1b4842"></stop>
+    </linearGradient>
+    <linearGradient id="vial-glass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.5)"></stop>
+      <stop offset="50%" stop-color="rgba(255,255,255,0.05)"></stop>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.06)"></stop>
+    </linearGradient>
+  </defs>
+  
+  <rect x="30" y="6" width="40" height="14" rx="3" fill="#1b4842"></rect>
+  <rect x="32" y="8" width="36" height="3" rx="1.5" fill="rgba(255,255,255,0.18)"></rect>
+  
+  <rect x="28" y="20" width="44" height="10" rx="2" fill="#d0caba"></rect>
+  
+  <rect x="24" y="30" width="52" height="118" rx="4" fill="#fdfbf6" stroke="#d0caba" stroke-width="1.5"></rect>
+  
+  <rect x="26" y="65" width="48" height="81" rx="2" fill="url(#vial-liquid)" opacity="0.85"></rect>
+  
+  <rect x="24" y="30" width="52" height="118" rx="4" fill="url(#vial-glass)" opacity="0.6"></rect>
+  
+  <rect x="28" y="84" width="44" height="36" fill="rgba(255,255,255,0.92)"></rect>
+  <text x="50" y="100" font-family="Inter, sans-serif" font-size="7" font-weight="700" fill="#1b4842" text-anchor="middle" letter-spacing="0.06em">LEANSHOT</text>
+  <text x="50" y="112" font-family="JetBrains Mono, monospace" font-size="8" font-weight="600" fill="#16221f" text-anchor="middle">2.5 mg / 0.5 ml</text>
+</svg>

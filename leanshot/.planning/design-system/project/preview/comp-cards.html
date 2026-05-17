@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+
+<title>Cards — variants</title>
+<link rel="stylesheet" href="_card.css">
+<style></style>
+</head>
+<body>
+<div class="preview">
+
+<style>
+  .card-demo { position:relative;background:var(--color-surface);border:1px solid var(--color-border);border-radius:24px;padding:16px 18px;box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,0.55);min-height:88px; }
+  .card-elevated { box-shadow:var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.6); }
+  .card-flat { background:var(--color-surface-elevated);box-shadow:none; }
+  .card-selected { border-color: var(--color-primary)!important; background: color-mix(in srgb, var(--color-surface) 88%, var(--color-primary-soft)); box-shadow: var(--shadow-md), inset 0 0 0 1px var(--color-primary), inset 0 1px 0 rgba(255,255,255,0.65); }
+  .card-tonal { background: var(--color-primary-soft); border: 1px solid color-mix(in srgb, var(--color-primary-soft) 60%, var(--color-primary) 8%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
+  .card-clickable { cursor:pointer; padding-right:38px; }
+  .selected-check { position:absolute;top:14px;right:14px;width:20px;height:20px;border-radius:50%;background:var(--color-primary);display:inline-flex;align-items:center;justify-content:center; }
+  .clickable-chev { position:absolute;top:50%;right:18px;width:7px;height:7px;border-right:2px solid var(--color-text-tertiary);border-bottom:2px solid var(--color-text-tertiary);transform:translateY(-50%) rotate(-45deg); }
+  .card-demo b { display:block;font-size:13px;font-weight:700;margin-bottom:4px; }
+  .card-demo span.s { font-size:11px;color:var(--color-text-secondary); }
+</style>
+<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;">
+  <div class="card-demo"><b>Default</b><span class="s">surface · xs+inner highlight</span></div>
+  <div class="card-demo card-elevated"><b>Elevated</b><span class="s">md shadow · more presence</span></div>
+  <div class="card-demo card-selected"><b>Selected</b><span class="s">2 px primary inset · check badge</span><span class="selected-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+  <div class="card-demo card-tonal"><b>Tonal</b><span class="s">pale-teal callout · no shadow</span></div>
+  <div class="card-demo card-flat"><b>Flat</b><span class="s">subcard · no shadow</span></div>
+  <div class="card-demo card-clickable"><b>Clickable</b><span class="s">chevron pulls right on hover</span><span class="clickable-chev"></span></div>
+</div>
+
+</div>
+</body>
+</html>

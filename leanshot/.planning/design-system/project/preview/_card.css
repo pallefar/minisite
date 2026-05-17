@@ -1,0 +1,162 @@
+/* Shared preview card styles. Designed for a 700px viewport. */
+@import url('../colors_and_type.css');
+
+* { box-sizing: border-box; margin: 0; }
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+.preview {
+  padding: 24px;
+  width: 700px;
+}
+
+.row     { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.col     { display: flex; flex-direction: column; gap: 12px; }
+.grid    { display: grid; gap: 12px; }
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+}
+
+.swatch {
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+.swatch .chip {
+  height: 80px;
+}
+.swatch .meta {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.swatch .name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.swatch .hex {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.card-demo {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms var(--ease-out-quart);
+  white-space: nowrap;
+}
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13px; gap: 6px; }
+.btn-lg { height: 52px; padding: 0 28px; font-size: 15px; gap: 10px; }
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+}
+.btn-ghost {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+.btn-destructive {
+  background: var(--color-danger);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.btn-success {
+  background: var(--color-success);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.btn-inverse {
+  background: #fff;
+  color: var(--color-hero-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  box-shadow: var(--shadow-sm);
+}
+.pill-sm { height: 32px; padding: 0 12px; font-size: 12px; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.badge-info    { background: var(--color-info-soft);    color: var(--color-info); }
+.badge-success { background: var(--color-success-soft); color: var(--color-success); }
+.badge-warning { background: var(--color-warning-soft); color: var(--color-warning); }
+.badge-danger  { background: var(--color-danger-soft);  color: var(--color-danger); }
+.badge-neutral { background: var(--color-surface-elevated); color: var(--color-text-secondary); border: 1px solid var(--color-border); }
+.badge-inverse { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+
+/* Tabular numerals helper */
+.tnum { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }

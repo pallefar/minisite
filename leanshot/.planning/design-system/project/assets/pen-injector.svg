@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 240" width="80" height="240" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="pen-body" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ebe5d4"></stop>
+      <stop offset="30%" stop-color="#fefcf7"></stop>
+      <stop offset="70%" stop-color="#fefcf7"></stop>
+      <stop offset="100%" stop-color="#c8c0aa"></stop>
+    </linearGradient>
+    <linearGradient id="pen-cap" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f302c"></stop>
+      <stop offset="50%" stop-color="#1b4842"></stop>
+      <stop offset="100%" stop-color="#0a1413"></stop>
+    </linearGradient>
+    <linearGradient id="pen-window" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(0,0,0,0.15)"></stop>
+      <stop offset="50%" stop-color="rgba(0,0,0,0.05)"></stop>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.4)"></stop>
+    </linearGradient>
+  </defs>
+
+  
+  <ellipse cx="40" cy="232" rx="28" ry="3" fill="#000" opacity="0.10"></ellipse>
+
+  
+  <rect x="22" y="6" width="36" height="42" rx="6" fill="url(#pen-cap)"></rect>
+  <rect x="22" y="6" width="36" height="6" rx="3" fill="rgba(255,255,255,0.18)"></rect>
+  <rect x="24" y="14" width="32" height="1.5" fill="rgba(255,255,255,0.25)"></rect>
+  <rect x="22" y="46" width="36" height="3" fill="rgba(0,0,0,0.4)"></rect>
+
+  
+  <rect x="20" y="49" width="40" height="148" rx="6" fill="url(#pen-body)" stroke="#c8c0aa" stroke-width="0.8"></rect>
+
+  
+  <rect x="26" y="64" width="28" height="20" rx="3" fill="#0f302c"></rect>
+  <rect x="26" y="64" width="28" height="20" rx="3" fill="url(#pen-window)"></rect>
+  <text x="40" y="79" text-anchor="middle" font-family="Geist Mono, monospace" font-size="13" font-weight="700" fill="#6fcbb8" letter-spacing="-0.04em">5.0</text>
+
+  
+  <rect x="24" y="98" width="32" height="44" fill="#1b4842" rx="2"></rect>
+  <text x="40" y="115" text-anchor="middle" font-family="Geist, Inter, sans-serif" font-size="8" font-weight="800" fill="#fff" letter-spacing="0.05em">LEAN</text>
+  <text x="40" y="125" text-anchor="middle" font-family="Geist, Inter, sans-serif" font-size="8" font-weight="800" fill="#fff" letter-spacing="0.05em">SHOT</text>
+  <line x1="28" y1="130" x2="52" y2="130" stroke="#6fcbb8" stroke-width="1.4"></line>
+  <text x="40" y="138" text-anchor="middle" font-family="Geist Mono, monospace" font-size="6" font-weight="600" fill="#a8cdc4">2.5mg/0.5ml</text>
+
+  
+  <g stroke="#7d857f" stroke-width="0.6">
+    <line x1="22" y1="150" x2="26" y2="150"></line>
+    <line x1="22" y1="156" x2="24" y2="156"></line>
+    <line x1="22" y1="162" x2="26" y2="162"></line>
+    <line x1="22" y1="168" x2="24" y2="168"></line>
+    <line x1="22" y1="174" x2="26" y2="174"></line>
+    <line x1="22" y1="180" x2="24" y2="180"></line>
+    <line x1="22" y1="186" x2="26" y2="186"></line>
+  </g>
+
+  
+  <rect x="20" y="197" width="40" height="14" rx="3" fill="#1b4842"></rect>
+  <line x1="24" y1="200" x2="56" y2="200" stroke="#6fcbb8" stroke-width="0.8" opacity="0.6"></line>
+  <line x1="24" y1="208" x2="56" y2="208" stroke="rgba(255,255,255,0.18)" stroke-width="0.6"></line>
+
+  
+  <rect x="26" y="211" width="28" height="12" rx="3" fill="#6fcbb8"></rect>
+  <rect x="26" y="211" width="28" height="3" rx="3" fill="rgba(255,255,255,0.5)"></rect>
+  <circle cx="40" cy="217" r="2" fill="#fff" opacity="0.8"></circle>
+</svg>

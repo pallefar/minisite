@@ -1,0 +1,573 @@
+@import 'tailwindcss';
+
+/* ========================================================================
+   LEANSHOT DESIGN SYSTEM v2 — Clinical warmth.
+
+   Tokens are exposed both as Tailwind v4 @theme variables (so utilities
+   like bg-surface, text-on-hero, rounded-card all work) and as classic
+   CSS custom properties for raw CSS, charts, and canvas.
+   ======================================================================== */
+
+@theme {
+  /* ---- Color primitives (light) ---- */
+  --color-cream-50: #f8f5ec;
+  --color-cream-100: #efebe0; /* page bg */
+  --color-cream-200: #e8e3d5;
+  --color-cream-300: #dcd6c4;
+  --color-cream-card: #fdfbf6; /* white-on-cream surface */
+
+  --color-teal-950: #0b1413;
+  --color-teal-900: #0f302c;
+  --color-teal-800: #133c36;
+  --color-teal-700: #1b4842; /* hero, primary */
+  --color-teal-600: #25564f; /* hero gradient stop */
+  --color-teal-500: #2f665e;
+  --color-teal-400: #4a8b81;
+  --color-teal-300: #6fcbb8; /* primary in dark */
+  --color-teal-200: #a8cdc4;
+  --color-teal-100: #deebe6;
+
+  --color-sage: #45b077;
+  --color-sage-soft: #dcf0e5;
+  --color-rose: #f2a893; /* warm coral */
+  --color-rose-soft: #fbe4dc;
+  --color-amber: #e0af4e;
+  --color-amber-soft: #f7ebcf;
+  --color-orange: #e37748;
+  --color-clay: #cf5454;
+  --color-clay-soft: #f8dbdb;
+  --color-sky: #5ab7c7; /* hydration accent */
+
+  /* ---- Semantic tokens (light defaults — overridden in [data-theme=dark]) ---- */
+  --color-bg: var(--color-cream-100);
+  --color-surface: var(--color-cream-card);
+  --color-surface-elevated: #f6f2e8;
+  --color-surface-soft: #ebe7dc;
+  --color-surface-overlay: rgba(26, 42, 40, 0.45);
+
+  --color-border: #e2ddd0;
+  --color-border-strong: #d0caba;
+
+  --color-text: #16221f;
+  --color-text-secondary: #556660;
+  --color-text-tertiary: #8d958f;
+  --color-text-on-hero: #ffffff;
+  --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
+
+  --color-primary: var(--color-teal-700);
+  --color-primary-hover: #133430;
+  --color-primary-soft: var(--color-teal-100);
+  --color-primary-foreground: #ffffff;
+
+  --color-hero-bg: var(--color-teal-700);
+  --color-hero-bg-2: var(--color-teal-600);
+  --color-hero-bg-3: #2f6e66; /* mesh stop */
+
+  --color-success: var(--color-sage);
+  --color-success-soft: var(--color-sage-soft);
+  --color-warning: var(--color-orange);
+  --color-warning-soft: var(--color-rose-soft);
+  --color-danger: var(--color-clay);
+  --color-danger-soft: var(--color-clay-soft);
+  --color-info: var(--color-teal-700);
+  --color-info-soft: var(--color-teal-100);
+
+  --color-grid-line: #e8e3d5;
+  --color-chart-tick: #66716c;
+  --color-skeleton: #e8e3d5;
+
+  /* ---- Type scale (modular, 1.18 ratio at the top) ---- */
+  --font-display: 'Fraunces', 'Tiempos Headline', 'Domaine Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-caption: 0.625rem; /* 10px */
+  --text-caption--line-height: 1.4;
+  --text-micro: 0.6875rem; /* 11px */
+  --text-micro--line-height: 1.4;
+  --text-xs: 0.75rem; /* 12px */
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.8125rem; /* 13px */
+  --text-sm--line-height: 1.5;
+  --text-base: 0.9375rem; /* 15px */
+  --text-base--line-height: 1.55;
+  --text-md: 1rem; /* 16px */
+  --text-md--line-height: 1.55;
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.375rem; /* 22px */
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.625rem; /* 26px */
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 2rem; /* 32px */
+  --text-3xl--line-height: 1.15;
+  --text-4xl: 2.625rem; /* 42px */
+  --text-4xl--line-height: 1.05;
+  --text-5xl: 3.5rem; /* 56px */
+  --text-5xl--line-height: 1;
+  --text-display: 4rem; /* 64px hero */
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.04em;
+
+  /* ---- Radius ---- */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.625rem;
+  --radius: 0.875rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-card: 1.5rem; /* the bento radius */
+  --radius-pill: 999px;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --spacing: 0.25rem;
+
+  /* ---- Shadow ---- */
+  --shadow-xs: 0 1px 2px rgba(22, 34, 31, 0.04);
+  --shadow-sm: 0 2px 4px rgba(22, 34, 31, 0.05);
+  --shadow: 0 6px 16px rgba(22, 34, 31, 0.06);
+  --shadow-md: 0 10px 24px rgba(22, 34, 31, 0.08);
+  --shadow-lg: 0 16px 40px rgba(22, 34, 31, 0.1);
+  --shadow-2xl: 0 32px 80px rgba(22, 34, 31, 0.16);
+  --shadow-hero: 0 24px 60px -12px rgba(15, 48, 44, 0.45);
+
+  /* ---- Motion: 3 easings, 4 durations ---- */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-instant: 100ms;
+  --duration-quick: 200ms;
+  --duration-standard: 300ms;
+  --duration-deliberate: 500ms;
+
+  /* Tailwind v4 animate.* keys */
+  --animate-fade-in: fade-in var(--duration-standard) var(--ease-out-quart);
+  --animate-rise: rise var(--duration-deliberate) var(--ease-out-quart);
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-mesh-drift: mesh-drift 18s ease-in-out infinite;
+  --animate-orbit: orbit 28s linear infinite;
+  --animate-thinking: thinking 1.4s ease-in-out infinite;
+  --animate-liquid: liquid-fill 1.2s var(--ease-out-quart);
+}
+
+/* ========================================================================
+   DARK THEME
+   ======================================================================== */
+[data-theme='dark'] {
+  --color-bg: #0b1413;
+  --color-surface: #16201e;
+  --color-surface-elevated: #1d2a28;
+  --color-surface-soft: #16201e;
+  --color-surface-overlay: rgba(0, 0, 0, 0.6);
+
+  --color-border: #253331;
+  --color-border-strong: #354542;
+
+  --color-text: #e8e4d8;
+  --color-text-secondary: #a8b0ab;
+  --color-text-tertiary: #66716c;
+  --color-text-on-hero: #ffffff;
+  --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
+
+  --color-primary: #6fcbb8;
+  --color-primary-hover: #8ad6c5;
+  --color-primary-soft: #1a2c29;
+  --color-primary-foreground: #0b1413;
+
+  --color-hero-bg: #0f302c;
+  --color-hero-bg-2: #143e38;
+  --color-hero-bg-3: #1b564b;
+
+  --color-success: #6fcb97;
+  --color-success-soft: #1a2d27;
+  --color-warning: #e37748;
+  --color-warning-soft: #2e211d;
+  --color-danger: #da6f6f;
+  --color-danger-soft: #2e1b1b;
+  --color-info: #6fcbb8;
+  --color-info-soft: #1a2c29;
+
+  --color-grid-line: #1f2c2a;
+  --color-chart-tick: #a8b0ab;
+  --color-skeleton: #1f2c2a;
+
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-2xl: 0 32px 80px rgba(0, 0, 0, 0.6);
+  --shadow-hero: 0 24px 60px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* ========================================================================
+   RESET + BASE
+   ======================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv11';
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  transition:
+    background-color var(--duration-quick) var(--ease-out-quart),
+    color var(--duration-quick) var(--ease-out-quart);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+/* ========================================================================
+   TYPOGRAPHY HELPERS
+   ======================================================================== */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum';
+}
+.numerals-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.heading-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-optical-sizing: auto;
+  letter-spacing: -0.03em;
+  line-height: 0.96;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ========================================================================
+   FOCUS RINGS — visible only on keyboard nav
+   ======================================================================== */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+/* Subtle ring for surfaces with their own border */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--color-primary-soft),
+    0 0 0 4px var(--color-primary);
+}
+
+/* ========================================================================
+   KEYFRAMES
+   ======================================================================== */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@keyframes mesh-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  33% {
+    transform: translate3d(2%, -1%, 0) rotate(0.5deg);
+  }
+  66% {
+    transform: translate3d(-1%, 2%, 0) rotate(-0.5deg);
+  }
+}
+@keyframes orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes thinking {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes liquid-fill {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes wave {
+  0% {
+    transform: translateX(0) translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25%) translateY(-2px) scaleY(0.95);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scaleY(1);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ring-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--color-primary-soft);
+  }
+  70% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+@keyframes hero-glow {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* ========================================================================
+   MOTION HELPERS
+   ======================================================================== */
+.animate-rise {
+  animation: rise var(--duration-deliberate) var(--ease-out-quart) both;
+}
+.animate-fade-in {
+  animation: fade-in var(--duration-standard) var(--ease-out-quart) both;
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+.animate-mesh-drift {
+  animation: mesh-drift 18s ease-in-out infinite;
+}
+.animate-orbit-slow {
+  animation: orbit 60s linear infinite;
+}
+.animate-orbit-fast {
+  animation: orbit 24s linear infinite;
+}
+
+.stagger > * {
+  opacity: 0;
+  animation: rise var(--duration-deliberate) var(--ease-out-quart) both;
+}
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 180ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 240ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 300ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 360ms;
+}
+.stagger > *:nth-child(8) {
+  animation-delay: 420ms;
+}
+.stagger > *:nth-child(9) {
+  animation-delay: 480ms;
+}
+.stagger > *:nth-child(n + 10) {
+  animation-delay: 540ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-mesh-drift,
+  .animate-orbit-slow,
+  .animate-orbit-fast,
+  .animate-pulse-soft {
+    animation: none !important;
+  }
+  /* Phase 6 Plan 06-01 (UI-CHECK N5) — suppress the Skeleton shimmer under
+     reduced-motion. The component renders the animation via inline-style
+     `animation: shimmer 1.6s linear infinite`, so the global `*` rule above
+     ONLY shortens duration to 0.001ms (still produces a stutter frame).
+     This explicit `animation: none !important` on the .skeleton-shimmer
+     class fully kills the animation, leaving a static neutral block. */
+  .skeleton-shimmer {
+    animation: none !important;
+  }
+}
+
+/* ========================================================================
+   UTILITY: glassmorphism (used on hero sub-card and mobile nav)
+   ======================================================================== */
+.glass {
+  background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+.glass-dark {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+}
+
+/* ========================================================================
+   SCROLLBARS — slim, theme-aware
+   ======================================================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* ========================================================================
+   SAFE AREAS (iOS notch / home bar)
+   ======================================================================== */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ========================================================================
+   PRINT (doctor report)
+   ======================================================================== */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&display=swap">
+
+<title>Mobile nav — glass bottom bar</title>
+<link rel="stylesheet" href="_card.css">
+<style></style>
+</head>
+<body>
+<div class="preview">
+
+<div style="background:var(--color-bg);padding:24px;border-radius:18px;border:1px solid var(--color-border);">
+  <p class="eyebrow" style="margin-bottom:14px;">iOS-style · glassmorphism · 28 px radius · layout-animated active pill</p>
+  <div style="background:rgba(253,251,246,0.7);backdrop-filter:saturate(140%) blur(14px);border:1px solid var(--color-border);border-radius:28px;box-shadow:var(--shadow-lg);padding:6px;display:flex;justify-content:space-between;">
+    
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:var(--color-primary-soft);border:none;color:var(--color-primary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Today</span>
+      </button>
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:transparent;border:none;color:var(--color-text-secondary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3a1 1 0 0 1-1.4 0l-2.6-2.6a1 1 0 0 1 0-1.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Shot</span>
+      </button>
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:transparent;border:none;color:var(--color-text-secondary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Sx</span>
+      </button>
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:transparent;border:none;color:var(--color-text-secondary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Body</span>
+      </button>
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:transparent;border:none;color:var(--color-text-secondary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Food</span>
+      </button>
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:transparent;border:none;color:var(--color-text-secondary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.24 2.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4 12H2"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Move</span>
+      </button>
+      <button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;background:transparent;border:none;color:var(--color-text-secondary);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        <span style="font-size:10px;font-weight:700;letter-spacing:-0.01em;">Wins</span>
+      </button>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

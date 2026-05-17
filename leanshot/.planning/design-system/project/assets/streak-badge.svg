@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="streak-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f2a893"></stop>
+      <stop offset="100%" stop-color="#e37748"></stop>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="28" fill="url(#streak-grad)"></circle>
+  <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none"></circle>
+  <path d="M32 18 C36 24 42 26 42 34 C42 41 38 46 32 46 C26 46 22 41 22 34 C22 30 24 28 26 28 C28 28 28 30 28 32 C30 28 30 22 32 18 Z" fill="rgba(255,255,255,0.95)"></path>
+</svg>
