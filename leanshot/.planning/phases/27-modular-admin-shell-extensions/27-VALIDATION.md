@@ -2,7 +2,7 @@
 phase: 27
 slug: modular-admin-shell-extensions
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-17
 ---
@@ -44,11 +44,47 @@ Notes
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 27-NN-NN | NN | W | ADMIN-XX or TAXO-XX | T-27-XX | — | — | — | ❌ W0 | ⬜ pending |
+| 27-01-01 | 01 | 1 | ADMIN-04 | T-27-01-02 | Append-only RLS on admin_bulk_jobs + bulk_action_undo_token | migration | `ls supabase/migrations/*_admin_bulk_jobs.sql && grep -q 'enable row level security' supabase/migrations/*_admin_bulk_jobs.sql` | ❌ W0 | ⬜ pending |
+| 27-01-02 | 01 | 1 | ADMIN-04 | T-27-01-01,05 | SECDEF execute/undo RPCs with admin gate + 10k cap | migration+deno-test | `grep -q 'security definer' supabase/migrations/*_admin_bulk_action_rpcs.sql && grep -q '10000' supabase/migrations/*_admin_bulk_action_rpcs.sql` | ❌ W0 | ⬜ pending |
+| 27-01-03 | 01 | 1 | ADMIN-04 | T-27-01-03 | 5-action dispatcher with discriminated error | unit | `npm test -- --run src/lib/admin/bulk/` | ❌ W0 | ⬜ pending |
+| 27-01-04 | 01 | 1 | ADMIN-04 | — | UI bar/modal/undo-banner with role=status | unit+typecheck | `npm run typecheck && npm run lint -- src/components/admin/bulk/` | ❌ W0 | ⬜ pending |
+| 27-01-05 | 01 | 1 | ADMIN-04 | T-27-01-03 | e2e ban-5+undo round-trip | e2e | `npx playwright test e2e/admin-bulk-actions.spec.ts` | ❌ W0 | ⬜ pending |
+| 27-01-06 | 01 | 1 | ADMIN-04 | — | supabase db push live | live-probe | `supabase db query --linked "select count(*) from pg_tables where tablename in ('admin_bulk_jobs','bulk_action_undo_token')"` | ✅ | ⬜ pending |
+| 27-02-01 | 02 | 1 | ADMIN-05,TAXO-03 | T-27-02-01,02,03 | zod schema + 15-field allowlist + recursive translator | unit | `npm test -- --run src/lib/cohort/rule-tree-schema.test.ts src/lib/cohort/rule-tree-to-sql.test.ts` | ❌ W0 | ⬜ pending |
+| 27-02-02 | 02 | 1 | TAXO-03 | T-27-02-07 | cohort_definitions+compiled_sql+materialized table+rebuild fn+cron | migration | `grep -q 'compiled_sql' supabase/migrations/*_cohort_definitions.sql && grep -q 'cohort_membership_rebuild' supabase/migrations/*_cohort_membership_matview.sql` | ❌ W0 | ⬜ pending |
+| 27-02-03 | 02 | 1 | ADMIN-05 | T-27-02-02,04,05 | SECDEF cohort RPCs (define/set_status/archive) + defensive validator | migration | `grep -q 'p_compiled_sql' supabase/migrations/*_cohort_rpcs.sql && grep -q 'cohort_validate_rule' supabase/migrations/*_cohort_rpcs.sql` | ❌ W0 | ⬜ pending |
+| 27-02-04 | 02 | 1 | ADMIN-05 | — | cohort api wrapper with discriminated error + translator call | unit | `npm test -- --run src/lib/cohort/api.test.ts` | ❌ W0 | ⬜ pending |
+| 27-02-05 | 02 | 1 | ADMIN-05 | — | builder UI + promote button + list | typecheck+lint | `npm run typecheck && npm run lint -- src/components/admin/cohort/` | ❌ W0 | ⬜ pending |
+| 27-02-06 | 02 | 1 | ADMIN-05 | — | e2e define+promote+archive cohort | e2e | `npx playwright test e2e/admin-cohort-builder.spec.ts` | ❌ W0 | ⬜ pending |
+| 27-02-07 | 02 | 1 | TAXO-03 | T-27-02-07 | matview/table live + cron `7,22,37,52` + UNIQUE PK | live-probe | `supabase db query --linked "select count(*) from cron.job where jobname='cohort-membership-refresh'"` | ✅ | ⬜ pending |
+| 27-03-01 | 03 | 1 | ADMIN-06 | T-27-03-03 | admin_palette_recent SECDEF + admin gate + 20-row limit | migration | `grep -q 'limit 20' supabase/migrations/*_admin_palette_recent_rpc.sql && grep -q 'is_admin_at_least' supabase/migrations/*_admin_palette_recent_rpc.sql` | ❌ W0 | ⬜ pending |
+| 27-03-02 | 03 | 1 | ADMIN-06 | T-27-03-01 | cmdk@1.1.1 + aal2-step-up + index-builder unit-tested | unit | `npm test -- --run src/lib/admin/palette/` | ❌ W0 | ⬜ pending |
+| 27-03-03 | 03 | 1 | ADMIN-06 | T-27-03-02 | AdminCommandPalette + PaletteAal2Gate (no AdminLayout edit) | typecheck+lint | `npm run typecheck && npm run lint -- src/components/admin/palette/` | ❌ W0 | ⬜ pending |
+| 27-03-04 | 03 | 1 | ADMIN-06 | — | bundle ≤30 kB gz + 3 palette e2e (open/nav/aal2) | bundle+e2e | `find dist -name 'admin*.js' -exec gzip -c {} \; \| wc -c && npx playwright test e2e/admin-palette.spec.ts` | ❌ W0 | ⬜ pending |
+| 27-03-05 | 03 | 1 | ADMIN-06 | — | supabase db push live + RPC probe | live-probe | `supabase db query --linked "select count(*) from pg_proc where proname='admin_palette_recent'"` | ✅ | ⬜ pending |
+| 27-04-01 | 04 | 1 | TAXO-05 | T-27-04-02,04 | events_mirror + anomaly_tracked_funnels (5 seeds) + funnel_anomaly_alerts append-only | migration | `grep -q 'unique (funnel_id, tick_bucket)' supabase/migrations/*_funnel_anomaly_alerts.sql` | ❌ W0 | ⬜ pending |
+| 27-04-02 | 04 | 1 | TAXO-05 | T-27-04-09 | baseline_compute (hybrid 0.4/0.6 blend) + acknowledge SECDEF | migration | `grep -q 'public.events_mirror' supabase/migrations/*_funnel_anomaly_baseline_compute.sql && grep -q 'is_admin_at_least' supabase/migrations/*_funnel_anomaly_acknowledge_rpc.sql` | ❌ W0 | ⬜ pending |
+| 27-04-03 | 04 | 1 | TAXO-05 | T-27-04-01,03,06 | funnel-anomaly-cron Edge Fn + dual-write events_mirror + Deno test | deno-test | `cd leanshot && supabase functions test 2>&1 \| grep funnel-anomaly-cron.test.ts` | ❌ W0 | ⬜ pending |
+| 27-04-04 | 04 | 1 | TAXO-05 | — | pg_cron */5 schedule + Vault bearer | migration | `grep -q '\*/5 \* \* \* \*' supabase/migrations/*_funnel_anomaly_cron_schedule.sql && grep -q 'vault.decrypted_secrets' supabase/migrations/*_funnel_anomaly_cron_schedule.sql` | ❌ W0 | ⬜ pending |
+| 27-04-05 | 04 | 1 | TAXO-05 | T-27-04-05 | client lib + UI banner/queue + AdminGlobals wrapper (owns AdminLayout edit) | unit+typecheck | `npm test -- --run src/lib/admin/anomaly/ && npm run typecheck` | ❌ W0 | ⬜ pending |
+| 27-04-06 | 04 | 1 | TAXO-05 | T-27-04-06 | integration tests detection + suppression (batch-insert seed) | integration | `npm test -- --run tests/integration/funnel-anomaly-detection.test.ts tests/integration/anomaly-suppression.test.ts` | ❌ W0 | ⬜ pending |
+| 27-04-07 | 04 | 1 | TAXO-05 | — | live db+fn deploy + cron sanity | live-probe | `supabase db query --linked "select count(*) from cron.job where jobname='funnel-anomaly-cron'"` | ✅ | ⬜ pending |
+| 27-05-01 | 05 | 2 | TAXO-05 | T-27-05-01,02,03 | 3 SECDEF RPCs (define/update/delete) with superadmin gate + has_alerts guard | migration | `grep -q 'has_alerts' supabase/migrations/*_anomaly_tracked_funnels_admin_rpcs.sql && grep -q 'is_admin_at_least..superadmin' supabase/migrations/*_anomaly_tracked_funnels_admin_rpcs.sql` | ❌ W0 | ⬜ pending |
+| 27-05-02 | 05 | 2 | TAXO-05 | — | config-api wrapper with 5-error discriminated union | unit | `npm test -- --run src/lib/admin/anomaly/config-api.test.ts` | ❌ W0 | ⬜ pending |
+| 27-05-03 | 05 | 2 | TAXO-05 | — | AdminAnomalyTrackedFunnelsConfig + AnomalyConfigPage UI | typecheck+lint | `npm run typecheck && npm run lint -- src/components/admin/anomaly/` | ❌ W0 | ⬜ pending |
+| 27-05-04 | 05 | 2 | TAXO-05 | — | supabase db push live + RPC probe | live-probe | `supabase db query --linked "select count(*) from pg_proc where proname in ('anomaly_funnel_define','anomaly_funnel_update','anomaly_funnel_delete')"` | ✅ | ⬜ pending |
+| 27-06-01 | 06 | 2 | ADMIN-04 | T-27-06-03,04 | process_chunk + reclaim_stuck + claim_pending SECDEF RPCs + cron `* * * * *` | migration | `grep -q 'for update skip locked' supabase/migrations/*_admin_bulk_job_worker_cron.sql && grep -q 'interval .5 minutes' supabase/migrations/*_admin_bulk_job_worker_cron.sql` | ❌ W0 | ⬜ pending |
+| 27-06-02 | 06 | 2 | ADMIN-04 | T-27-06-01,05 | admin-bulk-job-worker Edge Fn + Deno test (claim/drain/reclaim) | deno-test | `cd leanshot && supabase functions test 2>&1 \| grep admin-bulk-job-worker.test.ts` | ❌ W0 | ⬜ pending |
+| 27-06-03 | 06 | 2 | ADMIN-04 | — | client polling hook + BulkJobProgress UI + async modal branch | unit+typecheck | `npm test -- --run src/lib/admin/bulk/job-polling.test.ts && npm run typecheck` | ❌ W0 | ⬜ pending |
+| 27-06-04 | 06 | 2 | ADMIN-04 | T-27-06-05 | integration 250-user async job drain + audit_logs landed | integration | `npm test -- --run tests/integration/admin-bulk-job-worker.test.ts` | ❌ W0 | ⬜ pending |
+| 27-06-05 | 06 | 2 | ADMIN-04 | — | live db+fn deploy + cron sanity | live-probe | `supabase db query --linked "select count(*) from cron.job where jobname='admin-bulk-job-worker'"` | ✅ | ⬜ pending |
+| 27-07-01 | 07 | 2 | ADMIN-04 | T-27-07-01,02 | pure-SQL cron purges bulk_action_undo_token AND events_mirror | migration | `grep -q 'bulk_action_undo_token' supabase/migrations/*_bulk_undo_token_purge_cron.sql && grep -q 'events_mirror' supabase/migrations/*_bulk_undo_token_purge_cron.sql && grep -q 'interval .30 days' supabase/migrations/*_bulk_undo_token_purge_cron.sql` | ❌ W0 | ⬜ pending |
+| 27-07-02 | 07 | 2 | ADMIN-04 | — | e2e expired-token undo flow returns token_expired | e2e | `npx playwright test e2e/admin-bulk-undo-integration.spec.ts` | ❌ W0 | ⬜ pending |
+| 27-07-03 | 07 | 2 | ADMIN-04 | — | 4 Phase 27 crons live + presence probe | live-probe | `supabase db query --linked "select count(*) from cron.job where jobname in ('bulk-undo-token-purge','admin-bulk-job-worker','funnel-anomaly-cron','cohort-membership-refresh')"` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
-> **Planner instruction:** populate this table once PLAN files exist. Nyquist Dimension 8: no 3 consecutive tasks without automated verify.
+> **Nyquist Dimension 8:** every task has an automated command + test type. Wave-0 stubs (❌ W0) created during execution. nyquist_compliant set true after BLOCKER B8 closure 2026-05-17.
 
 ---
 

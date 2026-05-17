@@ -250,22 +250,21 @@ begin
   -- Reject if rule references any field outside the 15-field allowlist.
   -- ... recursive validator ...
 
-  perform set_config('app.suppress_audit', 'true', true);
+  perform set_config('app.suppress_audit', 'on', true);
 
   insert into public.cohort_definitions (name, rule, status, created_by)
     values (p_name, p_rule, 'draft', v_caller)
     returning id into v_cohort_id;
 
-  insert into public.audit_logs (
-    user_id, user_id_hash, table_name, row_id, action, target_user_id, metadata
-  ) values (
-    v_caller,
-    encode(digest(v_caller::text, 'sha256'), 'hex'),
-    'public.cohort_definitions',
-    v_cohort_id::text,
-    'cohort_defined',
-    null,
-    jsonb_build_object('name', p_name)
+  -- Use Phase 24 helper (correct column shape: actor_user_id, row_pk, table_name).
+  -- Do NOT raw-insert into audit_logs — real columns are NOT user_id/row_id/user_id_hash.
+  perform public.log_admin_action(
+    p_action_name    => 'cohort_defined',
+    p_target_user_id => null,
+    p_table_name     => 'cohort_definitions',
+    p_row_pk         => v_cohort_id::text,
+    p_before         => null,
+    p_after          => jsonb_build_object('name', p_name, 'rule', p_rule)
   );
 
   return v_cohort_id;
@@ -276,7 +275,7 @@ revoke all on function public.cohort_define(text, jsonb) from public;
 grant execute on function public.cohort_define(text, jsonb) to authenticated;
 ```
 
-**Pitfall 4 (audit-suppression):** `set_config('app.suppress_audit', 'true', true)` is load-bearing — without it the audit trigger AND the explicit `audit_logs` INSERT both fire, producing duplicate rows. See `[[reference_supabase_migration_gotchas]]`.
+**Pitfall 4 (audit-suppression):** `set_config('app.suppress_audit', 'on', true)` is load-bearing — without it the audit trigger AND the explicit `audit_logs` INSERT both fire, producing duplicate rows. See `[[reference_supabase_migration_gotchas]]`.
 
 ---
 
@@ -652,7 +651,7 @@ Define ONLY a SELECT policy; the ABSENCE of INSERT/UPDATE/DELETE policies IS the
 
 ### S3. Audit-trigger suppression in SECDEF RPCs
 
-**Source:** `supabase/migrations/20270601000019_admin_affiliate_review_rpcs.sql` line 178: `perform set_config('app.suppress_audit', 'true', true);`
+**Source:** `supabase/migrations/20270601000019_admin_affiliate_review_rpcs.sql` line 178: `perform set_config('app.suppress_audit', 'on', true);`
 **Apply to:** Every SECDEF RPC in A7 that writes an explicit `audit_logs` INSERT.
 
 Without this, both the AFTER-trigger AND the explicit INSERT fire → duplicate audit rows. See `[[reference_supabase_migration_gotchas]]` Pitfall 4.
