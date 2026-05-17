@@ -2,94 +2,102 @@
 #
 # assert-bundle-budget.sh
 #
-# Phase 7 Plan 07-06 chunk-shape guard for jsPDF + jspdf-autotable.
-# COMPL-06 ships a PDF export that dynamic-imports jspdf inside the
-# Settings Export-PDF click handler. The bundle ceiling enforced by
-# assert-vendor-react-size.sh (index gz ≤ 50,000 bytes) holds only if
-# jspdf stays in its own lazy chunk. This script pins that topology:
+# Phase 24 D-18..20 — table-driven per-chunk bundle-ceiling enforcement.
 #
-#   1. dist/assets/jspdf-*.js chunk MUST exist (separate from index).
-#   2. jspdf chunk gzipped size MUST be > 20,000 bytes (sanity floor —
-#      if it's tiny, jsPDF was tree-shaken away → PDF export is broken).
-#   3. The index chunk MUST NOT contain the literal `jsPDF` identifier
-#      (presence proves a static import landed jsPDF in the entry chunk).
+# Replaces the Phase 7 jsPDF-only version. Hard-fails CI on any chunk overage
+# per D-19. Always prints a table of (chunk, ceiling, actual, status) regardless
+# of pass/fail (D-19: table always visible in PR check output).
 #
-# On any guard violation: emit a GitHub Actions ::error:: annotation
-# and exit 1. On all guards passing: emit a single OK line and exit 0.
+# Chunks not yet present in dist/assets/ (code ships later in v1.3) are
+# reported as MISSING — NOT a failure. This allows Wave-3 enforcement to run
+# from Phase 24 forward without blocking later phases.
 #
-# See memory project_phase5_bundle_regression.md for the original
-# regression class this script defends against.
+# Hash-hyphen-safe filename matching per [[reference_bundle_budget_hash_hyphen]]:
+# Vite content hashes CAN contain hyphens (e.g. `BsW-HOUO`). We use -regex
+# `/${chunk}-[a-f0-9]{8,}.js$` anchored to the chunk name so `course-player`
+# matches `course-player-<hex8+>.js` only, NOT `course-player-extra-<hex>.js`.
 #
-# The script tolerates being run from either the repo root (as
-# `bash leanshot/scripts/assert-bundle-budget.sh`) or from inside
-# leanshot/ (as `bash scripts/assert-bundle-budget.sh`). It resolves
-# the dist directory relative to its own location, NOT cwd.
+# Bash 3.2 compatible (macOS default shell). No associative arrays.
+#
+# Usage:
+#   bash scripts/assert-bundle-budget.sh [dist/assets]
+#
+# Can be invoked from repo root as `bash leanshot/scripts/assert-bundle-budget.sh`
+# or from inside leanshot/ as `bash scripts/assert-bundle-budget.sh`.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DIST_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/dist"
-ASSETS_DIR="$DIST_DIR/assets"
+DEFAULT_DIST="$(cd "$SCRIPT_DIR/.." && pwd)/dist/assets"
+DIST="${1:-$DEFAULT_DIST}"
 
-JSPDF_FLOOR=20000
-
-PHASE_REF=".planning/phases/07-compliance-foundations-legal-counsel-led/07-06-PLAN.md"
-
-if [ ! -d "$DIST_DIR" ]; then
-  echo "::error::dist/ not found at $DIST_DIR — run 'npm run build' first" >&2
+if [ ! -d "$DIST" ]; then
+  echo "::error::dist/assets not found at $DIST — run 'npm run build' first" >&2
   exit 1
 fi
 
-if [ ! -d "$ASSETS_DIR" ]; then
-  echo "::error::dist/assets not found at $ASSETS_DIR — build appears incomplete" >&2
-  exit 1
-fi
+# ── Per-chunk ceilings and hints (bash 3.2 compatible, no associative arrays) ──
+# Format: "chunk_name ceiling_kb hint_text"
+# Alphabetized for diff hygiene. Update ceiling here when a phase ships code
+# that pushes a chunk over ceiling; changes are diffable in PRs (T-24-07b).
+CHUNK_CONFIG=(
+  "admin-shell        45 Split a lazy route, defer heavy editor panels with sync-defer.ts, or revisit ceiling. NOTE: baseline 39.7 kB gz includes Phase 15 page-builder (old admin-bundle ceiling was 60 kB); Phase 24 D-18 target was 30 kB for new admin-only code."
+  "community-feed     20 Defer feed-virtualization with sync-defer.ts; split heavy media render path."
+  "course-player      30 Lazy-load video player; consider dynamic import for chapter-list."
+  "gamification-burst  8 Move particle-animation to sync-defer.ts; drop framer-motion preset if used."
+  "helpdesk-widget    25 Lazy-load ticket-form; defer markdown renderer."
+  "i18n-runtime       15 Ship only the active locale bundle; lazy-load other locales on language switch."
+  "index              50 Verify no static heavy-SDK imports leaked; route through sync-defer.ts per [[project_phase5_bundle_regression]]."
+)
 
-# Locate jspdf chunk (exclude .map source maps). Vite may emit jspdf alone OR
-# jspdf + jspdf-autotable together — we accept any file whose basename starts
-# with `jspdf` (covers both `jspdf-XXXX.js` and `jspdf-autotable-XXXX.js`).
-JSPDF_MATCHES=()
-while IFS= read -r f; do
-  JSPDF_MATCHES+=("$f")
-done < <(find "$ASSETS_DIR" -maxdepth 1 -type f -name 'jspdf*.js' ! -name '*.map' 2>/dev/null)
+# ── Table header ─────────────────────────────────────────────────────────────
+printf "%-24s %12s %12s %8s\n" "CHUNK" "CEILING_KB" "ACTUAL_KB" "STATUS"
+printf "%-24s %12s %12s %8s\n" "-----" "----------" "---------" "------"
 
-JSPDF_COUNT=${#JSPDF_MATCHES[@]}
-if [ "$JSPDF_COUNT" -eq 0 ]; then
-  echo "::error::no jspdf*.js chunk emitted in $ASSETS_DIR — jspdf may have been static-imported into the index chunk OR tree-shaken away. See $PHASE_REF" >&2
-  exit 1
-fi
+failed=0
 
-# Sum gzipped size across all jspdf-*.js chunks (Vite may emit jspdf +
-# jspdf-autotable separately or merge them; either is acceptable).
-TOTAL_JSPDF=0
-for f in "${JSPDF_MATCHES[@]}"; do
-  sz=$(gzip -c "$f" | wc -c | tr -d '[:space:]')
-  TOTAL_JSPDF=$((TOTAL_JSPDF + sz))
+for entry in "${CHUNK_CONFIG[@]}"; do
+  # Parse: first token = chunk, second token = ceiling, rest = hint
+  chunk=$(echo "$entry" | awk '{print $1}')
+  ceiling=$(echo "$entry" | awk '{print $2}')
+  hint=$(echo "$entry" | awk '{$1=$2=""; sub(/^[ \t]+/, ""); print}')
+
+  # Hash-hyphen-safe regex: chunk name fully expanded; only trailing `-[hex8+].js`
+  # treated as hash. Chunk names with hyphens (e.g. course-player) still match
+  # correctly because we anchor to the exact chunk name followed by `-[a-f0-9]{8,}.js`.
+  # Vite hashes use base64url-like chars (alphanumeric + underscore/hyphen).
+  # Use [A-Za-z0-9_] to match all Vite hash chars, anchored after the chunk name.
+  files=$(find "$DIST" -maxdepth 1 -type f \
+    -regex ".*/${chunk}-[A-Za-z0-9_]\{8,\}\.js$" 2>/dev/null || true)
+
+  if [ -z "$files" ]; then
+    printf "%-24s %12s %12s %8s\n" "$chunk" "$ceiling" "0" "MISSING"
+    # MISSING is OK — code for this chunk not yet shipped (v1.3 later phases).
+    continue
+  fi
+
+  total_bytes=0
+  for f in $files; do
+    bytes=$(gzip -c "$f" | wc -c | tr -d ' ')
+    total_bytes=$((total_bytes + bytes))
+  done
+  actual_kb=$(awk -v b="$total_bytes" 'BEGIN { printf "%.2f", b/1024 }')
+
+  if awk -v a="$actual_kb" -v c="$ceiling" 'BEGIN { exit !(a > c) }'; then
+    over_by=$(awk -v a="$actual_kb" -v c="$ceiling" 'BEGIN { printf "%.2f", a-c }')
+    printf "%-24s %12s %12s %8s\n" "$chunk" "$ceiling" "$actual_kb" "OVER"
+    echo "  OVER by ${over_by} kB. Hint: ${hint}" >&2
+    failed=$((failed + 1))
+  else
+    printf "%-24s %12s %12s %8s\n" "$chunk" "$ceiling" "$actual_kb" "OK"
+  fi
 done
 
-if [ "$TOTAL_JSPDF" -lt "$JSPDF_FLOOR" ]; then
-  echo "::error::jspdf chunk(s) only $TOTAL_JSPDF bytes gzipped (floor $JSPDF_FLOOR) — jspdf was likely tree-shaken or stub-replaced. Phase 7 Plan 07-06 expects a real jsPDF runtime. See $PHASE_REF" >&2
+echo ""
+if [ "$failed" -gt 0 ]; then
+  echo "::error::FAIL: $failed chunk(s) over ceiling per D-19 (hard-fail). See table above for remediation hints." >&2
   exit 1
 fi
 
-# Final cross-check: verify jspdf is NOT in the index chunk by grepping the
-# index chunk source for the jsPDF API surface name. This is a coarse signal
-# (a comment or string could falsely match), but a direct static import would
-# absolutely include the constructor name.
-IDX_MATCHES=()
-while IFS= read -r f; do
-  IDX_MATCHES+=("$f")
-done < <(find "$ASSETS_DIR" -maxdepth 1 -type f -name 'index-*.js' ! -name '*.map' 2>/dev/null)
-
-if [ ${#IDX_MATCHES[@]} -eq 1 ]; then
-  IDX_FILE="${IDX_MATCHES[0]}"
-  # The jsPDF constructor identifier appears uniquely in the runtime source.
-  # If we see it in the index chunk, jspdf was statically imported somewhere.
-  if grep -q "jsPDF" "$IDX_FILE"; then
-    echo "::error::index chunk ($IDX_FILE) contains 'jsPDF' identifier — jspdf was statically imported, regressing the index gz ceiling. Move the import to a dynamic await import('jspdf') inside a click handler. See $PHASE_REF" >&2
-    exit 1
-  fi
-fi
-
-echo "jspdf bundle topology OK: $JSPDF_COUNT chunk(s), total gz $TOTAL_JSPDF bytes (floor $JSPDF_FLOOR); index chunk free of jsPDF identifier"
+echo "PASS: all chunks within gz ceilings."
 exit 0

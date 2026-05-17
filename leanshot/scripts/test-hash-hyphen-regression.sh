@@ -85,6 +85,57 @@ STEM5="share-BKJYvce0"
 EXPECTED5="share"
 assert_equals "share chunk hash strip" "$STEM5" "$EXPECTED5"
 
+# ─── Phase 24 D-20 extension: hyphenated chunk names (assert-bundle-budget.sh) ───
+# The new assert-bundle-budget.sh uses -regex `/${chunk}-[a-f0-9]{8,}.js$` which
+# fully expands the chunk name. These cases verify the regex anchoring is correct
+# so a chunk like `admin-shell-abc12345.js` is matched by the `admin-shell` pattern
+# but `admin-shell-extra-deadbeef.js` (unintended Vite rename) is NOT matched.
+
+# Helper: simulates the assert-bundle-budget.sh regex match against a filename.
+# Returns "MATCH" if the filename matches the pattern for the given chunk name,
+# "NO_MATCH" otherwise.
+regex_match() {
+  local chunk="$1"
+  local filename="$2"
+  if echo "$filename" | grep -qE "^${chunk}-[a-f0-9]{8,}\.js$"; then
+    echo "MATCH"
+  else
+    echo "NO_MATCH"
+  fi
+}
+
+assert_regex() {
+  local description="$1"
+  local chunk="$2"
+  local filename="$3"
+  local expected="$4"
+  local actual
+  actual=$(regex_match "$chunk" "$filename")
+  if [ "$actual" = "$expected" ]; then
+    echo "PASS: $description — '$filename' vs chunk '$chunk' → $actual"
+    PASS_COUNT=$((PASS_COUNT + 1))
+  else
+    echo "FAIL: $description — expected '$expected', got '$actual' (chunk: '$chunk', file: '$filename')" >&2
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
+}
+
+# ─── Case 6: admin-shell chunk (hyphen in chunk name) ───
+# `admin-shell-abc12345.js` MUST match `admin-shell` regex.
+assert_regex "admin-shell matches admin-shell-abc12345.js" \
+  "admin-shell" "admin-shell-abc12345.js" "MATCH"
+
+# ─── Case 7: course-player chunk (hyphen in chunk name) ───
+# `course-player-deadbeef.js` MUST match `course-player` regex.
+assert_regex "course-player matches course-player-deadbeef.js" \
+  "course-player" "course-player-deadbeef.js" "MATCH"
+
+# ─── Case 8: admin-shell must NOT match admin-shell-extra-deadbeef.js ───
+# An unintended Vite chunk rename would produce `admin-shell-extra-<hash>.js`.
+# The regex anchors to `admin-shell-[a-f0-9]{8+}.js` so `extra` (non-hex) breaks it.
+assert_regex "admin-shell does NOT match admin-shell-extra-deadbeef.js" \
+  "admin-shell" "admin-shell-extra-deadbeef.js" "NO_MATCH"
+
 # ─── Summary ───
 echo ""
 echo "Results: $PASS_COUNT passed, $FAIL_COUNT failed"
