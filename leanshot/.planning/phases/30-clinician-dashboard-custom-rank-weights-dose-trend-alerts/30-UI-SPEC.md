@@ -1,10 +1,13 @@
 ---
 phase: 30
 slug: clinician-dashboard-custom-rank-weights-dose-trend-alerts
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-17
+reviewed_at: 2026-05-17
+checker_iterations: 2
+checker_outcome: 6/6 dimensions pass (iter-1: 3 BLOCKERs + 4 FLAGs inline-fixed)
 ---
 
 # Phase 30 — UI Design Contract
@@ -43,7 +46,7 @@ Standard 4px-base scale from `src/index.css --spacing: 0.25rem`. All spacing use
 | 2xl | 48px (`py-12`) | Empty-state vertical centering padding |
 | 3xl | 64px | Not used in Phase 30 surfaces |
 
-Exceptions: icon-only touch targets (bell icon, Acknowledge, Snooze buttons) minimum 44px hit area via `min-h-11 min-w-11` per CLAUDE.md accessibility requirement.
+Exceptions: icon-only touch targets (bell icon, Acknowledge, Snooze buttons) minimum 44px hit area via `min-h-11 min-w-11` per CLAUDE.md accessibility requirement (WCAG 2.5.5 minimum touch target — not a rhythm token; multiple of 4 = 11 × 4px).
 
 ---
 
@@ -53,12 +56,12 @@ Phase 30 surfaces are clinical/operator-facing. Follows the established 4-size c
 
 | Role | Size | Token | Weight | Line Height | Usage |
 |------|------|-------|--------|-------------|-------|
-| Label / secondary | 13px | `text-[13px]` | medium (500) | 1.5 | Alert metadata, threshold field labels, stat card sub-labels, empty-state body |
+| Label / secondary | 13px | `text-[13px]` | medium (500) | 1.5 | Alert metadata, threshold field labels, stat card sub-labels, empty-state body, **tertiary captions (matview staleness, threshold-override field notes)** |
 | Body / data | 15px | `text-[15px]` | medium (500) | 1.5 | Alert summary text, patient name in alerts panel, threshold input values |
 | Heading | 16px | `text-[16px]` | semibold (600) | 1.4 | Section headings (Ranking Weights, Alert Thresholds, Dashboard Overview), settings h2 |
-| Page heading | 20px | `text-[20px]` | bold (700) | 1.2 | Page-level h1 (Dashboard, Alerts) — matches WorkspaceTab h1 pattern |
+| Page heading | 20px | `text-[20px]` | semibold (600) | 1.2 | Page-level h1 (Dashboard, Alerts) — matches WorkspaceTab h1 pattern |
 
-Weights: regular (400) for tertiary/muted text; medium (500) for data; semibold (600) for headings; bold (700) for page h1 only. Maximum 2 weights on any single surface.
+Weights: **medium (500)** for body/data/labels; **semibold (600)** for headings (h1 + h2 + section). Maximum 2 weights system-wide for Phase 30 surfaces. Tertiary/muted differentiation comes from `--color-text-tertiary` (color), not weight.
 
 Monospace: `font-mono` for weight percentage values (e.g. "40%"), threshold numeric inputs (N, M, X), and the snooze duration pill labels — matches ScoreChip precedent.
 
@@ -94,7 +97,7 @@ Source: `src/index.css` semantic tokens. No new color primitives introduced.
 
 | Status | Badge tone | Background | Usage |
 |--------|-----------|------------|-------|
-| `pending` | `warning` (amber `#e0af4e`) | `--color-amber-soft` | Unacknowledged, unacted alert requiring clinician attention |
+| `pending` | `--color-amber` (`#e0af4e`) — NOT `--color-warning` (which resolves to orange `#e37748`) | `--color-amber-soft` (`#f7ebcf`) | Unacknowledged, unacted alert requiring clinician attention. Badge primitive must explicitly use `--color-amber` token; if Badge only exposes `tone="warning"`, add a `tone="amber"` variant rather than re-pointing `warning` (other surfaces depend on orange semantics). |
 | `snoozed` | `neutral` | `--color-surface-elevated` | Snoozed alert — visually quieted |
 | `acknowledged` | `success` | `--color-sage-soft` | Clinician has acknowledged |
 | `auto_resolved` | `success` | `--color-sage-soft` | Auto-resolved after 7 days |
@@ -103,8 +106,8 @@ Source: `src/index.css` semantic tokens. No new color primitives introduced.
 **Severity:** v1.3 collapses to a single severity level. No severity badge rendered. The `severity` column is persisted in DB for v1.4 ML refinement but the UI omits it entirely in Phase 30 to avoid false clinical confidence from a single-rule detector. Rationale: alert-fatigue evidence indicates multi-level severity in rule-based systems increases ignore rates vs single-level with high signal quality.
 
 **Population-level metric stat cards:**
-- "# below dosing range": `--color-warning` amber fill on metric number when count > 0; `--color-text-tertiary` when count = 0
-- "Ack rate": `--color-success` when ack_rate_pct >= 80; `--color-warning` when 50–79; `--color-danger` when < 50
+- "# below dosing range": `--color-amber` (#e0af4e) fill on metric number when count > 0; `--color-text-tertiary` when count = 0
+- "Ack rate": `--color-success` when ack_rate_pct >= 80; `--color-amber` (#e0af4e) when 50–79; `--color-danger` when < 50
 
 ---
 
@@ -184,6 +187,8 @@ Rationale: a persistent right-rail would require 280px of permanent layout real 
 
 **Alert grouping:** Sorted by `created_at DESC`. Pending alerts appear first, then snoozed (with snooze expiry shown), then older acknowledged/resolved (collapsed behind a "Show resolved" toggle — collapsed by default to reduce noise).
 
+**Visual hierarchy:** Closed-state focal point = the pending-count badge on the bell icon (`Badge tone="danger" pulse`). Open-state focal point = the topmost pending alert row (first DOM child of the panel, rendered with subtly elevated background `--color-amber-soft` to anchor the eye before lower-priority groups).
+
 **Realtime subscription:** Panel subscribes to `org-{hmac8}-alerts` HMAC channel via `channelNameFor`. New alerts received via broadcast append to the top of the pending list with a brief motion-safe enter animation (framer-motion `initial={{ opacity: 0, y: -4 }}` → `animate={{ opacity: 1, y: 0 }}`; gated by `useReducedMotion()`).
 
 **Subscription failure state:** If the HMAC channel fails to subscribe (e.g., Vault secret unavailable), the panel renders a non-fatal inline warning: "Live updates paused. Reload to reconnect." The existing alert list still loads from the DB query. This is not a full error state — alerts are still viewable.
@@ -198,13 +203,15 @@ Pattern mirrors `ScoreBreakdownPopover`: `role="dialog"` `aria-modal="true"` `ar
 
 **Layout:** Responsive CSS grid. Desktop (≥768px): 3-column stat-card row. Mobile: single-column stacked.
 
-**Stat cards (3–4 cards):**
-1. "Pending alerts" — count of `status='pending'` alerts this week; tone badge warning/success based on count
+**Visual focal point:** The "Pending alerts" card is the primary visual anchor — rendered FIRST in DOM order, given elevated shadow (`shadow-md` vs `shadow-sm` on the other cards), and uses the larger 20px page-heading size for its numeric figure (other cards use the 16px heading size for their figures). This draws the clinician's eye to the action item before historical metrics.
+
+**Stat cards (3–4 cards, in this DOM order):**
+1. "Pending alerts" — count of `status='pending'` alerts this week; tone badge `--color-amber` when count > 0 / `--color-success` when 0. **Primary focal point per above.**
 2. "Ack rate (7 days)" — from `mv_clinic_alert_metrics.ack_rate_pct`; colored per color section above
-3. "Patients below dosing range" — from `mv_clinic_dose_trend_population` where `dosing_range_status='below'`; warning amber when > 0
+3. "Patients below dosing range" — from `mv_clinic_dose_trend_population` where `dosing_range_status='below'`; `--color-amber` fill on metric number when > 0
 4. "Alert types" — breakdown by `alert_type` (dose_adherence vs dose_variance count) as two sub-figures on a single card
 
-**Matview staleness:** A small `text-[12px] text-[var(--color-text-tertiary)]` caption below the grid: "Updated every 15 minutes · Last: {relative time}". This is not interactive.
+**Matview staleness:** A small `text-[13px] text-[var(--color-text-tertiary)]` caption below the grid: "Updated every 15 minutes · Last: {relative time}". This is not interactive. Uses the declared Label/secondary size (D4 typography contract — no new sizes).
 
 **No chart.js in Phase 30.** Stat cards with numeric figures suffice for SC#5. chart.js would add bundle weight; defer to Phase 33+ dashboards.
 
@@ -212,9 +219,9 @@ Pattern mirrors `ScoreBreakdownPopover`: `role="dialog"` `aria-modal="true"` `ar
 
 **Placement:** New tab or collapsible section within `ClinicDrillInPage`. Tab label: "Dose thresholds". Renders below `ClinicDrillInSubBar`.
 
-**3 inputs:** Same labels and constraints as `ClinicDoseTrendThresholdsForm` (Missed doses N, Window days M, Variance % X). A `text-[12px]` note below: "Overrides clinic default for this patient only." Shows the effective clinic default in placeholder text.
+**3 inputs:** Same labels and constraints as `ClinicDoseTrendThresholdsForm` (Missed doses N, Window days M, Variance % X). A `text-[13px] text-[var(--color-text-tertiary)]` note below: "Overrides clinic default for this patient only." Shows the effective clinic default in placeholder text. (Reuses declared Label/secondary size — no new font size.)
 
-**Reset confirmation:** "Reset to clinic defaults" button opens a `<Modal>` with title "Reset patient thresholds" and body "This will remove the override for {patient display name} and use the clinic's default thresholds. This cannot be undone." Confirm = `<Button variant="danger">` "Reset to defaults". Cancel = `<Button variant="secondary">`. Modal pattern: `role="dialog"` `aria-modal="true"`.
+**Reset confirmation:** "Reset to clinic defaults" button opens a `<Modal>` with title "Reset patient thresholds" and body "This will remove the override for {patient display name} and use the clinic's default thresholds. This cannot be undone." Confirm = `<Button variant="danger">` "Reset to defaults". Cancel = `<Button variant="secondary">` "Keep current thresholds" (binary-choice label per D1 anti-generic-label rule). Modal pattern: `role="dialog"` `aria-modal="true"`.
 
 ---
 
@@ -262,7 +269,8 @@ Pattern mirrors `ScoreBreakdownPopover`: `role="dialog"` `aria-modal="true"` `ar
 | Reset confirm modal title | `PatientThresholdOverrideForm` > `Modal` | "Reset patient thresholds" |
 | Reset confirm modal body | `PatientThresholdOverrideForm` > `Modal` | "This will remove the override for this patient and use the clinic's default thresholds." |
 | Reset confirm CTA | `PatientThresholdOverrideForm` > `Modal` | "Reset to defaults" (Button variant="danger") |
-| Reset cancel | `PatientThresholdOverrideForm` > `Modal` | "Cancel" |
+| Reset cancel | `PatientThresholdOverrideForm` > `Modal` | "Keep current thresholds" |
+| Reset confirm modal body | `PatientThresholdOverrideForm` > `Modal` | "This will remove the override for {patient display name} and use the clinic's default thresholds. This cannot be undone." (canonical — overrides any conflicting wording in Interaction Contracts) |
 | Patient threshold empty (no override) | `PatientThresholdOverrideForm` | Not an empty state — form renders with clinic-default placeholders; saving creates the override |
 | Patient threshold save success toast | `PatientThresholdOverrideForm` | "Patient thresholds saved." |
 | Patient threshold reset success toast | `PatientThresholdOverrideForm` | "Thresholds reset to clinic defaults." |
