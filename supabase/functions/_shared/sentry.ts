@@ -63,6 +63,7 @@ export function captureException(
 /**
  * Capture a message with optional context.
  * Added for P29 D-04 billing variance alerts (level='warning').
+ * Also used by clinic-patient-invite for generateLink failure warnings.
  */
 export function captureMessage(
   message: string,
