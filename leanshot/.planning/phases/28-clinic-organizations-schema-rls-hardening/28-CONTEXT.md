@@ -3,6 +3,9 @@
 **Gathered:** 2026-05-17
 **Status:** Ready for planning
 
+> ⚠ **PARTIAL SUPERSESSION — read `28-ADDENDUM-orgs-reconciliation.md` BEFORE planning or implementing.**
+> The addendum corrects D-11..D-29 references that assumed greenfield schema; Phase 9 already shipped live `public.orgs` + `public.invites` + `public.memberships`. The addendum locks: (A1) ALTER TABLE rename `orgs` → `organizations` + add columns as a non-parallel Plan-0; (A2) `org_invites` ships as a parallel new table importing Phase 9's `makeInviteTokenHash`; (A3) JWT propagation prefers Custom Access Token Hook over D-09 trigger; (A4) realtime channel auth via SECDEF `realtime_topic_authorized()` helper, not D-23 inline policy; (A5) `28-00-PLAN.md` (RECONCILE) is mandatory Wave 0 prerequisite for every other P28 plan. Where addendum and this file disagree, addendum wins.
+
 <domain>
 ## Phase Boundary
 
