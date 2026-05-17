@@ -117,6 +117,7 @@ async function dispatch(
   const { handle: handleSubscriptionDeleted } = await import(
     './events/customer-subscription-deleted.ts'
   );
+  const { handle: handleInvoiceCreated } = await import('./events/invoice-created.ts');
   const { handle: handleInvoicePaid } = await import('./events/invoice-paid.ts');
   const { handle: handleInvoicePaymentFailed } = await import(
     './events/invoice-payment-failed.ts'
@@ -156,6 +157,10 @@ async function dispatch(
       break;
     case 'customer.subscription.deleted':
       await handleSubscriptionDeleted(event, admin);
+      break;
+    case 'invoice.created':
+      // Phase 29 Plan 03 — D-04: validate meter quantity against local snapshot.
+      await handleInvoiceCreated(event, admin);
       break;
     case 'invoice.paid':
       await handleInvoicePaid(event, admin);
