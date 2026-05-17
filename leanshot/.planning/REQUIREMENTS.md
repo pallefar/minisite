@@ -120,9 +120,9 @@
 - [ ] **ORG-05**: Every org-scoped table gets a live cross-tenant impersonation proof test (extends Phase 5/6/19/22 project rule from `user_id` axis to `org_id` axis)
 - [ ] **ORG-06**: `src/lib/org.ts` org-context layer detects current org via path + member.org_id + provides surface-check helpers + overlays white-label theme tokens
 - [x] **ORG-07**: Path-based clinic routing `/clinic/{slug}/...` (subdomain `acme.leanshot.app` deferred to v1.5)
-- [x] **ORG-08**: Stripe Billing for orgs uses SEPARATE `stripe_customer_id_org` keyed by `(user_id, customer_context)` — consumer customer email == clinic customer email = different Stripe customers (closes V13-2 Stripe-namespace vector)
+- [ ] **ORG-08**: Stripe Billing for orgs uses SEPARATE `stripe_customer_id_org` keyed by `(user_id, customer_context)` — consumer customer email == clinic customer email = different Stripe customers (closes V13-2 Stripe-namespace vector)
 - [x] **ORG-09**: Per-active-patient metered billing via Stripe Meter Events 2024 API; nightly cron aggregates usage
-- [x] **ORG-10**: Patient invite flow: clinic admin invites email → magic link → patient onboards under clinic's org → patient's `profiles.primary_org_id` set + consent grant recorded
+- [ ] **ORG-10**: Patient invite flow: clinic admin invites email → magic link → patient onboards under clinic's org → patient's `profiles.primary_org_id` set + consent grant recorded
 - [ ] **ORG-11**: White-label theming per clinic (CSS-var overlay + custom logo + custom colors + favicon); path-based for v1.3 (`/clinic/{slug}` overlays `org_branding` CSS-vars)
 - [ ] **ORG-12**: Org admin manages 3 roles (owner / clinician / staff) with permission matrix; UI gates admin actions by role
 - [ ] **ORG-13**: Per-clinic onboarding flow override (clinics customize their patient-invite onboarding via M2 step builder reusing Phase 15 dnd-kit primitives)
@@ -467,9 +467,9 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | ORG-05 | Phase 28 | Pending |
 | ORG-06 | Phase 28 | Pending |
 | ORG-07 | Phase 28 | Complete |
-| ORG-08 | Phase 29 | Complete |
+| ORG-08 | Phase 29 | Pending |
 | ORG-09 | Phase 29 | Complete |
-| ORG-10 | Phase 29 | Complete |
+| ORG-10 | Phase 29 | Pending |
 | ORG-11 | Phase 31 | Pending |
 | ORG-12 | Phase 31 | Pending |
 | ORG-13 | Phase 31 | Pending |
