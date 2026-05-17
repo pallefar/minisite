@@ -252,12 +252,13 @@ export default defineConfig(({ mode }) => {
       // Phase 12 D-10/D-11 — extend to include tests/**/*.test.ts for the CSP snapshot test (see leanshot/tests/csp/csp-snapshot.test.ts).
       // Phase 14 D-11 — extend to include scripts/**/*.test.ts for the stripe-bootstrap smoke test.
       // Phase 24 Plan 24-02 — extend to include eslint-rules/**/*.test.js for the additive-only-events rule test.
+      // Phase 28 Plan 28-02 — extend to include .test.cjs (CJS rule tests: no-raw-service-role-client).
       include: [
         'src/**/*.test.{ts,tsx}',
         'tests/**/*.test.ts',
         'scripts/**/*.test.ts',
         '../shared/**/*.test.ts',
-        'eslint-rules/**/*.test.{js,ts}',
+        'eslint-rules/**/*.test.{js,ts,cjs}',
       ],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
       // Avoid React 19 StrictMode double-invoke flake (RESEARCH.md Pitfall 6)

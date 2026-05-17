@@ -8,10 +8,12 @@ import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import importXPlugin from 'eslint-plugin-import-x';
 import { defineConfig } from 'eslint/config';
 // Phase 24 Plan 24-02 — additive-only event registry enforcement (D-10/TAXO-06)
-// Rule is .cjs (CommonJS) because the package is ESM but ESLint rules use CJS module.exports.
+// Phase 28 Plan 28-02 — no-raw-service-role-client (D-06 / ADDENDUM A6)
+// Rules are .cjs (CommonJS) because the package is ESM but ESLint rules use CJS module.exports.
 import { createRequire } from 'node:module';
 const _require = createRequire(import.meta.url);
 const additiveOnlyEventsRule = _require('./eslint-rules/additive-only-events.cjs');
+const noRawServiceRoleClientRule = _require('./eslint-rules/no-raw-service-role-client.cjs');
 
 export default defineConfig([
   // Global ignores
@@ -266,6 +268,24 @@ export default defineConfig([
           },
         ],
       }],
+    },
+  },
+
+  // Phase 28 Plan 28-02 — D-06 / ADDENDUM A6: no-raw-service-role-client enforcement.
+  // Blocks createClient(..., SERVICE_ROLE_KEY) outside supabase/functions/_shared/supabase-server.ts.
+  // Rule file is .cjs per ADDENDUM A6 (package.json "type":"module" → ESLint rules must use .cjs).
+  // Applies to src/ non-test files and ../shared/ (browser bundle zones).
+  // Test files legitimately use service-role clients in integration tests — excluded here.
+  // The supabase/functions/ directory is NOT linted by eslint (Deno runtime); the rule allowlist handles
+  // the one authorized exception in supabase-server.ts if the rule is ever run against that path.
+  {
+    files: ['src/**/*.{ts,tsx}', '../shared/**/*.ts'],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/test-setup.ts'],
+    plugins: {
+      leanshot: { rules: { 'no-raw-service-role-client': noRawServiceRoleClientRule } },
+    },
+    rules: {
+      'leanshot/no-raw-service-role-client': 'error',
     },
   },
 ]);
