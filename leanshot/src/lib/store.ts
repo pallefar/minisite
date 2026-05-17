@@ -10,6 +10,9 @@ import type {
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
+// Phase 28 Plan 28-05 ORG-06: org-context slice types (hoisted to break
+// potential circular import between store.ts ↔ org.ts).
+import type { OrgContext, OrgRole } from '@/types/org';
 // Phase 6 D-12 CI hardening: @/lib/auth + @/lib/sync are NO LONGER eager
 // imports. Both transitively pull @supabase/supabase-js into the entry
 // chunk's static graph (store.ts is reachable from main.tsx → hydrate()).
@@ -330,6 +333,35 @@ interface Actions {
   markMigrationComplete: () => void;
   /** Surface (or clear) the corruption error banner. */
   setMigrationError: (err: 'corrupted' | null) => void;
+
+  // -------------------------------------------------------------------------
+  // Phase 28 Plan 28-05 ORG-06 — ephemeral org-context slice (CONTEXT D-02).
+  // These fields are NEVER persisted (T-28-05-01 — stale persisted org leaks
+  // role across logins on shared devices). They are excluded from partialize.
+  // -------------------------------------------------------------------------
+  /** Currently-active org for this session. null when not inside a clinic route or no org membership. */
+  currentOrg: OrgContext | null;
+  /** Role of the current user in currentOrg. null when currentOrg is null. */
+  currentOrgRole: OrgRole | null;
+  /**
+   * True while org resolution is in-flight (e.g., after USER_UPDATED event
+   * invalidates the slice, or while RouteOrgGuard is resolving the slug).
+   * Gates the D-10 spinner (Plan 06).
+   */
+  currentOrgLoading: boolean;
+  /**
+   * Set both org + role atomically; also resets loading to false.
+   * Called by Plan 06 RouteOrgGuard after slug resolution.
+   */
+  setCurrentOrg: (org: OrgContext | null, role: OrgRole | null) => void;
+  /** Reset all 3 org-slice fields to initial state. */
+  clearCurrentOrg: () => void;
+  /**
+   * Flip the loading flag independently.
+   * Called from main.tsx on USER_UPDATED event to gate the D-10 spinner
+   * while RouteOrgGuard re-resolves the org.
+   */
+  setCurrentOrgLoading: (loading: boolean) => void;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -472,6 +504,16 @@ export const useStore = create<Store>()(
       toast: null,
       signedIn: null,
       migrationError: null,
+
+      // Phase 28 Plan 28-05 ORG-06 — ephemeral org-context slice initial values.
+      // NOT in PersistedState / not persisted (partialize excludes all 3 fields).
+      currentOrg: null,
+      currentOrgRole: null,
+      currentOrgLoading: false,
+
+      setCurrentOrg: (org, role) => set({ currentOrg: org, currentOrgRole: role, currentOrgLoading: false }),
+      clearCurrentOrg: () => set({ currentOrg: null, currentOrgRole: null, currentOrgLoading: false }),
+      setCurrentOrgLoading: (loading) => set({ currentOrgLoading: loading }),
 
       setTab: (tab) => {
         set({ currentTab: tab });
