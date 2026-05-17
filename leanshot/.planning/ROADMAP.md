@@ -167,6 +167,16 @@ Plans:
   3. Clinic admin enters a patient email → patient receives magic-link invite → on first login, patient's `profiles.primary_org_id` is set and an `org_consent_grants` row records explicit consent
   4. Stripe webhook updates `org_subscriptions.status` and reflects in the clinic admin's billing surface within 30 seconds of the Stripe event
 
+**Plans**: 8 plans (4 waves)
+- [ ] 29-00-PLAN.md — RECONCILE: drop org_subscriptions skeleton + extend subscriptions.seats_* + profiles.primary_org_id + 5 missing event-table indexes [Wave 0]
+- [ ] 29-01-PLAN.md — count_active_patients v2: 10-table UNION + org_patient_links source + service-role bypass + tests [Wave 1]
+- [ ] 29-02-PLAN.md — org_patient_invites table + 3 SECDEF RPCs + cross-tenant RLS proof (BLOCKER R1) [Wave 1]
+- [ ] 29-03-PLAN.md — invoice.created variance handler (D-04) + ORG-08 Stripe namespace CI test [Wave 1]
+- [ ] 29-04-PLAN.md — org-metered-billing-cron Edge Fn + pg_cron 02:00 UTC + deno tests [Wave 2]
+- [ ] 29-05-PLAN.md — clinic-patient-invite Edge Fn (send+preview+accept, two-phase magic-link) + browser helper [Wave 2]
+- [ ] 29-06-PLAN.md — ClinicBillingCard + ConsentAcceptScreen + realtime wire + Playwright e2e — HUMAN-VERIFY [Wave 3]
+- [ ] 29-07-PLAN.md — invite expiry cron (04:30 UTC) + Stripe PHI lint (D-11) + vendor checkpoints + phase close — HUMAN-CHECKPOINT [Wave 3]
+
 ### Phase 30: Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts
 **Goal**: Clinic deals close on this surface; per-clinic ranking + nightly alert cron + ack/snooze workflow ship together.
 **Depends on**: Phase 28 (org schema); Phase 25 (PHI email path); v1.1 Phase 10 (roster/drill-in)

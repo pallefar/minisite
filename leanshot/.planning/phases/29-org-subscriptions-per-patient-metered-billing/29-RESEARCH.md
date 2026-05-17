@@ -770,22 +770,21 @@ Rationale for 10%:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does `subscriptions` already have `seats_paid`/`seats_used` columns in the live DB?**
-   - What we know: The P28 migration (`20270601100008`) added them to `org_subscriptions` (which P29 drops). The Phase 14 migration (`20260601000019`) does NOT include them on `subscriptions`.
-   - What's unclear: Whether a post-P28 migration added them to `subscriptions`.
-   - Recommendation: Plan 29-00 task #1 runs `supabase db query --linked --query "\d subscriptions"` before writing any DDL.
+1. **RESOLVED — Does `subscriptions` already have `seats_paid`/`seats_used` columns?**
+   - **Verified 2026-05-17 via direct migration read.** `supabase/migrations/20260601000019_stripe_subscriptions.sql:51-68` confirms the `subscriptions` table does NOT carry `seats_paid` or `seats_used`. Both columns currently live ONLY on `public.org_subscriptions` (the P28 skeleton being dropped by Plan 29-00 per A1). Plan 29-00 RECONCILE MUST therefore ADD both columns to `subscriptions` — `verify-or-add` becomes plain `add column if not exists`.
+   - Outcome for plans: A4 in the Assumptions Log is confirmed correct; Plan 29-00 Task 1 keeps the `\d subscriptions` pre-flight as a defensive probe.
 
-2. **Does `stripe-checkout` set `metadata.clinic_id` on checkout sessions for clinic subscriptions?**
-   - What we know: Phase 14 wired a clinic checkout path. The `subscriptions.clinic_id` FK exists.
-   - What's unclear: Whether the checkout session metadata includes `clinic_id` (needed for D-04 invoice.created filtering).
-   - Recommendation: Grep `supabase/functions/stripe-checkout/` for `clinic_id` metadata assignment. If absent, Plan 29-XX must add it.
+2. **RESOLVED — Does `stripe-checkout` set `metadata.clinic_id` on subscription metadata for clinic checkout?**
+   - **Verified 2026-05-17 via direct file read** of `supabase/functions/stripe-checkout/index.ts`. Line 422 builds `subMetadata = { clinic_id: clinicId!, provider: 'stripe', tier_kind: 'clinic', aff_code: affCode ?? '' }` and line 434 sets it on `subscription_data.metadata`. Stripe propagates this to the **subscription** but NOT directly onto each subsequent invoice's top-level `metadata` field. Invoice handlers therefore have two recovery paths (preferred → fallback):
+     - **(A) Read `invoice.subscription_details.metadata.clinic_id`** (Stripe API ≥ 2024-09-30, exposed automatically on invoice objects).
+     - **(B) Fallback: look up `clinic_stripe_customers` by `invoice.customer`** when (A) is absent (older invoices or proration prorations). This route is robust to API-version skew.
+   - Outcome for plans: Plan 29-03 invoice.created handler MUST implement the two-path lookup (A then B) and ONLY early-return as "non-clinic" when BOTH paths produce no `clinic_id`. The plan's existing "early-return on missing clinic_id" task must be split: (1) attempt path A from invoice payload, (2) attempt path B from `clinic_stripe_customers`, (3) early-return ONLY if both paths fail. A2 in the Assumptions Log is confirmed for new subscriptions; the dual-path lookup hedges against API-version variance and back-fill scenarios.
 
-3. **Is the `accept_org_patient_invite` RPC atomic enough if `admin.generateLink` fails?**
-   - What we know: D-08 says "all in single transaction; failure rolls back." But `admin.generateLink` is an HTTP call to Supabase Auth API, which cannot participate in a Postgres transaction.
-   - What's unclear: Should the transaction commit (writing consent grants + links + accepted_at) and then attempt the magic link as a best-effort post-commit? Or should the whole flow be two-phase?
-   - Recommendation: Two-phase: (1) SECDEF RPC commits the consent grant atomically; (2) Edge Function calls `admin.generateLink` after RPC success. If generateLink fails, the invite is marked accepted but no magic link was issued — the patient can request a new login via password reset. Log this edge case to Sentry.
+3. **RESOLVED — Is the `accept_org_patient_invite` RPC atomic enough if `admin.generateLink` fails?**
+   - **Decision: Two-phase**, per the analysis already in this section. (1) SECDEF RPC commits all DB writes (auth user create/validate + `profiles.primary_org_id` + `org_consent_grants` + `org_patient_links` + invite `accepted_at`) atomically. (2) Edge Function calls `admin.generateLink` AFTER RPC success. If `generateLink` fails, invite is already marked accepted; patient recovers via password-reset / re-login. Log to Sentry with severity=warning.
+   - Outcome for plans: Plan 29-02 SECDEF RPC body MUST NOT call `admin.generateLink`. Plan 29-05 Edge Function calls it post-RPC-commit. **This intentionally diverges from CONTEXT D-08 step (f)** — see Plan 29-02 Task 2 BREAKING NOTE and Plan 29-05 Task 1.
 
 ---
 
