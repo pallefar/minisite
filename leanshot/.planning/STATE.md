@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 28 context gathered
-last_updated: "2026-05-17T14:37:22.854Z"
-last_activity: 2026-05-17 -- Phase 28 planning complete
+stopped_at: Phase 28 Plan 00 complete — Wave 1 (28-01 + 28-02) unblocked
+last_updated: "2026-05-17T16:57:00Z"
+last_activity: 2026-05-17 -- Phase 28 Plan 00 RECONCILE executed (orgs → organizations rename, 105 rows preserved)
 progress:
   total_phases: 27
   completed_phases: 1
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 ## Current Position
 
-Phase: 24 — COMPLETE
-Plan: 1 of 8
-Status: Ready to execute
-Last activity: 2026-05-17 -- Phase 28 planning complete
+Phase: 28 — IN PROGRESS
+Plan: 1 of 8 (Plan 00 complete)
+Status: Wave 1 unblocked (28-01 + 28-02 ready to execute)
+Last activity: 2026-05-17 -- Phase 28 Plan 00 RECONCILE executed
 
 ### v1.3 milestone open (2026-05-17)
 
@@ -116,6 +116,7 @@ Recent decisions affecting current work:
 - v1.3 milestone open (2026-05-17): 26 phases at fine granularity, yolo mode; phase numbering continues from v1.2 (24-49, no reset)
 - v1.3 stack additions (from `.planning/research/STACK.md`): react-i18next 15.7.4 + posthog-node 5.10.4 (Edge Fn) + pgvector + openai 6.13.0 (embeddings via AI Gateway) + @tanstack/react-query 5.x + react-table 8.x + react-virtual 3.x + react-markdown 9.x + remark-gfm + rehype-sanitize + dompurify 3.2.7 + canvas-confetti 1.9.3 + Resend Inbound + Better Stack + Meta/Google/TikTok ad SDKs + AWS SES (PHI path)
 - v1.3 architecture: EXTENDS v1.2 (no rewrite); NEW org-context layer in `src/lib/org.ts`; NEW JWT `app_metadata.org_ids` claim with 336ms propagation window
+- P28-00 (2026-05-17): Rename public.orgs → organizations atomically; CREATE OR REPLACE SECDEF bodies to patch audit_logs.table_name 'orgs' → 'organizations'; patch 19 files (embedded joins, field accesses, type definitions, test fixtures); 105 rows preserved.
 - v1.3 hard constraints: HIPAA BAA chain (6 vendors) + Stripe never signs BAA (PHI lint) + dual Anthropic credentials + activation event locks PAYWALL/REVIEW/RECOMMEND + page-builder canonical-link discipline + App/Play native review-prompt unconditional + i18n via `?lang=es` query (not `/es/` path)
 - v1.3 bundle: 50 kB gz index hard ceiling; per-chunk ceilings declared in P24 — admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB
 - v1.3 vendor cost when HIPAA chain activates: +$1,864-4,364/mo (Supabase Team+addon $924, Vercel Pro+addon $350, Sentry Business $80, Anthropic Enterprise $500-2K, PostHog Boost optional $0-2K, AWS SES ~$10)
