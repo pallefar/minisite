@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 29 context gathered
-last_updated: "2026-05-17T17:19:09.572Z"
+stopped_at: Phase 29 SHIPPED (8/8 plans)
+last_updated: "2026-05-17T20:00:00.000Z"
 last_activity: 2026-05-17
 progress:
   total_phases: 27
-  completed_phases: 2
-  total_plans: 48
-  completed_plans: 17
-  percent: 7
+  completed_phases: 3
+  total_plans: 56
+  completed_plans: 25
+  percent: 10
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 ## Current Position
 
-Phase: 28 — IN PROGRESS
-Plan: 6 of 8 (Plans 00, 01, 02, 03 complete)
-Status: Ready to execute
+Phase: 29 — COMPLETE (8/8 plans shipped)
+Plan: 8 of 8
+Status: Phase 30 is next
 Last activity: 2026-05-17
 
 ### v1.3 milestone open (2026-05-17)
@@ -73,7 +73,7 @@ Progress: [████░░░░░░] 35%
 | 26 | 0 | — | — |
 | 27 | 0 | — | — |
 | 28 | 0 | — | — |
-| 29 | 0 | — | — |
+| 29 | 8 | ~3hr | ~22min/plan |
 | 30 | 0 | — | — |
 | 31 | 0 | — | — |
 | 32 | 0 | — | — |
@@ -103,6 +103,7 @@ Progress: [████░░░░░░] 35%
 *Updated after each plan completion*
 | Phase 28 P06 | 8 minutes | 2 tasks | 5 files |
 | Phase 29 P00 | 8min | 3 tasks | 2 files |
+| Phase 29 (all 8 plans) | ~3 hours | 29 tasks | 40+ files | 7 migrations + 2 Edge Fns + 5 UI components + 2 CI scripts |
 
 ## Accumulated Context
 
@@ -124,6 +125,7 @@ Recent decisions affecting current work:
 - v1.3 bundle: 50 kB gz index hard ceiling; per-chunk ceilings declared in P24 — admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB
 - v1.3 vendor cost when HIPAA chain activates: +$1,864-4,364/mo (Supabase Team+addon $924, Vercel Pro+addon $350, Sentry Business $80, Anthropic Enterprise $500-2K, PostHog Boost optional $0-2K, AWS SES ~$10)
 - [Phase ?]: OrgInviteAcceptance created inline; Playwright e2e gated on PLAYWRIGHT_RUN_P28=1; usePhiAccessLogger added for PHI audit
+- Phase 29 SHIPPED (2026-05-17): ORG-08/09/10 covered; 7 migrations + 2 Edge Fns (org-metered-billing-cron, clinic-patient-invite) + ClinicBillingCard + ConsentAcceptScreen + expiry cron (04:30 UTC) + PHI lint D-11; vendor auto-verified: STRIPE_METER_ACTIVE_PATIENTS + RESEND_API_KEY + RESEND_FROM all present in Supabase Function Secrets
 
 ### Pending Todos
 
@@ -168,8 +170,8 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-17T17:19:09.564Z
-Stopped at: Phase 29 context gathered
+Last session: 2026-05-17T20:00:00.000Z
+Stopped at: Phase 29 SHIPPED — 8/8 plans complete. Next: Phase 30 (Clinician Dashboard)
 Resume file: None
 
 ## Phase 25 plan-phase blocker (2026-05-17)

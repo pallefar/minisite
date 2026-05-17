@@ -45,7 +45,7 @@
 - [ ] **Phase 26: Multi-Tier Affiliate (Standard / Gold / Lifetime)** — Tier stamping + locked-once-earned + recurring-commission cron + co-branded landing
 - [ ] **Phase 27: Modular Admin Shell Extensions** — Bulk actions + cohort builder + command palette + funnel-anomaly cron + cohort matview
 - [ ] **Phase 28: Clinic Organizations — Schema + RLS Hardening** — 16+ org-scoped tables + `withOrgScope` + HMAC realtime + cross-tenant proof tests + `src/lib/org.ts`
-- [ ] **Phase 29: Org Subscriptions + Per-Patient Metered Billing** — Separate `stripe_customer_id_org` + Stripe Meter Events + clinic patient-invite magic-link
+- [x] **Phase 29: Org Subscriptions + Per-Patient Metered Billing** — Separate `stripe_customer_id_org` + Stripe Meter Events + clinic patient-invite magic-link
 - [ ] **Phase 30: Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts** — Per-clinic ranking + nightly alert cron + PHI-aware delivery + ack/snooze
 - [ ] **Phase 31: White-Label (Path-Based) + Org Roles + Clinic Onboarding Builder** — `org_branding` CSS-var overlay + owner/clinician/staff matrix + per-clinic onboarding override
 - [ ] **Phase 32: Spanish i18n (Parallel with Clinic Track)** — react-i18next + http-backend + `?lang=es` + transactional-email shim + `locale_overrides` + ICU pluralization
@@ -169,13 +169,13 @@ Plans:
 
 **Plans**: 8 plans (4 waves)
 - [x] 29-00-PLAN.md — RECONCILE: drop org_subscriptions skeleton + extend subscriptions.seats_* + profiles.primary_org_id + 5 missing event-table indexes [Wave 0]
-- [ ] 29-01-PLAN.md — count_active_patients v2: 10-table UNION + org_patient_links source + service-role bypass + tests [Wave 1]
-- [ ] 29-02-PLAN.md — org_patient_invites table + 3 SECDEF RPCs + cross-tenant RLS proof (BLOCKER R1) [Wave 1]
-- [ ] 29-03-PLAN.md — invoice.created variance handler (D-04) + ORG-08 Stripe namespace CI test [Wave 1]
-- [ ] 29-04-PLAN.md — org-metered-billing-cron Edge Fn + pg_cron 02:00 UTC + deno tests [Wave 2]
-- [ ] 29-05-PLAN.md — clinic-patient-invite Edge Fn (send+preview+accept, two-phase magic-link) + browser helper [Wave 2]
-- [ ] 29-06-PLAN.md — ClinicBillingCard + ConsentAcceptScreen + realtime wire + Playwright e2e — HUMAN-VERIFY [Wave 3]
-- [ ] 29-07-PLAN.md — invite expiry cron (04:30 UTC) + Stripe PHI lint (D-11) + vendor checkpoints + phase close — HUMAN-CHECKPOINT [Wave 3]
+- [x] 29-01-PLAN.md — count_active_patients v2: 10-table UNION + org_patient_links source + service-role bypass + tests [Wave 1]
+- [x] 29-02-PLAN.md — org_patient_invites table + 3 SECDEF RPCs + cross-tenant RLS proof (BLOCKER R1) [Wave 1]
+- [x] 29-03-PLAN.md — invoice.created variance handler (D-04) + ORG-08 Stripe namespace CI test [Wave 1]
+- [x] 29-04-PLAN.md — org-metered-billing-cron Edge Fn + pg_cron 02:00 UTC + deno tests [Wave 2]
+- [x] 29-05-PLAN.md — clinic-patient-invite Edge Fn (send+preview+accept, two-phase magic-link) + browser helper [Wave 2]
+- [x] 29-06-PLAN.md — ClinicBillingCard + ConsentAcceptScreen + realtime wire + Playwright e2e — HUMAN-VERIFY [Wave 3]
+- [x] 29-07-PLAN.md — invite expiry cron (04:30 UTC) + Stripe PHI lint (D-11) + vendor checkpoints + phase close — HUMAN-CHECKPOINT [Wave 3]
 
 ### Phase 30: Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts
 **Goal**: Clinic deals close on this surface; per-clinic ranking + nightly alert cron + ack/snooze workflow ship together.
