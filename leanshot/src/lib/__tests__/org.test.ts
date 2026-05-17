@@ -1,0 +1,174 @@
+/**
+ * Phase 28 Plan 28-05 Task 2 — src/lib/org.ts surface member tests.
+ *
+ * Covers all 6 D-03 exports + ROLE_PERMISSIONS matrix.
+ * Tests are pure unit tests — no network calls, no DB.
+ */
+
+import { beforeEach, describe, expect, it } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import type { OrgContext } from '@/types/org';
+import { useStore } from '@/lib/store';
+import {
+  useCurrentOrg,
+  getCurrentOrgId,
+  getCurrentOrgIdOrNull,
+  surfaceCheck,
+  withOrgPath,
+  overlayBrandingTokens,
+  _ROLE_PERMISSIONS_FOR_TEST,
+} from '@/lib/org';
+
+const orgFixture: OrgContext = {
+  id: 'org-test-uuid-abc',
+  slug: 'test-clinic',
+  name: 'Test Clinic',
+};
+
+function resetStore(): void {
+  useStore.getState().clearCurrentOrg();
+}
+
+describe('org.ts surface members', () => {
+  beforeEach(() => {
+    resetStore();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 1 — useCurrentOrg
+  // ---------------------------------------------------------------------------
+  describe('useCurrentOrg()', () => {
+    it('Test 1a: returns { org, role, loading } from Zustand slice', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'admin');
+      const { result } = renderHook(() => useCurrentOrg());
+      expect(result.current.org).toEqual(orgFixture);
+      expect(result.current.role).toBe('admin');
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('Test 1b: returns null fields after clearCurrentOrg', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'admin');
+      useStore.getState().clearCurrentOrg();
+      const { result } = renderHook(() => useCurrentOrg());
+      expect(result.current.org).toBeNull();
+      expect(result.current.role).toBeNull();
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 2 — getCurrentOrgId (present)
+  // ---------------------------------------------------------------------------
+  it('Test 2: getCurrentOrgId returns org.id when org is set', () => {
+    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    expect(getCurrentOrgId()).toBe(orgFixture.id);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 3 — getCurrentOrgId (null throws)
+  // ---------------------------------------------------------------------------
+  it('Test 3: getCurrentOrgId throws when no current org', () => {
+    useStore.getState().clearCurrentOrg();
+    expect(() => getCurrentOrgId()).toThrow('No current org');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 4 — getCurrentOrgIdOrNull
+  // ---------------------------------------------------------------------------
+  it('Test 4: getCurrentOrgIdOrNull returns null without throwing', () => {
+    useStore.getState().clearCurrentOrg();
+    expect(() => getCurrentOrgIdOrNull()).not.toThrow();
+    expect(getCurrentOrgIdOrNull()).toBeNull();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 5 — surfaceCheck (admin)
+  // ---------------------------------------------------------------------------
+  it('Test 5: surfaceCheck admin has members.invite; does not have nonexistent', () => {
+    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    expect(surfaceCheck('members.invite')).toBe(true);
+    expect(surfaceCheck('nonexistent.perm')).toBe(false);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 6 — surfaceCheck (staff)
+  // ---------------------------------------------------------------------------
+  it('Test 6: surfaceCheck staff: members.invite=false; patients.link=true', () => {
+    useStore.getState().setCurrentOrg(orgFixture, 'staff');
+    expect(surfaceCheck('members.invite')).toBe(false);
+    expect(surfaceCheck('patients.link')).toBe(true);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 7 — surfaceCheck (viewer)
+  // ---------------------------------------------------------------------------
+  it('Test 7: surfaceCheck viewer: patients.link=false; members.list=true', () => {
+    useStore.getState().setCurrentOrg(orgFixture, 'viewer');
+    expect(surfaceCheck('patients.link')).toBe(false);
+    expect(surfaceCheck('members.list')).toBe(true);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 8 — surfaceCheck (null role)
+  // ---------------------------------------------------------------------------
+  it('Test 8: surfaceCheck with null role always returns false', () => {
+    useStore.getState().clearCurrentOrg(); // ensures role is null
+    expect(surfaceCheck('members.list')).toBe(false);
+    expect(surfaceCheck('members.invite')).toBe(false);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 9 — withOrgPath (slug present)
+  // ---------------------------------------------------------------------------
+  it('Test 9a: withOrgPath with leading slash: /settings → /clinic/test-clinic/settings', () => {
+    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    expect(withOrgPath('/settings')).toBe('/clinic/test-clinic/settings');
+  });
+
+  it('Test 9b: withOrgPath without leading slash: settings → /clinic/test-clinic/settings', () => {
+    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    expect(withOrgPath('settings')).toBe('/clinic/test-clinic/settings');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 10 — withOrgPath (null — throws)
+  // ---------------------------------------------------------------------------
+  it('Test 10: withOrgPath throws when no current org', () => {
+    useStore.getState().clearCurrentOrg();
+    expect(() => withOrgPath('/settings')).toThrow();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 11 — overlayBrandingTokens
+  // ---------------------------------------------------------------------------
+  it('Test 11a: overlayBrandingTokens sets CSS custom properties on documentElement', () => {
+    overlayBrandingTokens({ primary_color: '#abc123', accent_color: '#def456' });
+    expect(document.documentElement.style.getPropertyValue('--color-primary')).toBe('#abc123');
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('#def456');
+  });
+
+  it('Test 11b: overlayBrandingTokens with null values does not throw and does not clear', () => {
+    // First set values
+    overlayBrandingTokens({ primary_color: '#abc123', accent_color: '#def456' });
+    // Now call with null — should be no-op
+    expect(() => overlayBrandingTokens({ primary_color: null, accent_color: null })).not.toThrow();
+    // Values should still be there (not cleared)
+    expect(document.documentElement.style.getPropertyValue('--color-primary')).toBe('#abc123');
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('#def456');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 12 — ROLE_PERMISSIONS readonly check
+  // ---------------------------------------------------------------------------
+  it('Test 12: _ROLE_PERMISSIONS_FOR_TEST admin set has expected permissions', () => {
+    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('members.invite')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('members.revoke')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('members.list')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('settings.edit')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('branding.edit')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('patients.link')).toBe(true);
+    // @ts-expect-error - ReadonlySet has no add method at type level
+    expect(() => (_ROLE_PERMISSIONS_FOR_TEST.admin as Set<string>).add('newperm')).not.toThrow();
+    // The add above would succeed at runtime (JS doesn't enforce readonly) — we verify at type level only
+  });
+});
