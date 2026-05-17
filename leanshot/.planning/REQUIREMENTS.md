@@ -119,7 +119,7 @@
 - [x] **ORG-04**: Realtime channels named with HMAC-derived org-scoped token; channel-subscribe rejects mismatched org_id — closes V13-2 realtime-channel-collision vector
 - [ ] **ORG-05**: Every org-scoped table gets a live cross-tenant impersonation proof test (extends Phase 5/6/19/22 project rule from `user_id` axis to `org_id` axis)
 - [ ] **ORG-06**: `src/lib/org.ts` org-context layer detects current org via path + member.org_id + provides surface-check helpers + overlays white-label theme tokens
-- [ ] **ORG-07**: Path-based clinic routing `/clinic/{slug}/...` (subdomain `acme.leanshot.app` deferred to v1.5)
+- [x] **ORG-07**: Path-based clinic routing `/clinic/{slug}/...` (subdomain `acme.leanshot.app` deferred to v1.5)
 - [ ] **ORG-08**: Stripe Billing for orgs uses SEPARATE `stripe_customer_id_org` keyed by `(user_id, customer_context)` — consumer customer email == clinic customer email = different Stripe customers (closes V13-2 Stripe-namespace vector)
 - [ ] **ORG-09**: Per-active-patient metered billing via Stripe Meter Events 2024 API; nightly cron aggregates usage
 - [ ] **ORG-10**: Patient invite flow: clinic admin invites email → magic link → patient onboards under clinic's org → patient's `profiles.primary_org_id` set + consent grant recorded
@@ -466,7 +466,7 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | ORG-04 | Phase 28 | Complete |
 | ORG-05 | Phase 28 | Pending |
 | ORG-06 | Phase 28 | Pending |
-| ORG-07 | Phase 28 | Pending |
+| ORG-07 | Phase 28 | Complete |
 | ORG-08 | Phase 29 | Pending |
 | ORG-09 | Phase 29 | Pending |
 | ORG-10 | Phase 29 | Pending |
