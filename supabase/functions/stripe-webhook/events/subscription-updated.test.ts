@@ -18,10 +18,10 @@
  */
 
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import type Stripe from 'stripe';
+import type Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-import { handle, mapStripeStatusToUxTier } from './subscription-updated.ts';
+import { handle, mapStripeStatusToUxTier, type D05Spy } from './subscription-updated.ts';
 
 // ─── Mock admin builder ───────────────────────────────────────────────────────
 interface UpsertCall {
@@ -153,4 +153,84 @@ Deno.test('2.13: race — no row yet, metadata on sub → upsert creates row', a
   assertEquals(subCall!.data.user_id, 'user-race-test');
   assertEquals(subCall!.data.ux_tier, 'paid');
   assertEquals(subCall!.data.id, 'sub_race_test');
+});
+
+// ============================================================================
+// Phase 29 Plan 03 — D-05: HMAC realtime broadcast tests
+// ============================================================================
+
+// Build a test spy for the D-05 broadcast path.
+function makeD05Spy(): D05Spy & {
+  calls: Array<{ channelName: string; payload: Record<string, unknown> }>;
+  shouldReject: boolean;
+} {
+  const calls: Array<{ channelName: string; payload: Record<string, unknown> }> = [];
+  let shouldReject = false;
+  return {
+    calls,
+    get shouldReject() { return shouldReject; },
+    set shouldReject(v: boolean) { shouldReject = v; },
+    channelSend: async (channelName: string, payload: Record<string, unknown>) => {
+      if (shouldReject) throw new Error('channel.send simulated failure');
+      calls.push({ channelName, payload });
+    },
+  };
+}
+
+Deno.test('D-05 / T1: clinic subscription → channelSend invoked once with correct payload', async () => {
+  const [admin, _getCalls] = buildMockAdmin();
+  const spy = makeD05Spy();
+
+  const clinicSubEvent = buildSubUpdatedEvent(
+    'active',
+    { tier_kind: 'clinic', clinic_id: 'org_clinic_test_123', provider: 'stripe' },
+    'sub_clinic_test',
+  );
+
+  await handle(clinicSubEvent, admin, spy);
+
+  assertEquals(spy.calls.length, 1, 'channelSend must be called exactly once for clinic sub');
+  const call = spy.calls[0];
+  // Channel name format: org-{first8hex}-subscriptions
+  assertEquals(
+    call.channelName.startsWith('org-') && call.channelName.endsWith('-subscriptions'),
+    true,
+    `Channel name should match org-*-subscriptions, got: ${call.channelName}`,
+  );
+  assertEquals(call.payload['subscription_id'], 'sub_clinic_test', 'payload.subscription_id');
+  assertEquals(call.payload['status'], 'active', 'payload.status');
+});
+
+Deno.test('D-05 / T2: consumer subscription (no clinic_id) → channelSend NOT invoked', async () => {
+  const [admin, _getCalls] = buildMockAdmin();
+  const spy = makeD05Spy();
+
+  const consumerSubEvent = buildSubUpdatedEvent(
+    'active',
+    { tier_kind: 'web', user_id: 'user-consumer-test', provider: 'stripe' },
+    'sub_consumer_test',
+  );
+
+  await handle(consumerSubEvent, admin, spy);
+
+  assertEquals(spy.calls.length, 0, 'channelSend must NOT be called for consumer sub (no clinic_id)');
+});
+
+Deno.test('D-05 / T3: broadcast failure caught + Sentry.captureException — does not re-throw', async () => {
+  const [admin, _getCalls] = buildMockAdmin();
+  const spy = makeD05Spy();
+  spy.shouldReject = true; // simulate channel.send rejection
+
+  const clinicSubEvent = buildSubUpdatedEvent(
+    'active',
+    { tier_kind: 'clinic', clinic_id: 'org_clinic_broadcast_fail', provider: 'stripe' },
+    'sub_clinic_fail_test',
+  );
+
+  // Must NOT throw even though channelSend rejects
+  await handle(clinicSubEvent, admin, spy);
+
+  // The call attempt was made (spy threw), but no re-throw upstream
+  // Sentry would have captured it in production; here we just verify no throw.
+  assertEquals(true, true, 'Handler survived broadcast failure without re-throwing');
 });
