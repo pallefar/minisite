@@ -59,3 +59,27 @@ export function captureException(
     tags: hint?.tags,
   });
 }
+
+/**
+ * Capture a message with optional context.
+ * Added for P29 D-04 billing variance alerts (level='warning').
+ * Also used by clinic-patient-invite for generateLink failure warnings.
+ */
+export function captureMessage(
+  message: string,
+  options?: {
+    level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug' | 'log';
+    extra?: Record<string, unknown>;
+    tags?: Record<string, string>;
+  },
+): void {
+  ensureInit();
+  const dsn = Deno.env.get('SENTRY_DSN');
+  if (!dsn) return; // no-op if DSN not configured
+
+  SentryNode.captureMessage(message, {
+    level: options?.level,
+    extra: options?.extra,
+    tags: options?.tags,
+  });
+}
