@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 29 Plan 02 complete — org_patient_invites + 3 SECDEFs + cross-tenant RLS proof (BLOCKER R1+R2 satisfied)
-last_updated: "2026-05-17T19:55:00Z"
-last_activity: 2026-05-17 -- Phase 29 Plan 02 (org_patient_invites + send/preview/accept SECDEFs + RLS test) SHIPPED
+stopped_at: Phase 29 Plan 06 — HUMAN-VERIFY checkpoint reached (Tasks 1-3 complete; Task 4 awaiting operator realtime 30s SLA verification)
+last_updated: "2026-05-17T22:00:00Z"
+last_activity: 2026-05-17 -- Phase 29 Plan 06 (ClinicBillingCard + PatientInviteForm + ConsentAcceptScreen + e2e) autonomous tasks shipped; HUMAN-VERIFY pending
 progress:
   total_phases: 27
   completed_phases: 2
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 ## Current Position
 
-Phase: 28 — IN PROGRESS
-Plan: 5 of 8 (Plans 00, 01, 02, 03 complete)
-Status: Ready to execute
+Phase: 29 — IN PROGRESS (HUMAN-VERIFY checkpoint)
+Plan: 6 of 8 (Plans 00, 01, 02, 03, 04, 05 complete; Plan 06 Tasks 1-3 done, Task 4 HUMAN-VERIFY pending)
+Status: Awaiting human verification (realtime 30s SLA test — ORG-08 SC#4)
 Last activity: 2026-05-17
 
 ### v1.3 milestone open (2026-05-17)
