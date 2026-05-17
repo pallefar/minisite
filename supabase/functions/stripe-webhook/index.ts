@@ -16,12 +16,33 @@
  *  - `Cache-Control: private, no-store` on every response (T-14-03-I2).
  *  - SUPABASE_SERVICE_ROLE_KEY read once at cold-start into `admin` (T-14-03-E1).
  *    Never interpolated into responses or thrown errors.
+ *
+ * Phase 24 Plan 04:
+ *  - Server-side PostHog capture for payment_completed + refund_issued (TAXO-02 / D-13).
+ *  - captureServer uses Supabase uid as distinct_id (from stripe metadata.user_id or supabase_uid).
+ *  - stripe_session_id is SHA-256 hashed before sending to PostHog (T-24-05b).
+ *  - shutdownPostHog() is called in the outer finally block to flush events before Edge return.
  */
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 
+import { captureServer, shutdownPostHog } from '../_shared/posthog-server.ts';
+
 import { BASE_RESPONSE_HEADERS } from './cors.ts';
+
+// ─── Analytics helpers ────────────────────────────────────────────────────────
+/**
+ * SHA-256 hex of the input string.
+ * Used to hash stripe_session_id before sending to PostHog (T-24-05b — PII safety).
+ * NEVER send raw Stripe session IDs or customer IDs to PostHog.
+ */
+async function hashHex(input: string): Promise<string> {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(bytes))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 // ─── Module-level constants (cold-start, read once — T-14-03-E1) ─────────────
 // STRIPE_WEBHOOK_SECRET and STRIPE_SECRET_KEY are read at request-time (lazy getters)
@@ -105,9 +126,30 @@ async function dispatch(
   const { handle: handleAccountUpdated } = await import('./events/account-updated.ts');
 
   switch (event.type) {
-    case 'checkout.session.completed':
+    case 'checkout.session.completed': {
       await handleCheckoutCompleted(event, admin);
+      // Phase 24 D-13: capture payment_completed server-side (adblock-immune).
+      // stripe_session_id is SHA-256 hashed before sending to PostHog (T-24-05b).
+      const session = event.data.object as Stripe.Checkout.Session;
+      const meta = (
+        (session.subscription_data?.metadata ?? session.metadata) as Record<string, string> | null
+      ) ?? {};
+      const userId = meta.user_id ?? meta.supabase_uid ?? null;
+      if (userId) {
+        captureServer({
+          userId,
+          event: 'payment_completed',
+          properties: {
+            plan: meta.tier_kind === 'clinic' ? 'clinic' : (meta.plan ?? 'monthly'),
+            price_cents: session.amount_total ?? 0,
+            stripe_session_id_hash: await hashHex(session.id),
+          },
+        });
+      } else {
+        console.warn('[stripe-webhook] payment_completed: no user_id/supabase_uid in session metadata — skipping PostHog capture');
+      }
       break;
+    }
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
       await handleSubscriptionUpdated(event, admin);
@@ -128,6 +170,27 @@ async function dispatch(
       // Phase 19 Plan 19-04 (AFF-03) — affiliate.stripe_payouts_enabled mirror.
       await handleAccountUpdated(event, admin);
       break;
+    case 'charge.refunded': {
+      // Phase 24 D-13: capture refund_issued server-side.
+      const charge = event.data.object as Stripe.Charge;
+      const refundUserId = (charge.metadata as Record<string, string>)?.user_id
+        ?? (charge.metadata as Record<string, string>)?.supabase_uid
+        ?? null;
+      if (refundUserId) {
+        captureServer({
+          userId: refundUserId,
+          event: 'refund_issued',
+          properties: {
+            reason: charge.failure_message ?? (event.data.object as Record<string, unknown>).reason as string ?? 'unspecified',
+            // TODO[24-04]: enrich days_since_signup — Plan 24-07 sync can patch with DB lookup.
+            days_since_signup: 0,
+          },
+        });
+      } else {
+        console.warn('[stripe-webhook] refund_issued: no user_id/supabase_uid in charge metadata — skipping PostHog capture');
+      }
+      break;
+    }
     default:
       // Unsubscribed event type — log + no-op + 200 (safe forward-compatibility).
       console.log('[stripe-webhook] unhandled event type', event.type);
@@ -155,78 +218,89 @@ export async function handleRequest(
     return jsonResponse(400, { error: 'missing-signature' });
   }
 
-  // RAW BODY — DO NOT JSON.parse before verify (Pitfall 3 invariant).
-  // This MUST be the first body operation. Any prior request.json() call would
-  // consume the body and make signature verification impossible.
-  const body = await request.text();
-
-  // Signature verification via Subtle Crypto (Pitfall 2 — Deno native crypto).
-  let event: Stripe.Event;
+  // Phase 24 D-13 / RESEARCH PITFALL 1:
+  // Wrap all event processing in try/finally so shutdownPostHog() is ALWAYS called
+  // before the Response is returned. The Deno isolate shuts down immediately after
+  // the Response; without this flush, in-flight posthog-node batch requests are dropped.
   try {
-    event = await getStripe().webhooks.constructEventAsync(
-      body,
-      signature,
-      getWebhookSecret(),
-      undefined,
-      cryptoProvider,
-    );
-  } catch (err) {
-    console.error(
-      '[stripe-webhook] bad signature',
-      err instanceof Error ? err.message : 'unknown',
-    );
-    return jsonResponse(400, { error: 'bad-signature' });
-  }
+    // RAW BODY — DO NOT JSON.parse before verify (Pitfall 3 invariant).
+    // This MUST be the first body operation. Any prior request.json() call would
+    // consume the body and make signature verification impossible.
+    const body = await request.text();
 
-  // Idempotency insert (Pattern B — event_id PRIMARY KEY).
-  // In test mode, use the injected mock result.
-  let insertErr: { code: string; message: string } | null = null;
-
-  if (testCtx?.insertResult !== undefined) {
-    insertErr = testCtx.insertResult.error;
-  } else {
-    const { error } = await admin.from('subscription_events').insert({
-      event_id: event.id,
-      event_type: event.type,
-      payload: event,
-    });
-    insertErr = error as { code: string; message: string } | null;
-  }
-
-  if (insertErr) {
-    if (insertErr.code === '23505') {
-      // Duplicate event.id — already processed. Return 200 so Stripe stops retrying.
-      return jsonResponse(200, { duplicate: true });
+    // Signature verification via Subtle Crypto (Pitfall 2 — Deno native crypto).
+    let event: Stripe.Event;
+    try {
+      event = await getStripe().webhooks.constructEventAsync(
+        body,
+        signature,
+        getWebhookSecret(),
+        undefined,
+        cryptoProvider,
+      );
+    } catch (err) {
+      console.error(
+        '[stripe-webhook] bad signature',
+        err instanceof Error ? err.message : 'unknown',
+      );
+      return jsonResponse(400, { error: 'bad-signature' });
     }
-    // Other DB error — 500 triggers Stripe's 24h retry curve.
-    console.error('[stripe-webhook] subscription_events insert error', insertErr.message);
-    return jsonResponse(500, { error: 'internal' });
-  }
 
-  // Dispatch to per-event handler.
-  try {
-    await dispatch(event, testCtx);
-  } catch (err) {
-    // PII safety: log message only, NEVER event.data.object (T-14-03-I1).
-    console.error(
-      '[stripe-webhook] handler error',
-      err instanceof Error ? err.message : 'unknown',
-    );
-    return jsonResponse(500, { error: 'internal' });
-  }
+    // Idempotency insert (Pattern B — event_id PRIMARY KEY).
+    // In test mode, use the injected mock result.
+    let insertErr: { code: string; message: string } | null = null;
 
-  // Best-effort: mark event as processed (failure is logged, doesn't change response).
-  if (!testCtx) {
-    const { error: updateErr } = await admin
-      .from('subscription_events')
-      .update({ processed_at: new Date().toISOString() })
-      .eq('event_id', event.id);
-    if (updateErr) {
-      console.error('[stripe-webhook] processed_at update error', updateErr.message);
+    if (testCtx?.insertResult !== undefined) {
+      insertErr = testCtx.insertResult.error;
+    } else {
+      const { error } = await admin.from('subscription_events').insert({
+        event_id: event.id,
+        event_type: event.type,
+        payload: event,
+      });
+      insertErr = error as { code: string; message: string } | null;
     }
-  }
 
-  return jsonResponse(200, { ok: true });
+    if (insertErr) {
+      if (insertErr.code === '23505') {
+        // Duplicate event.id — already processed. Return 200 so Stripe stops retrying.
+        return jsonResponse(200, { duplicate: true });
+      }
+      // Other DB error — 500 triggers Stripe's 24h retry curve.
+      console.error('[stripe-webhook] subscription_events insert error', insertErr.message);
+      return jsonResponse(500, { error: 'internal' });
+    }
+
+    // Dispatch to per-event handler.
+    try {
+      await dispatch(event, testCtx);
+    } catch (err) {
+      // PII safety: log message only, NEVER event.data.object (T-14-03-I1).
+      console.error(
+        '[stripe-webhook] handler error',
+        err instanceof Error ? err.message : 'unknown',
+      );
+      return jsonResponse(500, { error: 'internal' });
+    }
+
+    // Best-effort: mark event as processed (failure is logged, doesn't change response).
+    if (!testCtx) {
+      const { error: updateErr } = await admin
+        .from('subscription_events')
+        .update({ processed_at: new Date().toISOString() })
+        .eq('event_id', event.id);
+      if (updateErr) {
+        console.error('[stripe-webhook] processed_at update error', updateErr.message);
+      }
+    }
+
+    return jsonResponse(200, { ok: true });
+  } finally {
+    // Phase 24 D-13 / RESEARCH PITFALL 1: flush posthog-node batch queue before the
+    // Deno isolate is torn down. This runs even on error paths so events from
+    // partially-processed requests are still captured.
+    await shutdownPostHog();
+  }
 }
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
