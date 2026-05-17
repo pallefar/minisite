@@ -14,6 +14,11 @@ import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCo
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
+// Phase 24 Plan 04 D-13: identify + alias bridge to merge anon events under Supabase uid.
+// aliasAnonymousToUid is idempotent (localStorage marker); posthog.reset() on sign-out
+// ensures the next anon session is truly anonymous. Both imports are lightweight
+// (posthog-js itself is already deferred via deferAnalyticsInit in main.tsx).
+import { aliasAnonymousToUid, identify } from '@/lib/analytics/identify';
 // Phase 16 Plan 16-02 Task 5 — Universal Link / App Link dispatcher install
 // (MOBILE-06 client half). Idempotency guard inside installDeepLinkHandler
 // protects against StrictMode double-mount.
@@ -712,6 +717,25 @@ export function App() {
             // Phase 22 Plan 22-12 — D-08 per-user feature-flag overrides
             // (same rationale as INITIAL_SESSION above).
             void loadOverrides(session.user.id);
+            // Phase 24 Plan 04 D-13: merge pre-auth anonymous PostHog events
+            // under the Supabase uid. identify() maps the current session;
+            // aliasAnonymousToUid() fires posthog.alias() once per uid per device
+            // (idempotent — localStorage marker prevents duplicate alias calls).
+            // Best-effort: dynamic-import posthog-js to read the current anon
+            // distinct_id without adding posthog to App.tsx's static graph.
+            void import('posthog-js').then(({ default: ph }) => {
+              try {
+                const anonId = ph.get_distinct_id?.() ?? null;
+                identify(session.user.id);
+                if (anonId && anonId !== session.user.id) {
+                  aliasAnonymousToUid(anonId, session.user.id);
+                }
+              } catch {
+                // posthog-js may not be initialized yet (analytics disabled or
+                // key missing). Identify bridge is best-effort; Supabase session
+                // is already set above.
+              }
+            });
           }
           break;
         }
@@ -737,6 +761,13 @@ export function App() {
           // defaults until their own loadOverrides() resolves. Mirrors the
           // namespaced-localStorage wipe in spirit.
           clearOverrideCache();
+          // Phase 24 Plan 04 D-13: reset PostHog identity so the next anon
+          // session is truly anonymous (distinct_id returns to a fresh anon id).
+          // posthog.reset() must run AFTER sign-out so the current uid's event
+          // queue is flushed before the identity is cleared.
+          void import('posthog-js').then(({ default: ph }) => {
+            try { ph.reset(); } catch { /* ignore — posthog may not be initialized */ }
+          });
           // Phase 5 G2 (05-UAT.md gap #2 missing item #2): wipe the prior
           // user's namespaced localStorage residue + revert the adapter to
           // the universal key so any subsequent anon activity lands there.

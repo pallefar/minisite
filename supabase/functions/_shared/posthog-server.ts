@@ -14,9 +14,6 @@
  * Vendor-gated health-check pattern (reference_vendor_gated_send_health_check):
  * If POSTHOG_PROJECT_KEY is not set, captureServer is a no-op with a one-time warning.
  * This allows Edge Functions to deploy before the secret is configured without crashing.
- *
- * NOTE: This file is created by Plan 24-04 and copied/re-created by Plan 24-05
- * to avoid blocking on parallel wave execution. On merge, the file is identical.
  */
 
 import { PostHog } from 'npm:posthog-node@5.10.4';

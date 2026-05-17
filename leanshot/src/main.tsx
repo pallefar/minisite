@@ -132,6 +132,13 @@ void hydrate().then(() => {
   // 3) Analytics AFTER first render, scheduled at idle so the posthog-js
   //    bundle never blocks the cold-load critical path. `initAnalytics()`
   //    handles its own dynamic import + queue draining internally.
+  //
+  //    Phase 24 Plan 04 D-13 — PostHog identify + alias bridge:
+  //    identify(supabase_uid) + aliasAnonymousToUid(anon_id, uid) fire from
+  //    App.tsx's SIGNED_IN branch (which already has the auth state subscription).
+  //    posthog.reset() fires from App.tsx's SIGNED_OUT branch.
+  //    Wired there rather than here to avoid a second onAuthStateChange subscription
+  //    (extra subscriptions cause duplicate sync work per plan 24-04 guidance).
   deferAnalyticsInit(initAnalytics);
 
   // 4) Phase 6 D-12 — dynamic-import @/lib/sync + @/lib/auth-migration after
