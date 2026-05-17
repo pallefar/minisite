@@ -375,3 +375,6 @@ and to satisfy the `audit-deferred-tests.mjs` anchor-check requirement.
 | EG-24 | `e2e/rls-*.test.ts` (all ~20 files) | `SHOULD_RUN` / `describeIfLive` | 5–22 |
 | EG-25 | `tests/rls/*.test.ts` (all 4 files) | `SHOULD_RUN_LIVE_RLS` / `describeIfLive` | 15–19 |
 | EG-26 | `src/test/audit-trigger.test.ts` | `SHOULD_RUN` / `describeIfLive` | 22 |
+| EG-27 | `src/lib/admin/__tests__/audit-logs-rls.test.ts` | `SHOULD_RUN` / `describeIfLive` | 24 |
+| EG-28 | `src/lib/admin/__tests__/audit-trigger.test.ts` (T5 GUC suppress) | `SHOULD_RUN` / `describeIfLive`; T5 placeholder until Plan 24-05 ships `_test_suppress_helper` RPC | 24-05 |
+| EG-29 | `src/lib/admin/__tests__/backup-codes.test.ts` | `SHOULD_RUN` / `describeIfLive`; [PLAN-24-05-SWAP] consume stub → real RPC at Plan 24-05 ship | 24-05 |
