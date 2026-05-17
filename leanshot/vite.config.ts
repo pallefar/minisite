@@ -231,11 +231,13 @@ export default defineConfig(({ mode }) => {
       // runner exercises in CI (`supabase/functions/tests/ai-chat-refusal.test.ts`).
       // Phase 12 D-10/D-11 — extend to include tests/**/*.test.ts for the CSP snapshot test (see leanshot/tests/csp/csp-snapshot.test.ts).
       // Phase 14 D-11 — extend to include scripts/**/*.test.ts for the stripe-bootstrap smoke test.
+      // Phase 24 Plan 24-02 — extend to include eslint-rules/**/*.test.js for the additive-only-events rule test.
       include: [
         'src/**/*.test.{ts,tsx}',
         'tests/**/*.test.ts',
         'scripts/**/*.test.ts',
         '../shared/**/*.test.ts',
+        'eslint-rules/**/*.test.{js,ts}',
       ],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
       // Avoid React 19 StrictMode double-invoke flake (RESEARCH.md Pitfall 6)
