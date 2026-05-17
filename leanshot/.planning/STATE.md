@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 28 Plan 00 complete — Wave 1 (28-01 + 28-02) unblocked
-last_updated: "2026-05-17T16:57:00Z"
-last_activity: 2026-05-17 -- Phase 28 Plan 00 RECONCILE executed (orgs → organizations rename, 105 rows preserved)
+stopped_at: Completed 28-04-PLAN.md (Tasks 2-4 resumed from checkpoint)
+last_updated: "2026-05-17T15:59:57.843Z"
+last_activity: 2026-05-17
 progress:
   total_phases: 27
   completed_phases: 1
   total_plans: 40
-  completed_plans: 8
+  completed_plans: 12
   percent: 4
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 ## Current Position
 
 Phase: 28 — IN PROGRESS
-Plan: 1 of 8 (Plan 00 complete)
-Status: Wave 1 unblocked (28-01 + 28-02 ready to execute)
-Last activity: 2026-05-17 -- Phase 28 Plan 00 RECONCILE executed
+Plan: 2 of 8 (Plan 00 complete)
+Status: Ready to execute
+Last activity: 2026-05-17
 
 ### v1.3 milestone open (2026-05-17)
 
@@ -54,7 +54,7 @@ Last activity: 2026-05-17 -- Phase 28 Plan 00 RECONCILE executed
 
 Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
 
-Progress: [███░░░░░░░] 25%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -101,6 +101,7 @@ Progress: [███░░░░░░░] 25%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 28 P04 | 25 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,7 @@ Recent decisions affecting current work:
 - v1.3 hard constraints: HIPAA BAA chain (6 vendors) + Stripe never signs BAA (PHI lint) + dual Anthropic credentials + activation event locks PAYWALL/REVIEW/RECOMMEND + page-builder canonical-link discipline + App/Play native review-prompt unconditional + i18n via `?lang=es` query (not `/es/` path)
 - v1.3 bundle: 50 kB gz index hard ceiling; per-chunk ceilings declared in P24 — admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB
 - v1.3 vendor cost when HIPAA chain activates: +$1,864-4,364/mo (Supabase Team+addon $924, Vercel Pro+addon $350, Sentry Business $80, Anthropic Enterprise $500-2K, PostHog Boost optional $0-2K, AWS SES ~$10)
+- [Phase ?]: P28-04: use current_setting for JWT claims in realtime_topic_authorized (addendum A4)
 
 ### Pending Todos
 
@@ -164,9 +166,9 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-17T14:11:37.803Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-clinic-organizations-schema-rls-hardening/28-CONTEXT.md
+Last session: 2026-05-17T15:59:57.837Z
+Stopped at: Completed 28-04-PLAN.md (Tasks 2-4 resumed from checkpoint)
+Resume file: None
 
 ## Phase 25 plan-phase blocker (2026-05-17)
 

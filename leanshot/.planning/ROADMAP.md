@@ -148,11 +148,11 @@ Plans:
   4. Realtime channels are subscribed with HMAC-derived `org-{hmac}-{table}` names; subscribing to a channel with a mismatched org_id is rejected by the channel auth callback
   5. `src/lib/org.ts` resolves current org via path `/clinic/{slug}` → member.org_id → injection into every supabase-js client query
 **Plans**: 8 plans (4 waves)
-- [ ] 28-00-PLAN.md — RECONCILE Phase 9 public.orgs → organizations (ALTER + 3 cols + 4 callsite patches) — HUMAN-CHECKPOINT [Wave 0]
-- [ ] 28-01-PLAN.md — 7 net-new org_* tables + RLS + 8 cross-tenant *-rls.test.ts + clinic-org-invite Edge Fn + cron [Wave 1]
-- [ ] 28-02-PLAN.md — withOrgScope 4-layer defense (brand types + ESLint rule + Proxy runtime + Sentry fatal) [Wave 1]
+- [x] 28-00-PLAN.md — RECONCILE Phase 9 public.orgs → organizations (ALTER + 3 cols + 4 callsite patches) — HUMAN-CHECKPOINT [Wave 0]
+- [x] 28-01-PLAN.md — 7 net-new org_* tables + RLS + 8 cross-tenant *-rls.test.ts + clinic-org-invite Edge Fn + cron [Wave 1]
+- [x] 28-02-PLAN.md — withOrgScope 4-layer defense (brand types + ESLint rule + Proxy runtime + Sentry fatal) [Wave 1]
 - [ ] 28-03-PLAN.md — JWT Custom Access Token Hook + WorkspaceSwitcher propagation UX — HUMAN-CHECKPOINT [Wave 2]
-- [ ] 28-04-PLAN.md — HMAC realtime: Vault secret + SECDEF helper + RLS policy + browser channelNameFor — HUMAN-CHECKPOINT [Wave 2]
+- [x] 28-04-PLAN.md — HMAC realtime: Vault secret + SECDEF helper + RLS policy + browser channelNameFor — HUMAN-CHECKPOINT [Wave 2]
 - [ ] 28-05-PLAN.md — src/lib/org.ts org-context layer (6 D-03 exports + ROLE_PERMISSIONS + USER_UPDATED invalidation) [Wave 2]
 - [ ] 28-06-PLAN.md — RouteOrgGuard + resolve_clinic_slug anti-enumeration RPC [Wave 2]
 - [ ] 28-07-PLAN.md — 28-EXTENSION-CONTRACT.md + admin manifest preview + plan-checker BLOCKER rules [Wave 3]
@@ -406,7 +406,7 @@ Plans:
 | 25. HIPAA Audit Hardening + BAA Chain | 0/? | Not started | — |
 | 26. Multi-Tier Affiliate | 0/? | Not started | — |
 | 27. Modular Admin Shell Extensions | 0/? | Not started | — |
-| 28. Clinic Organizations — Schema + RLS Hardening | 0/? | Not started | — |
+| 28. Clinic Organizations — Schema + RLS Hardening | 4/8 | In Progress|  |
 | 29. Org Subscriptions + Per-Patient Metered Billing | 0/? | Not started | — |
 | 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/? | Not started | — |
 | 31. White-Label + Org Roles + Clinic Onboarding Builder | 0/? | Not started | — |
