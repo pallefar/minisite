@@ -10,10 +10,10 @@
  * This allows us to unit-test the callback without spinning up the full app.
  */
 
+import type { AuthChangeEvent } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '@/lib/store';
 import { wireAuthInvalidation } from '@/lib/wire-auth-invalidation';
-import type { AuthChangeEvent } from '@supabase/supabase-js';
 
 // Mock supabase to capture the onAuthStateChange callback
 type AuthCallback = (event: AuthChangeEvent) => void;

@@ -5,10 +5,8 @@
  * Tests are pure unit tests — no network calls, no DB.
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import type { OrgContext } from '@/types/org';
-import { useStore } from '@/lib/store';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   useCurrentOrg,
   getCurrentOrgId,
@@ -18,6 +16,8 @@ import {
   overlayBrandingTokens,
   _ROLE_PERMISSIONS_FOR_TEST,
 } from '@/lib/org';
+import { useStore } from '@/lib/store';
+import type { OrgContext } from '@/types/org';
 
 const orgFixture: OrgContext = {
   id: 'org-test-uuid-abc',

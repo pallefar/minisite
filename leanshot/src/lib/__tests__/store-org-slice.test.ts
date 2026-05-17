@@ -7,8 +7,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { OrgContext, OrgRole } from '@/types/org';
 import { useStore } from '@/lib/store';
+import type { OrgContext, OrgRole } from '@/types/org';
 
 const orgFixture: OrgContext = {
   id: 'org-uuid-1234',

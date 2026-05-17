@@ -12,7 +12,6 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
 // Phase 28 Plan 28-05 ORG-06: org-context slice types (hoisted to break
 // potential circular import between store.ts ↔ org.ts).
-import type { OrgContext, OrgRole } from '@/types/org';
 // Phase 6 D-12 CI hardening: @/lib/auth + @/lib/sync are NO LONGER eager
 // imports. Both transitively pull @supabase/supabase-js into the entry
 // chunk's static graph (store.ts is reachable from main.tsx → hydrate()).
@@ -43,6 +42,7 @@ import type {
   Workout,
   Measurement,
 } from '@/types';
+import type { OrgContext, OrgRole } from '@/types/org';
 import {
   createNamespacedStorage,
   initialState,

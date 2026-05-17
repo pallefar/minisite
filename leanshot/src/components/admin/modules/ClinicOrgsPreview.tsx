@@ -15,7 +15,6 @@
  * `bg-surface` is not a project Tailwind token; use the CSS custom property form.
  */
 import { useEffect, useState } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 export default function ClinicOrgsPreview() {

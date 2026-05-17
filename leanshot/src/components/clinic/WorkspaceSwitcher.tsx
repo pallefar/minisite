@@ -119,7 +119,7 @@ export function useWorkspaceJwtPropagation(
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [targetOrgId, retryKey]);
 
   const retry = useCallback(() => {
