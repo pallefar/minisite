@@ -31,6 +31,7 @@ import {
   CreditCard as CreditCardIcon,
   Settings as SettingsIcon,
   Shield as ShieldIcon,
+  Building2 as Building2Icon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -187,6 +188,18 @@ export const ADMIN_MODULES = [
     lazy: () => import('@/components/admin/AuditLogModule'),
     flagKey: 'admin.audit_log.enabled',
     minRole: 'superadmin' as AdminRole,
+  },
+  // Phase 28 Plan 07 — clinic-orgs preview module (full Members & Invites UI in P31).
+  // Preview: org count + member count rollup via browser anon-client (RLS-gated).
+  // See .planning/phases/28-clinic-organizations-schema-rls-hardening/28-EXTENSION-CONTRACT.md
+  {
+    key: 'clinic-orgs',
+    label: 'Clinic Orgs',
+    route: 'clinic-orgs',
+    icon: Building2Icon,
+    lazy: () => import('@/components/admin/modules/ClinicOrgsPreview'),
+    flagKey: 'admin.clinic_orgs.enabled',
+    minRole: 'admin' as AdminRole,
   },
 ] as const satisfies readonly AdminModule[];
 
