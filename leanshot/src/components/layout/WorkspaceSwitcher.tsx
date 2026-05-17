@@ -32,12 +32,12 @@ interface MembershipJoined {
   id: string;
   org_id: string;
   role_id: string;
-  orgs: {
+  organizations: {
     id: string;
     slug: string;
     name: string;
     logo_storage_path: string | null;
-    owner_user_id: string;
+    created_by: string;
   } | null;
   roles: { name: string } | null;
 }
@@ -113,10 +113,10 @@ function partitionContexts(
   const mem: ContextRow[] = [];
   const ws: ContextRow[] = [];
   for (const m of memberships) {
-    const org = m.orgs;
+    const org = m.organizations;
     if (!org) continue;
     const roleName = m.roles?.name ?? '';
-    const isOperator = OPERATOR_ROLE_NAMES.has(roleName) || org.owner_user_id === userId;
+    const isOperator = OPERATOR_ROLE_NAMES.has(roleName) || org.created_by === userId;
     const row: ContextRow = {
       kind: isOperator ? 'workspaces' : 'memberships',
       id: m.id,
@@ -212,7 +212,7 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
       const result = (await supabase
         .from('memberships')
         .select(
-          'id, role_id, org_id, orgs(id, slug, name, logo_storage_path, owner_user_id), roles(name)',
+          'id, role_id, org_id, organizations(id, slug, name, logo_storage_path, created_by), roles(name)',
         )
         .eq('user_id', uid)
         .is('revoked_at', null)) as { data: MembershipJoined[] | null; error: unknown };

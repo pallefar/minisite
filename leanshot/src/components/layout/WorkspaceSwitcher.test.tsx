@@ -42,12 +42,12 @@ interface MembershipRow {
   id: string;
   org_id: string;
   role_id: string;
-  orgs: {
+  organizations: {
     id: string;
     slug: string;
     name: string;
     logo_storage_path: string | null;
-    owner_user_id: string;
+    created_by: string;
   };
   roles: { name: string } | null;
 }
@@ -157,12 +157,12 @@ describe('WorkspaceSwitcher — Personal + 1 workspace (Test 3)', () => {
         org_id: 'org-1',
         role_id: 'r-1',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-1',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -190,12 +190,12 @@ describe('WorkspaceSwitcher — Personal + 1 membership + 1 workspace (Test 4)',
         org_id: 'org-1',
         role_id: 'r-1',
         roles: { name: 'View-only' },
-        orgs: {
+        organizations: {
           id: 'org-1',
           slug: 'wellness',
           name: 'Wellness Co',
           logo_storage_path: null,
-          owner_user_id: 'other-user',
+          created_by: 'other-user',
         },
       },
       {
@@ -203,12 +203,12 @@ describe('WorkspaceSwitcher — Personal + 1 membership + 1 workspace (Test 4)',
         org_id: 'org-2',
         role_id: 'r-2',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-2',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -237,12 +237,12 @@ describe('WorkspaceSwitcher — active context indicator (Tests 5, 6)', () => {
         org_id: 'org-2',
         role_id: 'r-2',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-2',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -269,12 +269,12 @@ describe('WorkspaceSwitcher — active context indicator (Tests 5, 6)', () => {
         org_id: 'org-2',
         role_id: 'r-2',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-2',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -301,12 +301,12 @@ describe('WorkspaceSwitcher — row click routing (Tests 7-10)', () => {
         org_id: 'org-1',
         role_id: 'r-1',
         roles: { name: 'View-only' },
-        orgs: {
+        organizations: {
           id: 'org-1',
           slug: 'wellness',
           name: 'Wellness Co',
           logo_storage_path: null,
-          owner_user_id: 'other-user',
+          created_by: 'other-user',
         },
       },
       {
@@ -314,12 +314,12 @@ describe('WorkspaceSwitcher — row click routing (Tests 7-10)', () => {
         org_id: 'org-2',
         role_id: 'r-2',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-2',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -403,12 +403,12 @@ describe('WorkspaceSwitcher — keyboard nav (Test 11)', () => {
         org_id: 'org-2',
         role_id: 'r-2',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-2',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -434,12 +434,12 @@ describe('WorkspaceSwitcher — ClinicContextBar integration (Test 14)', () => {
         org_id: 'org-1',
         role_id: 'r-1',
         roles: { name: 'Owner' },
-        orgs: {
+        organizations: {
           id: 'org-1',
           slug: 'acme',
           name: 'Acme Clinic',
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
         },
       },
     ]);
@@ -453,7 +453,7 @@ describe('WorkspaceSwitcher — ClinicContextBar integration (Test 14)', () => {
           description: null,
           website_url: null,
           logo_storage_path: null,
-          owner_user_id: 'u-1',
+          created_by: 'u-1',
           created_at: '2026-01-01T00:00:00Z',
         }}
       />,
@@ -482,12 +482,12 @@ describe('WorkspaceSwitcher — Realtime cross-context update (Test 16)', () => 
                 org_id: 'org-new',
                 role_id: 'r-new',
                 roles: { name: 'View-only' },
-                orgs: {
+                organizations: {
                   id: 'org-new',
                   slug: 'new-org',
                   name: 'New Org',
                   logo_storage_path: null,
-                  owner_user_id: 'other-user',
+                  created_by: 'other-user',
                 },
               },
             ];

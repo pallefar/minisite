@@ -34,7 +34,7 @@ import {
   type Org,
 } from '@/types/clinic';
 
-export type MembershipWithOrg = Membership & { orgs: Pick<Org, 'id' | 'name'> };
+export type MembershipWithOrg = Membership & { organizations: Pick<Org, 'id' | 'name'> };
 
 export interface EditConsentScopeModalProps {
   membership: MembershipWithOrg;
@@ -74,7 +74,7 @@ export function EditConsentScopeModal({
     setError(null);
   }, [membership.id, membership.consent_scope]);
 
-  const orgName = membership.orgs.name;
+  const orgName = membership.organizations.name;
 
   const toggle = (key: (typeof DATA_TYPE_KEYS)[number]) => {
     setScope((prev) => ({ ...prev, [key]: !prev[key] }));

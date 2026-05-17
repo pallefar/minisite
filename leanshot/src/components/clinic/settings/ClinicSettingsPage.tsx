@@ -105,9 +105,9 @@ export function ClinicSettingsPage() {
     setOrgLoading(true);
     setNotFound(false);
     const { data, error } = await supabase
-      .from('orgs')
+      .from('organizations')
       .select(
-        'id, slug, name, description, website_url, logo_storage_path, owner_user_id, created_at',
+        'id, slug, name, description, website_url, logo_storage_path, created_by, created_at',
       )
       .eq('slug', slug)
       .limit(1);

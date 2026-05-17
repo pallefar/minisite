@@ -83,10 +83,10 @@ const ROW_A = {
   accepted_at: new Date(Date.now() - 86400000 * 3).toISOString(),
   revoked_at: null,
   last_scope_changed_at: null,
-  orgs: { id: 'o-acme', name: 'Acme Clinic', logo_storage_path: null },
+  organizations: { id: 'o-acme', name: 'Acme Clinic', logo_storage_path: null },
   roles: { name: 'Coach' },
 } satisfies Membership & {
-  orgs: { id: string; name: string; logo_storage_path: string | null };
+  organizations: { id: string; name: string; logo_storage_path: string | null };
   roles: { name: string };
 };
 
@@ -94,7 +94,7 @@ const ROW_B = {
   ...ROW_A,
   id: 'm-beta',
   org_id: 'o-beta',
-  orgs: { id: 'o-beta', name: 'Beta Wellness', logo_storage_path: null },
+  organizations: { id: 'o-beta', name: 'Beta Wellness', logo_storage_path: null },
   consent_scope: mkScope(['injections']),
   roles: { name: 'View-only' },
 };

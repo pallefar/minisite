@@ -138,7 +138,7 @@ export interface Org {
   description: string | null;
   website_url: string | null;
   logo_storage_path: string | null;
-  owner_user_id: string;
+  created_by: string;
   created_at: string;
 }
 

@@ -44,7 +44,7 @@ const SAMPLE_ORG: Org = {
   description: null,
   website_url: null,
   logo_storage_path: null,
-  owner_user_id: 'user-1',
+  created_by: 'user-1',
   created_at: '2026-01-01T00:00:00Z',
 };
 

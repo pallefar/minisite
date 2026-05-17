@@ -48,8 +48,8 @@ function mkMembership(scope: Partial<ConsentScope> | Record<string, unknown>): M
     accepted_at: new Date(Date.now() - 86400000).toISOString(),
     revoked_at: null,
     last_scope_changed_at: null,
-    orgs: { id: 'o-1', name: 'Acme Clinic' },
-  } satisfies Membership & { orgs: { id: string; name: string } };
+    organizations: { id: 'o-1', name: 'Acme Clinic' },
+  } satisfies Membership & { organizations: { id: string; name: string } };
 }
 
 beforeEach(() => {

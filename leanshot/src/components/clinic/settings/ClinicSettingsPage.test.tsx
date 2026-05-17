@@ -83,7 +83,7 @@ const ORG_ROW = {
   description: null,
   website_url: null,
   logo_storage_path: null,
-  owner_user_id: 'u-1',
+  created_by: 'u-1',
   created_at: '2026-01-01T00:00:00Z',
 };
 
@@ -95,7 +95,7 @@ describe('ClinicSettingsPage', () => {
   beforeEach(() => {
     rpcMock.mockReset();
     fromResults.clear();
-    fromResults.set('orgs', { data: [ORG_ROW], error: null });
+    fromResults.set('organizations', { data: [ORG_ROW], error: null });
     fromResults.set('roles', { data: [], error: null });
     fromResults.set('role_permissions', { data: [], error: null });
     fromResults.set('memberships', { data: [], error: null });
@@ -153,7 +153,7 @@ describe('ClinicSettingsPage', () => {
   });
 
   it('renders "Workspace not found" when slug does not resolve', async () => {
-    fromResults.set('orgs', { data: [], error: null });
+    fromResults.set('organizations', { data: [], error: null });
     setPath('/clinic/missing/settings');
     render(<ClinicSettingsPage />);
     await waitFor(() =>

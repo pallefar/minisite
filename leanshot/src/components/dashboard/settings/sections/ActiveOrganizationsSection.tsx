@@ -50,7 +50,7 @@ import { EditConsentScopeModal, type MembershipWithOrg } from '../EditConsentSco
 import { PatientActivityModal } from '../PatientActivityModal';
 
 type Row = Membership & {
-  orgs: Pick<Org, 'id' | 'name' | 'logo_storage_path'>;
+  organizations: Pick<Org, 'id' | 'name' | 'logo_storage_path'>;
   roles: Pick<Role, 'name'> | null;
 };
 
@@ -115,10 +115,10 @@ interface OrgRowProps {
 }
 
 function OrgRow({ row, onEdit, onRevoke, onViewActivity, exiting }: OrgRowProps) {
-  const orgName = row.orgs.name;
+  const orgName = row.organizations.name;
   const role = row.roles?.name ?? 'Member';
   const enabled = countEnabled(row.consent_scope);
-  const logo = logoPublicUrl(row.orgs.logo_storage_path);
+  const logo = logoPublicUrl(row.organizations.logo_storage_path);
 
   return (
     <li
@@ -207,7 +207,7 @@ function RevokeConfirmModal({ row, onClose, onConfirm }: RevokeConfirmModalProps
   }, [row]);
 
   if (!row) return null;
-  const orgName = row.orgs.name;
+  const orgName = row.organizations.name;
   const canConfirm = typed.trim().toLowerCase() === orgName.toLowerCase() && !busy;
 
   const close = () => {
@@ -282,7 +282,7 @@ export function ActiveOrganizationsSection(): React.ReactElement {
     const { data, error: fetchErr } = await supabase
       .from('memberships')
       .select(
-        'id, user_id, org_id, role_id, consent_scope, invited_from_invite_id, joined_at, accepted_at, revoked_at, last_scope_changed_at, orgs(id, name, logo_storage_path), roles(name)',
+        'id, user_id, org_id, role_id, consent_scope, invited_from_invite_id, joined_at, accepted_at, revoked_at, last_scope_changed_at, organizations(id, name, logo_storage_path), roles(name)',
       )
       .is('revoked_at', null)
       .order('joined_at', { ascending: false });
@@ -293,11 +293,11 @@ export function ActiveOrganizationsSection(): React.ReactElement {
       // supabase-js sometimes types embedded joins as arrays; normalize to single.
       const normalized: Row[] = (data ?? []).map((r) => {
         const raw = r as unknown as Record<string, unknown>;
-        const orgsField = raw.orgs;
+        const orgsField = raw.organizations;
         const rolesField = raw.roles;
         return {
           ...(raw as unknown as Membership),
-          orgs: (Array.isArray(orgsField) ? orgsField[0] : orgsField) as Row['orgs'],
+          organizations: (Array.isArray(orgsField) ? orgsField[0] : orgsField) as Row['organizations'],
           roles: (Array.isArray(rolesField) ? rolesField[0] : rolesField) as Row['roles'],
         };
       });
@@ -333,7 +333,7 @@ export function ActiveOrganizationsSection(): React.ReactElement {
           if (payload.eventType === 'UPDATE' && newRow?.revoked_at && !oldRow?.revoked_at) {
             // Operator-side revoke broadcast.
             const local = rowsRef.current.find((r) => r.id === id);
-            const orgName = local?.orgs.name ?? 'A clinic';
+            const orgName = local?.organizations.name ?? 'A clinic';
             setExitingIds((prev) => {
               const next = new Set(prev);
               next.add(id);
@@ -378,7 +378,7 @@ export function ActiveOrganizationsSection(): React.ReactElement {
     });
     const res = await revokeMembership({ membership_id: row.id });
     if (res.ok) {
-      toastRef.current(`Membership revoked. ${row.orgs.name} no longer has access.`, 'success');
+      toastRef.current(`Membership revoked. ${row.organizations.name} no longer has access.`, 'success');
       // Let the exit animation play, then refetch.
       window.setTimeout(() => {
         void refetch();
@@ -403,7 +403,7 @@ export function ActiveOrganizationsSection(): React.ReactElement {
     setRows((prev) =>
       prev.map((r) => (r.id === rowId ? { ...r, consent_scope: next } : r)),
     );
-    const orgName = rows.find((r) => r.id === rowId)?.orgs.name ?? '';
+    const orgName = rows.find((r) => r.id === rowId)?.organizations.name ?? '';
     toastRef.current(`Updated. ${orgName} now sees your selected data.`, 'success');
     setEditTarget(null);
     void refetch();
@@ -483,7 +483,7 @@ export function ActiveOrganizationsSection(): React.ReactElement {
       {activityTarget && (
         <PatientActivityModal
           orgId={activityTarget.org_id}
-          orgName={activityTarget.orgs.name}
+          orgName={activityTarget.organizations.name}
           onClose={() => setActivityTarget(null)}
           triggerRef={activityButtonRefs.current.get(activityTarget.id)}
         />

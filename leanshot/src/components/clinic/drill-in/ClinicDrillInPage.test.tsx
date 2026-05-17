@@ -174,7 +174,7 @@ const FAKE_ORG = {
   description: null,
   website_url: null,
   logo_storage_path: null,
-  owner_user_id: 'op-1',
+  created_by: 'op-1',
   created_at: '2024-01-01T00:00:00Z',
 };
 

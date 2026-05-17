@@ -97,8 +97,8 @@ export function ClinicWorkspace() {
     setLoad({ kind: 'loading' });
     try {
       const { data, error } = await supabase
-        .from('orgs')
-        .select('id, slug, name, description, website_url, logo_storage_path, owner_user_id, created_at')
+        .from('organizations')
+        .select('id, slug, name, description, website_url, logo_storage_path, created_by, created_at')
         .eq('slug', slug)
         .maybeSingle();
       if (error) {

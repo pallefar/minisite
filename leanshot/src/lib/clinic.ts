@@ -466,7 +466,7 @@ export async function checkSlugAvailable(
   }
   try {
     const { data } = await supabase
-      .from('orgs')
+      .from('organizations')
       .select('id')
       .eq('slug', slug)
       .maybeSingle();
