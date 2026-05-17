@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 28 SHIPPED 8/8 — EXTENSION-CONTRACT + admin manifest preview merged; unblocks P29/P30/P31
-last_updated: "2026-05-17T19:00:00Z"
-last_activity: 2026-05-17 -- Phase 28 (Clinic Organizations — Schema + RLS Hardening) SHIPPED 8/8 plans across 5 waves
+stopped_at: Phase 29 Plan 02 complete — org_patient_invites + 3 SECDEFs + cross-tenant RLS proof (BLOCKER R1+R2 satisfied)
+last_updated: "2026-05-17T19:55:00Z"
+last_activity: 2026-05-17 -- Phase 29 Plan 02 (org_patient_invites + send/preview/accept SECDEFs + RLS test) SHIPPED
 progress:
   total_phases: 27
   completed_phases: 2
