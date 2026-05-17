@@ -393,7 +393,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 24. Foundation — Admin Shell + Event Taxonomy + Server PostHog | 0/? | Not started | — |
+| 24. Foundation — Admin Shell + Event Taxonomy + Server PostHog | 2/8 | In Progress|  |
 | 25. HIPAA Audit Hardening + BAA Chain | 0/? | Not started | — |
 | 26. Multi-Tier Affiliate | 0/? | Not started | — |
 | 27. Modular Admin Shell Extensions | 0/? | Not started | — |
