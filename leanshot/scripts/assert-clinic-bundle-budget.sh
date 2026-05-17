@@ -111,7 +111,12 @@ ASSETS_DIR="$DIST_DIR/assets"
 # The 24.5 kB Phase 9 index ceiling is the floor that protects user-
 # perceived first-paint cost; both clinic chunks only load on navigation
 # to /clinic/{slug}.
-CLINIC_CEILING=28000
+# CLINIC_CEILING=30000 — Phase 29 Plan 06 baseline bump (Rule 2 auto-fix).
+# ClinicBillingCard + PatientInviteForm added to src/components/clinic/billing/
+# which lands in the clinic chunk per manualChunks (src/components/clinic/).
+# Measured: 28,758 bytes gz. Raised to 30,000 (~1.2 kB headroom).
+# History: 12 kB → 16 kB → 17 kB → 17 kB → 25 kB → 22 kB → 28 kB → 30 kB.
+CLINIC_CEILING=30000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
