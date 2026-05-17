@@ -1,591 +1,868 @@
-# Feature Research — LeanShot v1.2
+# Feature Research — LeanShot v1.3 Platform Expansion
 
-**Domain:** Cross-platform health-tracker SaaS (peptide/GLP-1 vertical) — launch polish + multi-revenue monetization + growth loops
-**Researched:** 2026-05-13
-**Confidence:** HIGH on platform-store rules + Stripe/HealthKit constraints; MEDIUM on conversion-tactic specifics; LOW on AdMob+GLP-1 exact wording (policy in flux)
+**Domain:** Multi-audience health-tracker SaaS (GLP-1 vertical) — v1.3 = revenue depth + B2B/HIPAA + onboarding/retention engine
+**Researched:** 2026-05-17
+**Confidence:** HIGH on platform-store rules + Stripe/legal constraints + AI deflection benchmarks; MEDIUM on conversion-tactic specifics + paywall placement; LOW on cross-network ad-spend deduplication exact precision
 
-> Scope guardrail: this file covers ONLY the **10 NEW v1.2 feature areas** from `PROJECT.md`. v1.1-shipped surfaces (dose tracking, drug-level curve, site rotation, AI coach, doctor read-share, clinic operator surface, etc.) are validated and NOT re-analyzed here. The 11th workstream — "v1.1 tech debt sweep" — is a bug list, not a feature landscape, and is out of scope for this document.
+> **Scope guardrail:** this file covers ONLY the **17 NEW v1.3 feature areas** scoped in `PROJECT.md`'s "v1.3 megamilestone". v1.2-shipped surfaces (B2C cloud sync, AI coach, doctor share, clinic operator surface, page builder v1 with 8 blocks, design system v2, photo trash, knip CI, Stripe Connect Express affiliate v1, etc.) are NOT re-analyzed — see `.planning/milestones/v1.2-research/FEATURES.md`. This document **builds on** v1.2 research, doesn't replace it.
 
-> Audience asymmetry rule (carried in from `feedback_regulator_vs_user_audience_pattern.md`, refined by Phase 10 lesson): **end-user-facing UX gets the aggressive-foundations treatment; regulator/process surfaces get the cheapest defensible posture.** Applied per-feature below.
-
----
-
-## Cross-Cutting Constraints (apply to every area)
-
-These narrow what "table stakes" means for LeanShot and must be enforced everywhere:
-
-1. **HealthKit / Health Connect data MUST be firewalled from any ad SDK** — separate user IDs, no shared analytics namespace, no Health signal in ad targeting. Apple §5.1.3 is non-negotiable and enforced at review. Source: [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), [Protecting user privacy](https://developer.apple.com/documentation/healthkit/protecting-user-privacy). (HIGH)
-2. **No ads on clinic / doctor-share surfaces** — already locked by PROJECT.md ("B2B trust"). All ad work in this doc applies only to **patient marketing site + free-tier patient dashboard**.
-3. **No drug-brand advertising in our own creatives, and an advertiser block-list defaulting to "all GLP-1 brand names + compound-pharmacy domains"** — Google's healthcare policy + the FTC compounded-GLP-1 NAD ruling make this category a regulatory landmine. Source: [Google AdMob 2026 pharma policy](https://almcorp.com/blog/google-admob-pharmaceutical-policy-2026/), [NAD compounded-GLP-1 advertising](https://www.polsinelli.com/publications/nad-compounded-glp-1-advertising-diet). (HIGH)
-4. **No health-claim subject lines or push copy** — "Lose X lbs this week" / "Your blood sugar is bad" are FTC + Apple §1.4.1 violations. Notification + email copy must be operational ("Time to log your dose") not promissory.
-5. **Account deletion must be in-app, irreversible, and visible** (Apple §5.1.1(v), in force since 2022-06, still enforced 2026). Source: [Offering account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/). (HIGH)
-6. **EU/UK launch requires cookie banner + DSAR portal** (already noted in PROJECT.md hard constraints).
+> **Audience asymmetry rule** (inherited from `feedback_regulator_vs_user_audience_pattern.md`): aggressive on end-user-facing UX (onboarding, gamification, helpdesk, embeds, i18n); cheapest defensible posture on regulator/process surfaces (HIPAA BAA chain, multi-tier admin schema). Applied per-feature below.
 
 ---
 
-## 1. Native Mobile Shells (Capacitor iOS + Android)
+## Cross-Cutting Constraints (v1.3-specific, additive to v1.2)
 
-### Table Stakes
+1. **HIPAA BAA chain becomes load-bearing** — when v1.3 ships, first signed clinic deal is target; entire data path (Supabase → Vercel → Resend → Sentry → OpenAI/Anthropic) must have BAAs in place. Any new vendor introduced in v1.3 needs a BAA pass before it touches PHI. (HIGH — see `linfordco.com/blog/saas-hipaa-considerations/`)
+2. **Mid-trial paywall + pharmacology paywall = reputational tightrope** — core-clinical-value gating is a brand risk. Decision must be made BEFORE shipping with explicit "what stays free on principle" carve-out (e.g., drug interactions safety-critical info NEVER paywalled).
+3. **B2B2C billing introduces a third actor** (clinic operator pays for patient's seat) — every existing RLS path that assumes `user_id → org_id` direct ownership needs a `paying_org_id` column to disambiguate. Schema migration is M1 territory.
+4. **Anonymous-to-authenticated session merge** is the M2 onboarding load-bearer; existing v1.2 store-merge logic was designed for "local-only → cloud sync" not "anonymous-trial → signup" — this is the highest-risk v1.3 schema change.
+5. **Gamification ethics is a brand-level decision** — Duolingo's playbook drives 60% engagement but the leaderboard "XP grinding" + sad-mascot dark patterns are publicly criticized. LeanShot health audience makes this asymmetric: ethical-only patterns.
+6. **Ad-spend ETL ≠ HealthKit data path** — v1.3's hourly ad-spend ingestion (Meta/Google/TikTok Ads APIs → PostHog join) is **inbound spend data only**, never outbound user-attributes. Two-tunnel firewall (v1.2) already enforces; reaffirm during M5a planning.
+
+---
+
+## Foundation Layer (M1-gaps + M5a)
+
+### 1. Modular admin shell + bulk actions + admin 2FA
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Capacitor wrapper of existing SPA | The web is the codebase; rewrite would tank schedule | S | One-time setup; `@capacitor/core` + iOS + Android projects |
-| App icons + splash screens at every required resolution | Store rejection without them | S | Use `@capacitor/assets` generator |
-| Universal links / app links | Email + share URLs must open the app, not Safari | M | iOS `apple-app-site-association` + Android Asset Links JSON; ties into doctor-share link from v1.1 |
-| Biometric unlock (Face ID / Touch ID / Android Biometric) | Health-data category app on a phone someone else might pick up | M | `@aparajita/capacitor-biometric-auth` + Keychain/Keystore session token storage. Source: [Biometric auth in Capacitor](https://capgo.app/blog/biometric-authentication-in-capacitor-apps/) (HIGH) |
-| Native share sheet for doctor-report PDF + share cards | Web `navigator.share` is partial on iOS Safari; native sheet is the expectation | S | `@capacitor/share` |
-| Offline-first dose log + view (already 80% there from local-first store) | Users WILL be on planes, at gyms, in basements when their dose alarm fires | M | Existing Zustand+persist works; just need a "queued sync" indicator + retry queue for Supabase writes |
-| In-app account deletion (visible from Settings, not buried) | Apple §5.1.1(v), enforced; Google Play has parallel rule | S | Already on v1.2 list as "launch essentials"; reuse the same flow |
-| App Store + Play Store listing assets (screenshots, descriptions, privacy nutrition labels) | Cannot publish without them | M | Privacy nutrition labels MUST declare Health data category if HealthKit is wired |
-| Privacy manifest (`PrivacyInfo.xcprivacy`) declaring tracking domains + reasons | Required at submission since 2024-05; expanded since | S | Auto-generated by most Capacitor plugins; Health plugin needs manual review |
-| Crash reporting (Sentry native bindings or Crashlytics) | Native crashes don't surface in browser Sentry | M | Sentry has Capacitor SDK; replaces v1.1's web-only Sentry |
+| Per-module routing (e.g. `/admin/billing`, `/admin/affiliates`, `/admin/orgs`) with code-split chunks | v1.2 admin already at 60%; mod splits prevent admin-bundle from monopolizing single chunk | M | Builds on v1.2 `AdminLayout`. Each module = lazy `import()` |
+| Bulk actions on Members table: CSV export, tag/untag, comp-sub, ban, force-reset password | v1.2 has member CRUD per-row; bulk is the support-floor escalation | M | Checkbox-multi-select pattern; queued via Edge Function for >100 rows |
+| Admin 2FA enforcement (mandatory TOTP for `role='admin'`) | Defense-in-depth; admin compromise = customer-data breach | M | Supabase Auth has built-in `mfa.enroll()`. ESLint regression guard on admin route mounting check |
+| Per-module Edge Function permission checks | Today admin role is checked client-side + at RLS; Edge Functions need server-side `admin` claim verification | S | Reusable `assertAdmin(req)` helper |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Background dose alarm with snooze that fires even when app is killed | Web Push can't do this on iOS; local notifications scheduled at sign-up of a dose can | M | `@capacitor/local-notifications` — schedule on dose-time-set, cancel on log-now. This is a CORE differentiator vs a web bookmark — patients without a separate medication app will keep LeanShot as their reminder. |
-| Quick-log via 3D Touch / long-press home icon | Removes 4 taps from the "log my injection RIGHT NOW" path | S | iOS Home Screen Quick Actions + Android App Shortcuts |
-| Widgets (iOS WidgetKit + Android AppWidget) showing current drug level + next dose | Glanceable; pulls user back into the app | L | Requires per-platform native code (Swift + Kotlin); not pure Capacitor |
-| Camera-shortcut for progress photo from app icon | Body-progress is a high-engagement loop; reduce friction | S | Quick action + jump straight into BodyTab photo capture |
+| Admin command palette (Cmd+K) for fast member lookup + action shortcuts | Saves seconds on every support ticket | M | Combo box + fuzzy-search v1.2 members table |
+| Audit-log diff viewer (what changed when admin X edited member Y) | Compliance + accountability | S | Reuse v1.2 `audit_logs`; pretty-diff JSON |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Full native rewrite in SwiftUI + Jetpack Compose | "Feels more native" | 3 codebases, 3× the bug surface, kills the React 19 design-system rollout | Capacitor wrapper; native ONLY for watch + widgets |
-| Custom in-app browser for AI chat / doctor-share view | Avoids Safari View Controller chrome | Apple §4.5 sometimes flags; loses autofill/passkey; worse for the user | Use `@capacitor/browser` (SFSafariViewController) for any out-of-app web |
-| Sync entire localStorage on every app foreground | "Always fresh" | Battery + bandwidth; users have weeks of data | Delta sync triggered by Realtime channel (already in place v1.1) |
-| Push every dose-time as a remote push from server | "Server is source of truth" | Server-driven push has 0.1–5 min latency + can fail silently when phone is offline | Local notifications scheduled on-device; server pushes ONLY for cross-device events (operator alert, payment failed) |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Per-admin custom role builder (Notion-style permission matrix) | Permission combinatorics explode; we have 3 roles (owner/admin/support) | Fixed role set; promote/demote only |
+| Real-time admin presence | No operational value at our scale | Defer |
 
-**Complexity overall: L** (10–14 dev days from a clean Capacitor `init` to first TestFlight)
+**Dependencies on v1.2:** Builds on Phase 22 admin foundation (`AdminLayout`, members table, impersonation, audit-logs). M1 absorbs ~40% net-new code; ~60% is hardening + bulk-action extensions.
 
----
+**Complexity overall: M**
 
-## 2. Watch Apps (Apple Watch + WearOS)
+### 2. Event taxonomy + server-side PostHog capture + cohort builder + session replay PII masking
 
-### Table Stakes
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Next-dose complication / tile on the watch face | This is the headline reason to install the watch app | M | Apple: WidgetKit complication. WearOS: Tile + Complication APIs. Like MedTick + MediSafe precedent. Source: [MedTick Wear OS](https://play.google.com/store/apps/details?id=com.medtick), [MediSafe Android Wear](https://www.techhive.com/article/602463/medisafe-adds-android-wear-support-to-remind-you-to-take-your-pills.html) (HIGH) |
-| Log injection from watch with confirmation haptic | Streak-friendly; users in the gym/kitchen don't want to pull out a phone | M | Watch app sends "log dose at site X" to phone via WatchConnectivity / Wear Data Layer; phone commits to Supabase |
-| Streak indicator on complication | Reinforcement loop | S | Counts come from existing v1.1 streak engine |
-| Watch notification mirroring (dose reminders) | Notifications shown on watch when phone is locked | S | Automatic if iOS notifications are properly categorized; Android requires `setLocalOnly(false)` |
+| Canonical event taxonomy versioned in repo (`/src/lib/analytics/events.ts`) | Without it, ad-blocker + dev-typo regressions silently lose conversion data | M | Single source of truth; typed event names + props; lint-rule forbids `capture('arbitrary string')` |
+| Server-side PostHog capture for signup/payment/activation | Ad-blockers eat ~20-40% of client-side events on these critical path; server-side recovers | M | Edge Function relay; same event taxonomy used both client + server |
+| Cohort builder in admin (signup-week × N-week retention, segment by tier/source/country) | M5a foundation for win-back, gamification cohort A/B | M | SQL views on top of PostHog events table OR Supabase mirror; admin UI = saved cohort queries |
+| Session-replay PII masking (`data-private` + class allowlist) | Health data on screen = HIPAA + reputational risk | M | PostHog `session_recording.maskAllInputs=true` baseline + custom selector list for PHI cards |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Heart-rate-on-dose-day correlation card | Pharmacology + HR overlay = real clinical insight, unique to LeanShot | L | Requires HealthKit/Health Connect read; map HR delta vs. baseline on injection days |
-| "Time-to-next-injection" countdown on watch face | Same data point, more visceral than "next dose: 2 days" | S | Complication string update; pulls from `calcMedLevel` already in `pharmacology.ts` |
-| Watch-only flow for "side rotation" reminder when logging | Watch UI shows "last 3 sites used: L-thigh, R-thigh, L-abdomen → suggest R-abdomen" | M | Existing `SiteRotationCard` logic ported to a wrist-sized layout |
+| Reverse-ETL of cohort definitions to Resend audiences | Cohort → behavior-triggered email without manual export/import | S | Supabase cron; cohort SQL → Resend Audience API |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Full data entry on watch (food, mood, symptoms, photos) | "Parity!" | Watch screens too small; user friction kills adoption | Mirror reads + dose-log only. Push everything else to phone with a "open on iPhone" button |
-| Heart-rate / blood-oxygen alerts ("your HR is high") | Sounds useful | Crosses into "device used for diagnosis" territory; Apple sometimes flags + we don't want the FDA conversation | Read-only display in context cards; no thresholds, no alarms |
-| Standalone Watch app (no iPhone required) | watchOS 10+ allows it | Cellular Apple Watches are <10% of base; not worth the auth + sync rewrite | Phone-paired only |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Capture raw HealthKit values to PostHog for "richer analytics" | Two-tunnel firewall violation + HIPAA | Never. Metadata only (count, timestamp). |
+| Auto-record session replay for 100% of sessions | Cost + privacy + storage | Sample 10%; opt-out for paid tier |
 
-**Complexity overall: XL** (separate Swift + Kotlin codebases, app-review cycles, Watch UX iteration)
+**Dependencies on v1.2:** PostHog already wired (v1.2 Phase 22 GDPR-02 consent-gated load). M5a adds the taxonomy + server relay + cohort tooling.
 
-> NOTE on aggressive-foundations: this is end-user UX (the wrist is the most personal surface there is). Apply max-coverage — don't ship watch v1 with only the complication and skip log-injection. User precedent: `feedback_aggressive_foundations.md`.
+**Complexity overall: M-L** (the taxonomy work is small; the server-side relay + retroactive event-rename work is the bulk)
 
 ---
 
-## 3. Apple Health + Google Health Connect (Read-Only Import)
+## Workstream A — Revenue / Growth
 
-### Table Stakes
+### 3. Multi-tier affiliate program (Standard / Gold / Lifetime)
+
+Industry standard is **volume-threshold tier promotion** (not time-based), with progression visible to affiliate via dashboard progress bar. Real-world: Moosend (Bronze 30% → Diamond 40% at 36+ accounts), Reply (Blue → Gold at 51+ referrals). Source: [Rewardful Commission Guide](https://www.rewardful.com/articles/affiliate-commission-explained), [BoldDesk SaaS Affiliate List](https://www.bolddesk.com/blogs/best-saas-affiliate-programs) (MEDIUM)
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Permission UI per data type (weight, steps, sleep, HR) | iOS shows the system permission sheet; we need our pre-prompt explaining WHY for each | M | "Steps, heart rate, sleep each need separate permissions." Source: [HealthKit vs Health Connect](https://www.diversido.io/blog/implementing-healthkit-and-google-fit-in-healthcare-apps---a-guide-for-both-operating-systems) (HIGH). Pre-prompt before system prompt is conversion-critical. |
-| Weight → BodyTab auto-fill | Eliminates duplicate logging | M | Read most-recent body-mass sample; show "Auto-filled from Apple Health" badge with un-link option |
-| Steps → ActivityTab auto-fill | Same | M | Sum daily step count; merge with manual entries with conflict-resolution UI |
-| Sleep → SleepTab auto-fill | Same; sleep is high-value because GLP-1 affects it | M | Sleep stage data preferred over duration-only |
-| Heart-rate → context badge on insights (not its own tab) | HR alone isn't actionable; HR + dose-day is | M | Avg HR per day; surface on InsightsTab card not as a primary metric |
-| "Last synced" timestamp visible | User trust ("is my data fresh?") | S | Cache + display per data type |
-| Hard isolation: Health data path NEVER touches `analytics` or `ad` modules | Apple §5.1.3 audit + legal posture | M | Separate Supabase schema (`health_imports` schema), separate user-id-hash for analytics. Compile-time barrier in TS: separate package, no shared types. Source: [Apple privacy guidelines](https://developer.apple.com/documentation/healthkit/protecting-user-privacy) (HIGH) |
+| Tier-promotion logic (Standard → Gold → Lifetime on threshold cross) | Tier value lost without auto-promotion | M | DB trigger on conversion insert; threshold + commission-rate per tier in `affiliate_tier_configs` table |
+| Per-tier commission rate (e.g. Standard $10 flat, Gold $15 flat, Lifetime $25 flat OR % recurring) | Differentiated rates = motivation; flat rates from v1.2 → tiered $$ in v1.3 | M | Extends v1.2 `affiliate_conversions.commission_cents` to lookup tier-rate at conversion time |
+| Partner dashboard progress bar ("3 more conversions to Gold") | Visible progression drives reach-for-the-tier behavior | S | Compute (count, threshold-distance) per-tier |
+| Tier-downgrade rules (Standard if N-day rolling volume drops) OR lock-tier-forever | Avoid permanent rate-creep | M | **Pick locked-once-earned** for v1.3 (simpler + nicer); revisit if abuse |
+| Tier-specific marketing assets (Gold partners get premium banner kit) | Differentiated treatment = perceived value | S | Builds on v1.2 marketing-assets bucket |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Dose-day HR overlay on med-level chart | Unique combo: pharmacology curve + autonomic response | M | Already have the chart infra (`MedLevelChart.tsx`); add HR line behind drug-level line |
-| Sleep-quality correlation with dose-titration step | "Sleep dropped 12% week you stepped up to 2.4mg" — clinically useful | M | Compare 7-day sleep avg before/after each titration event |
-| Workout-day auto-tag on injection | "You injected within 30 min of a workout 4× this month" | S | Cross-reference HealthKit workouts with injection timestamps |
-| Single source-of-truth chooser UI | "Which app owns weight: LeanShot, Apple Health, Withings?" — clear answer per-metric | M | Persisted per-metric preference; tie-breaker rules surfaced |
+| Lifetime tier = recurring commission for life of customer (vs flat) | Top 1% partners do 90% of volume; recurring keeps them locked-in | M | New schema: `affiliate_recurring_payouts` monthly cron; Stripe Connect transfer per customer-month |
+| Public tier leaderboard (opt-in) | Social proof + tier-up motivation | S | Top 10 Gold/Lifetime; anonymized handles |
+| Tier-specific exclusive Slack/Discord access | Community moat for top partners | S (gated link + audit) | Manual invite is fine |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Write-back to HealthKit (push our weight logs there) | "Bi-directional sync feels complete" | Triples permission scope; doubles audit surface; Apple is stricter on writes | Read-only v1. Revisit in v1.3 if users ask. |
-| Auto-import blood-glucose / CGM data | Some semaglutide users have CGMs | Crosses into diabetes-management territory (regulated); we are not a diabetes app | Defer. If we do it later, gate behind explicit "I am a diabetic" onboarding flag. |
-| Use HR for AI-coach personalization | Sounds cool | Crosses Apple §5.1.3 "use-based data mining" line if AI coach output ever sees an ad slot | AI coach NEVER reads from `health_imports.*` tables. Compile-time barrier. |
-| Background BGTask polling every 15 min | "Always fresh" | Battery drain; iOS deprioritizes apps that do this | Observer-query subscription model; iOS wakes us when relevant samples arrive. Source: [HealthKit auto-sync notes](https://docs.junction.com/wearables/guides/apple-healthkit) (HIGH) |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Multi-level (recruit-partners-and-earn-from-their-conversions) | MLM regulatory + trust signal | Single-tier hierarchy; flat or recurring only |
+| Auto-promote on signup ("welcome to Gold!") | No accomplishment signal | Threshold-gated only |
+| Per-partner negotiated rates outside tier system | Schema sprawl + favoritism | Use Lifetime as the "VIP" lever instead |
 
-**Complexity overall: L** (permission flows + per-metric merge logic + the firewall enforcement)
+**Dependencies on v1.2:** v1.2 Phase 19 shipped single-tier flat $10 + Stripe Connect Express + fraud detection. M-A adds tier logic on top; reuses payout cron + cascade-on-delete.
 
----
+**Complexity overall: M** (mostly schema + dashboard UI; payout cron extends rather than replaces)
 
-## 4. Owner/Admin Surface
+### 4. Mid-trial paywall A/B test (after activation event)
 
-### Table Stakes
+**Canonical pattern**: Behavioral-triggered paywalls outperform end-of-trial by 3.8x (one case: 5.8% → 13.4% in 4 months). The single most important predictor is **activation** (users completing key product actions convert at 3-5x the rate). Median trial-to-paid: 7.1% for 14-day trials, 3.6% for 30-day trials. Source: [Pulseahead Trial-to-Paid Benchmarks](https://www.pulseahead.com/blog/trial-to-paid-conversion-benchmarks-in-saas), [Stackmatix Trial Levers](https://www.stackmatix.com/blog/saas-trial-to-paid-conversion) (MEDIUM)
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Members table with search, filter (plan, status, signup date) | Without this, "find user X" requires a SQL console | M | Backed by RLS-bypass service-role reads; owner role only |
-| MRR / ARR / churn / new-signups chart (last 30/90 days) | Business operation; not a vanity metric | M | Stripe webhooks → `billing_events` table → aggregation views. Source: [SaaS admin dashboards](https://www.netsuite.com/portal/resource/articles/erp/saas-dashboards.shtml) (MEDIUM) |
-| User impersonation ("View as this user") | Support cases die without it. **Must be logged + 1-click-revertible + banner-visible.** | L | Issue short-lived signed JWT with `impersonating_uid` claim + display red banner in app while active. Audit-log entry per impersonation. Refines pattern from clinic operator audit-log. |
-| Refunds + subscription cancellation override | Support flows; one bad refund situation without this = ticket pile-up | M | Stripe API call from server-only function; audit-logged |
-| Feature flags (per-user + per-cohort) | Roll out v1.2 features gradually; turn off ad slots if something explodes | M | Simple Supabase table + RLS read by all clients; `flagsmith`-style. Avoid ConfigCat/LaunchDarkly $$ until volume justifies. |
-| Audit log of admin actions | Reusable from v1.1 clinic audit-log infra | S | Same `audit_logs` schema, `actor_type='owner_admin'` |
-| Member CRUD: ban, delete, force-password-reset, change-plan | Compliance + support | M | All actions reuse audit log |
-| Failed-payment / dunning recovery queue | Visibility into the dunning state Stripe is running for us | M | Stripe webhook → `dunning_state` table; show pending retries + manual-retry button |
+| Activation event definition (e.g. "logged 3 injections + 1 weight in first 7 days") | Without activation event, paywall fires arbitrarily | S | M2 must define; M5a event taxonomy carries |
+| Paywall trigger on activation-event-cross during trial | Industry-best practice | M | PostHog feature flag splits trial users into A (current = end-of-trial) vs B (mid-trial-on-activation) |
+| Variant tracking: conversion, refund, 30-day retention (not just signup-to-paid) | Refund-rate after mid-trial paywall is the kill signal | M | PostHog experiment goal = paid+retained-30d (composite) |
+| Auto-promote winner on statistical significance | Without this, experiments stall | M | PostHog flags ship variants; promotion = manual flag-flip after CI calc (see PostHog notes below) |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Affiliate-payout queue (review + approve before Stripe Connect transfer) | Catches fraud before money leaves; manual override saves $ vs auto-payout | M | Hold transfers in `pending_payouts` table; admin approves → triggers Stripe Connect transfer |
-| Ad-revenue dashboard (eCPM / RPM / CTR / fill rate per placement) | This is THE monetization KPI; needs to be first-class | L | Pull from AdMob Reporting API + Ad Manager API + AdSense API + internal house-ad metrics; daily ETL |
-| Cohort retention heatmap (signup week × week-N retention %) | Tells us whether the design-system rollout actually improved retention | M | Standard SQL pivot on `auth.users.created_at` + `user_activity` |
-| One-click "log out all sessions" per user | Security incident response | S | Supabase `auth.admin.signOut(uid)` |
+| Contextual paywall ("you've logged 3 injections — unlock the 7-day projection") | Pulls forward the value-prop instead of generic "upgrade" | S | Per-feature paywall copy; ties to pharmacology gating |
+| In-paywall offer A/B (annual discount vs free-trial-extension vs first-month-50%) | Stack with main A/B for compounded learning | M | Multi-variant PostHog flag |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Full Metabase / Superset clone | "Self-service analytics for everyone" | Builds a BI tool, not a SaaS admin panel | Pre-built dashboards for the 6 metrics we actually care about; export-to-CSV for the rest |
-| In-admin SQL console | Power user fantasy | One typo wipes a table; one screenshare shows the world your schema | Use Supabase Studio behind owner SSO for ad-hoc; admin UI for everything operational |
-| Real-time presence of all admins ("X is viewing user Y") | Looks Linear-esque | Adds Realtime channels with zero operational value at our scale | Defer — revisit at >5 admins |
-| Edit-arbitrary-JSON UI for user state | "Power tool" | Schema drift; broken users; impossible to audit | Specific actions (change-plan, reset-onboarding-step) with audit trail; SQL console for edge cases |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Paywall on the pharmacology projection itself (the Core Value) | Brand risk; users feel bait-and-switched | Paywall on the **forward** projection only (past 28d stays free); decide at CONTEXT.md |
+| Paywall on drug interactions / safety info | Liability + reputational nuke | Never paywall safety-critical |
+| Hard paywall (no skip option) mid-trial | Tanks free-tier engagement metrics | Soft paywall with "skip for now" + re-prompt at end |
 
-> Audience asymmetry note: admin is **end-user surface for the operator (us), not regulator-facing**. Apply aggressive foundations. The operator is going to live in this UI.
+**Note on PostHog auto-promote:** PostHog handles statistical significance detection + winner identification, but **does NOT automatically promote** the winning variant to 100% traffic — that's a manual flag-flip after significance hits. (Source: [PostHog Testing experiments docs](https://posthog.com/docs/experiments/testing-and-launching), HIGH)
 
-**Complexity overall: L**
+**Dependencies on v1.2:** Stripe Checkout + `<TierGate>` (v1.2 Phase 14) carries; PostHog flag infrastructure exists. **Critical dependency on M2:** activation event definition is M2 deliverable. M-A cannot ship paywall A/B until M2 ships activation event.
 
----
+**Complexity overall: M**
 
-## 5. Full Stripe (Patient Subs + Clinic Seats + Connect Affiliate)
+### 5. Page-builder A/B test (PostHog flags + auto-stat-sig + admin UX for non-marketers)
 
-### Table Stakes
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Pricing page with monthly + annual toggle (annual = ~17% off) | Default conversion pattern | M | Use Stripe Pricing Table embed OR custom page that calls Checkout. Custom = more brand control. Source: [Stripe Billing](https://stripe.com/billing/features) (HIGH) |
-| Free + Paid tier for patient B2C (paid = ad-free + AI without BYO key) | Lowest-friction freemium pattern | M | Free = ads + AI coach BYO. Paid = no ads + LeanShot-provided AI (server-proxied) |
-| 7- or 14-day free trial with no card OR card-on-file (A/B in v1.3, pick one for v1.2) | Default expectation | S | Stripe `trial_period_days` on subscription; pick "card required" for stronger LTV signal. Source: [Stripe trial offers](https://docs.stripe.com/billing/subscriptions/trials) (HIGH) |
-| Stripe Checkout + Customer Portal | Don't build your own card form | S | Hosted; PCI-light; users get update-card / cancel UI for free. Source: [Subscriptions overview](https://docs.stripe.com/billing/subscriptions/overview) (HIGH) |
-| Clinic seat-based billing (per-active-patient OR per-operator-seat) | B2B billing is per-seat by default | M | Decide one metering model in CONTEXT.md. Per-patient = aligns incentive with our DAU; per-operator = predictable. Recommend **per-active-patient** with monthly true-up. |
-| Stripe Connect Express for affiliate payouts | Required for paying affiliates with tax compliance | L | Express accounts; Stripe collects W-9 (US) / W-8BEN (intl); Stripe files 1099-NEC. Source: [Connect W-8/W-9](https://docs.stripe.com/connect/connect-w8-w9-onboarding), [Connect 1099](https://stripe.com/connect/1099) (HIGH) |
-| Dunning (Smart Retries) | Stripe recovers 56% of failed payments with this on | S | Toggle in Stripe Billing settings. Source: [Stripe dunning](https://stripe.com/billing/features) (HIGH) |
-| Cancellation survey | Sources of churn; minimum 1-question | S | Stripe Customer Portal "cancellation reason" feature OR custom |
-| Receipts via Stripe + via Resend (white-label brand) | Both auto-receipt and brand-styled | S | Stripe auto-receipt = default-on. Resend mirror = optional brand polish |
+| Multi-variant landing page (publish "v2" alongside "v1" with traffic-split %) | Test infrastructure expectation | M | Extends v1.2 `landing_pages` schema with `variant_group_id` + `traffic_split_pct` |
+| PostHog multivariate feature flag assigns visitor to variant | Industry-standard A/B mechanism | S | `posthog.getFeatureFlag('landing-pricing-2026')` server-side in `page-render` Edge Function |
+| Goal-event tracking per variant (e.g. signup, Stripe-checkout-completed) | Without event tracking, "winner" is unverifiable | S | Variant ID = PostHog event prop |
+| Stat-sig calculator visible to non-technical admin (one-click "promote winner") | Marketing must not need data scientist | M | PostHog computes; admin UI surfaces "Variant B winning with 95% confidence — Promote?" button |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Mid-trial "see your projected pharmacology curve only if you upgrade" paywall | Trial conversion: hide the headline feature behind paid | M | Soft paywall — show 28 days past, blur the 7-day projection. **Risk:** if Core Value depends on the projection, this might tank free-tier engagement. Test cautiously. |
-| Cancellation retention offer ("pause for 1 month free instead?") | Save 10–20% of churn | M | Stripe `pause_collection` on the subscription; custom UI in cancel flow |
-| Clinic billing with patient-attribution (clinic pays for patients who don't have their own sub) | Real B2B value: clinic absorbs cost of churned-from-self-pay patients | L | New billing model — patients can have personal sub OR clinic-sponsored. Conflict resolution if both. **Defer to v1.3 unless a clinic demands it pre-launch.** |
-| Annual plan with one-month-free if billed annually | Standard 17% discount; cleaner story than "%" | S | Two `prices` in Stripe; toggle in pricing page |
+| Block-level A/B (test one hero vs another within same page) | More tests at smaller scope = faster learning | L | Block-tree variant references; mid-page swap on render |
+| Auto-archive losing variant after promotion + email summary | Cleanup + learning loop | S | Cron + Resend digest |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Build our own card form | "Brand purity" | PCI scope explosion; chargeback liability; no Apple Pay | Stripe Checkout. Period. |
-| Crypto payments | Web3 vibes | 0% of GLP-1 patients ask; high chargeback risk; tax nightmare | No. |
-| "Lifetime" plans | AppSumo-style cash injection | Caps LTV at one payment; cannibalizes recurring; killer for valuation if we ever raise | No. |
-| Coupon codes in URL without server validation | Marketing wants this | Reddit + Slickdeals will find any unprotected promo | Stripe `promotion_codes` ONLY; server-validated; max-redemption cap |
-| Family / shared-account plans | "Couples both on Ozempic" | Multi-user-per-account explodes RLS + makes the doctor-share story ambiguous | Out-of-scope per PROJECT.md. |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Bandit/multi-armed-bandit auto-traffic-shifting | Stat complexity + harder to debug | Fixed 50/50 split + manual promote; revisit at v1.5+ |
+| Cross-page funnel A/B (landing → pricing → checkout all-at-once) | Multi-page interactions explode variance | Single-page A/B; serialize page-level tests |
 
-**Complexity overall: XL** (this is the biggest single workstream besides watch — connect onboarding, tax forms, dunning, paywall placement, and clinic seat metering)
+**Dependencies on v1.2:** v1.2 Page Builder schema (`landing_pages` + `landing_page_revisions`) carries. M-A adds variant grouping + PostHog wire-up + admin promotion UX.
 
----
+**Complexity overall: M-L** (block-level A/B is the upgrade tax; page-level A/B alone is M)
 
-## 6. In-House Page Builder
+### 6. Hourly ad-spend ETL (Meta + Google + TikTok Ads APIs → Supabase, joined with PostHog for CAC by source)
 
-### Table Stakes
+**API rate limits — HARD constraints:**
+- **Meta Marketing API**: ~200 calls/hour/ad-account default; attribution windows recently restricted (7d-click, 1d-view max) [PPC.land Meta restrictions](https://ppc.land/meta-restricts-attribution-windows-and-data-retention-in-ads-insights-api/) (MEDIUM)
+- **Google Ads API**: 15,000 ops/day basic-access, much higher standard-access; need approved developer token [Google Ads API Rate Sheet](https://developers.google.com/google-ads/api/docs/api-policy/rate-sheet) (HIGH)
+- **TikTok Ads API**: 7d-click + 1d-view attribution by default (shortest of the three); requires Business Center approval [Improvado TikTok Challenges](https://improvado.io/blog/tiktok-ads-data-challenges) (MEDIUM)
+- **Cross-network overcounting**: when 3 platforms run simultaneously, each claims the same conversion → platform-side numbers sum to 150–200% of actual revenue [AdLibrary Attribution 2026](https://adlibrary.com/posts/ad-attribution-tracking-explained-2026) (MEDIUM)
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Block library (Hero, Feature, Logos, Pricing, FAQ, CTA, Testimonial, Footer) | The 8 universal SaaS-landing blocks | L | Each block = a React component + JSON schema for editable fields. Pattern: Versoly (300+ blocks), Unbounce (block-based). Source: [SaaS landing page builders](https://pineable.com/public/blog/free-and-paid-saas-landing-page-builders) (MEDIUM) |
-| Drag-and-drop reorder | Editor must be visual, not form-based | M | `dnd-kit` (already a v1.1 dependency in clinic-roster reorder? — verify) or `react-beautiful-dnd` |
-| Template starter pack (Long-form sales, Lead-magnet opt-in, Comparison, FAQ, Testimonial) | "Don't start from blank canvas" | M | 5 templates × 8 blocks each = 40 JSON files we ship |
-| Live preview (mobile + desktop toggle) | Anyone editing a page needs to see what users see | M | iframe with `srcdoc=<rendered JSX>`; mobile = 375×812 viewport |
-| Per-page SEO config (title, description, OG image, canonical, JSON-LD) | Without these we don't rank | M | Edit form per page; render into `<head>` at SSG build time |
-| Publish → static page on `leanshot-marketing.vercel.app/p/{slug}` | The pages ARE the marketing site | M | Vercel ISR or full SSG rebuild on publish. Don't ship dynamic SSR for landing pages (Lighthouse killer). |
-| Form blocks → Resend list-add + analytics event | Lead-magnet opt-in must capture the email somewhere | M | Form submit → Edge Function → `marketing_subscribers` table → Resend audience |
-| Version history (last 10 versions per page) | One bad edit kills a campaign | M | Versioned JSON snapshots in Supabase; revert button |
+| Per-network hourly cron (Vercel Cron → Edge Function → store in `ad_spend_hourly`) | Without hourly granularity, CAC trend lags | M | Three Edge Fns (one per network); exponential backoff on rate-limit |
+| Server-side conversion send-back (Meta CAPI, Google Enhanced Conversions, TikTok Events API) | iOS 14+ killed client-side attribution accuracy; server-side is the floor | L | First-party tracking; hashed email/IP via server; bundles up daily, fires to each network's conversion-import endpoint |
+| Reconciliation layer (deduplicate conversions across networks via PostHog `distinct_id`) | Without it, CAC math is wrong by 50-100% | M | Join `ad_spend_hourly` + PostHog conversions on shared distinct_id; last-touch attribution v1, time-decay v1.5 |
+| Admin dashboard: spend / conversions / CAC / LTV by source per day | The whole reason to do the ETL | M | Builds on M5a cohort builder |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| A/B testing built in (block-level OR page-level) | Marketing iterates 10× faster | L | Cookie-based bucket assignment + analytics event split; tied to growth experiments |
-| AI-assisted copy ("rewrite this hero for a more medical-trust tone") | Authoring speed boost | M | Wire existing AI coach Edge Function to a "rewrite this block" command |
-| Theme tokens auto-applied from v1.2 design system | Every page on-brand without effort | S | Pages import the same `@theme {}` CSS as the app |
+| Auto-pause campaign on CAC > LTV threshold | Prevents bleeding budget | M | Triggers Slack alert + flips Meta/Google campaign-status via API |
+| Per-creative ROI tracking (which ad creative converted) | Creative-level learning | L | Requires Meta `creative_id` + Google `ad_id` in conversion events |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Webflow / Framer parity ("any layout, any time") | "Designer's dream" | Becomes a years-long project; CMS feature creep; we're not Webflow | 8 fixed blocks. Designers can request a new block — added behind a PR review. |
-| Server-side rendered editor with WYSIWYG inline editing | "Notion-like" | DOM-mutation complexity; cursor management; we are not Notion | Form-based block editor + iframe preview. Boring + works. |
-| Allow arbitrary HTML / JS injection | "What if marketing wants a Calendly embed?" | XSS surface in our own domain; risk multiplied if user-facing | Whitelist of embed providers (Calendly, YouTube, Tally) as their own block types. No raw HTML. |
-| Multi-language i18n at v1.2 launch | "Global reach" | We're US-launch first; i18n explodes copy/SEO/dunning/email; defer | English + Spanish (US has ~62M Spanish speakers; GLP-1 demographic overlaps); revisit. **Actually defer to v1.3.** |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Sub-hourly cron (e.g. every 5 min) | Rate-limit headroom + cost; not actionable | Hourly is the floor for actionable signal |
+| Pulling HealthKit / Health-import data into attribution joins | Two-tunnel firewall violation | Spend + PostHog only; Health stays firewalled |
+| Trusting any one network's reported conversions | Self-reported numbers overstate by 50-100% (platform optimization bias) | Always reconcile to PostHog + Stripe ground-truth |
 
-**Complexity overall: L** (block library is the heavy lift; editor + preview is medium)
+**Dependencies on v1.2:** PostHog + Edge Functions + admin dashboard infrastructure all exist. New: cron infrastructure (Vercel Cron already used in v1.2; M-A adds 3 fresh schedules + per-network API client libs).
 
-> Audience asymmetry note: this is a marketing/process surface for us (the operator), but the OUTPUT is end-user-facing. Apply aggressive foundations on the rendered blocks; apply minimum-viable on the editor UX.
+**Complexity overall: L** (per-network API client + reconciliation layer is the bulk; the cron + dashboard is straightforward)
 
 ---
 
-## 7. Viral Affiliate Program
+## Workstream B — Product Depth (web)
 
-### Table Stakes
+### 7. Embed-provider blocks (Calendly + YouTube + Tally)
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Unique referral code per partner + `?ref=` URL param | The protocol of every affiliate program | S | 8-char short code; persist in `partners.code` |
-| Cookie-based attribution (30-day window) | Industry standard | S | Set `lsa_ref` cookie on `?ref=` hit; consume on signup |
-| Partner dashboard: clicks / signups / paid / commission earned / payout history | What every affiliate platform shows | M | Pattern from Rewardful, PartnerStack. Source: [SaaS affiliate software](https://userjot.com/blog/saas-affiliate-program-software-2025) (MEDIUM) |
-| Self-referral fraud detection (same email/IP/payment method as partner) | This is the #1 abuse vector | M | Match partner email/IP against new-signup email/IP/Stripe `payment_method.fingerprint`. Source: [Rewardful self-referral detection](https://www.rewardful.com/articles/self-referral-fraud-detection-for-saas-founders) (HIGH) |
-| Stripe Connect payout button → real money to bank | Without payout there's no program | M | Reuses #5 above; tax-form collection is the long pole |
-| Marketing assets (banner kit, copy templates, screenshots) | Partners need ammo | S | Static folder + design-system-styled creatives |
-| Commission rules (recurring or one-time; % or flat) | Founder must be able to tune the program | M | Per-partner override of platform default; effective-from date |
+| 3 new block types in page-builder: Calendly, YouTube, Tally | The 3 most-requested embed targets for SaaS landing pages | S | One JSON schema + one React component per provider; reuses v1.2 page-builder block API |
+| Provider-specific sandboxing (`<iframe sandbox="allow-scripts allow-forms">`) | XSS containment | S | Per-provider sandbox attribute allowlist |
+| Lazy-loading (`<iframe loading="lazy">`) below-the-fold | Lighthouse Performance score | S | HTML attribute; fallback `IntersectionObserver` for above-fold-deferred |
+| Consent-gated load (don't load Calendly until user grants "Functional" cookie) | GDPR + v1.2 vanilla-cookieconsent already wired | M | Block renders placeholder until `consent.functional === true`; then mounts iframe |
+| Per-provider config UI in page-builder editor (Calendly URL, YouTube video ID, Tally form ID) | Without it, admin must hand-edit JSON | S | Block right-rail config form per type |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Tiered commission (silver 15% / gold 25% / platinum 35% based on MRR-driven) | Top 1% of partners do 90% of volume — reward them visibly | M | Auto-tier transition on threshold; partner-visible progress bar |
-| Custom landing pages per partner (`/r/coachjane`) | Partners get a co-branded landing — much higher conversion than a `?ref=` link | M | Page builder + partner override of hero copy + auto-applied ref cookie |
-| Two-sided incentive: referred user gets first month 50% off | Higher click-through; lower CAC; standard for B2C SaaS | S | Stripe promotion-code tied to ref code |
-| Public affiliate leaderboard (opt-in) | Social proof + competitiveness | S | Top 10 partners by 30-day MRR-driven; anonymized handles |
+| Calendly inline-embed with pre-filled email when visitor is logged-in | Higher booking conversion | S | URL param `?email={user.email}` |
+| YouTube facade (poster image + play button → load iframe on click) | ~600KB savings per video on initial load | S | `lite-youtube-embed`-style pattern |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| MLM / multi-tier ("partners earn from partners they recruit") | "Viral growth!" | Edges into MLM regulation; almost every legitimate SaaS does NOT do this; trust signal goes the wrong way | Single-tier only |
-| Pay partners in product credit instead of cash | "Save money" | Top partners want money; the tiny ones don't drive material volume anyway | Cash via Connect. Credit is a separate "ambassador" track maybe later. |
-| Pay on click | "Easy attribution" | 100% bot-fraud target | Pay on first paid charge or first month retained |
-| Public affiliate sign-up with auto-approval | "Frictionless" | Coupon-stacking communities will signup en-masse, drop ref links on Reddit, drain budget | Application + 24–48h manual approval for v1; auto-approve for warm referrals |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Generic "paste any iframe URL" block | XSS surface; consent-gating gets ambiguous | Whitelist 3 providers; add more via PR review |
+| Tracking pixels / Hotjar / FullStory embed | Privacy + consent complexity | Channel through PostHog only |
+| Auto-play YouTube videos | UX hostility + cookie consent triggers | Click-to-play only |
 
-**Complexity overall: L** (program logic is moderate; the Stripe Connect tax pipeline is what makes it L)
+**Dependencies on v1.2:** Page Builder block infrastructure (v1.2 Phase 15) + vanilla-cookieconsent (v1.2 Phase 22 GDPR-01).
 
----
+**Complexity overall: S-M**
 
-## 8. Ad Network (Embed + AdMob/Ad Manager + House Ads)
+### 8. Spanish i18n (react-i18next)
 
-### Table Stakes
+**Industry standard for SaaS:**
+- **Namespace organization**: split by feature/domain (`common`, `dashboard`, `pricing`), keep nesting 2-3 levels deep max. Source: [Crowdin React i18n tutorial](https://crowdin.com/blog/react-i18n) (MEDIUM)
+- **Pluralization**: ICU MessageFormat handles complex cases (Polish 4 forms, Arabic 6 forms); for EN→ES alone, i18next default `_one`/`_other` is sufficient
+- **Translator workflow**: Crowdin (most common, GitHub sync + OTA updates) > in-house spreadsheets
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| AdMob SDK on mobile (Capacitor plugin) + Ad Manager on web | The two providers Google offers; AdMob = mobile, Ad Manager = web/programmatic | M | `@capacitor-community/admob` for native; GPT (Google Publisher Tag) for web |
-| AdSense as fallback web provider | Lower fill but easier to qualify for | S | Just script tag + ad unit configuration |
-| Tier-based gating (free = ads, paid = no ads) | Without this the upgrade incentive collapses | S | Check `user.tier === 'paid'` in `<AdSlot>` wrapper; return null |
-| Three placement zones: marketing-site sidebar, free-tier dashboard banner, free-tier interstitial after-log | Three are enough; more = clutter | M | Defined slot IDs; component per zone |
-| Frequency cap (1 interstitial per 3–5 min session, or 1 per dose-log event whichever is rarer) | Avoid ad fatigue; preserve retention. Source: [Mobile interstitial best practices](https://yango-ads.com/blog/mobile-interstitial-ads) (HIGH) | S | Client-side localStorage timestamp gate |
-| **Health-data firewall: zero shared user ID, zero shared analytics, no HealthKit data in ad targeting** | Apple §5.1.3; non-negotiable | M | Cross-cutting constraint #1. Enforced by separate Supabase project OR rigorous schema isolation. |
-| Default advertiser block-list: all GLP-1 brand names + compound-pharmacy + telehealth-direct-to-consumer-GLP-1 | Regulatory landmine; users will hate seeing competitor brand ads inside our app | S | Configurable in admin; ship with pre-populated block-list |
-| Revenue dashboard (per placement, per provider) | We can't optimize what we can't see | L | Already in #4 — admin dashboard pulls AdMob + Ad Manager + AdSense reporting APIs |
+| `react-i18next` infrastructure + EN/ES namespaces split by surface (common/dashboard/marketing/email) | Industry baseline | M | One-time scaffold; lint-rule to forbid string literals in JSX after migration |
+| Full Spanish translation of UI + transactional emails + KB articles | The point of the workstream | L | Translation work is the bulk; engineering is the framework |
+| Language toggle in Settings + auto-detect from `Accept-Language` on first visit | Standard UX | S | localStorage persists user choice |
+| Pluralization via i18next `_one`/`_other` keys (sufficient for EN/ES) | Without it, "1 dose"/"2 doses" breaks | S | Default i18next behavior |
+| Server-side rendering of email templates in user's language | Email opens are language-sensitive | M | Resend template lookup by `lang` |
+| Locale-aware number/date formatting (`Intl.NumberFormat`, `Intl.DateTimeFormat`) | Spanish uses comma decimals | S | Use native Intl, not date-fns custom |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| House-ad system (cross-promote LeanShot annual plan, clinic-enrollment, AI coach upgrade) | When fill < 100% serve our own creatives; reduces the "blank ad slot" feeling + drives upgrades | M | `house_ads` table + waterfall: AdMob → Ad Manager → AdSense → House. Fill rate stays at 100%. |
-| Per-placement A/B (provider order, ad format) | We can find 10–30% revenue lift with this | M | Bucketed by user ID; analytics event per impression |
-| Rewarded video ("watch a 15s ad → unlock AI coach for 24h") | $15–$30 eCPM vs $5–$8 for interstitial; voluntary so no UX harm. Source: [Mobile ad eCPM data](https://maf.ad/en/blog/mobile-ads-ecpm/) (HIGH) | M | AdMob Rewarded; native-only (web doesn't have a comparable format) |
-| Direct-sold sponsorship slot (e.g., a GLP-1-adjacent supplement brand, vetted) | Higher CPM than programmatic; brand-safe | S | Embed-code slot wired to a sponsored creative; rotates with house ads |
+| Crowdin OTA updates for copy changes without app redeploy | Translators iterate without engineering | M | Crowdin CDN integration; load namespace JSON at runtime |
+| AI-assisted draft translations (Claude) reviewed by human | Speed up translator throughput | S | Edge Function: source EN → Claude → ES draft → translator review queue |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Ads on clinic / doctor-share / settings / onboarding screens | "More inventory" | PROJECT.md hard constraint; B2B trust kills + onboarding conversion tanks | Three zones only: marketing sidebar, dashboard banner (Home tab only), post-log interstitial |
-| Ads using HealthKit-derived data for targeting | Higher CPM | Apple §5.1.3 ban; instant app review rejection; potential FTC + EU regulator action | Contextual targeting only (URL, generic geo); explicit firewall |
-| Auto-playing video ads with sound | High CPM | Single biggest "I'm uninstalling this app" trigger | Muted + opt-in-for-sound only; rewarded format only for sound |
-| Native ads styled to look like LeanShot insight cards | High CTR | Crosses into deceptive; FTC native-ad disclosure rules require "Sponsored" label that defeats the styling | Banner + interstitial with clear "Ad" badge; native only with prominent disclosure |
-| Ads on iPad / large-screen experiences too | "Surface area!" | iPad health-app audience is smaller + more clinical-feeling; ads hurt more there | Phone + web only at v1.2; revisit |
-| Targeting by competitor app installs | "Win their users" | Most platforms ban this for health vertical | Out. |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Auto-translate via Google Translate API at request time | Translation quality + cost + latency | Pre-translated JSON files; AI-assisted drafts at build-time |
+| Localize app store metadata at v1.3 | Spanish market entry decision is separate | Defer to post-v1.3 if Spanish web traction shows |
+| Pluralize via JS string concat ("1 " + (count > 1 ? "doses" : "dose")) | Breaks immediately on any new language | i18next `t('dose_count', { count })` only |
 
-**Complexity overall: XL** (three providers × three placements × tier gating × admin reporting × the firewall enforcement is the hardest part)
+**Dependencies on v1.2:** None (greenfield); just integrates with existing component tree.
 
-> Health-context anchor: under no circumstances may an ad slot fire on a screen where Health-imported data is visible. Even if the firewall is correct, the optics ARE the message. Enforce at component level: `<AdSlot>` refuses to render if it has a HealthKit-derived ancestor.
+**Complexity overall: L** (translation work is the bulk; framework is M; coverage audit + lint enforcement is M)
 
----
+### 9. Pharmacology paywall test
 
-## 9. Push Notifications
+**Reputational considerations** — this is a **brand-level decision** that should be made up front, not iterated. The pharmacology curve (28 days past + 7 days projected) IS the LeanShot core value per PROJECT.md. Paywalling it carries brand risk.
 
-### Table Stakes
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Permission pre-prompt before system prompt | Standard mobile pattern; ~3× opt-in rate | S | Custom UI explaining categories before triggering iOS/Android system sheet |
-| Dose-reminder push (scheduled local notification) | THE core notification; without it the mobile app is a worse experience than the iPhone Medications app | M | `@capacitor/local-notifications`; scheduled at dose-time-set; cancelled on log-now-from-watch-or-phone |
-| Snooze action (15min / 1h / dismiss) | Industry expectation. Source: [Reminder app notification patterns](https://support.any.do/en/articles/8610107-how-notifications-work-permissions-sounds-daily-push-snooze) (MEDIUM) | S | Notification action buttons; re-schedule on snooze |
-| Categories with per-category toggle in settings: doses, AI insights, clinic operator alerts, streak warnings, payment-failed, marketing | Without per-category control, opt-out rate spikes | M | Per-category iOS UNNotificationCategory + Android channel |
-| Streak-warning push ("you'll lose your 12-day streak in 4 hours") | Engagement loop; works | S | Scheduled local notification |
-| Payment-failed push (cross-device, server-driven) | Required for dunning to work outside email | M | APNs + FCM via Supabase Edge Function; receives Stripe webhook |
-| Quiet hours / smart silencing (no doses pushed during 10pm–7am unless dose actually scheduled in window) | Sleep is sacred; dose is not | S | User-configurable quiet hours + per-notification override |
-| Web Push for browser users | Some users won't install the app | M | Service Worker + Push API; Vercel-hosted VAPID keys |
+| Defined split: past-curve (free) + forward-projection (paid) | Without explicit split, gating gets contested | S | Decision artifact in CONTEXT.md; safety info NEVER paywalled |
+| `<TierGate>` wrapper around forward-projection chart segments | Reuses v1.2 infrastructure | S | Already exists from Phase 14 |
+| In-app upgrade prompt at the projection-blur boundary | Contextual paywall pattern | S | Inline CTA, not modal |
+| PostHog event: `paywall_pharmacology_viewed` + `paywall_pharmacology_dismissed` | Measure rejection rate | S | M5a event taxonomy |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Adaptive dose-reminder timing ("you usually log around 8:15am — push at 8:05 instead of 8:00") | ML-light personalization; less notification fatigue | M | Last-7-day median log time per user; offset reminder by -10min |
-| Rich-content push with "log now" action without opening app | Reduces friction to log | M | iOS UNNotificationContentExtension + Android quick-reply action; calls Edge Function direct |
-| Clinic-operator alert push to operator app ("3 of your patients missed doses today") | Operational use of push for B2B | S | Same FCM/APNs; gated by operator role |
+| Free-tier weekly preview (Sunday: show full projection for the week to free users; then re-blur) | Demo the value without losing brand | M | Cron + tier-override window |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
-|---|---|---|---|
-| Marketing/promo push ("New feature! Check it out!") | "Re-engagement" | Highest uninstall correlation of any notification type; users perceive as spam | Limit to a hard cap (1 per month) and only after explicit opt-in for "Product updates"; default OFF |
-| Push every "insight" the rule engine generates | Insights are frequent; pushes would be hourly | Notification fatigue → opt-out → losing the channel | Push max 1 daily insight, picked by rank; rest stay in-app only |
-| Critical Alert authorization for dose reminders | "Sounds even on silent mode" | Apple requires special entitlement + justification; reviewers reject if not life-critical (GLP-1 isn't insulin) | Standard time-sensitive notification; user can elevate manually in Settings |
-| Health-claim copy ("Your A1C is improving!") | Engagement | FTC health-claim rules; we don't have the clinical authority | Operational copy only ("Logged your morning dose? Tap to log.") |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Paywall drug interactions / side-effect lookup | Safety-critical content; reputational nuke | NEVER. Free for all tiers. |
+| Paywall current-dose tracking or basic chart | Core utility; users churn | Free. |
+| Paywall doctor-share generation | B2B trust + flagship use case | Free. |
+| Hide chart entirely behind paywall (vs blur with upgrade-CTA) | Removes preview value | Always show blurred preview |
 
-**Complexity overall: M** (per-category settings + Web Push are the long poles)
+**Dependencies on v1.2:** `<TierGate>` (v1.2 Phase 14). Pharmacology curve component (v1.0 baseline).
+
+**Complexity overall: S** (the engineering is trivial; the brand decision is the load-bearer)
 
 ---
 
-## 10. Lifecycle Email + Onboarding Revamp
+## Workstream C — B2B Clinic + HIPAA
 
-### Table Stakes
+### 10. Clinic organizations (B2B2C billing — per-active-patient vs flat per-seat vs hybrid)
+
+**Industry pattern**: Healthcare SaaS uses **hybrid pricing** most commonly — per-patient metered + base subscription, OR per-provider-seat + per-encounter overage. Source: [Vozo Health Pricing Guide](https://www.vozohealth.com/blog/the-ultimate-guide-to-healthcare-software-pricing-models), [Dodo Hybrid Billing Models](https://dodopayments.com/blogs/hybrid-billing-models-saas) (MEDIUM)
+
+#### Table Stakes
 | Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Welcome email Day 0 | Highest-intent moment in entire lifecycle; aim 60%+ open rate. Source: [SaaS lifecycle email guide](https://mailsoftly.com/blog/email-marketing-for-saas/) (MEDIUM) | S | Resend transactional template; tied to `auth.users` insert webhook |
-| Onboarding sequence (behavior-triggered, not time-triggered) | "Customers hitting first-value within 14 days retain 80%+; vs 35–50% if they don't". Source: [SaaS onboarding email best practices](https://mailsoftly.com/blog/user-onboarding-email-best-practices/) (MEDIUM) | M | Triggered by milestones: signed-up, logged-first-dose, logged-first-weight, completed-onboarding-wizard |
-| Receipt / invoice email | Stripe sends auto-receipt — we just need a Resend-styled mirror | S | Stripe webhook → Resend |
-| Password reset (already in v1.1, but design-system refresh now) | Visual parity with new design | S | Reuse Supabase Auth flow; new Resend template |
-| Clinic-invite email (exists from v1.1) | Re-design to new system | S | Existing template; restyle |
-| Affiliate-attribution email ("You earned $X this month") | Affiliate engagement | S | Monthly Resend send to partners with non-zero payouts |
-| Re-engagement after 7 days of no log | Retention save | M | Triggered by `last_log_at < now() - interval '7 days'` cron |
-| Cancellation save / win-back at +30 days | Standard retention loop | M | Triggered by `subscription_canceled_at + interval '30 days'`; offer is 1 month at 50% |
-| Domain verification + DKIM / SPF / DMARC on `app.leanshot.app` and `mail.leanshot.app` | Without this, email goes to spam | S | Carry-over from v1.1 deferred item per `reference_resend_phase9_wiring.md` |
-| Unsubscribe + per-category email preferences | CAN-SPAM + GDPR | S | Resend audiences + preference center page |
+| `organizations` table + `org_members` (role: admin/operator/billing) + `org_subscriptions` table | B2B foundation | M | Builds on v1.2 clinic operator surface |
+| Stripe Billing per-active-patient metering (definition of "active" locked in CONTEXT.md) | Industry standard for value-aligned billing | M | "Active" = logged-event-in-last-30-days; nightly true-up to Stripe `usage_records` |
+| Patient invite flow: clinic admin enters email → magic link → patient onboards under org | Flagship B2B onboarding | M | Reuses v1.2 magic-link infra; `org_member.added_by` audit |
+| `paying_org_id` disambiguation column on `auth.users` | Decides whose Stripe sub funds this patient | M | RLS schema change; migration affects all v1.2 patient-data tables |
+| Org admin dashboard (different from operator dashboard — billing, members, settings) | Distinct from clinical operator UI | M | Sub-route `/clinic/{slug}/admin` |
+| Clinic-side patient roster with health-aware status (extends v1.2 roster) | v1.2 already ships roster + drill-in | S | Extends with billing-status badges |
 
-### Differentiators
+#### Differentiators
 | Feature | Value Proposition | Complexity | Notes |
 |---|---|---|---|
-| Milestone celebration emails (first 7-day streak, first month, first titration step) | Reinforcement loop; high open rate; share-card embedded | S | Triggered by streak engine; share-card image inline |
-| Doctor-share-summary email to the patient when their doctor opens the share link | Loop close + trust signal ("your doctor reviewed your data") | S | Triggered by share-link view event; conditional opt-in |
-| Weekly digest (opt-in): your drug curve + your streak + your insight of the week | Engagement without notification fatigue | M | Background job renders the digest server-side as inline HTML |
+| White-label theming (clinic logo + color overrides on patient-facing surfaces) | Premium clinic upsell | M | CSS variable injection per org; lock to font-stack to avoid full redesign |
+| Custom rank weights (per-clinic configurable patient-priority scoring) | Carry-over from v1.2 Out-of-Scope | M | `org_rank_config` JSONB; operator dashboard sorts |
+| Dose-trend alerts (clinic gets push when patient deviates from titration schedule) | Clinical workflow value | M | Cron + push fan-out (v1.2 push infra not yet shipped — block on P17) |
+| Two-tier clinic plans (Lite per-patient $10/mo, Plus per-patient $20/mo + white-label) | Standard B2B segmentation | S | Stripe price catalog |
 
-### Anti-Features
-| Feature | Why Tempting | Why Don't | Alternative |
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Per-seat (per-operator) billing only | Misaligns with patient-value clinic delivers | Hybrid: per-active-patient is primary; per-operator-seat optional add-on |
+| Self-serve clinic signup (anyone-can-make-an-org) | Spam + impersonation + HIPAA risk | Manual approval + sales-call workflow for v1.3; self-serve in v1.5 |
+| Multi-clinic per patient ("Dr. A AND Dr. B both see me") | Conflict resolution + RLS combinatorics | Single-clinic-per-patient v1.3; revisit |
+| Patient sees clinic admin dashboard | Role-bleed | Strict RBAC: patient-view never includes admin tools |
+
+**Dependencies on v1.2:** Existing clinic operator surface (v1.1 + v1.2 Phase 22). Stripe Billing + metering (v1.2 Phase 14). v1.2 Phase 19 affiliate `tier_effective` view (B2B sub adds 4th provider source — `org` on top of `stripe` + `revenuecat` + `manual`).
+
+**Complexity overall: L-XL** (schema migration impact + Stripe metering + white-label + invite flow = biggest single v1.3 workstream)
+
+### 11. HIPAA BAA path — what clinics actually ask for
+
+**Bottom line from research**: A signed BAA is the **legally non-negotiable** floor. SOC 2 and HITRUST are **trust signals** but DO NOT replace the BAA. Source: [Total HIPAA — SOC2 vs BAA](https://www.totalhipaa.com/what-is-soc2-audit-and-can-it-replace-a-baa/), [Linford & Co SaaS HIPAA Guide](https://linfordco.com/blog/saas-hipaa-considerations/) (HIGH)
+
+**What clinics actually ask for (in typical priority order):**
+1. **Signed BAA** with LeanShot (REQUIRED before any PHI flows)
+2. **Downstream BAAs** — list of every subprocessor that touches PHI (Supabase, Vercel, Resend, Sentry, OpenAI/Anthropic), each with its own BAA
+3. **SOC 2 Type II report** (signal of operational security maturity)
+4. **Encryption standards** — at rest (AES-256), in transit (TLS 1.2+), key management
+5. **Incident response plan** + breach notification SLA (HIPAA requires ≤60 days)
+6. **Access controls + audit logs** (who accessed which PHI when)
+7. **MFA enforcement** for all employees with PHI access
+8. **Annual risk assessment + employee security training**
+9. **HITRUST certification** — bigger clinics ask; smaller don't; LOW priority for v1.3
+
+#### Table Stakes (v1.3 must-ship for first BAA-signed deal)
+| Feature | Why Expected | Complexity | Notes |
 |---|---|---|---|
-| Daily email | "Top of mind" | Unsubscribe magnet | Weekly digest opt-in only |
-| Health-claim subject lines ("Lose 5lbs this week!") | "Higher open rate" | FTC + Apple §1.4.1 | Operational subject lines; trust > clicks |
-| Sharing user data with email-list-buyers / lookalike-audience seeding | "Growth!" | HIPAA-adjacent + GDPR + just bad | Hard no |
-| Behavioral targeting from email opens to ad networks | "Connect the funnel" | Crosses the Health-data firewall if any health attribute leaks | Email engagement stays in Resend; never leaves to ad network |
+| Signed BAA with Supabase (requires Team tier $599/mo) | Database holds the PHI | S (process; $$) | Upgrade gate + paperwork |
+| Signed BAA with Vercel (Enterprise tier required) | Edge function runtime touches PHI | S (process; $$) | Negotiate; price-tier varies |
+| Resend BAA OR switch to Paubox/AWS SES with BAA | Email contains PHI references | M | Resend BAA status as of 2026-05 — verify; AWS SES is the proven fallback |
+| Sentry BAA (Business tier) | Error reports may carry PHI in stack traces | S (process; $$) | + Sentry data-scrubbing config to redact PHI fields |
+| OpenAI / Anthropic Zero Data Retention + BAA (Enterprise / API ZDR addendum) | AI coach sees PHI | M | Anthropic offers ZDR on Enterprise tier; verify BAA availability — fallback: local-only summarization for BAA-clinic patients |
+| Audit log hardening — every PHI read/write logged with `actor_id` + `accessed_user_id` | OCR audit requirement | M | Extends v1.2 audit_logs; add coverage to every PHI-touching Edge Function |
+| MFA enforcement for all admin + operator roles | Compliance + security | M | Builds on M1 admin 2FA work |
+| Periodic access reviews (quarterly cron → admin) | Compliance | S | Cron + admin UI surface |
+| Employee security-training tracking + signed acknowledgments | Compliance evidence | S | Manual process; tracked in vendor checklist |
+| Written policies (Privacy, Security, Incident Response, Breach Notification, Access Control) | OCR audit requirement | S | Template-based; legal review |
+| Annual risk assessment | Compliance | S | Annual review; document in security wiki |
 
-**Complexity overall: M** (templates are small; the trigger plumbing + preference center + Resend audience setup is the bulk)
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Self-serve BAA download for qualifying clinics (after sales workflow) | Speeds clinic onboarding | S | Templated PDF; e-sign integration optional |
+| SOC 2 Type II in-progress badge on marketing site | Trust signal pre-completion | S | Image + "in progress" disclosure |
 
-> Audience asymmetry note: end-user-facing → aggressive. The cancellation save + milestone emails alone often pay back a quarter's email-tooling spend.
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Marketing as "HIPAA-compliant" before all subprocessors have BAA | Legal exposure if breach | Wait until full chain is signed |
+| HITRUST certification before SOC 2 | HITRUST is 10-20x cost + most clinics don't ask | SOC 2 Type II first; HITRUST only if a specific deal demands |
+| Self-built BAA template | Legal liability | Use Supabase/Vercel/Resend templates + counsel review |
+
+**Audience asymmetry note:** This is **regulator/process audience** — cheapest defensible posture wins. Don't build custom HIPAA-vault encryption when Supabase Team tier delivers compliance for $599/mo. Counsel for BAA templates + the vendor-tier upgrades = ~$5-15k in v1.3; everything else is process work.
+
+**Dependencies on v1.2:** v1.2 Phase 22 admin foundation + audit-logs. New: Supabase Team tier upgrade is the hard $$ gate.
+
+**Complexity overall: L** (process + paperwork + vendor tier upgrades; engineering is M)
 
 ---
 
-## Feature Dependencies
+## Workstream M2 — Onboarding Overhaul
+
+### 12. Onboarding overhaul (progressive disclosure + value-first + magic link + smart defaults)
+
+**2026 SaaS onboarding best practices:**
+- **Time-to-value > everything** — fewer signup fields, more product-first
+- **Progressive disclosure** — show essentials first, reveal complex options as needed [UXPin Progressive Disclosure 2026](https://www.uxpin.com/studio/blog/what-is-progressive-disclosure/) (MEDIUM)
+- **Magic link / passwordless** — Figma + Linear pattern; reduces password-reset funnel drop
+- **Anonymous-then-merge** — let user experience value, then commit (Figma "design in browser first" pattern)
+- **Smart defaults from Accept-Language + IP** — pre-fill country, language, units (kg/lb) [Arcade Onboarding 2026](https://www.arcade.software/post/customer-onboarding-best-practices) (MEDIUM)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Anonymous-trial session (no signup required to start tracking) | Industry-leading conversion pattern | L | New: `anonymous_sessions` table; localStorage handoff on signup; **critical schema risk** — must atomically merge into authenticated user on signup |
+| Magic link auth + Google/Apple OAuth (in addition to existing email/password) | Passwordless = 30%+ less signup-funnel drop | M | Supabase Auth has built-in magic-link + OAuth; UI rework |
+| Single-question-per-screen wizard (vs v1.2 multi-field-per-step) | Mobile-parity + cognitive load reduction | M | Refactor existing 7-step wizard |
+| Smart defaults: country from IP, language from Accept-Language, units (kg/lb) from country | Skip 3 questions = higher completion | S | Existing geo-IP + `navigator.language`; defaults are overridable |
+| Activation event definition + measurement (e.g. "logged 3 injections + 1 weight in first 7 days") | M-A paywall A/B depends on this | S | Decision artifact + event implementation; M5a taxonomy |
+| Resumable cross-device (start onboarding on phone, finish on laptop) | Mobile-to-desktop handoff | M | Onboarding state persisted server-side per user |
+| Mobile parity (≥44px tap targets, single-thumb reachable controls) | Mobile-first onboarding | M | Component audit; sticky CTAs |
+| Social proof on signup screen (logos / testimonials) | Industry standard | S | Static asset; ties to v1.2 page-builder testimonial block |
+| Admin drag-and-drop step builder (operator can add/reorder onboarding steps) | A/B test new flows without redeploy | M | Reuses v1.2 page-builder dnd-kit infrastructure |
+| A/B variant rollout via PostHog flags | Test new onboarding flows | S | Same flag infra as M-A |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Pre-fill medication + dose from prescription photo (Claude vision API) | Magical first-impression; saves 4 fields | M | Edge Function: image upload → Claude → parsed JSON → confirmation UI |
+| Gamified onboarding completion (XP for completing each step) | Ties to M3 gamification | S | Trigger XP grant; ties to M3 work |
+| Branching onboarding by GLP-1 (semaglutide vs tirzepatide vs liraglutide) | Right-content-for-right-user | S | Per-drug step subset |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Mandatory email verification before any product use | Conversion killer | Verify async; allow product use during verification window |
+| 7-step wizard with all-fields-required | High abandonment | Single-question-per-screen + most fields skippable |
+| Modal-blocking tour on first dashboard visit | Hostile; users want to explore | Inline tooltips + dismissable callouts |
+| Force credit card before any value | Trial-conversion antipattern (covered by v1.2 7d-card-required trial as compromise) | Anonymous + card-required at activation event, not at signup |
+
+**Critical schema dependency:** Anonymous-to-authenticated session merge is the **highest-risk v1.3 schema change**. Existing v1.2 store-merge logic was designed for "local-only → cloud sync" not "anonymous-trial → signup". Must atomically: (1) create real auth.users row, (2) re-assign all anonymous-session rows from `session_id` to `user_id`, (3) delete anonymous session, (4) handle race conditions if user signs up twice from same browser. **Plan for dedicated migration phase + e2e tests** before exposing.
+
+**Dependencies on v1.2:** v1.2 Phase 22 lifecycle email (welcome) carries; magic-link Supabase Auth exists. Page-builder dnd-kit (v1.2 Phase 15) reused for step builder.
+
+**Complexity overall: L-XL** (anonymous-session merge + admin step builder + smart defaults stack)
+
+---
+
+## Workstream M3 — Gamification + Review Prompt
+
+### 13. Gamification engine (XP / levels / freeze tokens / leaderboards / weekly challenges)
+
+**Duolingo playbook benchmark**: streaks increase commitment 60%, XP leaderboards drive 40% more engagement, streak-freeze reduced churn 21% for at-risk users (daily users averaged 17.19 streak-days past 7-day mark with freeze vs 11.62 without). Source: [Orizon Duolingo Gamification](https://www.orizon.co/blog/duolingos-gamification-secrets), [Trophy Duolingo Case Study](https://trophy.so/blog/duolingo-gamification-case-study) (MEDIUM)
+
+**Ethical constraints (health audience)**: NO sad-mascot push, NO escalating visual urgency (flame-icon faster animations), NO XP-grinding-favors-easy-content. Source: [DEV Duolingo Dark Patterns](https://dev.to/yaptech/duolingos-shallow-learning-trap-gamified-streaks-harmful-habits-4134) (MEDIUM)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| XP awarded on tracked events (log dose, log weight, complete check-in) with per-event point values | Foundation | M | `xp_events` table; per-event-type config; nightly aggregate |
+| Levels (every N XP unlocks next level + cosmetic reward) | Progression loop | S | Level curve config; UI badge |
+| Streak counter (existing v1.0) + Streak Freeze tokens (earned weekly, max 2 stockpiled) | The single highest-impact mechanic | M | Extends v1.0 `streaks`; `streak_freezes` table; consumed automatically on missed day |
+| Weekly challenges (e.g. "Log every dose this week" → 200 XP + freeze token) | Engagement loop | M | Per-week challenge JSON config; cron generates user-challenges; admin can author new challenges |
+| Optional opt-in leaderboard (weekly XP) — anonymized handles + opt-in only | Social proof without forced exposure | M | Per-week reset; user can opt-out anytime |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Streak repair (one-time-per-month "I missed a day, restore my streak") | Loss-mitigation without monetizing anxiety (vs Duolingo paid freeze) | S | Cooldown gate; no monetization |
+| Achievement badges (first 7-day streak, first month, first titration step, first 100 doses) | Reinforcement | M | `achievements` table; trigger on event; v1.2 DS-10 illustrations exist |
+| Share-card on level-up (auto-generated PNG for social) | Viral loop | S | Reuses v1.2 share-card infrastructure |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Monetized streak freeze (pay to recover lost streak) | Ethical line in health context; Duolingo-style dark pattern | Freezes earned only; one free repair/month |
+| Sad-mascot guilt notifications | Manipulative; brand risk in health vertical | Operational reminders only ("you have 4 hours to log") |
+| Escalating-urgency push (faster animations, red badges late in day) | Same | Calm + steady push timing |
+| Global cross-tenant leaderboard for clinics | Competitive sorting between patients of different clinics is wrong | Per-clinic only OR opt-in personal-only |
+| XP for clinical actions that pressure over-titration | Health harm risk | XP only for tracking-completeness, never for clinical-outcome metrics |
+
+**Dependencies on v1.2:** v1.0 streak engine + v1.2 DS-10 gamification illustrations (bronze/silver/gold badges, achievement-shield) already shipped.
+
+**Complexity overall: M-L**
+
+### 14. Review prompt engine (two-stage: internal NPS → external review or feedback ticket)
+
+**Canonical pattern**: Show emoji/NPS first → promoters get App Store/Play Store review CTA; detractors get internal feedback form (never go to public review). Apple allows max 3 prompts per 365 days. Source: [Apple Ratings & Reviews](https://developer.apple.com/app-store/ratings-and-reviews/) (HIGH), [Appcues review request examples](https://www.appcues.com/blog/mobile-app-review-request-examples) (MEDIUM)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| NPS prompt at moment-of-satisfaction (e.g. after 7-day streak hit, after first month, after doctor-share viewed) | Industry pattern | M | Trigger config per-event; max-per-user gate |
+| Promoter route → native review prompt (iOS `SKStoreReviewController` / Android Play In-App Review) | Apple/Google approved review flow | M | Capacitor plugin (when P16 ships); web fallback = star-rating link |
+| Detractor route → internal feedback form (becomes a helpdesk ticket) | Defuse before public negative review | S | Form → M6 ticket schema |
+| Cooldown enforcement: max 3 prompts per 365 days (Apple), max 1 per quarter (our policy) | Compliance + UX | S | localStorage timestamp + server-side audit |
+| Per-platform CTA (iOS → App Store deep link; Android → Play Store; Web → Trustpilot/G2) | Channel-right destination | S | Platform detection |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Detractor follow-up loop: AI-summarized feedback themes → product backlog | Closes the loop on negative feedback | M | Claude classification + admin dashboard |
+| Promoter loop: thank-you email with referral-program nudge (M-A affiliate) | Ties to affiliate growth | S | Resend template + ref code |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Prompt every active user immediately on app open | Apple guidelines + UX hostility | Moment-of-satisfaction trigger only |
+| Bribe-for-review ("get $5 if you review") | Apple §3.2.2(iii) violation + review-platform fraud | Genuine satisfaction-trigger only |
+| Send detractors to public review platform | Defeats the purpose | Internal feedback ticket only |
+
+**Dependencies on v1.2:** M3 review-prompt engine depends on **M5a event taxonomy** (need stable event names to trigger off) + **M2 activation event** (one valid satisfaction-moment). Native review APIs depend on P16 mobile shells (v1.2 deferred to v1.4).
+
+**Complexity overall: M**
+
+---
+
+## Workstream M5b partial — AI Personalization Recommender
+
+### 15. Next Best Action + content recommendations (pgvector + weekly Claude summary + win-back)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| pgvector extension + embeddings for user-activity profiles | Foundation | M | Supabase has pgvector built-in; HNSW index on `user_profile_embeddings`; cosine similarity (`<=>` operator). Source: [Supabase pgvector docs](https://supabase.com/docs/guides/database/extensions/pgvector) (HIGH) |
+| Embedding generation cron (nightly: user-activity → OpenAI/Cohere embedding → store) | Without it, no similarity search | M | Edge Function cron; batch API for cost |
+| Next-Best-Action card on dashboard ("Try logging your sleep — users like you log it 4× more often") | Visible recommendation surface | M | Top-K similar users → their most-engaged-with feature this user doesn't use yet |
+| Weekly Claude summary email (every Sunday: "Your week in numbers + 1 insight") | Engagement loop | M | Cron + Claude prompt + Resend |
+| Win-back prompt for at-risk users (no log in 14 days) | Churn save | M | Cohort: stale users; Resend campaign; in-app modal on return |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| AI Coach memory (last 30-day summary persisted as embedding context) | More personalized coach replies | M | Embed summaries; inject into AI Coach context window |
+| Cross-user pattern detection ("users on 2.4mg semaglutide commonly report constipation around week 6") | Cohort-level insight | L | Aggregated, anonymized pattern surfacing; review by clinician before launch |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Predictive churn model that scores users with churn-risk visible to operators | Reductive labeling + breeds bias | Behavior-trigger emails instead |
+| Recommendations that pressure clinical decisions ("increase your dose") | Out-of-scope for non-clinician; safety risk | Tracking-completeness only |
+| Embed-search across patient PHI without RLS | Cross-tenant leak | RLS on `user_profile_embeddings` strict; embeddings cleared on user-delete |
+
+**Dependencies on v1.2:** M5a event taxonomy + cohort builder. Resend infrastructure carries. Anthropic Edge Function infrastructure carries.
+
+**Complexity overall: M-L**
+
+---
+
+## Workstream M6 — Helpdesk Core
+
+### 16. Helpdesk core (in-app widget + email-to-ticket + AI assist + KB + SLA)
+
+**AI deflection benchmarks 2026**: best-in-class 55-65% (Intercom Fin: 37.4% in one test; some "true resolution" platforms claim 90%+ — definitions vary). Source: [ServiceDeskAgents 2026 Benchmarks](https://servicedeskagents.com/deflection-rates/), [Duckie Resolution vs Deflection](https://www.duckie.ai/blog/ai-ticket-resolution-vs-deflection-why-90-resolution-beats-40-deflection) (MEDIUM)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| `tickets` + `ticket_messages` + `ticket_tags` schema with RLS (user sees own; admin sees all) | Foundation | M | New schema; reuse v1.2 audit pattern |
+| In-app help widget (lazy-loaded button bottom-right; opens chat-style UI) | Industry standard | M | New component; lazy-loaded to keep main bundle small |
+| Email-to-ticket via Resend Inbound | Standard channel | M | Resend has inbound webhook; parse → ticket; thread on Message-ID |
+| AI assist via Claude (drafts reply + auto-tags + auto-routes by topic) | M6 differentiator + agent throughput | L | Claude classification + draft generation; agent reviews/edits before send |
+| Knowledge-base articles with search (markdown source in repo or Supabase table) | Self-serve deflection | M | Page-builder pattern; per-locale; search via Postgres FTS or pgvector |
+| AI-powered KB suggestions in widget BEFORE ticket creation | Pre-emptive deflection | M | User types query → top 3 KB matches surfaced first; ticket only if user clicks "still need help" |
+| SLA tracking (first-response-time + resolution-time per priority) | Internal metric + admin visibility | S | Computed columns + admin dashboard |
+| CSAT survey post-resolution | Quality metric | S | 1-question email post-close |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Auto-route by topic (billing → @billing-agent; clinical → @clinical-agent) | Right-person-right-ticket | M | Claude classification → routing rule |
+| AI auto-resolve for high-confidence simple queries (refund-request with matching policy, password-reset link) | True resolution layer | L | Confidence threshold; user can escalate; full audit log |
+| Inline screenshot capture in widget (user uploads screenshot via paste) | Faster diagnosis | S | Browser clipboard API |
+| Ticket merge / split / parent-child | Power-user agent workflows | S | Standard helpdesk feature |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Force phone-call escalation in widget | Out-of-scope; we're SaaS not call-center | Email-only escalation |
+| AI auto-reply without agent review (for first message) | Risk of wrong-info; brand damage | Draft-only initially; auto-send only on high-confidence + bounded categories |
+| Shared inbox in a separate tool (Zendesk/Intercom integration) | Adds vendor + cost + sync complexity | Built-in own helpdesk; Intercom migration is post-v1.3 if needed |
+| AI access to patient PHI for context (e.g. "summarize their dose history before replying") | HIPAA risk if Claude sees PHI without proper BAA + ZDR | Defer until full BAA chain confirmed (workstream C) |
+
+**Dependencies on v1.2:** Resend infra (v1.2 Phase 22). Anthropic infra (v1.0). New: Resend Inbound is a separate Resend feature requiring config + DNS MX record.
+
+**Complexity overall: L** (the AI assist layer is the bulk; ticket schema + widget + KB are M each)
+
+---
+
+## Workstream M7 selective — Cancellation Saves + Status Page
+
+### 17. Cancellation save offers (pause / downgrade / discount / extended trial)
+
+**Industry benchmarks**: Churnkey reports 34% avg save rate (15-30% is "good", 30-42% is "top performers"). Pause: customers who accept stay 5.5 months longer; 60-70% of paused subs resume vs 8-12% of fully-cancelled win-back. Discount: 20-30% off for 2-3 months saves 20-35% of price-sensitive cancellers. Source: [SmartSMS Subscription Save Playbook](https://smartsmssolutions.com/resources/blog/business/article-3-spoke-subscription-save-offers-pause-cancel-winback) (MEDIUM)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Cancellation flow with required reason-selection (5-7 reasons + "other") | Without reason, can't match offer | M | Custom UI before Stripe Customer Portal cancel |
+| Reason-matched save offer (price → discount; missing feature → roadmap link; temporary situation → pause) | The whole point | M | Per-reason offer map; admin-configurable |
+| Pause subscription (Stripe `pause_collection`) for 1-3 months | Highest-recovery lever for "temporary situation" | M | Stripe API supports natively; in-app re-activation UI |
+| One-time discount (Stripe coupon: 20-30% off for 2-3 months) for "too expensive" | Standard | S | Pre-created Stripe coupons; admin can disable |
+| Win-back email at +30 / +60 / +90 days post-cancellation | Standard 5-15% recovery | M | Resend automation; campaign branching per cohort |
+| Exit-reason tracking → admin dashboard | Product learning | S | Aggregate per reason; tie to PostHog |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Personalized save offer based on usage (high-usage user → "extend trial" offer; low-usage → "let us help you get more value") | Reason-matched + behavior-aware | M | Cohort-aware offer selection |
+| Free month for clinic-referred patient if they explain barrier | High-touch for high-LTV cohort | S | Manual approval step |
+| Save-call CTA for >$X MRR customers ("Want to talk to a human?") | High-touch for high-value | S | Calendly embed (M-B blocks) |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Make cancel button hard to find / dark patterns | FTC + EU Modernisation Directive + brand damage | Clear cancel path; offers are alternatives, not blockers |
+| Auto-discount-everyone | Trains users to cancel-for-discount | Reason-gated only |
+| Permanent discount (lifetime 50% off) | Caps LTV forever | Time-limited (2-3 months) discounts only |
+
+**Dependencies on v1.2:** v1.2 Phase 14 Stripe Customer Portal cancel-flow + v1.2 Phase 22 Resend lifecycle infrastructure carries.
+
+**Complexity overall: M**
+
+### 18. Public status page (Better Stack vs Upptime)
+
+**Recommendation: Better Stack.** Upptime is GitHub-Actions-based (5-min polling, depends on GitHub status, free) and best for "developer team lives in GitHub". Better Stack ($22/user/mo) bundles monitoring + status page + incident management + alerting (email/Slack/Teams) into one tool; "anyone on the team can update during an incident without git". For LeanShot (B2B clinic deal pipeline; support is a CSM not a dev), Better Stack is right. Source: [Better Stack Statuspage Alternatives](https://betterstack.com/community/comparisons/statuspage-alternatives/) (MEDIUM)
+
+#### Table Stakes
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Public status page at `status.leanshot.app` | B2B signal of operational maturity | S | Better Stack subdomain config |
+| Per-service status (Web App / Mobile App / AI Coach / Sync / Email / Push) | Granular visibility | S | Per-service monitors |
+| Incident posts with timeline (investigating → identified → monitoring → resolved) | Standard incident comms | S | Built-in to Better Stack |
+| Subscriber notifications (email/Slack/RSS) | Stakeholder updates | S | Built-in |
+| Uptime SLA visible (e.g. 99.95% last 30 days) | B2B trust signal | S | Built-in |
+
+#### Differentiators
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Maintenance window scheduling | Pre-comms reduce surprise tickets | S | Built-in |
+| Auto-incident-on-monitor-alert | Reduces lag between detection + comms | S | Built-in to Better Stack |
+
+#### Anti-Features
+| Feature | Why Avoid | Alternative |
+|---|---|---|
+| Build our own status page | Time-sink for zero competitive advantage | Better Stack |
+| Hide incidents to avoid scaring users | Trust nuke when discovered | Transparent + fast resolution comms |
+
+**Dependencies on v1.2:** None (greenfield service); just DNS + Better Stack account.
+
+**Complexity overall: S** (vendor config + subdomain DNS)
+
+---
+
+## v1.3 Cross-Workstream Feature Dependencies
 
 ```
-[1 Capacitor mobile] ──requires──> [10 Lifecycle email] (onboarding wizard touched)
-                  ──requires──> [9 Push notifications] (local notifications API)
-                  ──enables───> [2 Watch apps] (watch app pairs with phone app)
-                  ──enables───> [3 Health SDK] (Capacitor plugin = native bridge)
+[M1 Foundation — Admin + Event Taxonomy]
+  ├──blocks── M-A paywall A/B test (needs event taxonomy)
+  ├──blocks── M-A page-builder A/B (needs PostHog event coverage)
+  ├──blocks── M3 review prompt engine (needs event triggers)
+  ├──blocks── M5b NBA recommender (needs cohort builder)
+  └──blocks── M6 helpdesk AI (needs server-side event capture for ticket-context)
 
-[2 Watch apps] ──requires──> [1 Capacitor mobile] (watch pairs with phone)
-              ──requires──> [9 Push notifications] (watch shows phone's notifications)
+[M2 Onboarding Overhaul]
+  ├──blocks── M-A paywall A/B test (activation event is M2 deliverable)
+  ├──blocks── M3 review prompt (one valid satisfaction moment is M2 activation)
+  ├──blocks── M3 gamification (onboarding-completion XP grant ties in)
+  └──enables── M5b NBA (user-profile-embeddings begin at signup)
 
-[3 Health SDK] ──requires──> [1 Capacitor mobile] (HealthKit + Health Connect = native)
-              ──firewall──> [8 Ad network] (HARD architectural barrier, never share data)
+[M-A Revenue]
+  ├──multi-tier affiliate ──requires── v1.2 Phase 19 single-tier (already shipped)
+  ├──paywall A/B ──requires── M1 event taxonomy + M2 activation event
+  ├──page-builder A/B ──requires── v1.2 Phase 15 page-builder + M1 event taxonomy
+  └──ad-spend ETL ──requires── M1 event taxonomy + PostHog server-side capture
 
-[4 Owner/admin] ──enhances──> [5 Stripe] (refund, plan-change, dunning queue all live here)
-               ──enhances──> [7 Affiliate] (payout approval queue)
-               ──enhances──> [8 Ad network] (revenue dashboard)
+[M-B Product Depth]
+  ├──embed blocks ──requires── v1.2 Phase 15 page-builder + v1.2 Phase 22 consent (vanilla-cookieconsent)
+  ├──Spanish i18n ──independent── of M-A/M-C; can ship parallel
+  └──pharma paywall ──requires── decision-artifact (no engineering blocker)
 
-[5 Stripe] ──blocks──> [7 Affiliate] (Connect Express is shared infra; build Stripe first)
-          ──blocks──> [8 Ad network] (tier gating: free=ads, paid=no-ads; needs paid concept first)
-          ──blocks──> [9 Push] (payment-failed push needs Stripe webhook)
-          ──blocks──> [10 Lifecycle email] (receipts + dunning emails)
+[M-C B2B Clinic + HIPAA]
+  ├──organizations + B2B billing ──blocks── on schema migration + v1.2 Phase 14 Stripe metering
+  ├──dose-trend alerts ──blocks── on P17 push fan-out (v1.4 work; degrade to email-only at v1.3)
+  ├──custom rank weights ──carry-over── from v1.2 Out-of-Scope
+  └──HIPAA BAA chain ──serial-process── (legal/vendor parallel to engineering)
 
-[6 Page builder] ──enhances──> [7 Affiliate] (custom partner landing pages)
-                ──independent──> everything else (can ship in parallel)
+[M3 Gamification + Review]
+  ├──XP/levels/streaks ──extends── v1.0 streak engine + v1.2 DS-10 illustrations
+  ├──leaderboards ──requires── M1 event taxonomy
+  └──review prompt ──requires── M5a event taxonomy + M2 activation event
 
-[7 Affiliate] ──requires──> [5 Stripe Connect] (payout rails)
-             ──independent of──> [8 Ad network]
+[M5b Recommender]
+  ├──pgvector ──requires── Supabase Pro (already on plan) + pgvector extension enabled
+  ├──NBA cards ──requires── M5a cohort builder
+  └──weekly Claude email ──requires── v1.2 Resend infra
 
-[8 Ad network] ──requires──> [5 Stripe] (tier concept)
-              ──requires──> [4 Owner/admin] (revenue dashboard)
-              ──conflicts──> [3 Health SDK] (firewall, not coexistence)
+[M6 Helpdesk]
+  ├──in-app widget ──independent── of M1/M2 schema work
+  ├──email-to-ticket ──requires── Resend Inbound DNS config + parser
+  ├──AI assist ──requires── HIPAA BAA chain or strict no-PHI-context for v1.3
+  └──KB articles ──requires── Spanish i18n if shipping multi-lingual
 
-[9 Push] ──requires──> [1 Capacitor mobile] (local notifications)
-        ──enhances──> [5 Stripe] (dunning recovery push)
-
-[10 Email] ──blocks──> [5 Stripe] (receipts) — but only weakly; Stripe has auto-receipt fallback
-          ──enhances──> [7 Affiliate] (payout notification)
+[M7 selective — Cancellation + Status]
+  ├──cancellation flow ──extends── v1.2 Phase 14 Stripe Customer Portal
+  └──status page ──independent── (vendor service)
 ```
 
-### Dependency Notes
+### Dependency Critical Path Analysis
 
-- **[Stripe] is the keystone:** Affiliate (#7) and Ad-network tier gating (#8) both block on it. Build Stripe FIRST, even before the design-system rollout, because every other monetization workstream needs the `tier` field on `auth.users` and the Connect platform account to exist.
-- **[Capacitor mobile #1] blocks the watch + Health + push trio:** all three (#2, #3, #9) need the native bridge. But push (#9) can ship a web-only version earlier on the marketing/web surface.
-- **[Health SDK #3] conflicts (architecturally) with [Ad network #8]:** This isn't a build-order conflict — it's a "compile-time firewall must exist" constraint. The firewall is itself a workstream item, not a phase ordering question.
-- **[Page builder #6] is the most independent workstream:** depends on the design-system rollout (workstream 0) but nothing else. Can run in parallel with everything.
-- **[Lifecycle email #10] and [Stripe #5] are co-dependent:** dunning emails need Stripe webhooks; receipt emails need Stripe charges. Build a thin Resend-templates pass with Stripe-shipped, expand once Stripe is in.
+The **M1 Foundation → M2 Onboarding → M-A paywall** path is the **longest serial dependency** in v1.3 — M-A paywall test is high-value but cannot ship until M1 taxonomy + M2 activation event are stable. **Recommendation: ship M1 + M2 as first wave; M-A/M-B/M-C/M3/M5b/M6/M7 parallelize after.**
+
+**Workstream C (B2B + HIPAA)** can start legal/vendor work IN PARALLEL with engineering on M1 immediately (per PROJECT.md "HIPAA work starts immediately in parallel"). The engineering for `organizations` schema can start once M1 lands its admin-shell modularization (or it ships its own module).
+
+**Workstream B Spanish i18n** is the most independent — it can ship as its own sub-phase any time after M1's event-name lint-rule lands (to avoid double-instrumentation rework).
 
 ---
 
-## MVP Definition for v1.2
+## MVP Definition for v1.3
 
-### Launch With (the "v1.2 GA" cut)
+### Launch With (the "v1.3 GA" cut — per PROJECT.md megamilestone scope)
 
-Ruthlessly: what does a peptide-tracker need to call v1.2 "shipped"?
+ALL 17 features above are in scope for v1.3 GA per the user's 2026-05-17 brief (Path 1 chosen, mobile v1.4 slips a quarter). Ruthless de-scope within each:
 
-- [ ] **Design system rollout** (workstream 0; precondition for everything else)
-- [ ] **Stripe patient B2C subs (free + paid)** — without paid tier, no monetization story exists
-- [ ] **Stripe clinic seats** — keeps the B2B story honest; we already have clinics in v1.1
-- [ ] **Mobile shells iOS + Android (Capacitor)** — the "cross-platform launch readiness" promise
-- [ ] **Push notifications: dose reminders + snooze (local notifications)** — the table-stakes mobile feature
-- [ ] **HealthKit + Health Connect read-only: weight + steps + sleep** (HR is differentiator, can wait)
-- [ ] **Lifecycle email: welcome, onboarding, receipt, password-reset, clinic-invite, re-engagement** — Resend infra
-- [ ] **Owner/admin surface MVP: members, MRR, churn, impersonation, refunds, audit log** — operational floor
-- [ ] **Ad network MVP: AdMob+Ad Manager on free tier dashboard + marketing sidebar, with house ads as fallback** — revenue story
-- [ ] **Affiliate program v1 (single-tier, manual approval, Stripe Connect payout)** — growth loop
-- [ ] **Page builder: 8 blocks + 3 templates (long-form, lead-magnet, comparison)** — needed for marketing iteration
-- [ ] **Watch apps: Apple Watch + WearOS with next-dose complication + log-from-watch** (minimum)
-- [ ] **Account deletion in-app + cookie consent + DSAR portal** — launch-essential compliance
+- **M1 admin** — bulk actions limited to top-5-most-frequent (CSV/tag/comp/ban/force-reset); per-module Edge Function permission checks done as a baseline pass not exhaustively
+- **M1 PostHog hardening** — event taxonomy + server-side capture for SIGNUP/PAYMENT/ACTIVATION only at GA; expand coverage post
+- **M-A paywall A/B** — single test (mid-trial-on-activation vs end-of-trial), not multi-variant offer-stacking
+- **M-A multi-tier affiliate** — 3 tiers (Standard / Gold / Lifetime) with locked-once-earned, NOT downgrade-on-volume-drop
+- **M-A page-builder A/B** — page-level only (block-level deferred to v1.5)
+- **M-A ad-spend ETL** — Meta + Google at GA; TikTok added as fast-follow if growth team needs (TikTok API is the most fragile)
+- **M-B embed blocks** — 3 providers only (Calendly + YouTube + Tally); no "generic embed" block
+- **M-B Spanish i18n** — UI + transactional email + KB; in-app help articles only via Crowdin OTA (no localized marketing for non-LATAM)
+- **M-B pharmacology paywall** — only forward-projection blur; past + safety free always
+- **M-C clinic orgs** — manual-approval signup only; self-serve in v1.5
+- **M-C HIPAA** — Supabase Team tier BAA + Vercel Enterprise BAA + Resend OR Paubox BAA + Sentry Business BAA + Anthropic ZDR ONLY. SOC 2 Type II in-progress at GA, completed post. NO HITRUST.
+- **M2 onboarding** — anonymous-trial + magic link + single-question-per-screen + smart defaults; pre-fill-from-Rx-photo deferred
+- **M3 gamification** — XP + levels + streak freeze + weekly challenges + opt-in personal leaderboard; cross-tenant leaderboards out
+- **M3 review prompt** — web first (Trustpilot/G2); native iOS/Android review APIs land with P16 (v1.4)
+- **M5b NBA recommender** — NBA cards + weekly Claude email + win-back; cross-user pattern detection deferred
+- **M6 helpdesk** — widget + email-to-ticket + AI draft (agent-reviewed) + KB; auto-resolve confidence-gated to refund-request + password-reset only
+- **M7 cancellation** — pause + discount + extended-trial offers; save-call CTA only for >$50/mo MRR
+- **M7 status page** — Better Stack vendor service
 
-### Add After Validation (v1.2.x patches in the 3 months after launch)
+### Add After Validation (v1.3.x patches in the 3 months post-v1.3)
 
-- [ ] Apple Watch HR-on-dose-day correlation card — wait for HealthKit opt-in data on actual users
-- [ ] Adaptive dose-reminder timing (ML-light) — needs sample size
-- [ ] Affiliate tiers (silver/gold/platinum) — wait until a partner does enough volume to justify
-- [ ] Rewarded video ad format — A/B against interstitial after we know baseline RPM
-- [ ] Mid-trial paywall on pharmacology projection — risky; only after we measure free-tier engagement
-- [ ] Page-builder A/B testing — start with manual A/Bs in v1.2; codify after we want 4+ live tests
-- [ ] Custom partner landing pages (`/r/coachjane`) — wait until 10+ active partners
+- Multi-tier affiliate downgrade rules (if VIP partner abuse surfaces)
+- Block-level A/B for page builder
+- TikTok Ads API integration
+- Per-creative ROI tracking
+- Onboarding AI Rx photo pre-fill
+- AI auto-resolve expanded categories (refund + password reset only at GA)
 
-### Future Consideration (v1.3+)
+### Future Consideration (v1.4+)
 
-- [ ] Clinic-sponsored patient billing (patient doesn't pay; clinic does) — wait for clinic demand
-- [ ] Watch standalone mode (no iPhone required) — cellular-watch adoption too low
-- [ ] HealthKit write-back — wait until "I wish my LeanShot weight showed in Apple Health" hits the feedback inbox 20+ times
-- [ ] Multi-language i18n (Spanish first) — wait until US base is saturated
-- [ ] Family / shared accounts — explicitly out per PROJECT.md
-- [ ] Group / cohort programs (workplace wellness) — separate go-to-market
+- Native iOS/Android review prompts (depends on P16 v1.4)
+- HITRUST certification (if a specific enterprise deal demands)
+- M4 Community (deferred to v1.5)
+- M5b full anomaly + churn model (deferred to v1.5)
 
 ---
 
 ## Feature Prioritization Matrix
 
-| Feature Area | User Value | Implementation Cost | Priority |
-|---|---|---|---|
-| 5. Stripe full | HIGH | XL | P1 |
-| 1. Mobile shells (Capacitor) | HIGH | L | P1 |
-| 9. Push notifications | HIGH | M | P1 |
-| 10. Lifecycle email | MEDIUM | M | P1 |
-| 4. Owner/admin | HIGH (operator) | L | P1 |
-| 3. Health SDK | MEDIUM | L | P1 |
-| 8. Ad network | HIGH (revenue) | XL | P1 |
-| 7. Affiliate | MEDIUM-HIGH | L | P1 |
-| 2. Watch apps | MEDIUM | XL | P1 (but de-scope to "complication + log" only) |
-| 6. Page builder | MEDIUM (us, not users) | L | P1 |
+| Workstream | User Value | Implementation Cost | Priority | Dependencies |
+|---|---|---|---|---|
+| M1 Foundation (admin + event tax) | HIGH (operator) | M-L | P1 | none — entry phase |
+| M2 Onboarding Overhaul | HIGH | L-XL | P1 | depends on M1 lint rule |
+| M-A Multi-tier Affiliate | MEDIUM-HIGH (growth) | M | P1 | v1.2 Phase 19 ✓ |
+| M-A Mid-trial Paywall A/B | HIGH (revenue) | M | P1 | M1 + M2 |
+| M-A Page-builder A/B | MEDIUM | M-L | P1 | v1.2 Phase 15 ✓ + M1 |
+| M-A Ad-spend ETL | HIGH (CAC) | L | P1 | M1 |
+| M-B Embed blocks | MEDIUM | S-M | P1 | v1.2 Phase 15 ✓ |
+| M-B Pharmacology paywall test | MEDIUM (revenue) / HIGH (brand risk) | S | P1 | none — decision |
+| M-B Spanish i18n | HIGH (TAM expansion) | L | P1 | independent |
+| M-C Clinic orgs + B2B billing | HIGH (B2B revenue) | L-XL | P1 | v1.2 Phase 14 ✓ |
+| M-C HIPAA BAA chain | LOAD-BEARING (B2B blocker) | L (process) | P1 | parallel legal track |
+| M3 Gamification | HIGH (retention) | M-L | P1 | M1 + v1.0 streaks + v1.2 DS-10 ✓ |
+| M3 Review prompt | MEDIUM | M | P1 | M2 + M5a |
+| M5b Recommender (partial) | MEDIUM | M-L | P1 | M5a |
+| M6 Helpdesk core | HIGH (operator) | L | P1 | independent |
+| M7 Cancellation save | HIGH (retention) | M | P1 | v1.2 Phase 14 ✓ |
+| M7 Status page | MEDIUM | S | P1 | independent |
 
-All ten workstreams are P1 (they're the v1.2 commitment). The matrix instead surfaces:
+**Highest cost-to-value:** Spanish i18n (translation labor) + M-C clinic orgs (schema sprawl + HIPAA chain). De-scope aggressively within each.
 
-- **Highest cost-to-value:** Ad network and Watch apps. Both should be de-scoped aggressively to their table-stakes core.
-- **Highest leverage:** Stripe (everything else depends on it) and Lifecycle email (touches every workstream's user touchpoint).
-- **Hidden risk:** Health SDK looks medium-cost but the **firewall enforcement work is what makes it L** — separate Supabase schema, separate analytics namespace, separate user-id hashing. Budget for that explicitly.
+**Highest leverage:** M1 Foundation (everything downstream needs the event taxonomy) + M2 Onboarding (the activation event unblocks paywall + review + recommender).
+
+**Hidden risk:** M2 anonymous-to-authenticated session merge schema change — highest-risk migration in v1.3. Plan for dedicated migration phase + e2e tests.
 
 ---
 
 ## Recommended Build Order (for ROADMAP phase ordering)
 
-This is the **dependency-respecting** sequence. Workstreams in the same row can run in parallel.
-
-1. **Phase A — Design system rollout (workstream 0)**
-   - Precondition; touches every surface
-   - Without it, every feature ships in the v1.1 design then gets visually rebuilt — wasteful
-2. **Phase B — Stripe core (workstream 5, B2C subs + clinic seats; defer Connect)**
-   - Unblocks tier-gating for ad network + affiliate-payout infra
-   - Add `tier` column to users, add `stripe_customer_id`, add Customer Portal link
-3. **Phase C — Mobile shells + Push (workstreams 1 + 9, parallel)** — both depend on the design system
-   - Capacitor wrap, store-listing assets, in-app deletion, local notifications
-4. **Phase D — Health SDK + Owner/admin foundation (workstreams 3 + 4, parallel)**
-   - Health needs the Capacitor shell from C
-   - Admin foundation needs the Stripe data from B
-   - **D includes the firewall infrastructure** even before #8 ships, so the architectural barrier exists before any ad code is written
-5. **Phase E — Lifecycle email + Page builder (workstreams 10 + 6, parallel)**
-   - Email triggers off Stripe events from B + onboarding milestones from C
-   - Page builder is independent; ships when capacity allows
-6. **Phase F — Ad network + Affiliate program + Stripe Connect (workstreams 8 + 7, with #5's Connect tail)**
-   - Ad network needs admin reporting from D + tier gating from B
-   - Affiliate needs Stripe Connect (built here) + page builder partner-landings from E (nice-to-have, not blocking)
-7. **Phase G — Watch apps (workstream 2)** — last because:
-   - Depends on phone (C), push (C), Health (D)
-   - Highest unit-cost-per-user-value
-   - Ship complication + log-from-watch only; defer HR correlation to v1.2.x
-8. **Phase H — Tech debt sweep + launch-essentials polish** (CLINIC-07, `s.user!` audit, photo trash, DSAR portal, cookie consent, deferred-tests batch-fix, knip CI)
+1. **Wave A — M1 Foundation (event taxonomy + admin shell modularization + PostHog server-side capture + cohort builder)** — Precondition for almost everything downstream. Ships event-name lint rule to prevent rework.
+2. **Wave B — M2 Onboarding Overhaul** — Defines activation event (unblocks M-A paywall + M3 review prompt). Anonymous-trial schema migration is the load-bearer.
+3. **Wave C (parallel) — M-A Multi-tier Affiliate + M-B Embed Blocks + M-B Spanish i18n + M-C Clinic Org Schema** — All can start in parallel once M1/M2 are stable.
+4. **Wave D (parallel) — M-A Mid-trial Paywall A/B + M-A Page-builder A/B + M3 Gamification + M-C Clinic Billing + M5b Recommender** — Mid-cycle. Stat-sig measurement begins.
+5. **Wave E (parallel) — M-A Ad-spend ETL + M3 Review Prompt + M6 Helpdesk Core + M-B Pharmacology Paywall Test + M7 Cancellation** — Late-cycle features riding on M1/M2/M-A infrastructure.
+6. **Wave F — M-C HIPAA Chain closure + M7 Status Page + GA polish** — Final cross-cutting closeout. Legal/vendor BAAs run in parallel from Wave A onward but legal-paperwork-closing-as-blocker lands here.
 
 ### Rationale
 
-- **Stripe first** because tier-gating is the universal precondition.
-- **Capacitor second** because it unblocks the watch + Health + push trio that gives v1.2 its "cross-platform" identity.
-- **Health + Admin in parallel** because they're independent build paths that converge in the firewall-and-reporting infrastructure.
-- **Ads + Affiliate near the end** because they're revenue-extraction features that need the rest of the surface to exist to extract from.
-- **Watch last** because it's the highest-effort, highest-risk-of-rejection workstream and shipping it broken hurts more than shipping it slightly late.
-
----
-
-## Competitor Feature Analysis (selective — only where it shifts priorities)
-
-| Feature | MyFitnessPal (B2C health) | Mounjaro / Wegovy Companion apps | Rewardful / PartnerStack (affiliate) | Our Approach |
-|---|---|---|---|---|
-| Free + paid + ads | Yes (Premium = $20/mo, ad-free) | Free + brand-funded | N/A | Match: free=ads, paid=ad-free, $9–$12/mo range likely |
-| Apple Health integration | Deep (read + write) | Read-only, limited | N/A | Read-only only; differentiate on dose-day HR correlation |
-| Apple Watch app | Yes, full-featured | Some (Wegovy has a basic one) | N/A | Complication + log-from-watch only; differentiate on streak + dose-countdown |
-| Ad targeting | Demographic + behavioral (NOT health) | None (compliance) | N/A | Contextual only; explicit firewall |
-| Affiliate program | Yes, low-key | None | N/A | Visible program + co-branded landing pages |
-| Page builder | No (uses Webflow externally) | No | No | In-house — competitive moat for our content marketing speed |
+- **M1 + M2 as serial pre-requisites** — without them, downstream A/B + review + recommender + paywall A/B all ship without proper instrumentation
+- **HIPAA legal work IN PARALLEL from day 1** — per PROJECT.md "HIPAA work starts immediately in parallel"; engineering doesn't gate on it but Wave F closure does
+- **Clinic orgs in Wave C-D** — schema is C, billing is D; allows parallel work on white-label theming
+- **Helpdesk + Cancellation late** — they ride on every other workstream's user touchpoint (AI helpdesk benefits from M5b context; cancellation saves benefit from M-A multi-tier affiliate cross-sell)
 
 ---
 
 ## Sources
 
-### Apple App Store + HealthKit
-- [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) — §5.1.3 + §5.1.1(v) (HIGH)
-- [Protecting user privacy — HealthKit](https://developer.apple.com/documentation/healthkit/protecting-user-privacy) (HIGH)
-- [Offering account deletion in your app](https://developer.apple.com/support/offering-account-deletion-in-your-app/) (HIGH)
-- [iOS App Store Requirements for Health Apps](https://blog.dashsdk.com/app-store-requirements-for-health-apps/) (MEDIUM)
-- [HealthKit vs Health Connect — Practical guide](https://www.diversido.io/blog/implementing-healthkit-and-google-fit-in-healthcare-apps---a-guide-for-both-operating-systems) (MEDIUM)
+### Affiliate Programs
+- [Rewardful Commission Guide 2026](https://www.rewardful.com/articles/affiliate-commission-explained) (MEDIUM)
+- [BoldDesk Best SaaS Affiliate Programs 2026](https://www.bolddesk.com/blogs/best-saas-affiliate-programs) (MEDIUM)
+- [Tapfiliate SaaS Commission Guide](https://tapfiliate.com/blog/a-complete-guide-for-saas-affiliate-commissions/) (MEDIUM)
 
-### Capacitor + Mobile
-- [Capacitor Security guide](https://capacitorjs.com/docs/guides/security) (HIGH)
-- [Biometric auth in Capacitor](https://capgo.app/blog/biometric-authentication-in-capacitor-apps/) (MEDIUM)
-- [Secure storage for offline tokens in Capacitor](https://capgo.app/blog/secure-storage-for-offline-tokens-in-capacitor/) (MEDIUM)
+### Mid-Trial Paywalls + Activation
+- [Pulseahead Trial-to-Paid Benchmarks](https://www.pulseahead.com/blog/trial-to-paid-conversion-benchmarks-in-saas) (MEDIUM)
+- [Stackmatix Trial Conversion Levers](https://www.stackmatix.com/blog/saas-trial-to-paid-conversion) (MEDIUM)
+- [PostHog Experiments Docs](https://posthog.com/docs/experiments/creating-an-experiment) (HIGH)
+- [PostHog Testing & Launching Experiments](https://posthog.com/docs/experiments/testing-and-launching) (HIGH)
 
-### Apple Watch + WearOS
-- [ResearchKit and CareKit overview](https://www.researchandcare.org/) (HIGH)
-- [MedTick Wear OS medication reminder](https://play.google.com/store/apps/details?id=com.medtick) (MEDIUM)
-- [MediSafe Android Wear](https://www.techhive.com/article/602463/medisafe-adds-android-wear-support-to-remind-you-to-take-your-pills.html) (MEDIUM)
+### Ad-Spend ETL + Attribution
+- [Google Ads API Rate Sheet](https://developers.google.com/google-ads/api/docs/api-policy/rate-sheet) (HIGH)
+- [Meta Marketing API attribution restrictions 2026](https://ppc.land/meta-restricts-attribution-windows-and-data-retention-in-ads-insights-api/) (MEDIUM)
+- [Improvado TikTok Ads API challenges](https://improvado.io/blog/tiktok-ads-data-challenges) (MEDIUM)
+- [Cometly Ad Platform API Integration](https://www.cometly.com/post/ad-platform-api-integration) (MEDIUM)
+- [AdLibrary Attribution 2026](https://adlibrary.com/posts/ad-attribution-tracking-explained-2026) (MEDIUM)
 
-### Stripe + Monetization
-- [Stripe Billing — Subscriptions overview](https://docs.stripe.com/billing/subscriptions/overview) (HIGH)
-- [Stripe Trial offers](https://docs.stripe.com/billing/subscriptions/trials) (HIGH)
-- [Stripe Connect W-8/W-9 onboarding](https://docs.stripe.com/connect/connect-w8-w9-onboarding) (HIGH)
-- [Stripe Connect 1099](https://stripe.com/connect/1099) (HIGH)
-- [Stripe Billing features (Smart Retries / Customer Portal)](https://stripe.com/billing/features) (HIGH)
-- [Subscription management guide 2026](https://www.subdash.co/blog/stripe-subscription-management-guide) (MEDIUM)
+### HIPAA / BAA / SOC 2 / HITRUST
+- [HIPAA Journal BAA 2026 Guide](https://www.hipaajournal.com/hipaa-business-associate-agreement/) (HIGH)
+- [Total HIPAA — SOC2 cannot replace BAA](https://www.totalhipaa.com/what-is-soc2-audit-and-can-it-replace-a-baa/) (HIGH)
+- [Linford & Co SaaS HIPAA Guide](https://linfordco.com/blog/saas-hipaa-considerations/) (HIGH)
+- [ThreeFlow HIPAA vs SOC 2 vs HITRUST](https://www.threeflow.com/post/hipaa-vs-soc-2-vs-hitrust-what-brokers-need-to-know) (MEDIUM)
+- [Vanta SOC 2 + HIPAA overlap](https://www.vanta.com/collection/hipaa/hipaa-and-soc-2) (MEDIUM)
 
-### Affiliate
-- [Rewardful self-referral fraud detection](https://www.rewardful.com/articles/self-referral-fraud-detection-for-saas-founders) (HIGH)
-- [Best SaaS affiliate software 2026](https://userjot.com/blog/saas-affiliate-program-software-2025) (MEDIUM)
-- [Affiliate tax compliance (W-9 / W-8BEN)](https://www.i-payout.com/blog/affiliate-tax-compliance-made-easy-w-9-w-8ben-and-beyond) (MEDIUM)
+### Gamification
+- [Orizon Duolingo Gamification Secrets](https://www.orizon.co/blog/duolingos-gamification-secrets) (MEDIUM)
+- [Trophy Duolingo Case Study 2026](https://trophy.so/blog/duolingo-gamification-case-study) (MEDIUM)
+- [DEV Duolingo Dark Patterns Critique](https://dev.to/yaptech/duolingos-shallow-learning-trap-gamified-streaks-harmful-habits-4134) (MEDIUM)
+- [StriveCloud Duolingo Gamification](https://www.strivecloud.io/blog/gamification-examples-boost-user-retention-duolingo) (MEDIUM)
 
-### Ad Network
-- [Google AdMob 2026 pharmaceutical policy update](https://almcorp.com/blog/google-admob-pharmaceutical-policy-2026/) (MEDIUM)
-- [Google AdSense pharma policy](https://support.google.com/adspolicy/answer/176031?hl=en) (HIGH)
-- [Mobile ad eCPM benchmarks](https://maf.ad/en/blog/mobile-ads-ecpm/) (MEDIUM)
-- [Mobile interstitial best practices + frequency caps](https://yango-ads.com/blog/mobile-interstitial-ads) (MEDIUM)
-- [App ad revenue benchmarks 2026](https://revenueflex.com/blog/app-ad-revenue-benchmarks-2026/) (MEDIUM)
-- [NAD ruling on compounded-GLP-1 advertising](https://www.polsinelli.com/publications/nad-compounded-glp-1-advertising-diet) (HIGH)
+### Helpdesk + AI Deflection
+- [ServiceDeskAgents AI Deflection Benchmarks 2026](https://servicedeskagents.com/deflection-rates/) (MEDIUM)
+- [Duckie AI Resolution vs Deflection 2026](https://www.duckie.ai/blog/ai-ticket-resolution-vs-deflection-why-90-resolution-beats-40-deflection) (MEDIUM)
+- [Kustomer AI Ticket Deflection 2026 Guide](https://www.kustomer.com/resources/blog/ai-powered-ticket-deflection/) (MEDIUM)
 
-### Push + Lifecycle Email
-- [SaaS lifecycle email marketing 2026](https://mailsoftly.com/blog/email-marketing-for-saas/) (MEDIUM)
-- [SaaS onboarding email best practices](https://mailsoftly.com/blog/user-onboarding-email-best-practices/) (MEDIUM)
-- [Welcome email patterns](https://customer.io/learn/lifecycle-marketing/welcome-email-templates) (MEDIUM)
-- [Medication reminder notification patterns](https://www.macworld.com/article/2521302/how-to-adjust-medications-reminders-on-your-iphone-ipad-and-apple-watch.html) (MEDIUM)
+### Cancellation Saves
+- [SmartSMS Subscription Save Playbook](https://smartsmssolutions.com/resources/blog/business/article-3-spoke-subscription-save-offers-pause-cancel-winback) (MEDIUM)
+- [ChurnWard SaaS Cancellation Flow Guide](https://churnward.com/blog/saas-cancellation-flow/) (MEDIUM)
+- [Userpilot Cancellation Flow Examples](https://userpilot.com/blog/cancellation-flow-examples/) (MEDIUM)
 
-### Admin + Page Builder
-- [SaaS Admin Dashboards](https://www.netsuite.com/portal/resource/articles/erp/saas-dashboards.shtml) (MEDIUM)
-- [SaaS Landing Page Builders](https://pineable.com/public/blog/free-and-paid-saas-landing-page-builders) (MEDIUM)
-- [Unbounce landing-page features](https://unbounce.com/) (MEDIUM)
+### i18n
+- [Crowdin React i18n Tutorial](https://crowdin.com/blog/react-i18n) (MEDIUM)
+- [react-i18next ICU Format Docs](https://react.i18next.com/misc/using-with-icu-format) (HIGH)
+- [SimpleLocalize SaaS i18n Guide](https://simplelocalize.io/blog/posts/i18n-for-saas-teams/) (MEDIUM)
+- [Crowdin ICU Message Format Guide 2026](https://crowdin.com/blog/icu-guide) (MEDIUM)
+
+### B2B Billing
+- [Dodo Hybrid Billing Models 2026](https://dodopayments.com/blogs/hybrid-billing-models-saas) (MEDIUM)
+- [Vozo Healthcare Software Pricing](https://www.vozohealth.com/blog/the-ultimate-guide-to-healthcare-software-pricing-models) (MEDIUM)
+- [Schematic Usage Billing Software 2026](https://schematichq.com/blog/usage-billing-software) (MEDIUM)
+
+### Onboarding 2026
+- [Arcade Onboarding Best Practices 2026](https://www.arcade.software/post/customer-onboarding-best-practices) (MEDIUM)
+- [UXPin Progressive Disclosure 2026](https://www.uxpin.com/studio/blog/what-is-progressive-disclosure/) (MEDIUM)
+- [Themasterly SaaS Onboarding UX Guide 2026](https://www.themasterly.com/blog/saas-onboarding-ux-guide) (MEDIUM)
+
+### pgvector / Recommender
+- [Supabase pgvector docs](https://supabase.com/docs/guides/database/extensions/pgvector) (HIGH)
+- [pgvector GitHub](https://github.com/pgvector/pgvector) (HIGH)
+
+### Review Prompts
+- [Apple Ratings & Reviews](https://developer.apple.com/app-store/ratings-and-reviews/) (HIGH)
+- [Appcues Mobile Review Request Examples](https://www.appcues.com/blog/mobile-app-review-request-examples) (MEDIUM)
+
+### Status Page
+- [Better Stack Statuspage Alternatives 2026](https://betterstack.com/community/comparisons/statuspage-alternatives/) (MEDIUM)
+- [StatusGator Upptime Alternatives 2026](https://statusgator.com/blog/7-upptime-alternatives-for-better-incident-communication/) (MEDIUM)
 
 ---
-*Feature research for: LeanShot v1.2 — cross-platform launch + monetization + ad network*
-*Researched: 2026-05-13*
+*Feature research for: LeanShot v1.3 Platform Expansion — Revenue + Depth + B2B + HIPAA + onboarding/retention engine*
+*Researched: 2026-05-17 (builds on v1.2 FEATURES.md from 2026-05-13)*

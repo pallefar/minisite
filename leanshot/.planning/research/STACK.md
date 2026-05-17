@@ -1,313 +1,245 @@
-# Stack Research — v1.2 Additions
+# Stack Research — v1.3 Platform Expansion (additions only)
 
-**Domain:** Cross-platform health tracker going from "shipped web SaaS" to "web + iOS + Android + Apple Watch + WearOS with full monetization (subs/seats/affiliate) + multi-mode ad network + in-house page builder + cookie/DSAR compliance"
-**Researched:** 2026-05-13
-**Confidence:** HIGH for Capacitor/Stripe/AdMob/Health Connect/RevenueCat/dnd-kit choices; MEDIUM for monorepo recommendation (genuine tradeoff space — Turborepo wins on ops complexity vs Nx winning on multi-language tooling); MEDIUM for the architectural firewall (Apple has not published a §5.1.3 "approved pattern" — recommendation is synthesis of community practice + privacy-manifest declarations).
+**Domain:** Mature multi-audience SaaS (B2C patient + B2B clinic + doctor read-share) — already shipped to production on web — adding revenue/growth optimization layer, B2B clinic depth, HIPAA BAA chain, content/depth (i18n + embeds + pharmacology test), retention engine (onboarding + gamification + reviews + helpdesk), and ad-spend ETL.
+**Researched:** 2026-05-17
+**Confidence:** HIGH on library versions + HIPAA BAA matrix (Supabase/Vercel/Sentry/Anthropic/Stripe/PostHog) — verified via vendor docs 2026-05-17 · MEDIUM on Resend BAA status (no public confirmation — pivot recommendation documented) · MEDIUM on multi-tier affiliate / ad-ETL custom code patterns (no off-the-shelf library; pattern is custom on existing v1.2 Connect rails + Vercel Cron)
 
-> **Scope of this document.** This is the v1.2 STACK delta. The existing v1.1 stack — React 19, Vite 6, TypeScript strict, Tailwind v4, Zustand, framer-motion, chart.js, lucide-react, @use-gesture/react, Supabase (Postgres + Auth + RLS + Realtime + Edge Functions + Storage on project `ytnsipxxmzgaebkqmokp`), Anthropic via Edge Function proxy, Resend for transactional, Vercel hosting, Vitest + RTL + Playwright + Deno test, PostHog — **stays as-is**. This document specifies only the *new* surface needed for the eleven v1.2 workstreams. Versions verified via `npm view` against the live registry on 2026-05-13.
+> **Scope of this document.** This is the **v1.3 STACK delta only.** Everything in `.planning/milestones/v1.2-research/STACK.md` (Capacitor 8 + RevenueCat + dnd-kit + vanilla-cookieconsent + Stripe Connect Express + AdMob + Health firewall + Turborepo decision + all v1.1 carryover) plus the v1.2-shipped surface (React 19 + Vite 6 + TS 5.6 strict + Tailwind v4 + Zustand + Supabase Postgres/Auth/RLS/Storage/Edge Functions/pg_cron + Stripe Checkout+Subs+Connect+metered + Anthropic via Vercel AI Gateway proxy + Resend + Sentry + PostHog + chart.js + framer-motion + react-virtuoso + dnd-kit + vanilla-cookieconsent + jsPDF + Vercel hosting) **stays as-is and is NOT re-evaluated here.** This doc specifies only the *net-new* surface needed for the 18 v1.3 workstream items in PROJECT.md "v1.3 megamilestone OPENED" section. Versions verified via `npm view` against the live registry on 2026-05-17.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies
+### Core Net-New Technologies
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| **Capacitor** | `@capacitor/core@8.3.4`, `@capacitor/ios@8.3.4`, `@capacitor/android@8.3.4`, `@capacitor/cli@8.3.4` | Native shell wrapping the existing Vite+React SPA for iOS + Android app-store distribution | Ionic's Capacitor 8 is the de-facto wrapper for shipping a web SPA as a native app in 2026. Capacitor 8 (released 2025-Q3) drops Cordova compatibility entirely, ships Xcode 16 + AGP 8.7 baselines, and lets the existing Vite build (`vite build`) feed straight into `npx cap sync`. Crucially: **no React Native rewrite, no second codebase.** The whole web app keeps shipping to `leanshot-app.vercel.app` and the same dist gets wrapped for App Store + Play Store. Plugin ecosystem (push, AdMob, in-app purchases, health, biometrics) is mature on v8. **Reject React Native and Expo:** would require porting ~50 components, the chart.js pharmacology canvas, and the Zustand/persist layer for zero v1.2 benefit. Reject PWA-only: App Store + Play Store distribution is non-negotiable per ROADMAP. |
-| **RevenueCat (Capacitor SDK)** | `@revenuecat/purchases-capacitor@13.1.0` + JS SDK `@revenuecat/purchases-js@1.x` for web | Unified subscription billing across iOS (StoreKit 2), Android (Play Billing), and Stripe-on-web | **Required, not optional, for App Store / Play Store compliance.** Apple §3.1.1 mandates in-app purchase for digital subscriptions consumed inside the app — you cannot route iOS paid users through Stripe. RevenueCat absorbs StoreKit + Play Billing + their entitlement / receipt-validation / restore-purchases / cross-platform-entitlement machinery, and exposes a single typed API. Free up to $2.5K MTR, then 1% — cheaper than building receipt validation + dunning + restore flows ourselves. Webhooks land in a Supabase Edge Function and update a single `entitlements` row that powers the ad-free check, the clinic-seat check, and the affiliate-eligible check. |
-| **Stripe (Connect + Web Subscriptions + Tax)** | `stripe@22.1.1` (server), `@stripe/stripe-js@9.5.0` + `@stripe/react-stripe-js@4.2.1` (browser) | (a) Web-only subscription checkout for browser-first patient signups, (b) clinic seat-based billing, (c) **Stripe Connect Express for affiliate payouts incl. hosted W-9 / W-8BEN / 1099 onboarding** | Two distinct integrations that share the same Stripe account: **Web Subs path** uses Checkout + Customer Portal (hosted, PCI-out-of-scope, dunning built in) for browser-acquired patients and for clinic-seat invoicing. **Connect Express** is the path for affiliate payouts — Stripe hosts the W-9/W-8BEN collection + 1099 filing flow inside their Express Dashboard, eliminating the entire IRS-form-design-and-file workstream from our scope. Connect Express also supports threshold-based collection (only collect W-9 when payout volume crosses the $600/yr IRS threshold) which is the right UX shape. **Anti-pattern to avoid:** rolling our own tax-form upload UI. |
-| **AdMob via Capacitor Community plugin** | `@capacitor-community/admob@8.0.0` | iOS + Android in-app ads (banner, interstitial, rewarded) on the **free-tier patient mobile shell only** | Capacitor Community AdMob is the v8-compatible plugin (community-maintained, MIT, active). Sufficient for v1 ad-network needs. **Mediation:** AdMob's own mediation supports AdMob → Meta Audience Network → AppLovin MAX → others without us writing per-network code; configure in AdMob dashboard, not in app. Defer AppLovin MAX as a primary mediator (no maintained Capacitor plugin — would need a custom native bridge for v1.2). |
-| **Google Ad Manager / AdSense (web)** | Loaded via standard `<script>` tag in marketing site + free-tier dashboard | Web banner + display ads on the marketing site and free-tier patient dashboard | No npm package needed for v1 — GPT (Google Publisher Tag) script + ad slots controlled via a small `AdSlot` React component that reads placement config from Supabase. AdSense + GAM 360 share the same publisher account. Lazy-load the GPT script behind cookie consent so it never fires before consent on EU traffic. |
-| **Health (HealthKit + Health Connect, unified)** | `@capgo/capacitor-health@latest` | iOS HealthKit + Android Health Connect read-only import of weight / steps / sleep / heart rate | **Single plugin spans both platforms** with one TypeScript API. Capgo Health is actively maintained for Capacitor 8 (last release within last 12 months per registry), unified API, MIT. **Why this and not the alternatives:** `@perfood/capacitor-healthkit` is iOS-only and last released Feb 2025 (drifting toward stale); `capacitor-health-connect` is Android-only and last released Aug 2024 (genuinely stale). Maintaining two single-platform plugins is the wrong path when a unified one exists. Apple removed Google Fit support — Health Connect is the only Android destination. |
-| **Apple Watch (SwiftUI)** | Xcode 16 + watchOS 11 SDK + Swift 6 + SwiftData (local cache) + WatchConnectivity (peer phone bridge) | Native watchOS companion app — next-dose, streak, log-injection complication | **Native Swift, not Capacitor.** Capacitor does not target watchOS. The watch app is its own Xcode target inside the iOS Capacitor project (Xcode lets you add a `Watch App` target to the wrapped iOS project). Data path: WatchConnectivity passes `next_dose` / `streak_count` as small JSON payloads from the iOS host. Reject cross-platform watch frameworks (KMP, Flutter watch) — too immature, too much added build complexity for a feature that's 3 screens. |
-| **WearOS (Jetpack Compose)** | Android Studio (Iguana/Jellyfish) + Wear Compose 1.4 + Kotlin 2.0 + Tiles 1.4 + Complications Data Source API 1.1 | Native WearOS parity app | Same shape as watchOS — separate Gradle module inside the Android Capacitor project, talks to the host phone via the WearOS Data Layer API. Wear Compose is GA and the Jetpack-recommended toolkit. |
-| **Push: dual web + native** | `web-push@3.6.7` (server, Web Push for browser/PWA) + `@capacitor/push-notifications@8.0.4` (FCM on Android, APNs on iOS) + Apple Push Notification Service certificate + Firebase Cloud Messaging | All four push channels: Web Push, APNs (iOS + watchOS), FCM (Android + WearOS) | The Capacitor plugin handles APNs + FCM uniformly through a single JS API; Web Push handles desktop browser + installed-PWA. Server-side: one Supabase Edge Function `push-dispatch` takes `{user_id, payload}` and fans out to whichever endpoints that user has registered. **Reject OneSignal / Pusher Beams** — both are perfectly fine but Supabase + Edge Functions are already the messaging plane and adding a third vendor is unnecessary cost + complexity. |
-| **Page builder — dnd-kit** | `@dnd-kit/core@6.3.1`, `@dnd-kit/sortable@latest 8.x`, `@dnd-kit/utilities@latest 3.x` | In-house drag-and-drop landing-page builder (NOT a Puck wrapper) | dnd-kit is the modern drag-and-drop primitive layer — accessible (keyboard + screen reader), zero-dependency, tree-shakeable, React 19 ready. **Reject Puck (@measured/puck):** great product, but Puck is an *opinionated builder* with its own schema model and render path; once adopted, the builder is Puck's, not ours. Per ROADMAP v1.2 explicitly says "in-house drag-and-drop builder (NOT SaaS)" — that signals we want full control of the component palette, the persistence shape (Supabase row, not Puck JSON), and the SEO render path. dnd-kit gives the kinetics primitives, the component palette is our `src/components/page-builder/` directory, and the persisted shape is our Postgres rows. **Reject react-dnd:** no maintained release since the maintainer stepped back; HTML5 backend has known a11y holes. |
-| **Cookie consent — vanilla-cookieconsent** | `vanilla-cookieconsent@3.1.0` | EU GDPR cookie banner + per-category consent (necessary / analytics / ads) | Plain-JS, ~6 KB gz, framework-agnostic (works fine inside a React app via a thin wrapper component), full granular categories, supports Google Consent Mode v2 (required for Google Ads + Analytics to keep working in EU), customizable to match design system. **Reject @osano/cookieconsent** — Osano's free SDK is gated behind a sign-up + their SaaS dashboard. **Reject CookieYes / Cookiebot SaaS** — recurring SaaS for a feature we ship once. |
-| **DSAR portal — built in-house on Supabase** | (no library — Edge Function + React form) | EU GDPR Data Subject Access Request export + delete portal | DSAR is two paths (export-all-my-data, delete-everything) that already exist as Supabase patterns. Edge Functions `dsar-export` (returns ZIP of every row tagged `user_id = auth.uid()`) + `dsar-delete` (soft-delete with 30-day grace per GDPR Art 17, then hard-delete via scheduled job). **Anti-pattern: pulling in a SaaS DSAR vendor (DataGrail/OneTrust) for this scale.** |
-| **Monorepo — Turborepo + pnpm workspaces** | `turbo@2.9.12` + `pnpm@latest` (already in use via package-lock.json migration recommended) | Coordinate web (`apps/web`) + Capacitor iOS shell (`apps/mobile`) + watchOS Xcode (`apps/watchos` — Swift, only referenced by Turbo, not built by Turbo) + WearOS (`apps/wearos` — Gradle, same) + marketing (`apps/marketing`) + shared (`packages/types`, `packages/ui-tokens`, `packages/page-builder-components`) | See "Monorepo recommendation" section below. **Short version:** Turborepo is the right pick because the *coordinable* surface (the parts Turbo actually builds + caches) is all TypeScript — web app, marketing site, page-builder package, types package. The Swift + Kotlin builds stay in their native toolchains and Turbo just sequences them via `task.shell`. Nx wins where multiple JVM/Python/Go languages need first-class graph awareness; we don't have that. |
+| Technology | Version | Purpose | Why Recommended (and which v1.3 feature it serves) |
+|------------|---------|---------|----------------------------------------------------|
+| **react-i18next** | `react-i18next@15.7.4` + `i18next@25.5.2` + `i18next-browser-languagedetector@8.x` + `i18next-http-backend@3.x` | Spanish i18n infrastructure for UI strings — workstream item **6 (Spanish i18n)** | De-facto React i18n stack since 2019; supports namespaces + lazy-loaded translation chunks (matches our v1.1 sync-defer.ts bundle discipline), React 19 + Suspense compatible (verified via Context7 docs 2026-05-17), works inside Vite without ecosystem-fork tax. The HTTP backend lets `/locales/{{lng}}/{{ns}}.json` ship as static Vercel assets — zero runtime cost, CDN-cacheable per-language. **Reject `next-intl`** — Next.js-only, doesn't apply to our Vite SPA. **Reject `lingui`** — smaller community (~1/20th the GitHub stars), the macro-based DX is more involved for non-trivial onboarding cost; react-i18next's `useTranslation` + `<Trans>` shape is what every contributor already knows. **Integration:** v1.2 transactional Resend templates render server-side in Edge Functions — wrap those in an `i18n.t()` shim with a `Accept-Language` resolver that defaults to user's `auth.users.user_metadata.locale`. **KB articles** ship as `{slug}.{lang}.md` flat files served by the existing page-render Edge Function — no CMS layer required at v1.3. |
+| **posthog-node** | `posthog-node@5.10.4` (Deno-compat via `npm:` import) | Server-side event capture from Supabase Edge Functions for adblock/iOS-tracking-blocker eaten events — workstream item **Foundation (PostHog hardening)** + **16 (PostHog server-side capture)** | Critical for activation/payment/signup observability: ITP/uBlock/Brave eat ~30-40% of browser-side events for the signal-richest user moments. Server-side capture from Edge Functions (stripe-webhook, auth-callback, account-delete, payout-cron) ensures revenue + conversion + retention metrics never miss. `posthog-node@5` runs on Deno via `npm:` specifier (confirmed against Edge Function runtime); requires `await client.shutdown()` before function return to flush. **Integration:** Add a `_shared/posthog-server.ts` helper that mirrors the `_shared/resend-domain-health-check.ts` pattern from Phase 22 (lazy-init + breadcrumb + sentry-fallback if PostHog key missing). **Anti-pattern:** never send raw PHI keys in event properties — keep event names + counts only; the user join happens at PostHog server-side via `distinct_id = supabase user_id`. |
+| **PostHog Experiments + multivariate flags** | (uses existing `posthog-js` from v1.2 + `posthog-node@5.10.4`) | Mid-trial paywall A/B test (workstream **2.A**), page-builder block A/B test (workstream **2.A**), pharmacology paywall test (workstream **3.B**), onboarding step variants (workstream **5/M2**) | Already-wired vendor; multivariate flags support ≤9 test variants with payload per variant (perfect for paywall copy/price variants); evaluate-once-per-user is the SDK contract that prevents the "user oscillates between variants" anti-pattern. **Critical SDK rule (carry into plan-phase):** evaluate the flag server-side in the Edge Function that records the experiment-event-of-interest, so the variant attribution survives client/server divergence. **No new vendor cost** — PostHog Experiments are bundled with the existing tier. |
+| **pgvector** (Postgres extension) | available on Supabase Pro (already on Pro post-v1.2) | Embedding storage + cosine-similarity search for AI Personalization recommender — workstream item **14 (M5b partial recommender)** | Native Postgres extension (we already have Postgres + RLS); the recommender doesn't need a separate vector DB (Pinecone/Weaviate/Qdrant) at v1.3 scale (~1k users with ~50 events each = 50k embeddings, comfortably within pgvector HNSW index). Cosine similarity via `<=>` operator; HNSW index recommended for read-heavy similarity workloads. **Reject Pinecone/Weaviate:** new vendor + new BAA + new bill (~$70/mo Pinecone Starter min) for a feature pgvector covers natively. **Reject Supabase Vector Buckets:** Public Alpha on Pro+ as of 2026-05; the API surface is non-stable — wait for GA. **Integration:** new migration `20270601_pgvector.sql` enabling extension + `vector(1536)` (OpenAI text-embedding-3-small dim) or `vector(1024)` (Voyage voyage-3-large) column on a new `content_embeddings` table; backfill cron via Edge Function. |
+| **OpenAI Node SDK** OR **Voyage AI SDK** (pick one) | `openai@6.13.0` (recommended) OR `voyageai@0.2.1` | Embedding generation for recommender (workstream **14**) — content + user-history → 1536-d vector | **Pick OpenAI `text-embedding-3-small`** unless there's a specific multilingual reason to choose Voyage. Pricing parity at this volume (~$0.02 per 1M tokens for OpenAI 3-small vs ~$0.06 for Voyage voyage-3-large), OpenAI SDK is more battle-tested in Deno, embeddings round-trip via a single `/embeddings` endpoint that already proxies cleanly through Vercel AI Gateway (matches v1.2 Anthropic proxy pattern). **Routing through AI Gateway is MANDATORY** per v1.2 stack — no direct OpenAI calls from Edge Functions. **Reject Anthropic for embeddings:** Anthropic does not ship a dedicated embeddings API (still uses Voyage under partnership at 2026-05). **HIPAA note:** when HIPAA BAA chain activates, prefer OpenAI's HIPAA-eligible API tier with signed BAA (available on enterprise OpenAI accounts) over Voyage (BAA TBD). |
+| **Stripe Billing — usage-based + seat-based clinic subs** | `stripe@22.x` (already in v1.2) + new product config | `org_subscriptions` table — per-patient metered billing for clinics — workstream item **9 (Clinic organizations)** | v1.2 already wired Stripe Checkout + Subscriptions + Customer Portal + metered (per-active-patient clinic billing — MONEY-04). v1.3 extends to **organizations table** with seat-license OR per-patient metering choice per-clinic. **No new SDK** — use existing `stripe-checkout`/`stripe-webhook` Edge Functions with new product price IDs and a new `org_id` column on `subscriptions`. **Integration:** new migration adding `organizations`, `org_members`, `org_subscriptions`, `org_invites`; reuse stripe-webhook for `customer.subscription.updated` events with `metadata.org_id` discriminator. |
+| **Resend Inbound (email-to-ticket)** OR **Postmark Inbound** | Resend Inbound (now GA per `https://resend.com/docs/dashboard/receiving/introduction`) | Email-to-ticket ingest for Helpdesk — workstream item **15 (Helpdesk core)** | Resend is already-wired (v1.2 outbound); Inbound webhook POSTs parsed `{from, to, subject, text, html, attachments, in-reply-to, references}` to a configured endpoint. Reuse existing Resend domain `app.leanshot.app` with a new `support@` MX route. **Why this not Postmark:** zero-new-vendor; same dashboard/API key; same domain DKIM/SPF posture. **Pitfall to flag at plan-phase:** Resend Inbound parsing of attachments — verify max attachment size + MIME type allowlist; ticket-attachments bucket needs Storage RLS that pins to the ticket's tenant. **Reply-threading pattern:** outbound ticket emails include `Reply-To: ticket+{token}@app.leanshot.app` where `token` is a HMAC of `(ticket_id, user_id, secret)`; inbound parser extracts + verifies HMAC + appends to `ticket_messages`. |
+| **PostHog HIPAA BAA add-on** | requires Boost / Scale / Enterprise add-on (Enterprise = $2,000/mo) | Analytics BAA chain for HIPAA — workstream item **10 (HIPAA BAA chain)** | PostHog only signs BAAs for **PostHog Cloud** on Boost/Scale/Enterprise; self-hosted PostHog is explicitly NOT BAA-covered. Per their docs, BAA is generator-based (`https://posthog.com/baa`). **Decision deferred to plan-phase:** if we ship HIPAA chain mid-v1.3, the analytics BAA is the most expensive line item; alternative is **scrub all PHI before send** (event-property allowlist enforced in `_shared/posthog-server.ts`) and stay BAA-light. Phase 22 RLS posture already keeps PHI server-side; the question is session-replay autocapture (which can capture form values). **Recommendation:** disable session-replay entirely on routes that show PHI (BodyTab, MedicationTab, AIChatPanel) via PostHog's `disable_session_recording_on_url` config — keeps us BAA-light. |
+| **AWS SES** (HIPAA email path) OR **Paubox Email API** | aws-sdk `@aws-sdk/client-sesv2@3.700+` (Deno-compat) | HIPAA-compliant transactional email fallback when Resend BAA is unavailable — workstream item **10 (HIPAA BAA chain)** | **Resend has no publicly-confirmed HIPAA BAA as of 2026-05-17** (verified against `resend.com/legal` + `resend.com/pricing`). Once the clinic-tier features ship and a clinic deal lands, transactional emails carrying PHI (e.g., "Dr. Smith reviewed your liver-enzyme spike alert") need a BAA-covered ESP. **Recommended:** keep Resend for marketing/lifecycle (non-PHI) and add **AWS SES** for PHI-touching emails. SES signs BAA (AWS HIPAA-eligible service), $0.10 per 1k emails (cheaper than Paubox $29/user/mo+), TLS-required can be configured but caveat: SES silently drops mail to receivers that can't negotiate TLS — for low-PHI-volume clinic alerts this is acceptable with monitoring; for high-PHI-volume use Paubox. **Decision deferred to plan-phase:** pick SES (cheaper, ops complexity slightly higher) vs Paubox (simpler, more expensive) once volume estimates are in. **Anti-recommendation:** don't dual-send the same template via both Resend AND SES — pick one path per-template and tag it at the `_shared/email-router.ts` layer. |
+| **Better Stack (status page only — NOT BAA path)** | hosted SaaS — $12/mo per status page tier | Public status page — workstream item **18 (Public status page)** | Better Stack's status-page-only tier is the cheap-and-cheerful pick: hosted status page on a `status.leanshot.app` subdomain, auto-updates from their own uptime monitors on a 30s cadence (or push-via-API from our Sentry/CI). **Reject Upptime:** GitHub Actions cron is 5-min minimum interval (matches Better Stack free, beats their paid? — but Upptime's GitHub-hosted incident workflow is clunky for non-engineering responders). **Reject self-hosting OneUptime:** new infra surface for v1.3 polish item. **HIPAA note:** status page contains zero PHI by construction — no BAA needed. |
+| **Meta Marketing API SDK** | `facebook-nodejs-business-sdk@24.0.1` | Hourly ad-spend pull from Meta Ads — workstream item **4 (Hourly ad-spend ETL)** | Official Meta SDK; rate-limit: rolling 1-hour window. **Pitfall to flag:** hourly cron at :05 minute past hour (Vercel Cron or pg_cron) to give Meta time to roll up; persist `_etag` per `(account_id, day)` to detect intra-day backfills. As of 2026-05, Advantage+ Shopping/App Campaigns can no longer be created/updated via API on v25+ (read still works) — irrelevant for our pull-only ETL but flag for future write integrations. |
+| **Google Ads API SDK** | `google-ads-api@23.0.0` | Hourly ad-spend pull from Google Ads — workstream item **4 (Hourly ad-spend ETL)** | `google-ads-api` (Opteo's wrapper) is the de-facto Node SDK — handles OAuth refresh + the GAQL query DSL. **Pitfall:** Google Ads daily-spend reports are delayed ~3 hours; hourly cron should write to a `provisional` column + reconcile daily at 03:00 UTC. **Anti-pattern:** don't pull `customer_search` with `KEYWORD_VIEW` segment in the hourly job — that's tens of thousands of rows; pull `CAMPAIGN_VIEW` only. |
+| **TikTok Business API** | direct REST fetch (no official Node SDK on npm) | Hourly ad-spend pull from TikTok Ads — workstream item **4 (Hourly ad-spend ETL)** | TikTok publishes a Node SDK only via local-file-install (per their `tiktok-business-api-sdk` GitHub) — community wrappers exist (`@quantum-forge/tik-tok-business-sdk@0.0.4-alpha-0.0.1`, very immature). **Recommendation: skip the SDK, hand-roll a thin REST client** using `fetch` in the Edge Function (`https://business-api.tiktok.com/open_api/v1.3/reports/integrated/get/`). **Pitfall (flagged in plan-phase):** TikTok reports API has ~11-hour data latency — true hourly granularity is not achievable; treat the "hourly" cron as a 12-hour rolling reconciliation. |
+| **Capacitor In-App Review plugin** | `@capgo/capacitor-native-review@latest` (or `@capacitor/in-app-review` if Capacitor adopts officially) — DEFER to v1.4 | Two-stage review prompt → SKStoreReviewController (iOS) + Play In-App Review API (Android) — workstream item **13 (Review prompt engine)** | **v1.3 ships web-side only** (Trustpilot/G2 redirect on positive NPS); native in-app review is **v1.4-blocked-on-Phase-16** (mobile shells deferred to v1.4). When v1.4 resumes Phase 16, add Capgo's plugin (active on Capacitor 8). |
 
-### Supporting Libraries
+### Supporting Net-New Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `@capacitor/app@8.1.0` | latest 8.x | Lifecycle events (foreground/background, deep-link URLs) | Always — needed to gate ad-init on cold start and to route Stripe Connect deep-link returns. |
-| `@capacitor/preferences@8.0.1` | latest 8.x | Native Keychain (iOS) / EncryptedSharedPreferences (Android) — **for non-Health data only** | All non-Health secrets (session refresh tokens, ad-network identifiers). **HealthKit data MUST NOT touch this.** See firewall section. |
-| `@capacitor/haptics@8.0.2` | latest 8.x | Native haptics on log-injection success | Nice-to-have polish. Mobile-only. |
-| `@capacitor/status-bar@8.0.2` | latest 8.x | Status-bar styling per route | Always on mobile builds. |
-| `@capacitor/splash-screen@8.0.1` | latest 8.x | Splash control | Always. Replace with native launch storyboard before App Store review. |
-| `@capacitor/share@8.0.1` | latest 8.x | Native share sheet for "share my doctor report" | Wire to existing SharePage flow. |
-| `@capacitor/device@8.0.2` | latest 8.x | Device info (model, OS version) for analytics + bug reports | Always. Surface in PostHog `super_properties`. |
-| `@capacitor/network@latest 8.x` | latest 8.x | Online/offline state — Zustand sync already handles this on web; mobile needs native detection | Wire into existing offline-queue logic. |
-| `@capacitor-firebase/messaging` | `8.2.0` | Optional: richer FCM integration (topics, foreground notification UI) if `@capacitor/push-notifications` proves insufficient | Add only if `@capacitor/push-notifications` blocks on a need (e.g., topic subscriptions for clinic-wide announcements). Otherwise skip — extra Firebase config overhead. |
-| `jspdf` | `3.1.0` | Affiliate payout statement + clinic invoice PDF generation (already known-good from research) | Already validated in v1.1 research as bundle-safe via dynamic import. Reuse pattern. |
-| `react-hook-form` | `7.75.0` + `@hookform/resolvers` + Zod | Stripe Connect onboarding form, affiliate-program signup, page-builder property editors | Existing forms in v1.1 used controlled state; v1.2's form-density (Stripe Connect alone has ~10 fields) justifies adopting RHF. Tiny (~9 KB gz), works with the existing Zod validators. |
-| `@stripe/react-stripe-js` | `4.2.1` | `<Elements>` provider + Stripe-hosted Element components for in-app card collection (if/when we move off Stripe Checkout) | Only if we need embedded card collection. v1 should use Checkout (hosted) and skip Elements entirely until we have a UX reason. |
-| `vanilla-cookieconsent` | `3.1.0` | Cookie consent UI (mentioned above) | Always — required for EU launch. |
-| `@types/web-push` | latest 3.x | TypeScript types for the `web-push` server library | Always when using `web-push`. |
-| `firebase-admin` | latest 12.x | Server-side FCM dispatch from the Supabase `push-dispatch` Edge Function | Always — Apple's APNs and Google's FCM both have HTTP/2 APIs; firebase-admin is the standard Node wrapper for FCM HTTP v1. APNs uses `node-apn` or direct HTTP/2 via `http2` core module. |
-| `node-apn` | latest 6.x | Server-side APNs dispatch — alternative to direct HTTP/2 | Use only if direct `http2` calls prove fragile. |
+| `@tanstack/react-query` | `5.100.10` | Server-state cache for the v1.3-heavy admin shells (Helpdesk inbox, Affiliate tier reports, Org members table) — workstream items **1 (admin shell)**, **9 (clinic dash)**, **15 (helpdesk widget)** | New surface area in v1.3 has 4-5x more list-detail views than v1.2; current Zustand pull pattern works for owned-by-user data but is fragile for "watch this list of 200 tickets and refetch on focus" semantics. RQ's `useQuery` + `useMutation` + `staleTime` model collapses ~200 LOC of bespoke fetch/loading/error wrapping into ~30 LOC per surface. Bundle cost ~13kB gz — gate via `sync-defer.ts` pattern so it only loads on admin routes. **Reject SWR:** smaller ecosystem, less battle-tested with React 19 Suspense; RQ is the safer multi-year bet. |
+| `@tanstack/react-table` | latest `8.x` | Headless table primitives for Admin Tickets list, Affiliate Tier dashboard, Org Members table | Same justification as react-query: v1.3 has 4+ table surfaces. v1.2 admin tables were hand-rolled; replicating that for tickets + affiliate-tier + org-members is busywork. **Bundle:** ~14kB gz — admin-route gated. **Reject AG-Grid / MUI DataGrid:** heavyweight, opinionated styling fights Tailwind v4 tokens. |
+| `react-hook-form` (already in v1.2) | `^7.75.0` | Continue using for v1.3's helpdesk reply form, org-create form, affiliate tier-config form | Already in stack; just call out continued use. |
+| `framer-motion` (already in v1.2) | `^11.x` | Onboarding-overhaul step transitions (workstream **5/M2**), gamification XP-bar animations (workstream **5/M3**) | Already in stack; gamification (XP-bar fills, level-up bursts, freeze-token flips) is animation-heavy and framer-motion is the right tool. |
+| `react-confetti` OR `canvas-confetti` | `canvas-confetti@1.9.3` | Gamification level-up + streak-milestone burst — workstream item **5/M3 (Gamification engine)** | Tiny (~5 KB), zero-dep, framework-agnostic; canvas-confetti has wider adoption than react-confetti. **Bundle:** mobile/Home tab only, lazy-loaded behind the level-up modal. |
+| `@dnd-kit/core` + `@dnd-kit/sortable` (already in v1.2) | `^6.x` + `^8.x` | Onboarding step builder drag-and-drop (workstream **5/M2**), page-builder admin editor (already v1.2) | Already in stack. **Reuse pattern:** Phase 15 page builder is the reference implementation; onboarding step builder ships the same Sortable + Droppable shape, different node types. |
+| `swr` | NOT recommended | n/a | Don't add — pick react-query, don't run both. |
+| `nanoid` | `5.1.6` | Short opaque IDs for affiliate tier slugs, helpdesk ticket short-codes (`#A7K2`), org invite tokens | 130-byte gzipped; already used in v1.2 via Supabase tooling. Use for HMAC-token replacement candidates where reversibility isn't needed. |
+| `@aws-sdk/client-sesv2` | `3.700+` | HIPAA-eligible email via AWS SES — Edge Function side | Only loaded by `_shared/email-router.ts` when destination is flagged `phi=true`. Wraps via `npm:` import for Deno. |
+| `firebase-admin` (already planned v1.2) | `^12.x` | Push fan-out (carryover from v1.2 deferred Phase 17 — likely lands in v1.3 if we keep mobile push out of scope for v1.4) | Same plan as v1.2 research; no v1.3 change. |
+| `react-hotkeys-hook` | `5.1.0` | Admin shell keyboard shortcuts (cmd-k command palette + j/k row nav in tables) — workstream item **1 (modular admin shell)** | Optional polish for the admin power-user flows; tiny (~3 KB gz). Only if admin power-user UX is in scope at plan-phase. |
+| `react-markdown` + `remark-gfm` | `react-markdown@9.x` + `remark-gfm@4.x` | Render KB articles + helpdesk message bodies (Markdown source-of-truth) — workstream items **6 (KB i18n)** + **15 (helpdesk)** | Already-validated React 19 compat; lazy-load on the article/ticket detail routes. **Anti-pattern:** never `dangerouslySetInnerHTML` on user-submitted helpdesk markdown without `remark-rehype` + sanitization — wire `rehype-sanitize` or restrict to text-only ticket bodies. |
+| `dompurify` | `3.2.7` | Sanitize embed-block iframe srcdoc + helpdesk reply HTML — workstream items **5 (embed blocks)** + **15 (helpdesk)** | Required for any user-controlled HTML rendering surface. Tiny + battle-tested. |
+| `@tanstack/react-virtual` | `3.x` | Long-list virtualization for affiliate-tier-conversions table + admin tickets list | Lighter than react-virtuoso (already in v1.2 for photo grids) for fixed-row-height table use; use react-virtuoso for variable-height. |
 
-### Development Tools
+### Net-New Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| Xcode 16 | iOS + watchOS builds | Required for App Store submission. Apple Developer Program ($99/yr) needed. |
-| Android Studio Jellyfish | Android + WearOS builds | Free. Google Play Console ($25 one-time) needed. |
-| Fastlane | App Store + Play Store automated submission | Highly recommended — App Store Connect API + Play Console API are both annoying to wrangle manually. Fastlane has battle-tested lanes for both. |
-| Capacitor Live Reload | `npx cap run ios -l --external` to hot-reload the wrapped SPA | Indispensable during mobile-shell development. |
-| Charles Proxy / Proxyman | Inspect native HTTP from the wrapped SPA + Stripe + AdMob | Useful when AdMob ad requests + RevenueCat receipt validation interleave on cold start. |
-| Stripe CLI | Webhook tunneling for local dev (`stripe listen --forward-to localhost:3000/api/stripe/webhook`) | Always when developing the Stripe integration. |
-| AdMob Test Ad IDs | Use Google's official test ad unit IDs in dev, never real ones | https://developers.google.com/admob/ios/test-ads — accidentally using prod ad IDs in tests can get the account banned. |
-| RevenueCat Sandbox + StoreKit Configuration File | Test in-app purchase flows without real money | Xcode 16 supports StoreKit configuration files; pair with RevenueCat's sandbox project. |
+| `posthog-cli` (or PostHog dashboard) | Define + sync feature flag definitions as code | At v1.3 scale (~4 flags + 3 experiments), code-as-config from a `.planning/posthog-flags.json` file checked in alongside ROADMAP is cleaner than dashboard-only management. PostHog has `posthog-cli` as of late 2025 — verify support for our needs at plan-phase. |
+| Stripe CLI (already in v1.2) | Webhook tunneling for org-subscriptions dev | Existing tool; new `customer.subscription.updated` filter for `metadata.org_id` events. |
+| Resend Inbound webhook simulator | Test reply-to-ticket parsing locally | Resend supports webhook test-fires from dashboard; combine with `ngrok` for local dev. |
+| Better Stack push-status API | Optional: surface CI-fail incidents on public status page | If wired; not required at v1.3. |
+| OpenAI Playground | Tune embedding model + chunk-size for recommender | Pre-plan-phase task; cache result in `.planning/research/embeddings-tuning.md`. |
 
 ---
 
 ## Installation
 
 ```bash
-# Capacitor core + iOS + Android
-pnpm add @capacitor/core@^8 @capacitor/app@^8 @capacitor/preferences@^8 \
-  @capacitor/haptics@^8 @capacitor/status-bar@^8 @capacitor/splash-screen@^8 \
-  @capacitor/share@^8 @capacitor/device@^8 @capacitor/network@^8 \
-  @capacitor/push-notifications@^8
-pnpm add -D @capacitor/cli@^8 @capacitor/ios@^8 @capacitor/android@^8
+# i18n infrastructure (workstream 6)
+npm install react-i18next@^15 i18next@^25 i18next-browser-languagedetector@^8 i18next-http-backend@^3
 
-# AdMob + Health (mobile-only, behind a build flag)
-pnpm add @capacitor-community/admob@^8
-pnpm add @capgo/capacitor-health@latest
+# Server-side analytics (workstream 1 + 16)
+npm install posthog-node@^5   # used inside Supabase Edge Functions via npm: import
 
-# In-app purchases (subscriptions)
-pnpm add @revenuecat/purchases-capacitor@^13
+# Server state + tables for admin-heavy surfaces (workstreams 1, 9, 15)
+npm install @tanstack/react-query@^5 @tanstack/react-table@^8 @tanstack/react-virtual@^3
 
-# Stripe (server uses @22, browser uses @9)
-pnpm add stripe@^22                                      # Supabase Edge Functions
-pnpm add @stripe/stripe-js@^9 @stripe/react-stripe-js@^4 # browser-side
+# Gamification polish (workstream 5/M3)
+npm install canvas-confetti@^1
+npm install -D @types/canvas-confetti
 
-# Web push
-pnpm add web-push@^3 firebase-admin@^12   # server (Edge Function)
+# Helpdesk + KB rendering (workstreams 6, 15)
+npm install react-markdown@^9 remark-gfm@^4 rehype-sanitize@^6 dompurify@^3
+npm install -D @types/dompurify
 
-# Page builder primitives
-pnpm add @dnd-kit/core@^6 @dnd-kit/sortable@^8 @dnd-kit/utilities@^3
+# Embeddings (workstream 14)
+npm install openai@^6   # routed via Vercel AI Gateway, mirrors v1.2 Anthropic pattern
 
-# Forms (for Stripe Connect + affiliate signup + builder property editors)
-pnpm add react-hook-form@^7 @hookform/resolvers@^3
+# HIPAA email path — added only when HIPAA BAA chain activates (workstream 10)
+# (Deno Edge Function — import via npm: specifier, no package.json entry needed)
 
-# Cookie consent
-pnpm add vanilla-cookieconsent@^3
+# Admin power-user polish (workstream 1 — optional)
+npm install react-hotkeys-hook@^5
 
-# Monorepo tooling
-pnpm add -Dw turbo@^2
+# Ad-spend ETL — added only inside Edge Function deno.json import_map (workstream 4)
+# facebook-nodejs-business-sdk and google-ads-api via npm: specifier in Edge Function only
+# TikTok: hand-rolled fetch wrapper, zero deps
 
-# (jspdf already in v1 stack via dynamic import; keep)
+# Migrations needed (no npm install):
+# - pgvector extension enable (workstream 14)
+# - organizations + org_members + org_subscriptions tables (workstream 9)
+# - tickets + ticket_messages + ticket_attachments + kb_articles + csat_responses (workstream 15)
+# - affiliate_tiers + affiliate_tier_assignments (workstream 2.A)
+# - ad_spend_hourly (workstream 4)
+# - content_embeddings + user_interaction_embeddings (workstream 14)
+# - notification_recommendations + summary_emails (workstream 14)
 ```
 
 ---
 
-## Architecture: how it fits with the locked v1.1 stack
+## HIPAA BAA Vendor Matrix (workstream item 10)
+
+**Critical dependency:** HIPAA BAA chain is mid-v1.3 entry condition for landing first clinic deal. Engineering work is small (header propagation, audit log hardening, MFA enforcement); the *vendor negotiation + paid-tier upgrades* are 4-8 weeks of parallel finance/legal effort. This matrix is the input to that effort.
+
+| Vendor | Used For | BAA Available? | Required Tier | Public Pricing (2026-05-17) | Notes / Gotchas |
+|--------|----------|----------------|---------------|------------------------------|------------------|
+| **Supabase** | Postgres + Auth + RLS + Storage + Edge Fns + pg_cron | YES | **Team** + HIPAA add-on | $599/mo (Team) + ~$350/mo (HIPAA add-on) = **~$949/mo baseline** | HIPAA add-on flag enables platform PHI safeguards + signed BAA. Pro tier ($25/mo, currently active for v1.3 entry) does NOT qualify — must upgrade. Source: [Supabase docs: HIPAA Compliance](https://supabase.com/docs/guides/security/hipaa-compliance) + [HIPAA Projects](https://supabase.com/docs/guides/platform/hipaa-projects). |
+| **Vercel** | Static SPA + AI Gateway proxy + Cron + leanshot.app + app.leanshot.app routing | YES | **Pro** (self-serve) | **$350/mo HIPAA add-on on Pro** (no Enterprise required since 2025) | Self-serve BAA from dashboard — no sales call. Enterprise ($45K/yr median) includes BAA + Secure Compute (isolated networks, dedicated IPs, VPC peering); only needed if "more sensitive workloads" demand. Source: [Vercel: HIPAA BAAs available to Pro teams](https://vercel.com/changelog/hipaa-baas-are-now-available-to-pro-teams) + [HIPAA compliance on Vercel](https://vercel.com/kb/guide/hipaa-compliance-guide-vercel). |
+| **Anthropic** (Claude via AI Gateway) | AI coach + helpdesk AI assist + recommender "Next Best Action" + weekly summary email | YES, but **sales-assisted Enterprise only** | sales-assisted Claude Enterprise (usage-based billing) | custom — sales call required | **Critical gotcha:** self-serve Enterprise + Team + individual plans CANNOT enable HIPAA. Admin must activate "HIPAA compliance" toggle in Data & Privacy after sales-assisted Enterprise activation + signed BAA. Web search functionality is OUT OF BAA scope. ZDR (Zero Data Retention) is **separate eligibility** for APIs that don't require prompt storage — useful as a pre-BAA posture but not a BAA replacement. Source: [Anthropic: HIPAA-ready Enterprise plans](https://support.claude.com/en/articles/13296973-hipaa-ready-enterprise-plans) + [BAA for Commercial Customers](https://privacy.claude.com/en/articles/8114513-business-associate-agreements-baa-for-commercial-customers). |
+| **OpenAI** (embeddings) | Recommender embeddings (workstream 14) | YES on Enterprise tier with signed BAA | Enterprise | custom | Same shape as Anthropic — BAA via enterprise contact. If we don't go Enterprise-tier on OpenAI, embeddings must not include PHI in the input string (strip patient identifiers + dose-specific text). Easier: scope embeddings to non-PHI content only (KB articles, generic insights). |
+| **Stripe** | Web subs + Connect Express + clinic seats + org metered billing | **NO** — Stripe does NOT sign BAA | n/a | n/a | **NOT a BAA-eligible vendor.** This is fine because of the HIPAA "normal banking and financial transactions" exemption — Stripe can process payments without being a Business Associate as long as PHI never enters Stripe. **Project rule (carry into plan-phase):** keep Stripe `description` / `metadata` / `invoice line item description` generic ("Clinic Subscription — 12 patients"; NEVER "Semaglutide dose tracking for J. Smith"). v1.2 already does this; reaffirm + add a CI lint that blocks PHI keywords in Stripe API calls. Source: [Stripe HIPAA discussion](https://patient-protect.com/post/is-stripe-hipaa-compliant). |
+| **Resend** | v1.2 transactional + lifecycle email (welcome / receipts / dunning / KB email digests) | **NOT PUBLICLY DOCUMENTED** as of 2026-05-17 (Resend `/legal` + `/pricing` do not mention HIPAA BAA) | unknown | unknown | **Block at plan-phase:** contact Resend sales for BAA availability. If unavailable, pivot to **AWS SES (BAA-eligible, ~$0.10/1K emails)** for PHI-touching emails; keep Resend for non-PHI marketing/lifecycle. Email-router pattern: `_shared/email-router.ts` switches provider by `phi: boolean` flag on template metadata. |
+| **AWS SES** | HIPAA email fallback (if Resend BAA unavailable) | YES | any | $0.10 per 1,000 emails | AWS HIPAA-eligible service; BAA available via AWS Artifact. **Gotcha:** SES silently drops mail to recipients that can't negotiate TLS when `EnforceTLS` is set — acceptable for clinic-internal alerts where recipients are vetted enterprise mailboxes; logs the drop, so observability is in. Alternative: **Paubox Email API** auto-falls-back to Paubox Secure Message Center on TLS-negotiation failure (~$29/user/mo+, but no silent drops). Source: [Paubox: Amazon SES vs Paubox](https://www.paubox.com/blog/amazon-ses-vs-paubox-email-api-for-hipaa-compliant-email). |
+| **Sentry** | Error tracking + Session Replay (currently active) | YES | **Business** plan | **$80/mo** (cheapest BAA in the chain) | Business plan ($80/mo, 100K events) includes Advanced Data Scrubbing (BAA prerequisite) + signed BAA. **Gotcha:** Session Replay can capture form values — must enable input masking site-wide before BAA activation (`maskAllInputs: true` + `blockAllMedia: false` for redact-mode); on PHI routes (BodyTab, MedicationTab, AIChatPanel, DoctorReport) use `data-sentry-mask` attribute on PHI containers. Source: [Sentry BAA](https://sentry.io/legal/baa/) + [Sentry trust](https://sentry.io/trust/privacy/). |
+| **PostHog** | Product analytics + feature flags + A/B + session replay + surveys + heatmaps | YES (PostHog Cloud only — NOT self-hosted) | **Boost / Scale / Enterprise** add-on | Enterprise add-on $2,000/mo | **Cheapest BAA route:** Boost or Scale add-on (smaller); Enterprise ($2K/mo) only if larger governance requirements (RBAC, dedicated support). **BAA generator:** PostHog provides their BAA at https://posthog.com/baa for self-countersign. **Cheaper alternative:** stay PHI-scrubbed (event-property allowlist enforced in `_shared/posthog-server.ts` + `disable_session_recording_on_url` for PHI routes) — keeps BAA out of scope. **Decision point at plan-phase:** if session-replay on PHI surfaces is a product requirement, BAA required; if not, scrub-only path saves $2K+/mo. Source: [PostHog HIPAA compliance docs](https://posthog.com/docs/privacy/hipaa-compliance). |
+| **Better Stack** (status page) | Public uptime status page | N/A — no PHI in scope | any tier | $12/mo (status page tier) | Zero PHI by construction. No BAA needed. |
+| **Cloudflare / Vercel AI Gateway** | Anthropic + OpenAI proxy | N/A — Vercel AI Gateway covered under Vercel BAA | Vercel Pro+ with BAA | included | If AI Gateway is in Vercel BAA scope (which it should be — Vercel-operated service); confirm at plan-phase BAA negotiation. |
+
+**Estimated incremental monthly cost when HIPAA BAA chain activates:**
+- Supabase Pro → Team + HIPAA add-on: **+$924/mo** (was $25, becomes $949)
+- Vercel Pro → Pro + HIPAA add-on: **+$350/mo**
+- Sentry → Business: **+$80/mo** (likely already on or near this)
+- Anthropic → Enterprise: **custom** (likely 2-5x current usage cost; estimate **+$500-2,000/mo** at v1.3 scale)
+- OpenAI → Enterprise (for HIPAA embeddings): **custom** OR avoid by scoping embeddings to non-PHI content (preferred)
+- PostHog → Boost add-on (cheapest BAA path) **OR** scrub-only (free): **+$0 to +$2,000/mo** depending on decision
+- Email path: Resend unchanged for non-PHI + AWS SES for PHI (~$10/mo at v1.3 volume) — **+~$10/mo**
+- **TOTAL: ~$1,864-4,364/mo additional vendor cost when HIPAA BAA chain activates** (excluding Anthropic Enterprise which is custom).
+
+This is the input to the "first clinic deal price floor" conversation — first clinic contract MRR needs to exceed this baseline by a meaningful margin for HIPAA-tier to make sense.
+
+---
+
+## Architecture: how the v1.3 additions fit the v1.2-shipped stack
 
 ```
-                                    ┌──────────────────────────────────────────┐
-                                    │  Monorepo (Turborepo + pnpm workspaces)  │
-                                    └──────────────────────────────────────────┘
+                                  ┌───────────────────────────────────────────────────────┐
+                                  │  Single repo (no monorepo at v1.3 — defer to v1.4)    │
+                                  │  /Users/karstenhaldan/minisite/leanshot                │
+                                  └───────────────────────────────────────────────────────┘
                                                        │
-   ┌──────────────────┬──────────────────┬─────────────┴──────────────┬────────────────────┐
-   ▼                  ▼                  ▼                            ▼                    ▼
-apps/marketing    apps/web        apps/mobile (Capacitor 8)     apps/watchos          apps/wearos
-(Vercel SPA)   (Vercel SPA —      ├── ios/  (Xcode)             (Xcode native)        (Gradle native)
-                existing v1.1)    │     ├── App (wraps web)     SwiftUI + WatchConn   Compose + DataLayer
-                                  │     └── WatchApp target ─── ▲                     │
-                                  ├── android/ (Gradle)         │                     │
-                                  │     ├── app (wraps web)     │                     │
-                                  │     └── wear module ───────────────────────────── ▲
-                                  └── ad-firewall.config.ts → isolates HealthKit
-                                                                  │
+   ┌──────────────────┬──────────────────┬─────────────┴──────────────┬──────────────────────┐
+   ▼                  ▼                  ▼                            ▼                      ▼
+src/components/    src/lib/        Supabase Edge Fns                 Vercel Cron        Public assets
+admin/           i18n/             (NEW v1.3, all on Deno)           (NEW v1.3)         /locales/{lng}/*.json
++ Modular shell  + react-i18next   _shared/posthog-server          ad-spend-meta         (NEW v1.3 — workstream 6)
++ Bulk actions   + locale router   _shared/email-router            ad-spend-google
++ Permissions    + KB markdown     _shared/embed-sandboxer         ad-spend-tiktok
+                                   ticket-inbound (Resend Inbound) embedding-backfill
+src/components/  src/lib/          ticket-reply                    recommender-weekly
+helpdesk/        recommender/      org-invite + org-subscription   review-prompt-fanout
++ Inbox          + pgvector q's    affiliate-tier-recalc           account-deletion (extends)
++ Ticket detail  + Voyage/OpenAI   summary-email-render            organizations-billing-cron
++ Reply panel    + cosine sim      review-prompt-stage1
++ Attachments
++ KB editor      src/lib/
+                 gamification/
+src/components/  + xp + levels
+clinic-org/      + freeze tokens
++ Org dash       + leaderboard
++ Members        + challenges
++ Invite flow    + canvas-confetti
                                                                   ▼
    ┌──────────────────────────────────────────────────────────────────────────────────────┐
-   │ Supabase project ytnsipxxmzgaebkqmokp — Postgres + RLS + Storage + Realtime + Edge   │
-   │                                                                                      │
-   │  Existing (v1.1):  ai-chat, share, clinic-invite, clinic-photo, clinic-snapshot,     │
-   │                    patient-activity, bulk-csv-export                                 │
-   │                                                                                      │
-   │  New (v1.2):       stripe-webhook        ← RevenueCat + Stripe webhook fan-out       │
-   │                    stripe-checkout       ← create Checkout / Connect / Portal links  │
-   │                    push-dispatch         ← fan-out Web Push + APNs + FCM             │
-   │                    ad-config             ← serve ad placement config to clients      │
-   │                    dsar-export           ← GDPR Art 15 ZIP export                    │
-   │                    dsar-delete           ← GDPR Art 17 soft+hard delete              │
-   │                    affiliate-attribution ← capture referral codes + attribute        │
-   │                    page-render           ← SSR landing pages from builder rows       │
-   │                                                                                      │
-   │  Tables added:     entitlements, stripe_customers, stripe_connect_accounts,          │
-   │                    affiliate_codes, affiliate_attributions, affiliate_payouts,       │
-   │                    ad_placements, ad_provider_configs, ad_revenue_daily,             │
-   │                    push_subscriptions, push_log,                                     │
-   │                    landing_pages (jsonb tree), landing_page_revisions,               │
-   │                    consent_records, dsar_requests                                    │
+   │ Supabase project ytnsipxxmzgaebkqmokp — adds at v1.3:                                │
+   │  · organizations, org_members, org_invites, org_subscriptions  (workstream 9)         │
+   │  · tickets, ticket_messages, ticket_attachments,                                      │
+   │    kb_articles (i18n: {slug, locale}), csat_responses          (workstream 15)        │
+   │  · affiliate_tiers, affiliate_tier_assignments                 (workstream 2.A)       │
+   │  · ad_spend_hourly (composite PK: account_id+source+hour_ts)   (workstream 4)         │
+   │  · content_embeddings, user_interaction_embeddings,                                   │
+   │    notification_recommendations, summary_emails (vector(1536)) (workstream 14)        │
+   │  · gamification_events, user_xp, user_freeze_tokens,                                  │
+   │    leaderboards (matview), weekly_challenges                   (workstream 5/M3)      │
+   │  · onboarding_steps (admin-editable, drag-and-drop),                                  │
+   │    onboarding_variants, onboarding_runs                        (workstream 5/M2)      │
+   │  · review_prompts (stage1=NPS, stage2=route_to_store|ticket),                         │
+   │    save_offers, cancellation_flows                             (workstreams 13, 17)   │
+   │  · admin_audit (extends v1.2 audit_logs with bulk-action      (workstream 1)         │
+   │    discriminator + admin_2fa_enforcements)                                            │
+   │                                                                                       │
+   │ pgvector extension enabled                                                            │
+   │ Storage buckets: ticket-attachments (RLS by tenant), kb-images (public)              │
    └──────────────────────────────────────────────────────────────────────────────────────┘
                                                                   │
                                                                   ▼
    ┌──────────────────┬─────────────────────────────────────┬──────────────────────────────┐
-   │ Stripe           │ RevenueCat                          │ AdMob / Google Ad Manager    │
-   │  Subscriptions   │  iOS StoreKit 2 + Play Billing      │  iOS + Android (in-app)      │
-   │  Customer Portal │  Cross-platform entitlements        │  Web (GPT script)            │
-   │  Connect Express │  Webhook → stripe-webhook fn        │  ┌─── HealthKit firewall ──┐ │
-   │   ├── W-9/W-8    │                                     │  │ no shared identifiers,  │ │
-   │   ├── 1099       │ Resend (existing) → lifecycle email │  │ no Health in targeting  │ │
-   │   └── Payouts    │   (welcome, dunning, milestone)     │  └─────────────────────────┘ │
+   │ Existing (v1.2): │ NEW vendor relationships v1.3:      │ HIPAA chain (mid-v1.3):      │
+   │  Stripe          │  Better Stack (status page)         │  Supabase Team+HIPAA add-on  │
+   │  Anthropic       │  Meta Ads API + Google Ads API +    │  Vercel Pro HIPAA add-on     │
+   │  Resend          │     TikTok Marketing API (read-only)│  Sentry Business             │
+   │  Sentry          │  OpenAI (embeddings via AI Gateway) │  Anthropic Enterprise        │
+   │  PostHog         │  AWS SES (HIPAA email path,         │  OpenAI Enterprise (opt)     │
+   │  Vercel          │     conditional on Resend BAA gap)  │  PostHog Boost add-on (opt)  │
    └──────────────────┴─────────────────────────────────────┴──────────────────────────────┘
 ```
 
-**Local-first preservation.** All v1.2 additions sit *outside* the offline-critical write path. Capacitor wraps the existing SPA whose Zustand+localStorage+Supabase-Realtime sync is already proven. Stripe/RevenueCat/AdMob/Health are all online-gated features that gracefully degrade when offline (the patient can still log injections; only "manage subscription" and "import HealthKit weight" need network).
+**Bundle posture (carry from v1.1/v1.2).** Existing `sync-defer.ts` idle-deferred-init pattern remains MANDATORY for all v1.3 web-side heavies:
+- `@tanstack/react-query` + `@tanstack/react-table` + `@tanstack/react-virtual` — admin-route-gated dynamic import only
+- `canvas-confetti` — gamification-modal-gated lazy import
+- `react-i18next` core — eager (it's used everywhere); language packs lazy via `i18next-http-backend`
+- `react-markdown` + `remark-gfm` + `rehype-sanitize` — KB/ticket-detail-route gated
+- `dompurify` — same gate as react-markdown
+- `posthog-node` — Edge-Function-only, never bundles into web
+- `openai` + `facebook-nodejs-business-sdk` + `google-ads-api` — Edge-Function-only
 
-**Bundle posture.** v1.1's `sync-defer.ts` idle-deferred-init pattern is the *required* path for all new heavyweight SDKs. Concretely:
-- Stripe.js loads via `loadStripe(pk)` lazily inside Checkout entry handler (~37 KB gz, never loads on home dashboard)
-- AdMob plugin is mobile-only; tree-shake from web build via Capacitor's conditional registration
-- RevenueCat plugin same — mobile-only
-- GPT (ad script) loads only after cookie consent + only on pages with ad slots
-- vanilla-cookieconsent loads first (it's the gate)
-- dnd-kit only loads on the page-builder admin route — never on patient dashboard
-
-**Existing bundle ceiling (v1.1: index gz 21.49 kB, 50 kB ceiling).** v1.2 must preserve this by gating *all* new web-side SDKs behind dynamic-import. The bundle CI guard from v1.1 stays as a hard gate.
-
----
-
-## iOS HealthKit ↔ ad-SDK architectural firewall (Apple §5.1.3)
-
-**The rule.** Apple Developer Program §5.1.3 (Health and Health Research) is a hard line: HealthKit data — even derived signals like "this user has read steps from HealthKit" — **must not be used to target ads, sold, or shared with third parties for advertising purposes**. Apple does not bless one specific architecture, but the App Store review team has rejected apps for things as subtle as "the same User Defaults bucket holds HealthKit-derived state and the ad SDK init flag." The firewall below is the most defensible synthesis of the public §5.1.3 guidance + the Apple Privacy Manifest requirements (PrivacyInfo.xcprivacy) + community-observed review patterns.
-
-**Five-layer firewall:**
-
-1. **Storage isolation.** HealthKit-imported data lives only in: (a) memory during the import session, then (b) Supabase Postgres rows tagged `source = 'healthkit'`. **Never** in `@capacitor/preferences`, **never** in `localStorage`, **never** in the Zustand persisted partition. The ad SDK's identifier-for-advertising (IDFA) + AdMob session state goes through `@capacitor/preferences` — a separate Keychain access-group from the rest of the app. **No identifier ever bridges the two storage planes.**
-2. **Network identifier isolation.** The Supabase auth `user_id` is NOT sent to AdMob or any ad network. Ad requests use either no user ID (contextual targeting only) or a per-app-install random ID generated on first launch and stored ONLY in the ad-SDK Keychain access-group. RevenueCat gets the auth `user_id` (it needs it for entitlement lookups) but RevenueCat is not an ad network and does not see any Health-tagged row.
-3. **Build-flag gating.** Ad SDK init is gated behind `Build.adsEnabled === true` and `entitlements.ad_free === false`. The init call sits in `apps/mobile/src/init/ads-init.ts`, which is the *only* file in the codebase that imports `@capacitor-community/admob`. Any other file that tries to import it fails ESLint via a `no-restricted-imports` rule:
-   ```ts
-   // eslint.config.js — under apps/mobile
-   'no-restricted-imports': ['error', {
-     patterns: [{ group: ['@capacitor-community/admob'], message: 'Import only from src/init/ads-init.ts' }]
-   }]
-   ```
-4. **Code-path isolation.** The HealthKit import flow lives in `apps/mobile/src/health/` and imports `@capgo/capacitor-health`. The ESLint mirror rule blocks any cross-import: files under `src/health/**` cannot import from `src/init/ads-init.ts` and vice versa. This makes "did a HealthKit value flow into an ad request" a static-analyzable invariant, not a code-review judgment call.
-5. **Privacy Manifest declarations (`PrivacyInfo.xcprivacy`).** The wrapped iOS app declares:
-   - `NSPrivacyTracking` = `false` (we do not link user data with third-party data for advertising)
-   - `NSPrivacyAccessedAPITypes` declared per API (UserDefaults reason, FileTimestamp reason, etc.)
-   - `NSPrivacyCollectedDataTypes`: HealthKit categories declared as `NSPrivacyCollectedDataTypeLinked = false` (not linked to user identity at the ad-network level) and `NSPrivacyCollectedDataTypeTracking = false`
-   - AdMob's IDFA usage declared with `NSPrivacyTrackingDomains` listing only the AdMob hosts (`googleads.g.doubleclick.net`, etc.)
-   - When App Tracking Transparency permission is declined, AdMob falls back to contextual-only ads (configured in AdMob console, not in app code)
-
-**Capacitor process model — addressing the "separate process" question from the prompt.** Capacitor on iOS runs the WebView and all plugins in the *same* process. You cannot literally fork the ad SDK into a separate process the way some Android approaches do. The defense in depth is therefore *logical* isolation (the 5 layers above) backed by code-search-able invariants (the ESLint rules), not OS-level process isolation. This is the same approach Apple-approved fitness apps with ad revenue use; the App Store reviewer reads code, not memory maps.
-
-**What App Store review will check** (from observed rejections):
-- Are HealthKit reads happening behind explicit user authorization? (Capacitor Health plugin handles this.)
-- Is the HealthKit permission description in `Info.plist` accurate and user-facing-honest?
-- Does the privacy manifest match actual SDK behavior?
-- Can a reviewer trace a HealthKit read → ad targeting path? **Our answer: ESLint blocks the import; the path does not exist.** Mention this in the App Review notes field on submission.
-
----
-
-## Monorepo recommendation: Turborepo + pnpm workspaces
-
-The team needs to coordinate five build surfaces:
-
-| Surface | Language | Build tool | Lives in |
-|---------|----------|------------|----------|
-| Marketing site | TS/React | Vite | `apps/marketing` |
-| Patient web app | TS/React | Vite | `apps/web` |
-| iOS Capacitor shell + watchOS | TS (web) + Swift (native) | Vite + Xcode | `apps/mobile/ios/` + `apps/watchos/` (Xcode project) |
-| Android Capacitor shell + WearOS | TS (web) + Kotlin (native) | Vite + Gradle | `apps/mobile/android/` + `apps/wearos/` (Gradle module) |
-| Shared types + ui tokens + page-builder palette | TS | tsc / Vite library | `packages/*` |
-
-**Why Turborepo wins for *this* shape:**
-
-1. **All Turbo-coordinated work is TypeScript.** The Swift + Kotlin builds are managed by their native toolchains (Xcode, Gradle); Turbo just invokes them via a `task.shell` entry. Turborepo's incremental caching shines on the TS surface, and the native surface doesn't need its graph awareness.
-2. **Operational simplicity.** Turborepo is one config file (`turbo.json`), one daemon, one cache. Nx is one config (`nx.json`) + per-project configs + a generators system + executors — meaningful overhead for the value v1.2 actually needs.
-3. **Remote caching.** Vercel's free remote cache works out of the box (the project already deploys to Vercel via the `leanshot-app.vercel.app` SPA). Nx remote caching needs Nx Cloud (free tier exists but adds a vendor).
-4. **Migration cost.** v1.1's repo is currently a single-package npm project under `/leanshot`. Migrating to pnpm workspaces + Turborepo is a one-day refactor (move `src/` → `apps/web/src/`, hoist shared types into `packages/types`, add `turbo.json`). Migrating to Nx is a multi-day rewrite of the build orchestration.
-
-**Why Nx might be right anyway:**
-- If the team adds a Go or Python service (we won't in v1.2 — backend is Supabase Edge Functions, which is TS).
-- If the team wants the Nx Plugins ecosystem for Capacitor / React Native / Expo (Nx has a `@nx/capacitor` plugin; Turborepo treats Capacitor as just another shell-task).
-- If the team values Nx's affected-graph + visualization more than Turborepo's simpler model.
-
-**Why separate repos is the wrong call:**
-- Shared types (`Injection`, `User`, `Entitlement`) would have to be published as npm packages or duplicated. Both are friction.
-- The page-builder palette will be consumed by `apps/marketing` (render path) and `apps/web` (admin builder UI) — they must share components, which a single repo makes trivial.
-- Cross-cutting changes (e.g., "add an entitlement field that the web UI shows and the mobile shell respects") become 3 PRs across 3 repos instead of 1.
-
-**Single concrete `turbo.json` for v1.2:**
-```json
-{
-  "$schema": "https://turborepo.com/schema.json",
-  "tasks": {
-    "build":       { "dependsOn": ["^build"], "outputs": ["dist/**", ".vite/**"] },
-    "test":        { "dependsOn": ["^build"], "outputs": ["coverage/**"] },
-    "lint":        {},
-    "typecheck":   { "dependsOn": ["^build"] },
-    "cap:sync":    { "dependsOn": ["build"], "cache": false },
-    "ios:build":   { "dependsOn": ["cap:sync"], "cache": false },
-    "android:build": { "dependsOn": ["cap:sync"], "cache": false }
-  }
-}
-```
-
----
-
-## Page builder — why dnd-kit + in-house components
-
-**Decision recap from CONTEXT.md / ROADMAP:** v1.2 explicitly says "in-house drag-and-drop builder (NOT SaaS)". This rules out Builder.io, Plasmic, Webflow, Framer-as-SaaS. The remaining question is **which DnD primitive layer**.
-
-| Option | Verdict |
-|--------|---------|
-| **dnd-kit** | **Pick this.** Primitive layer for kinetics + a11y. Component palette is our code, persistence is our schema, render path is ours. Maximum control + minimum library cost (~10 KB gz). |
-| Puck (`@measured/puck`) | Reject. Puck is a *full* builder framework, not a primitive. Adopting Puck means committing to Puck's JSON schema for landing pages, Puck's render pipeline, and Puck's extension model. Excellent product, but the explicit "in-house" requirement is at odds with Puck's value prop. |
-| react-dnd | Reject. Last meaningful release 2024-Q4; HTML5 backend has known keyboard-a11y gaps; React 19 compatibility is community-patched not official. |
-| react-beautiful-dnd | Reject. Atlassian deprecated this in 2024; React 19 incompatible. |
-| Native HTML5 drag-and-drop | Reject. The page builder is the most touch-heavy surface in the app outside the body-photo workflow; HTML5 DnD has no touch support and miserable a11y. |
-
-**Schema shape.** Each landing page is one Postgres row: `landing_pages { id, slug, title, tree jsonb, published_at, ... }`. The `tree` is a JSON tree of `{type, props, children}` nodes; each `type` maps to a React component in `packages/page-builder-components/`. Versioning via append-only `landing_page_revisions`. SEO render path is a Supabase Edge Function (`page-render`) that walks the tree and emits static HTML with the right meta tags + JSON-LD + OG.
-
----
-
-## Stripe Connect path — Express, not Standard or Custom
-
-| Variant | When | Verdict |
-|---------|------|---------|
-| **Connect Express** | Affiliates we onboard via our app; Stripe hosts the dashboard + tax forms | **Pick this.** Hosted onboarding (W-9 / W-8BEN), hosted 1099 generation + delivery, hosted payout calendar, hosted dispute flow. We expose a "View affiliate dashboard" deep-link button and Stripe handles the rest. Cost: 0.25% + $0.25 per active connected account per month + payout fees. |
-| Connect Standard | Affiliates already have their own Stripe account | Skip for v1.2. Premature flexibility. |
-| Connect Custom | We want to white-label the entire dashboard | Skip — this is an order of magnitude more compliance + UI work. |
-
-**1099 path.** Stripe Connect Tax (a paid Connect addon, ~$2 per filed 1099) files the 1099-NEC / 1099-K for every affiliate that crosses the $600 IRS threshold. Forms appear in the affiliate's Express Dashboard by January 31. **We do not handle IRS filing ourselves.**
-
-**RevenueCat vs Stripe for in-app subscriptions — final answer:**
-- **iOS in-app purchases (App Store):** RevenueCat (which wraps StoreKit 2). Apple §3.1.1 prohibits Stripe for in-app digital subscriptions on iOS.
-- **Android in-app purchases (Play Store):** RevenueCat (wraps Play Billing). Google §3.1.1 same prohibition.
-- **Web subscriptions (browser-acquired patients):** Stripe Checkout directly. RevenueCat's web SDK is an option but it's a layer over Stripe for cross-platform entitlement tracking — adds value when you want a unified entitlement model.
-- **Recommendation:** Route *all three* through RevenueCat (including web via their `purchases-js`). Single source of truth for `is_paid_user`, single webhook to handle, single restore-purchases flow. The 1% RevenueCat fee on web is the price of one entitlement model.
-- **Clinic seat-based billing:** Stripe direct (Subscriptions + Customer Portal). RevenueCat is wrong-shaped for B2B seat billing — it's optimized for single-user consumer subscriptions.
-- **Affiliate payouts:** Stripe Connect direct (RevenueCat does not do payouts).
+**Existing bundle ceiling (v1.2: index 17.67 kB gz, 50 kB cap).** v1.3 must preserve. Bundle CI guard stays as hard PR-blocker. New v1.3-specific per-chunk ceilings to add at Phase 24 (v1.3 bootstrap):
+- `admin-shell` chunk: 30 kB gz (includes react-query + react-table when admin route hit)
+- `helpdesk-widget` chunk: 25 kB gz (includes react-markdown when ticket-detail rendered)
+- `i18n-runtime` chunk: 15 kB gz (react-i18next + i18next core, no language packs)
+- `gamification-burst` chunk: 8 kB gz (canvas-confetti)
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| Capacitor 8 | **React Native (with Expo)** | Greenfield mobile-first project. Not us — we have a working web app that uses chart.js + framer-motion + Tailwind v4 + Zustand that would need a full RN port. Capacitor wraps existing SPA in days; RN would take 2-3 months. |
-| Capacitor 8 | **PWA only (no native shell)** | If App Store / Play Store distribution were not required. Roadmap explicitly requires both stores. |
-| Capacitor 8 | **Tauri Mobile** | Bleeding edge in 2026; iOS support landed mid-2025 but ecosystem is years behind Capacitor for App Store-critical things (StoreKit, AdMob, push). Pick in 3 years, not now. |
-| RevenueCat | **StoreKit 2 + Play Billing direct (no RevenueCat)** | If you have a dedicated mobile engineer who wants to own receipt validation, restore-purchases, and subscription-state machine code. Saves 1% MRR; costs 2-3 weeks of engineering. Not worth it for a 1-engineer team. |
-| RevenueCat | **Adapty** | Direct RevenueCat competitor, similar pricing, similar API. RevenueCat is the safer pick (larger ecosystem, more reference customers, better docs). |
-| Stripe Connect Express | **PayPal Payouts** | If most affiliates are non-US (PayPal Mass Pay has better international coverage in some corridors). Loses the W-9/W-8/1099 hosted dance. |
-| AdMob via Capacitor Community plugin | **AppLovin MAX direct (custom native bridge)** | When eCPM data shows MAX consistently beats AdMob mediation by >20% — only meaningful at scale (>50K DAU). Defer until measurable. |
-| @capgo/capacitor-health | **@perfood/capacitor-healthkit + capacitor-health-connect (two plugins)** | If the Capgo plugin develops a blocking bug AND community-maintained alternatives become more current than `perfood` (Feb 2025) and `health-connect` (Aug 2024). Unlikely — those are the staler options. |
-| dnd-kit | **Puck (@measured/puck)** | If "in-house" requirement softens. Puck is genuinely excellent. |
-| dnd-kit | **Builder.io / Plasmic** | Never for v1.2 — explicitly out of scope per ROADMAP. |
-| vanilla-cookieconsent | **CookieYes / Cookiebot** | If legal demands a managed-service vendor with audit logs and EU DPA on file. Costs $10-50/mo. |
-| Turborepo + pnpm | **Nx** | If we add a non-TS service (Go / Python / Rust) in v1.2. We won't — backend is Supabase Edge Functions (TS). |
-| Turborepo + pnpm | **Bun workspaces + Bun runtime** | Edge: Bun is great for dev speed but Supabase Edge Functions run on Deno, Capacitor's CLI assumes Node, and the React 19 + Vite + Tailwind v4 stack hasn't been pressure-tested on Bun's resolver yet. Adopt Bun in v1.3 after the cross-platform launch is stable. |
-| Web Push + `@capacitor/push-notifications` | **OneSignal** | If non-engineers will author campaigns from a UI. OneSignal has the better marketer UX. Costs $9/mo+ at scale. Push is simple enough that we don't need it. |
-| Web Push + `@capacitor/push-notifications` | **Knock** | If we need transactional + product workflows + in-app inboxes unified. Overkill for v1.2; revisit when "in-app inbox" becomes a requirement. |
+| Recommended | Alternative | When to Use Alternative / Why Not Now |
+|-------------|-------------|----------------------------------------|
+| **react-i18next** | next-intl | Next.js only; we're on Vite. |
+| react-i18next | LinguiJS | Smaller community + macro DX; valid alternative if a contributor strongly prefers it but no migration upside. |
+| react-i18next | FormatJS / react-intl | Heavier; ICU MessageFormat overkill for our string density at v1.3. |
+| **pgvector** | Pinecone / Weaviate / Qdrant | Use if embeddings scale > 1M vectors OR if we need real-time cross-tenant similarity at >10 QPS (we won't at v1.3). |
+| pgvector | Supabase Vector Buckets | Wait for GA; currently Public Alpha (2026-05). |
+| **OpenAI embeddings** | Voyage AI (`voyage-3-large`) | Voyage wins on retrieval quality on technical/code-heavy benchmarks; on patient-narrative text the gap is narrower. Use if recommender precision is poor with OpenAI 3-small after tuning. |
+| OpenAI embeddings | Anthropic embeddings | Anthropic doesn't ship an embeddings API as of 2026-05. |
+| **PostHog feature flags + experiments** | LaunchDarkly / Statsig / GrowthBook | All viable; all add new vendor. PostHog covers flags + experiments + analytics + replay + surveys + heatmaps as one bill — keep consolidation. |
+| **Resend + AWS SES dual-path** | Postmark single-path | Postmark BAA exists + is widely documented; cheaper than SES on small volume but more expensive than $0.10/1K at scale. Postmark would be a vendor swap (replace Resend entirely); SES is additive (keep Resend for marketing). Defer Postmark consideration to v1.4 if Resend BAA confirms unavailable. |
+| **Resend Inbound** for email-to-ticket | Postmark Inbound, SendGrid Inbound Parse, AWS SES inbound | Resend is already-wired; one less vendor relationship. |
+| **Better Stack** status page | Upptime (self-hosted GitHub Actions) | Upptime is free + GitOps-managed but 5-min poll minimum + responder UX is GitHub-centric. Pick Upptime if budget is a hard $0/mo cap. |
+| Better Stack | Atlassian Statuspage | Atlassian Statuspage starts at $29/mo + adds Atlassian SSO complexity; Better Stack is more polished for solo/small ops. |
+| Better Stack | Self-host OneUptime | Open source, fully self-hostable, but adds Docker/K8s ops surface. Wrong shape for v1.3 polish item. |
+| **Hand-rolled TikTok REST client** | `@quantum-forge/tik-tok-business-sdk` community wrapper | Wrapper is alpha-tier (v0.0.4); ~50 LOC of `fetch` is more durable. |
+| **canvas-confetti** | `react-rewards` | Wider feature set in react-rewards but adds React Context wrapper that fights with framer-motion's animation loop on the gamification screen. Stick with the imperative-call confetti. |
+| **AWS SES** for HIPAA email | Paubox Email API | Paubox is simpler (auto-fallback to Secure Message Center on TLS fail; no silent drops); SES is cheaper + more operationally familiar. Pick Paubox if PHI volume is high and a single dropped email is a compliance incident; pick SES if low-volume clinic alerts with monitoring. |
+| **`@tanstack/react-query`** | SWR | RQ has the larger ecosystem + React 19 Suspense story. SWR is fine but second-place. |
+| **`@tanstack/react-table`** | AG-Grid / MUI DataGrid | Both heavyweight + opinionated styling; v1.3 admin tables stay Tailwind-styled. |
 
 ---
 
@@ -315,137 +247,160 @@ The team needs to coordinate five build surfaces:
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| **Stripe for iOS/Android in-app subscriptions** | Apple §3.1.1 + Google §3.1.1 — instant app rejection. Apple has gotten more aggressive in 2025-2026 about external-payment links (Epic ruling not withstanding). | RevenueCat for in-app subs; Stripe for web subs + Connect + clinic seats only. |
-| **AdMob with any HealthKit-derived signal in the ad request** | Apple §5.1.3 — instant rejection + potential developer-program action. | Contextual-only ads; ESLint-enforced cross-import rule; ATT prompt declined → contextual fallback. |
-| **`@perfood/capacitor-healthkit` (iOS-only) + `capacitor-health-connect` (Android-only)** | Two single-platform plugins, both getting stale (last release Feb 2025 / Aug 2024 respectively), doubled maintenance surface, two slightly different APIs to wrap. | `@capgo/capacitor-health` — one unified plugin. |
-| **Capacitor 6.x or earlier (prompt assumed 6.x)** | Capacitor 8 (released 2025) drops Cordova back-compat, requires Xcode 16, requires AGP 8.7. Starting on 6 today means a major migration in 6 months. | Capacitor 8 from day one. |
-| **react-dnd** | Maintenance stalled; HTML5 backend has keyboard-a11y gaps; React 19 compat unofficial. | dnd-kit. |
-| **`react-beautiful-dnd`** | Atlassian deprecated 2024. Incompatible with React 19. | dnd-kit. |
-| **`anthropic-dangerous-direct-browser-access: true` in the wrapped iOS app** | The header name is Anthropic's own warning. v1.1 already moved AI to the Supabase Edge Function proxy — preserve that posture; do not regress when adding the mobile shell. | Keep AI calls routed through `ai-chat` Edge Function. |
-| **Bundling AdMob into the marketing site or clinic surfaces** | Roadmap explicitly forbids ads on clinic/doctor-share + marketing site uses display ads via GPT, not AdMob. AdMob is for the *mobile app's free-tier patient surface only*. | Web ads via standard GPT script; AdMob exclusively in `apps/mobile/`. |
-| **OneSignal + Firebase + APNs as three parallel push backends** | Redundant. Each is a vendor relationship and another secret to rotate. | One Supabase Edge Function `push-dispatch` fanning out to Web Push + APNs (direct HTTP/2 or `node-apn`) + FCM (`firebase-admin`). |
-| **Storing HealthKit-imported values in Zustand `persist`'d localStorage** | localStorage is plaintext; persists across sign-outs; trivially exfiltrated by any future XSS. For health data this is the wrong storage layer. | Postgres row tagged `source = 'healthkit'`, fetched on-demand via Realtime / Query; in-memory only on the client. |
-| **Reusing the v1.1 `share` Edge Function for ad-config delivery** | Conflates two trust planes — share tokens are public + ad config is owner-internal. Cross-contamination risk. | New `ad-config` Edge Function with its own RLS and audit. |
-| **Letting Stripe webhook events flow into the same `audit_logs` table as user actions without a discriminator** | Phase 7 migration audit-suppression GUC pattern (memory: `reference_supabase_migration_gotchas`) exists for a reason. Don't repeat. | Separate `stripe_webhook_events` table; `audit_logs` stays user-action-scoped. |
-| **NPM workspaces (without pnpm or Turbo)** | NPM workspaces are functional but caching + dependency hoisting are weaker than pnpm; native-modules + Capacitor's CLI tends to break in NPM hoisting edge cases. | pnpm workspaces (better hoisting strategy + symlink layout) + Turborepo (caching). |
-| **`@stripe/stripe-js@1.x` (transitively pulled by older deps)** | Old API surface; missing Payment Element + Checkout v2. | `@stripe/stripe-js@9` explicit dep. |
-| **A SaaS DSAR vendor (OneTrust / DataGrail) for v1.2 launch** | $2K+/mo minimum; designed for hundreds of vendors-to-be-mapped which we don't have. Overkill at our scale. | Two Edge Functions (`dsar-export`, `dsar-delete`) + a React form. ~3 days work. |
-| **Per-platform navigation libraries (React Native Navigation, Ionic React Router) in the Capacitor app** | Capacitor wraps the existing SPA; we already have client-side routing via the web router. Adding a second router would conflict. | Keep the existing web router; Capacitor's deep-link handler just opens the right URL inside the WebView. |
-
----
-
-## Version Compatibility (verified 2026-05-13)
-
-| Package A | Compatible With | Notes |
-|-----------|-----------------|-------|
-| `@capacitor/core@8.3.4` | `@capacitor/ios@8.3.4` + `@capacitor/android@8.3.4` | Major-version-locked: never mix v7 + v8 plugins. All `@capacitor/*` and `@capacitor-community/*` packages must be on matching majors. |
-| `@capacitor/core@8` | Xcode 16 + iOS 14+ deployment target + AGP 8.7+ + minSdk 23 | Capacitor 8 bumped both floors. Lower deployment targets are unsupported. |
-| `@capacitor-community/admob@8.0.0` | `@capacitor/core@8` | v8 plugin is the right major. v7 plugin will not register on v8 core. |
-| `@revenuecat/purchases-capacitor@13.1.0` | `@capacitor/core@8` + iOS 13+ + Android API 24+ | RC 13 dropped iOS 12 support. |
-| `@capgo/capacitor-health@latest` | `@capacitor/core@8` + iOS 15+ (HealthKit unchanged) + Android 14+ (Health Connect requires Android 14 or the standalone Health Connect APK on 13) | Health Connect on Android <14 needs user to install the standalone APK — surface this prompt in onboarding. |
-| `stripe@22.1.1` (Node SDK) | Supabase Edge Functions (Deno runtime) | Stripe's Node SDK runs on Deno via `npm:` import or via `import Stripe from "https://esm.sh/stripe@22.1.1?target=deno"`. Test the import path in dev. |
-| `@stripe/stripe-js@9.5.0` | React 19 + `@stripe/react-stripe-js@4.2.1` | Both have React 19 peer deps. |
-| `@dnd-kit/core@6.3.1` | React 19 | DnD-kit explicitly supports React 19 since 6.2. |
-| `vanilla-cookieconsent@3.1.0` | Framework-agnostic | Just a script + minimal wrapper. Tested with React 19. |
-| `turbo@2.9.12` | Node ≥18 + pnpm ≥9 | Project's `package-lock.json` is npm-format today — migration to pnpm is required (one `pnpm import` command + commit). |
-| `@capacitor/push-notifications@8.0.4` | Firebase iOS SDK (transitively pulled in via Cocoapods) | iOS needs APNs certificate uploaded to Firebase console; Android needs `google-services.json`. Don't commit either secret. |
-| `web-push@3.6.7` | VAPID keys generated via `npx web-push generate-vapid-keys` | Keys go in Supabase secrets, not in browser source. |
-
-**Known compatibility traps:**
-
-1. **Vite 6 + Capacitor 8 dev mode.** `npx cap run ios -l --external` requires the Vite dev server to bind to `0.0.0.0` (not `localhost`) — already true in `vite.config.ts` (`host: true`). Verify before the first run on a physical device. iOS Simulator works on `localhost`.
-2. **AdMob iOS 14.5+ SKAdNetwork.** Apple's SKAdNetwork attribution requires every ad-network ID to be listed in `Info.plist` under `SKAdNetworkItems` (~50 IDs as of 2026). AdMob publishes the current list; bake into the iOS Xcode project. Missing entries silently reduce fill rate.
-3. **Health Connect Android 13 standalone APK.** On Android 14+, Health Connect is OS-bundled. On Android 13, users must install the Health Connect APK from Play Store. The Capgo Health plugin can detect and prompt for install — wire this into onboarding.
-4. **WatchConnectivity background latency.** WC delivers messages "when convenient" — can be 5-30s delay when phone is asleep. The watch UI must not block waiting for fresh data; cache last-known `next_dose` in SwiftData and update opportunistically.
-5. **Stripe webhook signature verification on Deno.** Stripe's Node SDK uses Node's `crypto` for signature verification; on Deno you must pass `crypto: Stripe.createSubtleCryptoProvider()` to the SDK constructor. Easy to miss; webhook will reject every event silently.
-6. **RevenueCat sandbox + StoreKit Configuration File.** Local sandbox testing requires Xcode's StoreKit Configuration file AND a sandbox tester Apple ID. RevenueCat will not show purchases that bypass receipt validation; configure both.
-7. **Resend domain still pending verification from v1.1 (memory: `reference_resend_phase9_wiring`).** v1.2 lifecycle email cadence amplifies the cost of an unverified domain — every welcome email could bounce. Domain verification is a Phase 0 prerequisite for v1.2.
-8. **pnpm + Capacitor's iOS CocoaPods install.** Capacitor's iOS sync runs `pod install` which is independent of node_modules layout, so the npm → pnpm migration does not affect the iOS native install path. Android Gradle sync is similarly independent. Verified.
-9. **Apple Privacy Manifest aggregation.** Every third-party SDK with a privacy manifest contributes to the aggregated app-level manifest. AdMob, RevenueCat, Stripe iOS SDK, Firebase Messaging — each ships their own `PrivacyInfo.xcprivacy`. Verify each is up to date before App Store submission; outdated manifests trigger rejection.
+| **Mixpanel / Amplitude** for adblock-eaten event coverage | PostHog is already wired + covers product analytics + flags + experiments + session replay + surveys + heatmaps as one vendor; adding Mixpanel/Amplitude duplicates the bill and the JS bundle. | Add `posthog-node` server-side capture from Edge Functions for adblock-eaten conversion events; same dashboard. |
+| **Pinecone / Weaviate / Qdrant** at v1.3 scale | New vendor, new BAA negotiation, new bill ($70+/mo Pinecone Starter), new RLS-equivalent to design. pgvector covers our load. | pgvector + HNSW index in Supabase Postgres. |
+| **LaunchDarkly / Statsig / GrowthBook** for A/B | PostHog Experiments are bundled in existing tier; switching adds a vendor with no v1.3 capability we don't have. | PostHog multivariate flags + Experiments. |
+| **Mux / Cloudflare Stream** for video at v1.3 | M4 Community / Skool-style video posts is explicitly v1.5+ per PROJECT.md. No video-hosting need in v1.3. | Skip. Defer to v1.5 milestone planning. |
+| **Postmark / SendGrid full swap of Resend** at v1.3 | v1.2 already wired Resend domain + templates + lifecycle Edge Functions; swapping the ESP is a Phase 22-scale migration. | Keep Resend for non-PHI + add AWS SES path for PHI-touching mail only. |
+| **Stripe `description` / `metadata` fields containing diagnoses, drug names, dosing** | Stripe is not BAA-eligible; ANY PHI in a Stripe field breaches HIPAA's "normal banking exemption." | Generic descriptors ("Clinic Subscription — 12 patients"); CI lint that blocks PHI keyword regex in Stripe API call sites. |
+| **Anthropic `web_search` tool** when HIPAA BAA chain is active | Per Anthropic BAA terms, web search functionality is explicitly OUT OF BAA scope. Using it on PHI-containing prompts breaches BAA. | If HIPAA BAA active: gate web_search by `user.is_phi_handler === false`. If user is clinic staff: disable web_search; if patient self-service AI coach: web_search OK on non-PHI prompts. |
+| **PostHog session replay on PHI-rendering routes without BAA** | Session replay can capture form values + DOM; without BAA it's a breach risk; with BAA it's $2K/mo. | `disable_session_recording_on_url` for `/medication/*`, `/body/*`, `/insights/*`, `/coach/*`, `/share/*`, `/clinic/*`, `/admin/*` AND/OR add `data-ph-no-capture` to all PHI-rendering containers. |
+| **OpenAI embeddings input containing patient identifiers + specific drug + dose strings** | Without OpenAI Enterprise BAA, these prompts cross the BAA line. | Scope embeddings to non-PHI content (KB articles, generic insights, anonymized aggregates) UNTIL OpenAI Enterprise tier is signed. |
+| **Self-hosting PostHog for HIPAA cost dodge** | PostHog explicitly does NOT sign BAAs for self-hosted deployments. Self-hosting buys nothing on HIPAA, costs ops surface. | Either PostHog Cloud + BAA add-on OR PostHog Cloud + PHI scrub posture. |
+| **TikTok community SDK `@quantum-forge/tik-tok-business-sdk`** | Alpha (v0.0.4), last published 9 months ago, narrow community. | Hand-roll a thin `fetch`-based client; ~50 LOC; uses only stable v1.3 endpoints. |
+| **Mixing the OnlyFans-style monorepo refactor with v1.3 net-new** | Monorepo move (deferred from v1.2 research) is its own engineering arc; bundling it with v1.3 doubles risk. | Stay single-repo at v1.3; revisit Turborepo migration as a v1.4 Phase entry. |
+| **Building a custom in-house helpdesk component-library** | Helpdesk is a 1-engineer-month problem in our shape (tickets + messages + attachments + CSAT + KB), all of which is patterns we already have (RLS-by-tenant, Storage + signed URLs, Resend templates). Building a reusable component-library on top adds 3x the work for no v1.3 value. | Ship surface-by-surface; refactor into shared primitives only when 2nd consumer emerges. |
+| **`react-confetti`** (continuous renderer) | Always-on render loop; battery cost on mobile. | `canvas-confetti` — imperative-call. |
+| **`dangerouslySetInnerHTML` on helpdesk reply HTML / KB markdown** | XSS surface; user-submitted markdown via inbound email is hostile by construction (spam links, scripted content). | `react-markdown` + `rehype-sanitize` for KB; for helpdesk-reply HTML run through `dompurify` with a strict allow-list. |
+| **Adding a CMS (Strapi / Sanity / Contentful) for KB articles** at v1.3 | KB articles are flat Markdown + frontmatter; we already have a page-render Edge Function (Phase 15) and a Storage bucket. CMS adds ops + integration surface. | KB articles as Markdown files in `apps/marketing/kb/{slug}.{lang}.md` (or Supabase `kb_articles` table for editor UX); render via existing page-render Edge Function. |
+| **Atlassian Statuspage / PagerDuty for v1.3 status surface** | Both designed for multi-service incident management; v1.3 has one product surface. Overkill. | Better Stack hosted status page tier ($12/mo). |
+| **NextAuth / Auth.js for the magic-link / Google / Apple onboarding additions** | We're already on Supabase Auth (which natively supports magic link + Google OAuth + Apple OAuth); swapping is a v1.2 rewrite. | Configure new providers in Supabase Auth dashboard; consume via existing supabase-js. |
 
 ---
 
 ## Stack Patterns by Variant
 
-**If we ship Apple Watch native only and defer WearOS to v1.3:**
-- Skip the WearOS Gradle module; ship Apple Watch alongside iOS app
-- Maintain `apps/wearos/` directory as `.gitkeep` placeholder so the monorepo shape is right
-- Reduces v1.2 scope by ~1 platform's worth of native work, but loses parity narrative
+**If the first clinic deal slips past v1.3 (HIPAA chain unblocks for v1.4):**
+- Skip Supabase Team upgrade ($924/mo saved)
+- Skip Vercel HIPAA add-on ($350/mo saved)
+- Skip Anthropic Enterprise upgrade
+- Keep Sentry on existing tier (no BAA needed yet)
+- Keep PostHog in PHI-scrub mode (already cheap default)
+- Net: zero new vendor cost until clinic deal is signed; HIPAA stays in "ready posture, not paid" (carryover language from v1.2)
+- Recommendation: build HIPAA SCAFFOLD (audit-log hardening, MFA enforcement, route-level PHI mask declarations in code) at v1.3 plan-phase even if BAA isn't paid yet — so when clinic signs, the engineering work is just "flip the BAA"
 
-**If RevenueCat is rejected on cost grounds:**
-- iOS-only: roll StoreKit 2 + an `Entitlement` Edge Function that verifies receipts against Apple's `verifyReceipt` endpoint
-- Android-only: roll Play Billing 7 + an `Entitlement` Edge Function that verifies via the Play Developer API
-- Web: keep Stripe direct
-- Three webhooks instead of one. Three subscription-state machines instead of one. 2-3 weeks more engineering.
+**If Anthropic Enterprise pricing is rejected mid-v1.3:**
+- AI coach (workstream 5) + helpdesk AI assist (workstream 15) + recommender Next Best Action (workstream 14) split into "PHI-touching" vs "non-PHI-touching" paths
+- PHI-touching path: gated behind feature flag, disabled until BAA signs
+- Non-PHI path: KB article suggestions, marketing copy generation, helpdesk public-FAQ generation — fine on existing AI Gateway routing
+- Estimated impact: workstream 14 partially blocked; workstreams 5+15 ship in degraded mode (no AI insights, only AI helpdesk-assist + summary email)
 
-**If marketing-only ad strategy (no in-app mobile ads):**
-- Skip `@capacitor-community/admob` entirely
-- Skip the App Tracking Transparency prompt
-- Skip the SKAdNetwork Info.plist setup
-- HealthKit ↔ ad firewall becomes moot (no in-app ad SDK to firewall)
-- Loses ~$0.50-$2.00 ARPU per mobile DAU but eliminates Apple §5.1.3 risk surface entirely
-- Defensible launch posture if the v1.2 mobile MVP wants to ship faster
+**If PostHog BAA add-on is rejected (~$2K/mo):**
+- Maintain PHI-scrub posture: `_shared/posthog-server.ts` event-property allowlist (event names + counts + non-PHI dimensions only)
+- Disable session replay on all PHI routes (URL regex + per-route `data-ph-no-capture`)
+- Disable autocapture (`autocapture: false`) on PHI routes
+- Disable surveys + heatmaps on PHI routes
+- Net: cost $0; capability loss = no session replay for clinic-tier user behavior analysis (acceptable for v1.3, revisit if clinic operators ask)
 
-**If team prefers single-repo (no monorepo) for v1.2:**
-- Keep current `leanshot/` as the root
-- Add `ios/` + `android/` as Capacitor's native targets (Capacitor adds them by default)
-- Marketing site stays in a separate Vercel project (already is)
-- Watch + WearOS still go in their own Xcode/Gradle projects but at repo root
-- Defer monorepo until cross-cutting shared-package pressure becomes real
+**If Spanish i18n proves heavier than expected:**
+- Ship i18n infrastructure (workstream 6 part 1: react-i18next + namespace structure + fallback) at v1.3
+- Defer KB-article Spanish translation + transactional-email Spanish translation to v1.4
+- Acceptable degradation: Spanish UI present, Spanish KB/emails fall back to English
+
+**If embed-block sandboxing is too risky:**
+- Ship Calendly + YouTube as "iframe-with-sandbox-allow-scripts-and-same-origin-stripped" using `<iframe sandbox="allow-scripts" referrerpolicy="strict-origin-when-cross-origin">`
+- Defer Tally + custom-script blocks to v1.4
+- Add per-provider allowlist (CSP `frame-src` includes only `https://calendly.com https://www.youtube-nocookie.com`)
+- Consent gating: embed renders a placeholder + "Load this content from {provider}" button; click loads the iframe (matches the cookie consent pattern from v1.2's vanilla-cookieconsent)
+
+---
+
+## Version Compatibility (verified 2026-05-17 via `npm view` + Context7)
+
+| Package A | Compatible With | Notes |
+|-----------|-----------------|-------|
+| `react-i18next@15.7.4` | React 19 + Vite 6 + Suspense | Context7 docs confirm `<Suspense fallback={...}>` wrapping for lazy language packs; works with React 19 transition API. |
+| `i18next@25.5.2` | `react-i18next@15.x` + `i18next-http-backend@3.x` + `i18next-browser-languagedetector@8.x` | All on matching majors; published within 90 days of research date. |
+| `posthog-node@5.10.4` | Supabase Edge Functions (Deno) via `npm:` specifier | Must call `await client.shutdown()` before Edge Function return to flush. |
+| `@tanstack/react-query@5.100.10` + `@tanstack/react-table@8.x` + `@tanstack/react-virtual@3.x` | React 19 | All TanStack libs on v5+ are React 19 ready; verified. |
+| `openai@6.13.0` | Deno via `npm:` specifier + Vercel AI Gateway (already proven via v1.2 Anthropic gateway pattern) | Routes via `baseURL: "https://gateway.ai.vercel.app/v1/openai"`; same posture as v1.2 Anthropic. |
+| `voyageai@0.2.1` | Deno via `npm:` specifier | Alternative to OpenAI; same Edge Function shape. |
+| `facebook-nodejs-business-sdk@24.0.1` | Deno via `npm:` specifier | Heavyweight (~2MB), only loaded inside `ad-spend-meta` Edge Function — never bundles into web. |
+| `google-ads-api@23.0.0` | Deno via `npm:` specifier | OAuth refresh token must live in Supabase Function Secrets, not in code. |
+| `canvas-confetti@1.9.3` | React 19 + framer-motion 11 | Imperative-only API; no React Context interference. |
+| `react-markdown@9.x` + `remark-gfm@4.x` + `rehype-sanitize@6.x` | React 19 | v9 explicitly supports React 19. |
+| `dompurify@3.2.7` | Browser + Deno | Use browser bundle in web, jsdom-shim in Edge Function reply-validation. |
+| pgvector (Postgres extension) | Supabase Pro+ | Already available on the current Pro tier; just needs migration to enable + index. |
+| `@aws-sdk/client-sesv2@3.700+` | Deno via `npm:` specifier | AWS SDK v3 is modular; only the SESv2 client loads, not the entire AWS SDK. |
+| `nanoid@5.1.6` | Browser + Deno | Already in v1.2 toolchain; v5 is ESM-only (already on ESM stack). |
+| `react-hotkeys-hook@5.1.0` | React 19 | v5 added React 19 support. |
+
+**Known compatibility traps (carry into plan-phase):**
+
+1. **react-i18next + Vite eager-bundling translation JSONs.** Default Vite config will bundle the `/locales/` tree into the chunk graph if you `import` JSONs. **Project rule:** use `i18next-http-backend` with `loadPath: '/locales/{{lng}}/{{ns}}.json'` (HTTP fetch from public/) so language packs are CDN-cached + not in JS bundle.
+2. **posthog-node `await client.shutdown()` MUST be the last call** in Edge Functions; otherwise events buffer in memory and are lost on function teardown. Bake into the `_shared/posthog-server.ts` factory.
+3. **pgvector HNSW index creation is LONG-RUNNING** (minutes on warm tables with >100K rows). Schedule the index-create migration during a low-traffic window OR use `CREATE INDEX CONCURRENTLY` (which doesn't require a maintenance window but takes 2x longer).
+4. **OpenAI `text-embedding-3-small` returns 1536 dims by default.** Schema must match (`vector(1536)`). If you switch to `text-embedding-3-large` later, vectors are 3072 dims — schema migration required.
+5. **Resend Inbound DKIM verification.** Inbound requires MX record on `app.leanshot.app` pointed at Resend's inbound MX hosts (different from outbound). DNS change + 24-48h propagation. Schedule into Phase 24 (v1.3 bootstrap) before any helpdesk plan.
+6. **Stripe metadata field 500-char limit.** When wiring `org_id` + tier discriminators into `subscriptions.metadata`, watch the budget; use short JSON keys.
+7. **Meta Marketing API rate limit is per-app per rolling-hour.** Schedule cron at :05 of each hour to avoid the top-of-hour stampede; persist `_etag` per fetch.
+8. **Google Ads API daily-spend reports are delayed ~3 hours.** Hourly cron writes to a `provisional=true` column; daily reconciliation at 03:00 UTC sets `provisional=false`.
+9. **TikTok Marketing API has ~11h data latency.** "Hourly" cron is actually a 12-hour rolling reconciliation; surface this caveat in the admin dashboard.
+10. **Vercel AI Gateway proxy headers.** OpenAI SDK call from Edge Function must set `baseURL` + propagate the `Authorization` header to the gateway, not directly to OpenAI. Same pattern as v1.2 Anthropic — reuse the helper.
+11. **Anthropic web_search tool exclusion under BAA.** If HIPAA BAA is active, all `tools: [{type: "web_search_20250305"}]` calls must be gated by the per-user PHI-handler flag. Add an `assertNoWebSearchUnderBAA()` helper in `_shared/anthropic.ts`.
+12. **Sentry Session Replay mask attribute.** `data-sentry-mask` must be on PHI containers BEFORE BAA activation, not after. Add an audit pass to the v1.3 plan-phase: `grep -r "@\\@/components/(BodyTab|MedicationTab|InsightsTab|AIChatPanel|DoctorReport|ShareView|ClinicDashboard)" src/` and verify each renders a `<div data-sentry-mask>` wrapper.
+13. **PostHog `disable_session_recording_on_url` accepts regex.** Use route patterns, not exact match: `/^\/(medication|body|insights|coach|share|clinic|admin)/`.
+14. **Capgo plugins lock-in.** v1.2 already adopted `@capgo/capacitor-health`. If we add `@capgo/capacitor-native-review` in v1.4 (deferred), monitor Capgo's pricing model — Capgo introduced paid tiers for some plugins in 2024-2025; verify plugin remains MIT-free at v1.4 plan-phase.
 
 ---
 
 ## Sources
 
-**Live npm registry (HIGH confidence — versions verified 2026-05-13 via `npm view`):**
-- `@capacitor/core` `8.3.4`, `@capacitor/ios` `8.3.4`, `@capacitor/android` `8.3.4`, `@capacitor/cli` `8.3.4`
-- `@capacitor-community/admob` `8.0.0`
-- `@capacitor-firebase/messaging` `8.2.0`
-- `@revenuecat/purchases-capacitor` `13.1.0`
-- `stripe` `22.1.1`, `@stripe/stripe-js` `9.5.0`, `@stripe/react-stripe-js` `4.2.1`
-- `@capgo/capacitor-health` `latest` (actively maintained per registry timestamps)
-- `@dnd-kit/core` `6.3.1`
-- `vanilla-cookieconsent` `3.1.0`
-- `turbo` `2.9.12`
-- `web-push` `3.6.7`
-- `@capacitor/push-notifications` `8.0.4`
-- `react-hook-form` `7.75.0`
-- `jspdf` `3.1.0`
-- All `@capacitor/{app,preferences,haptics,status-bar,splash-screen,share,device,network}` on `8.x`
+**Live npm registry (HIGH confidence — versions verified 2026-05-17 via `npm view`):**
+- `react-i18next` `15.7.4`, `i18next` `25.5.2`, `i18next-http-backend` `3.x`, `i18next-browser-languagedetector` `8.x`
+- `posthog-node` `5.10.4`
+- `@tanstack/react-query` `5.100.10`, `@tanstack/react-table` `8.x`, `@tanstack/react-virtual` `3.x`
+- `openai` `6.13.0`, `voyageai` `0.2.1`
+- `canvas-confetti` `1.9.3`
+- `react-markdown` `9.x`, `remark-gfm` `4.x`, `rehype-sanitize` `6.x`, `dompurify` `3.2.7`
+- `facebook-nodejs-business-sdk` `24.0.1`, `google-ads-api` `23.0.0`
+- `nanoid` `5.1.6`, `react-hotkeys-hook` `5.1.0`
+- `@aws-sdk/client-sesv2` `3.700+`
+- `@react-email/render` `2.0.8`, `@react-email/components` `0.13.11` (referenced but NOT added — current Resend templates work without)
 
-**Official docs (HIGH confidence):**
-- [Capacitor 8 release notes](https://capacitorjs.com/docs/getting-started) — Xcode 16 / AGP 8.7 baselines
-- [Stripe Connect — W-8/W-9 onboarding](https://docs.stripe.com/connect/connect-w8-w9-onboarding) — hosted tax-form collection
-- [Stripe Connect — Deliver 1099 tax forms](https://docs.stripe.com/connect/deliver-tax-forms) — hosted 1099 filing
-- [Apple — App Store Review Guideline §5.1.3 Health and Health Research](https://developer.apple.com/app-store/review/guidelines/#health-and-health-research)
-- [Apple — Privacy Manifest files](https://developer.apple.com/documentation/bundleresources/describing-data-use-in-privacy-manifests)
-- [Apple — App Store Review Guideline §3.1.1 In-App Purchase](https://developer.apple.com/app-store/review/guidelines/#in-app-purchase)
-- [RevenueCat Capacitor SDK](https://www.revenuecat.com/docs/getting-started/installation/capacitor)
-- [AdMob — SKAdNetwork IDs to add](https://developers.google.com/admob/ios/quick-start#update_your_infoplist)
-- [Google Consent Mode v2](https://developers.google.com/tag-platform/security/guides/consent)
-- [Capgo Health plugin docs](https://capgo.app/docs/plugins/health/) — unified HealthKit + Health Connect API
-- [@capacitor-community/admob plugin](https://github.com/capacitor-community/admob)
-- [dnd-kit docs](https://docs.dndkit.com/)
-- [Turborepo docs](https://turborepo.com/docs)
-- [Capacitor Push Notifications plugin](https://capacitorjs.com/docs/apis/push-notifications)
-- [Apple watchOS — WatchConnectivity](https://developer.apple.com/documentation/watchconnectivity)
-- [Wear OS — Compose for Wear OS](https://developer.android.com/training/wearables/compose)
-- [vanilla-cookieconsent docs](https://cookieconsent.orestbida.com/)
+**Context7-verified library docs (HIGH confidence — 2026-05-17):**
+- `/i18next/react-i18next` — Suspense + namespaces + HTTP backend lazy-loading patterns confirmed
+
+**Official vendor docs (HIGH confidence):**
+- [Supabase: HIPAA Compliance](https://supabase.com/docs/guides/security/hipaa-compliance)
+- [Supabase: HIPAA Projects](https://supabase.com/docs/guides/platform/hipaa-projects)
+- [Supabase: pgvector](https://supabase.com/docs/guides/database/extensions/pgvector)
+- [Vercel: HIPAA BAAs available to Pro teams](https://vercel.com/changelog/hipaa-baas-are-now-available-to-pro-teams)
+- [Vercel: HIPAA Compliance Guide](https://vercel.com/kb/guide/hipaa-compliance-guide-vercel)
+- [Anthropic: HIPAA-ready Enterprise plans](https://support.claude.com/en/articles/13296973-hipaa-ready-enterprise-plans)
+- [Anthropic: Business Associate Agreements for Commercial Customers](https://privacy.claude.com/en/articles/8114513-business-associate-agreements-baa-for-commercial-customers)
+- [Anthropic: Zero Data Retention](https://privacy.claude.com/en/articles/8956058-i-have-a-zero-data-retention-agreement-with-anthropic-what-products-does-it-apply-to)
+- [Sentry: Business Associate Amendment](https://sentry.io/legal/baa/)
+- [Sentry: Privacy / data scrubbing](https://sentry.io/trust/privacy/)
+- [PostHog: HIPAA Compliance docs](https://posthog.com/docs/privacy/hipaa-compliance)
+- [PostHog: BAA generator](https://posthog.com/baa)
+- [PostHog: Feature flags best practices](https://posthog.com/docs/feature-flags/best-practices)
+- [Stripe (via patient-protect)](https://patient-protect.com/post/is-stripe-hipaa-compliant) — Stripe does not sign BAAs; banking-exemption pattern
+- [Paubox: Amazon SES vs Paubox](https://www.paubox.com/blog/amazon-ses-vs-paubox-email-api-for-hipaa-compliant-email)
+- [Resend: Receiving Emails (Inbound)](https://resend.com/docs/dashboard/receiving/introduction)
+- [Resend: Legal](https://resend.com/legal) — no public HIPAA BAA documentation as of 2026-05-17
+- [Better Stack: Pricing](https://betterstack.com/pricing)
+- [Meta: facebook-nodejs-business-sdk](https://github.com/facebook/facebook-nodejs-business-sdk)
+- [Google Ads API: Node client (Opteo)](https://github.com/Opteo/google-ads-api)
+- [TikTok Business API SDK](https://github.com/tiktok/tiktok-business-api-sdk)
+- [Apple: SKStoreReviewController](https://developer.apple.com/documentation/storekit/skstorereviewcontroller)
 
 **Web research, multi-source verified (MEDIUM confidence):**
-- Capacitor 8 vs React Native vs PWA decision survey — multiple 2025-2026 comparison posts cross-checked against official Capacitor migration guide
-- HealthKit ↔ ad-SDK firewall pattern synthesized from Apple §5.1.3 wording + Apple Privacy Manifest docs + community-observed App Store rejection threads (Reddit r/iOSProgramming, Apple Developer Forums) — Apple has not published a single "approved firewall architecture", so this is pattern synthesis not citation
-- Stripe Connect Express vs Standard vs Custom — official Stripe docs + practitioner blog posts confirming Express is the right shape for affiliate-platform use cases
-- Capgo Health plugin maintained status — verified via npm registry timestamps + GitHub repo activity (last commit within 90 days as of research date)
+- Supabase Team tier + HIPAA add-on pricing ($599 + $350) — cross-checked across blaze.tech + metacto.com + supabase docs
+- Vercel Pro + HIPAA add-on $350/mo — cross-checked with Vercel changelog + checkthat.ai + community discussions
+- PostHog Enterprise add-on $2,000/mo — cross-checked across PostHog platform-packages + userpilot.com
+- Anthropic enterprise BAA configuration requirements — confirmed via privacy.claude.com + support.claude.com + aptible.com
+- Resend HIPAA BAA NOT publicly documented — confirmed by direct fetch of resend.com/legal + resend.com/pricing (no HIPAA mention)
 
-**Cross-checked against v1.1 LeanShot project memory:**
-- Existing Supabase project + Edge Functions inventory — confirmed against v1.1 SHIPPED memory
-- Bundle ceiling pattern (`sync-defer.ts`, 50 kB index cap) — preserved from v1.1
-- Resend domain verification pending — flagged as v1.2 prerequisite per `reference_resend_phase9_wiring`
-- Supabase migration gotchas (audit-suppression GUC, IMMUTABLE partial-index expressions, `extensions` in search_path) — apply to all new v1.2 migrations
-- macOS BSD `sed` quirk + Vitest `it.fixme` quirks — preserved tooling rules for v1.2 dev
+**Cross-checked against v1.1 + v1.2 LeanShot project memory:**
+- Bundle ceiling discipline (`sync-defer.ts`, per-chunk gz ceilings) — preserved from v1.1 + v1.2
+- Vercel AI Gateway proxy posture for AI providers — preserved from v1.2 (used for Anthropic; extends to OpenAI)
+- Supabase migration filename strict timestamp format (`<14digits>_name.sql`, NO letter suffix) — preserved from Phase 19 BL-10 lesson
+- Worktree-base drift prevention + pathspec commit isolation — preserved as the parallel-execution rule
+- Capgo plugin maintenance status caveat — re-flag if v1.4 mobile adds Capgo plugins
 
 ---
 
-*Stack research for: LeanShot v1.2 — cross-platform launch + full monetization + ad network*
-*Researched: 2026-05-13*
+*Stack research for: LeanShot v1.3 — Platform Expansion (Revenue + Depth + B2B + HIPAA + Foundation + Onboarding/Gamification/Helpdesk/AI-personalization-partial)*
+*Researched: 2026-05-17*
+*Net-new vendors: Better Stack (status), AWS SES (HIPAA email path conditional), Meta/Google/TikTok Ads APIs (read-only ETL). Net-new libraries: react-i18next family, posthog-node, @tanstack/{react-query,react-table,react-virtual}, openai, canvas-confetti, react-markdown family, dompurify, @aws-sdk/client-sesv2, react-hotkeys-hook (optional). Tier upgrades on HIPAA activation: Supabase Pro→Team+addon, Vercel Pro+addon, Sentry→Business, Anthropic→Enterprise, optional OpenAI→Enterprise, optional PostHog→Boost.*

@@ -1,811 +1,777 @@
-# Pitfalls Research
+# Pitfalls Research — v1.3 Platform Expansion
 
-**Domain:** Cross-platform health-adjacent SaaS adding mobile shells + watch + monetization + ads + page builder + affiliate (LeanShot v1.2)
-**Researched:** 2026-05-13
-**Confidence:** HIGH on App Store / Stripe / Health SDK / Safari ITP (verified against current official docs + industry reporting). MEDIUM on Capacitor + page-builder + bundle-budget specifics (verified against project precedents + community sources).
+**Domain:** Adding multi-tier affiliate + mid-trial paywall A/B + page-builder A/B + hourly ad ETL + embed-provider blocks + Spanish i18n + pharmacology paywall + clinic organizations + custom rank weights/alerts + HIPAA BAA chain + onboarding overhaul + gamification + review prompts + AI recommender + helpdesk + cancellation save offers + public status page to LeanShot's shipped v1.2 architecture (Vite SPA + Supabase + Stripe + Anthropic + PostHog + Sentry + Resend + Vercel)
+**Researched:** 2026-05-17
+**Confidence:** HIGH on App Store / Play Store review-prompt policy + Anthropic BAA scope + Supabase RLS multi-tenant + Stripe customer-namespace + Meta/Google ad API rate limits (verified against current official docs 2026-05-17). MEDIUM on HIPAA BAA chain operational details + medical translation liability (verified against multiple secondary sources). LOW on Helpdesk Resend Inbound spam protection (vendor docs were not directly fetched — flag for phase research).
 
-> **Audience:** This document feeds the v1.2 roadmap success-criteria and per-phase planner prompts. Every pitfall is mapped to a v1.2 workstream (1–11 from `PROJECT.md`) and includes a concrete check / config / test, not just "be careful."
+> **Audience:** This document feeds the v1.3 roadmap success-criteria and plan-checker mitigation verification. Every pitfall maps to an owning v1.3 workstream:
+> - **M1** = Foundation (modular admin + event taxonomy + PostHog hardening)
+> - **A** = Revenue / Growth (multi-tier affiliate, mid-trial paywall A/B, page-builder A/B, hourly ad ETL)
+> - **B** = Product Depth web (embed blocks, pharmacology paywall, Spanish i18n)
+> - **C** = B2B Clinic + HIPAA (organizations + Stripe orgs + BAA chain + custom rank weights/alerts)
+> - **M2** = Onboarding overhaul (value-first preview + activation event + magic-link/Google/Apple)
+> - **M3a** = Gamification (XP/streaks/freeze tokens/leaderboards)
+> - **M3b** = Review prompt engine (two-stage NPS → store)
+> - **M6** = Helpdesk (tickets + AI assist + KB + CSAT)
+> - **M5b** = AI Personalization (pgvector recommender + weekly summary)
+> - **M7** = Misc (cancellation save offers, status page)
 >
-> **Naming:** Workstreams are numbered to match `PROJECT.md` lines 13-25. References to existing v1.1 artifacts (`sync-defer.ts`, `assert-clinic-bundle-budget.sh`, etc.) point at code that already shipped — reuse over reinvent.
+> **Inheritance:** The v1.2 PITFALLS.md (33 pitfalls across mobile/HealthKit/ads/Stripe/affiliate/page-builder) still applies wherever those surfaces are touched. This document covers what v1.3 adds **on top of** v1.2. Cross-references to v1.2 pitfalls use the form "v1.2 Pitfall N".
+>
+> **Failure-mode legend:** 🔇 LANDMINE = silent failure (no error log, no user signal, surfaces weeks-to-quarters later as data corruption, leak, fine, or rejection). 🔊 LOUD = visible error, fast feedback. Plan-checker should treat LANDMINE pitfalls as plan-required mitigations; LOUD pitfalls as quality-of-life.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: HealthKit data leaks into ad targeting (Apple §5.1.3 hard-reject)
+### Pitfall V13-1: HIPAA BAA chain breaks silently when a vendor revokes ZDR or adds a subprocessor without notice 🔇 LANDMINE
 
-**What goes wrong:**
-HealthKit-derived data (weight, steps, HR, sleep, anything we import via the Health SDK workstream) flows into an analytics event, a PostHog property, an ad-network targeting key, an audience segment, a Stripe metadata field that an ad partner can see, or even a logged-in user-id used as an AdMob/AdSense `ppid`. Apple App Review fails the build with §5.1.3(i)(ii): "Apps may not use or disclose to third parties data gathered in the health, fitness, and medical research context — including from the HealthKit API — for advertising or other use-based data mining purposes." Re-review delays launch 1–2 weeks per round.
+**Trigger condition:**
+Anthropic (or any LLM/AI vendor under BAA) makes one of these changes WITHOUT proactive customer notification: (a) cancels Zero Data Retention for our enterprise tier; (b) adds a new subprocessor that the BAA-signed clinic has not approved; (c) ships a "feature in beta" (e.g. Claude Office, Claude Design) that is NOT BAA-covered but routes data through the same API; (d) the BAA itself reaches renewal date and we miss the auto-renew. Per [Anthropic Privacy Center](https://privacy.claude.com/en/articles/8114513-business-associate-agreements-baa-for-commercial-customers): BAA explicitly does NOT cover Workbench/Console, Free/Pro/Max/Team plans, Cowork, OR features currently in beta. ZDR is an additional, separately-negotiated arrangement on top of the BAA.
 
 **Why it happens:**
-v1.1 already pipes user-id and event metadata into PostHog. Without an architectural firewall, a well-meaning developer adding HealthKit auto-fill in Workstream 4 also fires `posthog.capture("weight_logged", { value })`. Ad SDKs in Workstream 9 read the same `distinctId`. A regression-style code change in Workstream 4 silently widens the ad-eligible event shape.
+The BAA is a paper contract; the runtime is unaware of its scope. A LeanShot engineer enables Claude Code, Claude Workbench, or any beta feature for AI coach iteration → PHI flows through a non-BAA-covered surface. Or the AI-coach proxy auto-upgrades to a new model that has different ZDR semantics. Or Anthropic adds a new subprocessor (e.g. a new GPU vendor) that triggers a clinic's BAA subprocessor-notification clause → clinic is technically out of compliance, doesn't know, audit finds it 18 months later.
 
-**How to avoid:**
-1. Codify the "Health firewall" as a TypeScript module boundary: `src/lib/health/*` exports a `HealthSample` opaque type that **cannot** be imported anywhere under `src/lib/ads/*`, `src/lib/analytics/*`, `src/lib/affiliate/*`, or any Stripe metadata helper. Enforce via an eslint `no-restricted-imports` rule (project already uses `no-restricted-syntax` patterns in `eslint.config.js`).
-2. Distinct PostHog project for ad-eligible events vs. health events (or use PostHog feature-flag `groups` with `process_for_ads: false` on health events). Audit the PostHog event taxonomy before launch.
-3. Apple privacy-manifest (`PrivacyInfo.xcprivacy`) for the iOS shell declares HealthKit data category as "Not Linked to User, Not Used for Tracking." If the manifest says otherwise, App Review will fail even without code-level violations.
-4. Add a CI test that greps the production bundle for HealthKit type names appearing within any ad-SDK or analytics-SDK chunk after Vite's tree-shaking.
+**Silent vs loud:** 🔇 LANDMINE — no runtime error, no Sentry event. Surfaces during the clinic's first HIPAA audit, OR via OCR breach-notification investigation if exfiltration ever happens.
 
-**Warning signs:**
-- Any PR touching `src/lib/health/` also touches `src/lib/analytics/` or `src/lib/ads/`.
-- PostHog event property names contain `weight`, `steps`, `hr`, `sleep`, `bmi`.
-- A reviewer asks "should we use HealthKit data to improve ad relevance?" — answer is always no, write it down.
+**Suggested mitigation:**
+1. **Runtime BAA-scope guard** — the AI-proxy Edge Function MUST refuse to forward requests from `org_id IS NOT NULL` (clinic users) unless the upstream call goes to a hard-coded allowlist of model IDs + endpoints that have written BAA coverage. Reject with 451 on any unrecognized model. Plan-checker must verify the allowlist exists.
+2. **Monthly subprocessor diff cron** — scrape [trust.anthropic.com/updates](https://trust.anthropic.com/updates) + Supabase + Vercel + Sentry + Resend + Stripe subprocessor pages weekly into `vendor_subprocessor_snapshots`; diff against last snapshot; on change, fire Sentry alert + auto-email clinic admins via the disclosure obligation in the clinic BAA.
+3. **BAA expiry calendar** — `vendor_baa_chain` table: vendor, scope, effective_date, renewal_date, contact_email, contract_pdf_url. Cron alerts owner 60d / 30d / 7d before renewal.
+4. **PHI fence on PostHog/Sentry** — anything from a clinic-org user route must NOT carry PHI properties. Server-side strip on event ingest (PostHog `before_send`, Sentry `beforeSend`). Plan-checker fails if a new event in `events.ts` includes patient name/email/DOB/dose values for clinic context.
+5. **Beta-feature ban** — eslint rule `no-restricted-imports` blocks `@anthropic-ai/sdk` imports that reference any beta endpoint string (`/v1/beta/`, `/v1/workbench/`, `messages-2025-` non-GA versions). CI fails the build.
 
-**Phase to address:**
-Workstream 4 (Health SDK) **owns the firewall implementation**. Workstream 9 (Advertising network) **owns the audit checklist** before App Review submission. Both must reference each other in their phase success criteria.
+**Owning phase:** **C (Clinic + HIPAA)** owns the BAA chain table + runtime guard + subprocessor diff cron. **M1 (Foundation)** owns the PHI fence on PostHog/Sentry (server-side strip) + canonical event taxonomy that classifies events as `phi: true|false`. **A (Revenue)** consumes (must not affiliate-promote BAA-restricted features to clinic orgs).
 
 ---
 
-### Pitfall 2: Apple IAP commission ambush on the paid-tier subscription (Workstream 6 × Workstream 2)
+### Pitfall V13-2: Multi-tenant clinic org_id leakage via service_role bypass, missing JOIN policy, or realtime channel collision 🔇 LANDMINE
 
-**What goes wrong:**
-LeanShot's paid tier unlocks features **consumed inside the app** (ad-free dashboard, full AI coach, etc.). Apple's guideline 3.1.1 requires IAP for digital content consumed in-app. If the iOS shell shows a "Subscribe" button that links to Stripe Checkout, Apple rejects under 3.1.3(b) anti-steering. Either: (a) ship IAP and forfeit 30%/15%, (b) hide the paywall in iOS entirely, or (c) use the post-Epic-ruling external-link entitlement (US only as of May 2025, EU under DMA with a different fee schedule).
+**Trigger condition:**
+v1.2 RLS isolates patients by `auth.uid()`. v1.3 adds `organizations` + `org_members` + cross-org-shared patient data (a clinic-invited patient still has their own `auth.users.id` but is also a member of one or more `organizations`). At least four leak vectors emerge:
+- **(a) service_role bypass:** an Edge Function uses `SUPABASE_SERVICE_ROLE_KEY` to satisfy a cross-org admin query, forgets to manually filter by `org_id`, returns Org A's roster to Org B's admin call. Per [Supabase docs](https://supabase.com/docs/guides/troubleshooting/why-is-my-service-role-key-client-getting-rls-errors-or-not-returning-data-7_1K9z): "When you create a Supabase client with the service_role key, all RLS policies are bypassed."
+- **(b) JOIN-table policy gap:** `patient_observations` has RLS on `user_id = auth.uid()`, but a clinic-side view JOINs through `org_patient_link` and `patients` — if `org_patient_link` doesn't have its OWN RLS policy gating `org_id = ANY(auth.jwt() -> 'org_ids')`, the JOIN leaks. Per [Makerkit](https://makerkit.dev/blog/tutorials/supabase-rls-best-practices) — each table in a JOIN has its policy checked independently.
+- **(c) Realtime channel collision:** clinic-side dashboard subscribes to `realtime:org:abc` for live patient updates. If channel name is computed client-side from `org_id` without server-side membership check, an attacker subscribes to `realtime:org:competitor` and gets pushes.
+- **(d) Email collision:** patient with personal `tier='paid'` Stripe customer accepts clinic invite under same email → Stripe creates a NEW customer (Stripe does NOT enforce email uniqueness, per [Stripe docs](https://docs.stripe.com/billing/customer)) → both subscriptions active, both charged.
 
 **Why it happens:**
-Most engineers assume "Stripe works everywhere" because v1.1 was web-only. Stripe themselves now explicitly distinguish "reader" apps from "purchases-consumed-in-app." The April 2025 Epic ruling and December 2025 appeals decision **allow** external payment links in the US, but Apple will likely respond with a different commission rate that is yet to be approved by the court. EU is governed separately by the DMA "communication & promotion of offers" entitlement (2% acquisition + 5–13% Store Services + 5% CTC by Jan 2026).
+The v1.1/v1.2 RLS pattern (per project rule from `reference_supabase_project.md`) covers user-owned data but multi-tenant org overlay is net-new. Cross-tenant tests at v1.2 prove `user_id != auth.uid()` isolation but no v1.2 test exercises `org_id != ANY(auth.jwt() -> 'org_ids')` because there are no orgs yet.
 
-**How to avoid:**
-1. **Decide the IAP/external-link split in CONTEXT.md before any mobile code ships.** Three viable strategies: (a) Web-only sign-up flow (user creates account + pays on web, downloads app, signs in); (b) IAP for iOS using StoreKit 2 via a Capacitor plugin like `revenuecat`; (c) External-link entitlement (US only) with required Apple-approved disclosure sheet. Picking (a) is the cheapest path and matches the project's web-first DNA.
-2. If picking (a): the iOS app must not display pricing, "subscribe," "upgrade," or any monetary mention. Reader-app pattern. Apple still allows a "Sign in" button.
-3. If picking (b): RevenueCat or a similar layer handles receipt validation, server-side entitlement, restore-purchases UX. Building this from scratch is a 3-week timesink.
-4. Document the decision in `09-CONTEXT.md`-style architecture decision records so plan-checker can verify mobile plans don't accidentally include a paywall route.
+**Silent vs loud:** 🔇 LANDMINE on (a), (b), (c) — query returns data; nothing logs that it was the wrong tenant's data. 🔊 LOUD on (d) only if an end-user complains "I'm being charged twice."
 
-**Warning signs:**
-- Any mobile-app PR adds a `/pricing`, `/upgrade`, or `Stripe.checkout` reference.
-- Capacitor build logs include `StoreKit` framework links that nobody planned.
-- The iOS app's home screen shows a "Go Premium" badge or banner.
+**Suggested mitigation:**
+1. **Per-org cross-tenant impersonation proof tests** — extend the project rule (every RLS surface gets a live cross-tenant test) to every NEW org-scoped surface: `organizations`, `org_members`, `org_subscriptions`, `org_patient_link`, `clinic_alerts`, `org_audit_logs`, `org_themes`, `org_rank_weights`. Tests use the `admin.generateLink` + plain `fetch /auth/v1/verify` pattern (project rule `reference_rls_fixture_gotrueclient_flake.md`). Plan-checker MUST require an `*-rls.test.ts` file per new org-scoped table + verify the impersonation pattern is used (not raw `signInWithPassword`).
+2. **JWT custom claim `org_ids`** — Supabase Auth hook on signup/login populates `app_metadata.org_ids: string[]`. Per [project memory reference_supabase_app_metadata_jwt_propagation.md], 336ms propagation window after `updateUserById` — UI must handle the gap (loading state).
+3. **service_role audit pragma** — every Edge Function that uses service_role MUST call a wrapper `withOrgScope(orgId, fn)` that injects `WHERE org_id = $1` into a final query-builder pre-flight; the wrapper logs every bypass. CI grep fails the PR if a new Edge Function imports `createClient(..., SERVICE_ROLE_KEY)` without `withOrgScope`.
+4. **Realtime channel naming** — channel names MUST embed a per-org HMAC token (`org:abc:hmac-prefix-of-shared-secret`); server-side RLS on the `realtime.messages` view checks the HMAC. Don't accept raw `org_id` from the client.
+5. **Stripe namespace** — store `stripe_customer_id` keyed by `(user_id, customer_context)` where context is `personal` or `org:xxx`. NEVER reuse `users.stripe_customer_id` across personal and clinic subs. On clinic invite to an existing paid user, prompt "Convert to clinic-paid (cancel personal)?" or "Keep both (you'll be charged twice)?" — explicit informed consent.
 
-**Phase to address:**
-Workstream 6 (Monetization) owns the policy decision. Workstream 2 (Mobile shells) owns enforcement (compile-time exclusion of paywall routes from the iOS bundle).
+**Owning phase:** **C (Clinic + HIPAA)** owns the entire mitigation set. Plan-checker BLOCKERS: (i) every new org-scoped migration must ship a paired `*-rls.test.ts`; (ii) every new Edge Function importing SERVICE_ROLE_KEY must import `withOrgScope`; (iii) realtime channel HMAC migration must land before any clinic-side realtime subscription.
 
 ---
 
-### Pitfall 3: Required in-app account deletion is missing or hidden (App Store guideline 5.1.1(v) auto-reject)
+### Pitfall V13-3: App Store + Play Store rating-gating policy violation via two-stage NPS prompt 🔇 LANDMINE → 🔊 LOUD on review
 
-**What goes wrong:**
-Since June 30, 2022, Apple requires apps that offer account creation to **also** offer in-app account deletion that initiates the deletion (not just a "contact support" email). Burying the option three levels deep or routing to a web page is rejected on submission. The deletion must cascade to all linked data and revoke the session immediately.
+**Trigger condition:**
+M3b's "two-stage review prompt" design pattern: prompt user with internal NPS ("How likely are you to recommend LeanShot?"); if 9-10 (promoter) → trigger `SKStoreReviewController.requestReview()` / Google Play in-app review API; if ≤8 → route to internal "tell us what went wrong" form. This is **textbook review-gating** and is explicitly prohibited by Google Play and at high risk of App Store rejection.
+
+**Per Google Play Developer Program Policy** (verified [Google Play User Ratings, Reviews, and Installs](https://support.google.com/googleplay/android-developer/answer/9898684)): "We don't allow developers to attempt to manipulate the placement of their apps in Google Play. We prohibit incentivized rating, reviews, or installs… Developers must not engage in any practice that affects the integrity of ratings, reviews, or installs." Review-gating (only showing the in-app review to satisfied users) is the named violation.
+
+**Per Apple App Review Guidelines** §3.2.2(x) (verified [developer.apple.com/app-store/review/guidelines](https://developer.apple.com/app-store/review/guidelines/)): "Apps must not force users to rate the app, review the app, download other apps, or other store-related actions in order to access functionality, content, or use of the app." Apple's intro section: "If we find that you have attempted to manipulate reviews, inflate your chart rankings with paid, incentivized, filtered, or fake feedback… we will take steps to preserve the integrity of the App Store, which may include expelling you from the Apple Developer Program." Apple does not explicitly call out NPS-gating by name in the guideline text, but `filtered… feedback` and intentional steering of negative feedback away from the store has been the cited basis for expulsions and is the consistent industry interpretation.
+
+**Apple's `SKStoreReviewController.requestReview()` API** (verified [Apple Developer SKStoreReviewController](https://developer.apple.com/documentation/storekit/skstorereviewcontroller)) constrains the system: max 3 prompts per user per app per 365 days, and "should not be called in response to a user action or button tap." This is an API constraint, NOT a policy that lets you bypass the policy by gating in your own code.
 
 **Why it happens:**
-v1.1's account deletion path doesn't exist as a self-service flow — onboarding has account creation but no deletion UI. Workstream 10 lists "in-app account deletion" but a developer might implement it as a deep-link to a web page, which Apple still treats as non-compliant.
+The "two-stage NPS" pattern is famously evangelized as a growth hack. Engineers ship it on web first (where it's just a survey funnel) then port it to mobile and unwittingly cross the policy line.
 
-**How to avoid:**
-1. The delete flow must live at `Settings → Account → Delete account` reachable in ≤3 taps from any signed-in screen on iOS.
-2. The button kicks off the deletion server-side (Supabase function), shows progress, and signs the user out on completion — not a `mailto:` or external URL.
-3. Confirm with a typed-text challenge ("Type DELETE to confirm") **and** a 7-day soft-delete grace window (industry standard, reduces abuse + accidental loss).
-4. **Cascade map** must be explicit and tested: Supabase `auth.users` cascade → `profiles`, `injections`, `weights`, `photos` (Storage bucket objects), `clinic_memberships`, Stripe customer + subscription + Connect account + payment intents, Resend audience subscriber list, ad-network user IDs, affiliate ledger (**anonymize, do not delete — tax retention**), PostHog `distinctId` reset.
-5. Snapshot test: spawn a fresh test user, populate every table + Storage path + Stripe/Resend record, delete, then assert zero foreign-key orphans + zero residual `auth.users` row + zero Storage objects + Stripe customer in `deleted: true` state.
+**Silent vs loud:** 🔇 LANDMINE on Google Play — they may not catch it for months but when they do, app suspension is the typical action (not just one rejection). 🔊 LOUD on Apple — caught at App Review submission; rejection is fast but expulsion-from-program is the catastrophic tail.
 
-**Warning signs:**
-- The deletion button is labeled "Request account deletion" (Apple flags this verbiage).
-- Deletion requires email confirmation that takes hours.
-- A test deletion still leaves rows in any of the cascade tables.
+**Suggested mitigation — safe pattern:**
+1. **Internal NPS is FINE if it's purely an internal product survey and does NOT determine whether the native rating prompt fires.**
+2. **Fire the native rating prompt unconditionally (subject only to the SKStoreReviewController/Play in-app review API's own throttling)** after a positive product moment (e.g., user logged 7 doses in a row, OR user completed onboarding, OR user used the AI coach 3 times). DO NOT condition the prompt on a survey response.
+3. **Send the internal NPS survey ASYNC** via a different surface (in-app banner, email, post-cancellation flow). Both can exist; they MUST be independent.
+4. **Web is exempt from the App/Play rating-gate rules** — on web, you can use Trustpilot's "review widget" with whatever segmentation you want (subject to Trustpilot's own policy: their TOS technically also prohibits review-gating for businesses claiming a profile, but enforcement is lighter and the consequences are removal of the profile, not store expulsion).
+5. **Plan-checker check** — for any plan involving M3b, BLOCK if the plan contains BOTH `SKStoreReviewController` (or `play-core/review`) AND a code path that conditions the call on an NPS/CSAT/satisfaction value.
 
-**Phase to address:**
-Workstream 10 (Launch essentials) **owns the UX + cascade**. Workstream 5 (Owner/admin surface) **owns the affiliate-ledger anonymization** (tax retention requires keeping the record, just stripping PII). Workstream 6 (Monetization) **owns Stripe customer/subscription/Connect cascade**.
+**Reference (web for Trustpilot context):** [Trustpilot business reviews policy](https://business.trustpilot.com/reviews/learn-how-trustpilot-works/our-anti-fake-reviews-pledge) — "selectively soliciting reviews from customers based on their satisfaction or transaction outcome" is prohibited.
+
+**Owning phase:** **M3b (Review prompt engine)** owns. Plan-checker BLOCKER on conditional native-prompt code. **M6 (Helpdesk)** is the safe place to route low-NPS users (open a ticket with the NPS context) — this is an independent surface, not a gate.
 
 ---
 
-### Pitfall 4: Cookie consent fires PostHog / AdSense / Meta Pixel before user opt-in (GDPR €€€)
+### Pitfall V13-4: Page-builder A/B variants cause SEO penalty via inconsistent content + missing canonical 🔇 LANDMINE
 
-**What goes wrong:**
-v1.1 already loads PostHog at app boot. Adding AdSense + Meta Pixel + ad-network UMP SDK in Workstream 9 means three more scripts that **must not** execute for EU users until granular consent is given (functional / analytics / marketing / personalization). One pre-consent fire = a GDPR violation. EU DPA fines have hit 7-figures for first-load Pixel fires.
+**Trigger condition:**
+v1.3 page-builder A/B (variant A vs variant B at 50/50 traffic split) is bolted onto the existing Phase 15 `page-render` Edge Function. Each visitor sees a randomly-selected variant. Googlebot crawls the page multiple times, sees different HTML body each visit. Without a `<link rel="canonical">` pointing to a single canonical variant URL (or without using Google's recommended A/B test patterns), Google interprets this as cloaking or thin/duplicate content → ranks the page lower or de-indexes it.
+
+**Per Google's A/B testing SEO guidance** (long-standing): use rel=canonical pointing to the control version, use 302 (not 301) redirects for split testing, and don't run tests for longer than necessary (4-6 weeks max).
 
 **Why it happens:**
-Most consent libraries (e.g. Osano, CookieYes, Cookiebot) provide a banner but only block tags **if** the integrator wires the gate correctly. PostHog's `loaded()` callback can be deferred via `opt_out_capturing_by_default: true` + `opt_in_capturing()` on consent. AdSense's `<script async>` insertion happens at HTML parse time unless deferred.
+PostHog feature-flag-based variant assignment happens at render time in the Edge Function. The naive implementation rotates `<h1>` and CTA copy per visit without changing the URL. Canonical is not added by default. The team A/B-tests indefinitely (PostHog doesn't enforce a cap).
 
-**How to avoid:**
-1. **All third-party scripts must be loaded dynamically after consent** — no `<script>` tags in `index.html` except for fonts (which are first-party-loaded). Pattern: extend the existing `sync-defer.ts` idle-deferred-init wrapper to gate by consent category.
-2. PostHog: `posthog.init(KEY, { opt_out_capturing_by_default: true, ... })`. Call `posthog.opt_in_capturing()` only on analytics-consent acceptance.
-3. AdSense / AdMob web SDK / Meta Pixel: do not include in `index.html`. Inject via dynamic `import()` inside a `useEffect` gated by `consentStore.marketing === 'granted'`.
-4. Geolocation default: assume EU = no consent until granted; US = analytics on by default (CCPA opt-out model), marketing requires opt-in.
-5. CI test: bundle-analyze the initial chunk for any of the third-party script hostnames as static imports — fail the build.
+**Silent vs loud:** 🔇 LANDMINE — SEO drop takes 4-12 weeks to manifest, never raises an error, only shows up in Google Search Console organic-traffic decline.
 
-**Warning signs:**
-- DevTools Network tab shows requests to `googletagmanager.com`, `facebook.net`, `googleadservices.com` before the consent banner is clicked.
-- Lighthouse "third-party usage" panel shows non-zero domains on first load for EU geo.
-- The consent library's logs say "category granted" but the script was already running.
+**Suggested mitigation:**
+1. **Always emit `<link rel="canonical" href="https://leanshot.app/{slug}">`** in the rendered HTML, pointing to the slug without variant params. The canonical body content is whichever variant the admin marked as "control".
+2. **Variant content body MUST keep the same semantic structure** (H1 text, primary CTA, primary value prop) and only vary "tone" / "headline phrasing" / "image" / "section ordering" — not the whole page meaning. The page-builder A/B UI should constrain variant edits to a per-block "variant override" field, not allow a wholesale variant clone.
+3. **Variant traffic-split cap** — admin UI rejects variant configs that have been live >42 days; auto-prompts the admin to promote a winner or rollback.
+4. **PostHog cohort retention on variant** — when admin "promotes variant B to 100%", the historical `$feature/page_ab` property MUST stay intact (don't delete the flag); otherwise cohort retention analyses (built later via M1 cohort-builder) collapse.
+5. **`Cache-Control: no-store` on A/B routes during the test** — Vercel ISR will cache the first variant served and pin it forever otherwise. Per-variant cache key (PostHog distinct-id-hash → variant) means cache miss every visit.
+6. **Render JSON-LD on the canonical body only** — variants don't get JSON-LD (only the control does), so Google's structured-data picks up one consistent product/article schema.
 
-**Phase to address:**
-Workstream 10 (Launch essentials) owns the consent layer + DSAR portal. Workstream 9 (Advertising network) owns the dynamic-load wiring. Both must reference the `sync-defer.ts` pattern.
+**Owning phase:** **A (Revenue) — page-builder A/B sub-feature** owns. Plan-checker check: any plan touching `page-render` Edge Function for variant support MUST include (a) canonical-link emit, (b) variant-cap admin UI, (c) PostHog flag persistence check.
 
 ---
 
-### Pitfall 5: Bundle index ceiling breach when Stripe + AdSense + page-builder + push libs land in the same wave
+### Pitfall V13-5: Hourly ad ETL silently drops data on API rate-limit or partial-day outage 🔇 LANDMINE
 
-**What goes wrong:**
-v1.1 fought hard to keep `index.*.js` under 50 kB gz (currently held at 21.49 kB through Phase 6 close, per project memory). v1.2 adds Stripe Elements (~50 kB gz, often ~120 kB if not tree-shaken), AdSense / AdMob web glue (~30 kB), Resend/web-push libs (~15 kB), and a page-builder runtime (could be 100+ kB if a heavy editor like Craft.js or Builder.io's SDK is chosen). A naive static import in any of these regresses the index gz back over 50 kB and trips the `bundle-size` CI guard.
+**Trigger condition:**
+Hourly Vercel Cron → Meta Marketing API + Google Ads API + TikTok Ads API → Supabase pipeline. Per [Meta Marketing API rate limits](https://developers.facebook.com/docs/marketing-api/insights/best-practices/): Standard tier app gets `190000 + 400*active_ads - 0.001*user_errors` per ad-account per rolling hour; Dev tier gets `600` (LeanShot starts in Dev tier; Standard tier requires App Review). Google Ads API: 15,000 ops/day developer token in Test/Basic, higher with Standard access. TikTok Ads API: rate limits per app + per advertiser, varies by endpoint.
+
+The naive ETL pipeline catches HTTP 429 / 400-with-rate-limit-code and either (a) crashes the cron (job retried next hour, hour gap left in `ad_revenue_hourly`), (b) swallows the error and continues (silent gap), or (c) backs off but doesn't re-sync the missed window. Compounding:
+- **Attribution window mismatch:** Meta defaults 7-day click + 1-day view (you can request 7d view, 28d click via report config); Google Ads default 30-day click; TikTok 7-day click + 1-day view. Joining on `(date, source, campaign_id)` without normalizing attribution window = wrong CAC.
+- **Currency conversion:** spend reported in advertiser-set currency. Conversion to USD requires daily-FX-rate join (Open Exchange Rates / ECB). If FX rate row is missing (weekend, holiday), spend either silently NULL'd or converted at last-known stale rate.
+- **Privacy budget (iOS 14.5+ AEM):** Meta Aggregated Event Measurement caps post-iOS-14.5 events to top 8 conversion events per domain. If clinic + patient + affiliate + paywall events compete for the slot, lower-priority events are dropped silently from reporting.
+- **Creative-level data joins:** Google Ads `creative_id` differs from `ad_id`; Meta `ad_id` ≠ `creative_id` ≠ `adset_id`. Joining creatives to performance requires per-network FK mapping or analyses break.
 
 **Why it happens:**
-The project's `sync-defer.ts` pattern is well-documented but only enforced by reviewer discipline. Plan-checker doesn't gate static-import additions to `App.tsx`/`main.tsx`/`store.ts`. A developer adding a Stripe pricing page imports `@stripe/stripe-js` at the route module's top level; even with lazy-route splitting, the SDK ends up in the route chunk but tree-shaking misses initialization globals that leak into the shared chunk.
+ETL engineers default to "happy path" and assume APIs are reliable. Rate limit headers are advisory and easy to miss (`x-fb-ads-insights-throttle` is a JSON header that requires explicit parsing).
 
-**How to avoid:**
-1. **Every new third-party SDK in v1.2 MUST route through `src/lib/sync-defer.ts` or an equivalent idle-deferred-init wrapper.** Direct static imports in `App.tsx` / `main.tsx` / `store.ts` are explicitly forbidden — this rule is already in project memory from Phase 6.
-2. Extend the existing `scripts/assert-clinic-bundle-budget.sh` pattern to add per-chunk ceilings for: `stripe-elements`, `adsense-glue`, `page-builder-runtime`, `web-push`, `capacitor-bridge`. Each gets its own gz limit. Fix the hash-hyphen bug (`reference_bundle_budget_hash_hyphen.md`) before adding new chunks — content hashes containing `-` cause the script to report `wave-N skip` and silently un-enforce per-chunk ceilings. **The fix is scheduled but not shipped** — confirm in v1.2 Phase 0.
-3. Index gz ceiling for v1.2 should hold at 25 kB gz (a stretch goal, given new realities). If we admit it has to go to 35 kB, write the new number into ROADMAP.md so plan-checker enforces it.
-4. Choose the page-builder strategy before any UI work: (a) Server-rendered HTML stored in DB + minimal client hydration (lightest, ~5 kB runtime), (b) JSON tree + custom renderer (~20 kB), (c) Off-the-shelf editor SDK (Craft.js, GrapesJS, Builder.io — 100–300 kB editor + runtime). Recommend (a) or (b); (c) is a 6× bundle hit.
-5. Stripe-elements: use `loadStripe` lazily with `import('@stripe/stripe-js')` inside the checkout component, not the module top.
+**Silent vs loud:** 🔇 LANDMINE on all four sub-failures. CAC dashboards just look "wrong-but-close" and the team makes spend decisions on broken data.
 
-**Warning signs:**
-- `bundle-size` CI job goes red on a v1.2 PR.
-- A `stripe-elements` or `adsense` chunk appears that isn't dynamic-imported.
-- The shared/vendor chunk gz size jumps >2 kB on a single PR.
-- Build log shows `assert-clinic-bundle-budget.sh: wave-N skip` (the hash-hyphen bug — investigate; treat as ceiling breach until fixed).
+**Suggested mitigation:**
+1. **Idempotent partial-day re-sync** — `ad_revenue_raw` keyed by `(network, ad_account_id, ad_id, date, hour)` with `UPSERT ON CONFLICT`. Cron always pulls the LAST 72h (not just last hour). Late-arriving data (Meta backfills 24-48h) overwrites correctly.
+2. **Rate-limit-aware backoff with quota-aware throttle** — parse `x-fb-ads-insights-throttle.app_id_util_pct` BEFORE each call; if >80%, sleep until next hour boundary. Google Ads: respect `quota-error` retry-after header. TikTok: implement exponential backoff with jitter. Log every throttle event to `etl_throttle_log`.
+3. **Gap-detection cron (separate from ETL cron)** — daily 04:00 UTC checks `ad_revenue_hourly` for any (network, ad_account, hour) gap >2h in last 7d; alerts owner via Sentry + queues a forced re-sync. Plan-checker requires the gap-detection cron alongside the ETL cron.
+4. **Attribution window normalization** — `ad_revenue_normalized` view exposes ONLY `attribution_window_days` = 7 (the common ground); the raw table stores per-network native window. CAC analyses MUST join on the normalized view (eslint rule blocks `SELECT FROM ad_revenue_raw` outside the ETL function).
+5. **Currency-conversion fallback chain** — `fx_rates` table populated via daily Open Exchange Rates cron; on missing date, fall back to last-known-rate with a `stale_rate=true` flag carried through to the normalized view. UI shows a banner when `stale_rate=true` rows are in the window.
+6. **AEM priority register** — declare top-8 conversion events in Meta Events Manager + document in `events.ts` taxonomy with `aem_priority: 1-8`. v1.3 M1 canonical event taxonomy is the source of truth; new events at priority 9+ get a `aem_dropped: true` flag and CAC analyses skip them.
+7. **Creative-FK mapping table** — `ad_creative_xref` (`network`, `network_ad_id`, `network_creative_id`, `network_campaign_id`, `internal_campaign_id`) — every ETL run upserts. Joining creative → performance goes through this view.
 
-**Phase to address:**
-Workstream 6 (Monetization) — Stripe deferred-load. Workstream 9 (Advertising network) — ad-SDK deferred-load. Workstream 7 (Page builder) — runtime sizing decision. Workstream 10 (Launch essentials) — push-lib deferred-load. v1.2 Phase 0 (bootstrap) — fix the hash-hyphen bug + add per-chunk ceilings for the new chunks.
+**Owning phase:** **A (Revenue) — hourly ad ETL sub-feature** owns. Plan-checker checks: (i) ETL function exists alongside gap-detection cron; (ii) `ad_revenue_normalized` view exists with single attribution window; (iii) `fx_rates` cron exists; (iv) AEM priority register populated in `events.ts`.
 
 ---
 
-### Pitfall 6: Safari ITP kills affiliate attribution after 7 days (or 1 day for link-decorated cookies)
+### Pitfall V13-6: Multi-tier affiliate state-machine drift on tier upgrade resets payout/chargeback hold 🔇 LANDMINE
 
-**What goes wrong:**
-Workstream 8's affiliate program ships with a referral-code cookie set by JavaScript on the landing page. Safari ITP 2.2+ caps JS-set first-party cookies at **24 hours** if the inbound URL has link decoration (query params from a cross-site source — exactly what `?ref=abc123` looks like). ITP 2.3 caps non-decorated JS-set cookies at 7 days. Result: 30-day affiliate cookies don't work on Safari (~25% of consumer web traffic). Affiliates accuse LeanShot of fraud; payouts dispute volume spikes.
+**Trigger condition:**
+v1.3 multi-tier affiliate adds `tier IN ('standard', 'gold', 'lifetime')` with different commission rates. Affiliate is upgraded mid-month from `standard` (30%) to `gold` (40%). The state-machine has at least these transitions:
+- Conversion attribution at time T → which tier's rate applies?
+- 60-day chargeback hold from time T → does the hold reset on tier change?
+- Promotional coupon (one-time signup $20-off) on top of tier-based commission → who eats the discount?
+
+Per project memory [feedback_status_machine_transition_owner.md] (from Phase 19 BL-11): every status transition needs an owning plan+task or the feature ships dead. v1.3 multi-tier introduces 3 new transitions (`standard→gold`, `gold→lifetime`, `*→suspended`) that all touch `affiliate_conversions.tier_at_conversion_time` + `payouts.eligible_at` + `chargeback_hold_until`. If any transition forgets to STAMP the historical tier on existing pending conversions, retroactive recompute happens and payouts are wrong.
+
+**Concretely:**
+- Affiliate has 50 pending conversions at standard tier (30%) with $500 commission accrued; gets upgraded to gold; if the upgrade re-stamps `commission_cents` from current tier, those 50 conversions retroactively pay 40% = $667 (over-pay by $167).
+- Conversely, if the upgrade does NOT re-stamp and ALSO does not stamp `tier_at_conversion_time`, downstream analytics joining `conversions × affiliate_tiers` shows everything as gold and inflates "gold-tier conversion rate" metrics.
+- Promotional coupon `SIGNUP20` discounts MRR by $20; affiliate commission is computed off post-coupon MRR or pre-coupon MRR? Both are defensible; pick one and document. The wrong choice puts affiliate-vs-promo math at war.
 
 **Why it happens:**
-This is industry-known but constantly forgotten because Chrome/Edge work fine in dev. QA on Safari is the only way to catch it unless the engineer reads ITP release notes.
+Phase 19 shipped single-tier; tier was implicit. v1.3 makes it explicit and the historical denormalization (stamp at conversion time) is easy to forget.
 
-**How to avoid:**
-1. **Server-side first-party cookie via `Set-Cookie` HTTP header.** The affiliate-click endpoint is a Vercel function (or Supabase Edge Function) that 302-redirects to the landing page while setting an `HttpOnly` first-party cookie with the configured TTL (e.g., 30 days). ITP does not cap server-set cookies.
-2. The endpoint also writes the click to a Supabase `affiliate_clicks` table keyed by an anonymous `click_id` (UUID). Conversion later joins on the cookie value (which can also live as a localStorage entry as backup) and the click_id.
-3. Use a first-party domain for the redirect (`leanshot.app/r/abc123` not `track.thirdparty.com/abc123`) — ITP treats third-party redirect chains as cross-site.
-4. Optional belt-and-braces: server-to-server postback from Stripe's webhook to the affiliate ledger using the `client_reference_id` field on the Checkout Session (which propagates from the affiliate cookie into the Stripe session).
-5. E2E test on Safari (Playwright `webkit` channel) that simulates a click + 8-day wait (via clock manipulation) + conversion — must still attribute.
+**Silent vs loud:** 🔇 LANDMINE — affiliates dispute payouts months later; reconciliation is manual + painful.
 
-**Warning signs:**
-- Affiliate dashboards show much lower conversion on Safari than on Chrome (>2× delta = ITP, not luck).
-- Affiliate disputes contain phrases like "I checked the cookie was there yesterday."
-- The affiliate JS sets `document.cookie = "ref=..."` directly.
+**Suggested mitigation:**
+1. **Stamp `tier_at_conversion_time` on `affiliate_conversions` insert** + `commission_cents` is calculated at insert time from the stamped tier — NEVER recomputed. Per project rule from Phase 19, do NOT let downstream views recompute commission.
+2. **Tier-change does NOT reset chargeback hold** — `chargeback_hold_until` is stamped per-conversion at insert and never updated. (Rationale: tier is the affiliate's status; chargeback risk is the END USER's status.)
+3. **Coupon-stack policy locked in CONTEXT** — pick one of (a) commission on pre-coupon MRR (affiliate gets full rate, platform eats the discount), (b) commission on post-coupon MRR (affiliate shares the discount cost). Recommendation: (b) for non-affiliate-issued coupons, (a) for affiliate-promoted coupons (already in their landing page). Document in `affiliate_conversions.commission_basis` enum.
+4. **Tier transition audit log** — `affiliate_tier_history` (`affiliate_id`, `from_tier`, `to_tier`, `changed_at`, `changed_by`, `reason`); join enables "what tier was affiliate X at on date Y" without losing data.
+5. **Self-referral check upgraded to per-tier** — fraud signal Z-score baseline (per Phase 19) is per-tier; gold-tier affiliates have higher legitimate conversion rates than standard, so cross-tier baselines false-positive.
+6. **Plan-checker state-graph audit** (per project rule) — every plan in workstream A multi-tier-affiliate must enumerate which tier transitions it writes to + which it reads from. Plan-checker compares writer-set vs reader-set; gap = BLOCKER (this is what caught BL-11 in P19).
 
-**Phase to address:**
-Workstream 8 (Viral affiliate program) owns the server-side click-tracking endpoint and the Playwright/webkit test.
+**Owning phase:** **A (Revenue) — multi-tier affiliate sub-feature** owns. Plan-checker MUST run a state-graph audit (`gsd-tools state-graph affiliate_tier`) before any v1.3-A plan exits planning.
 
 ---
 
-### Pitfall 7: Account-deletion cascade leaves Stripe Connect / affiliate-ledger orphans + tax compliance violation
+### Pitfall V13-7: Mid-trial paywall A/B variant spikes refund rate via flow disruption + PostHog flag stickiness 🔇 LANDMINE
 
-**What goes wrong:**
-A user with a connected Stripe Express account (because they're an affiliate) requests account deletion. Code path deletes `auth.users` row, cascades to `affiliates`, cascades to `affiliate_ledger`. **This is illegal.** Form 1099-NEC requires the platform to keep affiliate records for 4+ years for IRS reporting (and the affiliate is entitled to their issued 1099 even after deletion). Separately, the Stripe Connect account is orphaned (linked to a deleted email) — Stripe Express logins start failing, support tickets pile up.
+**Trigger condition:**
+Mid-trial paywall A/B = show paywall to a fraction of trial users mid-trial (after activation event) instead of end-of-trial. Variants: control (paywall at trial end), variant B (paywall at day 3, before card-fail-friction wakes user). The hypothesis is paying users convert earlier so trial-to-paid lifts. The risk:
+- **Refund rate spike:** users in variant B are paying off momentary product enthusiasm, not real evaluation. On day 8 when they realize they didn't actually want it, refund. Net revenue change is paywall lift × (1 − refund_rate), and refund_rate can swing wildly.
+- **PostHog flag stickiness across sessions/devices:** flag assignment via anonymous `distinctId` BEFORE signup; user signs up, gets a new authenticated `distinctId`; if `identify()` merges incorrectly OR runs out of order with `capture()` (per [PostHog issue #21591](https://github.com/PostHog/posthog/issues/21591)), the user MAY get re-assigned to the other variant mid-experiment. Result: same user sees control on web, variant B on mobile. Conversion attribution is borked.
+- **Analytics-blocker false-negative on activation events:** ~25% of users run ad-blockers that block PostHog. Activation event "user logged 3 doses" doesn't fire → variant-B trigger doesn't fire → user stays in trial-end paywall (control) silently. The experiment is contaminated by an unrepresentative-of-paying-users sub-sample.
 
 **Why it happens:**
-The intuitive `ON DELETE CASCADE` foreign-key rule from `affiliates(user_id) → auth.users(id)` is the obvious schema choice. Tax retention is a non-code concern most engineers never read about.
+PostHog `identify()` race condition is well-documented (project memory's existing issue). Refund rate is a lagging metric (Stripe 90-day chargeback window) so the experiment looks like a win for weeks before it inverts.
 
-**How to avoid:**
-1. **Affiliate ledger and the affiliate's tax-form records use `ON DELETE SET NULL` + anonymization columns** (`anonymized_name`, `anonymized_email_hash`). The original `auth.users.email` is replaced with a hash, but the payout history, 1099 totals, and W-9/W-8BEN records remain.
-2. Stripe Connect account: API call to `stripe.accounts.del(account_id)` is part of the cascade — wraps the orphan problem. **Caveat**: Stripe will refuse to delete a Connect account with an open payout. Soft-delete the LeanShot side and queue the Stripe deletion when payouts settle.
-3. DSAR (data subject access request) export must include the anonymized ledger entries with a note explaining tax retention.
-4. Document this in `12-CONTEXT.md`-style ADR so plan-checker rejects naive `ON DELETE CASCADE` migrations for affiliate tables.
-5. Snapshot test: delete a user who is also an affiliate, assert ledger row count decreases by 0, assert the email column is hashed, assert Stripe Connect deletion was enqueued.
+**Silent vs loud:** 🔇 LANDMINE on all three. The analytics-blocker case is the worst — silently corrupts the experiment AND we never know which users were affected.
 
-**Warning signs:**
-- A migration adds `affiliate_ledger.user_id REFERENCES auth.users(id) ON DELETE CASCADE`.
-- The deletion test passes but a 1099 generation job a year later crashes on missing records.
-- Stripe Express login fails for a deleted user's email (because the Stripe account wasn't deleted in sync).
+**Suggested mitigation:**
+1. **Refund-rate guardrail** — A/B success metric is NOT trial-to-paid; it is `(trial_to_paid × (1 − refund_rate_at_30d) × (1 − refund_rate_at_60d) × (1 − refund_rate_at_90d))`. Experiment is paused if any variant's 30d-refund-rate exceeds control + 5pp absolute.
+2. **Sticky flag via PostHog `bootstrap`** — at first anonymous pageview, generate a UUID, write to first-party cookie `_lps_aid`, pass to PostHog `bootstrap.distinctID` AND `bootstrap.featureFlags`. On signup, call `posthog.identify(userId, { _lps_aid: cookieValue })` AND `posthog.alias(cookieValue, userId)` AND server-side store the flag value in `user_experiments(user_id, experiment_key, variant)` table. From that point, ALL flag reads come from the server-side table (PostHog is now just analytics). Plan-checker rule: any new experiment touching trial/paywall MUST go through `user_experiments` table, NOT raw PostHog flag reads.
+3. **Server-side activation event** — activation = "logged 3 doses" is server-detected (trigger on `injections` insert) and fires `posthog.capture()` SERVER-SIDE via PostHog's Python/Node lib in the Edge Function. Ad-blockers don't block server-side captures. M1 PostHog hardening workstream owns this pattern for ALL load-bearing events (signup, activation, payment).
+4. **Variant assignment AT signup, not at first anonymous view** — anonymous view captures the cookie; experiment assignment happens on first authenticated request (so ad-blocker false-negatives are bounded to UNAUTHENTICATED metric noise, not experiment assignment).
+5. **Mandatory 14-day burn-in before reading the experiment** — Stripe trial is 7d, refund window 90d. Don't declare a winner before T+30d on a refund-sensitive experiment.
 
-**Phase to address:**
-Workstream 6 (Monetization) owns Stripe cascade. Workstream 8 (Viral affiliate program) owns ledger retention/anonymization. Workstream 10 (Launch essentials) owns DSAR export composition.
+**Owning phase:** **A (Revenue) — mid-trial paywall A/B sub-feature** + **M1 (Foundation) — PostHog hardening** co-own. Plan-checker BLOCKER on raw PostHog flag reads for paywall variants.
 
 ---
 
-### Pitfall 8: Capacitor WKWebView OOM crash when scrolling photo lists or comparing weight photos
+### Pitfall V13-8: Embed-provider blocks (Calendly / YouTube / Tally) bypass sandbox or break OAuth-inside-iframe 🔇 LANDMINE + 🔊 LOUD
 
-**What goes wrong:**
-v1.1 stores progress photos in Supabase Storage and displays them in a `PhotoCompareModal` + body-tab gallery. iOS Capacitor uses WKWebView, which has a hard memory ceiling (~3 GB for the entire app process, but WKWebView crashes earlier under pressure, ~1 GB sustained). Rendering ~30 high-resolution `<img>` tags simultaneously or decoding base64 thumbnails into memory cards causes `webViewWebContentProcessDidTerminate` — the user sees a blank screen with no error, the app reloads to home. App Review will catch this in normal usage and reject for stability.
+**Trigger condition:**
+Phase 15 page-builder shipped embed-blocks at v1.2 (per CONTEXT D-question 3 + ROADMAP open question). v1.3 may extend with more providers. Three classes of failure:
+- **(a) Sandbox bypass** 🔇 — `<iframe sandbox="">` (empty) is the strict default; adding `allow-scripts allow-same-origin` together is a documented [browser security anti-pattern](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#sandbox) — it allows the embedded content to remove its sandbox attribute. Calendly's docs request `allow-scripts allow-same-origin allow-forms allow-popups` for full functionality; if the page-builder admin pastes a Calendly URL with the embed's recommended sandbox, an attacker-controlled provider page in the future could remove the sandbox.
+- **(b) Consent-gating race** 🔇 — embed blocks must respect cookie consent (the v1.2 vanilla-cookieconsent + Consent Mode v2 stack); naive mount renders the iframe at page-render time, BEFORE consent module loads, and Calendly/YouTube cookies fire pre-consent. Same GDPR risk as v1.2 Pitfall 4.
+- **(c) OAuth-flow embeds inside iframe sandbox** 🔊 — Calendly embed includes "Log in to schedule" flow that opens an OAuth popup. In iframe sandbox `allow-popups allow-popups-to-escape-sandbox`, popup escapes but the third-party identity provider (Google OAuth) rejects iframe-originated auth via `X-Frame-Options: DENY`; user sees blank popup or "this content cannot be embedded".
 
 **Why it happens:**
-The web build works fine because desktop browsers have effectively unlimited memory. Capacitor inherits the web bundle 1:1, so any memory-naive image rendering hits the WKWebView limit only on mobile.
+Embed UX docs are written assuming a publisher's own marketing site (where sandbox is wide-open). Embed-block-as-page-builder-primitive is a different threat model.
 
-**How to avoid:**
-1. **Server-side image transformation via Supabase Storage transforms** (`?width=400&quality=75`) — never download a full-res image into the gallery. The compare modal can opt-in to a "load full resolution" button.
-2. **Virtualize the photo grid** with a windowing library (e.g., `react-virtuoso`, 8 kB gz). Only mount visible items.
-3. Use the `loading="lazy"` + `decoding="async"` + `fetchpriority="low"` attributes on `<img>` for off-screen photos.
-4. Drop the base64-in-Zustand legacy code path (project memory says photos moved to Supabase Storage in v1; if any old base64 paths remain, kill them).
-5. Manual QA: Capacitor build on a physical iPhone (not simulator — simulator has no memory cap), scroll 50+ photos, observe app does not reload.
+**Silent vs loud:** 🔇 LANDMINE on (a) and (b); 🔊 LOUD on (c) — user reports "can't log in to book a meeting".
 
-**Warning signs:**
-- `console.log("webViewWebContentProcessDidTerminate")` (Capacitor logs this on the JS side via a plugin event).
-- TestFlight crash reports cite `JavaScriptCore` or `WebKit` in the stack.
-- Memory profiler in Xcode shows WKWebView climbing past 500 MB during photo browsing.
+**Suggested mitigation:**
+1. **Per-provider whitelist with locked sandbox attributes** — `embed_providers` registry: `calendly` ⇒ sandbox `allow-scripts allow-forms allow-popups`, URL must match `https://calendly.com/`; `youtube` ⇒ sandbox `allow-scripts allow-same-origin allow-presentation`, URL must match `https://(www\.)?youtube(-nocookie)?\.com/embed/`; `tally` ⇒ sandbox `allow-scripts allow-forms`, URL match `https://tally.so/embed/`. Page-builder admin UI does NOT allow arbitrary iframe URLs.
+2. **`allow-scripts` + `allow-same-origin` combination explicitly FORBIDDEN** — registry validator rejects any provider config combining both.
+3. **Lazy mount on consent + interaction** — embed renders a click-to-load placeholder by default (e.g., poster image + provider name); user clicks → IF marketing consent granted, mount iframe; ELSE show consent prompt. This single change avoids both consent-gating race AND CLS + bandwidth + bundle issues.
+4. **OAuth-flow embeds explicitly excluded from sandbox** — providers like Calendly's "logged-in scheduling" REQUIRE leaving iframe; document in admin UI that this is a Calendly limitation and offer "Open in new tab" as the only safe UX.
+5. **CSP `frame-src` enumeration** — CSP header allows only the whitelisted providers' domains; new provider in registry triggers a CSP-snapshot test (project pattern from v1.2 Phase 12 SC-4) and CI fails if CSP isn't updated.
 
-**Phase to address:**
-Workstream 2 (Mobile shells) owns the gallery virtualization + Storage-transform usage as a launch-gate criterion. Add a physical-device QA checklist to the mobile-submission readiness review.
+**Owning phase:** **B (Product Depth) — embed-provider blocks** owns. Plan-checker BLOCKER: any new provider in `embed_providers` registry MUST ship with paired CSP-snapshot test update.
 
 ---
 
-### Pitfall 9: HealthKit + Health Connect read-only import silently fails because permission strings or capability declarations are missing
+### Pitfall V13-9: Spanish i18n medical-term translation accuracy creates clinical liability 🔇 LANDMINE
 
-**What goes wrong:**
-iOS: omitting `NSHealthShareUsageDescription` (and `NSHealthUpdateUsageDescription` if writing) from `Info.plist` causes the app to crash on first HealthKit call with no user-facing error. The HealthKit entitlement also requires explicit provisioning-profile setup in App Store Connect; without it, the build fails during archive — usually 30 minutes before submission deadline. Android Health Connect: missing intent filters (`VIEW_PERMISSION_USAGE` action + `HEALTH_PERMISSIONS` category) in `AndroidManifest.xml` causes the permission dialog to never open, leaving the auto-fill toggle visually stuck in the "enable" state.
+**Trigger condition:**
+v1.3 ships Spanish localization across UI + transactional emails + KB. Three categories of risk:
+- **(a) Pluralization correctness** — Spanish has TWO plural categories (one, other) per CLDR — simpler than English, but `react-i18next` with default JSON pluralization is naive (`weight_one`, `weight_other`); without [`i18next-icu`](https://www.i18next.com/translation-function/plurals), nested plurals like "Logged {{count}} doses across {{days}} days" don't compose properly. Result: grammatically broken phrases that look unprofessional in a HEALTH product.
+- **(b) Medical-term translation** — "dose" → `dosis` (correct), but "titration" → `titulación` is the chemistry sense; the clinical sense is `escalonamiento` or `titulación de dosis` (regional drift: MX vs ES vs AR). "Side effects" → `efectos secundarios` (correct) vs `efectos adversos` (different clinical meaning). "Injection site rotation" → `rotación de sitios de inyección` (literal) vs `rotación de zonas de aplicación` (more natural for ES patient comms). MISTRANSLATION OF DOSE/UNITS/FREQUENCY in a health product = liability exposure if a patient takes the wrong action.
+- **(c) RTL preparation** — Spanish isn't RTL, but Phase 15 design tokens use physical CSS properties (`padding-left`, `margin-right`); shipping Spanish without converting to LOGICAL properties (`padding-inline-start`, `margin-inline-end`) means a future Arabic/Hebrew localization requires re-touching every component. Cost rises 10× compared to doing it now.
 
 **Why it happens:**
-Capacitor plugin docs cover the JS API but leave the native config to the integrator. The error mode is silent — no exception, no log — just no data.
+SaaS translation is typically done via DeepL or GPT machine translation + crowdsourced review; clinical terms are NOT covered by general translation memory. Engineers default to physical CSS because Tailwind v3 documentation defaults to physical (Tailwind v4 [supports logical properties](https://tailwindcss.com/docs/padding) but doesn't enforce them).
 
-**How to avoid:**
-1. Pre-flight checklist for Workstream 4:
-   - `ios/App/App/Info.plist` contains `NSHealthShareUsageDescription` with a user-facing justification ("LeanShot reads weight and steps to enrich your dashboard and pre-fill logs").
-   - `NSHealthUpdateUsageDescription` if any write is planned (probably not in v1.2 read-only scope).
-   - Apple Developer Portal: HealthKit capability enabled for the App ID; provisioning profile regenerated; downloaded; embedded in the Capacitor build.
-   - `android/app/src/main/AndroidManifest.xml`: intent filter for `androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE` + `<category android:name="androidx.intent.category.HEALTH_PERMISSIONS"/>`.
-   - Android: `targetSdkVersion ≥ 34` (Android 14) for native Health Connect; for Android <14, the standalone Health Connect APK must be installed by the user.
-2. **Custom permission UI is rejected by Google Play** for Health Connect — the permission picker is platform-owned. Workstream 4's design must show LeanShot's *explainer* screen BEFORE launching the platform picker, not try to skin the picker.
-3. Test on physical devices (HealthKit returns no data in the iOS simulator).
-4. A "Connect Health" smoke test that exercises grant-flow + first-sync + revoke-and-reconnect.
+**Silent vs loud:** 🔇 LANDMINE on all three. (b) is the catastrophic case — a translated dose-unit confusion (`mg` vs `mcg`, `ml` vs `unit`) could harm a patient. (c) is silently expensive (tech debt that compounds).
 
-**Warning signs:**
-- "Why isn't my weight showing up?" support tickets after install.
-- iOS TestFlight crash log mentions `HKHealthStore` or `requestAuthorization`.
-- Android Play Console pre-launch report flags "Health Connect permission UI deviates from policy."
+**Suggested mitigation:**
+1. **Clinical terminology glossary FIRST** — before any translation work, build `medical_glossary_es.json` covering 80-100 GLP-1-domain terms reviewed by a Spanish-speaking medical professional (sourced via Upwork or via clinic-partner if one is bilingual). Translation memory locks these terms. Plan-checker check: any v1.3-B i18n plan MUST cite glossary review-by date + reviewer.
+2. **ICU plurals via `i18next-icu`** — install at i18n setup; use `{count, plural, one {1 dosis} other {# dosis}}` syntax across the board, not native `_one`/`_other` JSON keys. Enables future locales (Polish has 4 plural categories, Arabic has 6) without re-touching strings.
+3. **DO NOT machine-translate dose-related strings** — flag every string containing `{{count}}`, `{{dose}}`, `{{unit}}`, `{{frequency}}`, OR a regex for medication names (semaglutide / tirzepatide / etc.) as "manual translation only". Translation pipeline (Lokalise/Tolgee/Crowdin) tags these as `requires_clinical_review`.
+4. **Convert physical → logical CSS NOW** — Tailwind v4: `pl-4 mr-2` → `ps-4 me-2`; codemod across `src/components/` in a single PR before Spanish translation work starts. Then Arabic future-launch is a strings-only project, not a layout re-do.
+5. **Side-by-side QA before launch** — every page renders in both EN and ES side-by-side; reviewer checks every dose-relevant string. Plan-checker requires `qa-i18n-es-medical.spec.ts` Playwright suite with screenshot regression.
+6. **Disclaimer in ES** — medical disclaimer ("Not medical advice…") MUST be reviewed by the same clinical reviewer; auto-translated disclaimers are NOT legally equivalent.
 
-**Phase to address:**
-Workstream 4 (Health SDK) owns native config + UI explainer + physical-device QA. Add to Workstream 2 (Mobile shells) submission checklist as a hard-gate item.
+**Owning phase:** **B (Product Depth) — Spanish i18n** owns. Plan-checker BLOCKERS: (i) clinical glossary file exists + reviewer attribution; (ii) `i18next-icu` installed not native plurals; (iii) physical-to-logical CSS codemod landed before strings work; (iv) `qa-i18n-es-medical.spec.ts` suite exists.
 
 ---
 
-### Pitfall 10: PostHog / AdSense / Meta Pixel fire on the `/clinic/*` and `/share/*` surfaces (B2B trust violation + Apple §5.1.3 risk)
+### Pitfall V13-10: Pharmacology paywall test triggers reputational backlash or regulator inquiry 🔇 LANDMINE → 🔊 LOUD
 
-**What goes wrong:**
-PROJECT.md explicitly states: **"no ads on clinic/doctor-share surfaces (B2B trust)."** Workstream 9's ad scripts get added to the SPA-wide `App.tsx` boot. Even with route-level conditionals, the AdSense script's `<script async>` tag in `index.html` (or a globally-mounted UMP consent SDK) executes on all routes including `/clinic/*` and `/share/*`. Clinic operators or doctors see a 200ms blink of an ad slot. Trust breach.
+**Trigger condition:**
+v1.3 B-pharmacology paywall = gating "advanced dosing context" (interactions, dosing optimization, contraindications) behind Pro. The Core Value of LeanShot is the drug-level curve and rotation tracking — paywalling adjacent SAFETY information triggers two distinct risks:
+- **(a) Reputational** 🔇→🔊 — an HN/Reddit post titled "LeanShot is paywalling safety information for people on GLP-1s" goes viral. Trust evaporates in 48h. (HN front-page → 50k+ uniques to landing page, refund spike, churn spike.)
+- **(b) Regulatory** 🔇 — Washington state's [My Health My Data Act (WMHMDA)](https://app.leg.wa.gov/RCW/default.aspx?cite=19.373.030) RCW 19.373.030 + Connecticut Data Privacy Act (CTDPA) impose specific disclosure + consent rules for consumer health data. Gating "contraindications" or "interactions" behind a paywall could be interpreted by a state AG as either (i) deceptive consumer-protection violation OR (ii) failure to provide adequate disclosure to obtain valid consent for health-data processing. Per project memory [reference_phase7_research_findings.md]: WMHMDA mandates 5 CHDP sections; missing one is a per-violation action.
 
 **Why it happens:**
-Ad scripts are easier to globally include than per-route. Most ad-network docs assume site-wide deployment.
+Engineers think paywall = "monetization tweak"; legal/medical risk is invisible at planning time. The decision to test the paywall is a one-line PostHog flag flip; the consequences are NOT.
 
-**How to avoid:**
-1. **Route-gated ad injection**, not `index.html` inclusion. The ad-init module lives in a hook (`useAdsForRoute`) that imports the SDK dynamically only when the route is in `ALLOWED_AD_ROUTES = ['/marketing/*', '/dashboard/free-tier/*']`.
-2. CSP-level enforcement: add `Content-Security-Policy-Report-Only` headers on `/clinic/*` and `/share/*` routes that forbid `googlesyndication.com`, `googleadservices.com`, `doubleclick.net`. Anything that violates triggers a report — surface in monitoring.
-3. Playwright test: navigate to `/clinic/some-roster`, listen for any request to ad domains, fail if found. Run as part of `clinic-bundle-budget` style guard.
-4. Visual regression test on `/share/*` to catch any ad slot reservation flash (CLS-style).
+**Silent vs loud:** 🔇 LANDMINE on (b) — state AG investigations take 12-18 months between trigger and inquiry. 🔊 LOUD on (a) — Reddit/HN hits within hours of release.
 
-**Warning signs:**
-- Network tab shows `pagead2.googlesyndication.com` requests on a `/clinic/*` URL.
-- Clinic operator support ticket: "I saw a weight-loss ad on the patient roster page."
-- Bundle analyzer shows ad SDK in the shared chunk (it should only be in the marketing/free-tier chunks).
+**Suggested mitigation:**
+1. **Decide what's "safety information" vs "advanced features" UP FRONT in CONTEXT.md** — paywall-acceptable: longer-window projection (90d vs 7d), AI optimization suggestions, alternative-protocol comparisons, "best titration plan for your goal" prescriptive content. PAYWALL-FORBIDDEN: drug-interaction warnings, contraindications, allergic-reaction signs, dose-conversion errors, OR ANY content that exists to PREVENT HARM. The line is "if absence of this content could lead to user harm, NEVER paywall it."
+2. **Reversibility plan in CONTEXT** — if backlash hits, flip PostHog flag to 0% within 30min + tweet apology + post-mortem. The plan is written before launch, not improvised.
+3. **State AG disclosure scrub** — every paywall variant copy reviewed against WMHMDA "consumer health data" definition. If the gated content is "data we collected from you, processed, and now charge to give back" the consent disclosure on the cookie/onboarding consent must cite it.
+4. **A/B audience exclusion** — paywall A/B excludes any user with a logged adverse-event-like symptom in the last 30d (use existing `symptoms` table); these users see the unpaywalled version. Rationale: never paywall safety info for someone currently experiencing a possible adverse event.
+5. **Public statement scripted in advance** — if Reddit/HN post hits, comms response is ready (acknowledges concern, links to the unpaywalled safety surface, offers free Pro for affected users for 90d). Don't draft this in the middle of the crisis.
 
-**Phase to address:**
-Workstream 9 (Advertising network) owns the route-gated injection. Workstream 10 (Launch essentials) owns the CSP report-only header. v1.2 Phase 0 owns the Playwright clinic-ad-free e2e gate.
+**Owning phase:** **B (Product Depth) — pharmacology paywall test** owns. Plan-checker BLOCKER: any plan touching paywall-gating for pharmacology content MUST link to a CONTEXT.md decision recording the paywall-acceptable vs paywall-forbidden line + reversibility plan + state AG disclosure scrub.
 
 ---
 
-### Pitfall 11: Page builder generates non-semantic HTML and ships ARIA/SEO regressions
+### Pitfall V13-11: HIPAA session-timeout requirement conflicts with consumer UX 🔊 LOUD on review
 
-**What goes wrong:**
-Workstream 7's drag-and-drop builder generates `<div>`-only markup with inline styles. Marketing pages built with it score poorly on Lighthouse SEO + accessibility. JSON-LD is missing (the builder doesn't know what `Product`/`Article` schema applies). Heading hierarchy is wrong (designers drop H1s wherever, no H2/H3 logical order). Search rankings stay low; screen-reader users abandon. Apple/Google Play reviewers don't gate on this directly, but Google's spam-update can downrank an entire domain after enough auto-generated low-quality pages.
+**Trigger condition:**
+HIPAA Security Rule (45 CFR 164.312(a)(2)(iii)) recommends "automatic logoff" after a period of inactivity — industry-standard ~15min for clinical sessions. LeanShot's consumer UX assumes session persists until explicit logout (so users can leave the app open + log doses throughout the day). With clinic orgs, a clinic-side operator IS in a HIPAA-clinical session; the consumer-side patient is NOT (unless they're a patient of a BAA-signed clinic, then arguably yes).
 
 **Why it happens:**
-Drag-and-drop UIs prioritize WYSIWYG over semantics. The DX of "every text block is a `<div>` with style" is much simpler than "is this a heading, paragraph, callout?" The builder's runtime is usually framework-agnostic so it can't tap React semantic primitives.
+HIPAA Security Rule is "addressable" (not "required") for some controls including auto-logoff, meaning we need a documented justification if we don't implement it. But a clinic auditor will reasonably expect a 15-min timeout on clinical-context sessions.
 
-**How to avoid:**
-1. **Block taxonomy = semantic taxonomy.** The builder offers `Heading 1/2/3`, `Paragraph`, `Quote`, `Image (with required alt)`, `Button (link or action)`, `Section` — not `Text` and `Box`. Each block renders to its semantic tag.
-2. **Per-page SEO panel is mandatory before publish**: title (`<title>`), meta description, canonical URL, OG image, JSON-LD type picker (Article / Product / FAQPage / SoftwareApplication). Block publish if title or description is missing.
-3. **Linting at save**: count `<h1>` per page (must be exactly 1); enforce heading order (no H3 without H2); reject images without alt text.
-4. **Tailwind v4 compatibility check**: drag-drop libs like `react-dnd` work fine with Tailwind, but some (e.g., Builder.io's editor) inject their own CSS-reset that fights Tailwind's `@theme {}` tokens. Pick the lib first, verify with a Tailwind v4 dev-server before designing the builder.
-5. Render the published page server-side (or pre-render at build) so Googlebot sees full content — SPA-rendered builder pages tank SEO.
+**Silent vs loud:** 🔊 LOUD during HIPAA audit, security questionnaire, or clinic-prospect technical review.
 
-**Warning signs:**
-- Lighthouse "SEO" score drops below 90 on a builder-published page.
-- Google Search Console shows "page has no description."
-- A screen-reader user reports the page is unnavigable.
+**Suggested mitigation:**
+1. **Context-aware session policy** — patients in pure-consumer mode keep current ∞-session UX. Clinic operators (`org_member.role IN ('admin', 'operator', 'viewer')`) get 15-min idle timeout. Patients of BAA-signed clinics get an opt-in "clinical mode" badge in settings that, if enabled, applies the 15-min timeout. Document in CONTEXT.md.
+2. **Idle-detection client-side** — Supabase session refresh is automatic, but our app must implement a real idle-timer (e.g., reset on mouse/keyboard/touch events) that calls `supabase.auth.signOut()` at 15min idle for clinical sessions.
+3. **Re-auth challenge for sensitive actions** — for clinical sessions, refunds/grants/impersonation/data-export require password OR biometric re-confirmation regardless of session age.
+4. **MFA enforcement for clinic admins** — `org_member.role = 'admin'` MUST have MFA enrolled; admin-modular-shell middleware blocks access if `factors_enrolled === 0`. v1.3 M1 admin 2FA enforcement absorbs this.
+5. **Audit log retention** — clinic-side `org_audit_logs` retained 6 years (HIPAA standard) vs consumer audit_logs at 1 year. Two separate tables OR a single table with `retention_class` column.
 
-**Phase to address:**
-Workstream 7 (Page builder + landing pages) owns block taxonomy + SEO panel + lint-at-save + render strategy.
+**Owning phase:** **C (Clinic + HIPAA)** owns. M1 owns admin 2FA enforcement consumed by HIPAA admin role.
 
 ---
 
-### Pitfall 12: Affiliate fraud (self-referral, fake account farms, cookie stuffing) drains payout budget
+### Pitfall V13-12: Custom rank weights change historical rankings (clinic alert delivery + HIPAA PHI in email) 🔇 LANDMINE
 
-**What goes wrong:**
-Workstream 8 ships with a referral cookie + commission on first paid conversion. Bad actor signs up as an affiliate, uses their own referral link on disposable email accounts that subscribe (trial → cancel → refund cycle), pockets the commission. Or: high-volume affiliate stuffs the cookie via hidden iframes on unrelated sites, attributing organic conversions as theirs. By Q2 of v1.2, 30–60% of payouts are fraudulent.
+**Trigger condition:**
+Per-clinic custom rank weights = each clinic configures how patients are ranked in their dashboard (e.g., Clinic A weighs "missed doses" 3×, Clinic B weighs "weight loss velocity" 2×). Two failures:
+- **(a) Retroactive ranking** 🔇 — if clinic changes weights on day 90, the historical ranking displayed for days 0-89 in the audit/timeline view also changes (rankings are computed live from current weights). Operators making historical clinical decisions based on a snapshot they reviewed in week 4 may not realize the snapshot is now showing different rank-positions. Compliance issue (audit trail integrity) + clinical operations issue (decision rationale broken).
+- **(b) Alert delivery via email** 🔇 — "Patient John Smith missed 3 doses, his dose-trend shows declining adherence" sent via Resend to clinic operator email IS PHI per HIPAA (contains patient identifier + treatment info). If Resend doesn't have a BAA covering it (or BAA was revoked, see V13-1), the email is an impermissible disclosure. Plus alert fatigue: thresholds too sensitive → operator ignores → real alert missed (notification debounce vs delivery guarantee tension).
 
 **Why it happens:**
-A naive implementation pays out on `subscription.created` instead of `subscription.paid` after the trial. Or it pays out on the first invoice but doesn't verify the chargeback hasn't been filed. Self-referral is trivial when there's no IP + device-fingerprint check.
+Rank weights stored as `clinic_rank_weights` JSONB updated in-place by admin UI. Alert delivery uses the same Resend pipeline as consumer transactional email (no PHI separation).
 
-**How to avoid:**
-1. **Payout trigger = `invoice.paid` AND `now - referrer.signup_at > 14 days` AND `referrer.last_payout_chargeback_at IS NULL`.** Hold period (60–90 days) before payout to absorb chargebacks (Stripe chargeback window is 120 days).
-2. **Self-referral detection**: at signup, compute a fingerprint hash of `(ip_subnet, browser_fingerprint, device_class, email_provider)` and compare against the referrer's hash. Same-match within ±30 days = automatic disqualification (silent; flag for review).
-3. **Cookie-stuffing detection**: server-side click endpoint logs `referrer_url` (the page the click came from). Block / flag if `referrer_url` is empty (direct/iframe) and the click rate from that affiliate exceeds 10× the median.
-4. **Tiered commission**: 1st tier = $10 flat per paid signup, 2nd tier (after $1000 in valid commissions) = 20% rev share. Forces a quality bar before lucrative payouts.
-5. **Manual review queue for first payout** of any new affiliate. Owner/admin (Workstream 5) gets a notification, approves or rejects.
+**Silent vs loud:** 🔇 LANDMINE on both.
 
-**Warning signs:**
-- An affiliate's conversions all come from the same `/24` IP subnet.
-- Conversion rate from one affiliate is >10× the cohort median.
-- Chargeback rate from a single affiliate's cohort >5%.
-- Affiliate's email domain matches the referred user's email domain.
+**Suggested mitigation:**
+1. **Versioned weights** — `clinic_rank_weights_versions` append-only (`org_id`, `version`, `weights_jsonb`, `effective_at`, `created_by`); current version pointer in `organizations.current_rank_weights_version`. Ranking queries either (a) JOIN to versions table using snapshot-time match, or (b) materialize daily ranking snapshots and serve historical from snapshots. Recommend (b) for performance; (a) for storage-cheap exact-reproducibility.
+2. **Snapshot rankings on every operator drill-in** — `ranking_snapshots` (`org_id`, `patient_id`, `rank`, `weights_version_id`, `viewed_at`, `viewed_by`); auditable.
+3. **PHI-safe alert email design** — alert email contains NO patient identifier, NO dose values, NO clinical detail. Just: "You have 3 new patient alerts. [Sign in to view]". The PHI lives in-app behind auth. Resend then carries no PHI; BAA gap is closed.
+4. **Alert debouncing with delivery guarantee** — `clinic_alerts` table with `state ENUM('pending', 'sent', 'acknowledged', 'snoozed', 'dismissed')`; cron sweeps `pending` older than 5min into batched-email; operator acknowledgment writes `acknowledged_at` for audit. Don't lose alerts during alert-fatigue throttling — escalate to weekly digest if individual alerts > 20/wk.
+5. **Per-clinic threshold tuning** — admin sliders for sensitivity; alert volume preview ("at this threshold, your roster would have 12 alerts/week").
+6. **`clinic_alerts.acknowledged_at` audit** — operator must acknowledge or dismiss with reason; "all alerts dismissed at once" pattern flagged for compliance review.
 
-**Phase to address:**
-Workstream 8 (Viral affiliate program) owns fraud-detection rules + payout hold. Workstream 5 (Owner/admin surface) owns the review queue UI.
+**Owning phase:** **C (Clinic + HIPAA) — custom rank weights + alerts** owns. Plan-checker BLOCKER: weights migration must be versioned-table not in-place column; alert email design must not include PHI fields.
 
 ---
 
-### Pitfall 13: Stripe Connect Express onboarding stalls because W-9/W-8BEN enforcement is misconfigured
+### Pitfall V13-13: Gamification streak loss-aversion crosses into UX-brief dark-pattern + timezone bugs 🔇 LANDMINE + 🔊 LOUD
 
-**What goes wrong:**
-The platform (LeanShot) is required by the IRS to issue 1099-NEC for any US affiliate earning ≥$600 in a calendar year. Without explicit W-9/W-8BEN collection enforced in Stripe Connect, the IRS rejects the 1099 batch in January for missing TINs. LeanShot eats penalties (~$280 per missing form) and the affiliate's 1099 generation fails. Stripe will also block payouts once an account hits the platform-configured TIN threshold.
+**Trigger condition:**
+Gamification (XP/levels/streaks/freeze tokens/leaderboards) is famously prone to "dark pattern" framing per the project's own UX brief warnings. Three failures:
+- **(a) Loss-aversion dark pattern** 🔇 — "You'll lose your 28-day streak in 3 hours!" push notification at 9pm = textbook compulsion-loop dark pattern. EU regulators (Norway Consumer Authority, French CNIL) have publicly named loss-aversion-based engagement nudges as dark patterns; not banned outright but ammunition for an unfair-commercial-practices claim.
+- **(b) Timezone bugs in streak calc** 🔊→🔇 — user logs dose in NYC at 11pm Mar 14, flies to LAX, logs at 9pm Mar 14 LAX (which is Mar 15 NYC). Did the streak continue? Server stores ISO timestamps; client UI shows local. Naive `date_trunc('day', logged_at)` server-side = streak breaks on transcontinental travel even though user logged once per calendar day in their local TZ. Worse, user sees streak intact on phone (client local TZ) but lost on web (server UTC) = confidence in product breaks.
+- **(c) Freeze-token economy abuse** 🔇 — admin grants freeze tokens for customer support ("I was sick, please don't break my streak"); users figure out the magic words and game the system. Or refunded users keep their tokens. Or freeze tokens have value > $0 (Pro features) and grant flow is unlogged.
 
-**Why it happens:**
-Stripe Connect defaults are lax — you can ship payouts without collecting W-9 if you don't set enforcement thresholds. Engineers see "it works" in test mode and move on. By December 31, the missing-TIN list is multi-page.
+**Silent vs loud:** 🔇 LANDMINE on (a) and (c); 🔊 LOUD on (b) initially (user reports) but 🔇 if quietly under-counting streaks long-term.
 
-**How to avoid:**
-1. **Set platform enforcement thresholds in the Stripe Dashboard**: block payouts after $500 USD processed OR 30 days from first payout, whichever comes first, until W-9 (US) or W-8BEN (non-US) is submitted.
-2. The Stripe Connect Express onboarding link must include `requirements_collection: "currently_due"` and tax-form collection is gated by the country-of-residence answer.
-3. Backend cron job: nightly, query `stripe.accounts.list({ requirements: { currently_due: ['individual.id_number', 'tos_acceptance'] } })` for any blocked accounts; surface in admin dashboard (Workstream 5).
-4. Email reminder via Resend at +7 days, +14 days, +25 days from threshold breach.
-5. Snapshot test: simulate an affiliate earning $501, assert payout is blocked, assert TIN-collection link is generated and emailed.
+**Suggested mitigation:**
+1. **UX brief sign-off** — every gamification surface explicitly reviewed against the UX brief's dark-pattern list. Don't ship "streak about to break" loss-framing pushes. Instead: "Log today's dose to keep building your streak" (gain-framing).
+2. **Streak calc uses user's stored timezone** — `users.timezone` (TZ identifier like `America/Los_Angeles`); streak calc does `date_trunc('day', logged_at AT TIME ZONE users.timezone)`. User changes timezone in settings → recompute streak on next read (don't auto-recompute via cron, that's expensive).
+3. **Timezone change grace period** — user changes timezone setting → 48h grace where ANY day-bucket (old TZ or new TZ) satisfies streak. Prevents border-case streak-loss.
+4. **Audit log for ALL freeze-token grants** — `freeze_token_grants` (`user_id`, `granted_by`, `reason`, `support_ticket_id`, `granted_at`); admin UI requires reason + ticket link; weekly anomaly review (user X received 5 grants in a quarter = flag).
+5. **Freeze tokens expire 90d** + reset on refund (refund event hooks into freeze-token-zeroing trigger).
+6. **Leaderboard PII protection** — display names are user-chosen (not real names); rank-position visible but exact-value (XP) bucketed; user can opt out of public leaderboard at any time; anonymized handles still re-identifiable via timing-content correlation → only show top-100 + "you" position, not full leaderboard.
 
-**Warning signs:**
-- Stripe Dashboard "Affiliates with outstanding requirements" count >0 by Q3.
-- January 1: Stripe support ticket "1099 generation failed for N accounts due to missing TIN."
-- An affiliate complains "Stripe is asking me for tax info, what's going on?" — that's the system working but the in-app explainer is missing.
-
-**Phase to address:**
-Workstream 6 (Monetization — Stripe Connect setup). Workstream 8 (Affiliate program — UX for the W-9/W-8BEN flow). Workstream 5 (Owner/admin surface — outstanding-requirements dashboard).
+**Owning phase:** **M3a (Gamification)** owns. Plan-checker BLOCKER: streak calc plan must reference `users.timezone`; freeze-token-grant plan must include audit log + reason field.
 
 ---
 
-### Pitfall 14: Apple privacy manifest (PrivacyInfo.xcprivacy) declarations don't match actual SDK behavior
+### Pitfall V13-14: Onboarding value-first preview leaks PII before consent + merge-on-signup race 🔇 LANDMINE
 
-**What goes wrong:**
-Since May 2024, Apple requires `PrivacyInfo.xcprivacy` for any app and any included SDK that uses "required reason APIs" (UserDefaults, FileTimestamp, SystemBootTime, DiskSpace, ActiveKeyboards). Capacitor + AdMob + PostHog + Stripe SDKs all use at least one. If the manifest claims "no tracking" but the AdMob SDK actually fingerprints, App Review fails with a specific privacy-manifest mismatch flag.
+**Trigger condition:**
+M2 onboarding overhaul = "value-first preview" — user sees product working with their data BEFORE creating account. Concretely: user inputs weight + medication + dose → sees personalized 28-day curve → THEN onboarding asks for signup. Two failures:
+- **(a) PII leak pre-consent** 🔇 — input flow writes to a server-side anonymous session (so the curve can compute server-side). That session contains PII (weight, medication, dose) attached to an anonymous-ID cookie. Cookie consent for the marketing site defaults to "no" in EU; if we wrote the session BEFORE consent, GDPR violation. Per [WMHMDA RCW 19.373.030 + similar state laws] applies even to anonymous "consumer health data".
+- **(b) Merge-on-signup race** 🔇 — user opens preview on phone, types weight; opens preview on laptop, types different weight; signs up on laptop. Which anonymous session merges into the new user? Naive last-write-wins clobbers the phone session silently. Worse: user A and user B share a public computer; user A's preview session merges into user B's account on signup. Cross-user data leak.
+- **(c) A/B variant fingerprint deanonymization** 🔇 — onboarding variant assigned at first anonymous pageview; PostHog flag fingerprint (variant + signup time + page-load order) uniquely identifies the signup user post-hoc. Adversary correlating flag-assignment logs + signup events can deanonymize "this signed-up user is from this preview-flow IP".
 
-**Why it happens:**
-The manifest is a static XML/plist file that the developer hand-writes. Each SDK ships its own manifest. Some SDKs (especially older ad SDKs) ship outdated or wrong manifests.
+**Silent vs loud:** 🔇 LANDMINE on all three.
 
-**How to avoid:**
-1. **Validate manifests at build time**: Apple provides Xcode's "App Privacy Report" command which compiles all SDK manifests into a single report. Run as part of Capacitor's `ios:build` and diff against the declared parent manifest.
-2. Pin specific SDK versions known to have correct manifests:
-   - AdMob iOS SDK ≥11.0
-   - Stripe iOS SDK ≥23.0
-   - PostHog iOS ≥3.0 (if a native plugin is used; otherwise PostHog runs in JS only and doesn't need a native manifest)
-3. App Tracking Transparency (ATT) prompt is required if any SDK declares tracking. AdMob requests IDFA — must show the ATT prompt before AdMob initialization or the SDK returns no-fill. Tie ATT prompt to the consent flow in Workstream 10.
-4. The parent `PrivacyInfo.xcprivacy` must declare data categories collected (e.g., "Email Address — App Functionality"); a checklist tracks each Workstream's contribution.
+**Suggested mitigation:**
+1. **Client-side-only preview** — preview computation runs in browser (pharmacology engine is already pure-function client-side). NO server-side anonymous session writes for preview values. The cookie that persists across page loads is `_lps_preview_state` containing the typed values; user-controlled, easy to clear. NO PII server-side until signup.
+2. **Explicit consent before persist** — IF the team insists on server-side preview (for cross-device), preview UI shows "Save my preview" toggle that DEFAULT-OFF; toggle = explicit consent + creates a temporary session with 7d TTL + opt-in cookie. Anonymous session writes ONLY happen post-toggle-on.
+3. **Single-active-anonymous-session per browser** — anonymous session cookie is browser-scoped (not user-scoped). Sign-up merges THE SAME-COOKIE preview into the new account, ignores other-cookie sessions (which never get merged). No cross-device-preview merge. Document UX limitation: "your preview values from your other device are saved separately; you can re-enter them or copy from your phone."
+4. **Public-computer warning** — if `_lps_preview_state` cookie exists when sign-up form opens, show "Are these your values? (weight: X, dose: Y) — Reset if not yours". Explicit user confirmation before merge.
+5. **PostHog flag fingerprint deidentification** — onboarding variant assignment happens server-side at signup (NOT at preview page-load); PostHog `featureFlags` for the preview surface are page-static (same variant for all preview viewers); analytics consents to a coarse-grained variant exposure.
 
-**Warning signs:**
-- Xcode Organizer's "App Privacy Report" shows a category not declared in the manifest.
-- App Review rejection cites "Privacy Manifest" in the resolution center.
-- AdMob fill rate is suspiciously 0% on iOS post-install (ATT prompt missing).
-
-**Phase to address:**
-Workstream 2 (Mobile shells) owns the parent manifest. Workstream 9 (Advertising network) owns the ATT prompt timing. Workstream 4 (Health SDK) declares health data category. Workstream 6 (Monetization) declares purchase-history category.
+**Owning phase:** **M2 (Onboarding overhaul)** owns. Plan-checker BLOCKER: preview implementation plan must declare client-side-only OR explicit-consent-toggled-server-side; cross-device merge behavior documented.
 
 ---
 
-### Pitfall 15: GDPR DSAR export is incomplete (forgets Storage / Stripe / Resend / ad-network / PostHog)
+### Pitfall V13-15: AI recommender pgvector index drift on embedding-model upgrade 🔇 LANDMINE
 
-**What goes wrong:**
-A user files a Data Subject Access Request. The export endpoint returns a JSON of their `injections`, `weights`, etc. — but misses: Supabase Storage photo URLs + signed-url metadata; Stripe customer/subscription/invoice records; Resend audience subscriber entries + email-send history; PostHog event log; ad-network click/conversion log if affiliate; affiliate ledger entries. EU Data Protection Authority audit finds the gap → fines + mandatory remediation timeline.
+**Trigger condition:**
+M5b recommender via pgvector stores embeddings of content + user-history; recommends content with cosine similarity. Anthropic releases Claude-X next month with a new embedding model (or we switch from OpenAI text-embedding-3-small to a newer model). New embeddings have DIFFERENT dimensionality OR different vector-space orientation. Stored old embeddings + new query embedding = nonsense similarity scores. Result: recommendations silently become random.
 
 **Why it happens:**
-DSAR is an integration concern, not a single-table query. As features get added in v1.2 (Workstreams 6, 8, 9), each one creates a new PII surface that the DSAR endpoint must learn about. Plan-checker doesn't natively gate "does this feature update the DSAR export?"
+Embedding models evolve faster than database migrations. Engineers think "it's the same string, same model family, should work" but vector spaces don't align across model versions.
 
-**How to avoid:**
-1. **DSAR-export contract test**: a Vitest snapshot test that lists every table + bucket + third-party with PII. When a v1.2 plan adds a new table/bucket/integration, the test fails until the export module is updated.
-2. **Per-workstream DSAR checklist**: every workstream's "definition of done" includes "DSAR export updated + tested" — make it a CLAUDE.md project rule for v1.2.
-3. **30-day clock starts from request receipt**, not acknowledgment. Use Resend confirmation emails timestamped to set the clock; surface to admins via Workstream 5.
-4. Stripe portion: `stripe.customers.list({ email })` + `stripe.charges.list({ customer })` + `stripe.subscriptions.list({ customer })`. Resend portion: list contacts, list emails sent. PostHog portion: GDPR delete API + event export by `distinctId`.
-5. Format: machine-readable JSON + a human-readable PDF (use the existing jsPDF dynamic-import pattern from Phase 7).
+**Silent vs loud:** 🔇 LANDMINE — recommendations don't error, they just stop being good. CTR drops slowly; team chases the wrong variables for weeks.
 
-**Warning signs:**
-- A new feature lands without touching `src/lib/dsar/export.ts`.
-- A user's DSAR export is <100 KB despite heavy use (something's missing).
-- DPA audit finds a discrepancy between LeanShot's PII inventory and what the DSAR export returns.
+**Suggested mitigation:**
+1. **Embedding versioning** — `embeddings` table has `model_id TEXT NOT NULL` + `model_version TEXT NOT NULL` + `embedding vector(N) NOT NULL`. Query at read-time MUST filter `WHERE model_id = $current AND model_version = $current`. Two parallel embeddings during migration window.
+2. **Two-phase migration** — (i) compute new embeddings for ALL content + new user history into parallel rows; (ii) cut read-path to new model atomically; (iii) drop old embeddings on T+7d (rollback window).
+3. **Drift detection cron** — daily, compute pairwise cosine on a fixed sample set; alert if mean similarity drifts > 0.1 day-over-day (indicates model behavior change OR upstream API change).
+4. **Recommendation explainability for clinical context** — for clinic users, every recommendation MUST include "because patient logged X" + "from KB article Y" provenance. Black-box "AI says read this" is unacceptable in clinical context.
+5. **Echo-chamber prevention** — engagement-only ranking traps users in their existing patterns. Inject 10% exploration content (high-quality but low-similarity-to-history) per recommendation batch.
+6. **Latency budget** — recommendation generation runs server-side; budget 200ms p95. pgvector with IVFFlat index + 100-row limit usually OK; if exceeded, async-recompute + cache for 1h.
 
-**Phase to address:**
-Workstream 10 (Launch essentials) owns the DSAR portal. Every workstream that creates new PII surfaces (6, 8, 9) updates the DSAR export module as part of its acceptance criteria.
+**Owning phase:** **M5b (AI Personalization)** owns. Plan-checker check: any pgvector migration plan must include `model_id`/`model_version` columns; recommendation query must filter on both.
+
+---
+
+### Pitfall V13-16: Helpdesk email-to-ticket spam + AI auto-reply hallucination 🔇 LANDMINE + 🔊 LOUD
+
+**Trigger condition:**
+M6 helpdesk = Resend Inbound webhook → tickets; AI assists draft replies via Claude. Failures:
+- **(a) Email-to-ticket spam** 🔊 — `support@app.leanshot.app` published in app + footer. Spam bots flood it. No spam protection in Resend Inbound (verify in M6 phase research — flag for confirmation). Result: ticket volume swamps support; legitimate tickets buried.
+- **(b) AI auto-reply hallucination** 🔇→🔊 — Claude drafts a reply citing "our Pro plan is $19/month" but actual plan is $14.99. Or worse: drafts medical advice ("for nausea, try X"). Reply auto-sent without human review = direct harm.
+- **(c) KB article version drift** 🔇 — admin updates KB article; cached ticket auto-reply contains stale URL or stale price quote; user receives reply pointing at deleted/changed article.
+- **(d) CSAT response rate** 🔊 — no payment incentive → low return rate → CSAT scores are noise.
+
+**Silent vs loud:** 🔊 (a), (d); 🔇 (b), (c).
+
+**Suggested mitigation:**
+1. **Spam triage cron + SPF/DKIM check** — incoming-email cron rejects emails failing SPF/DKIM, rate-limits by sender domain (5/hour), checks against [SpamAssassin]-style heuristics OR uses Cloudflare Email Routing as preflight. Document in M6 plan.
+2. **AI replies REQUIRE human review** for v1.3; ship as "draft suggested by AI" in operator UI, never auto-send. AI confidence scores surfaced. Plan-checker BLOCKER: any plan auto-sending AI replies for v1.3 is rejected.
+3. **No medical advice from AI** — system prompt explicitly forbids medical advice; classifier on AI draft refuses to send anything matching medical-recommendation patterns ("you should take", "try X dose", etc.); routes to human.
+4. **KB article references via stable token** — AI draft cites `{{kb:article_slug}}` template-style; render at send-time from current KB; if article deleted, draft fails with operator alert ("KB X referenced is gone, please rewrite").
+5. **CSAT via single-click email** — Resend transactional email with 1-5 star buttons that GET back to `csat-record` endpoint; one click, no auth, no friction. Per-ticket CSAT.
+
+**Owning phase:** **M6 (Helpdesk)** owns. Research gap: M6 phase research must verify Resend Inbound spam-protection options. Plan-checker BLOCKER on auto-send AI replies.
+
+---
+
+### Pitfall V13-17: Public status page auto-incident detection false-positives undermine trust 🔇 LANDMINE
+
+**Trigger condition:**
+M7 status page (via Better Stack or similar). Auto-incident triggers on (a) Edge Function 500-rate spike, (b) Supabase connection-pool exhaustion, (c) Sentry-error-rate spike. Each has different false-positive modes:
+- **(a)** 500-rate spike from one buggy user's auto-retrying client = global incident published = users panic.
+- **(b)** Supabase connection storm from a single tenant = global "Database degraded" status = competitors screenshot for sales.
+- **(c)** Sentry error-rate spike from a new browser version's flaky web-push API = "Push notifications down" published for 4h.
+
+Plus per-region status: Vercel deploys multi-region; eu-central can be degraded while us-east is fine; single global "Vercel: green" badge is wrong for an EU customer experiencing actual issues.
+
+Plus subscriber email burst: incident "resolved" notification fans out to 10k subscribers in one minute; Resend rate-limit (per project memory `feature_resend_rate_limit`); some users get the resolved-email at T+2h.
+
+**Silent vs loud:** 🔇 — false positives feel reasonable individually, the credibility erosion is gradual.
+
+**Suggested mitigation:**
+1. **Two-of-three incident detection** — auto-incident only fires if 2+ independent signals trip in 5-min window (e.g., 500-rate AND Sentry-spike AND Supabase-conn-exhaustion). Single-signal triggers go to PagerDuty for human review.
+2. **Per-region status pages** — `status.leanshot.app/us-east`, `status.leanshot.app/eu-central`; subscribers pick region.
+3. **Subscriber notifications via Resend batch API** — fan-out goes through `Resend.emails.batch.create` (avoid rate-limit); incident-resolved emails throttled to 100/sec.
+4. **Manual confirmation requirement for global incidents** — auto-detection only opens a "pending incident" visible to admin; admin clicks "publish" to make public; or "false positive" to dismiss.
+5. **Per-component status** — `Auth`, `Database`, `AI coach`, `Realtime`, `Email`, `Payments` as separate components; one degraded doesn't drag others.
+
+**Owning phase:** **M7 (Misc — public status page)** owns.
+
+---
+
+### Pitfall V13-18: Cancellation save-offer discount stacking + ROI tracking gap 🔇 LANDMINE
+
+**Trigger condition:**
+M7 cancellation flow offers discount/pause to retain. Failures:
+- **(a) Discount stacking** 🔇 — user already on promo coupon (e.g., 50% off first 3mo); cancellation offer "50% off next 3mo" stacks → free for 3mo. Stripe accepts coupons additively per its `coupon` model; we must prevent stacking server-side.
+- **(b) Pause-then-cancel-anyway** 🔇 — user pauses via save offer; pause expires; user cancels at T+3mo; we never measure this as a "save" failure → save-offer ROI looks great when it's actually a delayed loss.
+- **(c) ROI tracking** 🔇 — LTV uplift of save offer requires 12mo+ measurement window; team optimizes for "saved this month" → misses long-term churn pattern.
+
+**Silent vs loud:** 🔇 all three.
+
+**Suggested mitigation:**
+1. **Server-side coupon-stack guard** — before applying cancellation offer, check `stripe.subscriptions.list({ customer })` for active discounts; if present, offer pause-only OR show "your current 50% discount continues; we can't stack additional discount" message.
+2. **Save-offer outcome tracking** — `save_offers` table (`subscription_id`, `offer_type`, `offered_at`, `accepted_at`, `outcome_evaluated_at`, `final_outcome ENUM('retained_12mo', 'churned_after_pause', 'churned_after_discount', 'still_active')`). Cron evaluates at T+90d, T+180d, T+365d.
+3. **LTV-based ROI dashboard** — save-offer success metric is `(saved_user_ltv_at_12mo − offer_discount_cost) / control_user_ltv_at_12mo` — compare to a non-offered control cohort. Admin dashboard surfaces 90d/180d/365d cuts.
+4. **Pause expiry follow-up** — pause-end is a transactional touch-point; send reactivation email; track reactivation rate as separate metric from save-offer.
+
+**Owning phase:** **M7 (Misc — cancellation save offers)** owns.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 16: Web Push doesn't work on iOS Safari without PWA install + iOS 16.4+
+### Pitfall V13-19: Modular admin shell + per-module Edge Function permission checks drift 🔇 LANDMINE
 
-**What goes wrong:**
-Workstream 10's Web Push implementation works on Chrome/Firefox/desktop Safari, fails silently on iOS. Apple gates web-push to PWA-installed-to-home-screen + iOS ≥16.4. Most users haven't installed the PWA.
+**Trigger condition:** M1 modular admin = each module (members / finance / affiliates / clinics / experiments / KB / status) has its own Edge Function; permission check is per-module. A new module added without permission-check stub = admin-bypass leak.
 
-**How to avoid:**
-On iOS: detect `standalone` mode + iOS version; if not eligible, fall back to APNs via the Capacitor native shell (Workstream 2). The "Enable notifications" UI must check capability before prompting, otherwise the prompt never shows and users blame LeanShot.
+**Mitigation:** ESLint rule + project pattern — every `supabase/functions/admin-*/` MUST `import { assertAdmin } from "../_shared/assert-admin.ts"` as first executable line; CI grep fails PRs missing it. Plan-checker check on any M1 admin-module plan.
 
-**Phase:** Workstream 10 + Workstream 2 (notification routing layer).
+**Owning phase:** M1 (Foundation).
 
 ---
 
-### Pitfall 17: AdMob banner refresh races HealthKit fetch on app open (cold-start jank)
+### Pitfall V13-20: PostHog session-replay PII masking incomplete on new v1.3 surfaces 🔇 LANDMINE
 
-**What goes wrong:**
-AdMob web/native SDK initialization runs eagerly on app open. HealthKit auto-sync also runs on app open. Both want main-thread time. App feels frozen for 2-3 seconds.
+**Trigger condition:** v1.3 introduces new input surfaces (clinic patient roster, helpdesk ticket details, AI coach with PHI, custom rank weights with clinical labels). PostHog session-replay default-masks `<input type=password>` but NOT contenteditable, NOT custom-component inputs, NOT div-based forms. PHI captured in replay → BAA violation.
 
-**How to avoid:**
-Defer AdMob init by `requestIdleCallback` or `setTimeout(0)` after the first paint. HealthKit fetch goes into a Web Worker (Workstream 4 should evaluate; current architecture is main-thread only, may justify a `worker` exception). First-contentful-paint should not include any ad slot.
+**Mitigation:** Per-surface review — every new v1.3 surface that displays PHI gets `data-private="true"` on outermost wrapper + PostHog `mask_all_inputs: true, mask_all_text: true` on clinical routes via per-route init. Pattern: `useEffect(() => posthog.startSessionRecording({ mask_all_text: true }), [orgId])` on clinic routes. Plan-checker check: any v1.3 plan adding a clinical-context surface MUST include the mask config.
 
-**Phase:** Workstream 9 + Workstream 4 coordination.
+**Owning phase:** M1 (Foundation) ships the pattern; C consumes.
 
 ---
 
-### Pitfall 18: Resend deliverability tanks because domain isn't verified or DKIM/SPF/DMARC are wrong
+### Pitfall V13-21: Bulk admin actions (CSV import / mass-tag / mass-comp / mass-ban / force-reset) lack idempotency + audit 🔇 LANDMINE
 
-**What goes wrong:**
-v1.1 carries over an unverified Resend domain (per project memory). Lifecycle emails (welcome / receipts / password reset) land in Gmail spam. Affiliates think the program is broken.
+**Trigger condition:** M1 bulk admin actions on 10k members. Mid-action failure (network blip, function timeout) leaves DB in partial state. Re-running causes double-comp / double-ban / double-tag.
 
-**How to avoid:**
-Verify the domain in Resend dashboard (DNS records: SPF + DKIM + DMARC). Use the `curl https://api.resend.com/domains -H "Authorization: Bearer $KEY"` check pattern from project memory (`reference_resend_phase9_wiring.md`). Set `RESEND_FROM` to the verified domain (not `noreply@app.leanshot.app` which the memory flagged as unverified).
+**Mitigation:** Idempotency key per bulk action (UUID generated client-side; server stores in `bulk_actions(id, action_type, status, count_total, count_completed, started_at, completed_at, error)`); resumable from `count_completed`. Audit log per row. Soft-preview ("this action will affect N members") before commit.
 
-**Phase:** Workstream 10 + carry-over from v1.1 tech debt.
+**Owning phase:** M1 (Foundation).
 
 ---
 
-### Pitfall 19: Capacitor deep-links (Universal Links / App Links) require host-side AASA file and Digital Asset Links JSON
+### Pitfall V13-22: Canonical event taxonomy versioning + server-side capture mismatch 🔇 LANDMINE
 
-**What goes wrong:**
-Sharing a doctor-share link `https://leanshot.app/share/abc` on iOS doesn't open the app — opens Safari. The native shell looks installed but deep-links route to the browser.
+**Trigger condition:** M1 ships `events.ts` v1 with PostHog server-side capture; v2 renames `signup` → `account_created`; ALL downstream cohort builders break silently if the renamed event isn't aliased.
 
-**How to avoid:**
-Host `https://leanshot.app/.well-known/apple-app-site-association` (AASA, JSON, no extension, served as `application/json`, HTTPS, no redirects) and `https://leanshot.app/.well-known/assetlinks.json` (Android). Both must declare the share-route patterns. Capacitor's `App` plugin handles the runtime listener — the native side requires entitlements (`Associated Domains` capability in Apple Developer Portal).
+**Mitigation:** `events.ts` is APPEND-ONLY for v1.3 (no renames, no removals). Each event has `version` + `deprecated_at` (nullable); cohort builder warns on deprecated events. PostHog server-side capture is wrapped in `captureCanonical(eventKey, props)` that validates eventKey against the registry; unknown event = build-time TS error.
 
-**Phase:** Workstream 2 (Mobile shells) + Workstream 7 (Page builder — ensure marketing site hosts the well-known files in its Vercel config).
+**Owning phase:** M1 (Foundation).
 
 ---
 
-### Pitfall 20: PostHog client-side initialization spikes the bundle when the autocapture + session-replay flags are on
+### Pitfall V13-23: White-label clinic theming CSS leakage between orgs 🔇 LANDMINE
 
-**What goes wrong:**
-PostHog's `posthog-js` is small (~25 kB gz) but autocapture + session-replay can grow it to 80+ kB gz when those features are enabled. Workstream 10's analytics revamp turns on session-replay for "growth experiments" and the bundle ceiling breaks.
+**Trigger condition:** Clinic A and B both have custom theme; CSS variables scoped via `[data-org-id="abc"] { --primary: blue }`. Operator switching between Org A and Org B's read-only view: cached CSS from Org A leaks into Org B render until manual refresh. Or user with multi-org membership sees Org B's theme on Org A surface due to leakage in styled-component cache.
 
-**How to avoid:**
-Use `posthog-js/lite` (no replay) for the main bundle. Lazy-load `posthog-js` only on routes where session-replay is needed (rare). Configure with `capture_pageview: 'history_change'` to avoid replay overhead on SPA navigation.
+**Mitigation:** Theme CSS loaded via `<style id="org-theme">` element fully replaced on org-context-change; theme variables ALL scoped under `:root[data-active-org="X"]` + body class change forces repaint; useEffect-clean on unmount removes the stylesheet.
 
-**Phase:** Workstream 10. Cross-reference with Pitfall 5 (bundle budget).
+**Owning phase:** C (Clinic + HIPAA — white-label theming).
 
 ---
 
-### Pitfall 21: Stripe Checkout vs. Elements decision is reversed mid-implementation
+### Pitfall V13-24: Clinic-invited patient ownership conflict on clinic-leave 🔇 LANDMINE
 
-**What goes wrong:**
-Stripe Elements gives a customizable in-app form but requires PCI-scope SAQ-A-EP attestation (light, but more than zero) and adds ~50 kB gz to the bundle. Stripe Checkout is a hosted redirect (zero PCI scope, near-zero bundle cost) but reduces brand consistency. Picking Elements first, then trying to switch to Checkout, wastes a week.
+**Trigger condition:** Patient invited by Clinic A, logs 90d of data; patient leaves clinic. Three policy options: (a) data stays with patient (clinic loses access via `org_patient_link` delete), (b) data anonymized for clinic (clinic retains aggregate, patient keeps full), (c) data full-anonymization (clinic loses all, patient retains). Picking the wrong default = patient lawsuit OR clinic lawsuit.
 
-**How to avoid:**
-Lock the decision in `06-CONTEXT.md` (or wherever Workstream 6 plans). Recommendation: Stripe Checkout for subscription start, Stripe Customer Portal for subscription management (zero in-app payment UI = simplest compliance + lightest bundle). Elements only if a critical UX requirement is identified.
+**Mitigation:** Patient ALWAYS retains their own data (consumer-side); clinic-leaving deletes `org_patient_link` row; clinic-side roster no longer sees patient. Aggregate clinical-quality metrics for the clinic use `org_id`-stamped daily-snapshot views (which retain anonymized totals even after delink). Document in CONTEXT.md + present to patient at clinic-invite acceptance ("If you leave the clinic, your data stays with you; the clinic loses access").
 
-**Phase:** Workstream 6 (Monetization).
+**Owning phase:** C (Clinic + HIPAA).
 
 ---
 
-### Pitfall 22: Watch app data sync uses HealthKit shared store but assumes phone-side is reachable
+### Pitfall V13-25: Recommendation latency budget breaks under cold-start pgvector 🔊 LOUD
 
-**What goes wrong:**
-Workstream 3's Apple Watch app reads "next dose" from the phone via WatchConnectivity. When the phone is dead/out-of-range, the watch shows stale data with no indication.
+**Trigger condition:** M5b recommender computes on-demand; pgvector IVFFlat index cold-start after Supabase restart takes seconds (full index scan first time). User-facing latency spikes.
 
-**How to avoid:**
-The watch app caches the last-known dose + streak locally (WatchKit complications + `WKExtendedRuntimeSession`). Show a small "Last synced 2h ago" badge when phone unreachable >15 min. Don't try to fetch from the cloud directly from the watch (battery + complexity).
+**Mitigation:** Warmup cron (1/hour) runs a dummy query to keep index in cache; precompute recommendations daily for active users into `user_recommendations` table; on-demand only for new users.
 
-**Phase:** Workstream 3 (Watch apps).
+**Owning phase:** M5b (AI Personalization).
 
 ---
 
-### Pitfall 23: Tailwind v4 beta + page-builder drag-drop libs conflict on CSS-reset
+### Pitfall V13-26: Web-push permission asked too early (M2 onboarding) → permanent denial 🔇 LANDMINE
 
-**What goes wrong:**
-Tailwind v4's CSS-first `@theme` system relies on cascade layers (`@layer base/components/utilities`). Some drag-drop libs (GrapesJS in particular) inject their own `<style>` tags at runtime that win the cascade and break the builder's preview vs production rendering.
+**Trigger condition:** Onboarding step 5 prompts for push permission before user understands what they'll receive. User denies. Browser permanently denies (must reset in settings) → no future opportunity. Apple iOS Safari is especially strict.
 
-**How to avoid:**
-Pick the page-builder approach (custom JSON renderer recommended in Pitfall 5) that doesn't ship its own CSS. Or, if using a lib, validate Tailwind v4 compatibility in a 1-day spike before committing.
+**Mitigation:** Push permission asked AFTER first positive product moment (logged 3 doses, used AI coach, completed first weekly streak). Pre-prompt with custom explainer ("Get reminders for your next dose. Tap allow when prompted."). Same anti-pattern as v1.2 Pitfall #UX.
 
-**Phase:** Workstream 7 (Page builder).
+**Owning phase:** M2 (Onboarding).
 
 ---
 
-### Pitfall 24: Account merging breaks when a user signs up to clinic-invite while already a B2C subscriber
+### Pitfall V13-27: Helpdesk SLA clock-start ambiguity (received vs assigned vs first-response) 🔇 LANDMINE
 
-**What goes wrong:**
-Existing v1.1 user (with personal subscription) accepts a clinic invite. Code creates a new clinic-scoped membership without checking for conflict with their personal `billing_customer_id`. Stripe sees two subscriptions for one email. Charged twice.
+**Trigger condition:** Clinic prospect's BAA includes "support SLA: 24h first-response". Helpdesk clock-start defined inconsistently (some tickets clock-start at email-received, others at human-assigned, others at first-AI-draft).
 
-**How to avoid:**
-Workstream 5 (admin surface) + Workstream 6 (monetization) coordinate: clinic invites detect existing `billing_customer_id`; the invite acceptance flow asks "do you want to keep your personal sub, or switch to clinic-paid?" and prorates accordingly.
+**Mitigation:** SLA clock starts at ticket-creation timestamp (Resend Inbound webhook receive time), pauses on awaiting-customer-reply, resumes on customer-reply-received. Per-tier SLA: consumer ∞, clinic-paid 24h, clinic-enterprise 4h. Cron alerts at 50% / 75% / 100% of SLA budget.
 
-**Phase:** Workstream 6 + Workstream 5.
-
----
-
-### Pitfall 25: Push notification tokens expire / rotate and the server keeps sending to dead tokens
-
-**What goes wrong:**
-APNs / FCM rotate tokens silently when user reinstalls, restores device, etc. Old tokens fail-to-send and the failure isn't surfaced. Workstream 10's lifecycle emails (Resend) and push notifications drift apart.
-
-**How to avoid:**
-APNs `BadDeviceToken` and FCM `UNREGISTERED` responses must trigger a token-cleanup in the `push_tokens` table. Daily cron prunes tokens older than 60 days with no successful send. Don't store a token without an `updated_at`.
-
-**Phase:** Workstream 10 (Launch essentials).
+**Owning phase:** M6 (Helpdesk).
 
 ---
 
 ## Minor Pitfalls
 
-### Pitfall 26: ASO assets (screenshots, app icons, splash screens) don't match Apple/Google's exact pixel specs
+### Pitfall V13-28: Email-as-org-namespace breaks Google Workspace clinic with shared aliases
+Clinic uses `staff@clinic.com` shared inbox; multiple humans behind it; LeanShot treats it as ONE user. Mitigation: SSO via Google Workspace (org-domain-based provisioning) OR explicit per-human email enforcement at invite. **Phase:** C.
 
-Pixel spec lists from Apple/Google change with new device announcements. Use Figma plugins (e.g., "App Store Screenshot Generator") that regenerate from a single design source. **Phase:** Workstream 2.
+### Pitfall V13-29: Affiliate impressions ratio detector false-positives on small-affiliate burst
+Phase 19 D-38 v1.3 affiliate impressions tracker uses Z-score baseline; small affiliate gets one viral post → flagged as fraud. Mitigation: minimum N=30 clicks before fraud-flag eligible. **Phase:** A.
 
-### Pitfall 27: AdSense child-directed content flag misconfigured
+### Pitfall V13-30: KB article search uses Postgres FTS in English only post-Spanish i18n
+KB articles in ES; FTS configured `to_tsvector('english', ...)` misses ES stemming. Mitigation: `to_tsvector(coalesce(locale, 'simple'), ...)` per-article. **Phase:** B + M6.
 
-If the AdSense unit is marked "child-directed" by mistake, eCPM drops to ~$0.10. Confirm at unit creation. **Phase:** Workstream 9.
+### Pitfall V13-31: Bulk-action cron clobbers org-admin's individual-record edit mid-action
+Bulk "comp all paid users 1mo" runs while org-admin edits one user manually. Last-write-wins clobbers manual edit. Mitigation: optimistic-lock on `users.updated_at`; bulk action fetches → checks → writes; on conflict, skip + log. **Phase:** M1.
 
-### Pitfall 28: Cookie banner blocks first impression / fires Lighthouse CLS penalty
+### Pitfall V13-32: Sentry release-fingerprint mismatch on v1.3 vs v1.2 → false-spike on existing errors
+Sentry groups errors by release fingerprint. v1.3 deploy bumps release ID; pre-existing v1.2 errors re-appear "new" in Sentry → false alert storm. Mitigation: sentry `release` config keeps semantic version stable across phases of a milestone; only bump major version on milestone boundary. **Phase:** M1.
 
-Avoid full-screen modal banners. Use a bottom-of-viewport bar with `position: fixed`. Measure CLS contribution; should be 0. **Phase:** Workstream 10.
-
-### Pitfall 29: app-ads.txt + ads.txt mismatches lose ad inventory
-
-Publishers must serve `/ads.txt` (web) and `/app-ads.txt` (mobile) listing authorized sellers. Mismatch with AdMob/AdSense settings = inventory rejected. **Phase:** Workstream 9.
-
-### Pitfall 30: Geist + Geist Mono + Fraunces font payload is heavy if not subset
-
-Three font families × multiple weights = 200+ kB easily. Self-host via `next/font`-style subset to Latin + variable axes; preload with `<link rel="preload">`. **Phase:** Workstream 1 (Design system rollout).
-
-### Pitfall 31: `s.user!` non-null assertions land in mobile shell code path without runtime check
-
-v1.1 audit flagged 15 occurrences / 14 files. Mobile shells extend new code paths that may inherit the assumption. Lift to a runtime narrow before the mobile build adds more. **Phase:** Workstream 11 (v1.1 tech debt sweep).
+### Pitfall V13-33: PostHog cohort builder query latency at 100k+ users
+M1 cohort builder issues complex JSONB filters server-side; PostHog Cloud query latency degrades past 100k events/day. Mitigation: materialized cohorts (compute nightly, serve from materialized view); on-demand only for ad-hoc admin queries with caching. **Phase:** M1.
 
 ---
 
-## Technical Debt Patterns
+## Phase-Specific Warnings
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Skip W-9/W-8BEN enforcement thresholds in Stripe Connect | Faster affiliate onboarding | January 1099 disaster, IRS penalties, blocked Stripe payouts | **Never** |
-| Render page-builder pages client-side only (SPA) | Faster builder development | Tanks SEO; marketing pages don't rank | Only for previews, never published pages |
-| Static `<script>` tags for AdSense / Meta Pixel in `index.html` | One-line install | EU cookie-consent violations + Workstream 10's Pitfall 10 (clinic surface contamination) | **Never** |
-| Capacitor live-reload pointing at prod URL during dev | Real-data testing | Live-reload bypasses CSP / cookie-domain logic and ships bugs to prod | Only on private dev branches, never CI |
-| WebView2 / Capacitor without `webViewWebContentProcessDidTerminate` handler | Faster iOS shell ship | Silent reload-to-home on memory pressure = App Review reject | **Never** for v1.2 launch |
-| Storing affiliate referral cookie via `document.cookie` (JS) | Trivial implementation | Safari ITP caps at 1-7 days; lost commissions; affiliate disputes | **Never** for production; OK in dev for unit tests |
-| Hand-writing PrivacyInfo.xcprivacy | Quick first build | Drifts as SDKs update; App Review reject on mismatch | Only with the build-time diff check from Pitfall 14 |
-| Apple watch app pulls from cloud directly | Simpler architecture | Battery drain + WatchConnectivity bypass = poor UX | **Never** — use phone as proxy |
-| Single Zustand store extended for billing + ads + affiliate state | Consistency with v1.1 | Persisted state hits localStorage quota; un-tree-shakeable bundle | Until Workstream 1 ships; then split into feature stores |
+| v1.3 Workstream | Top 3 Critical Pitfalls | Plan-Checker Mitigation Required In Plans |
+|------------------|--------------------------|-------------------------------------------|
+| **M1 (Foundation)** | V13-1 (PHI fence), V13-7 (server-side activation), V13-20 (session-replay PII), V13-22 (canonical events) | Event-taxonomy versioning; PHI-strip pattern on PostHog/Sentry; admin-module permission-check eslint rule |
+| **A (Revenue) — multi-tier affiliate** | V13-6 (state-machine drift) | State-graph audit (`gsd-tools state-graph affiliate_tier`); tier-stamped conversions; chargeback-hold not reset on tier change |
+| **A (Revenue) — mid-trial paywall A/B** | V13-7 (PostHog stickiness + refund-rate) | Server-side activation event; `user_experiments` table not raw PostHog flag reads; refund-rate guardrail with 30d burn-in |
+| **A (Revenue) — page-builder A/B** | V13-4 (SEO penalty) | Canonical link emit; 42-day variant cap; PostHog flag persistence; per-variant cache key |
+| **A (Revenue) — hourly ad ETL** | V13-5 (silent data drops) | Idempotent re-sync (last 72h); rate-limit-aware backoff; gap-detection cron; attribution-window normalized view; AEM priority register |
+| **B (Depth) — embed blocks** | V13-8 (sandbox + consent + OAuth) | Per-provider whitelist; lazy-mount on consent + click; CSP frame-src enumeration; sandbox `allow-scripts` + `allow-same-origin` forbidden together |
+| **B (Depth) — pharmacology paywall** | V13-10 (reputational + regulatory) | CONTEXT.md paywall-acceptable-vs-forbidden decision; reversibility plan; state AG disclosure scrub; adverse-event-symptom exclusion |
+| **B (Depth) — Spanish i18n** | V13-9 (medical translation accuracy) | Clinical glossary review-by date + reviewer; `i18next-icu`; physical-to-logical CSS codemod; `qa-i18n-es-medical.spec.ts` |
+| **C (Clinic + HIPAA)** | V13-1 (BAA chain), V13-2 (RLS multi-tenant), V13-11 (session timeout), V13-12 (alert PHI), V13-24 (patient ownership) | Vendor BAA chain table + scope guard; per-org cross-tenant RLS tests (every new org-scoped table); `withOrgScope` service_role wrapper; HMAC realtime channel names; versioned rank weights; PHI-free alert emails; clinic-leave data ownership documented |
+| **M2 (Onboarding)** | V13-14 (preview PII), V13-26 (push permission) | Client-side-only preview default OR explicit-consent-toggled-server-side; push permission AFTER first positive moment |
+| **M3a (Gamification)** | V13-13 (dark pattern + TZ bugs) | UX brief sign-off per surface; `users.timezone`-aware streak calc; freeze-token grant audit log |
+| **M3b (Review prompt)** | V13-3 (rating-gating policy) | BLOCKER on conditional native-prompt code (NPS gating); native prompt unconditional after positive moment; NPS routes to M6 helpdesk |
+| **M5b (AI recommender)** | V13-15 (pgvector drift) | `model_id`/`model_version` columns on embeddings; two-phase migration; drift-detection cron |
+| **M6 (Helpdesk)** | V13-16 (spam + AI hallucination) | Resend Inbound spam research; BLOCKER on auto-send AI; medical-advice classifier on AI drafts; stable KB token references |
+| **M7 (Cancellation save)** | V13-18 (discount stacking + ROI gap) | Server-side coupon-stack guard; save-offer outcome tracking at 90d/180d/365d |
+| **M7 (Status page)** | V13-17 (false-positive incidents) | Two-of-three detection; per-region pages; Resend batch fan-out; manual-confirm for global; per-component breakdown |
 
 ---
 
-## Integration Gotchas
+## Integration Gotchas (v1.3-specific, builds on v1.2)
 
 | Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Stripe Connect Express | Treating `account.payouts_enabled` as the only readiness flag | Also check `requirements.currently_due`, `requirements.disabled_reason`, and TIN-collection status |
-| Stripe Checkout | Hard-coding success/cancel URLs to localhost in `.env.local` | Always derive from `import.meta.env.VITE_APP_URL`; use Stripe's `client_reference_id` to pass the affiliate cookie value through |
-| AdMob (iOS) | Initializing before ATT prompt → 0% fill rate | Show ATT prompt on first launch; gate AdMob init on `ATTrackingManager.trackingAuthorizationStatus == .authorized` (otherwise non-personalized) |
-| AdMob (Android) | Forgetting child-directed (COPPA) + GDPR consent params | Pass `requestNonPersonalizedAdsOnly: true` for EU users without marketing consent |
-| Google Ad Manager (web) | Using auto-refresh too aggressively | Min 30s refresh interval; pause refresh when tab backgrounded (use `Page Visibility API`) |
-| Meta Audience Network | Single-app SDK conflicting with Capacitor's network layer | Pin SDK version; test crash-rate post-install |
-| HealthKit | Reading `HKQuantityType.bodyMass` once and assuming it's complete | Use `HKAnchoredObjectQuery` for incremental sync; HealthKit doesn't return historical data without explicit query |
-| Health Connect | Trying to skin the platform permission picker | Picker UI is platform-owned; build a *pre-picker* explainer screen |
-| Resend | Sending from an unverified domain | Always verify domain DNS; use `RESEND_FROM` env var, not hard-coded |
-| Capacitor (iOS) | Using `localStorage` for large data (>5MB) | Persist to native `FilesystemPlugin` or Supabase Storage; localStorage is best-effort on iOS |
-| Web Push (Safari) | Assuming all browsers behave the same | iOS Safari requires PWA-install + ≥16.4; surface the requirement in UI |
-| Universal Links (iOS) | AASA file served with wrong Content-Type or via redirect | Must be `application/json`, served from HTTPS, no redirects, on the apex domain |
-| Vercel — clinic/share routing | Forgetting `vercel.json` path rewrites for `/clinic/*` | Carry the pattern from v1.1 Phase 9 (`project_phase8_phase9_planning_complete.md`) |
-| Supabase Storage | Storing raw images, no transforms | Use `?width=...&quality=...` URL transforms for all gallery views; full-res only on explicit request |
-| Supabase RLS (clinic crossover) | Mutual-org leakage when an affiliate is also a clinic operator | Cross-tenant impersonation proof test per project rule (project memory: every RLS surface needs a live impersonation test) |
-| PostHog | Sending events before consent | `opt_out_capturing_by_default: true` in init; `opt_in_capturing()` on consent |
-| jsPDF (DSAR export) | Static import balloons bundle | Dynamic-import per Phase 7 pattern (`reference_phase7_research_findings.md`) |
-| `pgsodium` for encryption | Trying to use it on free-tier Supabase | Deprecated on free tier (project memory); use app-layer encryption via Web Crypto if needed |
+|-------------|---------------|------------------|
+| Anthropic BAA + clinic users | Routing clinic AI-coach to beta endpoints | Hard-coded allowlist of BAA-covered model + endpoint; reject 451 otherwise |
+| Supabase Auth + multi-org | `auth.uid()` only in RLS policies | Add `auth.jwt() -> 'org_ids'` claim populated via Auth hook; per-org policies on every org-scoped table |
+| Stripe customer + clinic invite | Sharing personal Stripe customer ID for clinic sub | Per-context customer ID; explicit user consent if both subs exist |
+| PostHog + paywall A/B | Raw flag reads on conversion-critical paths | `user_experiments` table as source of truth; PostHog is analytics-only post-signup |
+| Resend + clinic alerts | Sending PHI in email body | Email contains only "you have N alerts"; PHI behind auth in-app |
+| Vercel Cron + ad ETL | Single hourly run with no gap detection | Always pull last 72h + separate gap-detection cron + alert on missed window |
+| `iframe sandbox` + embeds | `allow-scripts allow-same-origin` together | One or the other; never both; per-provider attribute whitelist |
+| `i18next` + medical strings | Machine-translate dose/unit/frequency | Manual translation tag on regex match; clinical reviewer sign-off |
+| `pgvector` + model upgrade | In-place re-embed | Parallel rows with `model_id` + two-phase cutover + drift-detection cron |
+| `SKStoreReviewController` + NPS | Condition `requestReview()` on satisfaction score | NEVER condition; fire unconditionally after positive product moment; NPS routes elsewhere |
+| Resend Inbound + spam | No spam preflight | Cloudflare Email Routing preflight OR SpamAssassin-style scoring before ingest |
+| Supabase Realtime + multi-org | Raw `org_id` in channel name | HMAC-token channel name + server-side membership check |
+| Tailwind v4 + i18n | Physical `pl-4 mr-2` properties | Logical `ps-4 me-2` properties; codemod before Spanish strings ship |
 
 ---
 
-## Performance Traps
+## "Looks Done But Isn't" Checklist (v1.3-specific additions)
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Bundle index regression from new SDKs | `bundle-size` CI red; LCP slows on landing page | `sync-defer.ts` for every new SDK; per-chunk ceilings in `assert-clinic-bundle-budget.sh` | First add of Stripe / AdMob / page-builder |
-| WKWebView OOM on photo gallery | Mobile app reloads silently mid-scroll | Storage transforms + virtualization (Pitfall 8) | ~30 photos rendered simultaneously |
-| AdMob auto-refresh on tab background | Battery drain + wasted impressions | Pause refresh on `visibilitychange === 'hidden'` | Always when no Page Visibility handler |
-| PostHog autocapture firing on every tab switch | Event volume × bundle weight × event quota | Disable autocapture; manual events only | Dashboards with frequent tab interactions |
-| Resend bulk send hitting rate limit | Lifecycle emails delayed; password resets stuck | Use Resend `batch` API; queue with a worker | >100 sends/min |
-| Page-builder save → re-render full DOM | Editor jank with 50+ blocks | Memoize blocks by ID + diff-based updates | Page hits ~50 blocks |
-| Stripe webhook handler doing sync work | Webhook timeouts → Stripe retries → duplicate processing | Idempotency keys + async queue (Supabase function returns 200 immediately) | First webhook with non-trivial work |
-| AdMob banner refresh racing main thread | Cold-start jank, scroll stutter | Defer init via `requestIdleCallback` | Always on cold start |
-| Affiliate ledger growth without partitioning | Slow admin queries | Partition by `created_at` month; index on `affiliate_id, created_at` | ~100k click rows |
-| Health Connect background sync waking the app | Battery drain on Android | Use `WorkManager` with constraint `requiresBatteryNotLow` | Frequent (>1/hour) syncs |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| HealthKit data → ad targeting | App Store rejection (§5.1.3) + GDPR-style sensitive-data violation | TypeScript firewall (Pitfall 1); eslint `no-restricted-imports`; CI bundle grep |
-| Stripe webhook endpoint without signature verification | Anyone can POST fake subscription events → fake entitlements | `stripe.webhooks.constructEvent` with the signing secret; reject if missing |
-| Anthropic key in localStorage exposed to ad scripts | Ad scripts could exfiltrate the BYO key | Move to a Supabase Edge Function proxy (or at minimum, scope localStorage reads to first-party origin only — already the default but verify CSP) |
-| Cross-tenant data leak via clinic operator who also has B2C account | Operator sees their own personal sensitive data alongside a patient's | Cross-tenant impersonation proof test per project rule |
-| RLS not enforced on `affiliate_clicks` / `affiliate_ledger` | Affiliate sees another affiliate's commission data | RLS policy: `affiliate_id = auth.jwt() -> 'affiliate_id'` |
-| AdSense pre-bid exposure of user-id | Ad networks can fingerprint via PPID | Hash `auth.users.id` with a per-network salt before sending as PPID; rotate the salt quarterly |
-| Affiliate referral link URL injection (XSS via `?ref=<script>`) | Stored XSS in admin dashboard | Sanitize referral codes server-side; allow only `[a-zA-Z0-9_-]{4,32}` |
-| Stripe Customer Portal session URL leaking via Referer header | Account takeover | Always use POST with redirect, not GET; CSP `referrer-policy: same-origin` |
-| Sensitive Stripe metadata (subscription IDs) exposed in PostHog events | PII spread across tools | Whitelist event properties; never send raw IDs |
-| Watch app communicates with phone over insecure channel | Watch could be spoofed | Use `WCSessionDelegate` with built-in encryption; don't roll your own |
-
----
-
-## UX Pitfalls
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Ad slot loads slowly → CLS pushes content down | Frustration, accidental ad clicks | Reserve fixed-height ad container `min-height: 250px` (or whatever the slot is); skeleton state |
-| Cookie banner takes >2 clicks to reject all | EU users abandon | Equal-prominence "Accept all" + "Reject all" + "Customize" (also a legal requirement in most EU jurisdictions) |
-| Stripe Checkout doesn't return user to expected route | Confusion + double-purchase attempts | Use `success_url` with `{CHECKOUT_SESSION_ID}` placeholder; verify session server-side on return |
-| Account deletion gives no progress feedback | User clicks again, opens support ticket | Show progress steps ("Removing photos... Canceling subscription... Done"); send confirmation email |
-| Watch app shows stale data with no timestamp | User trusts stale info, miscounts streak | "Last synced 2h ago" badge; refresh on tap |
-| Page-builder preview drifts from production | Designer publishes broken page | Identical render pipeline for preview + prod (same renderer, same CSS, same fonts) |
-| Affiliate dashboard shows commissions before they're confirmed | Affiliate sees "$200 earned" then $50 disappears after refund | Two columns: "Pending" + "Confirmed"; only "Confirmed" is payable |
-| Onboarding asks for HealthKit + camera + notifications + ATT all at once | Permission fatigue → user denies all | Sequential, just-in-time prompts tied to feature use |
-| AdSense / Meta Pixel showing inappropriate ads (weight-loss scam, etc.) | Brand damage, especially for health-adjacent audience | Default-block category list (competing GLP-1 brands, weight-loss-scam terms); LeanShot per-placement filter |
-| Push notification prompt on app open | Users deny → no future opportunity | Trigger after positive interaction (logged 3 doses, etc.); explain value before prompting |
-
----
-
-## "Looks Done But Isn't" Checklist
-
-- [ ] **Account deletion:** Often missing — Stripe Connect account isn't deleted in cascade; verify `stripe.accounts.del(account_id)` runs and queue-retries on transient failures
-- [ ] **Account deletion:** Often missing — Resend audience subscriber isn't removed; verify Resend Contacts API call
-- [ ] **Account deletion:** Often missing — Supabase Storage photo objects orphaned; verify bucket-level recursive delete
-- [ ] **Account deletion:** Often missing — Affiliate ledger anonymization (NOT deletion) for tax retention; verify `email_hash` replaces `email` and PII columns are nulled
-- [ ] **DSAR export:** Often missing — Stripe records (invoices, charges, subscription history); verify `stripe.invoices.list({ customer })`
-- [ ] **DSAR export:** Often missing — PostHog event log; verify GDPR delete API + event export
-- [ ] **DSAR export:** Often missing — Ad-network click/conversion log entries
-- [ ] **DSAR export:** Often missing — Resend email-send history per recipient
-- [ ] **Apple submission:** Often missing — `NSHealthShareUsageDescription` in Info.plist; verify via Xcode build settings
-- [ ] **Apple submission:** Often missing — PrivacyInfo.xcprivacy declaration; verify Xcode "App Privacy Report" matches
-- [ ] **Apple submission:** Often missing — In-app account deletion ≤3 taps from any screen; verify with App Review test account
-- [ ] **Apple submission:** Often missing — App Tracking Transparency prompt fires before AdMob init; verify with `ATTrackingManager.trackingAuthorizationStatus`
-- [ ] **Apple submission:** Often missing — App-Ads.txt at marketing apex domain; verify `curl https://leanshot.app/app-ads.txt`
-- [ ] **Google Play submission:** Often missing — Health Connect intent filters in AndroidManifest.xml; verify Play Console pre-launch report
-- [ ] **Google Play submission:** Often missing — Ad ID consent flow (UMP SDK) for EU users; verify with EU VPN test
-- [ ] **Stripe Connect launch:** Often missing — W-9/W-8BEN enforcement threshold in Dashboard; verify with test affiliate that hits the threshold
-- [ ] **Stripe Connect launch:** Often missing — Idempotency keys on webhook handlers; verify with replay of same event ID
-- [ ] **Affiliate program launch:** Often missing — Server-side click endpoint (not JS cookie); verify Safari test ≥7 days post-click
-- [ ] **Affiliate program launch:** Often missing — Self-referral detection; verify with same-IP / same-fingerprint test
-- [ ] **Cookie consent launch:** Often missing — PostHog/AdSense/Pixel deferred until consent; verify DevTools Network on EU geo
-- [ ] **Cookie consent launch:** Often missing — Equal-prominence reject-all button; verify with French/German DPA spec
-- [ ] **Page builder launch:** Often missing — Per-page SEO meta + JSON-LD; verify with Google Rich Results Test
-- [ ] **Page builder launch:** Often missing — Server-rendered output for SEO; verify with `curl -A Googlebot` → see content
-- [ ] **Web Push launch:** Often missing — iOS PWA-install + 16.4+ gating; verify on actual iOS device
-- [ ] **Universal Links:** Often missing — AASA file served with correct content-type; verify with `curl -I https://leanshot.app/.well-known/apple-app-site-association`
-- [ ] **Clinic/share ads-free invariant:** Often missing — CSP report-only headers + Playwright e2e on `/clinic/*` and `/share/*`; verify zero ad-domain requests
-- [ ] **Bundle ceiling:** Often missing — Per-chunk budgets for new SDKs; verify `assert-clinic-bundle-budget.sh` runs without `wave-N skip` (hash-hyphen bug)
+- [ ] **HIPAA BAA chain:** Often missing — runtime guard refusing clinic-user requests to non-BAA-covered model IDs
+- [ ] **HIPAA BAA chain:** Often missing — subprocessor-diff weekly cron with auto-disclosure email to BAA clinics
+- [ ] **HIPAA BAA chain:** Often missing — BAA expiry calendar with 60d/30d/7d alerts
+- [ ] **Clinic org RLS:** Often missing — per-org cross-tenant impersonation test per new org-scoped table
+- [ ] **Clinic org RLS:** Often missing — `withOrgScope` wrapper on every service_role-using Edge Function
+- [ ] **Clinic org RLS:** Often missing — HMAC token in realtime channel names
+- [ ] **Multi-tier affiliate:** Often missing — `tier_at_conversion_time` stamping on insert (not recompute)
+- [ ] **Multi-tier affiliate:** Often missing — coupon-stack policy locked in CONTEXT with `commission_basis` enum
+- [ ] **Multi-tier affiliate:** Often missing — state-graph audit on every tier-touching plan
+- [ ] **Paywall A/B:** Often missing — server-side activation event capture (bypasses ad-blockers)
+- [ ] **Paywall A/B:** Often missing — `user_experiments` table as source of truth (not raw PostHog flag)
+- [ ] **Paywall A/B:** Often missing — refund-rate guardrail + 30d burn-in
+- [ ] **Page-builder A/B:** Often missing — `<link rel="canonical">` to control variant
+- [ ] **Page-builder A/B:** Often missing — 42-day max variant cap in admin UI
+- [ ] **Page-builder A/B:** Often missing — per-variant cache key in ISR
+- [ ] **Ad ETL:** Often missing — last-72h re-sync pattern (not just last hour)
+- [ ] **Ad ETL:** Often missing — gap-detection cron separate from ETL cron
+- [ ] **Ad ETL:** Often missing — `ad_revenue_normalized` view with single attribution window
+- [ ] **Ad ETL:** Often missing — `fx_rates` daily cron with stale-rate fallback
+- [ ] **Ad ETL:** Often missing — Meta AEM priority register in `events.ts`
+- [ ] **Embed blocks:** Often missing — `allow-scripts allow-same-origin` forbidden together
+- [ ] **Embed blocks:** Often missing — click-to-load placeholder by default (consent + CLS)
+- [ ] **Embed blocks:** Often missing — CSP `frame-src` updated when new provider added
+- [ ] **Spanish i18n:** Often missing — clinical glossary file with reviewer attribution
+- [ ] **Spanish i18n:** Often missing — `i18next-icu` not native plurals
+- [ ] **Spanish i18n:** Often missing — physical-to-logical CSS codemod landed
+- [ ] **Pharmacology paywall:** Often missing — CONTEXT.md paywall-acceptable-vs-forbidden line
+- [ ] **Pharmacology paywall:** Often missing — reversibility plan written before launch
+- [ ] **Pharmacology paywall:** Often missing — adverse-event-symptom user exclusion
+- [ ] **Session timeout (HIPAA):** Often missing — context-aware (consumer ∞, clinical 15min)
+- [ ] **Session timeout (HIPAA):** Often missing — re-auth on sensitive actions for clinical sessions
+- [ ] **Rank weights:** Often missing — versioned table (not in-place JSONB column)
+- [ ] **Rank weights:** Often missing — daily ranking snapshots for historical audit
+- [ ] **Alert email:** Often missing — PHI-free email body ("you have N alerts" only)
+- [ ] **Gamification:** Often missing — `users.timezone`-aware streak calc with grace period
+- [ ] **Gamification:** Often missing — freeze-token grant audit log with reason
+- [ ] **Onboarding preview:** Often missing — client-side-only computation (no server-side PII write)
+- [ ] **Onboarding preview:** Often missing — single-active-session-per-browser merge policy
+- [ ] **Review prompt:** Often missing — native prompt fires unconditionally (NOT conditioned on NPS)
+- [ ] **Review prompt:** Often missing — internal NPS routes to M6 helpdesk (independent surface)
+- [ ] **AI recommender:** Often missing — `model_id`/`model_version` columns on embeddings
+- [ ] **AI recommender:** Often missing — drift-detection cron
+- [ ] **Helpdesk:** Often missing — AI auto-send blocker for v1.3 (human review required)
+- [ ] **Helpdesk:** Often missing — medical-advice classifier on AI drafts
+- [ ] **Status page:** Often missing — two-of-three auto-detection
+- [ ] **Status page:** Often missing — per-region + per-component breakdown
+- [ ] **Cancellation save:** Often missing — server-side coupon-stack guard
+- [ ] **Cancellation save:** Often missing — 90d/180d/365d outcome tracking
 
 ---
 
-## Recovery Strategies
+## Recovery Strategies (v1.3-specific)
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| HealthKit data leaked to ads (Pitfall 1) | **HIGH** | (1) Pull from App Store immediately; (2) audit all events for last 90 days; (3) PostHog GDPR-delete event batch; (4) consult counsel re: §5.1.3 incident disclosure; (5) re-architect firewall + re-submit; expect 2-3 week delay |
-| App Store reject for missing deletion (Pitfall 3) | LOW | Add the flow; resubmit; ~1-week re-review |
-| Cookie consent fires pre-opt-in (Pitfall 4) | MEDIUM–HIGH | (1) Hot-fix CSP to block; (2) audit DPA exposure; (3) document timeline for any audit; (4) re-architect with `sync-defer.ts` gating |
-| Bundle ceiling breach (Pitfall 5) | LOW | Revert offending PR; refactor to dynamic import; re-PR. Set as plan-checker rule going forward |
-| Safari ITP killing affiliate (Pitfall 6) | MEDIUM | Ship server-side endpoint; backfill attribution for past 30 days via best-effort (may not be possible — communicate to affiliates) |
-| Affiliate ledger orphaned by deletion cascade (Pitfall 7) | **HIGH** | (1) Restore from PITR backup if within window; (2) reconcile with Stripe records; (3) issue manual 1099s for lost data; (4) re-architect cascade |
-| WKWebView OOM crash (Pitfall 8) | LOW | Add virtualization + storage transforms; ship as patch release |
-| HealthKit/Health Connect silent fail (Pitfall 9) | LOW | Add missing config; ship patch. Apple/Google won't reject for this; only users notice |
-| Ads on clinic surface (Pitfall 10) | MEDIUM (trust) | Hot-fix route gating; reach out to affected clinic operators with explanation; offer trial extension or comp |
-| Page-builder SEO regression (Pitfall 11) | MEDIUM | Audit existing pages; fix block taxonomy; republish all; allow 4-8 weeks for search re-ranking |
-| Affiliate fraud at scale (Pitfall 12) | MEDIUM–HIGH | (1) Pause payouts; (2) audit + claw back fraudulent commissions; (3) deploy fraud rules; (4) communicate to legit affiliates re: delay |
-| Stripe Connect W-9 misconfig (Pitfall 13) | MEDIUM | Catch in November (before Jan 1); collect missing forms via bulk-email push; manual 1099 backfill if needed |
-| PrivacyInfo manifest mismatch (Pitfall 14) | LOW | Update manifest; resubmit; ~1-week re-review |
-| Incomplete DSAR export (Pitfall 15) | MEDIUM (DPA-dependent) | Per-request, supplement manually; ship the missing integration ASAP; document remediation timeline if audited |
-
----
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase / Workstream | Verification |
-|---------|-------------------------------|--------------|
-| 1. HealthKit → ads firewall | Workstream 4 (impl) + Workstream 9 (audit) | TS lint rule passes; CI bundle-grep for HealthKit type names in ad chunks |
-| 2. Apple IAP commission ambush | Workstream 6 (policy) + Workstream 2 (enforcement) | iOS build excludes `/pricing` route; ADR in CONTEXT.md; App Review pass |
-| 3. In-app deletion required | Workstream 10 (UX) + Workstream 5/6 (cascade) | Snapshot test: zero orphans post-deletion; App Review test-account flow |
-| 4. Cookie consent pre-fire | Workstream 10 (consent) + Workstream 9 (gating) | DevTools Network EU test; CI bundle-import audit |
-| 5. Bundle ceiling | v1.2 Phase 0 (chunk budgets) + Workstreams 6/7/9/10 | `assert-clinic-bundle-budget.sh` green; index <25 kB gz target |
-| 6. Safari ITP affiliate | Workstream 8 (server-side click endpoint) | Playwright webkit e2e with 8-day clock advance |
-| 7. Affiliate ledger retention | Workstream 8 (anonymization) + Workstream 10 (DSAR) | Snapshot test: ledger count unchanged post-deletion, PII hashed |
-| 8. WKWebView OOM | Workstream 2 (virtualization + transforms) | Physical-device QA scrolling 50+ photos without reload |
-| 9. HealthKit / Health Connect config | Workstream 4 (native config + UI) | Physical-device smoke test + Play Console pre-launch report |
-| 10. Ads on clinic surfaces | Workstream 9 (route gating) + Workstream 10 (CSP) + Phase 0 (Playwright gate) | Playwright e2e: zero ad-domain requests on `/clinic/*` and `/share/*` |
-| 11. Page-builder SEO/a11y | Workstream 7 (block taxonomy + lint + SSR) | Lighthouse ≥90 SEO/a11y on every published page; Google Rich Results Test green |
-| 12. Affiliate fraud | Workstream 8 (rules) + Workstream 5 (review queue) | Self-referral test rejected; >10× cohort flagged |
-| 13. Stripe Connect 1099/W-9 | Workstream 6 (Stripe setup) + Workstream 5 (admin dashboard) | Test affiliate hits threshold → payout blocked until form submitted |
-| 14. PrivacyInfo manifest | Workstream 2 (parent manifest) + Workstreams 4/6/9 (declarations) | Xcode build-time manifest diff; App Privacy Report green |
-| 15. DSAR completeness | Workstream 10 (portal) + all PII-touching workstreams (export module updates) | Vitest snapshot test fails on new PII surface unless export updated |
-| 16. iOS web push gating | Workstream 10 + Workstream 2 (APNs fallback) | iOS device smoke test |
-| 17. AdMob cold-start jank | Workstream 9 + Workstream 4 | FCP unchanged from baseline; Lighthouse perf ≥85 |
-| 18. Resend deliverability | Workstream 10 + v1.1 tech debt | `curl api.resend.com/domains` shows verified; spam-test via mail-tester |
-| 19. Capacitor deep-links | Workstream 2 + Workstream 7 (host AASA) | iOS device tap-share-link opens app, not Safari |
-| 20. PostHog bundle bloat | Workstream 10 | Bundle ceiling holds; replay only on opted-in routes |
-| 21. Stripe Checkout vs Elements | Workstream 6 (decision lock) | ADR in 06-CONTEXT.md; no Elements code in production |
-| 22. Watch sync resilience | Workstream 3 | Phone-off test shows "Last synced N ago" badge |
-| 23. Tailwind v4 + drag-drop conflict | Workstream 7 (lib spike before build) | 1-day spike confirms zero CSS conflict |
-| 24. Clinic-invite × B2C subscription | Workstream 6 + Workstream 5 | Test: existing subscriber accepts clinic invite, prorate dialog appears |
-| 25. Push token rotation | Workstream 10 | Daily cron pruning; 30-day dead-token cleanup verified |
-| 26. ASO asset specs | Workstream 2 | App Store Connect + Play Console upload succeeds first try |
-| 27. AdSense child-directed flag | Workstream 9 | AdSense unit config screenshot in admin docs |
-| 28. Cookie banner CLS | Workstream 10 | Lighthouse CLS = 0 contribution from banner |
-| 29. ads.txt / app-ads.txt | Workstream 9 + Workstream 7 (hosting) | `curl https://leanshot.app/app-ads.txt` returns correct sellers |
-| 30. Font subsetting | Workstream 1 | Initial font payload <80 kB; FCP unchanged |
-| 31. `s.user!` audit | Workstream 11 | Grep returns 0 occurrences after sweep |
-
----
-
-## App Store / Play Store Review Pitfalls (Grouped)
-
-Per the quality-gate requirement, all submission-gating pitfalls collected here for the pre-submission review checklist owned by **Workstream 2 (Mobile shells)**:
-
-| # | Pitfall | Apple guideline / Play policy | Gate |
-|---|---------|-------------------------------|------|
-| 1 | HealthKit → ads | Apple §5.1.3 | HARD reject; firewall must be in place |
-| 2 | IAP commission on in-app digital content | Apple §3.1.1 / §3.1.3(b) | HARD reject; decision locked in CONTEXT |
-| 3 | In-app account deletion | Apple §5.1.1(v) (June 2022+) | HARD reject; ≤3-tap deletion verified |
-| 9 | HealthKit permission strings + entitlement | Apple §5.1.1(i) | HARD crash on first use without |
-| 9 | Health Connect permissions UI | Google Play Health Permissions policy | HARD reject if custom-skinned |
-| 14 | PrivacyInfo.xcprivacy (manifest) | Apple May 2024 requirement | HARD reject on mismatch |
-| 14 | App Tracking Transparency prompt | Apple iOS 14.5+ | Required if any SDK declares tracking |
-| 17 | App-Ads.txt | IAB Tech Lab + Apple/Play ad-policy | SOFT — ad inventory rejected, not app |
-| 19 | Universal Links (Associated Domains) | Apple capability requirement | Feature breaks if missing |
-| 26 | ASO asset pixel specs | Apple/Google upload validation | HARD — can't submit until correct |
-| 28 | Cookie consent banner UX (EU) | GDPR + EU member-state DPA | SOFT — DPA action risk |
-
----
-
-## Bundle-Budget Pitfalls (Grouped)
-
-Per the quality-gate requirement, all bundle-impacting pitfalls reference the existing `scripts/assert-clinic-bundle-budget.sh` pattern owned by **v1.2 Phase 0 (bootstrap)**:
-
-| # | Source of bloat | Mitigation | Chunk ceiling (proposed) |
-|---|-----------------|------------|--------------------------|
-| 5 | Static import of Stripe / AdSense / page-builder / web-push | `sync-defer.ts` deferred-init wrapper | New per-chunk ceiling per SDK |
-| 5 | Index gz creep | Lock at 25 kB gz (or document the new ceiling) | `index.*.js` gz ≤25 kB |
-| 17 | AdMob native bridge JS | Lazy-import on free-tier dashboard mount | `admob-bridge.*.js` gz ≤15 kB |
-| 20 | PostHog session-replay | `posthog-js/lite` in main; full only where needed | `posthog-full.*.js` gz ≤80 kB (separate chunk) |
-| 23 | Page-builder runtime | Custom JSON renderer over off-the-shelf editor | `page-builder-runtime.*.js` gz ≤30 kB |
-| 30 | Font payload | Subset to Latin + variable axes | Total font requests ≤80 kB |
-
-**Phase 0 prereq:** Fix the hash-hyphen bug in `assert-clinic-bundle-budget.sh` (`reference_bundle_budget_hash_hyphen.md`) before adding any new per-chunk ceilings, otherwise content hashes containing `-` will report `wave-N skip` and the new ceilings will be silently un-enforced.
+| V13-1 BAA chain breach | **CATASTROPHIC** | (1) Suspend AI-coach for clinic users immediately; (2) full incident response to affected clinic admins per BAA breach-notification clause; (3) OCR notification within 60d if PHI > 500 individuals; (4) re-architect runtime guard; (5) external HIPAA audit at our cost. Reputational + potential 7-figure penalty. |
+| V13-2 Cross-tenant leak | **HIGH** | (1) Identify affected query/route + impact scope (which orgs saw which orgs' data); (2) per-org disclosure per BAA; (3) re-architect RLS + add missing tests; (4) external security audit if PHI involved. |
+| V13-3 Rating-gating policy violation | **HIGH** on Apple expulsion case; **MEDIUM** on Play suspension | (1) Pull binary from store; (2) re-architect prompt to unconditional; (3) re-submit; (4) potentially write reinstatement appeal letter for expulsion. Re-review 1-2 weeks per round. |
+| V13-4 SEO penalty | **HIGH** (slow recovery) | (1) Add canonical + revert non-canonical variants; (2) submit reconsideration request via Google Search Console; (3) wait 4-12 weeks for ranking recovery; (4) interim SEM spend to backfill organic loss. |
+| V13-5 Ad ETL gap | **LOW–MEDIUM** | (1) Run 30-day backfill via gap-detection cron; (2) re-render historical CAC dashboards; (3) audit any spend decisions made during gap window. |
+| V13-6 Affiliate state drift | **MEDIUM** | (1) Pause all affiliate payouts; (2) reconcile manually via tier-history audit; (3) re-issue corrected commissions OR claw back overpaid; (4) communicate to affiliates with corrected statement. |
+| V13-7 Paywall A/B contamination | **MEDIUM** | (1) Discard the experiment results entirely; (2) re-architect with server-side activation; (3) re-run with proper guardrails; (4) communicate to team that prior conclusions are invalid. |
+| V13-8 Embed sandbox bypass | **MEDIUM (potential XSS)** | (1) Add `allow-scripts allow-same-origin` forbidden-together CSP rule + JS validator; (2) audit existing embed configs; (3) Sentry-trace any reports of unexpected behavior on embed surfaces. |
+| V13-9 Spanish medical mistranslation | **HIGH (potential patient harm)** | (1) Roll back Spanish locale immediately; (2) clinical reviewer pass on all dose/unit/frequency strings; (3) re-release after sign-off; (4) outreach to affected ES-locale users with English fallback offer if harm risk. |
+| V13-10 Pharmacology paywall backlash | **MEDIUM (reversible)** | (1) Flip PostHog flag to 0% within 30min; (2) tweet apology; (3) post-mortem on the blog; (4) offer Pro for 90d to affected users; (5) re-scope paywall lines with stricter "no safety info" rules. |
+| V13-13 Gamification dark-pattern complaint | **LOW** | (1) Reframe push notification copy from loss-aversion to gain-framing; (2) review remaining gamification surfaces against UX brief. |
+| V13-14 Onboarding PII leak | **MEDIUM** | (1) GDPR disclosure to affected users; (2) re-architect preview to client-side-only; (3) document in next DPA audit. |
+| V13-15 Recommender drift | **LOW** | (1) Run two-phase migration; (2) discard the past N days of recommendation-CTR data as contaminated; (3) bake drift-detection cron going forward. |
+| V13-16 AI auto-reply harm | **HIGH (potential patient harm)** | (1) Disable AI auto-send immediately; (2) review last 30d of AI-sent replies for medical-advice content; (3) per-user disclosure if harm risk; (4) re-architect as draft-only for v1.3. |
+| V13-17 False-positive incidents | **MEDIUM (trust erosion)** | (1) Reset status-page subscriber trust via long-form post-mortem; (2) implement two-of-three detection; (3) acknowledge prior false-positive log publicly. |
+| V13-18 Save-offer discount stacking | **MEDIUM (revenue leak)** | (1) Identify free-for-3mo users from logs; (2) communicate change in offer terms going forward (don't claw back); (3) ship server-side guard. |
 
 ---
 
 ## Sources
 
-**Apple App Store / HealthKit:**
-- [App Review Guidelines — Apple Developer](https://developer.apple.com/app-store/review/guidelines/) — §5.1.3 Health, §5.1.1(v) Account deletion, §3.1.1 IAP, §3.1.3(b) anti-steering
-- [Protecting user privacy — HealthKit documentation](https://developer.apple.com/documentation/healthkit/protecting-user-privacy)
-- [Distributing reader apps with a link to your website](https://developer.apple.com/support/reader-apps/)
-- [App-to-web: navigating external purchases in iOS and Android apps — RevenueCat](https://www.revenuecat.com/blog/engineering/app-to-web-purchase-guidelines/)
-- [Apple's June 2025 EU update — DMA fees and CTF sunset](https://www.revenuecat.com/blog/growth/apple-eu-dma-update-june-2025/)
-- [New U.S. ruling on external iOS payments — Adapty](https://adapty.io/blog/new-us-ruling-on-external-ios-payments/)
+**App Store / Play Store rating policy (HIGH confidence):**
+- [App Review Guidelines — Apple Developer (verified 2026-05-17)](https://developer.apple.com/app-store/review/guidelines/) — §3.2.2(x) rating prompts + Introduction on review manipulation
+- [SKStoreReviewController — Apple Developer Documentation](https://developer.apple.com/documentation/storekit/skstorereviewcontroller) — 3 prompts per 365 days, no user-action trigger
+- [User Ratings, Reviews, and Installs — Google Play Console Help](https://support.google.com/googleplay/android-developer/answer/9898684) — explicit prohibition on review-gating
+- [What Is Review Gating and Why It Violates Google's Review Policies — SEOlogist](https://www.seologist.com/knowledge-sharing/what-is-review-gating-and-why-does-it-violate-googles-review-policies/) — review-gating defined as deceptive practice
 
-**Stripe Connect / 1099 / Taxes:**
-- [Connect W-8 and W-9 onboarding — Stripe Docs](https://docs.stripe.com/connect/connect-w8-w9-onboarding)
-- [US tax reporting for Connect platforms — Stripe Docs](https://docs.stripe.com/connect/tax-reporting)
-- [Stripe Connect 1099 overview](https://stripe.com/connect/1099)
-- [Changes to mobile app store rules — Stripe Help](https://support.stripe.com/questions/changes-to-mobile-app-store-rules)
-- [Affiliate Tax Compliance Made Easy: W-9, W-8BEN](https://www.i-payout.com/blog/affiliate-tax-compliance-made-easy-w-9-w-8ben-and-beyond)
+**HIPAA + Anthropic BAA + ZDR (HIGH confidence):**
+- [Business Associate Agreements (BAA) for Commercial Customers — Anthropic Privacy Center](https://privacy.claude.com/en/articles/8114513-business-associate-agreements-baa-for-commercial-customers) — BAA scope; beta features NOT covered
+- [I have a zero data retention agreement with Anthropic — Anthropic Privacy Center](https://privacy.claude.com/en/articles/8956058-i-have-a-zero-data-retention-agreement-with-anthropic-what-products-does-it-apply-to) — ZDR scope
+- [Anthropic Subprocessors Update](https://trust.anthropic.com/updates) — subprocessor list (scrape target for diff cron)
+- [Is Claude HIPAA Compliant? 2026 Guide — Strac](https://www.strac.io/blog/is-claude-hipaa-compliant) — BAA, Code, Cowork, Enterprise scope confirmation
 
-**Safari ITP / Affiliate Attribution:**
-- [Safari ITP — Stape](https://stape.io/blog/safari-itp)
-- [Server-Side Affiliate Tracking Without Cookies: The 2026 Guide — iRev](https://irev.com/blog/cookieless-affiliate-tracking-what-actually-works-in-2026/)
-- [Safari's Done It Again — Impact.com on ITP 2.2](https://impact.com/partnerships/safaris-done-it-again-what-you-need-to-know-about-itp-2-2/)
+**Supabase RLS multi-tenant (HIGH confidence):**
+- [Row Level Security — Supabase Docs](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Why is my service role key client getting RLS errors — Supabase Docs](https://supabase.com/docs/guides/troubleshooting/why-is-my-service-role-key-client-getting-rls-errors-or-not-returning-data-7_1K9z) — service_role bypass
+- [Supabase RLS Best Practices — Makerkit](https://makerkit.dev/blog/tutorials/supabase-rls-best-practices) — JOIN-table policy gap
+- [The Supabase service-role key — Securie](https://securie.ai/guides/supabase-service-role-key) — when to use, when not to
 
-**Health Connect (Android):**
-- [Permissions and data access — Android Health Connect](https://developer.android.com/health-and-fitness/health-connect/ui/permissions)
-- [Health Connect UI guidelines](https://developer.android.com/health-and-fitness/guides/health-connect/design/ui-guidelines)
-- [Android Health Permissions: Guidance and FAQs — Play Console Help](https://support.google.com/googleplay/android-developer/answer/12991134?hl=en)
+**Ad API rate limits (HIGH confidence Meta, MEDIUM Google/TikTok):**
+- [Marketing API Limits & Best Practices — Meta for Developers](https://developers.facebook.com/docs/marketing-api/insights/best-practices/) — 190k/600 per ad account per hour formula
+- [Marketing API Rate Limiting — Meta for Developers](https://developers.facebook.com/docs/marketing-api/overview/rate-limiting/) — throttle headers + tiers
+- [Breakdowns — Marketing API](https://developers.facebook.com/docs/marketing-api/insights/breakdowns/) — attribution windows + AEM
 
-**Capacitor / WKWebView memory:**
-- [Capacitor OOM crash on photo input — GitHub issue](https://github.com/ionic-team/capacitor/issues/2265)
-- [WKWebView memory issue causes crash — Apple Developer Forums](https://developer.apple.com/forums/thread/663084)
-- [localStorage durability — Capacitor GitHub discussion](https://github.com/ionic-team/capacitor/issues/555)
+**Stripe customer namespace (HIGH confidence):**
+- [Customers — Stripe Documentation](https://docs.stripe.com/billing/customer) — email uniqueness NOT enforced
+- [Can I merge multiple Customers into one? — Stripe Help](https://support.stripe.com/questions/can-i-merge-multiple-customers-into-one) — Stripe does NOT support customer merge
+- [Share customers and payment methods across accounts in an organization — Stripe](https://docs.stripe.com/get-started/account/orgs/sharing/customers-payment-methods)
 
-**LeanShot project memory (internal):**
-- `feedback_aggressive_foundations.md` — informs the breadth of this list
-- `project_phase5_bundle_regression.md` — `sync-defer.ts` pattern + 50 kB index ceiling history
-- `reference_bundle_budget_hash_hyphen.md` — `assert-clinic-bundle-budget.sh` hash-hyphen bug
-- `reference_resend_phase9_wiring.md` — Resend domain-verify pattern + smoke commands
-- `reference_phase7_research_findings.md` — jsPDF dynamic-import + `s.user!` inventory + HBNR/WMHMDA legal context
-- `reference_supabase_auth_traps.md` — implicit-grant hash-route gotcha (relevant for new auth-bridge surfaces v1.2 may touch)
-- `feedback_regulator_vs_user_audience_pattern.md` — refined by Phase 10 to confirm operator UX is end-user, not process
-- `project_phase8_phase9_planning_complete.md` — Vercel `/clinic/*` path rewrites pattern
-- `project_phase10_context_complete.md` — v1.1 baseline for B2B trust boundaries (no ads on clinic surfaces)
+**PostHog feature flags + identify (MEDIUM confidence):**
+- [Identifying users — PostHog Docs](https://posthog.com/docs/product-analytics/identify)
+- [Best practices for production-ready flags — PostHog Docs](https://posthog.com/docs/feature-flags/best-practices)
+- [Feature flags are incorrect on client identify call — PostHog GitHub issue #21591](https://github.com/PostHog/posthog/issues/21591) — race condition reference
+- [Feature flag value changes after identify, Flag persistence is enabled — PostHog GitHub issue #2623](https://github.com/PostHog/posthog-js/issues/2623)
+
+**i18n + ICU plurals (MEDIUM confidence):**
+- [Plurals — i18next documentation](https://www.i18next.com/translation-function/plurals)
+- [Using with ICU format — react-i18next documentation](https://react.i18next.com/misc/using-with-icu-format)
+- [ICU Message Format Guide — Crowdin](https://crowdin.com/blog/icu-guide)
+
+**iframe sandbox + embed security (MEDIUM confidence):**
+- [iframe sandbox attribute — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#sandbox) — `allow-scripts allow-same-origin` anti-pattern
+
+**LeanShot project memory (internal references inherited from v1.2):**
+- `reference_supabase_project.md` — every RLS surface gets a live cross-tenant impersonation proof test (project rule)
+- `reference_rls_fixture_gotrueclient_flake.md` — `admin.generateLink` + plain fetch pattern for RLS tests
+- `reference_supabase_app_metadata_jwt_propagation.md` — 336ms JWT claim propagation window
+- `feedback_status_machine_transition_owner.md` — state-graph audit pattern (Phase 19 BL-11)
+- `reference_phase7_research_findings.md` — WMHMDA RCW 19.373.030 5 CHDP sections
+- `feedback_regulator_vs_user_audience_pattern.md` — regulator-vs-user audience scope pattern (pharmacology paywall design)
+- `feedback_defer_then_batch_fix_pattern.md` — `.planning/deferred-tests.md` registry for env-gated/timing-flaky tests
+- `reference_vendor_gated_send_health_check.md` — vendor-gated send via health check (Resend/BAA chain pattern)
+
+**v1.2 PITFALLS.md (carried over — apply where v1.2 surfaces are touched):**
+- v1.2 Pitfall 4 (cookie consent pre-fire) — applies to embed-block consent gating + onboarding preview
+- v1.2 Pitfall 5 (bundle ceiling) — applies to new v1.3 SDKs (i18next, Better Stack widget, recommender lib)
+- v1.2 Pitfall 6 (Safari ITP affiliate cookies) — still applies to multi-tier affiliate
+- v1.2 Pitfall 7 (affiliate ledger retention) — multi-tier compounds this
+- v1.2 Pitfall 10 (clinic/share ads-free) — clinic orgs now have org-scoped surfaces with same trust requirement
+- v1.2 Pitfall 11 (page-builder SEO/a11y) — variant A/B compounds the SEO risk
+- v1.2 Pitfall 14 (PrivacyInfo manifest) — only applies if v1.3 touches mobile shells (deferred per v1.3 ROADMAP)
+- v1.2 Pitfall 15 (DSAR completeness) — new v1.3 PII surfaces (orgs, tickets, alerts, embeddings) each need DSAR-export module updates
+- v1.2 Pitfall 18 (Resend deliverability) — clinic alerts compound the deliverability requirement
+- v1.2 Pitfall 24 (account merging clinic invite × B2C) — directly relevant to V13-2(d)
 
 ---
 
-*Pitfalls research for: LeanShot v1.2 (mobile shells + watch + Health SDK + Stripe + ads + page builder + affiliate + launch essentials + admin + v1.1 tech debt sweep)*
-*Researched: 2026-05-13*
+## Open Research Gaps Flagged for Phase-Level Research
+
+| Topic | Why flagged | Suggested phase to research |
+|-------|-------------|------------------------------|
+| Resend Inbound spam-protection options | Vendor docs not directly fetched in this pass; M6 phase needs definitive answer | M6 (Helpdesk) `/gsd-research-phase` |
+| TikTok Ads API rate-limit specifics per endpoint | High-level confirmation only; M1/A phase needs per-endpoint table | A (hourly ad ETL) `/gsd-research-phase` |
+| HIPAA BAA enforcement runtime cost in Supabase Pro vs Team vs Enterprise | Pricing tier impacts BAA chain implementation timing | C (Clinic + HIPAA) `/gsd-research-phase` |
+| WMHMDA + CTDPA enforcement actions to date (precedent) | Counsel review topic; informs pharmacology paywall risk tolerance | B (pharmacology paywall) — counsel referral, not engineering research |
+| Better Stack vs Statuspage.io vs Instatus comparison for clinic-acceptable status pages | Vendor research needed; status page is clinic-facing trust surface | M7 (status page) `/gsd-research-phase` |
+| RevenueCat + Stripe tier reconciliation under multi-tier affiliate context | P16 deferred; reconciliation under new tier system is unscoped | A (multi-tier affiliate) — context decision; or defer to v1.4 if P16 still deferred |
+| pgvector index type (IVFFlat vs HNSW) tradeoff at clinic-tenant scale | Clinic patient counts could be much higher than consumer; index choice differs | M5b (AI recommender) `/gsd-research-phase` |
+
+---
+
+*Pitfalls research for: LeanShot v1.3 (foundation + multi-tier affiliate + paywall A/B + page-builder A/B + ad ETL + embed blocks + pharmacology paywall + Spanish i18n + clinic orgs + custom rank weights/alerts + HIPAA BAA chain + onboarding overhaul + gamification + review prompts + AI recommender + helpdesk + cancellation save + status page)*
+
+*Inherits all 33 v1.2 pitfalls; adds 33 v1.3-specific pitfalls (V13-1 through V13-33).*
