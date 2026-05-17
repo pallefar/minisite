@@ -4,9 +4,16 @@
  *
  * Also owns the canonical `mapStripeStatusToUxTier()` function (Pitfall 6).
  * Re-exported for reuse by invoice-paid.ts and invoice-payment-failed.ts.
+ *
+ * Phase 29 Plan 03 — D-05: HMAC realtime broadcast on org-{hmac8}-subscriptions.
+ * When subscription.metadata.clinic_id is present, broadcasts `subscription_updated`
+ * on the Phase 28 HMAC channel so clinic admin billing UI reflects within 30s (SC#4).
+ * Broadcast failure is caught + Sentry-logged; never re-thrown (Stripe retry safety).
  */
-import type Stripe from 'stripe';
+import type Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import * as Sentry from '../../_shared/sentry.ts';
+import { channelNameFor } from '../../_shared/realtime.ts';
 
 // ─── UX tier type ─────────────────────────────────────────────────────────────
 type UxTier = 'free' | 'paid' | 'past_due';
@@ -43,7 +50,22 @@ export function mapStripeStatusToUxTier(status: Stripe.Subscription.Status): UxT
   }
 }
 
-export async function handle(event: Stripe.Event, admin: SupabaseClient): Promise<void> {
+/**
+ * D-05 test spy interface — allows tests to inject a mock `channelSend` function
+ * without mutating the frozen ESM namespace.
+ *
+ * @internal — only used by subscription-updated.test.ts
+ */
+export interface D05Spy {
+  /** Called with the computed channel name and payload. */
+  channelSend: (channelName: string, payload: Record<string, unknown>) => Promise<void>;
+}
+
+export async function handle(
+  event: Stripe.Event,
+  admin: SupabaseClient,
+  _d05Spy?: D05Spy,
+): Promise<void> {
   const subscription = event.data.object as Stripe.Subscription;
   const subId = subscription.id;
   const uxTier = mapStripeStatusToUxTier(subscription.status);
@@ -84,5 +106,56 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
   if (error) {
     console.error('[stripe-webhook/subscription-updated] upsert error', error.message);
     throw new Error('subscription-upsert-failed');
+  }
+
+  // ─── Phase 29 D-05: HMAC realtime broadcast ──────────────────────────────
+  //
+  // When this is a clinic subscription (clinic_id present in metadata), broadcast
+  // `subscription_updated` on the Phase 28 HMAC channel so clinic admin billing
+  // surfaces reflect within 30s (SC#4 SLA). Failure is caught and Sentry-logged;
+  // NEVER re-thrown (a 500 would trigger Stripe retries amplifying the failure).
+
+  if (!clinicId) {
+    // Consumer subscription — no realtime broadcast needed.
+    return;
+  }
+
+  try {
+    const broadcastPayload: Record<string, unknown> = {
+      subscription_id: subId,
+      status: subscription.status,
+      current_period_end: subscription.current_period_end ?? null,
+    };
+
+    if (_d05Spy) {
+      // Test path: delegate to spy instead of live admin.channel call.
+      // The channel name is computed deterministically even in tests.
+      const channelName = await channelNameFor(clinicId, 'subscriptions');
+      await _d05Spy.channelSend(channelName, broadcastPayload);
+    } else {
+      // Production path: fetch Vault secret, compute HMAC channel name, broadcast.
+      const { data: secretHex, error: rpcErr } = await admin.rpc(
+        'get_realtime_channel_keying',
+      );
+      if (rpcErr || !secretHex) {
+        // Vault secret unavailable — log and skip broadcast (non-fatal).
+        console.warn(
+          '[stripe-webhook/subscription-updated] get_realtime_channel_keying unavailable — skipping D-05 broadcast',
+          rpcErr?.message,
+        );
+        return;
+      }
+      const channelName = await channelNameFor(clinicId, 'subscriptions', secretHex as string);
+      await admin.channel(channelName).send({
+        type: 'broadcast',
+        event: 'subscription_updated',
+        payload: broadcastPayload,
+      });
+    }
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { d05_broadcast: 'failed' },
+    });
+    // Do NOT re-throw — Stripe retries with exponential backoff would amplify a 500.
   }
 }
