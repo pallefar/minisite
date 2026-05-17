@@ -1,6 +1,7 @@
 ---
 phase: 24-foundation-modular-admin-shell-event-taxonomy-server-side-po
 plan: "01"
+status: COMPLETE (checkpoint resolved 2026-05-17)
 subsystem: admin-sql-foundation
 tags: [admin, audit-logs, rls, migration, backup-codes, cron, security]
 dependency_graph:
@@ -172,3 +173,14 @@ No new trust boundaries beyond those in the plan's `<threat_model>`. All T-24-03
 - SECURITY DEFINER functions all have `set search_path = extensions, public, pg_temp`
 - RLS deny clauses present: `audit_logs_no_update`, `audit_logs_no_delete`, `revoke delete ... from authenticated, anon, service_role`
 - Task 3 (human-action) documented and awaiting completion
+
+## Post-checkpoint addendum (2026-05-17, orchestrator)
+
+Task 3 (HUMAN-action) resolved via PAT in macOS keychain → Supabase Management API:
+- `audit-archive` private Storage bucket created (id `audit-archive`, 100MB limit, `application/octet-stream` MIME)
+- `vault.secrets` row `service_role_key` provisioned (uuid `6ac24bd6-cea4-4ced-9908-d4f3176d5f8b`); service_role JWT fetched via `/v1/projects/<ref>/api-keys` and never displayed in chat (kept in /tmp tempfile, secure-deleted post-write)
+- All 7 migrations pushed live via `npx supabase db push --linked` from repo root
+- Live landmarks verified: `admin_role` enum (3 values: staff/admin/superadmin), `log_admin_action()` SECDEF, `audit-archive-nightly` cron at `0 3 * * *`, `audit-archive` bucket private, `vault.secrets.service_role_key` row
+
+Pattern reference: `[[feedback_bootstrap_token_revoke_pattern]]` — broadly-scoped PAT used once for bootstrap; PAT revoke recommended after Phase 24 ship.
+Memory entries added this session: `reference_supabase_phantom_dir_and_empty_vault.md`, `reference_supabase_config_fn_name_regex.md`.
