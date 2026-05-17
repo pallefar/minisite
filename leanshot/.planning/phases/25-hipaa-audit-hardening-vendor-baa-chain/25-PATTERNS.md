@@ -127,7 +127,7 @@ begin
   if v_caller is null then
     raise exception 'not_authenticated' using errcode = '28000';
   end if;
-  if not public.is_staff() then
+  if not public.is_admin_at_least('staff'::public.admin_role) then
     raise exception 'forbidden' using errcode = '42501';
   end if;
   -- (...validation...)
@@ -138,7 +138,7 @@ $$;
 revoke all on function public.admin_log_refund(uuid, text, int, text) from public;
 grant execute on function public.admin_log_refund(uuid, text, int, text) to authenticated;
 ```
-→ Copy this shape EXACTLY for `log_phi_access(p_accessed_user_id, p_accessed_fields, p_reason, p_accessed_org_id default null)`. Drop the `is_staff()` gate (any authenticated clinician/admin can log access — gate is checked at UI/RPC integration layer). KEEP `set search_path = ...` (RESEARCH Pitfall 5). KEEP `revoke all from public; grant execute to authenticated;`.
+→ Copy this shape EXACTLY for `log_phi_access(p_accessed_user_id, p_accessed_fields, p_reason, p_accessed_org_id default null)`. Drop the `public.is_admin_at_least('staff'::public.admin_role)` gate (any authenticated clinician/admin can log access — gate is checked at UI/RPC integration layer). KEEP `set search_path = ...` (RESEARCH Pitfall 5). KEEP `revoke all from public; grant execute to authenticated;`.
 
 ---
 
@@ -181,7 +181,7 @@ create policy "consent_records_update_own"
 
 -- NO DELETE policy — consent history is append-only for GDPR Article 7(1) burden-of-proof.
 ```
-→ For `vendor_baa_chain`: select policy gated on `is_staff()` (admin-read only, not per-user); INSERT/UPDATE policies gated on superadmin role (D-04). NO DELETE. Seed 6 rows in the migration body: Supabase, Vercel, Sentry, Anthropic, AWS SES, PostHog (CONTEXT D-01, status `pending`, `baa_expiry_at = null`, columns per CONTEXT specifics line 152).
+→ For `vendor_baa_chain`: select policy gated on `public.is_admin_at_least('staff'::public.admin_role)` (admin-read only, not per-user); INSERT/UPDATE policies gated on superadmin role (D-04). NO DELETE. Seed 6 rows in the migration body: Supabase, Vercel, Sentry, Anthropic, AWS SES, PostHog (CONTEXT D-01, status `pending`, `baa_expiry_at = null`, columns per CONTEXT specifics line 152).
 
 ---
 
@@ -404,8 +404,13 @@ if (isClinical) {
     assertBaaCoveredModel(modelId); // throws Response per Pattern 3
   } catch (rejection) {
     if (rejection instanceof Response) {
-      // Audit-log the refusal per HIPAA-04 SC #1
-      await admin.from('audit_logs').insert({ ... action: 'anthropic_baa_guard_refused' ... });
+      // Audit-log the refusal per HIPAA-04 SC #1 via SECDEF RPC.
+      // Phase 24 revoked INSERT on audit_logs from service_role — only SECDEF
+      // functions and triggers may insert. See Plan 25-04 Task 0 migration.
+      await admin.rpc('log_baa_guard_refusal', {
+        p_user_id: user.id,
+        p_payload: { modelId, reason: 'allowlist-or-denylist-violation' },
+      });
       return rejection;
     }
     throw rejection;
@@ -625,11 +630,11 @@ export function AdminLayout({ active, heading, headerAction, children }: AdminLa
 /**
  * Phase 22 Plan 22-06 — AdminLayout shell with is_staff client gate + sub-nav.
  *
- * UX layer ONLY — the security boundary is each admin RPC's is_staff()
- * gate (Pattern S1 dual-layer, 22-PATTERNS Wave E). (...)
+ * UX layer ONLY — the security boundary is each admin RPC's
+ * is_admin_at_least() gate (Pattern S1 dual-layer, 22-PATTERNS Wave E). (...)
  */
 ```
-→ Every new admin RPC in Phase 25 (vendor_baa update, subprocessor diff acknowledge) MUST also re-check `is_staff()` AND `admin_role = 'superadmin'` at the DB function level (mirroring `admin_log_refund` lines 30-33 in `20270601000015_admin_stripe_action_audit_rpc.sql`).
+→ Every new admin RPC in Phase 25 (vendor_baa update, subprocessor diff acknowledge) MUST also re-check `public.is_admin_at_least('staff'::public.admin_role)` AND `admin_role = 'superadmin'` at the DB function level (mirroring `admin_log_refund` lines 30-33 in `20270601000015_admin_stripe_action_audit_rpc.sql`).
 
 ---
 
@@ -801,7 +806,7 @@ DB side (re-check via SECDEF + raise):
 declare v_caller uuid := auth.uid();
 begin
   if v_caller is null then raise exception 'not_authenticated' using errcode = '28000'; end if;
-  if not public.is_staff() then raise exception 'forbidden' using errcode = '42501'; end if;
+  if not public.is_admin_at_least('staff'::public.admin_role) then raise exception 'forbidden' using errcode = '42501'; end if;
 ```
 
 ### Pattern S2: Append-only RLS with explicit service_role REVOKE
