@@ -289,22 +289,22 @@ REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs �
 | MOBILE-08 | Phase 16 | Pending |
 | MOBILE-09 | Phase 16 | Pending |
 | MOBILE-10 | Phase 16 | Pending |
-| WATCH-01 | Phase 21 | Pending |
-| WATCH-02 | Phase 21 | Pending |
-| WATCH-03 | Phase 21 | Pending |
-| WATCH-04 | Phase 21 | Pending |
-| WATCH-05 | Phase 21 | Pending |
-| WATCH-06 | Phase 21 | Pending |
-| WATCH-07 | Phase 21 | Pending |
-| WATCH-08 | Phase 21 | Pending |
-| HEALTH-01 | Phase 18 | Pending |
-| HEALTH-02 | Phase 18 | Pending |
-| HEALTH-03 | Phase 18 | Pending |
-| HEALTH-04 | Phase 18 | Pending |
-| HEALTH-05 | Phase 18 | Pending |
-| HEALTH-06 | Phase 18 | Pending |
-| HEALTH-07 | Phase 18 | Pending |
-| HEALTH-08 | Phase 18 | Pending |
+| WATCH-01 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-02 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-03 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-04 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-05 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-06 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-07 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| WATCH-08 | Phase 21 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-01 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-02 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-03 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-04 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-05 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-06 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-07 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
+| HEALTH-08 | Phase 18 | Deferred to v1.4 (descoped 2026-05-17) |
 | ADMIN-01 | Phase 22 | Pending |
 | ADMIN-02 | Phase 22 | Pending |
 | ADMIN-03 | Phase 22 | Pending |
@@ -342,28 +342,28 @@ REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs �
 | AFF-08 | Phase 19 | Pending |
 | AFF-09 | Phase 19 | Pending |
 | AFF-10 | Phase 19 | Pending |
-| AD-01 | Phase 20 | Pending |
-| AD-02 | Phase 20 | Pending |
-| AD-03 | Phase 20 | Pending |
-| AD-04 | Phase 20 | Pending |
-| AD-05 | Phase 20 | Pending |
-| AD-06 | Phase 20 | Pending |
-| AD-07 | Phase 20 | Pending |
-| AD-08 | Phase 20 | Pending |
-| AD-09 | Phase 20 | Pending |
-| AD-10 | Phase 20 | Pending |
-| AD-11 | Phase 20 | Pending |
-| AD-12 | Phase 20 | Pending |
-| PUSH-01 | Phase 17 | Pending |
-| PUSH-02 | Phase 17 | Pending |
-| PUSH-03 | Phase 17 | Pending |
-| PUSH-05 | Phase 17 | Pending |
+| AD-01 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-02 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-03 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-04 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-05 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-06 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-07 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-08 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-09 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-10 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-11 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| AD-12 | Phase 20 | Deferred to v1.4 (descoped 2026-05-17) |
+| PUSH-01 | Phase 17 | Deferred to v1.4 (descoped 2026-05-17) |
+| PUSH-02 | Phase 17 | Deferred to v1.4 (descoped 2026-05-17) |
+| PUSH-03 | Phase 17 | Deferred to v1.4 (descoped 2026-05-17) |
+| PUSH-05 | Phase 17 | Deferred to v1.4 (descoped 2026-05-17) |
 | DEL-01 | Phase 22 | Pending |
 | DEL-02 | Phase 22 | Pending |
 | GDPR-01 | Phase 22 | Pending |
 | GDPR-02 | Phase 22 | Pending |
 | GDPR-03 | Phase 22 | Pending |
-| ON-01 | Phase 22 | Pending |
+| ON-01 | Phase 22 | Deferred to v1.4 (descoped 2026-05-17) |
 | ON-02 | Phase 22 | Pending |
 | ON-03 | Phase 22 | Pending |
 | DEBT-01 | Phase 23 | Pending |
@@ -381,16 +381,18 @@ REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs �
 | Phase 14 | MONEY-01, 02, 03, 04, 05, 08, 09 | 7 |
 | Phase 15 | PAGE-01..09 | 9 |
 | Phase 16 | MOBILE-01..10, MONEY-06 | 11 |
-| Phase 17 | PUSH-01, 02, 03, 05 | 4 |
-| Phase 18 | HEALTH-01..08 | 8 |
+| ~~Phase 17~~ | ~~PUSH-01, 02, 03, 05~~ — **deferred to v1.4 (2026-05-17)** | ~~4~~ |
+| ~~Phase 18~~ | ~~HEALTH-01..08~~ — **deferred to v1.4 (2026-05-17)** | ~~8~~ |
 | Phase 19 | AFF-01..10, MONEY-07, MONEY-10 | 12 |
-| Phase 20 | AD-01..12 | 12 |
-| Phase 21 | WATCH-01..08 | 8 |
-| Phase 22 | ADMIN-01..08, DEL-01, 02, GDPR-01..03, ON-01..03 | 16 |
+| ~~Phase 20~~ | ~~AD-01..12~~ — **deferred to v1.4 (2026-05-17)** | ~~12~~ |
+| ~~Phase 21~~ | ~~WATCH-01..08~~ — **deferred to v1.4 (2026-05-17)** | ~~8~~ |
+| Phase 22 | ADMIN-01..08, DEL-01, 02, GDPR-01..03, ON-02..03 (ON-01 deferred to v1.4 via P22b) | 15 |
 | Phase 23 | DEBT-01..05 | 5 |
-| **Total** | | **104** |
+| **v1.2 active total** | | **71** |
+| **v1.4 deferred carry-over** | PUSH + HEALTH + AD + WATCH + ON-01 | **33** |
+| **Original v1.2 scope** | | 104 |
 
-**Coverage:** 104/104 v1.2 REQ-IDs mapped to exactly one phase. No orphans. No duplicates.
+**v1.2 coverage (after 2026-05-17 descope):** 71 active REQ-IDs across 8 shipped/in-flight phases (12/13/14/15/16/19/22/23). 33 REQ-IDs deferred to v1.4 milestone (Phases 17/18/20/21 + ON-01). User direction 2026-05-17: **"first I will verify and close 1.2 and then focus on additional features for 1.4. milstone 1.4 needs to forcus and close averything deffred and all tech debt"** — v1.4 absorbs the deferred phases + all v1.2-era tech debt + new features.
 
 ---
 
