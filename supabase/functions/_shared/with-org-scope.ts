@@ -47,6 +47,7 @@ export const ORG_SCOPED_TABLES = new Set<string>([
   'org_branding',
   'org_patient_links',
   'org_consent_grants',
+  'org_patient_invites', // P29: D-06 patient invite consent-based table
   // Downstream phases extend this per 28-EXTENSION-CONTRACT.md D-29
 ]);
 
