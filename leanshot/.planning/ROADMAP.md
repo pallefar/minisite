@@ -168,7 +168,7 @@ Plans:
   4. Stripe webhook updates `org_subscriptions.status` and reflects in the clinic admin's billing surface within 30 seconds of the Stripe event
 
 **Plans**: 8 plans (4 waves)
-- [ ] 29-00-PLAN.md — RECONCILE: drop org_subscriptions skeleton + extend subscriptions.seats_* + profiles.primary_org_id + 5 missing event-table indexes [Wave 0]
+- [x] 29-00-PLAN.md — RECONCILE: drop org_subscriptions skeleton + extend subscriptions.seats_* + profiles.primary_org_id + 5 missing event-table indexes [Wave 0]
 - [ ] 29-01-PLAN.md — count_active_patients v2: 10-table UNION + org_patient_links source + service-role bypass + tests [Wave 1]
 - [ ] 29-02-PLAN.md — org_patient_invites table + 3 SECDEF RPCs + cross-tenant RLS proof (BLOCKER R1) [Wave 1]
 - [ ] 29-03-PLAN.md — invoice.created variance handler (D-04) + ORG-08 Stripe namespace CI test [Wave 1]
@@ -417,7 +417,7 @@ Plans:
 | 26. Multi-Tier Affiliate | 0/? | Not started | — |
 | 27. Modular Admin Shell Extensions | 0/? | Not started | — |
 | 28. Clinic Organizations — Schema + RLS Hardening | 7/8 | In Progress|  |
-| 29. Org Subscriptions + Per-Patient Metered Billing | 0/? | Not started | — |
+| 29. Org Subscriptions + Per-Patient Metered Billing | 1/8 | In Progress|  |
 | 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/? | Not started | — |
 | 31. White-Label + Org Roles + Clinic Onboarding Builder | 0/? | Not started | — |
 | 32. Spanish i18n | 0/? | Not started | — |
