@@ -188,6 +188,15 @@ Plans:
   4. Clinician can acknowledge or snooze an alert; un-acted alerts auto-resolve after 7 days
   5. Aggregate clinic dashboard surfaces population-level metrics ("# patients on Wegovy below dosing range this week") via materialized view refreshing every 15 minutes
 **UI hint**: yes
+**Plans**: 6 plans (3 waves)
+
+Plans:
+- [ ] 30-00-PLAN.md — Wave 0 schema foundation: 5 migrations (org_settings cols + 3 new org-scoped tables + 4 SECDEFs + AFTER UPDATE trigger + weighted rank_org_patients + 2 matviews + 4 pg_cron jobs) + ORG_SCOPED_TABLES update + 6 RLS/unit test files + BLOCKING supabase db push
+- [ ] 30-01-PLAN.md — Wave 1 clinician-alert-deliver-cron Edge Function + PHI lint extension + deno test suite
+- [ ] 30-02-PLAN.md — Wave 1 ClinicRankingWeightsForm + ClinicDoseTrendThresholdsForm + use-org-settings-realtime hook + RosterTable wiring (SC#1)
+- [ ] 30-03-PLAN.md — Wave 1 ClinicianAlertsPanel + AlertSnoozePopover + ClinicContextBar bell + Badge amber tone (SC#3/SC#4)
+- [ ] 30-04-PLAN.md — Wave 1 ClinicDashboardOverview + use-clinic-metrics + PatientThresholdOverrideForm + ClinicDrillInPage Dose thresholds tab (SC#5)
+- [ ] 30-05-PLAN.md — Wave 2 Playwright realtime e2e (SC#1 + SC#3) + Edge Fn deploy + bundle ceiling assertion + RLS suite live + phase close
 
 ### Phase 31: White-Label (Path-Based) + Org Roles + Clinic Onboarding Builder
 **Goal**: Each clinic can theme itself path-based, admin per 3-role matrix, and customize patient onboarding via the same dnd-kit primitives Phase 15 shipped.
@@ -418,7 +427,7 @@ Plans:
 | 27. Modular Admin Shell Extensions | 0/? | Not started | — |
 | 28. Clinic Organizations — Schema + RLS Hardening | 7/8 | In Progress|  |
 | 29. Org Subscriptions + Per-Patient Metered Billing | 1/8 | In Progress|  |
-| 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/? | Not started | — |
+| 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/6 | Planned | — |
 | 31. White-Label + Org Roles + Clinic Onboarding Builder | 0/? | Not started | — |
 | 32. Spanish i18n | 0/? | Not started | — |
 | 33. Hourly Ad-Spend ETL | 0/? | Not started | — |
