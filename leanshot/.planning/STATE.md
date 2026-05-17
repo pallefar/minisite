@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Tech Debt Sweep + Launch Polish
-status: executing
-stopped_at: "Phase 23 Plan 23-03 complete (PatientActivityModal DEBT-01 closed)"
-last_updated: "2026-05-16T15:15:00Z"
-last_activity: 2026-05-16
+status: Awaiting next milestone
+stopped_at: Phase 16 UI-SPEC approved
+last_updated: "2026-05-17T09:28:54.114Z"
+last_activity: 2026-05-17 — Milestone v1.2 completed and archived
 progress:
   total_phases: 19
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 146
-  completed_plans: 141
-  percent: 90
+  completed_plans: 144
+  percent: 95
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-13 for v1.2 milestone)
 
 ## Current Position
 
-Phase: 16 — IN-FLIGHT (plans 16-00..16-08 shipped; 16-03 partial-on-credential-block; 16-09 + 16-10 not started)
-Plan: 9 of 11 plans complete (16-00 / 16-01 / 16-02 / 16-04 / 16-05 / 16-06 / 16-07 / 16-08)
-Status: Ready to execute
-Last activity: 2026-05-16
+Phase: Milestone v1.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-17 — Milestone v1.2 completed and archived
 
 ### v1.1 close (2026-05-13)
 
@@ -131,8 +131,26 @@ Items acknowledged and carried forward from v1.1 close (folded into v1.2 phase o
 | Phase 9 hardening (v1.1) | 7 pre-existing SharePage lint errors | Open | 2026-05-13 | **Phase 23** (sweep) |
 | Phase 9 hardening (v1.1) | `s.user!` latent assertion audit (15/14) | Open | 2026-05-13 | **Phase 23 — DEBT-02** |
 
+Items acknowledged at v1.2 close (2026-05-17):
+
+| Category | Item | Status | Notes |
+|----------|------|--------|-------|
+| Debug session | phase7-e2e-post-signin-render | blocked (v1.1 era) | Stale carry-over; Phase 7 archived to milestones/v1.1-phases — debug record kept for forensic reference only |
+| Debug session | phase7-e2e-rc4-state-wipe-race | blocked (v1.1 era) | Same — Phase 7 archived |
+| UAT gap | Phase 01 — 01-HUMAN-UAT.md (3 scenarios) | partial (v1.0 era) | Phase 01 shipped pre-Nyquist; HUMAN-UAT items captured at v1.0 era, not actioned in v1.1 or v1.2 |
+| UAT gap | Phase 02 — 02-HUMAN-UAT.md | unknown (v1.0 era) | Same vintage; no open scenarios |
+| UAT gap | Phase 08 — 08-UAT.md | blocked (v1.1 era) | No open scenarios; status string is stale |
+| Verification gap | Phase 01 — 01-VERIFICATION.md | human_needed (v1.0 era) | Pre-Nyquist; Phase 01 has VALIDATION.md instead |
+| Verification gap | Phase 02 — 02-VERIFICATION.md | human_needed (v1.0 era) | Same |
+
+**Phase 16 descope (2026-05-17 round 2):** Phase 16 vendor closeout in flight at v1.2 close (Apple Dev + Play Console + Supabase Pro enrollments running). 11 REQs (MOBILE-01..10 + MONEY-06) descoped to v1.4. Plans 16-00..16-08 shipped + on disk; 16-03/16-09/16-10 remain unexecuted. Resume path: v1.4 milestone absorbs these + the prior 33 deferred REQs (PUSH/HEALTH/AD/WATCH/ON-01).
+
 ## Session Continuity
 
 Last session: 2026-05-16T12:35:07.106Z
 Stopped at: Phase 16 UI-SPEC approved
 Resume file: None
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

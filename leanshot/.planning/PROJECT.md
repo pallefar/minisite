@@ -29,11 +29,28 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 
 ## Current State
 
-**Shipped:** v1.1 (2026-05-13). 11 phases / 76 plans on `origin/main` at commit `b24f26d`. Production live at `https://leanshot-app.vercel.app` (SPA) + `https://leanshot-marketing.vercel.app` (marketing). Supabase project `ytnsipxxmzgaebkqmokp` with 35+ migrations and 7 Edge Functions live (`ai-chat`, `share`, `clinic-invite`, `clinic-photo`, `clinic-snapshot`, `patient-activity`, `bulk-csv-export`). Onboarding summary at `.planning/reports/MILESTONE_SUMMARY-v1.1.md`; archived ROADMAP + REQUIREMENTS in `.planning/milestones/v1.1-*.md`.
+**Shipped:** v1.2 (2026-05-17). 7 active phases (12, 13, 14, 15, 19, 22, 23) / 59 plans / 487 commits since v1.1 / +150,341 LOC. Production live at `https://leanshot.app` (custom domain, marketing) + `https://app.leanshot.app` (SPA). Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs live. Onboarding summary: see archived ROADMAP/REQUIREMENTS at `.planning/milestones/v1.2-*.md`; audit at `.planning/milestones/v1.2-MILESTONE-AUDIT.md`.
 
-**Audit:** `tech_debt` — 48/49 REQ-IDs functionally satisfied; 1 partial (CLINIC-07 operator-side dead button, workaround via AuditTab). No functional blockers.
+**Audit:** `tech_debt` — 60/60 active v1.2 REQ-IDs satisfied; 44 REQs descoped to v1.4 milestone (Phases 16/17/18/20/21 + ON-01). Per user direction 2026-05-17: v1.3 = next milestone new-features-only; v1.4 = absorbs deferred + tech debt + new features.
 
-## Current Milestone: v1.2 Polished Launch + Full Monetization + Ad Network
+**Previously shipped:** v1.1 (2026-05-13). 11 phases / 76 plans. Multi-audience SaaS — B2C patient cloud sync + doctor read-share + clinic B2B operator surface. Archived ROADMAP/REQUIREMENTS in `.planning/milestones/v1.1-*.md`.
+
+## Next Milestone Goals
+
+**v1.3 (next milestone) — NEW FEATURES ONLY:**
+- Items from the v1.2-scoping "synthesizer deferred" list (clinic-sponsored patient billing, multi-language i18n, multi-tier affiliate program, page-builder block-level A/B, embed-provider blocks, mid-trial pharmacology paywall test, etc.)
+- Scope via `/gsd-new-milestone` to draft fresh REQUIREMENTS.md + ROADMAP.
+
+**v1.4 (deferred + tech-debt absorber) — 44 carry-over REQs + tech debt + new features:**
+- Phase 16 Mobile Shells (MOBILE-01..10 + MONEY-06, 11 REQs; 9/11 plans shipped + on disk, 16-03/09/10 + vendor closeout outstanding)
+- Phase 17 Push Notifications (4 REQs)
+- Phase 18 HealthKit + Two-tunnel Firewall (8 REQs)
+- Phase 20 Ad Network (12 REQs)
+- Phase 21 Watch Apps (8 REQs)
+- P22b Onboarding revamp ON-01 (1 REQ)
+- All v1.2-era tech debt (Vault `service_role_key` Vendor pass, unused-check baseline drift, etc.)
+
+## Archived: v1.2 Milestone (shipped 2026-05-17)
 
 **Goal:** Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform product with full monetization, growth loops, and ad-network revenue." Web, mobile, watch — all on the new design system, with Stripe-powered subs/seats/affiliate plus a multi-mode advertising network as primary revenue stream.
 
@@ -182,7 +199,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-11 after Phase 1 (Quality Gates & Observability Foundation) execution — lint/format/typecheck/unit/e2e gates green locally; CI workflow committed; S-07/S-08/S-09 cloud verification deferred to user (tracked in `phases/01-…/01-HUMAN-UAT.md`).*
+*Last updated: 2026-05-17 after v1.2 milestone close — 7 active phases shipped (12, 13, 14, 15, 19, 22, 23 = 60/60 active REQs); 5 phases descoped to v1.4 (16, 17, 18, 20, 21 + ON-01 = 44 REQs). v1.3 is next (new features only); v1.4 absorbs deferred + tech debt.*
 
 ## Vendor Accounts (Phase 16 Wave 0)
 

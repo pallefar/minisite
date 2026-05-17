@@ -1,0 +1,147 @@
+# Milestones
+
+## v1.2 Polished Launch + Full Monetization (Shipped: 2026-05-17)
+
+**Phases completed:** 19 phases, 146 plans, 205 tasks
+
+**Key accomplishments:**
+
+- Replaced all 5 `as never` casts with proper TypeScript narrowing and fixed the 404-ing claude-sonnet-4-6 model ID, clearing the lint backlog so ESLint can run at error-level from day one
+- `src/hooks/useConfirm.ts`
+- 1. [Rule 1 - Bug] ESLint downgraded from 10.3.0 to 9.39.4
+- calcStreak extraction:
+- 1. [Rule 1 - Bug] Sentry v10 breadcrumbs type mismatch
+- `playwright.config.ts`
+- Tautological RED-phase assertions for undefined defaults.
+- Status:
+- One process deviation, no scope deviation.
+- No illustration was added for Step 0
+- One-liner:
+- Final manualChunks shape (paste from `vite.config.ts`):
+- Plan:
+- Plan:
+- One-liner:
+- Plan:
+- 1. [Rule 1 - Bug] RESEARCH §Test scaffold sampling offset was off by one τ
+- 1. [Rule 1 — Bug] Fixed STEM_PATTERN regex to handle silent-e-drop inflections
+- One-liner:
+- One-liner:
+- Optional `pkEngineVersion?: number` field on Injection, STORAGE_VERSION 5→6, exported `migrateState` helper with chained `version <= N` predicates, and addInjection stamping — making a future v1.1 two-compartment engine retroactively addressable per-record.
+- DELIVERED.
+- Deployed ai-chat Edge Function (Deno) — Moonshot Kimi K2.6 streaming SSE pass-through; BYO-key UX removed; founder sends a message and gets a streamed reply without ever pasting a key.
+- Hardened the ai-chat Edge Function with deterministic refusal pre-check, atomic per-user rate-limiting, and append-only ai_messages persistence; provisioned 3 cloud migrations (tables + RLS + RPC + pg_cron); proved all 4 STRIDE mitigations live in production. Phase 4 contract complete.
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- Per-user namespaced storage adapter routes every Zustand persist write through `activeNamespaceKey`, closing UAT G2 by ensuring Realtime INSERTs and subsequent app writes land in the per-user namespaced key (`leanshot_v4:<sha256(user_id).slice(0,16)>`) instead of falling back to the universal `leanshot_v4` key after the one-shot `renameStorageNamespace` migration.
+- One-liner:
+- One-liner:
+- One-liner:
+- 1. [Rule 1 - Bug] Persist middleware overwrites leanshot_v4 before migration snapshot read
+- 1. PhotoCompareModal type errors after Photo schema change
+- Server-wins LWW loss surfaces a non-blocking info toast `"We kept your most recent edit."` (kind=info, 5000ms) on the losing device across all 11 entity reducers, proven by a two-context Playwright spec.
+- Status: BLOCKED — CI does not yet meet `11+ pass / 0 fail` gate. Surfaces a deeper issue than batch-fix scope can resolve. Escalating to checkpoint.
+- One-liner:
+- One-liner:
+- HBNR (16 CFR Part 318) compliance closes with an internal 5-section incident-response runbook (121 lines, FedReg-cited) + dated founder acknowledgement + CI-pinned content-grep test — no FTC registration exists to file (researcher Key Finding #6 corrects the ROADMAP misnomer).
+- 1. [Rule 1 - Bug] TypeScript `Photo[]` not comparable to `Record<string, unknown>[]`
+- 1. Partial index expression rejected as not IMMUTABLE
+- 1. [Rule 1 — Bug] Test regex mismatch with destructive button aria-label
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- PAUSED at Task 2 (human-action checkpoint, gate=blocking).
+- 1. [Rule 1 — Bug] Bundle ceiling 12 kB unrealistic for spec'd component scope
+- COMPLETE.
+- COMPLETE.
+- `ActiveOrganizationsSection.test.tsx` — 10 RTL tests:
+- PAUSED at Task 2 (human-action checkpoint, gate=blocking).
+- 1. [Rule 2 — Critical Functionality] Dependency-injected `handle(req, deps)` seam
+- 1. [Rule 1 — Bug] `clinic` chunk regressed 165 B over its 16 kB ceiling
+- Test 1: 200 happy + 403 consent_excluded + 404 photo_not_found + 401 not_member.
+- 1. Operator surface modeled at the supabase-js Realtime layer, NOT a Playwright browser context.
+- Closed:
+- audit_logs action enum extended to 28 values (6 new Phase-10 actions), roster.read_breakdown permission seeded for Coach+Owner system roles across all existing orgs, and canonical SnapshotData/RankRosterRow/BulkActionType TypeScript interfaces shipped as the single source of truth for all downstream Phase-10 plans
+- SECURITY DEFINER plpgsql RPC with per-patient signal computation (Phase 3 weight architecture in SQL), threshold-crossing audit rows, and 5-assertion cross-tenant impersonation proof
+- 1. [Rule 1 - Bug] Topic format mismatch (plan says `org-`, Phase 9 RLS uses `org:`)
+- SECURITY DEFINER per-section audit RPC and JWT-authed operator snapshot Edge Function deployed with Cache-Control: private, no-store on every response and 14 Deno test assertions green
+- ReadOnlyPatientView shared component extracted from Phase 8 SharePage; 6 section components moved to shared/sections/; App.tsx adds /clinic/{slug}/patient/{user_id} route; new read-only-patient-view shared chunk; 23 Vitest assertions green
+- 1. [Rule 1 - Bug] supabase-js .on('broadcast') TypeScript overload mismatch
+- Drill-in composition root replacing Plan 10-05 stub, with clinic-snapshot fetch hook, ClinicDrillInSubBar chrome, per-section audit fire (log_clinic_view + PostHog), 401/403 error handling, and back-to-roster session-storage round-trip
+- Endpoint:
+- SECURITY DEFINER log_bulk_export_inclusion RPC + bulk-csv-export Edge Function + multi-select UI with 3 bulk action flows (PDF / CSV / Open Tabs) + sessionStorage selection persistence + 8/9 Vitest assertions + Playwright spec + cross-tenant RLS proof
+- 50-patient roster-perf Playwright fixture + CI gate shipped; bundle ceilings reset to Phase 10 close baselines; hash-hyphen bug fixed; VALIDATION.md pending Task 2 PostHog checkpoint.
+- 1. [Rule 1 - Bug] CLINIC_CEILING stale value (22000 vs measured 27603 gz)
+- 1. [Rule 1 - Bug] Zone 1 target glob fix — non-existent directory target would never fire
+- [Rule 1 - Structure] Loop vs. explicit test blocks for waitUntil count
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- 1. [Rule 2 - Critical functionality] Added `aria-hidden="false"` to informational SVG illustrations
+- One-liner:
+- Zero source changes needed — cascade works exactly as designed.
+- One-liner:
+- One-liner:
+- 1. [Rule 1 - Bug] Migration filename conflict: 20260601000001 already occupied
+- One-liner:
+- HMAC-verified Stripe webhook Edge Function with idempotent event.id deduplication, exhaustive 8-status→3-tier mapper, and 6 per-event handlers (5 production + 1 stub for 14-07) — 25 Deno tests green
+- Result: PASS
+- Task 1 — Billing types + Zustand slice + billing.ts library
+- 1. [Rule 1 - Style] Import order violations in billing components and tests
+- Trigger source: invoice.upcoming webhook
+- 1. [Rule 1 - Bug] `clinic_memberships` table name incorrect
+- Broken pattern (before):
+- Fixed inverted dunning trigger: invoice-payment-failed now writes ux_tier='past_due' directly; invoice-paid writes ux_tier='paid' directly — both drop the non-existent invoice.subscription_status read that caused CR-04
+- SQL test (`count-active-patients.test.sql`):
+- Ship the data foundation for Phase 15: 4 new RLS surfaces (`landing_pages` / `landing_page_revisions` / `leads` / `site_settings`) + the `page-assets` Storage bucket — all live on `ytnsipxxmzgaebkqmokp` with full cross-tenant impersonation proof.
+- One-liner:
+- Ship the Slice-1 backend half of Phase 15's thinnest end-to-end slice: the block-schema TS contract that editor plans 15-04/05/06/07 import without redefining, plus the public `page-render` Edge Function that turns a published revision's JSONB block tree into static HTML.
+- Ship the Slice-1 close-the-loop write-side of Phase 15: an is_staff user can scaffold a landing page (Hero/CTA/Footer), Save it (append-only revision), Publish it (re-point pointer + best-effort revalidation HEAD), and the page becomes visitable at `/{slug}` via 15-03's `page-render` Edge Function.
+- Thicken Phase 15's MVP slice: ship FAQ / Pricing / Testimonial / Feature grid / Image+text — the remaining 5 of the 8 core landing-page blocks — and replace the 15-04 stub center panel with a working `PreviewPane` (sandboxed iframe + desktop/tablet/mobile viewport toggle).
+- Ship the 3 embed-provider blocks as 3 SEPARATE draggable blocks (D-01, D-02), each with its own tailored property editor, plus their 3 `renderBlock()` iframe branches in the public `page-render` renderer.
+- Ship the 12th and final block type (`lead-form`) end-to-end: editor preview component + property-config entry + `renderBlock()` <form> branch (with offscreen-but-in-DOM honeypot + inline submit script) + new public `lead-capture` Edge Function (honeypot-first, per-IP rate-limited, service-role leads insert, optional Resend notification), all gated by `verify_jwt = false` in `config.toml`.
+- Ship the SEO + crawler-discoverability half of Phase 15: per-page SEO fields, auto-generated JSON-LD, global `site_settings` editor, the renderer's `<head>` injection with cascading defaults, and the public `sitemap.xml` + `robots.txt` — every served-HTML interpolation XSS-defused.
+- Thicken the page-builder slice with the three "page management" surfaces that turn the minimal editor (15-04) into a production tool: version history + restore (PAGE-07), the asset library on the page-assets bucket (PAGE-01 scope expansion per D-13), and the 5-template scaffold picker (PAGE-04, D-14).
+- 1. Zero-`<script>` invariant — interpretation
+- Commit:
+- Commit:
+- Commit:
+- Commit:
+- Found during:
+- Found during:
+- One-liner:
+- 1. [Rule 2 - Missing critical functionality] `?tab=` deep-link convention not actually supported
+- 1. [Rule 1 — Bug] `date_trunc('day', timestamptz)` is STABLE, not IMMUTABLE
+- Status:
+- File:
+- Deno — Plan 19-04 / stripe-checkout (`index.test.ts`): 6 new + 4 existing → 10/10 pass
+- Public /affiliate apply Edge Function (5-field form, honeypot, IPv4 /24 rate-limit, direct-HTTPS Resend dispatcher per W-5), AffiliateApplyForm + AffiliateApplyPage, is_staff-gated AdminAffiliatesScaffold with 5-pill filter + 6-column table, InitialsAvatar primitive (3 sizes, deterministic hash-to-hue gradient), and BL-4 route-registry file — all without touching App.tsx (Plan 19-09 wires).
+- Found during:
+- 13/13 tests pass:
+- `leanshot/src/lib/affiliate/fingerprint.ts`
+- 3 co-branded `/r/{code}/landing` templates (`coach`/`story`/`method`) wired to anon-readable `affiliates_public_view` via `AffiliateLandingResolver`, with a verify_jwt=false `affiliate-impression` Edge Function that calls Plan 19-01's `insert_affiliate_impression(uuid,text,text,text)` SQL helper for server-side `/24` IP truncation. Client wrapper honors `navigator.doNotTrack`, hashes UA via `crypto.subtle.digest('SHA-256', ...)`, and is fire-and-forget (`void recordImpression(id)`).
+- 1. [Rule 1 - Bug] Module-level `createClient(SUPABASE_URL, ...)` threw at Deno test import time
+- 16 P22 foundation migrations live on `ytnsipxxmzgaebkqmokp` (30d→7d soft-delete cron + impersonation RLS + DSAR + consent + cohort matview + 51 deny-write policies) plus 35 failing test scaffolds; A1 PROBE PASS unlocks Option A impersonation in plan 22-04.
+- 5 Resend-gated lifecycle Edge Functions live on ytnsipxxmzgaebkqmokp (welcome 4h / behavior 15m / retention daily 06:00 UTC + transactional + preference-update); 12 inline-style HTML templates; 21 Deno tests green.
+- Two server-side admin primitives shipped: read-only impersonation mint (ADMIN-03) using A1 PROBE PASS Option A, and Stripe refund/cancel/comp wrapper (ADMIN-04) with PII-safe error sanitization + audit-on-success. 14/14 Deno tests pass; both Functions ACTIVE @ v1 on ytnsipxxmzgaebkqmokp.
+- GDPR-03 server-side complete: `create_dsar_request` RPC + `dsar-export` Edge Fn (9-step orchestrator with hash-pseudonymized affiliate converter emails, jsPDF 7-section PDF, pure-Deno ZIP, signed-URL-only delivery, PostHog vendor-gated branch); 10/10 deno tests green; live on `ytnsipxxmzgaebkqmokp` as v1 ACTIVE.
+- Conflict #2 closed end-to-end: 30-day soft-delete UX swept to 7 days across modal/settings/legal/signup/e2e; DeleteAccountModal rewritten to UI-SPEC §Copywriting with literal 'DELETE MY ACCOUNT' confirm + lifecycle-transactional invoke; SoftDeleteCountdownBanner shipped (impersonation-yield); /cancel-deletion route lazy-loaded with 9-state discriminated outcome handling.
+- Operator's daily entry point: /admin/members table with 7 columns + 6-tab member drill-in + per-user PostHog feature-flag override CRUD.
+- 3 lazy-loaded admin Stripe modals (ADMIN-04 Refund/Cancel/Comp) + the AdminAffiliatesReviewQueue with 3 SECURITY DEFINER status-writer RPCs (ADMIN-06) that close Phase 19 BL-11 status-graph gap. Also fixes 3 Phase 19 schema bugs (missing confirmed_at / reviewed_at / reviewed_by columns referenced by the materialize cron). All 18 new tests green; 112/112 admin tests pass; migration applied live to ytnsipxxmzgaebkqmokp.
+- `/admin/metrics` MRR/ARR/churn KPIs + chart.js combo + `/admin/cohorts` CSS-grid retention heatmap with client-side k-anonymity guard.
+- Shipped ADMIN-03's UI half: sticky red banner with countdown + End CTA, session-reading useImpersonation hook (A1 PROBE PASS Option A — direct app_metadata read), useImpersonationReadOnly client-side disabled-props provider (defense-in-depth UX layer over the 51 RLS write-deny policies from plan 22-01), and admin-impersonate.ts client wrapper with sessionStorage admin-refresh restoration. 12/12 plan tests green; bundle index gz 15.01 kB (50 kB ceiling).
+- Shipped GDPR-01 cookie consent banner (vanilla-cookieconsent v3 + Consent Mode v2) and GDPR-02 append-only consent_records audit writer, with a Pattern 4 dynamic-import gate that keeps the entire consent subsystem off the index static graph (index gz 15.03 kB / 50 kB ceiling). 22/22 unit tests green; mount + chunk-isolation verification deferred to plan 22-12.
+- GDPR-03 user-facing surface complete (DSAR portal + 5-min Vault-gated cron tick) + ON-03 self-serve email preference center; SettingsPage NAV extended with 2 link-out entries; 33/33 vitest tests green across 5 files; `tsc -b` + `eslint` clean on plan-touched files; migration 21 live on `ytnsipxxmzgaebkqmokp` (cron job `dsar-export-tick` confirmed registered).
+- Shipped the Phase 22 closeout: App.tsx integrates 7 new lazy routes + 3 always-on overlay components + post-auth feature-flag-overrides cache; 12 Wave-0 e2e/RLS scaffolds turned on (8 pass locally + 4 env-skip locally, all green on live cloud DB CI); production-correctness fix for vanilla-cookieconsent missing CSS; VALIDATION.md per-task rows fully populated. Bundle index gz 17.70 kB vs 50 kB ceiling. nyquist_compliant: false STAYS — verifier owns the flip.
+- One-liner:
+- Duration:
+- Clinic operator drill-in "View activity" stub wired to a lazy-loaded 6-table chronological activity modal — DEBT-01 carry-forward closed after Plan 10-09.
+- Migration `20270601000024_photos_trashed_at.sql` (T1)
+- One-liner:
+
+---
