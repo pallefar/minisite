@@ -156,6 +156,14 @@ const CancelDeletionPage = lazy(() =>
   import('@/pages/cancel-deletion').then((m) => ({ default: m.CancelDeletionPage })),
 );
 
+// Phase 29 Plan 06 — /accept-clinic-invite patient consent screen. Its own
+// lazy chunk stays OFF the index static graph. Anonymous-OK route; must be
+// checked BEFORE any auth gate in selectView() (T-29-06-01 anti-enumeration).
+// Patient can reach this with no existing account.
+const ConsentAcceptScreen = lazy(() =>
+  import('@/components/auth/ConsentAcceptScreen'),
+);
+
 // Phase 22 Plan 22-12 (Wave 3 integration) — admin/DSAR/email-prefs lazy chunks.
 //
 // Five `/admin/*` surfaces + two `/settings/*` sub-pages. All ship as their
@@ -430,7 +438,11 @@ type View =
   | 'admin-cohorts'
   | 'admin-affiliates'
   | 'dsar'
-  | 'email-prefs';
+  | 'email-prefs'
+  // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
+  // Anonymous-OK: the invite token IS the auth (T-29-06-01 anti-enumeration).
+  // Must render BEFORE any auth gate so patients without an account can proceed.
+  | 'consent-accept';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -489,6 +501,12 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
   if (opts.hash.startsWith('#/share/')) return 'share';
   if (opts.hash.startsWith('#/legal/')) return 'legal';
   if (opts.hash.startsWith('#/auth/')) return 'auth';
+  // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
+  // Anonymous-OK: invite token in query string IS the auth. Must be ordered
+  // BEFORE any user-gated branch (T-29-06-01 anti-enumeration invariant).
+  if (opts.pathname === '/accept-clinic-invite' || opts.pathname === '/accept-clinic-invite/') {
+    return 'consent-accept';
+  }
   // Phase 9 Plan 09-01 — path-based routing. clinic-invite is anonymous OK
   // (the lookup endpoint accepts the token-hash without a JWT).
   if (opts.pathname.startsWith('/clinic-invite/')) return 'clinic-invite';
@@ -1429,6 +1447,21 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <CancelDeletionPage />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
+  // Anonymous-OK: token in query string is the auth. Anti-enumeration UX
+  // renders identical "Invite not found" for invalid AND expired tokens
+  // (T-29-06-01 mitigation). No auth gate here — ConsentAcceptScreen handles
+  // its own loading + error states.
+  if (view === 'consent-accept') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <ConsentAcceptScreen />
         </Suspense>
       </>
     );
