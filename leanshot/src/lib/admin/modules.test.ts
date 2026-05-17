@@ -14,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 
 // Tested under vi.hoisted + dynamic import so modules.ts can be resolved by the time tests run.
 describe('ADMIN_MODULES manifest', () => {
-  it('T1: exports exactly 12 modules with the canonical D-05 keys', async () => {
+  it('T1: exports exactly 13 modules with the canonical D-05 keys (+ P28 clinic-orgs)', async () => {
     const { ADMIN_MODULES } = await import('./modules');
-    expect(ADMIN_MODULES).toHaveLength(12);
+    expect(ADMIN_MODULES).toHaveLength(13);
     const keys = ADMIN_MODULES.map((m) => m.key);
     const expected = [
       'users',
@@ -31,11 +31,12 @@ describe('ADMIN_MODULES manifest', () => {
       'billing',
       'settings',
       'audit-log',
+      'clinic-orgs',  // Phase 28 Plan 07 — preview module (full UI in P31)
     ];
     expect(keys).toEqual(expected);
   });
 
-  it('T2: all 12 entries have every required field', async () => {
+  it('T2: all 13 entries have every required field', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const requiredKeys = ['key', 'label', 'route', 'icon', 'lazy', 'flagKey', 'minRole'] as const;
     for (const mod of ADMIN_MODULES) {
@@ -48,18 +49,18 @@ describe('ADMIN_MODULES manifest', () => {
     }
   });
 
-  it('T3: all 12 flagKey values are unique', async () => {
+  it('T3: all 13 flagKey values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const flagKeys = ADMIN_MODULES.map((m) => m.flagKey);
     const unique = new Set(flagKeys);
-    expect(unique.size).toBe(12);
+    expect(unique.size).toBe(13);
   });
 
-  it('T4: all 12 route values are unique', async () => {
+  it('T4: all 13 route values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const routes = ADMIN_MODULES.map((m) => m.route);
     const unique = new Set(routes);
-    expect(unique.size).toBe(12);
+    expect(unique.size).toBe(13);
   });
 });
 
