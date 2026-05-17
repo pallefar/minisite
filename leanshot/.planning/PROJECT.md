@@ -48,9 +48,9 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 3. **B — Product Depth (web)** — Embed-provider blocks (Calendly + YouTube + Tally with per-provider sandboxing, lazy loading, consent gating) + pharmacology paywall test (Pro-gate interactions/dosing/contraindications; reputational-risk line decided up front) + Spanish i18n (`react-i18next` infrastructure + full Spanish localization of UI/transactional emails/KB articles).
 4. **C — B2B Clinic + HIPAA** — `organizations` + `org_members` + `org_subscriptions` tables + Stripe Billing for orgs (per-patient metering or seat license) + patient invite flow (clinic → magic link → patient onboards under org) + org admin role + clinic-side dashboard + optional white-label theming + custom rank weights/dose-trend alerts (deferred from v1.2 Out of Scope) + **HIPAA BAA chain** (Supabase Enterprise + BAA, Vercel Enterprise BAA, Resend BAA or switch to Paubox/AWS SES, Sentry Business BAA, OpenAI/Anthropic Zero Data Retention + BAA, audit-log hardening, MFA enforcement, periodic access reviews, employee security training, written policies, annual risk assessment). 4-8 weeks parallel compliance work alongside engineering.
 5. **User-facing depth + retention engine (M2 + M3 + M6 core + M5b partial + M7 selective)** — M2 Onboarding Overhaul (value-first preview, magic link + Google + Apple, mobile parity ≥44px tap targets, activation-event definition, admin drag-and-drop step builder, A/B via PostHog) + M3 Gamification engine (XP/levels/freeze tokens/leaderboards/weekly challenges; DS-10 visuals shipped in v1.2) + M3 Review Prompt engine (two-stage: internal NPS → external review or in-app feedback ticket) + M6 Helpdesk core (ticket schema + in-app widget + email-to-ticket via Resend Inbound + AI assist via Claude for draft replies/tagging/routing + CSAT) + M5b partial (recommender via pgvector + weekly Claude summary email) + M7 selective (cancellation flow with save offers, smart notifications, PWA + offline mode, dark mode, accessibility WCAG 2.2 AA, public status page via Better Stack).
+6. **M4 Membership / Community Platform (in-house Skool-style on Supabase)** — Membership tiers extension (Lifetime tier + grandfathering + community-gated entitlements) + Community feed (posts + threaded comments + likes + @mentions + image/video embed + Realtime + spaces + member directory + opt-in DMs + community leaderboard) + Courses (modules + lessons + Mux video + completion certificates + lesson resources) + Events (calendar + RSVPs + Zoom/Meet + reminder emails + post-event recording) + Moderation (reports + mute/ban + banned-words + Claude auto-flagging + audit log) + Search + Email digests (Postgres FTS + daily/weekly digest via Resend).
 
 **Out of v1.3 (deferred):**
-- M4 Membership/Community (Skool-style) — too large (~6-8 phases on its own); v1.5 candidate
 - M5b full (anomaly detection + churn model) — needs more event-data maturity; v1.5
 - M6 App Store / Play review-ingestion — defers to v1.4 (no app in stores yet to monitor)
 - Mobile push (web push only in v1.3) — v1.4 with native shells
@@ -60,7 +60,7 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 - C + mobile-same-quarter forbidden per brief — honored (v1.4 slips a quarter)
 - HIPAA work starts immediately in parallel (legal/policy/vendor, not engineering bandwidth) so first clinic deal can land mid-v1.3 not end
 
-**Estimated scope:** ~16-20 phases starting at Phase 24, ~5-8 months. v2.0-scale release under v1.3 label.
+**Estimated scope:** ~25-27 phases starting at Phase 24, ~9-12 months (revised 2026-05-17 after M4 in-house added). v2.0-scale release under v1.3 label.
 
 ## Next Milestone Goals
 
