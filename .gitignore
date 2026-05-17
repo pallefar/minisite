@@ -2,6 +2,18 @@
 leanshot/node_modules/
 leanshot/dist/
 leanshot/.vite/
+node_modules/
+
+# Claude Code worktree scratchpads + agent infrastructure (per-agent git worktrees; never committed)
+.claude/worktrees/
+.claude/agents/
+.claude/skills/
+.claude/projects/
+.playwright-mcp/
+
+# Stray image files from earlier capture experiments
+body-no-watermark.png
+medlevel-watermark.png
 
 # Reference / scratch
 minisite/
