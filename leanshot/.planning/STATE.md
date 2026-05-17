@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 28 Plan 03 complete — JWT hook live; WorkspaceSwitcher propagation UX shipped
-last_updated: "2026-05-17T18:10:00Z"
-last_activity: 2026-05-17 -- Phase 28 Plan 03 executed (custom_access_token_hook + ClinicWorkspaceSwitcherJwtOverlay + Spinner primitive; 9/9 vitest pass; bundle OK)
+stopped_at: Phase 28 Wave 2 complete — 28-03 JWT hook + 28-04 HMAC realtime + 28-05 org-context layer all shipped
+last_updated: "2026-05-17T18:30:00Z"
+last_activity: 2026-05-17 -- Phase 28 Wave 2 merged (28-03 + 28-04 + 28-05); Wave 3 (28-06 RouteOrgGuard) ready
 progress:
   total_phases: 27
   completed_phases: 1
   total_plans: 40
-  completed_plans: 11
+  completed_plans: 14
   percent: 4
 ---
 
