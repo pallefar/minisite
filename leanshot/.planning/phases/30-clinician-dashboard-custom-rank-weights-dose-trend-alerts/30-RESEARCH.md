@@ -941,27 +941,22 @@ export function useOrgSettingsRealtime({
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED — verified 2026-05-17 via direct migration grep)
 
-1. **Prescribed dose schedule source for adherence rule (CLIN-02)**
-   - What we know: `vials` table has medication info; `injections` table has `created_at`
-   - What's unclear: Is there a `prescribed_cadence_days` or `scheduled_injection_date` column that defines the expected injection frequency per patient?
-   - Recommendation: Planner runs `\d vials` and `\d injections` to confirm schema. If no schedule column exists, the adherence rule is: "patient has < (window_days_m / 7) injections in the past window_days_m days assuming weekly dosing" — simplest safe assumption for GLP-1 drugs.
+1. **RESOLVED — Prescribed dose schedule source for adherence rule (CLIN-02)**
+   - **Verified 2026-05-17:** Neither `vials` nor `injections` tables ship a `prescribed_cadence_days` / `scheduled_injection_date` column. No prescribed-schedule source exists in v1.3.
+   - **Outcome for planner:** Adherence rule simplifies to **"patient has < N injection-days in the past M days"** (GLP-1 weekly-dosing assumption baked into the threshold itself, not the SQL). v1.3 default thresholds (N=2 missed in M=14 days) interpret as "weekly cadence; missing 2 means roughly 2-week gap." Adherence SQL counts `count(distinct date_trunc('day', created_at))` over the window. NO need to join against a schedule column. Variance rule (D-07b) computes interval variance from `LAG(created_at) OVER (PARTITION BY user_id ORDER BY created_at)` — no schedule column required either.
 
-2. **`org_member_role` enum values**
-   - What we know: Phase 28 shipped `org_member_role` enum; CONTEXT.md references 'admin' and 'clinician' roles
-   - What's unclear: Exact enum values — is it `('owner','admin','clinician','staff')` or a subset?
-   - Recommendation: Planner greps `20270601100003_org_member_role_enum.sql` to confirm `'clinician'` is valid before writing RLS policies.
+2. **RESOLVED — `org_member_role` enum values: `('admin', 'staff', 'viewer')`**
+   - **Verified 2026-05-17** via `supabase/migrations/20270601100003_org_member_role_enum.sql:create type public.org_member_role as enum ('admin', 'staff', 'viewer')`.
+   - **Outcome for planner: `'clinician'` is NOT a valid enum value.** RLS policies must use **`'staff'`** as the clinician-role analog (`'staff'` is the customer-facing clinician role in Phase 28's role taxonomy; `'admin'` is org-admin). All references to `'clinician'` in this RESEARCH.md (notably the example RLS policy at line 783 `and om.role in ('admin','clinician')`) MUST be replaced with `'staff'` in actual implementation. Planner must thread `'staff'` through every SELECT policy, every SECDEF role-check, and every `_is_org_admin`-or-clinician helper.
 
-3. **`get_realtime_channel_keying` RPC name**
-   - What we know: Phase 28/29 uses a SECDEF to retrieve the Vault secret for HMAC computation
-   - What's unclear: Exact RPC name in the migration (`get_realtime_channel_keying`, `get_realtime_secret`, or other)
-   - Recommendation: Planner greps `supabase/migrations/20270601100015_get_realtime_secret_secdef_fn.sql` to confirm exact function name.
+3. **RESOLVED — Realtime channel keying = `public.get_realtime_secret()` SECDEF; client-side HMAC uses `channelNameFor(orgId, suffix)` from `_shared/realtime.ts` (Plan 29-03).**
+   - **Verified 2026-05-17:** `supabase/migrations/20270601100015_get_realtime_secret_secdef_fn.sql:19` defines `create or replace function public.get_realtime_secret()` (no args). No `get_realtime_channel_keying` RPC exists.
+   - **Outcome for planner:** Edge Functions that need the HMAC channel name call `channelNameFor(orgId, 'alerts')` / `channelNameFor(orgId, 'settings')` from `_shared/realtime.ts` directly — the Vault secret is fetched server-side by that helper (or its already-cached at module load). Replace the `(admin as any).rpc('get_realtime_channel_keying', ...)` pattern in RESEARCH line 825 with the simpler `channelNameFor(orgId, suffix)` import. The Plan 29-03 `_shared/realtime.ts` Deno helper is the canonical surface.
 
-4. **`_shared/email-router.ts` swap-in scope**
-   - What we know: Phase 25 has not shipped; D-01 says use Resend directly
-   - What's unclear: Whether P30 should stub the swap-in interface now (so P25 close task is a one-liner rename)
-   - Recommendation: P30 ships direct `fetch('https://api.resend.com/emails', ...)` same as `clinic-patient-invite`. Add a TODO comment `// P25 close: swap for sendEmail({phi: false, ...}) from _shared/email-router.ts`. No interface stub needed.
+4. **RESOLVED — `_shared/email-router.ts` swap-in scope (no stub needed)**
+   - P30 ships direct Resend dispatch matching Plan 29-05's `clinic-patient-invite` `sendEmail` pattern (or direct `fetch('https://api.resend.com/emails', ...)` if cleaner). Add inline TODO comment `// P25 close: swap for sendEmail({phi: false, ...}) from _shared/email-router.ts`. No interface stub needed. The PHI lint catches any regression on the no-PHI invariant.
 
 ---
 
