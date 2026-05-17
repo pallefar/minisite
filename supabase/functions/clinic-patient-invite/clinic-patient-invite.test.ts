@@ -47,6 +47,8 @@ const mockState = {
   rpcCallOrder: [] as string[],
   generateLinkCalled: false,
   emailSent: false,
+  patientLookupEmpty: false,
+  lastAcceptRpcBody: null as Record<string, unknown> | null,
 };
 
 function resetMockState() {
@@ -55,6 +57,8 @@ function resetMockState() {
   mockState.rpcCallOrder = [];
   mockState.generateLinkCalled = false;
   mockState.emailSent = false;
+  mockState.patientLookupEmpty = false;
+  mockState.lastAcceptRpcBody = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,6 +91,13 @@ globalThis.fetch = async (
   if (url.match(/\/rest\/v1\/rpc\//)) {
     const rpcName = url.split('/rest/v1/rpc/')[1]?.split('?')[0] ?? 'unknown';
     mockState.rpcCallOrder.push(rpcName);
+    if (rpcName === 'accept_org_patient_invite' && init?.body) {
+      try {
+        mockState.lastAcceptRpcBody = JSON.parse(String(init.body));
+      } catch {
+        mockState.lastAcceptRpcBody = null;
+      }
+    }
 
     const entry = mockState.rpcQueue.shift();
     if (entry?.error) {
@@ -141,10 +152,26 @@ globalThis.fetch = async (
     );
   }
 
-  // --- Supabase Auth admin user lookup ---
+  // --- Supabase Auth admin user lookup (listUsers GET / createUser POST) ---
+  // listUsers expects { users: [...] }; createUser expects { user: {...} }.
   if (url.match(/\/auth\/v1\/admin\/users/)) {
+    const method = (init?.method ?? 'GET').toUpperCase();
+    if (method === 'POST') {
+      return new Response(
+        JSON.stringify({ user: { id: 'mock-patient-id', email: 'patient@example.com', aud: 'authenticated' } }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    // GET listUsers — default: return one matching user so the createUser branch
+    // is exercised only when a test pushes mockState.patientLookupEmpty=true.
+    if (mockState.patientLookupEmpty) {
+      return new Response(
+        JSON.stringify({ users: [] }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
     return new Response(
-      JSON.stringify({ id: 'mock-patient-id', email: 'patient@example.com', aud: 'authenticated' }),
+      JSON.stringify({ users: [{ id: 'mock-patient-id', email: 'patient@example.com', aud: 'authenticated' }] }),
       { status: 200, headers: { 'Content-Type': 'application/json' } },
     );
   }
@@ -430,6 +457,53 @@ Deno.test(
     assertEquals(res.status, 404, `Expected 404, got ${res.status}`);
     const json = (await res.json()) as { ok: boolean; error: string };
     assertEquals(json.error, 'invite_not_found');
+  },
+);
+
+Deno.test(
+  'Test 8c — Accept RPC contract: accept_org_patient_invite called with BOTH p_invite_token_hash AND p_patient_user_id (verifier blocker fix)',
+  async () => {
+    resetMockState();
+    mockState.rpcQueue.push({ data: null });
+    mockState.generateLinkResult = { ok: true, action_link: 'https://leanshot.app/auth/v1/verify?token=x' };
+
+    const req = makeReq('accept', { token: 'valid-token', patient_email: 'patient@example.com' });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+
+    // Default listUsers mock returns one row → user resolution finds mock-patient-id.
+    assertEquals(
+      mockState.lastAcceptRpcBody?.p_patient_user_id,
+      'mock-patient-id',
+      'RPC body must carry p_patient_user_id resolved from listUsers',
+    );
+    // Token hash must also be present.
+    assertEquals(
+      typeof mockState.lastAcceptRpcBody?.p_invite_token_hash,
+      'string',
+      'RPC body must carry p_invite_token_hash',
+    );
+  },
+);
+
+Deno.test(
+  'Test 8d — Accept creates auth user when listUsers returns empty, then sends UUID to RPC',
+  async () => {
+    resetMockState();
+    mockState.patientLookupEmpty = true; // force createUser path
+    mockState.rpcQueue.push({ data: null });
+    mockState.generateLinkResult = { ok: true, action_link: 'https://leanshot.app/auth/v1/verify?token=x' };
+
+    const req = makeReq('accept', { token: 'valid-token', patient_email: 'new-patient@example.com' });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+
+    // createUser path returns mock-patient-id under {user: {...}}; same UUID flows to RPC.
+    assertEquals(
+      mockState.lastAcceptRpcBody?.p_patient_user_id,
+      'mock-patient-id',
+      'createUser branch must resolve UUID and pass to RPC',
+    );
   },
 );
 

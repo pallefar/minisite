@@ -323,12 +323,40 @@ async function handleAccept(req: Request): Promise<Response> {
   const tokenHash = await hashToken(rawToken);
   const admin = adminClient();
 
+  // Phase 0 (resolve patient): RPC signature is (text, uuid). The Edge Fn owns
+  // user lookup/create since admin.auth.admin.* is an HTTP call (cannot live
+  // inside the PL/pgSQL SECDEF). Use the Phase-9 listUsers({email}) pattern.
+  // If RPC subsequently rejects (expired/already-accepted), the orphan auth
+  // user is harmless — they simply have no org membership yet.
+  let patientUserId: string | undefined;
+  try {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const { data: listed } = await (admin.auth.admin as any).listUsers({ email: patientEmail });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    const users = (listed?.users ?? []) as Array<{ id: string }>;
+    patientUserId = users[0]?.id;
+  } catch {
+    patientUserId = undefined;
+  }
+  if (!patientUserId) {
+    const { data: created, error: createErr } = await admin.auth.admin.createUser({
+      email: patientEmail,
+      email_confirm: true,
+    });
+    if (createErr || !created?.user?.id) {
+      console.error('[clinic-patient-invite] createUser failed:', createErr?.message);
+      return jsonError(500, 'patient_create_failed');
+    }
+    patientUserId = created.user.id;
+  }
+
   // Phase 1 (commit): call accept_org_patient_invite RPC atomically.
-  // The RPC (Plan 29-02) handles: user lookup/create, primary_org_id set,
-  // org_consent_grants write, org_patient_links write, invite accepted_at mark.
-  // If this fails, return error — nothing committed.
+  // The RPC (Plan 29-02) writes: primary_org_id, org_consent_grants,
+  // org_patient_links, invite.accepted_at, audit_logs row.
+  // If this fails, return error — nothing committed at the org level.
   const { error: rpcErr } = await admin.rpc('accept_org_patient_invite', {
     p_invite_token_hash: tokenHash,
+    p_patient_user_id: patientUserId,
   });
 
   if (rpcErr) {
