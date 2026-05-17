@@ -74,9 +74,20 @@ planned: 2026-05-17
 - [ ] `leanshot/src/lib/__tests__/clinician-alert-auto-resolve.test.ts` — 7d transition + snooze-resume
 - [ ] `leanshot/src/lib/__tests__/mv-clinic-alert-metrics.test.ts` — REFRESH CONCURRENTLY succeeds + ack_rate_pct correctness
 - [ ] BLOCKING `supabase db push --linked` succeeds (Plan 30-00 Task 4 checkpoint)
+
+## Wave 1 Requirements (must exist before Wave 2 plan runs)
+
+- [ ] `supabase/migrations/20270601300006_p30_dose_thresholds_rpc.sql` — Plan 30-02 Task 1 Step 0 (update_org_dose_trend_thresholds SECDEF)
+- [ ] `supabase/migrations/20270601300007_p30_reset_patient_thresholds_rpc.sql` — Plan 30-04 Task 2 Step 0 (reset_patient_dose_thresholds SECDEF)
 - [ ] `supabase/functions/clinician-alert-deliver-cron/clinician-alert-deliver-cron.test.ts` — deno tests (Plan 30-01 Task 2)
-- [ ] `leanshot/e2e/clinician-alerts-realtime.spec.ts` — Playwright realtime broadcast → panel renders within 5s (Plan 30-05 Task 1)
-- [ ] `leanshot/e2e/clinic-ranking-weights-roster-reorder.spec.ts` — Playwright weight-save → roster reorder within 1s (Plan 30-05 Task 1)
+- [ ] `leanshot/src/components/clinic/roster/RosterRow.tsx` — data-testid="roster-row" + data-patient-id attributes added (Plan 30-02 Task 2; required by Plan 30-05 SC#1 e2e)
+
+## Wave 2 Requirements (Plan 30-05 deliverables)
+
+- [ ] `leanshot/e2e/clinician-alerts-realtime.spec.ts` — Playwright realtime broadcast → panel renders within 5s
+- [ ] `leanshot/e2e/clinic-ranking-weights-roster-reorder.spec.ts` — Playwright weight-save → roster reorder within 1s (SC#1)
+- [ ] Edge Function `clinician-alert-deliver-cron` deployed via `supabase functions deploy --linked`
+- [ ] `bash scripts/assert-clinic-bundle-budget.sh` passes against post-build artifacts
 
 ---
 
