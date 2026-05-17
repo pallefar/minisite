@@ -118,6 +118,31 @@ Every subsequent P28 plan (org_members, org_invites, org_subscriptions, org_sett
 
 ---
 
+## Decision A6 — ESLint custom rule extension is `.cjs` (CONTEXT D-06 amendment)
+
+**Supersedes CONTEXT D-06 filename.** CONTEXT D-06 names `eslint-rules/no-raw-service-role-client.js` but the project's `package.json` declares `"type": "module"` — so all `.js` files are ESM by default. ESLint custom rules use CommonJS (`require` / `module.exports`) and MUST therefore use the `.cjs` extension. The existing project custom rule is `eslint-rules/additive-only-events.cjs`.
+
+- **Locked filename:** `eslint-rules/no-raw-service-role-client.cjs`.
+- VALIDATION.md row 28-02-03 reads `.js`; treat as legacy text — actual file is `.cjs`. Lint command stays correct (`npm run lint -- --rule 'leanshot/no-raw-service-role-client:error'`).
+- Plan-checker BLOCKER: any plan that ships the rule as `.js` instead of `.cjs` fails — `eslint.config.js` `require()` paths must match the shipped filename.
+
+---
+
+## Decision A7 — `withOrgScope` lives in `supabase/functions/_shared/`, NOT `src/server/` (CONTEXT D-05/D-06 amendment)
+
+**Supersedes CONTEXT D-05 and D-06 file paths that placed server-only code under `src/`.** CLAUDE.md is explicit: browser-only SPA, no Node.js runtime in production, no SSR. Files under `src/` are bundled by Vite into the browser build. `withOrgScope` and `_createServiceRoleClientUnsafe()` consume `process.env` + `@sentry/node` (or Deno equivalents) — Node/Deno-only APIs that fail or import-error in browsers.
+
+- **Locked paths:**
+  - `supabase/functions/_shared/supabase-server.ts` — `_createServiceRoleClientUnsafe()` + brand types `ServiceRoleClient<Unscoped>` + `ServiceRoleClient<OrgScoped>`.
+  - `supabase/functions/_shared/with-org-scope.ts` — `withOrgScope(orgId, fn)` Proxy wrapper + `ORG_SCOPED_TABLES` const + `OrgScopeBypassError`.
+- **ESLint rule exception path updates accordingly:** `no-raw-service-role-client.cjs` blocks `createClient(..., SERVICE_ROLE_KEY)` everywhere except inside `supabase/functions/_shared/supabase-server.ts`.
+- **Sentry choice:** Use `@sentry/deno` (or `Sentry.captureException` via the existing `_shared` Sentry init from Phase 25 D-15, if extended for Edge Functions); NOT `@sentry/node`. If no Edge-Function Sentry init exists yet, ship a minimal one in this plan (small addition; per `[[reference_supabase_edge_function_deploy]]`).
+- **Runtime context:** Edge Functions are Deno. `process.env` becomes `Deno.env.get(...)`. Plan-02 implementation MUST use `Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')`, not `process.env.SUPABASE_SERVICE_ROLE_KEY`.
+- **Bundle ceiling impact:** With `src/server/` removed from the SPA bundle, P28 client-side adds only `src/lib/org.ts` (~3 kB), `src/lib/org-realtime.ts` (~2 kB), Zustand `org` slice (~1 kB), and the workspace-switcher spinner UI (~1 kB) = ~7 kB gz to admin-shell — well under P24 D-18 30 kB ceiling minus P27's ~18 kB.
+- **Vitest implication for Plan-02 Task 2 (`with-org-scope.test.ts`):** test file lives at `supabase/functions/_shared/__tests__/with-org-scope.test.ts` OR `tests/edge/with-org-scope.test.ts` (planner picks per existing convention). Vitest must be configured to pick up Deno-shape files via either `import.meta.url` shim or a dedicated `vitest.edge.config.ts`. Researcher recommendation: use Node-shim test mode for Vitest (mock `Deno.env.get`) since the actual Edge runtime is tested via deployed Edge Function fixtures.
+
+---
+
 ## Memory references added
 
 - `[[reference_supabase_db_query_linked]]` — Plan-0 pre-rename audit.

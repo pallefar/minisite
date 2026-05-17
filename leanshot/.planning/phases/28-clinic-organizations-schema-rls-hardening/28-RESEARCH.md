@@ -931,9 +931,19 @@ describe('org_members RLS cross-tenant', () => {
 | A7 | `crypto.subtle.importKey({name:'HMAC',hash:'SHA-256'}, …)` is supported in jsdom (Vitest test env) and Deno (Edge Functions) and modern browsers | Pattern 5 | If jsdom missing, org-realtime tests need polyfill; trivial to fix |
 | A8 | `org_realtime_channel_secret` Vault entry created once during P28 deploy via HUMAN-CHECKPOINT | Runtime State Inventory | Operator forgets; realtime channels fail with cryptic errors. Add startup health-check per `[[reference_vendor_gated_send_health_check]]` |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-### Q-A1 — `public.orgs` ↔ `organizations` collision **(LANDMINE — blocks any plan)**
+> **All four open questions are RESOLVED via `28-ADDENDUM-orgs-reconciliation.md`** (committed `d20cb10`, extended for A6/A7 in `8c0cb2d`):
+> - **Q-A1 → ADDENDUM A1** — Option 1 selected (ALTER TABLE rename `orgs` → `organizations` + add columns; Plan-00 RECONCILE Wave 0 prerequisite).
+> - **Q-A2 → ADDENDUM A2** — Parallel new `org_invites` table + new `clinic-org-invite` Edge Function importing Phase 9's `makeInviteTokenHash` (W-1 invariant preserved).
+> - **Q-A3 → ADDENDUM A4** — SECDEF helper `realtime_topic_authorized(topic, claims)` (not inline policy); uses `current_setting('request.jwt.claims', true)::jsonb`.
+> - **Q-A4 → ADDENDUM A3 (HUMAN-CHECKPOINT)** — Plan-03 Task 2 covers Dashboard enable + post-enable claim verification via `supabase db query --linked`.
+>
+> Additional ADDENDUM items locked after plan-checker iter-1 surfaced them:
+> - **A6** — ESLint rule extension is `.cjs` (project `package.json` is `"type": "module"`).
+> - **A7** — `withOrgScope` + `_createServiceRoleClientUnsafe` live in `supabase/functions/_shared/` (Deno), NOT `src/server/` (which Vite would bundle into the browser SPA).
+
+### Q-A1 — `public.orgs` ↔ `organizations` collision **[RESOLVED via ADDENDUM A1 — Option 1: ALTER TABLE rename]**
 
 - **What we know:** Phase 9 shipped `public.orgs` (live, has rows). CONTEXT D-11..D-29 names the table `organizations`. Phase 9 also shipped `public.memberships` (referenced from `org_members`'s position), `public.invites` (referenced from `org_invites`'s position), `public.roles` + `public.role_permissions` (RBAC infrastructure).
 - **What's unclear:** Did the user (CONTEXT-gather session 2026-05-17) intend `organizations` as a NEW table or as a logical-rename of `orgs`? CONTEXT D-01 says "P28 org.ts CONSUMES Phase 9 clinic.ts wrappers as-is" — implying Phase 9 tables continue to exist. But D-11 schema doesn't include Phase 9 `orgs` columns like `logo_storage_path`, `owner_user_id`, `description`, `website_url`.
@@ -943,20 +953,20 @@ describe('org_members RLS cross-tenant', () => {
   3. **`org_members` etc. FK target = `public.orgs`** (planner reframes): treat D-11 "organizations" as informal naming; FK target is `orgs(id)`. Lowest risk; requires CONTEXT wording correction only.
 - **Default if user unresponsive:** Option 3 (informal naming correction) — preserves all Phase 9 surface; D-29 EXTENSION-CONTRACT.md uses the actual table name `orgs`; downstream phases unaffected.
 
-### Q-A2 — `org_invites` vs `public.invites` (Phase 9)
+### Q-A2 — `org_invites` vs `public.invites` (Phase 9) **[RESOLVED via ADDENDUM A2 — parallel new table + new Edge Function]**
 
 - **What we know:** Phase 9 shipped `public.invites` with `invite_token_hash`, `consent_scope_at_acceptance`, `accepted_at`, sender RPC `send_invite` (route via `clinic-invite/send` Edge Function), W-1 email-enumeration fix. CONTEXT D-13 specifies `org_invites` with `invited_role org_member_role not null` (no consent_scope).
 - **What's unclear:** Should P28 `org_invites` reuse `public.invites` with a new `kind` discriminator column, or ship parallel?
 - **Recommendation:** Ship `org_invites` as a NEW table (different purpose: org-admin invites have a role and no consent scope; patient invites have a consent scope and no role). MUST import `makeInviteTokenHash` from `clinic.ts` to preserve W-1 fix. Edge Function MAY be a new `clinic-org-invite/send` or extend `clinic-invite/send` with a `kind: 'patient'|'org_admin'` discriminator. Plan-checker should verify W-1 invariant.
 - **Default if user unresponsive:** Ship `org_invites` as new table, new Edge Function (`clinic-org-invite/send`) that imports the Phase 9 token-hash helper.
 
-### Q-A3 — `realtime.messages` RLS policy: SECDEF helper or inline iteration
+### Q-A3 — `realtime.messages` RLS policy: SECDEF helper or inline iteration **[RESOLVED via ADDENDUM A4 — SECDEF helper]**
 
 - **What we know:** Pattern 4 shows the inline RLS USING-clause sketch is structurally too tight (cannot iterate the JWT's `org_ids[]` list to find the HMAC match). The CONTEXT D-23 wording is illustrative.
 - **What's unclear:** Should the policy be a one-liner calling a SECDEF helper `realtime_topic_authorized(topic, claims) returns bool`, or a more verbose policy with array iteration?
 - **Recommendation:** SECDEF helper. Keeps the policy line short, unit-testable (`select realtime_topic_authorized('org-abcd1234-patients', '{"app_metadata":{"org_ids":["…"]}}'::jsonb)`), and amenable to future per-org rotation logic.
 
-### Q-A4 — Custom Access Token Hook enablement HUMAN-CHECKPOINT
+### Q-A4 — Custom Access Token Hook enablement HUMAN-CHECKPOINT **[RESOLVED via ADDENDUM A3 — Plan-03 Task 2 ships the checkpoint + CLI verification]**
 
 - **What we know:** Hook function is a migration; ENABLING the hook is Dashboard-only (or env var on self-hosted; not relevant for Supabase Cloud).
 - **What's unclear:** Whether `supabase` CLI 2026-05 supports hook-enable via API or remains Dashboard-only.
