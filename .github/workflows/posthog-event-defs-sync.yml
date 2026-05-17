@@ -1,0 +1,62 @@
+name: PostHog Event Definitions Sync
+
+# Trigger: push to main (actual sync) or PR touching events files (dry-run only).
+# Per D-11: sync failure HARD-FAILS the workflow (blocks deploy).
+# Per RESEARCH Open Question 3: only run real sync on refs/heads/main to prevent
+# concurrent-PR clobber of PostHog event definitions.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leanshot/src/lib/analytics/events.ts'
+      - 'leanshot/src/lib/analytics/events.phi.ts'
+      - 'leanshot/scripts/sync-posthog-event-defs.ts'
+      - '.github/workflows/posthog-event-defs-sync.yml'
+  pull_request:
+    paths:
+      - 'leanshot/src/lib/analytics/events*.ts'
+      - 'leanshot/scripts/sync-posthog-event-defs.ts'
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  # Real sync job: runs only on push to main, hard-fails on API error (D-11).
+  sync:
+    name: Sync event definitions to PostHog
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - name: Sync PostHog event definitions
+        # Script exits non-zero on API error → step fails → job fails → deploy blocked (D-11)
+        run: npm run sync-posthog
+        env:
+          POSTHOG_PROJECT_ID: ${{ secrets.POSTHOG_PROJECT_ID }}
+          POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
+          POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+
+  # Dry-run job: runs on PRs touching event files. Warns but does not block (visibility only).
+  dryrun:
+    name: Dry-run event definitions sync (PR preview)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - name: Dry-run PostHog event definitions sync
+        # Uses dummy env vars — no real API calls made; shows reviewer planned changes
+        run: POSTHOG_PROJECT_ID=dummy POSTHOG_PROJECT_API_KEY=dummy npm run sync-posthog -- --dry-run
