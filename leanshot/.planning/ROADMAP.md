@@ -79,7 +79,6 @@
   3. Server-side PostHog captures signup/payment/activation/refund events from Edge Functions and the events are present in PostHog even when the browser has an adblocker installed
   4. Admin views the audit log diff viewer with before/after JSONB and confirms RLS denies updates/deletes on `audit_logs` rows
   5. Per-chunk bundle ceilings (admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB) are declared in CI and `npm run build` fails when any chunk exceeds its ceiling
-**Plans**: TBD
 
 **UI hint**: yes
 
@@ -114,11 +113,19 @@
   2. Affiliate progresses Standard → Gold automatically at N paid conversions; Gold → Lifetime requires admin grant; partner dashboard renders a tier-progress bar + per-tier earnings breakdown + next-tier threshold
   3. Lifetime affiliates receive monthly recurring commissions on still-active subscribers via `affiliate-lifetime-recurring` cron Edge Fn until subscriber cancels
   4. Click-rate anomaly detector flags conversions whose impressions/clicks ratio Z-score exceeds 3σ on the 7-day baseline; flagged conversions appear in the admin review queue
-  5. Gold partners' `/r/{code}/landing` page resolves to the premium-styled template variant (verified via Playwright screenshot diff)
-**Plans**: TBD
-**UI hint**: yes
+  5. Gold partners` `/r/{code}/landing` page resolves to the premium-styled template variant (verified via Playwright screenshot diff)
+**Plans**: 7 plans (2 waves)
 
-### Phase 27: Modular Admin Shell Extensions
+Plans:
+- [ ] 26-01-PLAN.md — schema slab: tier ALTERs + stamp trigger + ratchet trigger + new tables + payouts.adjustments + TS source-of-truth (AFFTIER-01, AFFTIER-02)
+- [ ] 26-02-PLAN.md — ratio Z-score matview + affiliate-attribute extension + anomaly SLA reminder cron (AFFTIER-05)
+- [ ] 26-03-PLAN.md — partner dashboard tier-progress bar + per-tier earnings breakdown (AFFTIER-03)
+- [ ] 26-04-PLAN.md — Gold landing template variant + Playwright toHaveScreenshot infra + silent-fallback fix (AFFTIER-06)
+- [ ] 26-05-PLAN.md — 5 SECDEF admin RPCs + tier-management + anomaly-review admin tabs (AFFTIER-01, AFFTIER-05)
+- [ ] 26-06-PLAN.md — affiliate-lifetime-recurring monthly cron Edge Fn (AFFTIER-04)
+- [ ] 26-07-PLAN.md — stripe-webhook charge.refunded + charge.dispute.created handlers + BLOCKING schema push + Stripe Dashboard HUMAN-UAT (AFFTIER-04 + D-06)
+
+$1: Modular Admin Shell Extensions
 **Goal**: Bulk actions + cohort builder + command palette + funnel anomaly detector unlock shared infrastructure for Phases 28, 30, 34, 37.
 **Depends on**: Phase 24 (admin shell)
 **Requirements**: ADMIN-04, ADMIN-05, ADMIN-06, TAXO-03, TAXO-05
@@ -128,7 +135,6 @@
   3. Cmd+K command palette opens from any admin route and fuzzy-searches modules + recent items + quick actions with keyboard-only navigation
   4. `cohort_membership` matview refreshes via pg_cron every 15 minutes and serves cohort-membership reads with sub-50ms p99 latency
   5. Anomaly-detection cron flags any tracked funnel where 24-hour conversion < (rolling-7-day-baseline − 2σ) and admin receives the alert in-app + email within 5 minutes of detection
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 28: Clinic Organizations — Schema + RLS Hardening
@@ -141,7 +147,6 @@
   3. `withOrgScope` TypeScript wrapper REFUSES at compile time any service_role query that omits `.eq('org_id', orgId)`; runtime assertion + Sentry alert fires if a bypass somehow lands
   4. Realtime channels are subscribed with HMAC-derived `org-{hmac}-{table}` names; subscribing to a channel with a mismatched org_id is rejected by the channel auth callback
   5. `src/lib/org.ts` resolves current org via path `/clinic/{slug}` → member.org_id → injection into every supabase-js client query
-**Plans**: TBD
 
 ### Phase 29: Org Subscriptions + Per-Patient Metered Billing
 **Goal**: Clinics pay Stripe per active patient via separate Stripe namespace; clinic admin invites patients via magic link.
@@ -152,7 +157,6 @@
   2. Nightly metered-billing cron aggregates `count_active_patients(org_id)` (definition locked at Phase 29 CONTEXT.md, e.g., "logged-event-in-last-30-days") and POSTs a Stripe Meter Event per org; invoice line matches usage
   3. Clinic admin enters a patient email → patient receives magic-link invite → on first login, patient's `profiles.primary_org_id` is set and an `org_consent_grants` row records explicit consent
   4. Stripe webhook updates `org_subscriptions.status` and reflects in the clinic admin's billing surface within 30 seconds of the Stripe event
-**Plans**: TBD
 
 ### Phase 30: Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts
 **Goal**: Clinic deals close on this surface; per-clinic ranking + nightly alert cron + ack/snooze workflow ship together.
@@ -164,7 +168,6 @@
   3. Same alert within 24h debounces to a single notification; on delivery failure, 3 retries over 1h are attempted before failure is logged
   4. Clinician can acknowledge or snooze an alert; un-acted alerts auto-resolve after 7 days
   5. Aggregate clinic dashboard surfaces population-level metrics ("# patients on Wegovy below dosing range this week") via materialized view refreshing every 15 minutes
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 31: White-Label (Path-Based) + Org Roles + Clinic Onboarding Builder
@@ -175,7 +178,6 @@
   1. Visiting `/clinic/{slug}/...` applies `org_branding` CSS-var overlay (logo, primary color, accent, favicon) within first paint; no flash of unstyled theme
   2. Org admin assigns 3 roles (owner / clinician / staff) to org_members; UI gates admin actions per role; permission matrix is enforced both server-side (RLS) and client-side (UI)
   3. Clinic admin drags onboarding steps in the customizer (reusing Phase 15 dnd-kit primitives) and saves an org-specific onboarding flow; invited patients see that org's flow on first sign-in
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 32: Spanish i18n (Parallel with Clinic Track)
@@ -188,7 +190,6 @@
   3. Welcome series, password reset, payment receipt, clinic invite, dunning, DSAR confirmation emails all render correct Spanish copy when `profiles.locale='es'`
   4. KB article `{slug}.es.md` files serve at the same URL path with `?lang=es`; HELP search returns Spanish results when `locale='es'`
   5. Admin edits a `locale_overrides` row to hot-patch a mistranslation per-org or per-deployment without redeploying; ICU pluralization passes the singular/plural/zero/other test fixture for both `en` and `es`
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)
@@ -201,7 +202,6 @@
   3. Daily gap-detection cron compares actual fact-row count to expected (hours × accounts × 24); inserts `ad_etl_gaps` row + admin notification when actual < expected
   4. `ad_revenue_normalized` view joins facts to PostHog conversion events using per-network normalized attribution window (Meta 7d-click default; configurable per-network); USD-normalized via `fx_rates` table populated by daily ECB fetch
   5. Admin CAC dashboard renders cost-per-acquisition by source/campaign/creative; alert fires when 7-day rolling CAC > target LTV × 0.5
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 34: M2 Onboarding Overhaul + Activation Event
@@ -214,7 +214,6 @@
   3. Onboarding ends by completing one real task (logged injection / scheduled dose / joined challenge based on stated goal); `activation_events` row inserted and event fires server-side via TAXO-02
   4. Admin drags/drops question types in the step builder, saves to `onboarding_flows.config` JSONB, runs a PostHog A/B variant, clicks "Ship Winner" → variant promotes to 100% traffic
   5. Mobile Lighthouse score ≥90 on `/onboard` route; per-step funnel analytics render in admin from PostHog queries (views / completions / drop-off / time-on-step)
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 35: M3 Gamification Engine
@@ -227,7 +226,6 @@
   3. Cohort-scoped opt-in leaderboard renders anonymized handles; matview refreshes every 15 minutes; user can opt-out and disappear from the leaderboard within the next refresh cycle
   4. Admin creates a weekly challenge (challenge_type + duration + reward) and optionally enables a cohort-scoped A/B variant; users are notified BEFORE streak break (no dark patterns)
   5. Level-up event generates a shareable OG-image card via Vercel Function; user shares to social and the card renders correctly on Twitter/X, LinkedIn, Instagram; gamification-burst chunk stays ≤8 kB gz
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 36: M3 Review Prompt Engine (Web Only)
@@ -240,7 +238,6 @@
   3. Promoter (4-5★) clicks through to external CTA (Trustpilot / G2 / Capterra) via opt-in redirect; non-promoter (1-3★) submits feedback → ticket auto-created in HELP queue with subject "Feedback from NPS rating"
   4. Admin dashboard renders per-funnel review-rate (prompt shown → internal rating → external review posted) with per-variant breakdown
   5. PostHog A/B varies trigger conditions / copy / CTA wordings; winning variant promotes via admin "Ship Winner" button
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 37: M6 Helpdesk Core
@@ -253,7 +250,6 @@
   3. Agent composes reply with AI-drafted suggestion (Claude API), `/macro` slash-command-inserts canned response, optionally attaches; CSAT auto-sent after close via Resend (or SES if PHI-touching)
   4. KB article renders markdown via react-markdown + dompurify; English + Spanish full-text search via Postgres `tsvector` + GIN returns ranked results in <100ms; article versioning preserves history
   5. SLA breach alert fires via pg_cron when open ticket exceeds priority SLA; admin sees per-tag-cluster volume trend dashboard for product-issue identification
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 38: M5b AI Recommender (pgvector + Claude Digest)
@@ -266,7 +262,6 @@
   3. User receives weekly Claude summary email at Sunday 09:00 in their timezone (short narrative + 1-3 suggested actions); sends via Resend (or SES if PHI)
   4. Recommender Edge Fn returns top-3 dashboard recommendations for a given (user_id + recent events + profile); admin dashboard tracks impression + click rates per recommendation-type
   5. Human-in-the-loop review queue lets admin approve/reject/edit AI suggestions before auto-apply; whitelisted recommendation set only
-**Plans**: TBD
 
 ### Phase 39: A/B Trifecta — Mid-Trial Paywall + Pharma Paywall + Page-Variant A/B
 **Goal**: Three A/B surfaces ship together with composite-goal measurement, canonical-link discipline, and the always-free safety-info carve-out.
@@ -278,7 +273,6 @@
   3. Every page-builder variant emits `<link rel="canonical">` to the control page; variants auto-archive at 42 days; per-variant ISR cache key prevents cross-variant cache poisoning
   4. Pharmacology paywall test: Pro users see full drug-interactions/dosing/contraindications; free users see 1-2 sentence summaries; safety-information (overdose warnings, contraindications, FDA black-box) NEVER paywalled (enforced by `phaCheck()` helper test + WMHMDA/CTDPA region-detect carveout)
   5. Admin clicks "Ship Winner" on an experiment-summary page → variant promotes to 100% + becomes new control + PostHog flag stickiness preserved; Bayesian significance badge color-codes <80% / 80-95% / >95%
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 40: Cancellation Save-Offers Flow
@@ -290,7 +284,6 @@
   2. Pause subscription for 1/2/3 months returns user to active billing on the resume date via Stripe pause_collection API
   3. Discount save-offer (20%-30% for 2-3 months) applies as a Stripe coupon at the next invoice
   4. Admin sees offer-take ROI dashboard (retention-uplift per offer-type per cohort) and can A/B different offer copy/eligibility-rules
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 41: Public Status Page + Embed-Provider Blocks
@@ -303,7 +296,6 @@
   3. YouTube embed routes through `youtube-nocookie.com`; every iframe has minimum-required `sandbox` attribute; CSP allowlist updated per provider; dompurify sanitizes any admin-pasted HTML
   4. Custom-iframe block accepts arbitrary URL but only renders when hostname matches the per-deployment admin allowlist (enforced via CSP + iframe `src` validator)
   5. Embed blocks also render inside helpdesk KB articles (extends EMBED reach to M6 surfaces); admin sees live Calendly preview in PageEditor via popup OAuth (not iframe-internal)
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 42: v1.3 Polish Closeout — WCAG 2.2 AA + Smart Notifications + PWA Offline + Dark Mode + What's New + NPS
@@ -316,7 +308,6 @@
   3. PWA installs via `vite-plugin-pwa`; offline mode lets user view tracked data without network; native-feeling install prompt appears on supported browsers
   4. Dark mode renders correctly across ALL v1.3 new surfaces (admin shell + helpdesk + onboarding builder + clinic dashboard + community + courses) with no contrast regressions
   5. "What's New" drawer surfaces shipped improvements with per-user dismissal state; quarterly NPS survey (one-question + open-text) sends to active users via Resend, segmented by tenure + plan + cohort, results visible in admin
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 43: M4 Membership Tiers Extension
@@ -328,7 +319,6 @@
   2. Admin sets per-cohort grandfathered pricing (e.g., "Pro early-adopters keep $9.99/mo when public price moves to $14.99"); grandfathered users see no upgrade prompt
   3. Coupon-driven Pro upgrade + 7-day trial extension stack with SAVE-offer discount; admin creates coupons via Stripe Coupons + Promotion Codes
   4. Community spaces / courses / events flagged as `pro_only=true` return 403 to free-tier users; tier check uses `tier_effective` lookup (NOT `tier='paid'` string match — uses `has_active` per P19 D-04 contract)
-**Plans**: TBD
 
 ### Phase 44: M4 Community Feed Foundation
 **Goal**: Skool-style in-house posts/comments/reactions/mentions/media/Realtime live on Supabase + Mux.
@@ -340,7 +330,6 @@
   3. @mention in post or comment fires in-app + email notification to the mentioned user (respecting `notification_settings`); mention parsing handles edge cases (`@@user`, `@user.`, etc.)
   4. User attaches image (Supabase Storage signed URL) OR video (Mux upload + adaptive HLS playback); per-post image-count cap enforced
   5. Admin creates Space ("GLP-1 starters", "Trial month tips", "Clinic Q&A") with per-tier visibility (Free / Pro / Lifetime); enforcement uses `tier_effective` at read-time
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard
@@ -351,7 +340,6 @@
   1. Member directory page renders profile cards (bio + links + joined-date + badges); admin can scope directory visibility to org-only for clinic memberships
   2. User opens 1:1 DM thread with another user only when recipient has DMs opted-in; rate limit caps new DM threads per day to prevent harassment
   3. Community leaderboard (separate from GAME app leaderboard) shows top contributors per space + per month with anonymized handles; cohort-scoped opt-in
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 46: M4 Courses / Classroom
@@ -364,7 +352,6 @@
   3. On course completion, server generates a PDF certificate (jsPDF, already in v1.2 stack) with user name + course title + date + verification URL; user downloads via signed URL
   4. Course landing page uses PageBuilder with per-block A/B variants (reuses PAGEAB-06); admin selects from long-form / outcome-focused / FAQ-heavy templates
   5. Pro-gated downloadable resources return 403 to free-tier users; entitlement check uses `tier_effective.has_active`
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 47: M4 Events Calendar + Zoom + Reminders + Recording
@@ -377,7 +364,6 @@
   3. Admin pastes Zoom link OR auto-generates via Zoom OAuth; deep-link visible to attendees only (not in public event card)
   4. Automatic reminder emails (1 day before + 1 hour before) fire via Resend (or SES for PHI clinic events) in each user's timezone
   5. Post-event Mux recording optionally attaches as new lesson in an adjacent course (admin-toggled)
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 48: M4 Moderation
@@ -390,7 +376,6 @@
   3. Banned-words list (admin-configurable) flags matching posts at create-time → admin queue; banned-words sweep is also re-runnable across historical content
   4. Claude API auto-flags posts/comments/DMs for toxicity + spam + medical-misinformation; flagged content goes to admin queue (NOT auto-removed); compounds with HELP AI-assist Claude budget
   5. Every moderation action (admin + automated) writes to moderation_audit_log (immutable per HIPAA-14 pattern); audit log queryable by admin
-**Plans**: TBD
 **UI hint**: yes
 
 ### Phase 49: M4 Search + Email Digests
@@ -402,7 +387,6 @@
   2. Daily digest email (top posts in your spaces + new comments on your posts + tagged-you mentions) sends via Resend at 09:00 user-timezone
   3. Weekly digest email (course progress recap + upcoming events you RSVP'd + community top-3 of the week) respects user notification preferences
   4. Every digest contains 1-click unsubscribe link; per-user digest opt-out + frequency control surfaces in `/settings/notifications`
-**Plans**: TBD
 **UI hint**: yes
 
 ## Progress
