@@ -7,6 +7,11 @@ import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import importXPlugin from 'eslint-plugin-import-x';
 import { defineConfig } from 'eslint/config';
+// Phase 24 Plan 24-02 — additive-only event registry enforcement (D-10/TAXO-06)
+// Rule is .cjs (CommonJS) because the package is ESM but ESLint rules use CJS module.exports.
+import { createRequire } from 'node:module';
+const _require = createRequire(import.meta.url);
+const additiveOnlyEventsRule = _require('./eslint-rules/additive-only-events.cjs');
 
 export default defineConfig([
   // Global ignores
@@ -219,6 +224,48 @@ export default defineConfig([
       parserOptions: {
         project: null,  // disable typed linting for test files
       },
+    },
+  },
+
+  // Phase 24 Plan 24-02 — D-10/TAXO-06: additive-only event registry enforcement.
+  // Custom rule reads `git show HEAD:src/lib/analytics/events.ts`, compares AST
+  // payload shapes, and blocks payload field removal + type changes.
+  {
+    files: ['src/lib/analytics/events.ts'],
+    plugins: {
+      'leanshot-local': { rules: { 'additive-only-events': additiveOnlyEventsRule } },
+    },
+    rules: {
+      'leanshot-local/additive-only-events': 'error',
+    },
+  },
+
+  // Phase 24 Plan 24-02 — D-12: PHI event import zone restriction.
+  // Blocks client zones from importing `events.phi.ts` (PHI events MUST originate
+  // from Edge Functions via supabase/functions/_shared/posthog-server.ts).
+  // Per [[reference_eslint_import_x_path_gotcha]]: use GLOB targets, not bare file paths.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { 'import-x': importXPlugin },
+    rules: {
+      'import-x/no-restricted-paths': ['error', {
+        zones: [
+          // Existing zones from Phase 12 Two-tunnel firewall are in a separate config block above.
+          // This zone adds the PHI event fence on top.
+          {
+            target: [
+              'src/components/**/*',
+              'src/main.tsx',
+              'src/App.tsx',
+              'src/lib/!(analytics)/**/*',
+              'src/illustrations/**/*',
+              'src/hooks/**/*',
+            ],
+            from: 'src/lib/analytics/events.phi.ts',
+            message: 'PHI events must originate from Edge Functions; route through supabase/functions/_shared/posthog-server.ts. See 24-CONTEXT.md D-12.',
+          },
+        ],
+      }],
     },
   },
 ]);
