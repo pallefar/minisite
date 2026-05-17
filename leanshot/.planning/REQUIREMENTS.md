@@ -392,7 +392,7 @@ REQ-ID → Phase mapping completed by `gsd-roadmapper` 2026-05-13 (104 REQ-IDs �
 | **v1.4 deferred carry-over** | PUSH + HEALTH + AD + WATCH + ON-01 | **33** |
 | **Original v1.2 scope** | | 104 |
 
-**v1.2 coverage (after 2026-05-17 descope):** 71 active REQ-IDs across 8 shipped/in-flight phases (12/13/14/15/16/19/22/23). 33 REQ-IDs deferred to v1.4 milestone (Phases 17/18/20/21 + ON-01). User direction 2026-05-17: **"first I will verify and close 1.2 and then focus on additional features for 1.4. milstone 1.4 needs to forcus and close averything deffred and all tech debt"** — v1.4 absorbs the deferred phases + all v1.2-era tech debt + new features.
+**v1.2 coverage (after 2026-05-17 descope):** 71 active REQ-IDs across 8 shipped/in-flight phases (12/13/14/15/16/19/22/23). 33 REQ-IDs deferred to v1.4 milestone (Phases 17/18/20/21 + ON-01). User direction 2026-05-17: **"first I will verify and close 1.2 and then focus on additional features for 1.4. milstone 1.4 needs to forcus and close averything deffred and all tech debt"** — clarified 2026-05-17: **v1.3 is the next milestone (new features only); v1.4 absorbs deferred phases + all v1.2-era tech debt + additional new features.**
 
 ---
 
