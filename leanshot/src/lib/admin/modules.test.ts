@@ -14,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 
 // Tested under vi.hoisted + dynamic import so modules.ts can be resolved by the time tests run.
 describe('ADMIN_MODULES manifest', () => {
-  it('T1: exports exactly 14 modules with the canonical D-05 keys (+ P28 clinic-orgs + P27-08 anomaly)', async () => {
+  it('T1: exports exactly 15 modules with the canonical D-05 keys (+ P28 clinic-orgs + P27-08 anomaly + P50-02 rag)', async () => {
     const { ADMIN_MODULES } = await import('./modules');
-    expect(ADMIN_MODULES).toHaveLength(14);
+    expect(ADMIN_MODULES).toHaveLength(15);
     const keys = ADMIN_MODULES.map((m) => m.key);
     const expected = [
       'users',
@@ -33,11 +33,12 @@ describe('ADMIN_MODULES manifest', () => {
       'settings',
       'audit-log',
       'clinic-orgs',  // Phase 28 Plan 07 — preview module (full UI in P31)
+      'rag',          // Phase 50 Plan 50-02 — admin-curated RAG knowledge base
     ];
     expect(keys).toEqual(expected);
   });
 
-  it('T2: all 14 entries have every required field', async () => {
+  it('T2: all 15 entries have every required field', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const requiredKeys = ['key', 'label', 'route', 'icon', 'lazy', 'flagKey', 'minRole'] as const;
     for (const mod of ADMIN_MODULES) {
@@ -50,18 +51,18 @@ describe('ADMIN_MODULES manifest', () => {
     }
   });
 
-  it('T3: all 14 flagKey values are unique', async () => {
+  it('T3: all 15 flagKey values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const flagKeys = ADMIN_MODULES.map((m) => m.flagKey);
     const unique = new Set(flagKeys);
-    expect(unique.size).toBe(14);
+    expect(unique.size).toBe(15);
   });
 
-  it('T4: all 14 route values are unique', async () => {
+  it('T4: all 15 route values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const routes = ADMIN_MODULES.map((m) => m.route);
     const unique = new Set(routes);
-    expect(unique.size).toBe(14);
+    expect(unique.size).toBe(15);
   });
 });
 
