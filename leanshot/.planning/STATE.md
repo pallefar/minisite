@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 30 context gathered
-last_updated: "2026-05-17T20:28:52.343Z"
-last_activity: 2026-05-17 -- Phase 30 planning complete
+stopped_at: Phase 30 Plan 00 complete — Wave 1 (30-01..30-04) unblocked
+last_updated: "2026-05-18T01:30:00.000Z"
+last_activity: 2026-05-18 -- Phase 30 Plan 00 (RECONCILE) executed; schema pushed to ytnsipxxmzgaebkqmokp
 progress:
   total_phases: 27
   completed_phases: 3
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 ## Current Position
 
-Phase: 29 — COMPLETE
-Plan: 6 of 8 (Plans 00, 01, 02, 03 complete)
-Status: Ready to execute
-Last activity: 2026-05-17 -- Phase 30 planning complete
+Phase: 30 — IN PROGRESS
+Plan: 1 of 6 (Plan 00 complete; Wave 1 Plans 01-04 unblocked)
+Status: Ready to execute Wave 1
+Last activity: 2026-05-18 -- Phase 30 Plan 00 RECONCILE schema pushed
 
 ### v1.3 milestone open (2026-05-17)
 
@@ -103,6 +103,7 @@ Progress: [████░░░░░░] 35%
 *Updated after each plan completion*
 | Phase 28 P06 | 8 minutes | 2 tasks | 5 files |
 | Phase 29 P00 | 8min | 3 tasks | 2 files |
+| Phase 30 P00 | 90min | 4 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - v1.3 bundle: 50 kB gz index hard ceiling; per-chunk ceilings declared in P24 — admin-shell 30 kB, helpdesk-widget 25 kB, i18n-runtime 15 kB, gamification-burst 8 kB, community-feed 20 kB, course-player 30 kB
 - v1.3 vendor cost when HIPAA chain activates: +$1,864-4,364/mo (Supabase Team+addon $924, Vercel Pro+addon $350, Sentry Business $80, Anthropic Enterprise $500-2K, PostHog Boost optional $0-2K, AWS SES ~$10)
 - [Phase ?]: OrgInviteAcceptance created inline; Playwright e2e gated on PLAYWRIGHT_RUN_P28=1; usePhiAccessLogger added for PHI audit
+- P30-00 (2026-05-18): Postgres does not support ALTER MATERIALIZED VIEW ENABLE ROW LEVEL SECURITY (unsupported DDL) — use REVOKE + SECURITY DEFINER accessor functions for matview cross-tenant isolation
+- P30-00 (2026-05-18): org_patient_links needed UNIQUE(org_id,patient_user_id) constraint before composite FK from org_patient_thresholds could reference it (42830 error at push time)
+- P30-00 (2026-05-18): vials.name is the column name (not medication_name) per Phase 6 schema
 
 ### Pending Todos
 
