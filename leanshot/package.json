@@ -28,6 +28,8 @@
     "test:visual:update": "playwright test e2e/visual --update-snapshots",
     "test:watch": "vitest",
     "check-bundle-budget": "bash scripts/assert-bundle-budget.sh && bash scripts/assert-clinic-bundle-budget.sh",
+    "i18n:extract": "i18next-parser",
+    "i18n:check": "bash scripts/check-locale-coverage.sh",
     "unused-check": "bash scripts/check-unused-baseline.sh",
     "sync-posthog": "npx tsx scripts/sync-posthog-event-defs.ts",
     "lint:stripe-phi": "npx tsx scripts/lint-stripe-phi.ts"

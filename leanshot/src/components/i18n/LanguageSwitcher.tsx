@@ -20,6 +20,25 @@ export interface LanguageSwitcherProps {
   className?: string;
 }
 
+// Per-locale label rendered via STATIC t() calls so i18next-parser can
+// extract `nav:lang_en` and `nav:lang_es` without "Key is not a string
+// literal" warnings (RESEARCH Pitfall 3). If LOCALE_CHOICES grows in v1.5
+// (D-10 single-`es` policy may flip), add new explicit cases here — the
+// `Locale` discriminant + `never` fallback gives a compile-time miss.
+function LanguageOption({ lng }: { lng: Locale }) {
+  const { t } = useTranslation('nav');
+  switch (lng) {
+    case 'en':
+      return <option value="en">{t('nav:lang_en')}</option>;
+    case 'es':
+      return <option value="es">{t('nav:lang_es')}</option>;
+    default: {
+      const _exhaustive: never = lng;
+      return _exhaustive;
+    }
+  }
+}
+
 export function LanguageSwitcher({ onChange, className }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation(['nav', 'common']);
   const current = (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2) as Locale;
@@ -37,9 +56,7 @@ export function LanguageSwitcher({ onChange, className }: LanguageSwitcherProps)
         aria-label={t('nav:lang_label')}
       >
         {LOCALE_CHOICES.map((lng) => (
-          <option key={lng} value={lng}>
-            {t(`nav:lang_${lng}`)}
-          </option>
+          <LanguageOption key={lng} lng={lng} />
         ))}
       </select>
     </label>
