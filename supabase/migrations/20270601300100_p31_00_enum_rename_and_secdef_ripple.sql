@@ -1104,21 +1104,32 @@ create policy "org_invites_select_admins"
 -- -----------------------------------------------------------------------------
 -- org_subscriptions: org_subscriptions_select_admins
 -- role = 'admin' → role = 'owner'
+-- GUARD: Phase 28 D-14 (skeleton table) was deferred to P29; the live DB at
+-- ytnsipxxmzgaebkqmokp does NOT yet have public.org_subscriptions (verified
+-- via information_schema.tables 2026-05-18). Wrap in to_regclass check so
+-- this migration is forward-compatible whenever P29 finally lands the table.
 -- -----------------------------------------------------------------------------
-drop policy if exists "org_subscriptions_select_admins" on public.org_subscriptions;
+do $$
+begin
+  if to_regclass('public.org_subscriptions') is not null then
+    drop policy if exists "org_subscriptions_select_admins" on public.org_subscriptions;
 
-create policy "org_subscriptions_select_admins"
-  on public.org_subscriptions
-  for select
-  to authenticated
-  using (
-    exists (
-      select 1 from public.org_members
-      where org_id = org_subscriptions.org_id
-        and user_id = auth.uid()
-        and role = 'owner'
-    )
-  );
+    create policy "org_subscriptions_select_admins"
+      on public.org_subscriptions
+      for select
+      to authenticated
+      using (
+        exists (
+          select 1 from public.org_members
+          where org_id = org_subscriptions.org_id
+            and user_id = auth.uid()
+            and role = 'owner'
+        )
+      );
+  else
+    raise notice 'Skipping org_subscriptions_select_admins policy ripple — table does not exist on live DB yet (P29 will add it).';
+  end if;
+end $$;
 
 -- -----------------------------------------------------------------------------
 -- org_consent_grants: org_consent_grants_select + org_consent_grants_update_revoke_only
