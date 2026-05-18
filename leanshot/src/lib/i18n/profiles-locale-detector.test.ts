@@ -27,10 +27,12 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-// Import AFTER the mock declaration so the detector picks up the mocked module.
 import { useStore } from '@/lib/store';
 import { detectionOptions } from './detector-config';
 import { profilesLocaleDetector } from './profiles-locale-detector';
+// (Imports above resolve AFTER the vi.mock declaration so the detector picks
+// up the mocked store module — the no-blank-line layout above is required
+// by import-x/order; the mock-then-import sequence is semantic, not lexical.)
 
 type Mocked = ReturnType<typeof vi.fn>;
 const getStateMock = useStore.getState as unknown as Mocked;

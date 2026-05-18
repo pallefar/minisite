@@ -15,10 +15,13 @@ import {
   Mail,
   RotateCcw,
   Building2,
+  Globe,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
 import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Confirm';
@@ -47,6 +50,7 @@ type Section =
   | 'account'
   | 'profile'
   | 'goals'
+  | 'language'
   | 'notifications'
   | 'privacy'
   // Phase 22 plan 22-11 (ON-03 + GDPR-03): two link-out entries that navigate
@@ -86,6 +90,10 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'account', label: 'Account', Icon: UserIcon },
   { id: 'profile', label: 'Profile', Icon: UserIcon },
   { id: 'goals', label: 'Goals', Icon: Target },
+  // Phase 32 Plan 32-03 (I18N-02): Language picker sits between Goals and
+  // Notifications. Single LanguageSwitcher (en/es) writes profiles.locale +
+  // calls i18n.changeLanguage atomically.
+  { id: 'language', label: 'Language', Icon: Globe },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
   // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
@@ -120,12 +128,19 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   // the early-return below guarantees the empty draft never reaches render.
   const u = useStore((s) => s.user);
   const updateUser = useStore((s) => s.updateUser);
+  // Phase 32 Plan 32-03 (I18N-02): atomic local-mirror of profiles.locale
+  // for the Language section's onChange handler. DB write is owned at the
+  // call site so error rollback is explicit (no silent best-effort).
+  const setUserLocale = useStore((s) => s.setUserLocale);
   const resetAll = useStore((s) => s.resetAll);
   const fullState = useStore((s) => s);
   const signedIn = useStore((s) => s.signedIn);
   // Phase 14 Plan 14-06: billing tier for subscription section conditional render.
   const tier = useStore((s) => s.tier);
   const toast = useToast();
+  // Phase 32 Plan 32-03 (I18N-02): i18n instance for the Language picker's
+  // changeLanguage call. Namespaces match those bootstrapped in Plan 32-01.
+  const { i18n } = useTranslation(['common', 'nav']);
 
   // Phase 5 D-04: account section visible only for permanent (non-anon) users.
   const isPermanent = Boolean(signedIn?.user && !signedIn.user.is_anonymous);
@@ -484,6 +499,59 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 />
               </div>
               <Button onClick={save}>Save goals</Button>
+            </Section>
+          )}
+
+          {section === 'language' && (
+            <Section
+              title="Language"
+              body="Choose the language used across the app and email reminders."
+            >
+              {/*
+                Phase 32 Plan 32-03 (I18N-02): atomic locale write.
+                Order matters: (1) i18n.changeLanguage flips the UI immediately;
+                (2) setUserLocale updates the Zustand mirror (drives the
+                profilesLocale detector + persists via partialize); (3) the
+                supabase upsert syncs to public.profiles so the preference
+                survives logout/login + cross-device. On DB error we revert
+                BOTH the i18n language AND the store mirror to keep them in
+                sync (no half-flipped state).
+
+                Pitfall 4 guard (32-RESEARCH §Pitfalls): this handler writes
+                ONLY `locale`, NEVER `weight_unit` (the existing user.units
+                preference is decoupled). Recomputing units from locale would
+                clobber an existing user's intentional choice.
+              */}
+              <LanguageSwitcher
+                onChange={async (next) => {
+                  const prev = (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2) as
+                    | 'en'
+                    | 'es';
+                  await i18n.changeLanguage(next);
+                  setUserLocale(next);
+                  const uid = signedIn?.user?.id;
+                  if (!uid) {
+                    // Anonymous / pre-auth — the user.locale mirror + i18n
+                    // language carry the preference forward locally. Nothing
+                    // to persist to DB yet.
+                    return;
+                  }
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({ locale: next })
+                    .eq('id', uid);
+                  if (error) {
+                    // Rollback BOTH the i18n language and the store mirror so
+                    // they remain consistent with the unchanged DB row.
+                    await i18n.changeLanguage(prev);
+                    setUserLocale(prev);
+                    toast(
+                      'Could not save language preference. Please try again.',
+                      'error',
+                    );
+                  }
+                }}
+              />
             </Section>
           )}
 
