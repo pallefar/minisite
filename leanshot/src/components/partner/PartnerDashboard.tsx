@@ -19,6 +19,11 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { PartnerActivityFeed } from '@/components/partner/PartnerActivityFeed';
 import { PartnerKpiCard } from '@/components/partner/PartnerKpiCard';
 import { usePartnerContext } from '@/components/partner/PartnerLayout';
+// Phase 26 Plan 26-03 (AFFTIER-03) — multi-tier dashboard surface. Both new
+// blocks render above the v1.2 KPI grid; KPI grid + activity feed are
+// unchanged below.
+import { PartnerTierEarningsBreakdown } from '@/components/partner/PartnerTierEarningsBreakdown';
+import { PartnerTierProgress } from '@/components/partner/PartnerTierProgress';
 import { PartnerTrendChart } from '@/components/partner/PartnerTrendChart';
 // I-4 cross-wave gate (LOCKED in 19-06a PLAN line 154) — `StripeConnectOnboardingCard`
 // is authored by Plan 19-06b (Wave 4). To keep Wave 3's test gate green
@@ -134,6 +139,14 @@ export function PartnerDashboard(): ReactNode {
         requirements={requirements}
         disabledReason={disabledReason}
       />
+
+      {/* Phase 26 Plan 26-03 (AFFTIER-03) — Tier progress + per-tier earnings.
+          Mounted ABOVE the existing v1.2 KPI grid per plan spec; both new blocks
+          source affiliateId from profile.id (same scope the KPI cards use). */}
+      <div className="grid grid-cols-12 gap-4 md:gap-6 mb-6">
+        <PartnerTierProgress affiliateId={profile.id} />
+        <PartnerTierEarningsBreakdown affiliateId={profile.id} />
+      </div>
 
       {/* KPI grid */}
       <div className="grid grid-cols-12 gap-4 md:gap-6 mb-6">
