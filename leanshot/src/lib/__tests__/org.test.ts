@@ -39,15 +39,15 @@ describe('org.ts surface members', () => {
   // ---------------------------------------------------------------------------
   describe('useCurrentOrg()', () => {
     it('Test 1a: returns { org, role, loading } from Zustand slice', () => {
-      useStore.getState().setCurrentOrg(orgFixture, 'admin');
+      useStore.getState().setCurrentOrg(orgFixture, 'owner');
       const { result } = renderHook(() => useCurrentOrg());
       expect(result.current.org).toEqual(orgFixture);
-      expect(result.current.role).toBe('admin');
+      expect(result.current.role).toBe('owner');
       expect(result.current.loading).toBe(false);
     });
 
     it('Test 1b: returns null fields after clearCurrentOrg', () => {
-      useStore.getState().setCurrentOrg(orgFixture, 'admin');
+      useStore.getState().setCurrentOrg(orgFixture, 'owner');
       useStore.getState().clearCurrentOrg();
       const { result } = renderHook(() => useCurrentOrg());
       expect(result.current.org).toBeNull();
@@ -60,7 +60,7 @@ describe('org.ts surface members', () => {
   // Test 2 — getCurrentOrgId (present)
   // ---------------------------------------------------------------------------
   it('Test 2: getCurrentOrgId returns org.id when org is set', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     expect(getCurrentOrgId()).toBe(orgFixture.id);
   });
 
@@ -85,7 +85,7 @@ describe('org.ts surface members', () => {
   // Test 5 — surfaceCheck (admin)
   // ---------------------------------------------------------------------------
   it('Test 5: surfaceCheck admin has members.invite; does not have nonexistent', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     expect(surfaceCheck('members.invite')).toBe(true);
     expect(surfaceCheck('nonexistent.perm')).toBe(false);
   });
@@ -94,7 +94,7 @@ describe('org.ts surface members', () => {
   // Test 6 — surfaceCheck (staff)
   // ---------------------------------------------------------------------------
   it('Test 6: surfaceCheck staff: members.invite=false; patients.link=true', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'staff');
+    useStore.getState().setCurrentOrg(orgFixture, 'clinician');
     expect(surfaceCheck('members.invite')).toBe(false);
     expect(surfaceCheck('patients.link')).toBe(true);
   });
@@ -103,7 +103,7 @@ describe('org.ts surface members', () => {
   // Test 7 — surfaceCheck (viewer)
   // ---------------------------------------------------------------------------
   it('Test 7: surfaceCheck viewer: patients.link=false; members.list=true', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'viewer');
+    useStore.getState().setCurrentOrg(orgFixture, 'staff');
     expect(surfaceCheck('patients.link')).toBe(false);
     expect(surfaceCheck('members.list')).toBe(true);
   });
@@ -121,12 +121,12 @@ describe('org.ts surface members', () => {
   // Test 9 — withOrgPath (slug present)
   // ---------------------------------------------------------------------------
   it('Test 9a: withOrgPath with leading slash: /settings → /clinic/test-clinic/settings', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     expect(withOrgPath('/settings')).toBe('/clinic/test-clinic/settings');
   });
 
   it('Test 9b: withOrgPath without leading slash: settings → /clinic/test-clinic/settings', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     expect(withOrgPath('settings')).toBe('/clinic/test-clinic/settings');
   });
 
@@ -160,15 +160,15 @@ describe('org.ts surface members', () => {
   // ---------------------------------------------------------------------------
   // Test 12 — ROLE_PERMISSIONS readonly check
   // ---------------------------------------------------------------------------
-  it('Test 12: _ROLE_PERMISSIONS_FOR_TEST admin set has expected permissions', () => {
-    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('members.invite')).toBe(true);
-    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('members.revoke')).toBe(true);
-    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('members.list')).toBe(true);
-    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('settings.edit')).toBe(true);
-    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('branding.edit')).toBe(true);
-    expect(_ROLE_PERMISSIONS_FOR_TEST.admin.has('patients.link')).toBe(true);
+  it('Test 12: _ROLE_PERMISSIONS_FOR_TEST owner set has expected permissions', () => {
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('members.invite')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('members.revoke')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('members.list')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('settings.edit')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('branding.edit')).toBe(true);
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('patients.link')).toBe(true);
     // @ts-expect-error - ReadonlySet has no add method at type level
-    expect(() => (_ROLE_PERMISSIONS_FOR_TEST.admin as Set<string>).add('newperm')).not.toThrow();
+    expect(() => (_ROLE_PERMISSIONS_FOR_TEST.owner as Set<string>).add('newperm')).not.toThrow();
     // The add above would succeed at runtime (JS doesn't enforce readonly) — we verify at type level only
   });
 });

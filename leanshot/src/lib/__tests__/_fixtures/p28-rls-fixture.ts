@@ -185,14 +185,14 @@ export async function createTwoOrgsTwoUsers(prefix: string): Promise<TwoOrgsTwoU
   const { error: memberAErr } = await admin.from('org_members').insert({
     org_id: orgX,
     user_id: userA.id,
-    role: 'admin',
+    role: 'owner',
   });
   if (memberAErr) throw new Error(`org_members insert A failed: ${memberAErr.message}`);
 
   const { error: memberBErr } = await admin.from('org_members').insert({
     org_id: orgY,
     user_id: userB.id,
-    role: 'admin',
+    role: 'owner',
   });
   if (memberBErr) throw new Error(`org_members insert B failed: ${memberBErr.message}`);
 

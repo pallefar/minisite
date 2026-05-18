@@ -266,7 +266,7 @@ describe('ClinicDrillInPage — role gate for Dose thresholds tab', () => {
         return Promise.resolve({ data: null, error: null });
       }
       if (fnName === 'get_member_role') {
-        return Promise.resolve({ data: [{ role: 'viewer' }], error: null });
+        return Promise.resolve({ data: [{ role: 'staff' }], error: null }); // 'staff' = old 'viewer' after P31-00 rename
       }
       return Promise.resolve({ data: null, error: null });
     });

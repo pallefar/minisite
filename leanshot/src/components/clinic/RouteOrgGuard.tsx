@@ -94,9 +94,9 @@ function OrgInviteAcceptance({ inviteId, role, expiresAt, slug, onAccepted }: Or
   const [error, setError] = useState<string | null>(null);
 
   const roleLabel: Record<OrgRole, string> = {
-    admin: 'Administrator',
+    owner: 'Administrator',
+    clinician: 'Clinician',
     staff: 'Staff',
-    viewer: 'Viewer',
   };
 
   const expiry = new Date(expiresAt);

@@ -28,7 +28,7 @@ vi.mock('@/hooks/useToast', () => ({
 // Mock store
 vi.mock('@/lib/store', () => ({
   useStore: (selector: (s: unknown) => unknown) => {
-    const state = { currentOrgRole: 'admin' };
+    const state = { currentOrgRole: 'owner' };
     return selector(state);
   },
 }));

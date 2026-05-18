@@ -60,7 +60,7 @@ describe('RouteOrgGuard', () => {
       id: 'org-uuid-x',
       slug: 'acme-clinic',
       name: 'Acme Clinic',
-      role: 'admin' as const,
+      role: 'owner' as const,
     };
     mockRpc.mockResolvedValueOnce({
       data: { state: 'member', org_summary: orgSummary },
@@ -79,7 +79,7 @@ describe('RouteOrgGuard', () => {
     expect(storeState.currentOrg?.id).toBe('org-uuid-x');
     expect(storeState.currentOrg?.slug).toBe('acme-clinic');
     expect(storeState.currentOrg?.name).toBe('Acme Clinic');
-    expect(storeState.currentOrgRole).toBe('admin');
+    expect(storeState.currentOrgRole).toBe('owner');
 
     // Verify children are visible.
     expect(screen.getByText('Clinic Dashboard')).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('RouteOrgGuard', () => {
   it('T2: pending_invite — renders OrgInviteAcceptance, not children', async () => {
     const inviteSummary = {
       invite_id: 'invite-uuid-y',
-      role: 'staff' as const,
+      role: 'clinician' as const,
       expires_at: '2027-06-08T00:00:00Z',
     };
     mockRpc.mockResolvedValueOnce({

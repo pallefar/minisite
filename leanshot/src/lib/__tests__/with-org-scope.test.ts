@@ -229,7 +229,7 @@ describe('with-org-scope (D-28)', () => {
       return await c.rpc('send_org_invite', {
         p_org_id: ORG_ID,
         p_email: 'test@example.com',
-        p_role: 'staff',
+        p_role: 'clinician',
       });
     });
 

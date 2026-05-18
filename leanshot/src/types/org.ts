@@ -8,8 +8,8 @@
  * Do NOT define org-context types anywhere else.
  */
 
-/** The three roles available to org members (per CONTEXT D-12). */
-export type OrgRole = 'admin' | 'staff' | 'viewer';
+/** The three roles available to org members (per CONTEXT D-01 — renamed in Phase 31). */
+export type OrgRole = 'owner' | 'clinician' | 'staff';
 
 /**
  * Minimal org shape used by the org-context layer (D-03).

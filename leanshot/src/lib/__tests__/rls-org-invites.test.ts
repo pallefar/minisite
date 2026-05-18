@@ -32,7 +32,7 @@ describeIfLive('P28 RLS — org_invites cross-tenant isolation + W-1 invariant',
     const { data: inviteData } = await admin.from('org_invites').insert({
       org_id: fixture.orgY,
       email: `invite-${TEST_SLUG_PREFIX}@leanshot.test`,
-      invited_role: 'staff',
+      invited_role: 'clinician',
       invite_token_hash: `hash-${crypto.randomUUID()}`,
       created_by: fixture.userB,
     }).select('id').single();
@@ -58,7 +58,7 @@ describeIfLive('P28 RLS — org_invites cross-tenant isolation + W-1 invariant',
     const { error } = await sessA.client.from('org_invites').insert({
       org_id: orgY,
       email: `attacker-${TEST_SLUG_PREFIX}@leanshot.test`,
-      invited_role: 'staff',
+      invited_role: 'clinician',
       invite_token_hash: `attack-${crypto.randomUUID()}`,
       created_by: sessA.user_id,
     });
@@ -82,7 +82,7 @@ describeIfLive('P28 RLS — org_invites cross-tenant isolation + W-1 invariant',
     const { data: resExisting, error: err1 } = await sessA.client.rpc('send_org_invite', {
       p_org_id: orgX,
       p_email: fixture.sessB.email,
-      p_role: 'viewer',
+      p_role: 'staff',
     });
     expect(err1).toBeNull();
     const rowExisting = Array.isArray(resExisting) ? resExisting[0] : resExisting;
@@ -94,7 +94,7 @@ describeIfLive('P28 RLS — org_invites cross-tenant isolation + W-1 invariant',
     const { data: resNonexistent, error: err2 } = await sessA.client.rpc('send_org_invite', {
       p_org_id: orgX,
       p_email: nonexistentEmail,
-      p_role: 'viewer',
+      p_role: 'staff',
     });
     expect(err2).toBeNull();
     const rowNonexistent = Array.isArray(resNonexistent) ? resNonexistent[0] : resNonexistent;

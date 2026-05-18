@@ -94,12 +94,12 @@ export function ClinicSettingsPage() {
   // Permission map for NAV visibility gating. Uses cached session-scoped
   // values from useHasPermission (Phase 9 clinic-permissions.ts).
   const canReadAuditLog = useHasPermission(org?.id ?? null, 'audit_log.read');
-  // Phase 30 Plan 02: Admin role check for Clinical tab visibility.
+  // Phase 30 Plan 02 / Phase 31 Plan 00: Owner role check for Clinical tab visibility.
   const currentOrgRole = useStore((s) => s.currentOrgRole);
-  const isAdmin = currentOrgRole === 'admin';
+  const isOwner = currentOrgRole === 'owner';
   const permMap: Record<string, boolean | null> = {
     'audit_log.read': canReadAuditLog,
-    'org_role.admin': isAdmin,
+    'org_role.admin': isOwner,  // key 'org_role.admin' preserved — owned by Plan 31-05
   };
 
   // Sync route on popstate (back/forward) AND on internal pushState. We
@@ -249,7 +249,7 @@ export function ClinicSettingsPage() {
           )}
           {route.tab === 'roles' && <RolesTab orgId={org.id} />}
           {route.tab === 'audit' && canReadAuditLog && <AuditTab orgId={org.id} />}
-          {route.tab === 'clinical' && isAdmin && (
+          {route.tab === 'clinical' && isOwner && (
             <div className="space-y-6">
               <header>
                 <h1 className="text-[20px] font-semibold tracking-tight text-[var(--color-text)]">

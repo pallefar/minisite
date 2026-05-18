@@ -28,13 +28,14 @@ import { useStore } from './store';
 export type { OrgContext, OrgRole, CurrentOrgContext };
 
 // ---------------------------------------------------------------------------
-// ROLE_PERMISSIONS matrix (per CONTEXT D-12 + research §Pattern 2).
-// Only 6 permissions are needed at the client layer (UX hints).
-// The server-side has_permission() SECDEF function (Phase 9) is the security floor.
+// ROLE_PERMISSIONS matrix (per CONTEXT D-01 + D-03 + research §Pattern 2).
+// Keys renamed in Plan 31-00 (admin→owner, staff→clinician, viewer→staff).
+// Value sets remain 6-permission shape until Plan 31-01 expands them per D-03.
+// The server-side has_permission() SECDEF function is the security floor.
 // ---------------------------------------------------------------------------
 
 const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
-  admin: new Set([
+  owner: new Set([
     'members.invite',
     'members.revoke',
     'members.list',
@@ -42,8 +43,8 @@ const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
     'branding.edit',
     'patients.link',
   ]),
-  staff: new Set(['members.list', 'patients.link']),
-  viewer: new Set(['members.list']),
+  clinician: new Set(['members.list', 'patients.link']),
+  staff: new Set(['members.list']),
 };
 
 // ---------------------------------------------------------------------------

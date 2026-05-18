@@ -43,16 +43,16 @@ describe('store org slice', () => {
   });
 
   it('Test 3: setCurrentOrg updates both fields atomically', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     const state = useStore.getState();
     expect(state.currentOrg).toEqual(orgFixture);
-    expect(state.currentOrgRole).toBe<OrgRole>('admin');
+    expect(state.currentOrgRole).toBe<OrgRole>('owner');
     // loading is reset to false by setCurrentOrg
     expect(state.currentOrgLoading).toBe(false);
   });
 
   it('Test 4: clearCurrentOrg resets to initial state', () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     useStore.getState().clearCurrentOrg();
     const state = useStore.getState();
     expect(state.currentOrg).toBeNull();
@@ -61,7 +61,7 @@ describe('store org slice', () => {
   });
 
   it('Test 5: org slice fields are NOT persisted to localStorage', async () => {
-    useStore.getState().setCurrentOrg(orgFixture, 'admin');
+    useStore.getState().setCurrentOrg(orgFixture, 'owner');
     // Rehydrate persists a snapshot
     await useStore.persist.rehydrate();
     // Retrieve the raw localStorage value

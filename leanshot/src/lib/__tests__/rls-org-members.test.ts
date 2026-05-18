@@ -57,7 +57,7 @@ describeIfLive('P28 RLS — org_members cross-tenant isolation', () => {
     const { error } = await sessA.client.from('org_members').insert({
       org_id: orgY,
       user_id: sessA.user_id,
-      role: 'admin',
+      role: 'owner',
     });
     // RLS deny-all for INSERT from authenticated (no INSERT policy).
     expect(error).not.toBeNull();
@@ -67,7 +67,7 @@ describeIfLive('P28 RLS — org_members cross-tenant isolation', () => {
     const { orgY, sessA } = fixture;
     const { error } = await sessA.client
       .from('org_members')
-      .update({ role: 'viewer' })
+      .update({ role: 'staff' })
       .eq('org_id', orgY);
     // Either error or 0 rows affected. Verify via admin that role is unchanged.
     const admin = getAdmin();
@@ -77,7 +77,7 @@ describeIfLive('P28 RLS — org_members cross-tenant isolation', () => {
       .eq('org_id', orgY)
       .eq('user_id', fixture.userB)
       .single();
-    expect(rowData?.role).toBe('admin'); // unchanged
+    expect(rowData?.role).toBe('owner'); // unchanged
     void error;
   }, 30_000);
 

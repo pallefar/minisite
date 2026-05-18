@@ -83,7 +83,7 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
     expect(typeof org.id).toBe('string');
     expect(typeof org.slug).toBe('string');
     expect(typeof org.name).toBe('string');
-    expect(['admin', 'staff', 'viewer']).toContain(org.role);
+    expect(['owner', 'clinician', 'staff']).toContain(org.role);
   }, 30_000);
 
   // ── T2: pending_invite state ─────────────────────────────────────────────
@@ -100,7 +100,7 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
       .insert({
         org_id: fixture.orgY,
         email: inviteEmail,
-        invited_role: 'staff',
+        invited_role: 'clinician',
         invite_token_hash: `t2-hash-${crypto.randomUUID()}`,
         created_by: fixture.userB,
         status: 'pending',
@@ -118,7 +118,7 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
     expect(result.invite_summary).toBeTruthy();
     const inv_s = result.invite_summary as Record<string, unknown>;
     expect(typeof inv_s.invite_id).toBe('string');
-    expect(['admin', 'staff', 'viewer']).toContain(inv_s.role);
+    expect(['owner', 'clinician', 'staff']).toContain(inv_s.role);
     expect(typeof inv_s.expires_at).toBe('string');
 
     // Cleanup invite.
@@ -237,7 +237,7 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
       .insert({
         org_id: fixture.orgY,
         email: sessA.email,
-        invited_role: 'staff',
+        invited_role: 'clinician',
         invite_token_hash: `t8-hash-${crypto.randomUUID()}`,
         created_by: fixture.userB,
         status: 'pending',
@@ -268,7 +268,7 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
         .insert({
           org_id: fixture.orgY,
           email: sessA.email,
-          invited_role: 'staff',
+          invited_role: 'clinician',
           invite_token_hash: `t9-${status}-hash-${crypto.randomUUID()}`,
           created_by: fixture.userB,
           status,
