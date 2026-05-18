@@ -212,6 +212,16 @@ jobs:
       - name: Stripe PHI keyword lint (Phase 25 HIPAA-08)
         run: npx tsx scripts/lint-stripe-phi.ts
 
+      # Phase 25 Plan 25-06 — HIPAA-16 Sentry session-replay masking gate.
+      # Enforces D-15: every JSX element rendering a PHI-bearing expression
+      # (patient.name, user.email, dose.value, etc.) must carry data-sentry-mask
+      # OR sentry-mask className so @sentry/replay masks the element before any
+      # session-replay frame is uploaded. Allowlist via inline comment with
+      # reason= required. Ancestor shielding (3-line lookback) accepted.
+      # Baseline scan 2026-05-18: 0 violations across 278 .tsx files.
+      - name: Sentry data-sentry-mask audit (Phase 25 HIPAA-16)
+        run: node scripts/audit-sentry-mask.ts
+
       # ─────────────────────────────────────────────────────────────────────
       # Phase 13 Plan 13-06 D-04/D-05/D-06 — Visual regression suite (12
       # snapshots in e2e/visual/) runs as part of this `npm run test:e2e`
