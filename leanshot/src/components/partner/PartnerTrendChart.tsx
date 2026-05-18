@@ -97,10 +97,10 @@ export function PartnerTrendChart({ data }: PartnerTrendChartProps): ReactNode {
         title="Clicks + conversions (30d)"
         action={
           <span className="text-xs text-[var(--color-text-secondary)]">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-primary)] mr-1 align-middle" />
+            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-primary)] me-1 align-middle" />
             Clicks
             <span className="mx-2 text-[var(--color-text-tertiary)]">·</span>
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)] mr-1 align-middle" />
+            <span className="inline-block w-2 h-2 rounded-full bg-[var(--color-success)] me-1 align-middle" />
             Conversions
           </span>
         }

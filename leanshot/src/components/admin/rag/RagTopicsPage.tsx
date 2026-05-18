@@ -173,12 +173,12 @@ export function RagTopicsPage() {
           <table className="w-full text-[13px]">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-[var(--color-border)] text-[11px] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
-                <th className="text-left px-4 py-3">Topic query</th>
-                <th className="text-left px-4 py-3">Tag</th>
-                <th className="text-left px-4 py-3">Mode</th>
-                <th className="text-left px-4 py-3">Cadence</th>
-                <th className="text-right px-4 py-3">Last scraped</th>
-                <th className="text-right px-4 py-3">Actions</th>
+                <th className="text-start px-4 py-3">Topic query</th>
+                <th className="text-start px-4 py-3">Tag</th>
+                <th className="text-start px-4 py-3">Mode</th>
+                <th className="text-start px-4 py-3">Cadence</th>
+                <th className="text-end px-4 py-3">Last scraped</th>
+                <th className="text-end px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -188,7 +188,7 @@ export function RagTopicsPage() {
                   className="border-t border-[var(--color-border)] flex flex-col md:table-row gap-1 md:gap-0 p-3 md:p-0"
                 >
                   <td className="md:px-4 md:py-3 max-w-prose truncate" title={r.query}>
-                    <span className="md:hidden text-[11px] uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mr-2">
+                    <span className="md:hidden text-[11px] uppercase tracking-[0.06em] text-[var(--color-text-secondary)] me-2">
                       Query:
                     </span>
                     {r.query}
@@ -202,10 +202,10 @@ export function RagTopicsPage() {
                     </Badge>
                   </td>
                   <td className="md:px-4 md:py-3 capitalize">{r.cadence}</td>
-                  <td className="md:px-4 md:py-3 md:text-right font-mono tabular-nums text-[var(--color-text-secondary)]">
+                  <td className="md:px-4 md:py-3 md:text-end font-mono tabular-nums text-[var(--color-text-secondary)]">
                     {formatRelative(r.last_scraped_at)}
                   </td>
-                  <td className="md:px-4 md:py-3 md:text-right">
+                  <td className="md:px-4 md:py-3 md:text-end">
                     {r.deleted_at ? (
                       <Button
                         variant="ghost"

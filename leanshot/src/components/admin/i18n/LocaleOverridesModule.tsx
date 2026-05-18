@@ -192,30 +192,30 @@ export default function LocaleOverridesModule() {
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
-                  <th className="py-2 pr-3">{t('i18n_overrides.col_lng', 'Lng')}</th>
-                  <th className="py-2 pr-3">{t('i18n_overrides.col_ns', 'NS')}</th>
-                  <th className="py-2 pr-3">{t('i18n_overrides.col_key', 'Key')}</th>
-                  <th className="py-2 pr-3">{t('i18n_overrides.col_value', 'Value')}</th>
-                  <th className="py-2 pr-3">{t('i18n_overrides.col_scope', 'Scope')}</th>
-                  <th className="py-2 pr-3">{t('i18n_overrides.col_status', 'Status')}</th>
+                <tr className="text-start text-xs text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+                  <th className="py-2 pe-3">{t('i18n_overrides.col_lng', 'Lng')}</th>
+                  <th className="py-2 pe-3">{t('i18n_overrides.col_ns', 'NS')}</th>
+                  <th className="py-2 pe-3">{t('i18n_overrides.col_key', 'Key')}</th>
+                  <th className="py-2 pe-3">{t('i18n_overrides.col_value', 'Value')}</th>
+                  <th className="py-2 pe-3">{t('i18n_overrides.col_scope', 'Scope')}</th>
+                  <th className="py-2 pe-3">{t('i18n_overrides.col_status', 'Status')}</th>
                   <th className="py-2">{t('i18n_overrides.col_actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id} className="border-b border-[var(--color-border)]">
-                    <td className="py-2 pr-3 font-mono text-xs">{row.lng}</td>
-                    <td className="py-2 pr-3 font-mono text-xs">{row.ns}</td>
-                    <td className="py-2 pr-3 font-mono text-xs">{row.key}</td>
+                    <td className="py-2 pe-3 font-mono text-xs">{row.lng}</td>
+                    <td className="py-2 pe-3 font-mono text-xs">{row.ns}</td>
+                    <td className="py-2 pe-3 font-mono text-xs">{row.key}</td>
                     {/* Plain text only — see T-32-04-01 mitigation in module header */}
-                    <td className="py-2 pr-3 max-w-xs truncate" title={row.value}>{row.value}</td>
-                    <td className="py-2 pr-3 text-xs">
+                    <td className="py-2 pe-3 max-w-xs truncate" title={row.value}>{row.value}</td>
+                    <td className="py-2 pe-3 text-xs">
                       {row.org_id
                         ? t('i18n_overrides.org_scope', 'Org')
                         : t('i18n_overrides.global_scope_short', 'Global')}
                     </td>
-                    <td className="py-2 pr-3 text-xs">
+                    <td className="py-2 pe-3 text-xs">
                       {row.published
                         ? t('i18n_overrides.published_label', 'Published')
                         : t('i18n_overrides.draft_label', 'Draft')}

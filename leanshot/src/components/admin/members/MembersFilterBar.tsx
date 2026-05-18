@@ -82,7 +82,7 @@ export function MembersFilterBar({
           </Pill>
         ))}
       </PillGroup>
-      <div className="md:ml-auto md:w-[280px]">
+      <div className="md:ms-auto md:w-[280px]">
         <Input
           type="search"
           aria-label="Search by email or name"

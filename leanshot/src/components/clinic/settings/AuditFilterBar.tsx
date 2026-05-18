@@ -133,7 +133,7 @@ function Dropdown({ id, label, options, value, allLabel, onSelect, headingLabel 
               onSelect(null);
               setOpen(false);
             }}
-            className="ml-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] focus-visible:outline-none"
+            className="ms-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] focus-visible:outline-none"
           >
             ✕
           </button>
@@ -166,7 +166,7 @@ function Dropdown({ id, label, options, value, allLabel, onSelect, headingLabel 
                   onSelect(null);
                   setOpen(false);
                 }}
-                className="w-full text-left px-3 py-2 text-[13px] text-[var(--color-text)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:bg-[var(--color-surface-elevated)]"
+                className="w-full text-start px-3 py-2 text-[13px] text-[var(--color-text)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:bg-[var(--color-surface-elevated)]"
               >
                 {allLabel}
               </button>
@@ -181,7 +181,7 @@ function Dropdown({ id, label, options, value, allLabel, onSelect, headingLabel 
                     onSelect(opt.value);
                     setOpen(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-[13px] text-[var(--color-text)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:bg-[var(--color-surface-elevated)]"
+                  className="w-full text-start px-3 py-2 text-[13px] text-[var(--color-text)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:bg-[var(--color-surface-elevated)]"
                 >
                   {opt.label}
                 </button>

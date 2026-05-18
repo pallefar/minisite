@@ -196,7 +196,7 @@ export function AdminCohortList() {
     <Card variant="elevated" padding="lg" className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-lg font-semibold">Cohorts</h2>
-        <PillGroup segmented className="ml-auto" aria-label="Filter by status">
+        <PillGroup segmented className="ms-auto" aria-label="Filter by status">
           {STATUS_FILTERS.map((f) => (
             <Pill
               key={f.key}
@@ -240,7 +240,7 @@ export function AdminCohortList() {
               <Badge tone={STATUS_BADGE[row.status].tone}>
                 {STATUS_BADGE[row.status].label}
               </Badge>
-              <div className="ml-auto flex gap-2">
+              <div className="ms-auto flex gap-2">
                 {row.status === 'draft' && (
                   <Button
                     variant="primary"

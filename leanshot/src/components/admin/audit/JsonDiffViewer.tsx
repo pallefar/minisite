@@ -45,11 +45,11 @@ export function diffKeys(
 
 const STATUS_CLASSES: Record<DiffEntry['status'], string> = {
   added:
-    'bg-[color-mix(in_srgb,var(--color-success,#16a34a)_10%,transparent)] border-l-2 border-[var(--color-success,#16a34a)]',
+    'bg-[color-mix(in_srgb,var(--color-success,#16a34a)_10%,transparent)] border-s-2 border-[var(--color-success,#16a34a)]',
   removed:
-    'bg-[color-mix(in_srgb,var(--color-danger,#dc2626)_10%,transparent)] border-l-2 border-[var(--color-danger,#dc2626)]',
+    'bg-[color-mix(in_srgb,var(--color-danger,#dc2626)_10%,transparent)] border-s-2 border-[var(--color-danger,#dc2626)]',
   changed:
-    'bg-[color-mix(in_srgb,#ca8a04_10%,transparent)] border-l-2 border-[#ca8a04]',
+    'bg-[color-mix(in_srgb,#ca8a04_10%,transparent)] border-s-2 border-[#ca8a04]',
   unchanged: '',
 };
 
@@ -79,7 +79,7 @@ function ValueCell({ value, label }: { value: unknown; label: string }) {
       </span>
       {truncated && (
         <span
-          className="ml-1 text-[10px] text-[var(--color-text-tertiary)] italic"
+          className="ms-1 text-[10px] text-[var(--color-text-tertiary)] italic"
           aria-label={`${label} truncated — hover or inspect for full value`}
         >
           (truncated)

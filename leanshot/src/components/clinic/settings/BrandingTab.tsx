@@ -196,7 +196,7 @@ function PreviewPane({
         <div
           className="w-8 flex items-center justify-center py-3 shrink-0"
           style={{
-            borderRight: '3px solid var(--brand-primary)',
+            borderInlineEnd: '3px solid var(--brand-primary)',
           }}
         >
           {tokens.logo_url ? (
@@ -758,7 +758,7 @@ function BrandingTabInner({
                 <p
                   role="alert"
                   aria-live="polite"
-                  className="text-[11px] text-[var(--color-danger)] ml-[22px]"
+                  className="text-[11px] text-[var(--color-danger)] ms-[22px]"
                 >
                   {inlineErrors.textBg}
                 </p>
@@ -799,7 +799,7 @@ function BrandingTabInner({
                 <p
                   role="alert"
                   aria-live="polite"
-                  className="text-[11px] text-[var(--color-danger)] ml-[22px]"
+                  className="text-[11px] text-[var(--color-danger)] ms-[22px]"
                 >
                   {inlineErrors.primaryBg}
                 </p>
@@ -915,12 +915,12 @@ function BrandingTabInner({
             >
               {previewDefaults ? (
                 <>
-                  <EyeOff className="size-3.5 mr-1" aria-hidden />
+                  <EyeOff className="size-3.5 me-1" aria-hidden />
                   Preview clinic theme
                 </>
               ) : (
                 <>
-                  <Eye className="size-3.5 mr-1" aria-hidden />
+                  <Eye className="size-3.5 me-1" aria-hidden />
                   Preview defaults
                 </>
               )}

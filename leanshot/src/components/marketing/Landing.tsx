@@ -15,6 +15,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { LegalFooter } from '@/components/layout/LegalFooter';
 import { Button, IconButton } from '@/components/ui/Button';
+import { useHreflangTags } from '@/hooks/useHreflangTags';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTheme } from '@/hooks/useTheme';
 import { AIAvatar } from '@/illustrations/AIAvatar';
@@ -27,6 +28,7 @@ interface LandingProps {
 
 export function Landing({ onStart }: LandingProps) {
   const { theme, toggle } = useTheme();
+  useHreflangTags();
   return (
     <div className="min-h-screen bg-[var(--color-bg)] overflow-x-hidden">
       <Nav theme={theme} toggle={toggle} onStart={onStart} />
@@ -524,7 +526,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+        className="w-full px-5 py-4 flex items-center justify-between gap-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
       >
         <span className="text-[15px] font-semibold">{q}</span>
         <ChevronDown

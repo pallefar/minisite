@@ -140,14 +140,14 @@ function BranchEditor({
           <button
             type="button"
             onClick={onRemove}
-            className="ml-auto text-[var(--color-text-secondary)] hover:text-[var(--color-danger)]"
+            className="ms-auto text-[var(--color-text-secondary)] hover:text-[var(--color-danger)]"
             aria-label="Remove group"
           >
             <Trash2 size={14} aria-hidden="true" />
           </button>
         )}
       </div>
-      <div className="space-y-2 pl-2 border-l-2 border-[var(--color-border)]">
+      <div className="space-y-2 ps-2 border-s-2 border-[var(--color-border)]">
         {branch.children.map((child, i) => (
           <CohortRuleNode
             key={i}
@@ -239,7 +239,7 @@ function LeafEditor({
         <button
           type="button"
           onClick={onRemove}
-          className="ml-auto text-[var(--color-text-secondary)] hover:text-[var(--color-danger)]"
+          className="ms-auto text-[var(--color-text-secondary)] hover:text-[var(--color-danger)]"
           aria-label="Remove condition"
         >
           <Trash2 size={14} aria-hidden="true" />

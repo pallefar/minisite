@@ -103,7 +103,7 @@ export function SubprocessorDiffFeed() {
                   href={snap.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-3 text-[var(--color-primary)] underline"
+                  className="ms-3 text-[var(--color-primary)] underline"
                   aria-label={`View subprocessor page for ${snap.vendor_name} (opens in new tab)`}
                 >
                   source

@@ -214,7 +214,7 @@ export function AvatarMenu({ onOpenSettings }: AvatarMenuProps) {
                 setOpen(false);
                 it.action();
               }}
-              className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-[14px] hover:bg-[var(--color-surface-elevated)] focus-visible:bg-[var(--color-surface-elevated)] focus-visible:outline-none"
+              className="w-full text-start flex items-center gap-2.5 px-3 py-2 text-[14px] hover:bg-[var(--color-surface-elevated)] focus-visible:bg-[var(--color-surface-elevated)] focus-visible:outline-none"
             >
               {it.icon}
               <span>{it.label}</span>

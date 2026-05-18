@@ -444,9 +444,9 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
                           onClick={() => navigateAndClose(row.href)}
                           onKeyDown={(e) => onKeyDownOption(e, row.href)}
                           className={cn(
-                            'flex items-center gap-2.5 cursor-pointer rounded-md px-2.5 py-1.5 mx-1 text-left',
+                            'flex items-center gap-2.5 cursor-pointer rounded-md px-2.5 py-1.5 mx-1 text-start',
                             'hover:bg-[var(--color-surface-elevated)] focus:bg-[var(--color-surface-elevated)] focus:outline-none',
-                            isActive && 'border-l-2 border-teal-700 pl-[8px]',
+                            isActive && 'border-s-2 border-teal-700 ps-[8px]',
                           )}
                         >
                           <MonogramOrLogo

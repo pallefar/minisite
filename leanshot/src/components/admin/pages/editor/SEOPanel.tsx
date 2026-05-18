@@ -90,7 +90,7 @@ export function SEOPanel({ value, onChange }: SEOPanelProps) {
           onChange={(e) => onChange('seo_title', e.target.value)}
         />
         <p
-          className="text-[11px] text-[var(--color-text-tertiary)] text-right"
+          className="text-[11px] text-[var(--color-text-tertiary)] text-end"
           aria-live="polite"
         >
           {titleLen} / {TITLE_MAX}
@@ -108,7 +108,7 @@ export function SEOPanel({ value, onChange }: SEOPanelProps) {
           onChange={(e) => onChange('seo_description', e.target.value)}
         />
         <p
-          className="text-[11px] text-[var(--color-text-tertiary)] text-right"
+          className="text-[11px] text-[var(--color-text-tertiary)] text-end"
           aria-live="polite"
         >
           {descLen} / {DESCRIPTION_MAX}

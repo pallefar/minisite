@@ -107,7 +107,7 @@ export function GLPCurveCard() {
             {currentLevel}
           </span>
           <span className="text-[18px] opacity-70 font-bold">%</span>
-          <span className="ml-1 text-[12px] text-[var(--color-text-tertiary)]">est.</span>
+          <span className="ms-1 text-[12px] text-[var(--color-text-tertiary)]">est.</span>
         </div>
         {lastInj && (
           <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-[var(--color-text-secondary)]">

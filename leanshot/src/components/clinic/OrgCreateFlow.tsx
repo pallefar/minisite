@@ -324,7 +324,7 @@ export function OrgCreateFlow({ onComplete, onCancel }: OrgCreateFlowProps) {
             state.slugError ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)]'
           }`}
         >
-          <span className="pl-3 text-[13px] text-[var(--color-text-tertiary)] whitespace-nowrap">
+          <span className="ps-3 text-[13px] text-[var(--color-text-tertiary)] whitespace-nowrap">
             app.leanshot.app/clinic/
           </span>
           <input

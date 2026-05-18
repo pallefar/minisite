@@ -421,7 +421,7 @@ export function RoleEditorModal({
               <table className="w-full text-[12px]" aria-label="Role permissions matrix">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left px-3 py-2 text-[var(--color-text-secondary)] font-semibold w-auto">
+                    <th className="text-start px-3 py-2 text-[var(--color-text-secondary)] font-semibold w-auto">
                       Permission
                     </th>
                     {ORG_ROLES.map((r) => (

@@ -45,7 +45,7 @@ export function PricingBlock({ block }: PricingBlockProps) {
         backgroundToneClass(tone) +
         ' w-full px-6 ' +
         (hideOnMobile ? 'hidden md:block ' : '') +
-        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-right ' : 'text-left ')
+        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-end ' : 'text-start ')
       }
       style={{ paddingTop: paddingForDensity(density), paddingBottom: paddingForDensity(density) }}
     >
@@ -63,8 +63,8 @@ export function PricingBlock({ block }: PricingBlockProps) {
             const recommended = plan.recommended === true;
             const features = Array.isArray(plan.features) ? plan.features : [];
             const planClass = recommended
-              ? 'block-pricing__plan block-pricing__plan--recommended bg-[var(--color-surface-elevated)] border-2 border-[var(--color-primary)] shadow-[0_0_0_4px_var(--color-primary-soft)] rounded-xl p-6 flex flex-col text-left'
-              : 'block-pricing__plan bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] rounded-xl p-6 flex flex-col text-left';
+              ? 'block-pricing__plan block-pricing__plan--recommended bg-[var(--color-surface-elevated)] border-2 border-[var(--color-primary)] shadow-[0_0_0_4px_var(--color-primary-soft)] rounded-xl p-6 flex flex-col text-start'
+              : 'block-pricing__plan bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] rounded-xl p-6 flex flex-col text-start';
             const ariaLabel =
               plan.ctaLabel && plan.name
                 ? `${plan.ctaLabel} — ${plan.name}`

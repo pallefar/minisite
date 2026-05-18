@@ -48,7 +48,7 @@ export function FieldShell({
         >
           {label}
           {required && (
-            <span aria-hidden className="ml-1 text-[var(--color-warning)]">
+            <span aria-hidden className="ms-1 text-[var(--color-warning)]">
               *
             </span>
           )}
@@ -56,13 +56,13 @@ export function FieldShell({
       )}
       <div className={cn(fieldShellBase, error && fieldErrorClass)}>
         {leadingIcon && (
-          <span className="pl-3 inline-flex shrink-0 text-[var(--color-text-tertiary)]" aria-hidden>
+          <span className="ps-3 inline-flex shrink-0 text-[var(--color-text-tertiary)]" aria-hidden>
             {leadingIcon}
           </span>
         )}
         {children}
         {trailingIcon && (
-          <span className="pr-3 inline-flex shrink-0 text-[var(--color-text-tertiary)]" aria-hidden>
+          <span className="pe-3 inline-flex shrink-0 text-[var(--color-text-tertiary)]" aria-hidden>
             {trailingIcon}
           </span>
         )}
@@ -114,8 +114,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={!!error || undefined}
         className={cn(
           'flex-1 bg-transparent border-none outline-none px-4 py-3 text-[14px] placeholder:text-[var(--color-text-tertiary)] disabled:cursor-not-allowed',
-          Boolean(leadingIcon) && 'pl-1.5',
-          Boolean(trailingIcon) && 'pr-1.5',
+          Boolean(leadingIcon) && 'ps-1.5',
+          Boolean(trailingIcon) && 'pe-1.5',
           className,
         )}
         {...rest}
@@ -146,7 +146,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         required={required}
         aria-invalid={!!error || undefined}
         className={cn(
-          'flex-1 bg-transparent border-none outline-none appearance-none px-4 py-3 pr-10 text-[14px] cursor-pointer disabled:cursor-not-allowed bg-no-repeat bg-[length:18px_18px] bg-[right_14px_center]',
+          'flex-1 bg-transparent border-none outline-none appearance-none px-4 py-3 pe-10 text-[14px] cursor-pointer disabled:cursor-not-allowed bg-no-repeat bg-[length:18px_18px] bg-[right_14px_center]',
           className,
         )}
         style={{

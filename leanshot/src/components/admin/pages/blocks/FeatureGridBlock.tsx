@@ -53,7 +53,7 @@ export function FeatureGridBlock({ block }: FeatureGridBlockProps) {
         backgroundToneClass(tone) +
         ' w-full px-6 ' +
         (hideOnMobile ? 'hidden md:block ' : '') +
-        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-right ' : 'text-left ')
+        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-end ' : 'text-start ')
       }
       style={{ paddingTop: paddingForDensity(density), paddingBottom: paddingForDensity(density) }}
     >
@@ -66,7 +66,7 @@ export function FeatureGridBlock({ block }: FeatureGridBlockProps) {
         <h2 className="text-[32px] font-semibold tracking-tight leading-[1.15]">
           {content.heading ?? 'Features'}
         </h2>
-        <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 text-left">
+        <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 text-start">
           {features.map((f, i) => {
             const Icon = resolveIcon(f.iconName);
             return (

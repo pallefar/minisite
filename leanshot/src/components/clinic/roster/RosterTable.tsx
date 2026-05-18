@@ -280,12 +280,12 @@ export function RosterTable({
   // ---- Column header sort icon --------------------------------------------
   const SortIcon = ({ col }: { col: SortColumn }) => {
     if (sort.column !== col) {
-      return <ArrowUpDown size={14} className="text-[var(--color-text-tertiary)] ml-1" aria-hidden />;
+      return <ArrowUpDown size={14} className="text-[var(--color-text-tertiary)] ms-1" aria-hidden />;
     }
     return sort.direction === 'desc' ? (
-      <ArrowDown size={14} className="text-[var(--color-primary)] ml-1" aria-hidden />
+      <ArrowDown size={14} className="text-[var(--color-primary)] ms-1" aria-hidden />
     ) : (
-      <ArrowUp size={14} className="text-[var(--color-primary)] ml-1" aria-hidden />
+      <ArrowUp size={14} className="text-[var(--color-primary)] ms-1" aria-hidden />
     );
   };
 
@@ -383,13 +383,13 @@ export function RosterTable({
       <div className="hidden md:block overflow-x-auto" data-testid="roster-table-desktop">
         <table
           role="grid"
-          className="w-full text-left"
+          className="w-full text-start"
           aria-label="Patient roster"
         >
           <thead>
             <tr role="row" className="border-b border-[var(--color-border)]">
               {/* Header checkbox: select all visible */}
-              <th role="columnheader" className="pb-2 pl-2 pr-1 w-[40px]">
+              <th role="columnheader" className="pb-2 ps-2 pe-1 w-[40px]">
                 <div
                   role="checkbox"
                   aria-checked={allVisibleSelected ? true : headerIndeterminate ? 'mixed' : false}
@@ -453,7 +453,7 @@ export function RosterTable({
                   key={col}
                   role="columnheader"
                   aria-sort={getAriaSortAttr(col)}
-                  className="pb-2 px-3 first:pl-4 last:pr-4 text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--color-text-tertiary)]"
+                  className="pb-2 px-3 first:ps-4 last:pe-4 text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--color-text-tertiary)]"
                 >
                   <button
                     type="button"

@@ -43,7 +43,7 @@ export function LeadFormBlock({ block }: LeadFormBlockProps) {
         backgroundToneClass(tone) +
         ' w-full px-6 ' +
         (hideOnMobile ? 'hidden md:block ' : '') +
-        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-right ' : 'text-left ')
+        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-end ' : 'text-start ')
       }
       style={{
         paddingTop: paddingForDensity(density),
@@ -61,7 +61,7 @@ export function LeadFormBlock({ block }: LeadFormBlockProps) {
           <p className="mt-2 text-[16px] opacity-80">{description}</p>
         )}
         {/* Editor preview form — display only, no submit handler. */}
-        <div className="mt-6 space-y-3 text-left">
+        <div className="mt-6 space-y-3 text-start">
           {collectName && (
             <label className="block">
               <span className="block text-[14px] font-medium mb-1">Name</span>

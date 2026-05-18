@@ -92,7 +92,7 @@ export function HeroCard() {
         </p>
         <p className="mt-1 text-[clamp(48px,7vw,82px)] font-extrabold tracking-[-0.04em] leading-[0.92] numerals-tabular">
           {countLost.toFixed(1)}
-          <span className="ml-2 text-[0.42em] font-medium opacity-70">{wU}</span>
+          <span className="ms-2 text-[0.42em] font-medium opacity-70">{wU}</span>
         </p>
         <p className="mt-2 text-[13px] opacity-80">
           Week {weeks} · {phase} phase · {phaseTip}

@@ -34,6 +34,12 @@ jobs:
       # deferred test ships with a registry entry and a fix-plan.
       - name: Deferred-tests registry audit
         run: node scripts/audit-deferred-tests.mjs
+      # Phase 32 Plan 32-07 I18N-10 — CSS logical-properties gate (RTL prep for v1.5).
+      # Fails CI if any physical-axis utility (ml-/mr-/pl-/pr-/text-left/text-right/
+      # border-l/border-r) or inline-style equivalent appears under src/ outside the
+      # whitelisted directories (illustrations, __tests__).
+      - name: CSS logical-properties gate (I18N-10)
+        run: bash scripts/check-css-logical-properties.sh
 
   format-check:
     name: Format check

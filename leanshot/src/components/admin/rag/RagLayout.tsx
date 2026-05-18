@@ -85,29 +85,29 @@ function RagTelemetryPage() {
         <table className="w-full text-[13px]">
           <thead className="text-[11px] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
             <tr>
-              <th className="text-left py-2 pr-4">Tag</th>
-              <th className="text-right py-2 pr-4">Docs</th>
-              <th className="text-right py-2 pr-4">RAG hits</th>
-              <th className="text-right py-2 pr-4">Tip imp.</th>
-              <th className="text-right py-2 pr-4">Tip clicks</th>
-              <th className="text-right py-2 pr-4">Newsletter</th>
-              <th className="text-right py-2 pr-4">Tier A</th>
-              <th className="text-right py-2 pr-4">Tier B</th>
-              <th className="text-right py-2">Tier C</th>
+              <th className="text-start py-2 pe-4">Tag</th>
+              <th className="text-end py-2 pe-4">Docs</th>
+              <th className="text-end py-2 pe-4">RAG hits</th>
+              <th className="text-end py-2 pe-4">Tip imp.</th>
+              <th className="text-end py-2 pe-4">Tip clicks</th>
+              <th className="text-end py-2 pe-4">Newsletter</th>
+              <th className="text-end py-2 pe-4">Tier A</th>
+              <th className="text-end py-2 pe-4">Tier B</th>
+              <th className="text-end py-2">Tier C</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.topic_id} className="border-t border-[var(--color-border)]">
-                <td className="py-2 pr-4">{r.tag}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.docs_ingested}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.rag_hits_7d}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.tip_impressions_7d}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.tip_clicks_7d}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.newsletter_inclusions_7d}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.tier_a_count}</td>
-                <td className="py-2 pr-4 text-right font-mono tabular-nums">{r.tier_b_count}</td>
-                <td className="py-2 text-right font-mono tabular-nums">{r.tier_c_count}</td>
+                <td className="py-2 pe-4">{r.tag}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.docs_ingested}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.rag_hits_7d}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tip_impressions_7d}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tip_clicks_7d}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.newsletter_inclusions_7d}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tier_a_count}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tier_b_count}</td>
+                <td className="py-2 text-end font-mono tabular-nums">{r.tier_c_count}</td>
               </tr>
             ))}
             {rows.length === 0 && (

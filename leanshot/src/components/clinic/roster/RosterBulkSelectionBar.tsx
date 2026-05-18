@@ -125,7 +125,7 @@ export function RosterBulkSelectionBar({
               onClick={() => handleActionClick('pdf')}
               className={cn(
                 'flex items-center gap-2 w-full px-4 py-2.5',
-                'text-left text-[13px] text-[var(--color-text)]',
+                'text-start text-[13px] text-[var(--color-text)]',
                 'hover:bg-[var(--color-surface-elevated)] transition-colors',
               )}
               data-testid="bulk-action-pdf"
@@ -139,7 +139,7 @@ export function RosterBulkSelectionBar({
               onClick={() => handleActionClick('csv')}
               className={cn(
                 'flex items-center gap-2 w-full px-4 py-2.5',
-                'text-left text-[13px] text-[var(--color-text)]',
+                'text-start text-[13px] text-[var(--color-text)]',
                 'hover:bg-[var(--color-surface-elevated)] transition-colors',
               )}
               data-testid="bulk-action-csv"
@@ -153,7 +153,7 @@ export function RosterBulkSelectionBar({
               onClick={() => handleActionClick('tabs')}
               className={cn(
                 'flex items-center gap-2 w-full px-4 py-2.5',
-                'text-left text-[13px] text-[var(--color-text)]',
+                'text-start text-[13px] text-[var(--color-text)]',
                 'hover:bg-[var(--color-surface-elevated)] transition-colors',
               )}
               data-testid="bulk-action-tabs"

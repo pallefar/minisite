@@ -47,7 +47,7 @@ export function MemberStripeTab({ userId: _userId, charges = [], onOpenRefund }:
               <th
                 key={h || 'actions'}
                 scope="col"
-                className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
+                className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
               >
                 {h || <span className="sr-only">Actions</span>}
               </th>
@@ -63,7 +63,7 @@ export function MemberStripeTab({ userId: _userId, charges = [], onOpenRefund }:
               <td className="px-4 py-3 text-sm tabular-nums">${(row.amount / 100).toFixed(2)}</td>
               <td className="px-4 py-3 text-xs">paid</td>
               <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{row.descriptor}</td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3 text-end">
                 <Button
                   size="sm"
                   variant="ghost"

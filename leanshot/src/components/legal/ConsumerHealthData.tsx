@@ -47,7 +47,7 @@ export function ConsumerHealthData() {
         <p className="leading-relaxed mb-3">
           We collect the following categories of <strong>consumer health data</strong>:
         </p>
-        <ul className="list-disc pl-6 space-y-2 mb-5">
+        <ul className="list-disc ps-6 space-y-2 mb-5">
           {CHD_CATEGORIES.map((c) => (
             <li key={c.key} className="leading-relaxed">
               <strong>{c.label}.</strong> {c.description}
@@ -57,7 +57,7 @@ export function ConsumerHealthData() {
         <p className="leading-relaxed mb-3">
           We also retain the following non–consumer-health data:
         </p>
-        <ul className="list-disc pl-6 space-y-2 mb-5">
+        <ul className="list-disc ps-6 space-y-2 mb-5">
           {NON_CHD_CATEGORIES.map((c) => (
             <li key={c.key} className="leading-relaxed">
               <strong>{c.label}.</strong> {c.description}
@@ -76,7 +76,7 @@ export function ConsumerHealthData() {
         <h2 className="text-xl font-semibold mt-8 mb-3">
           Sources from which we collect consumer health data
         </h2>
-        <ul className="list-disc pl-6 space-y-2 mb-4">
+        <ul className="list-disc ps-6 space-y-2 mb-4">
           <li className="leading-relaxed">
             <strong>Directly from you.</strong> Every consumer-health category above is data you
             enter into the app yourself — typing, tapping, picking dates, uploading photos, or
@@ -112,7 +112,7 @@ export function ConsumerHealthData() {
           We <strong>share</strong> the following categories with the processors named in §4
           strictly to operate the app:
         </p>
-        <ul className="list-disc pl-6 space-y-2 mb-4">
+        <ul className="list-disc ps-6 space-y-2 mb-4">
           <li className="leading-relaxed">
             All categories of consumer health data listed above are stored on our behalf by our
             database and storage processor (Supabase). Photos are stored as image bytes in Storage;
@@ -155,7 +155,7 @@ export function ConsumerHealthData() {
           LeanShot has no affiliates. We share consumer health data with the following third-party
           processors, each acting on our written instructions:
         </p>
-        <ul className="list-disc pl-6 space-y-2 mb-4">
+        <ul className="list-disc ps-6 space-y-2 mb-4">
           <li className="leading-relaxed">
             <strong>Supabase Inc.</strong> — managed Postgres database, authentication, and object
             storage. Receives all categories of consumer health data listed in §1. Subject to
@@ -209,7 +209,7 @@ export function ConsumerHealthData() {
         <p className="leading-relaxed mb-3">
           You can exercise these rights yourself, immediately, from inside the app:
         </p>
-        <ul className="list-disc pl-6 space-y-2 mb-4">
+        <ul className="list-disc ps-6 space-y-2 mb-4">
           <li className="leading-relaxed">
             <strong>Confirm and access.</strong> Open <em>Settings → Data → Export</em> to download
             a complete copy of every data category listed above, in JSON plus a human-readable PDF.
@@ -244,7 +244,7 @@ export function ConsumerHealthData() {
 
         {/* Important context */}
         <h2 className="text-xl font-semibold mt-8 mb-3">Important context</h2>
-        <ul className="list-disc pl-6 space-y-2 mb-4">
+        <ul className="list-disc ps-6 space-y-2 mb-4">
           <li className="leading-relaxed">
             LeanShot is <strong>not</strong> a HIPAA covered entity and is <strong>not</strong> your
             medical provider. Our service is consumer-directed wellness tracking; you should bring

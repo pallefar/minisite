@@ -367,7 +367,7 @@ export function BodyTab() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <button
-                          className="w-full text-left px-3 py-2 text-[13px] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
+                          className="w-full text-start px-3 py-2 text-[13px] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
                           onClick={() => {
                             setOpenMenuId(null);
                             // Open the photo in a new tab if storage_path exists
@@ -377,7 +377,7 @@ export function BodyTab() {
                           Open
                         </button>
                         <button
-                          className="w-full text-left px-3 py-2 text-[13px] text-[var(--color-danger)] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
+                          className="w-full text-start px-3 py-2 text-[13px] text-[var(--color-danger)] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
                           onClick={() => handleSoftDelete(p)}
                           aria-label="Move photo to trash"
                         >
@@ -411,10 +411,10 @@ export function BodyTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2 px-1">Date</th>
-                  <th className="text-left font-semibold py-2 px-1">Weight</th>
-                  <th className="text-left font-semibold py-2 px-1">BF%</th>
-                  <th className="text-left font-semibold py-2 px-1">Δ</th>
+                  <th className="text-start font-semibold py-2 px-1">Date</th>
+                  <th className="text-start font-semibold py-2 px-1">Weight</th>
+                  <th className="text-start font-semibold py-2 px-1">BF%</th>
+                  <th className="text-start font-semibold py-2 px-1">Δ</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -446,7 +446,7 @@ export function BodyTab() {
                           '—'
                         )}
                       </td>
-                      <td className="py-2 px-1 text-right">
+                      <td className="py-2 px-1 text-end">
                         <button
                           onClick={() => removeWeight(realIdx)}
                           aria-label="Delete"

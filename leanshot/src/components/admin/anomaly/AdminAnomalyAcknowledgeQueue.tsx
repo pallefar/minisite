@@ -218,25 +218,25 @@ export function AdminAnomalyAcknowledgeQueue() {
           <table className="w-full text-sm" data-testid="anomaly-alerts-table">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Funnel
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Observed (24h)
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Expected (μ ± σ)
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   z-score
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Status
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Fired
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -254,13 +254,13 @@ export function AdminAnomalyAcknowledgeQueue() {
                     <td className="px-4 py-3 text-sm align-middle font-mono">
                       {r.event_name ?? r.funnel_id.slice(0, 8)}
                     </td>
-                    <td className="px-4 py-3 text-sm tabular-nums text-right align-middle">
+                    <td className="px-4 py-3 text-sm tabular-nums text-end align-middle">
                       {r.observed_count}
                     </td>
-                    <td className="px-4 py-3 text-xs tabular-nums text-right align-middle text-[var(--color-text-secondary)]">
+                    <td className="px-4 py-3 text-xs tabular-nums text-end align-middle text-[var(--color-text-secondary)]">
                       {Number(r.expected_mean).toFixed(2)} ± {Number(r.expected_stddev).toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-sm tabular-nums text-right align-middle font-semibold">
+                    <td className="px-4 py-3 text-sm tabular-nums text-end align-middle font-semibold">
                       {Number(r.z_score).toFixed(2)}
                     </td>
                     <td className="px-4 py-3 align-middle">
@@ -269,7 +269,7 @@ export function AdminAnomalyAcknowledgeQueue() {
                     <td className="px-4 py-3 text-xs align-middle text-[var(--color-text-secondary)]">
                       {formatDate(r.fired_at)}
                     </td>
-                    <td className="px-4 py-3 text-right align-middle">
+                    <td className="px-4 py-3 text-end align-middle">
                       <Button
                         size="sm"
                         variant="ghost"

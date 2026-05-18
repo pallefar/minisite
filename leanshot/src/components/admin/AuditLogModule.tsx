@@ -238,7 +238,7 @@ export default function AuditLogModule() {
             <span>Actor</span>
             <span>Action</span>
             <span>Table</span>
-            <span className="text-right">Source</span>
+            <span className="text-end">Source</span>
           </div>
 
           {rows.map((row) => (
@@ -248,7 +248,7 @@ export default function AuditLogModule() {
                 onClick={() => handleRowToggle(row.id)}
                 aria-expanded={expandedIds.has(row.id)}
                 aria-controls={`audit-row-${row.id}-expand`}
-                className="w-full text-left px-4 py-3 hover:bg-[var(--color-surface-elevated)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)] sm:grid grid-cols-[140px_1fr_1fr_120px_80px] gap-3 items-center"
+                className="w-full text-start px-4 py-3 hover:bg-[var(--color-surface-elevated)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)] sm:grid grid-cols-[140px_1fr_1fr_120px_80px] gap-3 items-center"
               >
                 {/* Timestamp */}
                 <span className="text-[12px] font-mono text-[var(--color-text-secondary)] block sm:block">

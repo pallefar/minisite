@@ -627,10 +627,10 @@ export function CACDashboardPage() {
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] border-b border-[var(--color-border)]">
-                    <th className="text-left py-2 pr-3">Campaign</th>
-                    <th className="text-right py-2 pr-3">Spend</th>
-                    <th className="text-right py-2 pr-3">Conv.</th>
-                    <th className="text-right py-2">CAC</th>
+                    <th className="text-start py-2 pe-3">Campaign</th>
+                    <th className="text-end py-2 pe-3">Spend</th>
+                    <th className="text-end py-2 pe-3">Conv.</th>
+                    <th className="text-end py-2">CAC</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -647,12 +647,12 @@ export function CACDashboardPage() {
                           openCreativeDrawer(cr.campaign_id);
                       }}
                     >
-                      <td className="py-2 pr-3 font-medium truncate max-w-[160px]">
+                      <td className="py-2 pe-3 font-medium truncate max-w-[160px]">
                         {cr.campaign_id}
                       </td>
-                      <td className="py-2 pr-3 text-right">{formatUsd(cr.totalSpend)}</td>
-                      <td className="py-2 pr-3 text-right">{cr.totalConversions}</td>
-                      <td className="py-2 text-right">{formatUsd(cr.cac)}</td>
+                      <td className="py-2 pe-3 text-end">{formatUsd(cr.totalSpend)}</td>
+                      <td className="py-2 pe-3 text-end">{cr.totalConversions}</td>
+                      <td className="py-2 text-end">{formatUsd(cr.cac)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -709,19 +709,19 @@ function CreativeTable({ rows }: { rows: CreativeRow[] }) {
     <table className="w-full text-[13px]">
       <thead>
         <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] border-b border-[var(--color-border)]">
-          <th className="text-left py-2 pr-3">Ad ID</th>
-          <th className="text-right py-2 pr-3">Spend</th>
-          <th className="text-right py-2 pr-3">Conv.</th>
-          <th className="text-right py-2">CAC</th>
+          <th className="text-start py-2 pe-3">Ad ID</th>
+          <th className="text-end py-2 pe-3">Spend</th>
+          <th className="text-end py-2 pe-3">Conv.</th>
+          <th className="text-end py-2">CAC</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((r) => (
           <tr key={r.ad_id} className="border-b border-[var(--color-border)]">
-            <td className="py-2 pr-3 font-mono text-[11px] truncate max-w-[140px]">{r.ad_id}</td>
-            <td className="py-2 pr-3 text-right">{formatUsd(r.spend)}</td>
-            <td className="py-2 pr-3 text-right">{r.conversions}</td>
-            <td className="py-2 text-right">{formatUsd(r.cac)}</td>
+            <td className="py-2 pe-3 font-mono text-[11px] truncate max-w-[140px]">{r.ad_id}</td>
+            <td className="py-2 pe-3 text-end">{formatUsd(r.spend)}</td>
+            <td className="py-2 pe-3 text-end">{r.conversions}</td>
+            <td className="py-2 text-end">{formatUsd(r.cac)}</td>
           </tr>
         ))}
       </tbody>

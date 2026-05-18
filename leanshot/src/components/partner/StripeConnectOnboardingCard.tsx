@@ -234,7 +234,7 @@ export function StripeConnectOnboardingCard({
         variant="default"
         padding="lg"
         span={12}
-        className="border-l-4 border-l-[var(--color-danger)]"
+        className="border-s-4 border-s-[var(--color-danger)]"
       >
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">

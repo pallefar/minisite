@@ -122,7 +122,7 @@ function AlertRow({ alert, orgSlug, onAcknowledge, onSnoozeOpen, isNew = false }
             {alert.display_name}
           </span>
         )}
-        <span className="ml-auto text-[13px] text-[var(--color-text-tertiary)]">
+        <span className="ms-auto text-[13px] text-[var(--color-text-tertiary)]">
           {relativeTime(alert.created_at)}
         </span>
       </div>
@@ -343,7 +343,7 @@ export function ClinicianAlertsPanel({
         <button
           type="button"
           onClick={() => setShowResolved((v) => !v)}
-          className="text-[13px] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded px-1 text-left"
+          className="text-[13px] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded px-1 text-start"
           aria-expanded={showResolved}
         >
           {showResolved ? 'Hide resolved' : `Show resolved (${resolved.length})`}

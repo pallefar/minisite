@@ -131,7 +131,7 @@ export default function PricingIOS(): ReactElement | null {
     };
     return (
       <section
-        className="w-full px-6 py-16 text-left max-w-md mx-auto flex flex-col gap-6"
+        className="w-full px-6 py-16 text-start max-w-md mx-auto flex flex-col gap-6"
         aria-label="Clinic billing"
       >
         <div className="flex flex-col items-start gap-3">
@@ -208,7 +208,7 @@ export default function PricingIOS(): ReactElement | null {
 
   return (
     <section
-      className="w-full px-6 py-16 text-left max-w-md mx-auto flex flex-col gap-6"
+      className="w-full px-6 py-16 text-start max-w-md mx-auto flex flex-col gap-6"
       aria-label="LeanShot Plus"
     >
       <header className="flex flex-col gap-2">
@@ -243,8 +243,8 @@ export default function PricingIOS(): ReactElement | null {
         ).map((tile) => {
           const isSelected = selected === tile.key;
           const planClass = tile.recommended
-            ? 'bg-[var(--color-surface-elevated)] border-2 border-[var(--color-primary)] shadow-[0_0_0_4px_var(--color-primary-soft)] rounded-xl p-6 flex flex-col text-left'
-            : 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] rounded-xl p-6 flex flex-col text-left';
+            ? 'bg-[var(--color-surface-elevated)] border-2 border-[var(--color-primary)] shadow-[0_0_0_4px_var(--color-primary-soft)] rounded-xl p-6 flex flex-col text-start'
+            : 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] rounded-xl p-6 flex flex-col text-start';
           return (
             <button
               key={tile.key}

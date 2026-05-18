@@ -108,6 +108,21 @@ export default defineConfig([
           message:
             '`*.user!` non-null assertions are banned (project anti-pattern). Use early returns, typed guards (`if (!s.user) return null;`), or Auth-required boundary components instead. See `s.user!` audit closeout in Phase 23 (DEBT-02).',
         },
+        // Phase 32 Plan 32-07 (I18N-10) — block physical CSS properties in raw CSS
+        // strings (e.g. inline `style="margin-left: 1rem"`) and inline-style camelCase
+        // (e.g. `style={{ marginLeft: 4 }}`). Tailwind class strings are not caught by
+        // the AST rule — those are enforced by scripts/check-css-logical-properties.sh
+        // wired into CI. Together they form the I18N-10 RTL-prep gate.
+        {
+          selector: "Literal[value=/(margin|padding|border)-(left|right)\\s*:/]",
+          message:
+            'Use logical CSS properties (margin-inline-start, padding-inline-end, etc.) per Phase 32 I18N-10 (RTL prep for v1.5). See scripts/check-css-logical-properties.sh for the full mapping table.',
+        },
+        {
+          selector: "Property[key.name=/^(marginLeft|marginRight|paddingLeft|paddingRight|borderLeft|borderRight)$/]",
+          message:
+            'Use logical CSS inline-style props (marginInlineStart, paddingInlineEnd, borderInlineEnd, etc.) per Phase 32 I18N-10. Direct camelCase physical properties block RTL.',
+        },
       ],
     },
     languageOptions: {

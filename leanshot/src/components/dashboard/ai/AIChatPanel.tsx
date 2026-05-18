@@ -237,7 +237,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                       onClick={() => send(s)}
                       className="px-3 py-1.5 rounded-pill bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[12px] font-semibold hover:bg-[var(--color-primary)] hover:text-[var(--color-primary-foreground)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                     >
-                      <Sparkles className="inline size-3 mr-1 -mt-0.5" />
+                      <Sparkles className="inline size-3 me-1 -mt-0.5" />
                       {s}
                     </button>
                   ))}

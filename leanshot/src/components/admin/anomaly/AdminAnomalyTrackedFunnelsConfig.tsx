@@ -232,22 +232,22 @@ export function AdminAnomalyTrackedFunnelsConfig() {
           <table className="w-full text-sm" data-testid="anomaly-tracked-funnels-table">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Event name
                 </th>
                 <th scope="col" className="text-center text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Enabled
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Lookback (d)
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Sigma
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Created
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -281,7 +281,7 @@ export function AdminAnomalyTrackedFunnelsConfig() {
                           className="size-4 accent-[var(--color-primary)]"
                         />
                       </td>
-                      <td className="px-4 py-3 align-middle text-right">
+                      <td className="px-4 py-3 align-middle text-end">
                         <Input
                           type="number"
                           inputMode="numeric"
@@ -291,10 +291,10 @@ export function AdminAnomalyTrackedFunnelsConfig() {
                           disabled={isBusy}
                           onBlur={(e) => handleLookbackBlur(row, e.target.value)}
                           aria-label={`Lookback days: ${row.eventName}`}
-                          className="w-20 text-right tabular-nums"
+                          className="w-20 text-end tabular-nums"
                         />
                       </td>
-                      <td className="px-4 py-3 align-middle text-right">
+                      <td className="px-4 py-3 align-middle text-end">
                         <Input
                           type="number"
                           inputMode="decimal"
@@ -305,7 +305,7 @@ export function AdminAnomalyTrackedFunnelsConfig() {
                           disabled={isBusy}
                           onBlur={(e) => handleSigmaBlur(row, e.target.value)}
                           aria-label={`Sigma threshold: ${row.eventName}`}
-                          className="w-20 text-right tabular-nums"
+                          className="w-20 text-end tabular-nums"
                         />
                       </td>
                       <td className="px-4 py-3 align-middle text-xs text-[var(--color-text-secondary)]">
@@ -315,7 +315,7 @@ export function AdminAnomalyTrackedFunnelsConfig() {
                           day: 'numeric',
                         })}
                       </td>
-                      <td className="px-4 py-3 align-middle text-right">
+                      <td className="px-4 py-3 align-middle text-end">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -402,7 +402,7 @@ export function AdminAnomalyTrackedFunnelsConfig() {
             loading={addBusy}
             disabled={addBusy}
           >
-            <Plus className="size-4 mr-1" aria-hidden />
+            <Plus className="size-4 me-1" aria-hidden />
             Add
           </Button>
         </div>

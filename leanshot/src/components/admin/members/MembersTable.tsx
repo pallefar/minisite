@@ -243,7 +243,7 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
                     key={col.key}
                     scope="col"
                     aria-sort={ariaSort}
-                    className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     <button
                       type="button"
@@ -270,7 +270,7 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
               })}
               <th
                 scope="col"
-                className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
+                className="px-4 py-3 text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
               >
                 <span className="sr-only">Actions</span>
               </th>
@@ -335,7 +335,7 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
                     <Badge tone={sBadge.tone}>{sBadge.label}</Badge>
                   </td>
                   <td
-                    className="px-4 py-3 align-middle text-right"
+                    className="px-4 py-3 align-middle text-end"
                     // Swallow row-open clicks originating from the kebab popover —
                     // the actions menu must NOT also navigate to the detail page.
                     // <td> is presentational here; no a11y semantics added.

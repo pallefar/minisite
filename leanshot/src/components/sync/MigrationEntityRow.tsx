@@ -72,7 +72,7 @@ export function MigrationEntityRow({
             <button
               type="button"
               onClick={onRetry}
-              className="ml-2 underline text-[var(--color-danger)]"
+              className="ms-2 underline text-[var(--color-danger)]"
             >
               Retry
             </button>

@@ -53,7 +53,7 @@ export function SwipeToDelete({ onDelete, children, className }: SwipeToDeletePr
     >
       <div
         aria-hidden
-        className="absolute inset-y-0 right-0 w-[120px] flex items-center justify-end pr-5 bg-[var(--color-danger)] text-white"
+        className="absolute inset-y-0 right-0 w-[120px] flex items-center justify-end pe-5 bg-[var(--color-danger)] text-white"
         style={{ borderRadius: 'inherit' }}
       >
         <Trash2 className="size-5" />

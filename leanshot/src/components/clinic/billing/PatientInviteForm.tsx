@@ -140,7 +140,7 @@ export default function PatientInviteForm({ orgId }: PatientInviteFormProps) {
             className="text-[13px] text-[var(--color-text)] leading-snug cursor-pointer select-none"
           >
             Read patient activity data
-            <span className="ml-1 text-[var(--color-text-secondary)]">
+            <span className="ms-1 text-[var(--color-text-secondary)]">
               (injections, weights, meals, mood, sleep)
             </span>
           </label>

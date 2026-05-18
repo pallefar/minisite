@@ -191,14 +191,14 @@ export function RagSourcesPage() {
           <table className="w-full text-[13px]">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-[var(--color-border)] text-[11px] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
-                <th className="text-left px-4 py-3">Source name</th>
-                <th className="text-left px-4 py-3">Domain</th>
-                <th className="text-left px-4 py-3">Trust tier</th>
-                <th className="text-left px-4 py-3">Health</th>
-                <th className="text-right px-4 py-3">Topics using</th>
-                <th className="text-right px-4 py-3">Rejects 30d</th>
-                <th className="text-right px-4 py-3">Last scrape</th>
-                <th className="text-right px-4 py-3">Actions</th>
+                <th className="text-start px-4 py-3">Source name</th>
+                <th className="text-start px-4 py-3">Domain</th>
+                <th className="text-start px-4 py-3">Trust tier</th>
+                <th className="text-start px-4 py-3">Health</th>
+                <th className="text-end px-4 py-3">Topics using</th>
+                <th className="text-end px-4 py-3">Rejects 30d</th>
+                <th className="text-end px-4 py-3">Last scrape</th>
+                <th className="text-end px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -226,20 +226,20 @@ export function RagSourcesPage() {
                   <td className="md:px-4 md:py-3">
                     <HealthBadge state={r.health} reason={r.paused_reason ?? undefined} />
                   </td>
-                  <td className="md:px-4 md:py-3 md:text-right font-mono tabular-nums">
+                  <td className="md:px-4 md:py-3 md:text-end font-mono tabular-nums">
                     {r.topics_using}
                   </td>
                   <td
-                    className={`md:px-4 md:py-3 md:text-right font-mono tabular-nums ${
+                    className={`md:px-4 md:py-3 md:text-end font-mono tabular-nums ${
                       r.rejects_30d >= 5 ? 'text-[var(--color-danger)] font-semibold' : ''
                     }`}
                   >
                     {r.rejects_30d}
                   </td>
-                  <td className="md:px-4 md:py-3 md:text-right font-mono tabular-nums text-[var(--color-text-secondary)]">
+                  <td className="md:px-4 md:py-3 md:text-end font-mono tabular-nums text-[var(--color-text-secondary)]">
                     {formatRelative(r.last_scrape_at)}
                   </td>
-                  <td className="md:px-4 md:py-3 md:text-right">
+                  <td className="md:px-4 md:py-3 md:text-end">
                     {r.health === 'paused' ? (
                       <Button
                         variant="ghost"

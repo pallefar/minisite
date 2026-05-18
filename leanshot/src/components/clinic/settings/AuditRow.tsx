@@ -76,7 +76,7 @@ export function AuditRow({ event, isExpanded, onToggle }: AuditRowProps) {
         onClick={() => onToggle(event.id)}
         aria-expanded={isExpanded}
         aria-controls={`audit-row-${event.id}-details`}
-        className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[var(--color-surface-elevated)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]"
+        className="w-full text-start px-4 py-3 flex items-center gap-3 hover:bg-[var(--color-surface-elevated)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]"
       >
         {/* Timestamp */}
         <span className="text-[12px] font-mono numerals-tabular text-[var(--color-text-secondary)] shrink-0 min-w-[64px]">
@@ -87,7 +87,7 @@ export function AuditRow({ event, isExpanded, onToggle }: AuditRowProps) {
         <span className="flex-1 min-w-0 text-[13px] text-[var(--color-text)]">
           <span className="font-semibold">{actorName}</span>
           {event.actor_type !== 'org_system' && (
-            <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">
+            <span className="ms-1.5 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">
               member
             </span>
           )}

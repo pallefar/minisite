@@ -16,7 +16,7 @@ export function ProgressIndicator({ step, total }: { step: number; total: number
           style={{ width: `${target}%` }}
         />
       </div>
-      <div className="text-[12px] font-mono font-semibold text-[var(--color-text-secondary)] tabular-nums w-12 text-right">
+      <div className="text-[12px] font-mono font-semibold text-[var(--color-text-secondary)] tabular-nums w-12 text-end">
         {Math.round(display)}%
       </div>
     </div>

@@ -47,7 +47,7 @@ export function FAQBlock({ block }: FAQBlockProps) {
         backgroundToneClass(tone) +
         ' w-full px-6 ' +
         (hideOnMobile ? 'hidden md:block ' : '') +
-        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-right ' : 'text-left ')
+        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-end ' : 'text-start ')
       }
       style={{ paddingTop: paddingForDensity(density), paddingBottom: paddingForDensity(density) }}
     >
@@ -74,7 +74,7 @@ export function FAQBlock({ block }: FAQBlockProps) {
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-4 py-4 text-left text-[16px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] rounded"
+                  className="w-full flex items-center justify-between gap-4 py-4 text-start text-[16px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] rounded"
                 >
                   <span>{item.q ?? ''}</span>
                   <ChevronDown

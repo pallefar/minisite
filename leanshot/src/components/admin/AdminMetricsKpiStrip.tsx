@@ -75,7 +75,7 @@ export function AdminMetricsKpiStrip({
       </KpiTile>
       <KpiTile label="30d churn" ariaLabelledValue={`${churnPct30d.toFixed(1)} percent`}>
         {churnAnim.toFixed(1)}
-        <span className="ml-1 text-[12px] font-medium text-[var(--color-text-secondary)]">%</span>
+        <span className="ms-1 text-[12px] font-medium text-[var(--color-text-secondary)]">%</span>
       </KpiTile>
       <KpiTile
         label="Clinic seat utilization"

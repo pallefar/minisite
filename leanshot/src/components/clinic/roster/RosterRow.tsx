@@ -130,7 +130,7 @@ export function RosterRow({
     >
       {/* Checkbox cell — 40×40 hit target, shown when onToggleSelect is provided */}
       {onToggleSelect && (
-        <td role="gridcell" className="pl-2 pr-1 py-3.5 w-[40px]">
+        <td role="gridcell" className="ps-2 pe-1 py-3.5 w-[40px]">
           <div
             role="checkbox"
             aria-checked={isSelected}
@@ -175,7 +175,7 @@ export function RosterRow({
 
       {/* Score chip cell — aria-live announcement co-located here to keep HTML
           valid (span cannot be a direct sibling of td, only inside a td). */}
-      <td role="gridcell" className={cn('pr-3 py-3.5 w-[72px]', !onToggleSelect && 'pl-4')}>
+      <td role="gridcell" className={cn('pe-3 py-3.5 w-[72px]', !onToggleSelect && 'ps-4')}>
         {isFlashing && (
           <span ref={ariaLiveRef} role="status" aria-live="polite" className="sr-only">
             {row.display_name.split(' ')[0]}&apos;s data updated.
@@ -253,7 +253,7 @@ export function RosterRow({
       </td>
 
       {/* Missed-dose flag */}
-      <td role="gridcell" className="px-3 pr-4 py-3.5">
+      <td role="gridcell" className="px-3 pe-4 py-3.5">
         {row.missed_dose_flag ? (
           <AlertCircle
             size={16}

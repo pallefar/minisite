@@ -263,7 +263,7 @@ export function AffiliateApplyForm() {
                 setErrors((prev) => ({ ...prev, audience_type: undefined }));
             }}
             className={cn(
-              'flex-1 bg-transparent border-none outline-none appearance-none px-4 py-3 pr-10 text-[14px] cursor-pointer disabled:cursor-not-allowed bg-no-repeat bg-[length:18px_18px] bg-[right_14px_center]',
+              'flex-1 bg-transparent border-none outline-none appearance-none px-4 py-3 pe-10 text-[14px] cursor-pointer disabled:cursor-not-allowed bg-no-repeat bg-[length:18px_18px] bg-[right_14px_center]',
             )}
             style={{
               backgroundImage:
@@ -297,7 +297,7 @@ export function AffiliateApplyForm() {
           />
           <p
             className={cn(
-              'text-xs leading-snug text-right tabular-nums',
+              'text-xs leading-snug text-end tabular-nums',
               whyUsCounterDanger
                 ? 'text-[var(--color-danger)]'
                 : 'text-[var(--color-text-tertiary)]',

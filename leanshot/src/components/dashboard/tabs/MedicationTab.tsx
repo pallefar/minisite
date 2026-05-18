@@ -314,9 +314,9 @@ export function MedicationTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2 px-1">Date</th>
-                  <th className="text-left font-semibold py-2 px-1">Dose</th>
-                  <th className="text-left font-semibold py-2 px-1">Site</th>
+                  <th className="text-start font-semibold py-2 px-1">Date</th>
+                  <th className="text-start font-semibold py-2 px-1">Dose</th>
+                  <th className="text-start font-semibold py-2 px-1">Site</th>
                   <th className="px-1" aria-hidden></th>
                 </tr>
               </thead>
@@ -330,7 +330,7 @@ export function MedicationTab() {
                     <td className="py-2 px-1 text-[var(--color-text-secondary)]">
                       {siteShort(i.site ?? '—')}
                     </td>
-                    <td className="py-2 px-1 text-right">
+                    <td className="py-2 px-1 text-end">
                       <button
                         onClick={() => removeInjection(idx)}
                         aria-label={`Delete injection on ${formatShort(i.datetime)}`}
@@ -392,10 +392,10 @@ export function MedicationTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2 px-1">Date</th>
-                  <th className="text-left font-semibold py-2 px-1">Type</th>
-                  <th className="text-left font-semibold py-2 px-1">Amount</th>
-                  <th className="text-left font-semibold py-2 px-1">Notes</th>
+                  <th className="text-start font-semibold py-2 px-1">Date</th>
+                  <th className="text-start font-semibold py-2 px-1">Type</th>
+                  <th className="text-start font-semibold py-2 px-1">Amount</th>
+                  <th className="text-start font-semibold py-2 px-1">Notes</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -410,7 +410,7 @@ export function MedicationTab() {
                     <td className="py-2 px-1 text-[var(--color-text-secondary)] truncate max-w-[200px]">
                       {c.notes || '—'}
                     </td>
-                    <td className="py-2 px-1 text-right">
+                    <td className="py-2 px-1 text-end">
                       <button
                         onClick={() => removeCost(i)}
                         aria-label="Delete expense"

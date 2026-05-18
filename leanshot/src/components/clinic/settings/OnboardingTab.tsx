@@ -740,7 +740,7 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
       const isEditable = EDITABLE_TYPES.has(step.type);
 
       return (
-        <div className="flex items-center gap-2 h-11 flex-1 pr-1">
+        <div className="flex items-center gap-2 h-11 flex-1 pe-1">
           <Icon size={18} className="text-[var(--color-text-secondary)] shrink-0" aria-hidden />
           <span className="text-[13px] font-medium text-[var(--color-text)] flex-1 truncate">
             {step.custom?.title ?? STEP_TYPE_LABELS[step.type]}
@@ -954,7 +954,7 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
                       key={type}
                       type="button"
                       onClick={() => handleAddStep(type)}
-                      className="flex items-start gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                      className="flex items-start gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                     >
                       <Icon size={16} className="text-[var(--color-text-secondary)] mt-0.5 shrink-0" aria-hidden />
                       <span>

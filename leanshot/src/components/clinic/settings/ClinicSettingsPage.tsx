@@ -256,7 +256,7 @@ export function ClinicSettingsPage() {
                     onClick={() => switchTab(id)}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'inline-flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-left text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                      'inline-flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-start text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                       active
                         ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
                         : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text)]',

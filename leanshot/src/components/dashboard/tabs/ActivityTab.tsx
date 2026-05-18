@@ -192,7 +192,7 @@ export function ActivityTab() {
               </p>
               <p className="text-[20px] font-bold tracking-tight numerals-tabular leading-none">
                 {(steps[today] ?? 0).toLocaleString()}
-                <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ml-1">
+                <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ms-1">
                   steps
                 </span>
               </p>
@@ -258,11 +258,11 @@ export function ActivityTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2 px-1">Date</th>
-                  <th className="text-left font-semibold py-2 px-1">Type</th>
-                  <th className="text-left font-semibold py-2 px-1">Name</th>
-                  <th className="text-left font-semibold py-2 px-1">Min</th>
-                  <th className="text-left font-semibold py-2 px-1">RPE</th>
+                  <th className="text-start font-semibold py-2 px-1">Date</th>
+                  <th className="text-start font-semibold py-2 px-1">Type</th>
+                  <th className="text-start font-semibold py-2 px-1">Name</th>
+                  <th className="text-start font-semibold py-2 px-1">Min</th>
+                  <th className="text-start font-semibold py-2 px-1">RPE</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -278,7 +278,7 @@ export function ActivityTab() {
                       <td className="py-2 px-1">{w.name || '—'}</td>
                       <td className="py-2 px-1 numerals-tabular">{w.minutes || '—'}</td>
                       <td className="py-2 px-1 numerals-tabular">{w.rpe ?? '—'}</td>
-                      <td className="py-2 px-1 text-right">
+                      <td className="py-2 px-1 text-end">
                         <button
                           onClick={() => removeWorkout(realIdx)}
                           aria-label="Delete"

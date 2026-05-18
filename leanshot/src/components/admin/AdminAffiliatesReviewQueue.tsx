@@ -420,25 +420,25 @@ function ApplicationReviewBody() {
           <table className="w-full text-sm" data-testid="affiliate-conversions-table">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Affiliate
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Invoice
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Commission
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Status
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Fraud signals
                 </th>
-                <th scope="col" className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   Eligible
                 </th>
-                <th scope="col" className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -466,7 +466,7 @@ function ApplicationReviewBody() {
                       <td className="px-4 py-3 text-xs font-mono align-middle text-[var(--color-text-secondary)]">
                         {r.invoice_id}
                       </td>
-                      <td className="px-4 py-3 text-sm tabular-nums text-right align-middle">
+                      <td className="px-4 py-3 text-sm tabular-nums text-end align-middle">
                         {formatCents(r.commission_cents)}
                       </td>
                       <td className="px-4 py-3 align-middle">
@@ -489,7 +489,7 @@ function ApplicationReviewBody() {
                         {formatDate(r.eligible_at)}
                       </td>
                       <td
-                        className="px-4 py-3 text-right align-middle"
+                        className="px-4 py-3 text-end align-middle"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="inline-flex gap-1">

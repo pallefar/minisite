@@ -98,7 +98,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         <span
           aria-hidden
           className={cn(
-            'ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold tabular-nums',
+            'ms-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold tabular-nums',
             chipOnDark
               ? 'bg-white/20 text-[var(--color-primary-foreground)]'
               : 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',

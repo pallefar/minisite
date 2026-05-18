@@ -85,7 +85,7 @@ export function Sidebar({
          and even discrete Tailwind classes should NOT carry a width transition (DS-08
          mandates an INSTANT snap; inner content gets the 200ms fade instead). */
       className={cn(
-        'hidden md:flex fixed top-0 left-0 bottom-0 z-30 flex-col py-5 bg-[var(--color-surface)] border-r border-[var(--color-border)] safe-top',
+        'hidden md:flex fixed top-0 left-0 bottom-0 z-30 flex-col py-5 bg-[var(--color-surface)] border-e border-[var(--color-border)] safe-top',
         collapsed ? 'w-[72px] items-center' : 'w-[232px] items-stretch px-3',
       )}
     >
@@ -176,7 +176,7 @@ export function Sidebar({
               {!collapsed && (
                 <span
                   className={cn(
-                    'ml-3 text-[13px] font-medium relative z-10',
+                    'ms-3 text-[13px] font-medium relative z-10',
                     fadeCls,
                     labelHidden,
                   )}
@@ -185,7 +185,7 @@ export function Sidebar({
                 </span>
               )}
               {collapsed && (
-                <span className="pointer-events-none absolute left-full ml-3 px-2.5 py-1 rounded-md text-[12px] font-semibold whitespace-nowrap bg-[var(--color-text)] text-[var(--color-bg)] opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                <span className="pointer-events-none absolute left-full ms-3 px-2.5 py-1 rounded-md text-[12px] font-semibold whitespace-nowrap bg-[var(--color-text)] text-[var(--color-bg)] opacity-0 group-hover:opacity-100 transition-opacity z-50">
                   {label}
                 </span>
               )}
@@ -210,7 +210,7 @@ export function Sidebar({
         >
           <Bot className="size-5 shrink-0" strokeWidth={1.8} />
           {!collapsed && (
-            <span className={cn('ml-3 text-[13px] font-medium', fadeCls, labelHidden)}>
+            <span className={cn('ms-3 text-[13px] font-medium', fadeCls, labelHidden)}>
               {t('nav:ask_ai')}
             </span>
           )}
@@ -229,7 +229,7 @@ export function Sidebar({
             <Sun className="size-5 shrink-0" strokeWidth={1.8} />
           )}
           {!collapsed && (
-            <span className={cn('ml-3 text-[13px] font-medium', fadeCls, labelHidden)}>
+            <span className={cn('ms-3 text-[13px] font-medium', fadeCls, labelHidden)}>
               {theme === 'light' ? t('nav:dark_mode') : t('nav:light_mode')}
             </span>
           )}
@@ -244,7 +244,7 @@ export function Sidebar({
         >
           <Settings className="size-5 shrink-0" strokeWidth={1.8} />
           {!collapsed && (
-            <span className={cn('ml-3 text-[13px] font-medium', fadeCls, labelHidden)}>
+            <span className={cn('ms-3 text-[13px] font-medium', fadeCls, labelHidden)}>
               {t('nav:settings')}
             </span>
           )}
@@ -273,7 +273,7 @@ export function Sidebar({
           {!collapsed && (
             <span
               className={cn(
-                'ml-3 text-[13px] font-medium text-[var(--color-text)] truncate',
+                'ms-3 text-[13px] font-medium text-[var(--color-text)] truncate',
                 fadeCls,
                 labelHidden,
               )}

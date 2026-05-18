@@ -39,7 +39,7 @@ export function TestimonialBlock({ block }: TestimonialBlockProps) {
         backgroundToneClass(tone) +
         ' w-full px-6 ' +
         (hideOnMobile ? 'hidden md:block ' : '') +
-        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-right ' : 'text-left ')
+        (align === 'center' ? 'text-center ' : align === 'right' ? 'text-end ' : 'text-start ')
       }
       style={{ paddingTop: paddingForDensity(density), paddingBottom: paddingForDensity(density) }}
     >

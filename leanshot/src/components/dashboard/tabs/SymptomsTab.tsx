@@ -120,10 +120,10 @@ export function SymptomsTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2 px-1">Date</th>
-                  <th className="text-left font-semibold py-2 px-1">Symptom</th>
-                  <th className="text-left font-semibold py-2 px-1">Severity</th>
-                  <th className="text-left font-semibold py-2 px-1">Notes</th>
+                  <th className="text-start font-semibold py-2 px-1">Date</th>
+                  <th className="text-start font-semibold py-2 px-1">Symptom</th>
+                  <th className="text-start font-semibold py-2 px-1">Severity</th>
+                  <th className="text-start font-semibold py-2 px-1">Notes</th>
                 </tr>
               </thead>
               <tbody>

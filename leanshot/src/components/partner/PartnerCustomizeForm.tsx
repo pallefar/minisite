@@ -181,7 +181,7 @@ export function PartnerCustomizeForm({
           onChange={(e) => {
             void onPhotoChange(e);
           }}
-          className="text-[13px] text-[var(--color-text)] file:mr-3 file:px-3 file:py-1.5 file:rounded-pill file:border file:border-[var(--color-border)] file:bg-[var(--color-surface)] file:text-[var(--color-text)] file:cursor-pointer file:font-semibold file:text-[12px]"
+          className="text-[13px] text-[var(--color-text)] file:me-3 file:px-3 file:py-1.5 file:rounded-pill file:border file:border-[var(--color-border)] file:bg-[var(--color-surface)] file:text-[var(--color-text)] file:cursor-pointer file:font-semibold file:text-[12px]"
         />
         <p className="text-[12px] text-[var(--color-text-tertiary)]">
           Square JPG or PNG, at least 400&times;400px. Falls back to a colored initial if blank.

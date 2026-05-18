@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useHreflangTags } from '@/hooks/useHreflangTags';
 import { useToast } from '@/hooks/useToast';
 import { AIAvatar } from '@/illustrations/AIAvatar';
 import {
@@ -93,6 +94,10 @@ interface DraftState {
 const TOTAL_STEPS = 8;
 
 export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
+  // Phase 32 Plan 32-07 (I18N-01) — hreflang tags on the onboarding entry
+  // point so search engines index the EN + ES variants of `/onboarding`.
+  useHreflangTags();
+
   // Phase 31 Plan 06 D-10: render-branch hook — determines whether to show
   // the org's saved flow (invited patient) or the consumer DEFAULT_STEPS path.
   const flowState = useOrgOnboardingFlow();

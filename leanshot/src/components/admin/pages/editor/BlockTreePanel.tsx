@@ -91,7 +91,7 @@ function BlockTreeItemBody({ block, selected, onSelect }: BlockTreeItemBodyProps
       <button
         type="button"
         onClick={() => onSelect(block.id)}
-        className="flex-1 text-left h-[44px] text-[13px] font-medium"
+        className="flex-1 text-start h-[44px] text-[13px] font-medium"
         data-testid={`block-tree-item-${block.id}`}
         data-block-type={block.type}
       >

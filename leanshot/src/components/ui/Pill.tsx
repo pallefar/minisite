@@ -55,7 +55,7 @@ export function Pill({
         <span
           aria-hidden
           className={cn(
-            'ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-semibold tabular-nums',
+            'ms-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-semibold tabular-nums',
             active
               ? 'bg-white/20 text-[var(--color-primary-foreground)]'
               : 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
@@ -82,7 +82,7 @@ export function PillGroup({ children, className, segmented, ...rest }: PillGroup
       role={segmented ? 'tablist' : 'group'}
       className={cn(
         segmented
-          ? 'inline-flex [&>button]:rounded-none [&>button:first-child]:rounded-l-pill [&>button:last-child]:rounded-r-pill [&>button:not(:first-child)]:-ml-px'
+          ? 'inline-flex [&>button]:rounded-none [&>button:first-child]:rounded-l-pill [&>button:last-child]:rounded-r-pill [&>button:not(:first-child)]:-ms-px'
           : 'flex flex-wrap gap-1.5',
         className,
       )}

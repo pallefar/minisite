@@ -143,10 +143,10 @@ export function PartnerPayoutsPage(): ReactNode {
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Amount</th>
-                  <th className="py-2 pr-4">Status</th>
+                <tr className="text-start text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+                  <th className="py-2 pe-4">Date</th>
+                  <th className="py-2 pe-4">Amount</th>
+                  <th className="py-2 pe-4">Status</th>
                   <th className="py-2">Transfer ID</th>
                 </tr>
               </thead>
@@ -156,13 +156,13 @@ export function PartnerPayoutsPage(): ReactNode {
                     key={r.id}
                     className="border-b border-[var(--color-border)] last:border-b-0"
                   >
-                    <td className="py-2 pr-4 text-[var(--color-text)]">
+                    <td className="py-2 pe-4 text-[var(--color-text)]">
                       {new Date(r.created_at).toLocaleDateString()}
                     </td>
-                    <td className="py-2 pr-4 font-mono text-[var(--color-text)]">
+                    <td className="py-2 pe-4 font-mono text-[var(--color-text)]">
                       {formatUsd(r.amount_cents)}
                     </td>
-                    <td className="py-2 pr-4">
+                    <td className="py-2 pe-4">
                       <Badge tone={STATUS_TONE[r.status]}>{r.status}</Badge>
                     </td>
                     <td className="py-2 font-mono text-[12px] text-[var(--color-text-secondary)]">

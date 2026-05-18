@@ -63,7 +63,7 @@ export function PrivacyPolicy() {
             We collect the following <strong>health-data categories</strong> when you log them in
             the app:
           </p>
-          <ul className="list-disc pl-5 space-y-1.5 text-[var(--color-text-secondary)]">
+          <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             {DATA_CATEGORIES.filter((c) => c.isConsumerHealthData).map((c) => (
               <li key={c.key}>
                 <strong className="text-[var(--color-text)]">{c.label}.</strong> {c.description}
@@ -73,7 +73,7 @@ export function PrivacyPolicy() {
           <p>
             We also retain the following <strong>operational / metadata categories</strong>:
           </p>
-          <ul className="list-disc pl-5 space-y-1.5 text-[var(--color-text-secondary)]">
+          <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             {DATA_CATEGORIES.filter((c) => !c.isConsumerHealthData).map((c) => (
               <li key={c.key}>
                 <strong className="text-[var(--color-text)]">{c.label}.</strong> {c.description}
@@ -91,7 +91,7 @@ export function PrivacyPolicy() {
         {/* § How we use it */}
         <section className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ How we use it</h2>
-          <ul className="list-disc pl-5 space-y-1.5 text-[var(--color-text-secondary)]">
+          <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             <li>
               <strong className="text-[var(--color-text)]">Showing your data back to you.</strong>{' '}
               Charts, summaries, streaks, and the home dashboard render directly from what you have
@@ -194,7 +194,7 @@ export function PrivacyPolicy() {
         {/* § How long we retain */}
         <section className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ How long we retain</h2>
-          <ul className="list-disc pl-5 space-y-1.5 text-[var(--color-text-secondary)]">
+          <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             <li>
               While your account is active, your data is retained indefinitely. We do not auto-prune
               your health data — you decide when to delete it.
@@ -222,7 +222,7 @@ export function PrivacyPolicy() {
         {/* § Your rights */}
         <section className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ Your rights</h2>
-          <ul className="list-disc pl-5 space-y-1.5 text-[var(--color-text-secondary)]">
+          <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             <li>
               <strong className="text-[var(--color-text)]">Export your data.</strong> Settings →
               Data → Export JSON downloads every health-data row plus your AI conversation history.

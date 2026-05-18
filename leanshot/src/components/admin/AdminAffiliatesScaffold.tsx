@@ -227,37 +227,37 @@ export function AdminAffiliatesScaffold() {
                 <tr className="border-b border-[var(--color-border)]">
                   <th
                     scope="col"
-                    className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     Email
                   </th>
                   <th
                     scope="col"
-                    className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     Name
                   </th>
                   <th
                     scope="col"
-                    className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     Audience
                   </th>
                   <th
                     scope="col"
-                    className="text-right text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     Size
                   </th>
                   <th
                     scope="col"
-                    className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     Status
                   </th>
                   <th
                     scope="col"
-                    className="text-left text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                    className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
                   >
                     Applied
                   </th>
@@ -291,7 +291,7 @@ export function AdminAffiliatesScaffold() {
                       <td className="px-4 py-3 text-sm align-middle text-[var(--color-text-secondary)]">
                         {r.audience_type}
                       </td>
-                      <td className="px-4 py-3 text-sm align-middle text-right tabular-nums text-[var(--color-text-secondary)]">
+                      <td className="px-4 py-3 text-sm align-middle text-end tabular-nums text-[var(--color-text-secondary)]">
                         {formatCount(r.audience_size)}
                       </td>
                       <td className="px-4 py-3 align-middle">

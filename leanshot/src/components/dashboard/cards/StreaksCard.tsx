@@ -46,7 +46,7 @@ export function StreaksCard() {
               <div className="min-w-0">
                 <p className="text-[20px] font-bold leading-none numerals-tabular">
                   {count}
-                  <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ml-1">
+                  <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ms-1">
                     {count === 1 ? 'day' : 'days'}
                   </span>
                 </p>

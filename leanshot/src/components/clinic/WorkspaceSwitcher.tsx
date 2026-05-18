@@ -181,7 +181,7 @@ export function ClinicWorkspaceSwitcherJwtOverlay({
       size="xs"
       data-testid="ws-jwt-spinner"
       label="Waiting for workspace JWT claim"
-      className={cn('ml-1', className)}
+      className={cn('ms-1', className)}
     />
   );
 }

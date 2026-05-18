@@ -264,11 +264,11 @@ export function NutritionTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2 px-1">Meal</th>
-                  <th className="text-left font-semibold py-2 px-1">Cal</th>
-                  <th className="text-left font-semibold py-2 px-1">Pro</th>
-                  <th className="text-left font-semibold py-2 px-1">Fib</th>
-                  <th className="text-left font-semibold py-2 px-1">H→S</th>
+                  <th className="text-start font-semibold py-2 px-1">Meal</th>
+                  <th className="text-start font-semibold py-2 px-1">Cal</th>
+                  <th className="text-start font-semibold py-2 px-1">Pro</th>
+                  <th className="text-start font-semibold py-2 px-1">Fib</th>
+                  <th className="text-start font-semibold py-2 px-1">H→S</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -284,7 +284,7 @@ export function NutritionTab() {
                       <td className="py-2 px-1 text-[var(--color-text-secondary)]">
                         {m.hunger ?? '—'}→{m.satisfaction ?? '—'}
                       </td>
-                      <td className="py-2 px-1 text-right">
+                      <td className="py-2 px-1 text-end">
                         <button
                           onClick={() => removeMeal(realIdx)}
                           aria-label="Delete meal"

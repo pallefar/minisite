@@ -207,10 +207,10 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2">Date</th>
-                  <th className="text-left font-semibold py-2">Dose</th>
-                  <th className="text-left font-semibold py-2">Site</th>
-                  <th className="text-left font-semibold py-2">Notes</th>
+                  <th className="text-start font-semibold py-2">Date</th>
+                  <th className="text-start font-semibold py-2">Dose</th>
+                  <th className="text-start font-semibold py-2">Site</th>
+                  <th className="text-start font-semibold py-2">Notes</th>
                 </tr>
               </thead>
               <tbody>
@@ -255,10 +255,10 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                    <th className="text-left font-semibold py-2">Date</th>
-                    <th className="text-left font-semibold py-2">SymptomLog</th>
-                    <th className="text-left font-semibold py-2">Severity</th>
-                    <th className="text-left font-semibold py-2">Notes</th>
+                    <th className="text-start font-semibold py-2">Date</th>
+                    <th className="text-start font-semibold py-2">SymptomLog</th>
+                    <th className="text-start font-semibold py-2">Severity</th>
+                    <th className="text-start font-semibold py-2">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -289,9 +289,9 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-left font-semibold py-2">Date</th>
-                  <th className="text-left font-semibold py-2">Weight</th>
-                  <th className="text-left font-semibold py-2">BF%</th>
+                  <th className="text-start font-semibold py-2">Date</th>
+                  <th className="text-start font-semibold py-2">Weight</th>
+                  <th className="text-start font-semibold py-2">BF%</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,8 +324,8 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
 function Row({ label, value, bold }: { label: string; value: React.ReactNode; bold?: boolean }) {
   return (
     <tr>
-      <td className="py-1 text-[var(--color-text-secondary)] pr-4">{label}</td>
-      <td className={`py-1 text-right ${bold ? 'font-bold' : ''}`}>{value}</td>
+      <td className="py-1 text-[var(--color-text-secondary)] pe-4">{label}</td>
+      <td className={`py-1 text-end ${bold ? 'font-bold' : ''}`}>{value}</td>
     </tr>
   );
 }

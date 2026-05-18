@@ -124,7 +124,7 @@ export function PhiAccessLogTab() {
               aria-label="Next page"
             >
               Next
-              <ChevronRight className="size-4 ml-1" aria-hidden />
+              <ChevronRight className="size-4 ms-1" aria-hidden />
             </Button>
           </div>
         </div>

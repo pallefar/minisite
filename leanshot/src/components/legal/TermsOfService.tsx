@@ -58,7 +58,7 @@ export function TermsOfService() {
         {/* § Acceptable use */}
         <section className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ Acceptable use</h2>
-          <ul className="list-disc pl-5 space-y-1.5 text-[var(--color-text-secondary)]">
+          <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             <li>
               Use LeanShot for personal health tracking; do not use it as a substitute for licensed
               medical care.

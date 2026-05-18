@@ -64,7 +64,7 @@ export function AdminBulkActionsBar({
         Clear
       </Button>
 
-      <span className="ml-auto flex flex-wrap gap-2">
+      <span className="ms-auto flex flex-wrap gap-2">
         {ACTIONS.map((a) => {
           const Icon = a.icon;
           return (

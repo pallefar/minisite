@@ -193,13 +193,13 @@ export function BaaChainTable() {
       {!loading && !fetchError && (
         <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
           <table className="min-w-full text-sm">
-            <thead className="bg-[var(--color-surface)] text-left text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
+            <thead className="bg-[var(--color-surface)] text-start text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
               <tr>
                 <th scope="col" className="px-4 py-3">Vendor</th>
                 <th scope="col" className="px-4 py-3">Status</th>
                 <th scope="col" className="px-4 py-3">Signed</th>
                 <th scope="col" className="px-4 py-3">Expires</th>
-                <th scope="col" className="px-4 py-3 text-right">Cost/mo</th>
+                <th scope="col" className="px-4 py-3 text-end">Cost/mo</th>
                 <th scope="col" className="px-4 py-3">
                   <span className="sr-only">Actions</span>
                 </th>
@@ -224,10 +224,10 @@ export function BaaChainTable() {
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                       {formatDate(row.baa_expiry_at)}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    <td className="px-4 py-3 text-end tabular-nums">
                       ${(row.monthly_cost_usd ?? 0).toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-end">
                       <button
                         type="button"
                         onClick={() => openModal(row)}

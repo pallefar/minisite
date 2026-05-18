@@ -97,7 +97,7 @@ export function MemberRowActions({ userId, email, onImpersonate }: MemberRowActi
   ];
 
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative inline-block text-start">
       <button
         ref={triggerRef}
         type="button"
@@ -144,7 +144,7 @@ export function MemberRowActions({ userId, email, onImpersonate }: MemberRowActi
                 title={item.disabledReason}
                 onClick={item.onSelect}
                 className={cn(
-                  'w-full text-left px-3 py-2 text-[13px]',
+                  'w-full text-start px-3 py-2 text-[13px]',
                   item.disabled
                     ? 'text-[var(--color-text-tertiary)] cursor-not-allowed'
                     : 'text-[var(--color-text)] hover:bg-[var(--color-surface-elevated)]',

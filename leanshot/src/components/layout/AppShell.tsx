@@ -43,7 +43,7 @@ export function AppShell({
       <main
         className={cn(
           'pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto',
-          sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-[232px]',
+          sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[232px]',
         )}
         data-testid="dashboard"
       >
