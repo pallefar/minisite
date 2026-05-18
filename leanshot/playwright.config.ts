@@ -18,6 +18,17 @@ const ASO_OPT_IN =
 // only execute under the conditional project.
 const P30_OPT_IN = process.env.PLAYWRIGHT_RUN_P30 === '1';
 
+// Phase 31 Plan 31-03: the `p31` project is opt-in via `PLAYWRIGHT_RUN_P31=1`.
+// Owns the 3-test first-paint smoke that proves --brand-* CSS custom properties
+// land on <html> before React renders branded content (ORG-11 SC#1 contract).
+// The spec uses addInitScript to seed localStorage before navigation — it does
+// NOT require live Supabase credentials (RPC calls are mocked via the warm-paint
+// localStorage path). Gate: PLAYWRIGHT_RUN_P31=1 env var ONLY (never process.argv
+// per [[reference_playwright_conditional_project_argv]]).
+// The default chromium project excludes this spec via testIgnore so it never
+// runs unintentionally in the standard CI suite.
+const P31_OPT_IN = process.env.PLAYWRIGHT_RUN_P31 === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -45,6 +56,7 @@ export default defineConfig({
         /e2e\/aso\/.*\.spec\.ts$/,
         /e2e\/clinic-ranking-weights-roster-reorder\.spec\.ts$/,
         /e2e\/clinician-alerts-realtime\.spec\.ts$/,
+        /e2e\/clinic-brand-first-paint\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -82,6 +94,20 @@ export default defineConfig({
               /e2e\/clinic-ranking-weights-roster-reorder\.spec\.ts$/,
               /e2e\/clinician-alerts-realtime\.spec\.ts$/,
             ],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 31 Plan 31-03: opt-in first-paint smoke for path-based white-label.
+    // Invoke via `PLAYWRIGHT_RUN_P31=1 npx playwright test --project=p31`.
+    // The spec uses addInitScript-seeded localStorage so it does NOT require
+    // live Supabase credentials — the warm-paint path is what we're proving.
+    // Excluded from default chromium project via testIgnore above.
+    ...(P31_OPT_IN
+      ? [
+          {
+            name: 'p31',
+            testMatch: [/e2e\/clinic-brand-first-paint\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
