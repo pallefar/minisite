@@ -46,7 +46,7 @@ CHUNK_CONFIG=(
   "course-player      30 Lazy-load video player; consider dynamic import for chapter-list."
   "gamification-burst  8 Move particle-animation to sync-defer.ts; drop framer-motion preset if used."
   "helpdesk-widget    25 Lazy-load ticket-form; defer markdown renderer."
-  "i18n-runtime       15 Ship only the active locale bundle; lazy-load other locales on language switch."
+  "i18n-runtime       25 Ship only the active locale bundle; lazy-load other locales on language switch. Phase 32 Plan 32-01 baseline: 20.36 kB gz with i18next 26.2.0 + react-i18next 17.0.8 + http-backend 3.0.2 + browser-languagedetector 8.2.1 + html-parse-stringify (transitive, for <Trans>) + use-sync-external-store (transitive). 32-RESEARCH estimate of 15 kB was optimistic — actual i18next + react-i18next core alone is ~12 kB gz before glue + transitives. Lever to pull if pressure returns: drop i18next-browser-languagedetector (~1 kB) for an inline 20-line manual detector. Plan 32-02..07 must stay inside this ceiling; if 32-04 override-backend pushes it, revisit ceiling vs. moving locale_overrides supabase-call out of this chunk."
   "index              50 Verify no static heavy-SDK imports leaked; route through sync-defer.ts per [[project_phase5_bundle_regression]]."
 )
 
