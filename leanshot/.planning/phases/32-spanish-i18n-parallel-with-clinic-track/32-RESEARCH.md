@@ -52,7 +52,7 @@
 | I18N-01 | UI in Spanish via `?lang=es` query string | `i18next-browser-languagedetector` with `order: ['querystring', 'cookie', ...]` + `lookupQuerystring: 'lang'` — verified via Context7 |
 | I18N-02 | Accept-Language detection + `profiles.locale` persistence | LanguageDetector `navigator` detector + custom detector reads `profiles.locale`; cookie cache for anonymous visitors |
 | I18N-03 | Lazy-load `/locales/{lng}/{ns}.json` via i18next-http-backend | Backend `loadPath: '/locales/{{lng}}/{{ns}}.json'` — emits ONE network fetch per namespace; React `<Suspense>` boundary handles loading state |
-| I18N-04 | 7 transactional emails ship Spanish templates | i18next-server inside Edge Fns (D-07); shared JSON catalog under `/locales/emails/{lng}/` — see "Cross-cutting Finding #1" |
+| I18N-04 | 7 transactional emails ship Spanish templates | i18next-server inside Edge Fns (D-07); shared JSON catalog under `/locales/emails/{lng}/` — see Finding #1 (CORRECTED: Edge Fn source lives at /Users/karstenhaldan/minisite/supabase/functions/, scaffold in-place) |
 | I18N-05 | KB articles `{slug}.es.md` served at same URL with `?lang=es` | Edge-Fn or client-side fetch on `?lang` — covered in helpdesk phase; this phase ships the `kb_articles.locale='es'` schema + lookup helper |
 | I18N-06 | In-house git PR pipeline documented | Translator workflow doc: `docs/i18n/TRANSLATOR-WORKFLOW.md` |
 | I18N-07 | ICU pluralization correctness (singular/plural/zero/other test fixture) | Native `Intl.PluralRules` via i18next built-in suffixes (`_one`, `_other`, `_zero`); see Open Item #4 — **no `i18next-icu` plugin needed** |
@@ -580,18 +580,24 @@ create unique index on public.locale_overrides (coalesce(org_id, '00000000-0000-
 
 ## Cross-Cutting Findings
 
-### Finding 1 — Project scaffolding decision: `supabase/functions/` source ownership
+### Finding 1 — Project scaffolding decision: `supabase/functions/` source ownership [CORRECTED 2026-05-18]
 
-**Discovery:** `git ls-files | grep -i supabase | grep -v node_modules` returns ONLY `src/lib/supabase.ts` + `src/lib/supabase.test.ts` + planning docs. **No `supabase/functions/` source tree exists in this repo.** Yet `.planning/STATE.md` confirms 8 v1.2 Edge Functions are LIVE on project `ytnsipxxmzgaebkqmokp`. This means either:
-- (a) Edge Fn source lives in a separate worktree / branch / repo and is pushed via `supabase functions deploy` from there, OR
-- (b) Edge Fn source was authored ad-hoc and pushed via Management API without git tracking.
+**ORIGINAL FINDING WAS WRONG** — researcher scanned only `leanshot/` subdir and missed the `supabase/` tree at repo root.
 
-**Planner must resolve this before Phase 32 ships I18N-04.** Two options:
+**Actual layout (verified 2026-05-18):**
+- `/Users/karstenhaldan/minisite/supabase/functions/` — 20+ Edge Fn source dirs (account-delete, admin-bulk-job-worker, admin-impersonate, ai-chat, audit-archive, branding-asset-upload-url, clinic-invite, clinician-alert-deliver-cron, funnel-anomaly-cron, ...).
+- `/Users/karstenhaldan/minisite/supabase/migrations/` — full migration history.
+- All v1.2 + v1.3-to-date Edge Fns ARE in this repo, deploys from the same checkout.
 
-1. **Adopt Option A — establish `supabase/functions/` in this repo as part of P32.** Scaffold `_shared/i18n-server.ts`, ship the 7 transactional fns' source committed alongside, and re-deploy each via `supabase functions deploy <name> --project-ref ytnsipxxmzgaebkqmokp`. Risk: if another worktree currently owns the canonical source, deployments fight. **Mitigation:** before merging Plan 32-Email, run `supabase functions list --project-ref ytnsipxxmzgaebkqmokp` and `supabase functions download <name>` for each affected function to baseline the live source into this repo first.
-2. **Adopt Option B — coordinate cross-repo.** P32 ships only client + glossary + admin override surface; email i18n lands when the Edge-Fn-owning repo merges. Risk: splits the phase across two repos and breaks the SUMMARY-as-source-of-truth contract.
+**Implication for Phase 32:**
+- NO Wave 0 "baseline live source" task needed.
+- Plan 32-Email scaffolds `supabase/functions/_shared/i18n-server.ts` directly + edits each of the 7 transactional fns in place.
+- The 7 transactional fns to localize per CONTEXT D-07: welcome-series sender, password-reset, payment-receipt, clinic-invite, dunning, dsar-confirmation, lifecycle-trigger. Planner: verify each exists by name in `/Users/karstenhaldan/minisite/supabase/functions/` and patch the actual list.
 
-**Recommendation:** **Option A.** Baseline live source first (P32 Plan 32-00 Wave 0 task), then add `i18n-server.ts` + per-fn imports in Plan 32-Email. Centralizes Edge Fn source going forward. Mention this carryover to v1.4 milestone planning as "all Edge Fn source now lives in `supabase/functions/` of the main repo."
+**Cross-cutting carry-overs to planner that DO remain valid:**
+- Cold-start cost (~10 kB per fn) — still applies.
+- `?target=deno` esm.sh suffix — still applies.
+- HIPAA SES split (Phase 25) — still applies; vendor-agnostic strings work for both Resend + future SES paths.
 
 ### Finding 2 — i18next in Deno Edge Functions
 
@@ -953,7 +959,7 @@ Pre-execution gate per Wave 0 Gaps section above. Planner ships this as a tiny w
   - Validation: I18N-08 e2e green; cross-org RLS isolation test passes.
 
 - **Plan 32-05 — Email i18n: i18n-server shared + 7 transactional fns**
-  - **PREREQUISITE:** resolve Cross-cutting Finding #1 (commit Edge Fn source baseline first if Option A)
+  - **PREREQUISITE:** none — Edge Fn source already in `/Users/karstenhaldan/minisite/supabase/functions/` (Finding #1 CORRECTED).
   - `supabase/functions/_shared/i18n-server.ts` (Deno-side i18next via esm.sh)
   - `supabase/functions/_shared/locales/{en,es}/*.json` (or asset-import the public/locales mirror)
   - Each of 7 transactional fns (`resend-welcome`, `password-reset`, `payment-receipt`, `clinic-invite`, `dunning`, `dsar-confirmation`, `lifecycle-behavior`) imports + reads `profiles.locale` + calls `renderInLocale(lng, 'subject', ...)` + `renderInLocale(lng, 'body', ...)`
@@ -1001,7 +1007,7 @@ Wave 3 (2 plans sequential: translator delivery → ship gate)
 | A1 | The ~14 kB gz core runtime fits the 15 kB chunk ceiling | Open #1 / Stack | If true measurement exceeds 15 kB once minified+gzipped + our glue, we'll drop `i18next-browser-languagedetector` (~1 kB savings) and roll a 20-line manual detector. Mitigation already identified. |
 | A2 | The translator contractor (D-02) can deliver full ES coverage for ~315 components in 1-2 weeks at $3-5k | Plan 32-06 / CONTEXT specifics | Contractor cost/timeline is outside our control. Mitigation: Wave 3 timeline is process-gated; if late, Phase 32 ship slips but does not block parallel phases (P28-31 clinic track). |
 | A3 | Supabase Edge Fns can `import * from 'https://esm.sh/i18next@26.2.0?target=deno'` without bundling issues | Cross-cutting Finding #2 | If esm.sh transformation fails for i18next, fall back to Deno-native `i18next-deno` fork OR roll a 50-line catalog lookup. Cold-start cost lower in the fallback. |
-| A4 | Phase 32 should commit `supabase/functions/` source for the 7 transactional fns into this repo (Option A in Finding #1) | Cross-cutting Finding #1 / Plan 32-05 | If another worktree currently owns canonical source, deployments could fight. Mitigation: Plan 32-05's prerequisite step downloads live source via `supabase functions download` before adding i18n-server. |
+| A4 | ~~Phase 32 should commit `supabase/functions/` source~~ INVALIDATED — Edge Fn source already in `/Users/karstenhaldan/minisite/supabase/functions/`. No baseline-download step needed. | Finding #1 CORRECTED | n/a |
 | A5 | ~50-80 strings in `common`, ~30-40 in `nav` (estimate) | Open #1 namespace table | Counts derived from typical SPA patterns + LeanShot's component count + ui/ primitives count. After Plan 32-02's extraction sweep, actual counts will be measured; if any namespace blows past 5 kB gz on its own, planner can sub-split. |
 | A6 | The repo's existing 38 files with `toLocaleDateString`/`toLocaleString`/`new Intl.*` are all simple migrations to `useLocale()` | Open #3 | Verified the patterns are uniform (`toLocaleDateString(undefined, ...)`); migration is mechanical. If any usage is in a non-React utility, those keep accepting an explicit `locale` arg. |
 | A7 | `i18next-parser`'s static AST walking covers all `t()` / `<Trans>` usages we need | Pitfall 3 | Dynamic key construction (`t(\`error.${code}\`)`) won't be extracted; mitigation in Pitfall 3. Risk is low because greenfield code can be written defensively from day one. |
@@ -1056,7 +1062,7 @@ Wave 3 (2 plans sequential: translator delivery → ship gate)
 - Architecture: **HIGH** — pattern matches CONTEXT locked decisions; Phase 24 chunk wiring already exists; integration points (main.tsx, events.ts, store.ts) inspected
 - Pitfalls: **HIGH** — all 7 pitfalls drawn from documented i18next behaviors + LeanShot codebase patterns
 - Open Items: **HIGH** — each open item has a concrete library or codebase mechanism behind it; no hand-waving
-- Email Edge Fn integration: **MEDIUM** — depends on resolution of Cross-cutting Finding #1 (Supabase source ownership question); planner must confirm with user/state
+- Email Edge Fn integration: **HIGH** — Finding #1 corrected (Edge Fn source confirmed at repo root); planner can scaffold `_shared/i18n-server.ts` + patch the 7 transactional fns in-place.
 - Translator timeline: **LOW** — contractor cost/timeline assumed per CONTEXT (~$3-5k, 1-2 weeks); outside engineering control
 
 **Research date:** 2026-05-18
