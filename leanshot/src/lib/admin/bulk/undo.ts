@@ -7,8 +7,8 @@
  * Server-side TTL is 60s (bulk_action_undo_token.expires_at). The UI
  * countdown in AdminUndoBanner is UX-only; expiry is enforced by the RPC.
  */
-import { supabase } from '@/lib/supabase';
 import { BulkApiError, type BulkApiErrorCode } from '@/lib/admin/bulk/types';
+import { supabase } from '@/lib/supabase';
 
 interface SupabaseRpcError {
   code?: string;

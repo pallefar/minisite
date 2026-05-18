@@ -14,7 +14,6 @@
  * a client-side CSV download by querying the seleted profile rows directly
  * (RLS-restricted). Future v2: stream from a dedicated Edge Function.
  */
-import { supabase } from '@/lib/supabase';
 import {
   BulkApiError,
   type BulkActionParams,
@@ -22,6 +21,7 @@ import {
   type BulkActionType,
   type BulkApiErrorCode,
 } from '@/lib/admin/bulk/types';
+import { supabase } from '@/lib/supabase';
 
 interface SupabaseRpcError {
   code?: string;

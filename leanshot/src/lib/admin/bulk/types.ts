@@ -21,11 +21,19 @@ export type BulkActionType =
 /** Union of reversible action types — undo tokens are only minted for these. */
 export type ReversibleBulkActionType = 'ban' | 'comp_plan' | 'tag';
 
-/** Action parameters passed through to the RPC's p_params jsonb argument. */
-export type BulkActionParams =
-  | { /* csv_export, ban, force_password_reset accept empty params */ }
-  | { tag: string }
-  | { days: number; reason?: string };
+/**
+ * Action parameters passed through to the RPC's p_params jsonb argument.
+ *
+ * Per-action expected shape:
+ *   csv_export / ban / force_password_reset → {} (no params)
+ *   tag       → { tag: string }
+ *   comp_plan → { days: number, reason?: string }
+ *
+ * The wider Record signature lets callers build params dynamically (e.g. the
+ * AdminBulkConfirmModal); the SECDEF RPC validates per-action requirements
+ * server-side and raises invalid_action (22023) on shape mismatch.
+ */
+export type BulkActionParams = Record<string, unknown>;
 
 export interface BulkActionSyncResult {
   mode: 'sync';
