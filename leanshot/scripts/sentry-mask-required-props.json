@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "lastReviewed": "2026-05-17",
+  "phiExpressions": [
+    "patient.name", "patient.email", "patient.firstName", "patient.lastName", "patient.phone",
+    "patient.dob", "patient.dateOfBirth", "patient.diagnosis",
+    "profile.email", "profile.firstName", "profile.lastName", "profile.phone", "profile.dob",
+    "profiles.email", "profiles.firstName", "profiles.lastName", "profiles.phone",
+    "dose.value", "dose.amount", "dose.unit",
+    "photo.url", "photo.dataUrl", "photo.signedUrl",
+    "weightLog.value", "weightLog.unit",
+    "mealEntry.description", "mealEntry.notes", "mealEntry.calories",
+    "symptomLog.note", "symptomLog.severity",
+    "conversation.body", "message.body", "message.text",
+    "doctor.note", "doctor.privateNotes",
+    "user.email", "user.firstName", "user.lastName", "user.dob"
+  ],
+  "comment": "Per Phase 25 D-15 + HIPAA-16. Add new property access paths when new PHI-bearing components ship. Lint matches the EXPRESSION text (right side of JSX attribute) NOT prop NAMES."
+}
