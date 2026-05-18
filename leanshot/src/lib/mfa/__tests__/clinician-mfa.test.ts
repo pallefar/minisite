@@ -31,6 +31,7 @@ vi.mock('@/lib/supabase', () => ({
         challenge: vi.fn(),
         verify: vi.fn(),
         listFactors: vi.fn(),
+        getAuthenticatorAssuranceLevel: vi.fn(),
       },
     },
     rpc: vi.fn(),
@@ -52,6 +53,7 @@ const mockEnroll = vi.mocked(supabase.auth.mfa.enroll);
 const mockChallenge = vi.mocked(supabase.auth.mfa.challenge);
 const mockVerify = vi.mocked(supabase.auth.mfa.verify);
 const mockListFactors = vi.mocked(supabase.auth.mfa.listFactors);
+const mockGetAal = vi.mocked(supabase.auth.mfa.getAuthenticatorAssuranceLevel);
 const mockRpc = vi.mocked(supabase.rpc);
 
 // ---------------------------------------------------------------------------
@@ -59,6 +61,13 @@ const mockRpc = vi.mocked(supabase.rpc);
 // ---------------------------------------------------------------------------
 
 function fakeSession(aal?: string) {
+  // Side effect: also set up the AAL mock so getClinicianAal returns matching level.
+  // Phase 25-08 originally read session.aal directly; Supabase v2 requires
+  // supabase.auth.mfa.getAuthenticatorAssuranceLevel() (post-merge fix).
+  if (aal !== undefined) {
+    // @ts-expect-error — test fixture; only currentLevel matters
+    mockGetAal.mockResolvedValue({ data: { currentLevel: aal, nextLevel: aal, currentAuthenticationMethods: [] }, error: null });
+  }
   return {
     data: {
       session: aal !== undefined ? { aal } : null,
@@ -84,6 +93,8 @@ describe('getClinicianAal', () => {
 
   it('case 2: returns aal1 when session present but aal undefined', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { aal: undefined } }, error: null });
+    // @ts-expect-error — test fixture
+    mockGetAal.mockResolvedValue({ data: { currentLevel: 'aal1', nextLevel: 'aal2', currentAuthenticationMethods: [] }, error: null });
     const result = await getClinicianAal();
     expect(result).toBe('aal1');
   });

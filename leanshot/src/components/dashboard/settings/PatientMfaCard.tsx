@@ -272,7 +272,6 @@ export function PatientMfaCard() {
           <Button
             variant="destructive"
             onClick={() => void handleDisable()}
-            loading={cardState === 'disabling'}
           >
             Remove
           </Button>

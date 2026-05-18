@@ -27,7 +27,9 @@ export type ClinicianAal = 'aal1' | 'aal2' | null;
 export async function getClinicianAal(): Promise<ClinicianAal> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
-  return (session.aal as ClinicianAal) ?? 'aal1';
+  const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error || !data) return 'aal1';
+  return (data.currentLevel as ClinicianAal) ?? 'aal1';
 }
 
 /**
