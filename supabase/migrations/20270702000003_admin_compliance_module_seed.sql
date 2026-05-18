@@ -1,0 +1,18 @@
+-- Phase 25 Plan 25-01 — admin Compliance module seed placeholder.
+--
+-- INTENTIONALLY NO-OP. The admin module manifest is the TypeScript module
+-- `src/lib/admin/modules.ts` per Phase 24 Plan 24-03 D-01. Adding a
+-- `Compliance` entry happens in Plan 25-08 by editing modules.ts directly.
+--
+-- This migration file exists so a future feature-flag-table refactor has a
+-- ready timestamp slot to grow into; today it ships zero schema changes.
+--
+-- Rationale: Phase 24 Plan 24-03 settled that the manifest is CODE-driven
+-- (TypeScript), NOT DB-driven. Inventing a new `admin_modules` DB table here
+-- would violate the [[feedback_planner_iter1_anti_patterns]] "defensive jsonb
+-- contracts" rule and split ownership of the module list across two sources
+-- of truth. Plan 25-01 must not alter Phase 24's ownership decision.
+--
+-- Verify: `select 1` is a deliberate no-op statement that supabase db push
+-- accepts without modifying any schema object.
+select 1 where false;
