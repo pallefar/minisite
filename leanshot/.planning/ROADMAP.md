@@ -47,7 +47,7 @@
 - [ ] **Phase 28: Clinic Organizations — Schema + RLS Hardening** — 16+ org-scoped tables + `withOrgScope` + HMAC realtime + cross-tenant proof tests + `src/lib/org.ts`
 - [x] **Phase 29: Org Subscriptions + Per-Patient Metered Billing** — Separate `stripe_customer_id_org` + Stripe Meter Events + clinic patient-invite magic-link
 - [ ] **Phase 30: Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts** — Per-clinic ranking + nightly alert cron + PHI-aware delivery + ack/snooze
-- [ ] **Phase 31: White-Label (Path-Based) + Org Roles + Clinic Onboarding Builder** — `org_branding` CSS-var overlay + owner/clinician/staff matrix + per-clinic onboarding override
+- [x] **Phase 31: White-Label (Path-Based) + Org Roles + Clinic Onboarding Builder** — `org_branding` CSS-var overlay + owner/clinician/staff matrix + per-clinic onboarding override (completed 2026-05-18)
 - [ ] **Phase 32: Spanish i18n (Parallel with Clinic Track)** — react-i18next + http-backend + `?lang=es` + transactional-email shim + `locale_overrides` + ICU pluralization
 - [ ] **Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)** — 3 hourly Edge Fns + `ad_spend_facts` partitioned + gap-detection cron + normalized-attribution view + `fx_rates` + admin CAC dashboard
 - [ ] **Phase 34: M2 Onboarding Overhaul + Activation Event** — Value-first preview + magic-link/Google/Apple SSO + drag-drop step builder + activation-event lock (blocks P39)
@@ -511,7 +511,7 @@ Plans:
 | 28. Clinic Organizations — Schema + RLS Hardening | 7/8 | In Progress|  |
 | 29. Org Subscriptions + Per-Patient Metered Billing | 1/8 | In Progress|  |
 | 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/6 | Planned | — |
-| 31. White-Label + Org Roles + Clinic Onboarding Builder | 7/8 | In Progress|  |
+| 31. White-Label + Org Roles + Clinic Onboarding Builder | 8/8 | Complete   | 2026-05-18 |
 | 32. Spanish i18n | 0/? | Not started | — |
 | 33. Hourly Ad-Spend ETL | 0/? | Not started | — |
 | 34. M2 Onboarding Overhaul + Activation Event | 0/? | Not started | — |
