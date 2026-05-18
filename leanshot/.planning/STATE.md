@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: ready_to_plan
-stopped_at: Phase 26 complete (7/7) via Plan 26-07 — moving to Phase 32 Plan 32-07
-last_updated: 2026-05-18T20:16:48Z
-last_activity: 2026-05-18 -- Phase 26-07 shipped (refund/dispute claw-back + status widening migration)
+stopped_at: Phase 26 closed (7/7) + Phase 32 partial-closed (Plan 32-07 hreflang + RTL prep) + 32-06 + 50-09 formally deferred
+last_updated: 2026-05-18T20:24:00Z
+last_activity: 2026-05-18 -- batch close session — 26-07 + 32-07 shipped, 32-06 (contractor) + 50-09 (D-22 STRETCH) deferred
 progress:
   total_phases: 28
   completed_phases: 8
   total_plans: 83
-  completed_plans: 76
+  completed_plans: 77
   percent: 28
 ---
 

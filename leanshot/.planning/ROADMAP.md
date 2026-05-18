@@ -257,13 +257,13 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 32-01-PLAN.md — i18n runtime + namespaces + missing-key telemetry (foundation)
-- [ ] 32-02-PLAN.md — String extraction sweep + EN catalogs (8 namespaces) + coverage CI gate
-- [ ] 32-03-PLAN.md — profiles.locale schema + custom detector + Settings Language picker + D-12 kg-default
-- [ ] 32-04-PLAN.md — locale_overrides table + RLS + admin module + Realtime invalidation
-- [ ] 32-05-PLAN.md — Email Edge Fn i18n: _shared/i18n-server.ts + 7 transactional fns rewired
-- [ ] 32-06-PLAN.md — Contractor delivery: ES corpus + glossary signoff + KB ES articles + TRANSLATOR-WORKFLOW.md
-- [ ] 32-07-PLAN.md — hreflang tags + CSS logical-properties audit + lint + ship gate
+- [x] 32-01-PLAN.md — i18n runtime + namespaces + missing-key telemetry (foundation)
+- [x] 32-02-PLAN.md — String extraction sweep + EN catalogs (8 namespaces) + coverage CI gate
+- [x] 32-03-PLAN.md — profiles.locale schema + custom detector + Settings Language picker + D-12 kg-default
+- [x] 32-04-PLAN.md — locale_overrides table + RLS + admin module + Realtime invalidation
+- [x] 32-05-PLAN.md — Email Edge Fn i18n: _shared/i18n-server.ts + 7 transactional fns rewired
+- [ ] 32-06-PLAN.md — Contractor delivery: ES corpus + glossary signoff + KB ES articles + TRANSLATOR-WORKFLOW.md **[DEFERRED to v1.4 — vendor-blocked on bilingual clinical contractor engagement; see 32-CARRY-OVER.md]**
+- [x] 32-07-PLAN.md — hreflang tags + CSS logical-properties audit + lint (partial; ship-gate UAT deferred with 32-06)
 
 ### Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)
 
@@ -593,7 +593,7 @@ Plans:
 - [ ] 50-08-PLAN.md — AI Coach CitationMarker+Popover + Dashboard TipOfTheDayCard + i18n disclaimer shim (rag.attribution, rag.disclaimer) + server-rag-event-relay [Wave 3 — MVP cut]
 
 **Wave 4** *(blocked on Wave 3 completion — D-22 STRETCH cut; can defer to Phase 51 if scope tightens)*:
-- [ ] 50-09-PLAN.md — Research newsletter Edge Fn (weekly cron + Resend via P25) + 1-click unsubscribe + public /research Hub + ResearchArticleDetail + NewsletterSettings + RagCostPage final (vendor cards + auto-pause + acknowledge-and-resume) [Wave 4 — STRETCH]
+- [ ] 50-09-PLAN.md — Research newsletter Edge Fn (weekly cron + Resend via P25) + 1-click unsubscribe + public /research Hub + ResearchArticleDetail + NewsletterSettings + RagCostPage final (vendor cards + auto-pause + acknowledge-and-resume) [Wave 4 — STRETCH] **[DEFERRED — D-22 explicitly marks this wave deferrable; carry-over to Phase 51 or v1.4 closeout. See 50-CARRY-OVER.md]**
 
 **Cross-cutting constraints:**
 - Every SECURITY DEFINER function sets `search_path = extensions, public, pg_temp` per [[reference_supabase_migration_gotchas]].
