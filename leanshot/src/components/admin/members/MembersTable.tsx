@@ -14,12 +14,15 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { AdminBulkActionsBar } from '@/components/admin/bulk/AdminBulkActionsBar';
+import { AdminUndoBanner } from '@/components/admin/bulk/AdminUndoBanner';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { InitialsAvatar } from '@/components/ui/InitialsAvatar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { Member } from '@/lib/admin/admin-api';
+import type { BulkActionType } from '@/lib/admin/bulk/types';
 import { cn } from '@/lib/helpers';
 import { MemberRowActions } from './MemberRowActions';
 
@@ -103,6 +106,37 @@ export interface MembersTableProps {
 
 export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: MembersTableProps) {
   const [sort, setSort] = useState<SortState>({ column: null, direction: null });
+  // Phase 27 Plan 27-01 — bulk-action selection state (additive — does not
+  // change Phase 22 row-open / sort / mobile-card behavior).
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [undoInfo, setUndoInfo] = useState<
+    { undoToken: string; count: number; actionType: BulkActionType } | null
+  >(null);
+
+  const toggleRow = (id: string) => {
+    setSelectedIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  };
+  const togglePage = (allIds: string[], checked: boolean) => {
+    setSelectedIds((cur) => {
+      if (checked) {
+        const merged = new Set([...cur, ...allIds]);
+        return Array.from(merged);
+      }
+      return cur.filter((x) => !allIds.includes(x));
+    });
+  };
+  const clearSelection = () => setSelectedIds([]);
+
+  const sampleNames = useMemo(() => {
+    if (!rows) return [] as string[];
+    return selectedIds
+      .slice(0, 3)
+      .map((id) => rows.find((r) => r.user_id === id)?.email ?? id);
+  }, [rows, selectedIds]);
+
+  const visibleIds = useMemo(() => (rows ?? []).map((r) => r.user_id), [rows]);
+  const allOnPageSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+  const someOnPageSelected = visibleIds.some((id) => selectedIds.includes(id));
 
   const sortedRows = useMemo(() => {
     if (!rows) return null;
@@ -153,11 +187,50 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
 
   return (
     <>
+      {selectedIds.length > 0 && (
+        <AdminBulkActionsBar
+          selectedIds={selectedIds}
+          sampleNames={sampleNames}
+          onClear={clearSelection}
+          onUndoAvailable={(info) => setUndoInfo(info)}
+          onActionComplete={() => {
+            // Drop selection after a confirmed action — parent table will
+            // refetch downstream. Per CONTEXT D-02.
+            clearSelection();
+          }}
+        />
+      )}
+
+      {undoInfo && (
+        <AdminUndoBanner
+          undoToken={undoInfo.undoToken}
+          count={undoInfo.count}
+          actionType={undoInfo.actionType}
+          onDismiss={() => setUndoInfo(null)}
+        />
+      )}
+
       {/* Desktop: <table>. Mobile (<md): hidden, replaced by card list below. */}
       <Card variant="default" padding="none" className="overflow-x-auto hidden md:block">
         <table className="w-full text-sm" data-testid="members-table">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
+              <th
+                scope="col"
+                className="w-10 px-3 py-3"
+                aria-label="Select all on page"
+              >
+                <input
+                  type="checkbox"
+                  ref={(el) => {
+                    if (el) el.indeterminate = !allOnPageSelected && someOnPageSelected;
+                  }}
+                  checked={allOnPageSelected}
+                  onChange={(e) => togglePage(visibleIds, e.target.checked)}
+                  aria-label="Select all members on this page"
+                  data-testid="admin-bulk-select-all"
+                />
+              </th>
               {COLUMN_HEADERS.map((col) => {
                 const isActive = sort.column === col.key;
                 const ariaSort = isActive
@@ -221,8 +294,22 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
                   data-testid={`member-row-${row.user_id}`}
                   className={cn(
                     'border-b border-[var(--color-border)] last:border-b-0 cursor-pointer hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:bg-[var(--color-surface-elevated)]',
+                    selectedIds.includes(row.user_id) && 'bg-[var(--color-surface-elevated)]',
                   )}
                 >
+                  { }
+                  <td
+                    className="w-10 px-3 py-3 align-middle"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(row.user_id)}
+                      onChange={() => toggleRow(row.user_id)}
+                      aria-label={`Select ${row.email}`}
+                      data-testid={`admin-bulk-select-${row.user_id}`}
+                    />
+                  </td>
                   <td className="px-4 py-3 align-middle">
                     <div className="flex items-center gap-3">
                       <InitialsAvatar size="sm" rounded="full" name={row.email} />
