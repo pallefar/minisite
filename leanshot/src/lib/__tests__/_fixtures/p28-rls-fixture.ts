@@ -51,7 +51,12 @@ export const SHOULD_RUN = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_
  */
 export function makeSlugPrefix(testFilename: string): string {
   const base = testFilename.split('/').pop()!.replace('.test.ts', '');
-  return `p28-${base}-${Date.now()}`;
+  const ts = Date.now().toString(36); // base-36 shortens 13-digit ms timestamp to ~8 chars
+  // Truncate base to 20 chars so org names stay within the 60-char orgs_name_check
+  // constraint: "P28 Test Org X (" (16) + prefix + ")" (1) = 17 + prefix ≤ 60 → prefix ≤ 43.
+  // "p28-" (4) + base (≤20) + "-" (1) + ts (≤9) = ≤34 chars (safe).
+  const truncatedBase = base.slice(0, 20);
+  return `p28-${truncatedBase}-${ts}`;
 }
 
 export interface Session {

@@ -100,10 +100,14 @@ describeIfLive('P30 — mv_clinic_alert_metrics correctness + CONCURRENTLY refre
     }
 
     // Non-CONCURRENTLY refresh to populate the matview with seeded data
-    // (CONCURRENTLY refresh is tested separately in test 3)
-    await admin.rpc('refresh_mv_clinic_alert_metrics_for_test' as any).catch(() => {
-      // RPC may not exist — fall through; we'll use a direct SQL query via db.query
-    });
+    // (CONCURRENTLY refresh is tested separately in test 3).
+    // Note: supabase-js v2 PostgrestFilterBuilder does not implement .catch() —
+    // use try/catch instead (Rule 1 fix per reference_rls_fixture_gotrueclient_flake).
+    try {
+      await admin.rpc('refresh_mv_clinic_alert_metrics_for_test' as any);
+    } catch {
+      // RPC may not exist — fall through; tests rely on get_clinic_alert_metrics SECDEF
+    }
   }, 120_000);
 
   afterAll(async () => {
