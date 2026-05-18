@@ -46,6 +46,11 @@ import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { ClinicDrillInSubBar } from './ClinicDrillInSubBar';
 import { useClinicSnapshot } from './use-clinic-snapshot';
 
+// Phase 30 Plan 04: PatientThresholdOverrideForm — lazy-loaded (Dose thresholds tab).
+const PatientThresholdOverrideForm = lazy(() =>
+  import('./PatientThresholdOverrideForm').then((m) => ({ default: m.PatientThresholdOverrideForm })),
+);
+
 // ---------------------------------------------------------------------------
 // PatientActivityModal — lazy-loaded to keep the drill-in entry chunk lean.
 // Dynamic import creates a code-split boundary; the modal is only downloaded
@@ -167,6 +172,76 @@ function useOrgBySlug(slug: string | null): {
 }
 
 // ---------------------------------------------------------------------------
+// Member role hook (Plan 30-04 W13 role gate)
+// Fetches the current user's role in the org so we can gate the Dose thresholds tab.
+// Returns null while loading, the role string when resolved.
+// ---------------------------------------------------------------------------
+
+type OrgMemberRole = 'admin' | 'staff' | 'viewer' | null;
+
+function useMemberRole(orgId: string | null): OrgMemberRole {
+  const [role, setRole] = useState<OrgMemberRole>(null);
+
+  useEffect(() => {
+    if (!orgId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from('org_members')
+        .select('role')
+        .eq('org_id', orgId)
+        .maybeSingle();
+      if (!cancelled) {
+        setRole((data as { role: OrgMemberRole } | null)?.role ?? null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [orgId]);
+
+  return role;
+}
+
+// ---------------------------------------------------------------------------
+// Patient threshold override fetch hook (Plan 30-04)
+// ---------------------------------------------------------------------------
+
+interface PatientThresholds {
+  missed_doses_n: number;
+  window_days_m: number;
+  variance_pct_x: number;
+}
+
+function usePatientOverride(orgId: string | null, patientId: string | null): PatientThresholds | null {
+  const [override, setOverride] = useState<PatientThresholds | null>(null);
+
+  useEffect(() => {
+    if (!orgId || !patientId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from('org_patient_thresholds')
+        .select('thresholds')
+        .eq('org_id', orgId)
+        .eq('patient_user_id', patientId)
+        .maybeSingle();
+      if (!cancelled) {
+        setOverride((data as { thresholds: PatientThresholds } | null)?.thresholds ?? null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [orgId, patientId]);
+
+  return override;
+}
+
+// Default clinic thresholds (v1.3 defaults per D-07)
+const DEFAULT_CLINIC_THRESHOLDS: PatientThresholds = {
+  missed_doses_n: 2,
+  window_days_m: 14,
+  variance_pct_x: 25,
+};
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -182,6 +257,16 @@ export function ClinicDrillInPage() {
     orgId,
     patientId,
   });
+
+  // Phase 30 Plan 04: member role + patient override (for Dose thresholds tab)
+  const memberRole = useMemberRole(orgId);
+  const patientOverride = usePatientOverride(orgId, patientId);
+
+  // Dose thresholds tab visibility (W13 plan-checker fix): admin or staff only
+  const canSeeDoseThresholdsTab = memberRole === 'admin' || memberRole === 'staff';
+
+  // Active drill-in tab: 'overview' (default) | 'dose-thresholds'
+  const [drillTab, setDrillTab] = useState<'overview' | 'dose-thresholds'>('overview');
 
   // Local permissionMap starts from snapshot.permission_map but can be
   // overridden on 403 to unmount the blocked section in-place (T-10-07-01).
@@ -424,23 +509,68 @@ export function ClinicDrillInPage() {
         onViewActivity={handleViewActivity}
       />
 
+      {/* Phase 30 Plan 04: drill-in tab bar — Overview + Dose thresholds (admin/staff only) */}
+      {canSeeDoseThresholdsTab && (
+        <div
+          className="flex items-center gap-0 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 md:px-6"
+          role="tablist"
+          aria-label="Patient drill-in sections"
+        >
+          <button
+            role="tab"
+            aria-selected={drillTab === 'overview'}
+            className={`px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors ${drillTab === 'overview' ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}
+            onClick={() => setDrillTab('overview')}
+          >
+            Overview
+          </button>
+          <button
+            role="tab"
+            aria-selected={drillTab === 'dose-thresholds'}
+            data-testid="dose-thresholds-tab"
+            className={`px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors ${drillTab === 'dose-thresholds' ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}
+            onClick={() => setDrillTab('dose-thresholds')}
+          >
+            Dose thresholds
+          </button>
+        </div>
+      )}
+
       <main className="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
-        {snapshot && permissionMap ? (
-          <ReadOnlyPatientView
-            snapshot={snapshot}
-            viewerMode="clinic"
-            permissionMap={permissionMap}
-            onSectionMount={handleSectionMount}
-          />
-        ) : (
-          // Snapshot fetched but permissionMap absent — edge case (snapshot returned
-          // without permission_map). Render without gating (all sections visible).
-          snapshot && (
-            <ReadOnlyPatientView
-              snapshot={snapshot}
-              viewerMode="clinic"
-              onSectionMount={handleSectionMount}
+        {/* Dose thresholds tab — admin/staff only (W13 role gate) */}
+        {canSeeDoseThresholdsTab && drillTab === 'dose-thresholds' && orgId && patientId ? (
+          <Suspense fallback={<div className="h-32 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" />}>
+            <PatientThresholdOverrideForm
+              orgId={orgId}
+              patientUserId={patientId}
+              patientDisplayName={patientDisplayName}
+              clinicDefaults={DEFAULT_CLINIC_THRESHOLDS}
+              existingOverride={patientOverride}
             />
+          </Suspense>
+        ) : (
+          // Default: Overview tab content
+          drillTab === 'overview' && (
+            <>
+              {snapshot && permissionMap ? (
+                <ReadOnlyPatientView
+                  snapshot={snapshot}
+                  viewerMode="clinic"
+                  permissionMap={permissionMap}
+                  onSectionMount={handleSectionMount}
+                />
+              ) : (
+                // Snapshot fetched but permissionMap absent — edge case (snapshot returned
+                // without permission_map). Render without gating (all sections visible).
+                snapshot && (
+                  <ReadOnlyPatientView
+                    snapshot={snapshot}
+                    viewerMode="clinic"
+                    onSectionMount={handleSectionMount}
+                  />
+                )
+              )}
+            </>
           )
         )}
       </main>

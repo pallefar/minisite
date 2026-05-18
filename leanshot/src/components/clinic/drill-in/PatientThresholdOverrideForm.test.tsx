@@ -250,14 +250,15 @@ describe('PatientThresholdOverrideForm', () => {
 
 describe('ClinicDrillInPage — role gate for Dose thresholds tab', () => {
   it('Test 9: viewer role cannot see the Dose thresholds tab', async () => {
-    // Mock supabase.from for org load (viewer role) and snapshot
-    const maybeSingleOrg = vi.fn().mockResolvedValue({
+    // Mock supabase.from — fully chainable: select().eq().eq().maybeSingle()
+    const maybeSingleFn = vi.fn().mockResolvedValue({
       data: { id: 'org-1', slug: 'test-org', name: 'Test Org' },
       error: null,
     });
-    const eqForOrg = vi.fn().mockReturnValue({ maybeSingle: maybeSingleOrg });
-    const selectForOrg = vi.fn().mockReturnValue({ eq: eqForOrg });
-    mockFrom.mockReturnValue({ select: selectForOrg });
+    const eqInner = vi.fn().mockReturnValue({ maybeSingle: maybeSingleFn });
+    const eqOuter = vi.fn().mockReturnValue({ eq: eqInner, maybeSingle: maybeSingleFn });
+    const selectFn = vi.fn().mockReturnValue({ eq: eqOuter, maybeSingle: maybeSingleFn });
+    mockFrom.mockReturnValue({ select: selectFn });
 
     // Simulate viewer role in org_members
     mockRpc.mockImplementation((fnName: string) => {
