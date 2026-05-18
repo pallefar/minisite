@@ -29,6 +29,13 @@ const P30_OPT_IN = process.env.PLAYWRIGHT_RUN_P30 === '1';
 // runs unintentionally in the standard CI suite.
 const P31_OPT_IN = process.env.PLAYWRIGHT_RUN_P31 === '1';
 
+// Phase 27 Plan 27-03: opt-in admin command-palette spec via PLAYWRIGHT_RUN_P27=1.
+// The spec uses addInitScript-only state seeding (no live Supabase required) but
+// the full UI mount is owned by Plan 27-04 (AdminGlobals), so this spec is scoped
+// to behaviors that don't require the live mount. Gate by env var per
+// [[reference_playwright_conditional_project_argv]].
+const P27_OPT_IN = process.env.PLAYWRIGHT_RUN_P27 === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -58,6 +65,7 @@ export default defineConfig({
         /e2e\/clinician-alerts-realtime\.spec\.ts$/,
         /e2e\/clinic-brand-first-paint\.spec\.ts$/,
         /e2e\/patient-org-onboarding\.spec\.ts$/,
+        /e2e\/admin-palette\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -112,6 +120,19 @@ export default defineConfig({
               /e2e\/clinic-brand-first-paint\.spec\.ts$/,
               /e2e\/patient-org-onboarding\.spec\.ts$/,
             ],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 27 Plan 27-03: opt-in admin command-palette spec.
+    // Invoke via `PLAYWRIGHT_RUN_P27=1 npx playwright test --project=p27`.
+    // Spec is addInitScript-driven (no live Supabase needed). Full UI mount
+    // verification deferred to Plan 27-04 which owns AdminGlobals.
+    ...(P27_OPT_IN
+      ? [
+          {
+            name: 'p27',
+            testMatch: [/e2e\/admin-palette\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
