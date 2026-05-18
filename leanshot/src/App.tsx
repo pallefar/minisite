@@ -36,6 +36,12 @@ import { useStore } from '@/lib/store';
 // exact/prefix) and returns the matched component to render under Suspense.
 // This is the ONLY Phase 19 plan that mutates App.tsx; the other plans
 // contribute via the registry files instead.
+// Phase 31 Plan 06 D-10/D-14: dashboard-entry gate for invited patients.
+// useOrgOnboardingFlow() called unconditionally per React rules-of-hooks;
+// the result is only acted upon when view === 'dashboard'. For consumer-path
+// users (no primary_org_id / anonymous) the hook returns 'consumer' after a
+// single DB round-trip; subsequent renders return cached state (mount-only fetch).
+import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import {
   autoMintAnonSessionIfMissing,
   deferFlush,
@@ -598,6 +604,11 @@ export function App() {
   // null on net-new users so the MigrationModal lazy chunk never loads.
   const migrationState = useStore((s) => s.migration_state);
   const migrationError = useStore((s) => s.migrationError);
+
+  // Phase 31 Plan 06 D-10/D-14: org onboarding flow state for the dashboard-entry gate.
+  // Called unconditionally (React rules-of-hooks); only used when view==='dashboard'.
+  // Fail-open: returns 'consumer' on any error, preserving local-first invariant.
+  const orgFlow = useOrgOnboardingFlow();
 
   // D-11: dashboard-render fallback gate. True whenever a logged-in user lands
   // on the dashboard without the current disclaimer version acknowledged
@@ -1462,6 +1473,30 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <ConsentAcceptScreen />
+        </Suspense>
+      </>
+    );
+  }
+
+  // Phase 31 Plan 06 D-10/D-14: dashboard-entry gate for invited patients.
+  // When orgFlow.status === 'org', the patient has a primary_org_id with an
+  // active flow AND has not yet completed onboarding (completed_onboarding_at IS NULL).
+  // Show the org-customized OnboardingFlow INSTEAD of the AppShell.
+  // onComplete is a no-op view change: the hook returns 'completed' on the next
+  // mount (mark_onboarding_complete wrote the timestamp) and the gate no longer fires.
+  if (view === 'dashboard' && orgFlow.status === 'org') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <Onboarding
+            onCancel={() => {
+              /* invited patients cannot cancel — keep them in the flow */
+            }}
+            onComplete={() => {
+              /* hook re-reads DB on next mount; no view change needed here */
+            }}
+          />
         </Suspense>
       </>
     );

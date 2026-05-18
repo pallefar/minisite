@@ -5,6 +5,7 @@ import { DisclaimerBody } from '@/components/dashboard/DisclaimerModal';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/hooks/useToast';
 import { AIAvatar } from '@/illustrations/AIAvatar';
 import {
@@ -18,7 +19,9 @@ import {
 } from '@/illustrations/OnboardSteps';
 import { track } from '@/lib/analytics';
 import { todayStr } from '@/lib/helpers';
+import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import { medLabel } from '@/lib/pharmacology';
+import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
 import type {
   ActivityLevel,
@@ -30,6 +33,7 @@ import type {
   User,
   DoseUnit,
 } from '@/types';
+import type { OnboardingStepNode } from '@/types/onboarding-step';
 import { ProgressIndicator } from './ProgressIndicator';
 import { UnitToggle } from './UnitToggle';
 
@@ -61,6 +65,10 @@ interface DraftState {
 const TOTAL_STEPS = 8;
 
 export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
+  // Phase 31 Plan 06 D-10: render-branch hook — determines whether to show
+  // the org's saved flow (invited patient) or the consumer DEFAULT_STEPS path.
+  const flowState = useOrgOnboardingFlow();
+
   const setUser = useStore((s) => s.setUser);
   const upsertWeight = useStore((s) => s.upsertWeight);
   const toast = useToast();
@@ -91,6 +99,40 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   useEffect(() => {
     track('onboarding_started');
   }, []);
+
+  // ── Phase 31 Plan 06: render-branch early returns ───────────────────────
+
+  // Loading: show a lightweight skeleton while the hook's async query resolves
+  if (flowState.status === 'loading') {
+    return (
+      <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4 md:p-6">
+        <div className="w-full max-w-[560px]">
+          <Skeleton className="h-[520px] rounded-[28px]" />
+        </div>
+      </div>
+    );
+  }
+
+  // Completed: defense-in-depth null return (App.tsx gate short-circuits in production)
+  if (flowState.status === 'completed') {
+    return null;
+  }
+
+  // Org-flow: delegated to OrgOnboardingFlowRenderer
+  if (flowState.status === 'org' && flowState.steps && flowState.steps.length > 0) {
+    return (
+      <OrgOnboardingFlowRenderer
+        orgId={flowState.orgId!}
+        orgName={flowState.orgName}
+        steps={flowState.steps}
+        onCancel={onCancel}
+        onComplete={onComplete}
+      />
+    );
+  }
+
+  // Consumer / default: fall through to DEFAULT_STEPS render below
+  // ────────────────────────────────────────────────────────────────────────
 
   const update = (patch: Partial<DraftState>): void => setDraft((d) => ({ ...d, ...patch }));
 
@@ -149,6 +191,20 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
       ts: Date.now(),
     });
     track('onboarding_completed', { totalSteps: TOTAL_STEPS });
+    // Phase 31 Plan 06 D-13: mark_onboarding_complete SECDEF — best-effort, fire-and-forget.
+    // Local store mutations happen first; SECDEF writes profiles.completed_onboarding_at.
+    // Only fires for authenticated users (anonymous users silently skip).
+    // Errors are swallowed — onComplete() is NOT blocked by the SECDEF call.
+    void (async () => {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user && !authData.user.is_anonymous) {
+          await supabase.rpc('mark_onboarding_complete');
+        }
+      } catch (err) {
+        console.warn('[OnboardingFlow] mark_onboarding_complete failed (best-effort):', err);
+      }
+    })();
     onComplete();
   };
 
@@ -584,6 +640,459 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// OrgOnboardingFlowRenderer — renders the clinic's customized onboarding flow
+// ---------------------------------------------------------------------------
+
+interface OrgOnboardingFlowRendererProps {
+  orgId: string;
+  orgName: string | null;
+  steps: OnboardingStepNode[];
+  onCancel: () => void;
+  onComplete: () => void;
+}
+
+/**
+ * Phase 31 Plan 06 D-10: org-customized onboarding render path.
+ *
+ * Reuses the same card chrome, ProgressIndicator, and existing step-form
+ * contents (medication/consent/etc.) as the DEFAULT_STEPS consumer path.
+ * Only the step ordering, welcome/intro_card text, and TOTAL count differ.
+ *
+ * Skipped steps (step.skip === true for skippable types) are advanced
+ * automatically on render. Mandatory steps (medication, consent) ignore
+ * the skip flag regardless.
+ */
+function OrgOnboardingFlowRenderer({
+  orgName,
+  steps,
+  onCancel,
+  onComplete,
+}: OrgOnboardingFlowRendererProps) {
+  const setUser = useStore((s) => s.setUser);
+  const upsertWeight = useStore((s) => s.upsertWeight);
+  const toast = useToast();
+
+  // Filter to rendered steps (skip flag honoured for non-mandatory types)
+  const SKIPPABLE_TYPES = new Set(['welcome', 'intro_card', 'goals', 'body_stats', 'doctor_invite', 'tour']);
+  const MANDATORY_TYPES = new Set(['medication', 'consent']);
+
+  const renderedSteps = steps.filter((s) => {
+    // Mandatory steps ALWAYS render regardless of skip flag
+    if (MANDATORY_TYPES.has(s.type)) return true;
+    // Skippable types: omit when skip=true
+    if (SKIPPABLE_TYPES.has(s.type) && s.skip === true) return false;
+    return true;
+  });
+
+  const TOTAL = renderedSteps.length;
+
+  const [step, setStep] = useState(0);
+  const [draft, setDraft] = useState<DraftState>({
+    name: '',
+    units: 'metric',
+    medication: '',
+    dose: '',
+    doseUnit: 'mg',
+    startDate: todayStr(),
+    weight: '',
+    height: '',
+    age: '',
+    sex: 'male',
+    bodyFat: '',
+    goalWeight: '',
+    goal: 'fat-loss',
+    protein: '',
+    injectionDay: 0,
+    activity: 'light',
+    lifting: 'none',
+  });
+
+  const wU = draft.units === 'metric' ? 'kg' : 'lb';
+  const hU = draft.units === 'metric' ? 'cm' : 'in';
+
+  const update = (patch: Partial<DraftState>): void => setDraft((d) => ({ ...d, ...patch }));
+
+  const next = (): void => {
+    const current = renderedSteps[step];
+    if (!current) return;
+    if (current.type === 'medication' && !draft.medication) {
+      return toast('Please pick your medication', 'error');
+    }
+    if (current.type === 'body_stats' && !draft.weight) {
+      return toast('Please enter your weight', 'error');
+    }
+    track('onboarding_step_completed', { step, org_flow: true });
+    setStep((s) => Math.min(TOTAL - 1, s + 1));
+  };
+  const back = (): void => setStep((s) => Math.max(0, s - 1));
+
+  const complete = (): void => {
+    const weight = parseFloat(draft.weight) || 80;
+    const proteinFromBody = Math.round(weight * (draft.units === 'metric' ? 1.6 : 0.8));
+    const calorieBase = Math.round(weight * (draft.units === 'metric' ? 22 : 10));
+    const goalWeight = parseFloat(draft.goalWeight) || weight - 10;
+    const protein = parseInt(draft.protein) || proteinFromBody;
+
+    const user: User = {
+      name: draft.name.trim() || 'Friend',
+      units: draft.units,
+      medication: (draft.medication || 'ozempic') as MedicationId,
+      dose: draft.dose || '0.25',
+      doseUnit: draft.doseUnit,
+      startDate: draft.startDate,
+      startWeight: weight,
+      height: parseFloat(draft.height) || null,
+      age: parseInt(draft.age) || null,
+      sex: draft.sex,
+      bodyFat: parseFloat(draft.bodyFat) || null,
+      goalWeight,
+      goal: draft.goal,
+      proteinTarget: protein,
+      calorieTarget: calorieBase,
+      fiberTarget: 30,
+      waterTarget: 8,
+      injectionDay: draft.injectionDay,
+      activityLevel: draft.activity,
+      liftingLevel: draft.lifting,
+      createdAt: new Date().toISOString(),
+    };
+    setUser(user);
+    if (parseFloat(draft.weight)) {
+      upsertWeight({
+        date: draft.startDate,
+        weight: parseFloat(draft.weight),
+        bodyFat: parseFloat(draft.bodyFat) || null,
+        ts: Date.now(),
+      });
+    }
+    track('onboarding_completed', { totalSteps: TOTAL, org_flow: true });
+    // Phase 31 Plan 06 D-13: mark_onboarding_complete SECDEF — best-effort
+    void (async () => {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user && !authData.user.is_anonymous) {
+          await supabase.rpc('mark_onboarding_complete');
+        }
+      } catch (err) {
+        console.warn('[OrgOnboardingFlowRenderer] mark_onboarding_complete failed:', err);
+      }
+    })();
+    onComplete();
+  };
+
+  const currentStep = renderedSteps[step];
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4 md:p-6 safe-top safe-bottom">
+      <div className="w-full max-w-[560px]">
+        <div className="bg-[var(--color-surface)] rounded-[28px] border border-[var(--color-border)] shadow-lg overflow-hidden">
+          {/* Full-bleed illustration banner */}
+          <div className="relative h-[180px] md:h-[200px] bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-surface-elevated)] overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                {currentStep?.type === 'welcome' && <OnboardWelcome className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'intro_card' && <OnboardSnapshot className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'medication' && <OnboardMedication className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'goals' && <OnboardGoals className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'body_stats' && <OnboardBody className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'consent' && <OnboardReady className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'doctor_invite' && <OnboardRoutine className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'tour' && <OnboardReady className="w-full max-w-[320px]" />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="p-6 md:p-8">
+            <ProgressIndicator step={step} total={TOTAL} />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+              >
+                {currentStep?.type === 'welcome' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {currentStep.custom?.title ?? `Welcome to ${orgName ?? 'your clinic'}`}
+                      </h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        {currentStep.custom?.body ?? 'Your treatment journey starts here.'}
+                      </p>
+                    </div>
+                    <Input
+                      label="Your name"
+                      placeholder="First name"
+                      autoComplete="given-name"
+                      value={draft.name}
+                      onChange={(e) => update({ name: e.target.value })}
+                    />
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                        Units
+                      </p>
+                      <UnitToggle value={draft.units} onChange={(u) => update({ units: u })} />
+                    </div>
+                  </div>
+                )}
+
+                {currentStep?.type === 'intro_card' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {currentStep.custom?.title ?? 'Getting started'}
+                      </h1>
+                      {currentStep.custom?.body && (
+                        <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                          {currentStep.custom.body}
+                        </p>
+                      )}
+                    </div>
+                    {currentStep.custom?.image_url && (
+                      <img
+                        src={currentStep.custom.image_url}
+                        alt={currentStep.custom.title ?? 'Introduction'}
+                        className="w-full rounded-xl object-cover max-h-48"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {currentStep?.type === 'medication' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Your medication</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        We&apos;ll tailor everything to your med.
+                      </p>
+                    </div>
+                    <Select
+                      label="GLP-1 medication"
+                      value={draft.medication}
+                      onChange={(e) => update({ medication: e.target.value as MedicationId })}
+                    >
+                      <option value="">Select…</option>
+                      <option value="ozempic">Ozempic (semaglutide)</option>
+                      <option value="wegovy">Wegovy (semaglutide)</option>
+                      <option value="mounjaro">Mounjaro (tirzepatide)</option>
+                      <option value="zepbound">Zepbound (tirzepatide)</option>
+                      <option value="rybelsus">Rybelsus (oral semaglutide)</option>
+                      <option value="saxenda">Saxenda (liraglutide)</option>
+                      <option value="trulicity">Trulicity (dulaglutide)</option>
+                      <option value="retatrutide">Retatrutide</option>
+                      <option value="compound-sema">Compounded semaglutide</option>
+                      <option value="compound-tirz">Compounded tirzepatide</option>
+                    </Select>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        label="Current dose"
+                        inputMode="decimal"
+                        placeholder="0.5"
+                        value={draft.dose}
+                        onChange={(e) => update({ dose: e.target.value })}
+                      />
+                      <Select
+                        label="Unit"
+                        value={draft.doseUnit}
+                        onChange={(e) => update({ doseUnit: e.target.value as DoseUnit })}
+                      >
+                        <option value="mg">mg</option>
+                        <option value="units">units</option>
+                        <option value="ml">ml</option>
+                      </Select>
+                    </div>
+                    <Input
+                      label="Start date"
+                      type="date"
+                      value={draft.startDate}
+                      onChange={(e) => update({ startDate: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {currentStep?.type === 'goals' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Your goals</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        Where are you headed?
+                      </p>
+                    </div>
+                    <Input
+                      label={`Target weight (${wU})`}
+                      type="number"
+                      step="0.1"
+                      inputMode="decimal"
+                      value={draft.goalWeight}
+                      onChange={(e) => update({ goalWeight: e.target.value })}
+                    />
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
+                        Primary goal
+                      </p>
+                      <PillGroup>
+                        {(['fat-loss', 'recomp', 'health', 'maintenance'] as const).map((g) => (
+                          <Pill
+                            key={g}
+                            active={draft.goal === g}
+                            onClick={() => update({ goal: g })}
+                          >
+                            {g === 'fat-loss'
+                              ? 'Fat loss'
+                              : g === 'recomp'
+                                ? 'Recomp'
+                                : g === 'health'
+                                  ? 'Health markers'
+                                  : 'Maintenance'}
+                          </Pill>
+                        ))}
+                      </PillGroup>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep?.type === 'body_stats' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Your starting point</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        For real progress tracking.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        label={`Weight (${wU})`}
+                        type="number"
+                        step="0.1"
+                        inputMode="decimal"
+                        value={draft.weight}
+                        onChange={(e) => update({ weight: e.target.value })}
+                      />
+                      <Input
+                        label={`Height (${hU})`}
+                        type="number"
+                        step="0.1"
+                        inputMode="decimal"
+                        value={draft.height}
+                        onChange={(e) => update({ height: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        label="Age"
+                        type="number"
+                        inputMode="numeric"
+                        value={draft.age}
+                        onChange={(e) => update({ age: e.target.value })}
+                      />
+                      <Select
+                        label="Sex at birth"
+                        value={draft.sex}
+                        onChange={(e) => update({ sex: e.target.value as Sex })}
+                      >
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep?.type === 'consent' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Consent &amp; disclaimer</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        Please review before continuing.
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 text-[13px] text-[var(--color-text-secondary)] space-y-2">
+                      <p>LeanShot is a health-tracking app, not a medical device or provider.</p>
+                      <p>All data is stored locally on your device unless you explicitly enable cloud sync.</p>
+                      <p>Consult your doctor before making changes to your treatment plan.</p>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep?.type === 'doctor_invite' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Connect your doctor</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        Share progress with your care team.
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 text-[13px] text-[var(--color-text-secondary)]">
+                      <p>You can invite your doctor from the Settings page once you are set up.</p>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep?.type === 'tour' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-[26px] font-bold tracking-tight">Quick tour</h1>
+                      <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
+                        Here is what LeanShot can do for you.
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 text-[13px] text-[var(--color-text-secondary)]">
+                      <p>Track injections, body metrics, nutrition, and mood — all in one place.</p>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="flex gap-2 mt-7">
+              {step === 0 ? (
+                <Button variant="ghost" onClick={onCancel} className="flex-1">
+                  Cancel
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  onClick={back}
+                  leadingIcon={<ArrowLeft className="size-4" />}
+                  className="flex-1"
+                >
+                  Back
+                </Button>
+              )}
+              {step < TOTAL - 1 ? (
+                <Button
+                  onClick={next}
+                  trailingIcon={<ArrowRight className="size-4" />}
+                  className="flex-1"
+                >
+                  Continue
+                </Button>
+              ) : (
+                <Button
+                  onClick={complete}
+                  trailingIcon={<Check className="size-4" />}
+                  className="flex-1"
+                >
+                  Open dashboard
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -4,6 +4,28 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '@/lib/store';
 import { OnboardingFlow } from './OnboardingFlow';
 
+// Phase 31 Plan 06: mock useOrgOnboardingFlow so the consumer DEFAULT_STEPS
+// path tests don't regress — the hook's async query would show 'loading'
+// skeleton otherwise. Consumer path requires status='consumer' (no auth user).
+vi.mock('@/lib/onboarding-builder/use-org-onboarding-flow', () => ({
+  useOrgOnboardingFlow: vi.fn(() => ({
+    status: 'consumer',
+    orgId: null,
+    orgName: null,
+    steps: null,
+  })),
+}));
+
+// Mock supabase to avoid real network calls in tests
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+    },
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+  },
+}));
+
 describe('OnboardingFlow', () => {
   beforeEach(() => {
     // Reset store to initial state before each test
