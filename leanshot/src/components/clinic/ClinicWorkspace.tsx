@@ -27,11 +27,19 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { supabase } from '@/lib/supabase';
+import { lazy, Suspense } from 'react';
 import type { Org } from '@/types/clinic';
 import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { ClinicContextBar } from './ClinicContextBar';
 import { InvitePatientModal } from './InvitePatientModal';
 import { RosterTable } from './roster/RosterTable';
+
+// P30 Plan 30-04 — ClinicDashboardOverview lazy-loaded to keep clinic chunk under bundle ceiling.
+// Mount above the Roster on the workspace home so SC#5 (CLIN-05) + CLIN-08 surface population-level
+// metrics without a router change. Wired here per verifier orphan-fix 2026-05-18.
+const ClinicDashboardOverview = lazy(() =>
+  import('./dashboard/ClinicDashboardOverview').then((m) => ({ default: m.ClinicDashboardOverview })),
+);
 
 /**
  * Default permission map for the org owner. Role-specific permissions are
@@ -193,6 +201,11 @@ export function ClinicWorkspace() {
             Your patients will appear here.
           </p>
         </header>
+
+        {/* P30 — Dashboard overview (CLIN-05 / CLIN-08). Lazy-loaded; falls back to a small Skeleton. */}
+        <Suspense fallback={<div className="h-32 rounded-card bg-[var(--color-surface-elevated)]" aria-hidden="true" />}>
+          <ClinicDashboardOverview orgId={org.id} />
+        </Suspense>
 
         <section
           className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-4 md:p-6"
