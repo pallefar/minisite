@@ -33,7 +33,7 @@ export interface SendInviteEmailResult {
 }
 
 export async function sendInviteEmail(
-  params: InviteEmailParams & { to: string },
+  params: InviteEmailParams & { to: string; subjectOverride?: string; textOverride?: string },
 ): Promise<SendInviteEmailResult> {
   const apiKey = Deno.env.get('RESEND_API_KEY');
   if (!apiKey) {
@@ -47,9 +47,13 @@ export async function sendInviteEmail(
     return { ok: true, stubbed: true };
   }
 
-  const subject = `${params.orgName} invited you to share your LeanShot data`;
+  // Phase 32 plan 32-05 (I18N-04): caller (clinic-invite/index.ts handleSend)
+  // may pass a locale-rendered subject + plain-text alt computed via
+  // _shared/i18n-server.ts. Default to the legacy EN strings when absent
+  // (callers outside the i18n wiring path still work).
+  const subject = params.subjectOverride ?? `${params.orgName} invited you to share your LeanShot data`;
   const html = renderInviteHtml(params);
-  const text = renderInviteText(params);
+  const text = params.textOverride ?? renderInviteText(params);
 
   let res: Response;
   try {

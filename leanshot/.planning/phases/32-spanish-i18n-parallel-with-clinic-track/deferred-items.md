@@ -24,3 +24,32 @@ Discovered during Phase 32 execution but caused by pre-existing baseline conditi
 - **What:** Build emits `Circular chunk: share -> admin-shell -> share` and 4 other admin-shell ↔ clinic ↔ read-only-patient-view warnings.
 - **Why pre-existing:** These predate Plan 32-01 (verified at c46b423 baseline build). They are Vite warnings, not errors — the build still completes.
 - **Fix owner:** NOT Phase 32.
+
+## 32-05 / supabase/functions/dsar-export/index.ts — pre-existing TypeScript errors
+
+Discovered during Plan 32-05 execution (Task 3 typecheck pass). All errors
+exist on the pre-change baseline (`git stash` + `deno check` on HEAD before
+my edits showed 4 errors); they are NOT regressions introduced by the i18n
+wiring.
+
+Errors (deno 2.7.14, typescript 5.9.2):
+- `row.user_id` typed as `never` (line 603) — `maybeSingle()` inference quirk.
+- `new Blob([zipBytes], ...)` rejecting `Uint8Array<ArrayBufferLike>` (line 650)
+  — DOM type Blob narrowed to ArrayBuffer-only; needs `Uint8Array<ArrayBuffer>`
+  cast or `as BlobPart`.
+
+Surface: function runs correctly at runtime; tsc strict-mode tooling is the
+only consumer that surfaces them. Owner: future phase / DEBT pickup.
+
+## 32-05 / supabase/functions/clinic-invite/index.test.ts — pre-existing test flake
+
+Test "Test (bad-json): /send with malformed body → 400 bad_json (after JWT check)"
+fails on baseline (HEAD before plan 32-05) AND after. Not a regression from
+i18n wiring.
+
+Cause: test sets up a stub admin client whose `admin.auth.getUser('not-a-real-jwt')`
+behavior has drifted (perhaps supabase-js v2 update). The test's own comment
+documents expected 401-before-body-parse semantics; the actual path appears
+to bypass auth and reach the body-parse error path. Owner: clinic-invite test
+maintainer pickup; non-blocking for plan 32-05 (the test is about pre-existing
+flow ordering, not about i18n).

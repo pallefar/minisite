@@ -52,6 +52,13 @@
 import 'jsr:@std/dotenv/load';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from './cors.ts';
+// Phase 32 plan 32-05 (I18N-04): inviter-locale localization for the
+// subject + plain-text alt. The recipient may not yet be a user (the W-1
+// anti-enumeration invariant forbids branching on email existence here),
+// so we resolve the INVITER's locale per plan 32-05 Task 3 Step 3 lock
+// table — operator picks the language they speak with the patient.
+import { renderInLocale } from '../_shared/i18n-server.ts';
+import { resolveLocale } from '../_shared/profiles-locale.ts';
 import {
   checkAcceptRateLimit,
   checkLookupRateLimit,
@@ -299,6 +306,20 @@ async function handleSend(req: Request): Promise<Response> {
   // 8. Dispatch via Resend. Failure does NOT block the response — the
   //    operator already created the invite, and email-provider hiccups
   //    are out-of-band. We log + still return the universal 200.
+  //
+  // Phase 32 plan 32-05 (I18N-04): localize subject + plain-text alt via
+  // INVITER's profiles.locale (operator.id). Recipient may not yet be a
+  // user, so we cannot resolve recipient locale here without violating
+  // the W-1 anti-enumeration invariant.
+  const lng = await resolveLocale(operator.id, admin);
+  const i18nVars = {
+    name: operatorFirstName,
+    org_name: orgName,
+    reset_url: inviteUrl,
+  };
+  const subjectOverride = await renderInLocale(lng, 'clinic_invite.subject', i18nVars);
+  const textOverride = await renderInLocale(lng, 'clinic_invite.body', i18nVars);
+
   const dispatch = await sendInviteEmail({
     to: email,
     orgName,
@@ -306,6 +327,8 @@ async function handleSend(req: Request): Promise<Response> {
     operatorFirstName,
     inviteUrl,
     expiresAt: expiresAtISO,
+    subjectOverride,
+    textOverride,
   });
   if (!dispatch.ok) {
     console.error('[clinic-invite] resend dispatch failed', dispatch.error ?? 'unknown');

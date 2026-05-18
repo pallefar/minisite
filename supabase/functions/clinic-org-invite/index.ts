@@ -36,6 +36,11 @@
 
 import 'jsr:@std/dotenv/load';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+// Phase 32 plan 32-05 (I18N-04): inviter-locale localization for the
+// subject + plain-text alt. Recipient may not yet be a user (W-1
+// anti-enumeration). Resolve INVITER's locale per plan 32-05 Task 3 lock.
+import { renderInLocale } from '../_shared/i18n-server.ts';
+import { resolveLocale } from '../_shared/profiles-locale.ts';
 
 // ---------------------------------------------------------------------------
 // Startup health check (per [[reference_vendor_gated_send_health_check]])
@@ -110,6 +115,10 @@ interface OrgInviteEmailParams {
   invitedRole: string;
   inviteUrl: string;
   expiresAt: string;
+  /** Phase 32 plan 32-05: locale-rendered subject from _shared/i18n-server.ts */
+  subjectOverride?: string;
+  /** Phase 32 plan 32-05: locale-rendered plain-text alt */
+  textOverride?: string;
 }
 
 async function sendOrgInviteEmail(params: OrgInviteEmailParams): Promise<{ ok: boolean }> {
@@ -126,11 +135,14 @@ async function sendOrgInviteEmail(params: OrgInviteEmailParams): Promise<{ ok: b
     return { ok: true };
   }
 
-  const subject = `You've been invited to join a clinic on LeanShot`;
+  // Phase 32 plan 32-05 (I18N-04): caller passes locale-rendered subject +
+  // text; fall back to legacy EN literals when absent.
+  const subject = params.subjectOverride ?? `You've been invited to join a clinic on LeanShot`;
   const text =
-    `You've been invited as a ${params.invitedRole} to join a clinic on LeanShot.\n\n` +
-    `Accept your invitation: ${params.inviteUrl}\n\n` +
-    `This invitation expires on ${new Date(params.expiresAt).toLocaleDateString()}.`;
+    params.textOverride ??
+    (`You've been invited as a ${params.invitedRole} to join a clinic on LeanShot.\n\n` +
+      `Accept your invitation: ${params.inviteUrl}\n\n` +
+      `This invitation expires on ${new Date(params.expiresAt).toLocaleDateString()}.`);
 
   const html = `
     <p>You've been invited as a <strong>${params.invitedRole}</strong> to join a clinic on LeanShot.</p>
@@ -230,12 +242,26 @@ async function handleSend(req: Request): Promise<Response> {
   if (rawToken) {
     const inviteUrl = `${PUBLIC_APP_ORIGIN}/clinic-org-invite/${rawToken}`;
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Phase 32 plan 32-05 (I18N-04): localize via INVITER's profiles.locale.
+    // Recipient may not yet be a user (W-1 anti-enumeration).
+    const lng = await resolveLocale(userData.user.id, admin);
+    const i18nVars = {
+      org_name: 'Your clinic',
+      role,
+      reset_url: inviteUrl,
+    };
+    const subjectOverride = await renderInLocale(lng, 'clinic_org_invite.subject', i18nVars);
+    const textOverride = await renderInLocale(lng, 'clinic_org_invite.body', i18nVars);
+
     const dispatch = await sendOrgInviteEmail({
       to: email,
       orgName: 'Your clinic',
       invitedRole: role,
       inviteUrl,
       expiresAt,
+      subjectOverride,
+      textOverride,
     });
     if (!dispatch.ok) {
       console.error('[clinic-org-invite] email dispatch failed (invite persisted)');

@@ -27,6 +27,12 @@ import {
   jsonResponse,
   makeLazyAdmin,
 } from '../_shared/lifecycle-utils.ts';
+// Phase 32 plan 32-05 (I18N-04): all three behavior triggers
+// (first_injection_celebration, 7_day_streak, missed_dose_day3) localize
+// subject + plain-text alt via the shared `lifecycle_behavior.*` keys.
+// HTML stays in EN per D-09; contractor refines in Plan 32-06.
+import { renderInLocale } from '../_shared/i18n-server.ts';
+import { resolveLocale } from '../_shared/profiles-locale.ts';
 import { renderTemplate } from './templates.ts';
 
 const { admin, setAdminForTest, resetAdminForTest } = makeLazyAdmin();
@@ -161,11 +167,24 @@ async function dispatchTemplate(
     unsubscribe_url: `${SITE_URL()}/settings/email-preferences`,
     ...extraData,
   });
+
+  // I18N-04 language layer — all three behavior triggers share the
+  // `lifecycle_behavior.*` namespace. resolveLocale caches via LRU(100)
+  // so the 15-min cron tick stays cheap even when the same user fires
+  // multiple triggers in a row.
+  const lng = await resolveLocale(userMeta.id, admin);
+  const i18nVars = {
+    name: userMeta.first_name || 'there',
+    reset_url: SITE_URL(),
+  };
+  const localizedSubject = await renderInLocale(lng, 'lifecycle_behavior.subject', i18nVars);
+  const localizedText = await renderInLocale(lng, 'lifecycle_behavior.body', i18nVars);
+
   const dispatch = await sendResendEmail({
     to: userMeta.email,
-    subject: rendered.subject,
+    subject: localizedSubject,
     html: rendered.html,
-    text: rendered.text,
+    text: localizedText,
   });
   if (dispatch.ok) {
     await markSent(userMeta.id, key);

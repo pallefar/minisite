@@ -15,7 +15,7 @@
  */
 import { assert, assertEquals } from 'jsr:@std/assert@^1';
 import { __internal, resolveLocale } from './profiles-locale.ts';
-import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno';
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 interface StubState {
   selectCalls: number;

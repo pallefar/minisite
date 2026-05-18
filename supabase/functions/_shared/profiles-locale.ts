@@ -23,7 +23,10 @@
  *
  * Test surface: `_shared/profiles-locale.test.ts`.
  */
-import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno';
+// Use the npm: specifier so the type matches consumers that instantiate via
+// `createClient` from npm:@supabase/supabase-js@2 (esm.sh and npm: variants
+// produce nominally-different declarations even with identical runtime shape).
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 export type Locale = 'en' | 'es';
 
