@@ -57,6 +57,18 @@ interface FakeAdminOptions {
   baselineErr?: { message: string } | null;
   todayCount?: number;
   todayCountErr?: { message: string } | null;
+  // Phase 26 Plan 26-02 — Ratio Z-score additions (D-10 extends, does not replace).
+  ratioImpressionsToday?: number;        // affiliate_impressions count today
+  ratioClicksToday?: number;             // affiliate_clicks count today (used by ratio numerator)
+  ratioZScore?: number | null;           // RPC compute_affiliate_ratio_z_score return value
+  ratioSignalInsertErr?: { message: string } | null;
+}
+
+interface FraudSignalCapture {
+  affiliate_id: string;
+  signal_type: string;
+  // deno-lint-ignore no-explicit-any
+  payload: any;
 }
 
 interface ClickInsertCapture {
@@ -72,15 +84,30 @@ interface ClickInsertCapture {
 
 interface FakeAdmin {
   inserted: ClickInsertCapture[];
+  fraudSignalsInserted: FraudSignalCapture[];
+  rpcCalls: Array<{ fn: string; args: Record<string, unknown> }>;
   // deno-lint-ignore no-explicit-any
   from: (table: string) => any;
+  // deno-lint-ignore no-explicit-any
+  rpc: (fn: string, args: Record<string, unknown>) => Promise<any>;
 }
 
 function buildFakeAdmin(opts: FakeAdminOptions): FakeAdmin {
   const inserted: ClickInsertCapture[] = [];
+  const fraudSignalsInserted: FraudSignalCapture[] = [];
+  const rpcCalls: Array<{ fn: string; args: Record<string, unknown> }> = [];
 
   const fake: FakeAdmin = {
     inserted,
+    fraudSignalsInserted,
+    rpcCalls,
+    rpc(fn: string, args: Record<string, unknown>) {
+      rpcCalls.push({ fn, args });
+      if (fn === 'compute_affiliate_ratio_z_score') {
+        return Promise.resolve({ data: opts.ratioZScore ?? null, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    },
     from(table: string) {
       if (table === 'affiliates') {
         return {
@@ -103,23 +130,27 @@ function buildFakeAdmin(opts: FakeAdminOptions): FakeAdmin {
       if (table === 'affiliate_clicks') {
         return {
           // SELECT path — { count: 'exact', head: true } for cold-start cap
-          // OR today's-count (Z-score check). Both share the same shape; the
-          // handler only invokes ONE per request (cold-start path and Z-score
-          // path are mutually exclusive on affiliate age).
+          // (with .gt()) OR today's-count (Z-score path, .gt()) OR ratio
+          // numerator (Plan 26-02, .gte() at start-of-day).
           select(_cols: string, _options?: unknown) {
             return {
               eq(_col: string, _val: string) {
+                const gtResolve = () => {
+                  const useToday = opts.todayCount !== undefined || opts.todayCountErr !== undefined;
+                  return Promise.resolve({
+                    data: null,
+                    count: useToday ? (opts.todayCount ?? 0) : (opts.clickCount ?? 0),
+                    error: useToday ? (opts.todayCountErr ?? null) : (opts.clickCountErr ?? null),
+                  });
+                };
+                const gteResolve = () => Promise.resolve({
+                  data: null,
+                  count: opts.ratioClicksToday ?? 0,
+                  error: null,
+                });
                 return {
-                  gt(_col2: string, _val2: string) {
-                    // todayCount preferred (Z-score path); clickCount fallback
-                    // (cold-start path). Errors mirror.
-                    const useToday = opts.todayCount !== undefined || opts.todayCountErr !== undefined;
-                    return Promise.resolve({
-                      data: null,
-                      count: useToday ? (opts.todayCount ?? 0) : (opts.clickCount ?? 0),
-                      error: useToday ? (opts.todayCountErr ?? null) : (opts.clickCountErr ?? null),
-                    });
-                  },
+                  gt(_col2: string, _val2: string) { return gtResolve(); },
+                  gte(_col2: string, _val2: string) { return gteResolve(); },
                 };
               },
             };
@@ -128,6 +159,35 @@ function buildFakeAdmin(opts: FakeAdminOptions): FakeAdmin {
           insert(row: ClickInsertCapture) {
             inserted.push(row);
             return Promise.resolve({ data: null, error: opts.clickInsertErr ?? null });
+          },
+        };
+      }
+      if (table === 'affiliate_impressions') {
+        // Phase 26 Plan 26-02 — ratio denominator.
+        return {
+          select(_cols: string, _options?: unknown) {
+            return {
+              eq(_col: string, _val: string) {
+                return {
+                  gte(_col2: string, _val2: string) {
+                    return Promise.resolve({
+                      data: null,
+                      count: opts.ratioImpressionsToday ?? 0,
+                      error: null,
+                    });
+                  },
+                };
+              },
+            };
+          },
+        };
+      }
+      if (table === 'affiliate_fraud_signals') {
+        // Phase 26 Plan 26-02 — anomaly_z_score signal writer.
+        return {
+          insert(row: FraudSignalCapture) {
+            fraudSignalsInserted.push(row);
+            return Promise.resolve({ data: null, error: opts.ratioSignalInsertErr ?? null });
           },
         };
       }
@@ -470,6 +530,119 @@ Deno.test('11. invalid fingerprint (regex reject) persists as null', async () =>
   } finally {
     __resetAdminForTest();
   }
+});
+
+// ─── Phase 26 Plan 26-02 — Ratio Z-score additions (D-10 extension) ─────────
+
+Deno.test('R1. mature affiliate with cold-start ratio baseline (z=null) → does NOT write fraud_signals row', async () => {
+  // RPC returns null (days_observed<7); ratio detector must no-op.
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-r1',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 12,
+    ratioClicksToday: 5,
+    ratioImpressionsToday: 50,
+    ratioZScore: null, // cold-start on the ratio baseline
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+    }));
+    assertEquals(res.status, 302);
+    assertEquals(fake.inserted.length, 1);
+    assertEquals(
+      fake.fraudSignalsInserted.length,
+      0,
+      'cold-start ratio baseline → no fraud_signals row',
+    );
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('R2. mature affiliate with ratio z>3 → INSERTs exactly one anomaly_z_score fraud_signals row', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-r2',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 5,
+    ratioClicksToday: 30,
+    ratioImpressionsToday: 100,
+    ratioZScore: 5.4, // > 3 → flagged
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+    }));
+    // D-09 default-trust — request still 302s; click row still INSERTs.
+    assertEquals(res.status, 302);
+    assertEquals(fake.fraudSignalsInserted.length, 1);
+    const sig = fake.fraudSignalsInserted[0];
+    assertEquals(sig.signal_type, 'anomaly_z_score');
+    assertEquals(sig.affiliate_id, 'aff-r2');
+    assertEquals(sig.payload.kind, 'anomaly_z_score');
+    assertEquals(sig.payload.z_score, 5.4);
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('R3. mature affiliate with ratio z within bounds (|z|<=3) → no fraud_signals row', async () => {
+  const fake = buildFakeAdmin({
+    affiliate: {
+      id: 'aff-r3',
+      status: 'approved',
+      allowed_referer_hosts: [],
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    baseline: { mean_clicks: 10, stddev_clicks: 2, days_observed: 10 },
+    todayCount: 8,
+    ratioClicksToday: 5,
+    ratioImpressionsToday: 100,
+    ratioZScore: 1.2,
+  });
+  __setAdminForTest(fake);
+  try {
+    const res = await handle(buildRequest({
+      code: 'goodcode',
+      referer: 'https://www.example.com',
+    }));
+    assertEquals(res.status, 302);
+    assertEquals(fake.fraudSignalsInserted.length, 0);
+  } finally {
+    __resetAdminForTest();
+  }
+});
+
+Deno.test('R4. v1.2 AFF-08 raw-count Z-score block still present (D-10 extends, does not replace)', async () => {
+  const src = await Deno.readTextFile(
+    new URL('./index.ts', import.meta.url),
+  );
+  assert(
+    src.includes('affiliate_click_baseline'),
+    'v1.2 raw-count baseline matview lookup must remain in source',
+  );
+  assert(
+    src.includes('z_score_3sigma'),
+    'v1.2 z_score_3sigma flag_reason must remain in source',
+  );
+  assert(
+    src.includes('compute_affiliate_ratio_z_score') || src.includes('affiliate_ratio_baseline'),
+    'Phase 26 ratio detector hook must be installed',
+  );
 });
 
 // ─── Defensive: referer helper sanity (not counted toward the 6) ────────────

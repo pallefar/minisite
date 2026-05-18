@@ -130,14 +130,22 @@ Deno.test('2.14b: invoice.paid with no subscription_id → no-op (skips)', async
 interface AffInsert {
   data: Record<string, unknown>;
 }
+interface FraudSigRow {
+  id: string;
+  payload: { z_score?: number };
+}
 interface AffMockState {
   affRow?: { id: string; commission_rate_cents: number; status: string } | null;
   custRow?: { user_id: string } | null;
   insertError?: { code: string; message: string } | null;
+  // Phase 26 Plan 26-02 — affiliate_fraud_signals correlation.
+  insertedConvId?: string;          // id returned by INSERT ... select('id').single()
+  pendingSignals?: FraudSigRow[];   // rows returned by SELECT on affiliate_fraud_signals
 }
-function buildAffAdmin(state: AffMockState): [SupabaseClient, () => { updates: UpdateCall[]; affInserts: AffInsert[] }] {
+function buildAffAdmin(state: AffMockState): [SupabaseClient, () => { updates: UpdateCall[]; affInserts: AffInsert[]; convUpdates: UpdateCall[] }] {
   const updates: UpdateCall[] = [];
   const affInserts: AffInsert[] = [];
+  const convUpdates: UpdateCall[] = [];
   const mockAdmin = {
     from: (table: string) => {
       if (table === 'subscriptions') {
@@ -170,16 +178,67 @@ function buildAffAdmin(state: AffMockState): [SupabaseClient, () => { updates: U
       }
       if (table === 'affiliate_conversions') {
         return {
+          // Phase 26 Plan 26-02 — INSERT now chains .select('id').single() so
+          // the handler can correlate fraud signals to the just-inserted row.
           insert: (data: Record<string, unknown>) => {
             affInserts.push({ data });
-            return Promise.resolve({ error: state.insertError ?? null });
+            // On error path (e.g. 23505 idempotent replay) return error WITHOUT
+            // the select chain — the handler short-circuits at .insert(...).
+            if (state.insertError) {
+              return {
+                select: (_: string) => ({
+                  single: () => Promise.resolve({ data: null, error: state.insertError }),
+                }),
+                // Bare-await path (legacy callers): same shape.
+                then: (
+                  resolve: (v: { data: null; error: unknown }) => unknown,
+                ) => resolve({ data: null, error: state.insertError }),
+              };
+            }
+            const insertedRow = { id: state.insertedConvId ?? 'conv-mock-id' };
+            return {
+              select: (_: string) => ({
+                single: () => Promise.resolve({ data: insertedRow, error: null }),
+              }),
+              then: (
+                resolve: (v: { data: null; error: null }) => unknown,
+              ) => resolve({ data: null, error: null }),
+            };
           },
+          update: (data: Record<string, unknown>) => ({
+            eq: (col: string, val: unknown) => {
+              convUpdates.push({ table, data, eqCol: col, eqVal: val });
+              return Promise.resolve({ error: null });
+            },
+          }),
+        };
+      }
+      if (table === 'affiliate_fraud_signals') {
+        // Phase 26 Plan 26-02 — SELECT pending unreviewed anomaly signals
+        // for the affiliate, filtered to TODAY, ordered DESC, limit 1.
+        return {
+          select: (_: string) => ({
+            eq: (_c: string, _v: unknown) => ({
+              eq: (_c2: string, _v2: unknown) => ({
+                is: (_c3: string, _v3: unknown) => ({
+                  gte: (_c4: string, _v4: unknown) => ({
+                    order: (_c5: string, _opts: unknown) => ({
+                      limit: (_n: number) => Promise.resolve({
+                        data: state.pendingSignals ?? [],
+                        error: null,
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            }),
+          }),
         };
       }
       throw new Error(`Unexpected table in test mock: ${table}`);
     },
   } as unknown as SupabaseClient;
-  return [mockAdmin, () => ({ updates, affInserts })];
+  return [mockAdmin, () => ({ updates, affInserts, convUpdates })];
 }
 
 /** Build an invoice.paid event with optional aff metadata + billing_reason. */
@@ -335,4 +394,80 @@ Deno.test('19-04 / Test U: tier-sync runs FIRST (regression safety — Phase 14 
   assertEquals(updates.length, 1);
   assertEquals(updates[0].data.ux_tier, 'paid');
   assertEquals(updates[0].data.status, 'active');
+});
+
+// ============================================================================
+// Phase 26 Plan 26-02 — Anomaly correlation (AFFTIER-05, D-09 default-trust)
+// ============================================================================
+
+Deno.test('26-02 / Anom1: today has 1 unreviewed anomaly signal → conversion row UPDATEd with anomaly_flagged=true + z_score', async () => {
+  const event = buildInvoicePaidWithAff({
+    billingReason: 'subscription_create',
+    affCodeOnSubDetails: 'valid-code',
+  });
+  const [admin, getCalls] = buildAffAdmin({
+    affRow: { id: 'aff-1', commission_rate_cents: 1000, status: 'approved' },
+    custRow: { user_id: 'user-1' },
+    insertedConvId: 'conv-anom-1',
+    pendingSignals: [{ id: 'sig-1', payload: { z_score: 5.4 } }],
+  });
+  await handle(event, admin);
+  const { affInserts, convUpdates } = getCalls();
+  assertEquals(affInserts.length, 1, 'conversion still inserts (payment NOT blocked — D-09)');
+  assertEquals(convUpdates.length, 1, 'exactly one anomaly UPDATE on the just-inserted row');
+  assertEquals(convUpdates[0].data.anomaly_flagged, true);
+  assertEquals(convUpdates[0].data.anomaly_z_score, 5.4);
+  assertEquals(convUpdates[0].eqCol, 'id');
+  assertEquals(convUpdates[0].eqVal, 'conv-anom-1');
+});
+
+Deno.test('26-02 / Anom2: no pending signals → conversion row NOT updated (clean path)', async () => {
+  const event = buildInvoicePaidWithAff({
+    billingReason: 'subscription_create',
+    affCodeOnSubDetails: 'valid-code',
+  });
+  const [admin, getCalls] = buildAffAdmin({
+    affRow: { id: 'aff-1', commission_rate_cents: 1000, status: 'approved' },
+    custRow: { user_id: 'user-1' },
+    insertedConvId: 'conv-clean-1',
+    pendingSignals: [], // no anomaly signals today
+  });
+  await handle(event, admin);
+  const { affInserts, convUpdates } = getCalls();
+  assertEquals(affInserts.length, 1);
+  assertEquals(convUpdates.length, 0, 'no anomaly UPDATE when no signals pending');
+});
+
+Deno.test('26-02 / Anom3: D-09 default-trust — UPDATE never blocks payment (insert + update both succeed)', async () => {
+  const event = buildInvoicePaidWithAff({
+    billingReason: 'subscription_create',
+    affCodeOnSubDetails: 'valid-code',
+  });
+  const [admin, getCalls] = buildAffAdmin({
+    affRow: { id: 'aff-1', commission_rate_cents: 1000, status: 'approved' },
+    custRow: { user_id: 'user-1' },
+    insertedConvId: 'conv-trust-1',
+    pendingSignals: [{ id: 'sig-2', payload: { z_score: 7.1 } }],
+  });
+  // Must not throw — payment recording is independent of anomaly metadata.
+  await handle(event, admin);
+  const { updates, affInserts } = getCalls();
+  assertEquals(updates.length, 1, 'tier sync still ran');
+  assertEquals(affInserts.length, 1, 'conversion still recorded');
+});
+
+Deno.test('26-02 / Anom4: 23505 idempotent replay still respected (no UPDATE attempted)', async () => {
+  const event = buildInvoicePaidWithAff({
+    billingReason: 'subscription_create',
+    affCodeOnSubDetails: 'valid-code',
+  });
+  const [admin, getCalls] = buildAffAdmin({
+    affRow: { id: 'aff-1', commission_rate_cents: 1000, status: 'approved' },
+    custRow: { user_id: 'user-1' },
+    insertError: { code: '23505', message: 'duplicate key value violates unique constraint' },
+    pendingSignals: [{ id: 'sig-3', payload: { z_score: 9.9 } }],
+  });
+  await handle(event, admin);
+  const { convUpdates } = getCalls();
+  assertEquals(convUpdates.length, 0, 'on idempotent replay we MUST NOT touch the existing row');
 });
