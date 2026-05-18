@@ -32,6 +32,7 @@ import {
   Settings as SettingsIcon,
   Shield as ShieldIcon,
   Building2 as Building2Icon,
+  BookOpenCheck as BookOpenCheckIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -216,6 +217,19 @@ export const ADMIN_MODULES = [
     icon: Building2Icon,
     lazy: () => import('@/components/admin/modules/ClinicOrgsPreview'),
     flagKey: 'admin.clinic_orgs.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 50 Plan 50-02 — Admin-curated RAG knowledge base.
+  // Surface: topics CRUD + sources allowlist + telemetry placeholders + cost dash.
+  // minRole 'admin' so plain admins can READ; writes are super-admin gated at RPC
+  // layer (Pattern S1 dual-layer). flagKey 'admin_rag_kb' per CONTEXT.
+  {
+    key: 'rag',
+    label: 'Knowledge Base',
+    route: 'rag',
+    icon: BookOpenCheckIcon,
+    lazy: () => import('@/components/admin/rag/RagLayout'),
+    flagKey: 'admin_rag_kb',
     minRole: 'admin' as AdminRole,
   },
 ] as const satisfies readonly AdminModule[];
