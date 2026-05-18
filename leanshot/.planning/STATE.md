@@ -4,13 +4,13 @@ milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
 stopped_at: Phase 32 context gathered
-last_updated: "2026-05-18T13:06:05.418Z"
-last_activity: 2026-05-18 -- Phase 50 execution started
+last_updated: "2026-05-18T14:54:21.486Z"
+last_activity: 2026-05-18 -- Phase 25 execution started
 progress:
   total_phases: 27
   completed_phases: 6
   total_plans: 78
-  completed_plans: 47
+  completed_plans: 60
   percent: 22
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 
 **Core value:** Drug-level projection + injection-site rotation are the headline; everything else feeds context into that picture or interprets it.
-**Current focus:** Phase 50 — Admin-Curated RAG KB
+**Current focus:** Phase 25 — hipaa-audit-hardening-vendor-baa-chain
 
 ## Current Position
 
-Phase: 50 (Admin-Curated RAG KB) — EXECUTING
-Plan: 1 of 9
-Status: Executing Phase 50
-Last activity: 2026-05-18 -- Phase 50 execution started
+Phase: 25 (hipaa-audit-hardening-vendor-baa-chain) — EXECUTING
+Plan: 1 of 10
+Status: Executing Phase 25
+Last activity: 2026-05-18 -- Phase 25 execution started
 
 ### v1.3 milestone open (2026-05-17)
 
