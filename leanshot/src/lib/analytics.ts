@@ -89,6 +89,9 @@ export function initAnalytics(): void {
     return;
   }
 
+  // Phase 25 D-04 + HIPAA-17: session_recording disabled by default;
+  // useSessionReplayPhiGuard() in src/lib/posthog-route-disable.ts
+  // re-enables only on non-PHI routes via posthog.startSessionRecording().
   void import('posthog-js').then(({ default: posthog }) => {
     posthog.init(key, {
       api_host: host,
@@ -98,6 +101,12 @@ export function initAnalytics(): void {
       autocapture: false,
       capture_pageview: false,
       disable_surveys: true,
+      // HIPAA-17: global default disables session recording; the route-change
+      // hook (src/lib/posthog-route-disable.ts) calls startSessionRecording()
+      // only when the current synthetic route is NOT in the PHI deny-list.
+      // NOTE: `disable_session_recording_on_url` does NOT exist in posthog-js
+      // (RESEARCH correction #1) — programmatic start/stop is the correct API.
+      disable_session_recording: true,
       loaded: (ph) => {
         // Pitfall 2: opt_out BEFORE identify so $identify network calls don't fire in production
         if (!enabled) {
