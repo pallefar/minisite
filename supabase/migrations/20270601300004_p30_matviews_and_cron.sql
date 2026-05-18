@@ -1,14 +1,17 @@
 -- Phase 30 Plan 00 — Task 2 (migration 4/5)
--- 2 materialized views + UNIQUE indexes + matview RLS + 4 pg_cron jobs.
+-- 2 materialized views + UNIQUE indexes + matview security + 4 pg_cron jobs.
 -- Per CONTEXT D-15, D-16, D-17 + RESEARCH §D-17 RESOLVED schedule map.
 --
 -- Matviews:
 --   mv_clinic_alert_metrics     — rolling 7-day alert counts + ack_rate + avg ack time
 --   mv_clinic_dose_trend_population — per-org medication dose-range population distribution
 --
--- CRITICAL: matviews do NOT inherit source-table RLS.
---   Both matviews get explicit RLS: enable + force + SELECT policy via org_members JOIN.
---   (Plan-checker BLOCKER#1 fix)
+-- MATVIEW SECURITY (Rule 1 auto-fix):
+--   Postgres does NOT support ALTER MATERIALIZED VIEW ... ENABLE ROW LEVEL SECURITY.
+--   The DDL syntax is unsupported in all Postgres versions (matviews are not table relations).
+--   Alternative: REVOKE all on matviews from public/authenticated, then expose via
+--   SECURITY DEFINER accessor functions that apply the org_id membership gate.
+--   This provides equivalent cross-tenant isolation (T-30-00-02 mitigation preserved).
 --
 -- UNIQUE indexes MUST be created BEFORE first CONCURRENTLY refresh (Pitfall 2).
 --
@@ -24,7 +27,6 @@
 -- vials.name (not vials.medication_name) — verified from 20260514000007_vials.sql.
 --
 -- Role check: 'admin' and 'staff' (NOT 'clinician').
--- Uses pg_catalog.cron schema references for pg_cron.
 
 begin;
 
@@ -59,25 +61,70 @@ create unique index if not exists mv_clinic_alert_metrics_uq
   on public.mv_clinic_alert_metrics (org_id, alert_type);
 
 -- =============================================================================
--- MATVIEW RLS — mv_clinic_alert_metrics (Plan-checker BLOCKER#1 fix)
--- Matviews do NOT inherit source-table RLS. Explicit policies required.
--- Without these, any authenticated user can SELECT all orgs' aggregated rows.
+-- MATVIEW ACCESS CONTROL (Plan-checker BLOCKER#1 equivalent — correct approach)
+-- Postgres does NOT support RLS on materialized views (ALTER MATERIALIZED VIEW
+-- ENABLE ROW LEVEL SECURITY is unsupported DDL in all Postgres versions).
+--
+-- Correct pattern: REVOKE direct access + expose via SECURITY DEFINER functions
+-- that apply the org membership check before returning data.
+-- This provides identical cross-tenant isolation to what RLS would have provided.
 -- =============================================================================
-alter materialized view public.mv_clinic_alert_metrics enable row level security;
-alter materialized view public.mv_clinic_alert_metrics force row level security;
 
-create policy "mv_clinic_alert_metrics_select"
-  on public.mv_clinic_alert_metrics
-  for select
-  to authenticated
-  using (
-    exists (
-      select 1 from public.org_members om
-      where om.org_id = mv_clinic_alert_metrics.org_id
-        and om.user_id = auth.uid()
-        and om.role in ('admin', 'staff')
-    )
-  );
+-- Revoke direct SELECT access from public/authenticated on both matviews
+revoke all on public.mv_clinic_alert_metrics from public;
+revoke all on public.mv_clinic_alert_metrics from authenticated;
+
+-- SECURITY DEFINER accessor for mv_clinic_alert_metrics
+-- Applies org membership check; returns only rows for the caller's org.
+create or replace function public.get_clinic_alert_metrics(p_org_id uuid)
+returns table (
+  org_id              uuid,
+  alert_type          text,
+  pending_count       bigint,
+  acknowledged_count  bigint,
+  total_count         bigint,
+  ack_rate_pct        numeric,
+  avg_time_to_ack_minutes numeric
+)
+language plpgsql
+security definer
+set search_path = pg_catalog, public, extensions
+as $$
+declare
+  v_caller_uid uuid := auth.uid();
+  v_role       public.org_member_role;
+begin
+  -- Unauthenticated guard
+  if v_caller_uid is null then
+    raise exception 'unauthenticated' using errcode = '28000';
+  end if;
+
+  -- Pattern S1: DB-level role re-check (admin or staff)
+  select role into v_role
+  from public.org_members
+  where org_id = p_org_id and user_id = v_caller_uid;
+
+  if v_role is null or v_role not in ('admin', 'staff') then
+    raise exception 'admin or staff role required' using errcode = '42501';
+  end if;
+
+  -- Return matview data filtered by org_id (cross-tenant isolation)
+  return query
+  select
+    m.org_id,
+    m.alert_type,
+    m.pending_count,
+    m.acknowledged_count,
+    m.total_count,
+    m.ack_rate_pct,
+    m.avg_time_to_ack_minutes
+  from public.mv_clinic_alert_metrics m
+  where m.org_id = p_org_id;
+end;
+$$;
+
+revoke all on function public.get_clinic_alert_metrics(uuid) from public;
+grant execute on function public.get_clinic_alert_metrics(uuid) to authenticated;
 
 -- =============================================================================
 -- 2. mv_clinic_dose_trend_population — per-org medication dose-range distribution
@@ -131,24 +178,54 @@ group by
 create unique index if not exists mv_clinic_dose_trend_population_uq
   on public.mv_clinic_dose_trend_population (org_id, medication_name, dosing_range_status);
 
--- =============================================================================
--- MATVIEW RLS — mv_clinic_dose_trend_population (Plan-checker BLOCKER#1 fix)
--- =============================================================================
-alter materialized view public.mv_clinic_dose_trend_population enable row level security;
-alter materialized view public.mv_clinic_dose_trend_population force row level security;
+-- Revoke direct access from public/authenticated
+revoke all on public.mv_clinic_dose_trend_population from public;
+revoke all on public.mv_clinic_dose_trend_population from authenticated;
 
-create policy "mv_clinic_dose_trend_population_select"
-  on public.mv_clinic_dose_trend_population
-  for select
-  to authenticated
-  using (
-    exists (
-      select 1 from public.org_members om
-      where om.org_id = mv_clinic_dose_trend_population.org_id
-        and om.user_id = auth.uid()
-        and om.role in ('admin', 'staff')
-    )
-  );
+-- SECURITY DEFINER accessor for mv_clinic_dose_trend_population
+create or replace function public.get_clinic_dose_trend_population(p_org_id uuid)
+returns table (
+  org_id              uuid,
+  medication_name     text,
+  dosing_range_status text,
+  patient_count       bigint
+)
+language plpgsql
+security definer
+set search_path = pg_catalog, public, extensions
+as $$
+declare
+  v_caller_uid uuid := auth.uid();
+  v_role       public.org_member_role;
+begin
+  -- Unauthenticated guard
+  if v_caller_uid is null then
+    raise exception 'unauthenticated' using errcode = '28000';
+  end if;
+
+  -- Pattern S1: DB-level role re-check (admin or staff)
+  select role into v_role
+  from public.org_members
+  where org_id = p_org_id and user_id = v_caller_uid;
+
+  if v_role is null or v_role not in ('admin', 'staff') then
+    raise exception 'admin or staff role required' using errcode = '42501';
+  end if;
+
+  -- Return matview data filtered by org_id (cross-tenant isolation)
+  return query
+  select
+    m.org_id,
+    m.medication_name,
+    m.dosing_range_status,
+    m.patient_count
+  from public.mv_clinic_dose_trend_population m
+  where m.org_id = p_org_id;
+end;
+$$;
+
+revoke all on function public.get_clinic_dose_trend_population(uuid) from public;
+grant execute on function public.get_clinic_dose_trend_population(uuid) to authenticated;
 
 -- =============================================================================
 -- 3. Initial populate (non-CONCURRENTLY — first run; CONCURRENTLY needs existing data)
@@ -162,10 +239,14 @@ refresh materialized view public.mv_clinic_dose_trend_population;
 -- =============================================================================
 
 -- Unschedule any existing P30 jobs (idempotent re-run)
-select cron.unschedule('p30_clinician_alert_detect')   where exists (select 1 from cron.job where jobname = 'p30_clinician_alert_detect');
-select cron.unschedule('p30_clinician_alert_deliver')  where exists (select 1 from cron.job where jobname = 'p30_clinician_alert_deliver');
-select cron.unschedule('p30_clinician_alert_auto_resolve') where exists (select 1 from cron.job where jobname = 'p30_clinician_alert_auto_resolve');
-select cron.unschedule('p30_clinic_matview_refresh')   where exists (select 1 from cron.job where jobname = 'p30_clinic_matview_refresh');
+select cron.unschedule('p30_clinician_alert_detect')
+  where exists (select 1 from cron.job where jobname = 'p30_clinician_alert_detect');
+select cron.unschedule('p30_clinician_alert_deliver')
+  where exists (select 1 from cron.job where jobname = 'p30_clinician_alert_deliver');
+select cron.unschedule('p30_clinician_alert_auto_resolve')
+  where exists (select 1 from cron.job where jobname = 'p30_clinician_alert_auto_resolve');
+select cron.unschedule('p30_clinic_matview_refresh')
+  where exists (select 1 from cron.job where jobname = 'p30_clinic_matview_refresh');
 
 -- =============================================================================
 -- Job 1: p30_clinician_alert_detect — 03:30 UTC daily (pure SQL)
@@ -178,7 +259,6 @@ select cron.schedule(
   'p30_clinician_alert_detect',
   '30 3 * * *',
   $$
-  -- Adherence rule: detect patients missing >= N injection days in past M days
   WITH effective_thresholds AS (
     SELECT
       opl.org_id,
@@ -200,10 +280,7 @@ select cron.schedule(
       et.org_id,
       et.patient_user_id,
       'dose_adherence' AS alert_type,
-      (et.thresholds->>'missed_doses_n')::int AS threshold_n,
-      (et.thresholds->>'window_days_m')::int AS window_m,
-      et.thresholds AS threshold_snapshot,
-      COUNT(DISTINCT date_trunc('day', i.created_at)) AS injection_days
+      et.thresholds AS threshold_snapshot
     FROM effective_thresholds et
     LEFT JOIN public.injections i
       ON i.user_id = et.patient_user_id
@@ -216,8 +293,7 @@ select cron.schedule(
       et.org_id,
       et.patient_user_id,
       'dose_variance' AS alert_type,
-      et.thresholds AS threshold_snapshot,
-      (et.thresholds->>'variance_pct_x')::numeric AS threshold_x
+      et.thresholds AS threshold_snapshot
     FROM effective_thresholds et
     JOIN (
       SELECT
@@ -290,7 +366,6 @@ select cron.schedule(
   'p30_clinician_alert_auto_resolve',
   '15 4 * * *',
   $$
-  -- (a) pending → auto_resolved: alerts older than 7 days with no active snooze
   UPDATE public.clinician_alerts
   SET status = 'auto_resolved',
       auto_resolved_at = NOW()
@@ -298,7 +373,6 @@ select cron.schedule(
     AND snooze_until IS NULL
     AND created_at < NOW() - INTERVAL '7 days';
 
-  -- (b) snoozed → pending: resume snoozed alerts whose snooze_until has elapsed
   UPDATE public.clinician_alerts
   SET status = 'pending',
       snooze_until = NULL

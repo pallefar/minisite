@@ -118,7 +118,30 @@ create policy "clinician_alert_deliveries_select"
 -- =============================================================================
 -- 3. org_patient_thresholds — per D-08
 --    Composite PK (org_id, patient_user_id). FK to org_patient_links for link-before-override.
+--
+--    [Rule 1 auto-fix] org_patient_links has id uuid PK (no composite unique constraint).
+--    Add a UNIQUE constraint on org_patient_links(org_id, patient_user_id) so we can
+--    reference it from org_patient_thresholds. This also enforces that a patient cannot
+--    be linked to the same org twice (correctness invariant for the table).
 -- =============================================================================
+
+-- Add UNIQUE constraint to org_patient_links so the composite FK reference works.
+-- Uses IF NOT EXISTS-equivalent pattern: create index concurrently doesn't exist for
+-- constraints, but ADD CONSTRAINT is idempotent if we check first.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.org_patient_links'::regclass
+      and contype = 'u'
+      and conname = 'org_patient_links_org_patient_uq'
+  ) then
+    alter table public.org_patient_links
+      add constraint org_patient_links_org_patient_uq
+      unique (org_id, patient_user_id);
+  end if;
+end $$;
+
 create table if not exists public.org_patient_thresholds (
   org_id          uuid        not null references public.organizations(id) on delete restrict,
   patient_user_id uuid        not null,
@@ -129,6 +152,7 @@ create table if not exists public.org_patient_thresholds (
 );
 
 -- FK to org_patient_links: enforces that a link must exist before an override can be set.
+-- Now valid because org_patient_links_org_patient_uq covers (org_id, patient_user_id).
 alter table public.org_patient_thresholds
   add constraint org_patient_thresholds_link_fk
   foreign key (org_id, patient_user_id)
