@@ -116,7 +116,18 @@ ASSETS_DIR="$DIST_DIR/assets"
 # which lands in the clinic chunk per manualChunks (src/components/clinic/).
 # Measured: 28,758 bytes gz. Raised to 30,000 (~1.2 kB headroom).
 # History: 12 kB → 16 kB → 17 kB → 17 kB → 25 kB → 22 kB → 28 kB → 30 kB.
-CLINIC_CEILING=30000
+#
+# CLINIC_CEILING=35000 — Phase 30 Plan 05 baseline bump (Rule 2 auto-fix).
+# Phase 30 shipped 6 new lazy components into the clinic chunk:
+#   ClinicianAlertsPanel, AlertSnoozePopover, AlertRow (inline),
+#   use-clinician-alerts, use-clinician-alerts-realtime,
+#   ClinicRankingWeightsForm, ClinicDashboardOverview, PatientThresholdOverrideForm,
+#   and associated hooks/helpers.
+# Per D-13 (ClinicContextBar lazy-loads ClinicianAlertsPanel), all these components
+# land in the clinic chunk. Measured at Phase 30 close: 34,227 bytes gz.
+# Raised to 35,000 bytes (~0.8 kB headroom).
+# History: 12 kB → 16 kB → 17 kB → 17 kB → 25 kB → 22 kB → 28 kB → 30 kB → 35 kB.
+CLINIC_CEILING=35000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
