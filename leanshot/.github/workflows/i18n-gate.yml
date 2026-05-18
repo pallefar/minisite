@@ -1,0 +1,66 @@
+name: i18n Coverage + Parser Drift Gate
+
+# Phase 32 Plan 32-02 Task 3 (D-05 / D-06).
+#
+# Two independent gates:
+#   1. `bash scripts/check-locale-coverage.sh` — EN vs ES leaf-path diff;
+#      every namespace must have identical key sets. Catches translator
+#      drift (ES delivery missing a key, or stale ES key after EN
+#      consolidation).
+#   2. `npx i18next-parser && git diff --quiet -- public/locales` —
+#      catches uncommitted catalog updates. Functionally equivalent to
+#      i18next-parser's failOnUpdate but immune to the v9 sort-flag
+#      false positive that appears with keepRemoved:true (see
+#      i18next-parser.config.js inline justification + Plan 32-02
+#      deferred-items.md).
+#
+# Plan 32-06 + 32-07 ship-gate sweeps will EXPAND the eslint scope (see
+# eslint.config.js Plan 32-02 block) without changing this workflow.
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  i18n-gate:
+    name: i18n catalog coverage + parser drift
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: leanshot
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # fetch-depth: 1 is sufficient — we only compare workdir to HEAD.
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --update-sentry-capacitor
+
+      # Gate 1 — D-05 100% per-namespace coverage gate.
+      # bash scripts/check-locale-coverage.sh diffs EN vs ES leaf paths.
+      - name: i18n coverage gate (D-05 / D-06 — 100% per namespace)
+        run: bash scripts/check-locale-coverage.sh
+
+      # Gate 2 — D-06 parser-drift check.
+      # Run extraction, then assert public/locales is clean. Any uncommitted
+      # diff means a developer added a t() call but didn't run
+      # `npm run i18n:extract` before pushing.
+      - name: i18n parser drift check (D-06 — fail on uncommitted catalog updates)
+        run: |
+          npx i18next-parser
+          # Sanity: the parser run should not have produced uncommitted changes.
+          if ! git diff --quiet -- public/locales; then
+            echo "::error::i18n catalog drift detected — run 'npm run i18n:extract' locally and commit the changes." >&2
+            git diff -- public/locales | head -100
+            exit 1
+          fi
+          echo "i18n catalogs are clean — no parser drift."
