@@ -259,3 +259,58 @@ Wave-1 has 7 parallel plans (25-01..06 + 25-10 verification); Wave-2 (25-07, 25-
 - **PRIMARY:** Re-invoke `/gsd-plan-phase 25 --auto --skip-ui` from a top-level Claude Code session (NOT nested under a Skill/Task) so the orchestrator can spawn researcher/planner/checker subagents.
 - In PARALLEL (still owed from Phase 24 Wave 0): kick off the 6 vendor BAA calls (Supabase Team+HIPAA, Vercel HIPAA addon, Sentry Business, Anthropic Enterprise, AWS SES via AWS Artifact, PostHog tier decision) + Drata SOC 2 Type I onboarding. All have 4–8 week lead times; engineering plans 25-03/04/08/09 ship behind health-check stubs per [[reference_vendor_gated_send_health_check]] until BAA `signed_at` populated in `vendor_baa_chain`.
 - Coordinate Phase 24 plan-phase first OR mark 25-10 as a verification gate before 25-08 ships, since Phase 25 reads admin-shell manifest + `_shared/posthog-server.ts` + `audit_logs` from Phase 24.
+
+## Phase 25 execute-phase blocker (2026-05-18)
+
+**Blocker:** The execute-phase orchestrator was invoked via `Skill(gsd-execute-phase 25)` inside a background-mode subagent. The execute-phase workflow needs to spawn 10 `gsd-executor` subagents (across 3 waves) plus a `gsd-verifier` subagent. Per `<runtime_compatibility>` in execute-phase.md, when the `Agent()`/`Task` tool is unavailable the fallback is sequential inline execution — but 10 plans (3-5 tasks each, ~35 tasks total spanning 9 migrations + 6 Edge Fns + multiple React components + 7 policy markdowns) is too large to execute inline within a single orchestrator context window. Per orchestrator parent-prompt rules ("If you hit … any access issue, do NOT work around it — let it fail and write the error to .planning/STATE.md as a blocker so the manager can surface it with resolution guidance"), workflow halted before any executor dispatch.
+
+**Pre-flight work landed on `main` (committed + pushed; safe to resume from):**
+
+- `83f6ba9` `docs(phase-25): begin HIPAA audit hardening phase` — STATE.md marked Phase 25 executing (via `gsd-sdk query state.begin-phase`).
+- `52fc7a7` `fix(phase-25): retimestamp 9 migrations 20260519/20→20270702 to clear Phase 50 RAG collisions` — Plan 25-01 (3 migrations), 25-02 (2), 25-03 (1), 25-04 (1), 25-09 (2) had their migration timestamps `20260519000001..7` + `20260520000001..2` collide with the Phase 50 RAG migrations that already shipped on main (`rag_topics_table` through `rag_cost_ledger_table`). Per [[reference_migration_timestamp_collision_precheck]], renumbered all 9 to `20270702000001..9` (safe future window — highest existing is `20270701000012_affiliate_lifetime_recurring_cron.sql`). Plan files patched in place via `perl -i -pe`; verified zero leftover `20260519`/`20260520` references in any 25-*-PLAN.md, CONTEXT.md, or RESEARCH.md.
+
+**Pre-flight verified (workflow steps 1–4):**
+
+- gsd-sdk init.execute-phase JSON parsed cleanly: 10 plans, all incomplete, milestone v1.3, agents installed, runtime=claude, USE_WORKTREES=true, PARALLELIZATION=true, CONTEXT_WINDOW=200000, TDD_MODE=false, MVP_MODE=false.
+- No `.continue-here.md` blocking anti-patterns in phase dir.
+- No git submodules — `USE_WORKTREES_FOR_PLAN=true` for every plan.
+- Local main exactly at `origin/main` after the two pre-flight commits pushed (`52fc7a7..origin/main` ↔ `52fc7a7..main`), so per [[feedback_push_origin_before_parallel_worktree_dispatch]] all worktree executors will fork from the correct base.
+- Intra-wave files_modified overlap check passed for Wave 1 (6 plans: 25-01, 02, 03, 04, 05, 07) and Wave 2 (3 plans: 25-06, 08, 09) — zero shared files within either wave. Cross-wave overlaps exist (`.github/workflows/ci.yml` in 25-05/W1, 25-06/W2, 25-10/W3; `SettingsPage.tsx` in 25-02/W1, 25-08/W2) but those serialize via wave ordering as designed.
+
+**Wave structure (from `gsd-sdk query phase-plan-index 25`):**
+
+| Wave | Plans | Notes |
+|------|-------|-------|
+| 1 | 25-01, 25-02, 25-03, 25-04, 25-05, 25-07 | 25-01..04 non-autonomous (checkpoints); 25-05, 25-07 autonomous |
+| 2 | 25-06, 25-08, 25-09 | 25-06 autonomous; 25-08, 25-09 non-autonomous; both 25-08/09 depend on 25-01 |
+| 3 | 25-10 | Non-autonomous; depends on 25-01 + 25-09 |
+
+**Resume options for operator (run from a top-level Claude Code session, NOT from a nested subagent):**
+
+1. **Recommended:** Re-invoke `/gsd-execute-phase 25` from a top-level Claude Code session. Top-level Claude Code has the `Agent` tool and can dispatch 6 parallel worktree-isolated executors for Wave 1, then 3 for Wave 2, then 1 for Wave 3. All pre-flight work (timestamp fixes, STATE update, origin push) is already on main — resumption is a no-op for steps 1-4; the orchestrator will discover 10 incomplete plans and begin Wave 1 dispatch.
+
+2. **One wave per session:** `/gsd-execute-phase 25 --wave 1`, then `--wave 2`, then `--wave 3`. Useful if the parallel-executor token budget at top level is tight or if checkpoint plans (25-01, 02, 03, 04, 08, 09, 10 — non-autonomous) need user interaction between waves.
+
+3. **Interactive sequential:** `/gsd-execute-phase 25 --interactive` — executes plans one at a time inline (no subagents), with user checkpoints between tasks. Lower token usage per plan but takes much longer wall-clock.
+
+**Known risks the executor / verifier must surface:**
+
+- **Plan 25-03 SES**: AWS SES BAA must be live before any PHI email can actually send. Per [[reference_vendor_gated_send_health_check]] the plan should ship the production code path with a startup health check that no-ops with logged warning if the SES BAA capability isn't verified. PHI never reaches Resend (D-02).
+- **Plan 25-04 Anthropic**: Single most testable HIPAA control. The CI test asserting 403 refusal when `anthropic_enterprise_baa` capability is missing is the verification fulcrum for HIPAA-04 SC #1 — verifier MUST grep for it.
+- **Plan 25-05/06 CI lint**: Both modify `.github/workflows/ci.yml`. Wave-sequenced correctly (W1 vs W2), but verifier should grep that both `lint-stripe-phi` and `audit-sentry-mask` job steps exist after Wave 2 merges.
+- **Plan 25-07 PostHog**: Per RESEARCH correction #1, `disable_session_recording_on_url` config option does NOT exist in posthog-js. The implementation must use global `disable_session_recording: true` default + programmatic `startSessionRecording()/stopSessionRecording()` driven by route changes. If the executor writes the non-existent config option, the verifier should fail the plan.
+- **Plan 25-09 baa-expiry-check + subprocessor-diff Edge Fns**: Per [[reference_deno_test_discovery]] tests must be named `<name>.test.ts` (not `<name>-test.ts`). Plan frontmatter already uses the correct pattern.
+- **HIPAA: PHI never lands in PostHog or Sentry.** Parent-prompt rule. Plans 25-06 (Sentry mask audit) + 25-07 (PostHog replay disable) are the two engineering enforcers. Verifier MUST check the runtime guards are wired into `src/main.tsx` / `src/App.tsx`, not just shipped as standalone scripts.
+
+**Manifest of pre-flight state (so resumer doesn't repeat work):**
+
+- HEAD: `52fc7a7` (pushed to origin/main).
+- STATE.md frontmatter: `status: executing`, `last_activity: 2026-05-18 -- Phase 25 execution started`, `progress.completed_phases: 6`.
+- ROADMAP.md Phase 25 entry: still `[ ]` (not yet checked); plans count 10/10 incomplete.
+- No `*-SUMMARY.md` files in `.planning/phases/25-hipaa-audit-hardening-vendor-baa-chain/` yet.
+- No worktree branches active (`git worktree list` shows main only).
+
+## Operator Next Steps (Phase 25 execute resume)
+
+- **PRIMARY:** Re-invoke `/gsd-execute-phase 25` from a top-level Claude Code session.
+- **PARALLEL** (still owed from Phase 24/25 Wave 0): 6 vendor BAA calls (Supabase Team+HIPAA $924/mo, Vercel HIPAA addon $350/mo, Sentry Business $80/mo, Anthropic Enterprise sales call, AWS SES via AWS Artifact, PostHog Boost ~$0-2K) + Drata SOC 2 Type I onboarding. All have 4–8 week lead times. Per [[reference_hipaa_baa_vendor_matrix]] Stripe NEVER signs BAA (banking exemption) — Plan 25-05 PHI lint enforces this at CI time.
