@@ -1,5 +1,7 @@
 /**
  * Phase 9 Plan 09-03 — RoleEditorModal.
+ * Phase 31 Plan 31-05 — Extended with `mode='assign'` for the 3-role
+ *   assignment surface per UI-SPEC §Surface 3.
  *
  * Controlled create/edit modal for custom roles. Renders:
  *   - Role name Input (2-40 char client validation; UI-SPEC line 323).
@@ -11,26 +13,25 @@
  * On Save:
  *   - mode="create"  → supabase.rpc('create_role', ...)
  *   - mode="edit"    → supabase.rpc('update_role', ...)
- * Both RPCs are SECURITY DEFINER, gated on `has_permission(uid, org_id,
- * 'roles.manage')` server-side (Plan 09-01). The role_permissions update
- * is atomic (DELETE+INSERT in the RPC body) so a partial grid mid-flight
- * never lands.
+ *   - mode="assign"  → supabase.rpc('change_member_role', ...) [Phase 31]
+ * All RPCs are SECURITY DEFINER, gated server-side.
  *
  * D-07 mandate: system roles (is_system=true) are NOT edited through this
  * modal in Phase 9 v1. RolesTab hides the edit affordance on system rows.
  *
- * Deviation Rule 3 (parallel-executor isolation): Plan 09-02 owns
- * `src/lib/clinic.ts` typed wrappers but is running in the parallel
- * worktree; we call supabase.rpc directly here. When 09-02 merges, a
- * follow-up plan can refactor to its typed wrappers.
+ * Phase 31 assign-mode: 12-row × 3-col matrix table from ROLE_PERMISSIONS;
+ * last-owner client guard with tooltip; change_member_role RPC caller.
  */
+import { Check, Minus } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
+import { _ROLE_PERMISSIONS_FOR_TEST } from '@/lib/org';
 import { supabase } from '@/lib/supabase';
 import { PERMISSION_KEYS, type PermissionKey, type Role } from '@/types/clinic';
+import type { OrgRole } from '@/types/org';
 
 /**
  * UI-SPEC §"Permission grid" lines 329-348 — verbatim labels + descriptions.
@@ -84,14 +85,68 @@ export const PERMISSION_LABELS: Record<
   },
 };
 
+// ---------------------------------------------------------------------------
+// Phase 31: 12-key org-role matrix labels (D-03 matrix rows in canonical order)
+// ---------------------------------------------------------------------------
+
+/**
+ * The 12 permission keys in the Phase 31 D-03 canonical order.
+ * These map to ROLE_PERMISSIONS in src/lib/org.ts.
+ */
+const ORG_MATRIX_PERMISSION_KEYS: readonly string[] = [
+  'members.invite',
+  'members.revoke',
+  'members.list',
+  'members.role.edit',
+  'settings.edit',
+  'branding.edit',
+  'onboarding.edit',
+  'roster.view',
+  'roster.thresholds.edit',
+  'alerts.ack',
+  'alerts.snooze',
+  'billing.view',
+];
+
+/** Human labels for the 12-key matrix rows. */
+const ORG_MATRIX_LABELS: Record<string, { label: string; description: string }> = {
+  'members.invite':           { label: 'Invite members',          description: 'Send invitations to new team members' },
+  'members.revoke':           { label: 'Revoke members',           description: 'Remove a member from the workspace' },
+  'members.list':             { label: 'View members',             description: 'See the member list and pending invites' },
+  'members.role.edit':        { label: 'Change member roles',      description: 'Reassign Owner, Clinician, or Staff roles' },
+  'settings.edit':            { label: 'Edit settings',            description: 'Change workspace name, URL, and general settings' },
+  'branding.edit':            { label: 'Edit branding',            description: 'Customize clinic logo, colors, and fonts' },
+  'onboarding.edit':          { label: 'Edit onboarding',          description: 'Build and publish the patient onboarding flow' },
+  'roster.view':              { label: 'View patient roster',      description: 'See the list of enrolled patients' },
+  'roster.thresholds.edit':   { label: 'Edit alert thresholds',    description: 'Set per-patient dose and metric alert thresholds' },
+  'alerts.ack':               { label: 'Acknowledge alerts',       description: 'Dismiss active clinician alerts' },
+  'alerts.snooze':            { label: 'Snooze alerts',            description: 'Temporarily suppress an alert' },
+  'billing.view':             { label: 'View billing',             description: 'See subscription and invoice details' },
+};
+
+const ORG_ROLES: readonly OrgRole[] = ['owner', 'clinician', 'staff'];
+const ORG_ROLE_LABELS: Record<OrgRole, string> = {
+  owner:     'Owner',
+  clinician: 'Clinician',
+  staff:     'Staff',
+};
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
+
 export interface RoleEditorModalProps {
   open: boolean;
   onClose: () => void;
-  /** "create" → render Create form; "edit" → render Save changes form. */
-  mode: 'create' | 'edit';
-  /** Active org id — passed into create_role. */
+  /**
+   * "create" → render Create form;
+   * "edit"   → render Save changes form;
+   * "assign" → Phase 31 3-role assignment with 12×3 matrix (ORG-12).
+   */
+  mode: 'create' | 'edit' | 'assign';
+  /** Active org id — passed into create_role / assign mode. */
   orgId: string;
-  /** Required in edit mode; pre-fills name/description/grid. Ignored in create. */
+  /** Required in edit mode; pre-fills name/description/grid. Ignored in create/assign. */
   role?: Role & { permission_keys?: readonly PermissionKey[] };
   /**
    * Called after a successful save. Parent should refetch the roles list
@@ -99,10 +154,20 @@ export interface RoleEditorModalProps {
    * provided so the parent can scroll-into-view or highlight the row.
    */
   onSaved: (role: { id: string; name: string }) => void;
+  /** Phase 31 assign mode: the target member's user id. */
+  userId?: string;
+  /** Phase 31 assign mode: the target member's display name. */
+  userName?: string;
+  /** Phase 31 assign mode: the target member's current org role. */
+  currentRole?: OrgRole;
 }
 
 const NAME_MIN = 2;
 const NAME_MAX = 40;
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export function RoleEditorModal({
   open,
@@ -111,14 +176,26 @@ export function RoleEditorModal({
   orgId,
   role,
   onSaved,
+  userId,
+  userName,
+  currentRole,
 }: RoleEditorModalProps) {
   const toast = useToast();
 
+  // ---------------------------------------------------------------------------
+  // create/edit mode state
+  // ---------------------------------------------------------------------------
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [granted, setGranted] = useState<Set<PermissionKey>>(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // assign mode state (Phase 31)
+  // ---------------------------------------------------------------------------
+  const [selectedRole, setSelectedRole] = useState<OrgRole>('clinician');
+  const [ownerCount, setOwnerCount] = useState<number>(2); // Default ≥2 (conservative)
 
   // Reset / pre-fill on (re)open. `open` is the gate; modal mounts with
   // empty state in create mode and pre-filled state in edit mode.
@@ -128,6 +205,31 @@ export function RoleEditorModal({
       setName(role.name);
       setDescription(role.description ?? '');
       setGranted(new Set(role.permission_keys ?? []));
+    } else if (mode === 'assign') {
+      // Start selected role at current role (or 'clinician' fallback)
+      setSelectedRole(currentRole ?? 'clinician');
+      // Fetch owner count for last-owner guard
+      void (async () => {
+        const { data, error } = await supabase
+          .from('org_members')
+          .select('user_id', { count: 'exact', head: true })
+          .eq('org_id', orgId)
+          .eq('role', 'owner');
+        if (!error) {
+          setOwnerCount(data === null ? 0 : (data as unknown as { count: number }).count ?? 0);
+        }
+      })();
+      // Separately fetch count using count mode
+      void (async () => {
+        const { count, error } = await supabase
+          .from('org_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('org_id', orgId)
+          .eq('role', 'owner');
+        if (!error && count !== null) {
+          setOwnerCount(count);
+        }
+      })();
     } else {
       setName('');
       setDescription('');
@@ -135,7 +237,11 @@ export function RoleEditorModal({
     }
     setNameError(null);
     setSubmitting(false);
-  }, [open, mode, role]);
+  }, [open, mode, role, orgId, currentRole]);
+
+  // ---------------------------------------------------------------------------
+  // create/edit mode handlers
+  // ---------------------------------------------------------------------------
 
   const togglePermission = (key: PermissionKey): void => {
     setGranted((prev) => {
@@ -221,6 +327,222 @@ export function RoleEditorModal({
       setSubmitting(false);
     }
   };
+
+  // ---------------------------------------------------------------------------
+  // assign mode handler (Phase 31)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Last-owner guard: disabled when demoting the final owner.
+   * Server SECDEF is the floor (T-31-05-01); this is UX sugar.
+   */
+  const isLastOwnerDemote =
+    mode === 'assign' &&
+    currentRole === 'owner' &&
+    selectedRole !== 'owner' &&
+    ownerCount <= 1;
+
+  const handleAssignSubmit = async (): Promise<void> => {
+    if (!userId) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.rpc('change_member_role', {
+        p_org_id: orgId,
+        p_user_id: userId,
+        p_role: selectedRole,
+      });
+      if (error) {
+        if (error.message.includes('LAST_OWNER_DEMOTE_DENIED')) {
+          toast('An organization must have at least one owner.', 'error');
+        } else {
+          toast("Couldn't change role. Check your connection and try again.", 'error');
+        }
+        return;
+      }
+      const selectedRoleLabel = ORG_ROLE_LABELS[selectedRole];
+      toast(`${userName ?? 'Member'}'s role changed to ${selectedRoleLabel}.`, 'success');
+      onSaved({ id: userId, name: userName ?? '' });
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Render: assign mode (Phase 31 UI-SPEC §Surface 3)
+  // ---------------------------------------------------------------------------
+
+  if (mode === 'assign') {
+    const selectedRoleLabel = ORG_ROLE_LABELS[selectedRole];
+    return (
+      <Modal
+        open={open}
+        onClose={() => {
+          if (submitting) return;
+          onClose();
+        }}
+        title={`Change role${userName ? ` for ${userName}` : ''}`}
+        size="lg"
+        mobileFullscreen
+      >
+        <div className="space-y-5">
+          {/* Role selector */}
+          <div>
+            <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">
+              New role
+            </p>
+            <div className="flex gap-2">
+              {ORG_ROLES.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setSelectedRole(r)}
+                  aria-pressed={selectedRole === r}
+                  className={[
+                    'flex-1 px-3 py-2 rounded-xl border text-[13px] font-semibold transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                    selectedRole === r
+                      ? 'bg-[var(--color-primary-soft)] border-[var(--color-primary)] text-[var(--color-primary)]'
+                      : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]',
+                  ].join(' ')}
+                >
+                  {ORG_ROLE_LABELS[r]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 12×3 matrix table */}
+          <div>
+            <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">
+              Role permissions
+            </p>
+            <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+              <table className="w-full text-[12px]" aria-label="Role permissions matrix">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left px-3 py-2 text-[var(--color-text-secondary)] font-semibold w-auto">
+                      Permission
+                    </th>
+                    {ORG_ROLES.map((r) => (
+                      <th
+                        key={r}
+                        className={[
+                          'px-3 py-2 text-center font-semibold w-24',
+                          selectedRole === r
+                            ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
+                            : 'text-[var(--color-text-secondary)]',
+                        ].join(' ')}
+                      >
+                        {ORG_ROLE_LABELS[r]}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ORG_MATRIX_PERMISSION_KEYS.map((permKey) => {
+                    const meta = ORG_MATRIX_LABELS[permKey];
+                    return (
+                      <tr
+                        key={permKey}
+                        className="border-b border-[var(--color-border)] last:border-0"
+                      >
+                        <td className="px-3 py-2">
+                          <p className="font-semibold text-[var(--color-text)]">
+                            {meta?.label ?? permKey}
+                          </p>
+                          <p className="text-[var(--color-text-tertiary)] text-[11px]">
+                            {meta?.description ?? ''}
+                          </p>
+                        </td>
+                        {ORG_ROLES.map((r) => {
+                          const granted = _ROLE_PERMISSIONS_FOR_TEST[r].has(permKey);
+                          return (
+                            <td
+                              key={r}
+                              className={[
+                                'px-3 py-2 text-center',
+                                selectedRole === r
+                                  ? 'bg-[var(--color-primary-soft)]'
+                                  : '',
+                              ].join(' ')}
+                            >
+                              {granted ? (
+                                <Check
+                                  size={14}
+                                  aria-hidden
+                                  className="inline text-[var(--color-success)]"
+                                />
+                              ) : (
+                                <Minus
+                                  size={14}
+                                  aria-hidden
+                                  className="inline text-[var(--color-text-tertiary)]"
+                                />
+                              )}
+                              <span className="sr-only">
+                                {granted ? 'Granted' : 'Not granted'}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Audit note */}
+          <p className="text-[13px] text-[var(--color-text-secondary)]">
+            Changes are logged to your workspace audit log.
+          </p>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            {isLastOwnerDemote ? (
+              <span
+                title="An organization must have at least one owner."
+                aria-label="An organization must have at least one owner."
+              >
+                <Button
+                  type="button"
+                  variant="primary"
+                  disabled
+                  aria-busy={false}
+                >
+                  Change to {selectedRoleLabel}
+                </Button>
+              </span>
+            ) : (
+              <Button
+                type="button"
+                variant="primary"
+                loading={submitting}
+                disabled={submitting}
+                onClick={() => void handleAssignSubmit()}
+              >
+                Change to {selectedRoleLabel}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Render: create / edit mode (Phase 9 original)
+  // ---------------------------------------------------------------------------
 
   return (
     <Modal

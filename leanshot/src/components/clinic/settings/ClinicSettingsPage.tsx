@@ -23,12 +23,13 @@
  * wrappers + ClinicContextBar. Until they merge, this page renders a
  * minimal context header inline (workspace name + the standard tab nav).
  */
-import { Building2, History, Loader2, Shield, Stethoscope, Users } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Building2, History, ListOrdered, Loader2, Palette, Shield, Stethoscope, Users } from 'lucide-react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useHasPermission } from '@/lib/clinic-permissions';
 import { cn } from '@/lib/helpers';
+import { surfaceCheck } from '@/lib/org';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import type { Org, Role } from '@/types/clinic';
@@ -39,7 +40,16 @@ import { MembersTab } from './MembersTab';
 import { RolesTab } from './RolesTab';
 import { WorkspaceTab } from './WorkspaceTab';
 
-type TabId = 'workspace' | 'members' | 'roles' | 'audit' | 'clinical';
+// Phase 31 Plan 31-05 — lazy-mount BrandingTab + OnboardingTab to keep
+// clinic-settings chunk under the 50 kB gz ceiling.
+const BrandingTab = lazy(() =>
+  import('./BrandingTab').then((m) => ({ default: m.BrandingTab })),
+);
+const OnboardingTab = lazy(() =>
+  import('./OnboardingTab').then((m) => ({ default: m.OnboardingTab })),
+);
+
+type TabId = 'workspace' | 'members' | 'roles' | 'audit' | 'clinical' | 'branding' | 'onboarding';
 
 interface NavEntry {
   id: TabId;
@@ -65,6 +75,19 @@ const NAV: NavEntry[] = [
     Icon: Stethoscope,
     visibleWhen: (perms) => perms['org_role.admin'] === true,
   },
+  // Phase 31 Plan 31-05 — Branding + Onboarding tabs
+  {
+    id: 'branding',
+    label: 'Branding',
+    Icon: Palette,
+    visibleWhen: (perms) => perms['branding.edit'] === true,
+  },
+  {
+    // Onboarding is always visible — clinician sees read-only view inside the tab.
+    id: 'onboarding',
+    label: 'Onboarding',
+    Icon: ListOrdered,
+  },
 ];
 
 /**
@@ -78,7 +101,12 @@ function parseRoute(pathname: string): { slug: string | null; tab: TabId } {
   const slug = m[1] ?? null;
   const raw = m[2];
   const tab: TabId =
-    raw === 'members' || raw === 'roles' || raw === 'audit' || raw === 'clinical'
+    raw === 'members' ||
+    raw === 'roles' ||
+    raw === 'audit' ||
+    raw === 'clinical' ||
+    raw === 'branding' ||
+    raw === 'onboarding'
       ? raw
       : 'workspace';
   return { slug, tab };
@@ -100,6 +128,9 @@ export function ClinicSettingsPage() {
   const permMap: Record<string, boolean | null> = {
     'audit_log.read': canReadAuditLog,
     'org_role.admin': isOwner,  // key 'org_role.admin' preserved — owned by Plan 31-05
+    // Phase 31 Plan 31-05 — permission gates for new tabs (12-key matrix from 31-01)
+    'branding.edit': surfaceCheck('branding.edit'),
+    'onboarding.edit': surfaceCheck('onboarding.edit'),
   };
 
   // Sync route on popstate (back/forward) AND on internal pushState. We
@@ -262,6 +293,18 @@ export function ClinicSettingsPage() {
               <ClinicRankingWeightsForm orgId={org.id} />
               <ClinicDoseTrendThresholdsForm orgId={org.id} />
             </div>
+          )}
+          {/* Phase 31 Plan 31-05 — Branding tab (owner-only via surfaceCheck) */}
+          {route.tab === 'branding' && surfaceCheck('branding.edit') && (
+            <Suspense fallback={<ClinicSettingsLoader />}>
+              <BrandingTab orgId={org.id} orgSlug={org.slug} />
+            </Suspense>
+          )}
+          {/* Phase 31 Plan 31-05 — Onboarding tab (always visible; read-only for non-owners) */}
+          {route.tab === 'onboarding' && (
+            <Suspense fallback={<ClinicSettingsLoader />}>
+              <OnboardingTab orgId={org.id} />
+            </Suspense>
           )}
         </div>
       </div>
