@@ -39,7 +39,7 @@
   --color-sky: #5ab7c7; /* hydration accent */
 
   /* ---- Semantic tokens (light defaults — overridden in [data-theme=dark]) ---- */
-  --color-bg: var(--color-cream-100);
+  --color-bg: var(--brand-bg, var(--color-cream-100));
   --color-surface: var(--color-cream-card);
   --color-surface-elevated: #f6f2e8;
   --color-surface-soft: #ebe7dc;
@@ -48,13 +48,13 @@
   --color-border: #dad3c0; /* v2 stronger neutral */
   --color-border-strong: #d0caba;
 
-  --color-text: #16221f;
+  --color-text: var(--brand-text, #16221f);
   --color-text-secondary: #4d5e58; /* v2 — 6 % darker for contrast */
   --color-text-tertiary: #8d958f;
   --color-text-on-hero: #ffffff;
   --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
 
-  --color-primary: var(--color-teal-700);
+  --color-primary: var(--brand-primary, var(--color-teal-700));
   --color-primary-hover: #133430;
   --color-primary-soft: var(--color-teal-100);
   --color-primary-foreground: #ffffff;
@@ -166,6 +166,24 @@
   );
   --button-primary-inset-highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   --button-primary-inset-shadow-bottom: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+
+  /* ---- Phase 31 Plan 31-03 — Brand-aware semantic token aliases ----
+     These fallback-chain tokens read a clinic's --brand-* CSS custom property
+     (set by applyBrandTokens in main.tsx pre-mount) and fall back to LeanShot
+     defaults when --brand-* is unset (non-clinic routes, or clinic with null
+     branding columns). This ensures zero visual regression on non-clinic routes
+     while allowing clinic branding to win when present.
+
+     --color-primary / --color-bg / --color-text are rewritten in-place above.
+     --font-display-brand / --font-sans-brand / --radius-brand are new aliases
+     consumed by clinic-facing surfaces that need brand font + radius awareness.
+
+     Tailwind utilities bg-primary, text-text, bg-bg continue to work because
+     they read --color-primary / --color-text / --color-bg (rewritten above).
+  ---- */
+  --font-display-brand: var(--brand-heading-font, var(--font-display));
+  --font-sans-brand: var(--brand-body-font, var(--font-sans));
+  --radius-brand: var(--brand-radius, var(--radius));
 }
 
 /* ========================================================================

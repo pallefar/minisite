@@ -4,6 +4,12 @@ import { App } from './App';
 import './index.css';
 import { applyThemeToDOM } from './hooks/useTheme';
 import { initAnalytics } from './lib/analytics';
+import {
+  applyBrandTokens,
+  fetchClinicBranding,
+  parseClinicSlug,
+  BRAND_CACHE_KEY_PREFIX,
+} from './lib/brand-tokens';
 import { detectPlatform } from './lib/native/platform';
 import { beforeSend } from './lib/sentry';
 import { initSentryNative } from './lib/sentry-native';
@@ -113,6 +119,66 @@ const initialTheme: Theme = ((): Theme => {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 })();
 applyThemeToDOM(initialTheme);
+
+// Phase 31 Plan 31-03 — D-07 pre-mount fetch + warm-paint (ORG-11 first-paint contract)
+//
+// Why this runs here (BETWEEN applyThemeToDOM and void hydrate()):
+//   - Theme is already set on <html data-theme="…"> so the brand overlay
+//     applies on top of the correct light/dark palette.
+//   - hydrate() and createRoot.render() run AFTER, so React's first paint
+//     already sees the correct --brand-* CSS custom properties on <html>.
+//
+// Why bare fetch and not supabase-js:
+//   supabase-js is deferred until after first render via scheduleSyncInit()
+//   (Phase 6 D-12). At this point the singleton is not yet constructed; using
+//   it would pull @supabase/supabase-js into the entry chunk static graph,
+//   defeating the deferred-init pattern that keeps the index chunk lean.
+//
+// Why the fire-and-forget Promise is NOT awaited:
+//   applyBrandTokens(cached) already gave returning visitors a zero-FOUT
+//   first paint. Cold-visit users see the brand land when the RPC resolves,
+//   which is typically BEFORE React's first render completes at edge latency
+//   (RESEARCH Finding 3). Awaiting would add that latency to every page load.
+{
+  const _brandSlug = parseClinicSlug(window.location.pathname);
+  if (_brandSlug !== null) {
+    // Warm-paint: apply cached tokens synchronously (Safari private-mode safe)
+    try {
+      const _cached = localStorage.getItem(BRAND_CACHE_KEY_PREFIX + _brandSlug);
+      if (_cached) {
+        applyBrandTokens(JSON.parse(_cached) as Parameters<typeof applyBrandTokens>[0]);
+      }
+    } catch {
+      /* noop — private mode or malformed cache; warm paint falls back to defaults */
+    }
+
+    // Async refresh: fire-and-forget (NOT awaited; hydrate() proceeds in parallel)
+    void fetchClinicBranding(_brandSlug).then((fresh) => {
+      if (fresh !== null) {
+        // Update cache with fresh tokens
+        try {
+          localStorage.setItem(BRAND_CACHE_KEY_PREFIX + _brandSlug, JSON.stringify(fresh));
+        } catch {
+          /* noop — private mode; skip cache write */
+        }
+        // Overwrite stale warm-paint with authoritative server response
+        applyBrandTokens(fresh);
+        // Inject or update favicon if present
+        if (fresh.favicon_url) {
+          const existing = document.querySelector("link[rel='icon']");
+          if (existing) {
+            (existing as HTMLLinkElement).href = fresh.favicon_url;
+          } else {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.href = fresh.favicon_url;
+            document.head.appendChild(link);
+          }
+        }
+      }
+    });
+  }
+}
 
 // Phase 4 D-03 cleanup: remove any stale BYO Anthropic API key from
 // localStorage (the old pasted-key UX is gone in v4 — AI now flows
