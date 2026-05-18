@@ -10,6 +10,14 @@ const ASO_OPT_IN =
   process.env.PLAYWRIGHT_RUN_ASO === '1' ||
   process.argv.some((a) => a === '--project=aso' || a === 'aso');
 
+// Phase 30 30-05: the `p30` project is opt-in via `PLAYWRIGHT_RUN_P30=1`.
+// Owns the 2 Phase 30 realtime e2e specs (SC#1 roster reorder + SC#3 alerts).
+// Per [[reference_playwright_conditional_project_argv]]: env-var gate is the
+// source of truth; CLI argv detection fails in worker subprocesses.
+// The default `chromium` project excludes these specs via testIgnore so they
+// only execute under the conditional project.
+const P30_OPT_IN = process.env.PLAYWRIGHT_RUN_P30 === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -30,7 +38,14 @@ export default defineConfig({
       // it stays opt-in via `--project=aso`. Without this, chromium (which has
       // no testMatch override) sweeps e2e/aso/** because the root testMatch
       // accepts every *.spec.ts.
-      testIgnore: /e2e\/aso\/.*\.spec\.ts$/,
+      // Phase 30 30-05: exclude Phase 30 realtime e2e specs from the default
+      // chromium run. These require PLAYWRIGHT_RUN_P30=1 + live Supabase creds
+      // to execute against the realtime channel + deliver-cron Edge Function.
+      testIgnore: [
+        /e2e\/aso\/.*\.spec\.ts$/,
+        /e2e\/clinic-ranking-weights-roster-reorder\.spec\.ts$/,
+        /e2e\/clinician-alerts-realtime\.spec\.ts$/,
+      ],
       use: { ...devices['Desktop Chrome'] },
     },
     // Phase 16 16-00: mobile-only Playwright project for IAP flow + 200-photo soak + ASO viewport capture.
@@ -51,6 +66,22 @@ export default defineConfig({
           {
             name: 'aso',
             testMatch: /e2e\/aso\/.*\.spec\.ts$/,
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 30 30-05: opt-in realtime e2e specs for SC#1 (roster reorder) and
+    // SC#3 (alert realtime panel). Invoke via `PLAYWRIGHT_RUN_P30=1 npx playwright test --project=p30`.
+    // The `testMatch` restricts the project to only the 2 Phase 30 specs so the
+    // standard CI run (chromium project) stays unaffected.
+    ...(P30_OPT_IN
+      ? [
+          {
+            name: 'p30',
+            testMatch: [
+              /e2e\/clinic-ranking-weights-roster-reorder\.spec\.ts$/,
+              /e2e\/clinician-alerts-realtime\.spec\.ts$/,
+            ],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
