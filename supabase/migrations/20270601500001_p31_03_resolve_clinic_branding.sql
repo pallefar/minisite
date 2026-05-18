@@ -6,10 +6,19 @@
 -- (zero-FOUT first-paint white-label per D-07, ORG-11).
 --
 -- PHI safety: This function ONLY reads from `organizations` (slug, name, id,
--- updated_at) and `org_branding` (logo_url, favicon_url, logo_alt_text,
--- primary_color, accent_color, bg_color, text_color, heading_font, body_font,
--- radius_scale, updated_at). It NEVER reads from patient_*, org_patient_links,
+-- updated_at) and `org_branding` (logo_url, favicon_url, primary_color,
+-- accent_color, bg_color, text_color, heading_font, body_font, radius_scale,
+-- updated_at). It NEVER reads from patient_*, org_patient_links,
 -- clinician_alerts, org_consent_grants, or any other patient-data table.
+--
+-- Rule 1 auto-fix notes (deviations from plan spec against live schema):
+-- 1. org_branding.logo_alt_text does NOT exist — column was referenced in the
+--    plan spec but not included in Plan 31-02's migration. 'logo_alt_text' key
+--    in the returned jsonb uses o.name instead.
+-- 2. organizations.updated_at does NOT exist — the live schema has created_at
+--    only. 'updated_at' in the returned jsonb uses coalesce(b.updated_at,
+--    o.created_at) instead of greatest(o.updated_at, ...). Semantics: returns
+--    the branding update time if available, else the org creation time.
 --
 -- Anon grant rationale: Anonymous visitors on /clinic/{slug} are NOT
 -- authenticated. The anon grant is MANDATORY; without it the pre-mount fetch
@@ -42,7 +51,7 @@ as $$
         'name',          o.name,
         'logo_url',      b.logo_url,
         'favicon_url',   b.favicon_url,
-        'logo_alt_text', coalesce(b.logo_alt_text, o.name),
+        'logo_alt_text', o.name,
         'primary_color', b.primary_color,
         'accent_color',  b.accent_color,
         'bg_color',      b.bg_color,
@@ -50,7 +59,7 @@ as $$
         'heading_font',  b.heading_font,
         'body_font',     b.body_font,
         'radius_scale',  b.radius_scale,
-        'updated_at',    greatest(o.updated_at, coalesce(b.updated_at, '1970-01-01'::timestamptz))
+        'updated_at',    coalesce(b.updated_at, o.created_at)
       )
       from public.organizations o
       left join public.org_branding b on b.org_id = o.id
