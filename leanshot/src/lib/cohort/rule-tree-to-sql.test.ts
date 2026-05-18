@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { RuleNode } from '@/lib/cohort/rule-tree-schema';
-import { ruleTreeToSql } from '@/lib/cohort/rule-tree-to-sql';
+import { ruleTreeToLiteralSql, ruleTreeToSql } from '@/lib/cohort/rule-tree-to-sql';
 
 describe('rule-tree-to-sql (Phase 27 Plan 27-02)', () => {
   it("(a) leaf field='tier' op='=' value='pro'", () => {
@@ -98,5 +98,81 @@ describe('rule-tree-to-sql (Phase 27 Plan 27-02)', () => {
     expect(out.sql).toBe('p.has_org IS NOT NULL');
     expect(out.params).toEqual([]);
     expect(out.nextOffset).toBe(0);
+  });
+
+  // ── Literal-baked variant (for cohort_definitions.compiled_sql storage) ─────
+
+  describe('ruleTreeToLiteralSql', () => {
+    it('escapes a malicious string value via Postgres E-string', () => {
+      const malicious = "'; DROP TABLE profiles; --";
+      const sql = ruleTreeToLiteralSql({ field: 'tier', op: '=', value: malicious });
+      // The dangerous quote is `\'`-escaped inside an E'...' literal, so it
+      // CANNOT terminate the string and inject SQL.
+      expect(sql.startsWith('p.tier = E\'')).toBe(true);
+      expect(sql.endsWith("'")).toBe(true);
+      expect(sql).toContain("\\';");
+      // Reconstruct what postgres would parse: drop the wrapping E'...' and
+      // un-escape — should equal the original string.
+      const match = sql.match(/^p\.tier = E'(.*)'$/);
+      expect(match).not.toBeNull();
+      const parsed = match![1].replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+      expect(parsed).toBe(malicious);
+    });
+
+    it('renders numbers without quoting', () => {
+      const sql = ruleTreeToLiteralSql({
+        field: 'days_since_signup',
+        op: '>',
+        value: 7,
+      });
+      expect(sql).toBe('p.days_since_signup > 7');
+    });
+
+    it('renders booleans as true/false', () => {
+      const sql = ruleTreeToLiteralSql({
+        field: 'has_active_subscription',
+        op: '=',
+        value: true,
+      });
+      expect(sql).toBe('p.has_active_subscription = true');
+    });
+
+    it("renders 'in' as ARRAY[...]::text[]", () => {
+      const sql = ruleTreeToLiteralSql({
+        field: 'tier',
+        op: 'in',
+        value: ['free', 'pro'],
+      });
+      expect(sql).toBe("p.tier = ANY(ARRAY[E'free', E'pro']::text[])");
+    });
+
+    it('renders nested AND/OR with parens', () => {
+      const sql = ruleTreeToLiteralSql({
+        op: 'and',
+        children: [
+          { field: 'tier', op: '=', value: 'free' },
+          {
+            op: 'or',
+            children: [
+              { field: 'country', op: '=', value: 'US' },
+              { field: 'country', op: '=', value: 'CA' },
+            ],
+          },
+        ],
+      });
+      expect(sql).toBe(
+        "(p.tier = E'free' AND (p.country = E'US' OR p.country = E'CA'))",
+      );
+    });
+
+    it('rejects non-finite numbers', () => {
+      expect(() =>
+        ruleTreeToLiteralSql({
+          field: 'days_since_signup',
+          op: '>',
+          value: Number.POSITIVE_INFINITY,
+        }),
+      ).toThrow();
+    });
   });
 });

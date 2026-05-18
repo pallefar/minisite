@@ -148,3 +148,85 @@ function arrayPgType(values: unknown[]): string {
   if (typeof first === 'boolean') return 'boolean';
   return 'text';
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// LITERAL-BAKED variant — for cohort_definitions.compiled_sql storage.
+//
+// The parameterized `ruleTreeToSql` output cannot be used at rebuild time
+// because `EXECUTE format(...)` in cohort_membership_rebuild() does not bind
+// $N placeholders. We therefore generate a SECOND variant where each value
+// is literal-baked via Postgres-safe escaping. Strings use the `E'...'`
+// prefix with backslash + single-quote escaping; numbers/booleans pass
+// through as their canonical representation.
+//
+// SAFETY: the only user input that reaches this path is the `value` of a
+// leaf, which the zod schema constrains to `string | number | boolean | (any
+// of those)[]`. Field names come from FIELD_SQL_EXPR keys (compile-time
+// constants). Op tokens come from RULE_OPS (compile-time constants). The
+// only injection vector is the value, which we escape per
+// https://www.postgresql.org/docs/current/sql-syntax-lexical.html
+// §4.1.2.2 (E-strings) — backslash → `\\`, single-quote → `\'`.
+// ────────────────────────────────────────────────────────────────────────────
+
+/** Postgres E-string escape for any JS string. */
+function pgEscapeText(s: string): string {
+  return `E'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+}
+
+/** Render a primitive value as a Postgres literal. */
+function pgLiteral(v: unknown): string {
+  if (v === null || v === undefined) return 'NULL';
+  if (typeof v === 'string') return pgEscapeText(v);
+  if (typeof v === 'number') {
+    if (!Number.isFinite(v)) {
+      throw new Error('ruleTreeToLiteralSql: non-finite number value');
+    }
+    return String(v);
+  }
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  throw new Error(`ruleTreeToLiteralSql: unsupported primitive type ${typeof v}`);
+}
+
+/** Render an array of primitives as a Postgres array literal. */
+function pgArrayLiteral(values: unknown[], elementType: string): string {
+  // ARRAY[...]::<type>[] form — element-by-element literal, no string interp.
+  const parts = values.map(pgLiteral).join(', ');
+  return `ARRAY[${parts}]::${elementType}[]`;
+}
+
+/**
+ * Literal-baked variant of ruleTreeToSql for cohort_definitions.compiled_sql.
+ * Returns just a SQL string (no params array) — consumed by the rebuild
+ * routine's `EXECUTE format('... WHERE %s', compiled_sql)` call.
+ */
+export function ruleTreeToLiteralSql(node: RuleNode): string {
+  if (isLeaf(node)) return leafToLiteralSql(node);
+  if (isBranch(node)) return branchToLiteralSql(node);
+  throw new Error('ruleTreeToLiteralSql: node is neither leaf nor branch');
+}
+
+function leafToLiteralSql(leaf: RuleLeaf): string {
+  const col = FIELD_SQL_EXPR[leaf.field];
+  if (!col) throw new Error(`ruleTreeToLiteralSql: unknown field '${leaf.field}'`);
+
+  const op = leaf.op;
+  if (op === 'is_null') return `${col} IS NULL`;
+  if (op === 'is_not_null') return `${col} IS NOT NULL`;
+  if (op === 'in') {
+    const value = leaf.value;
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new Error(`ruleTreeToLiteralSql: 'in' requires non-empty array value`);
+    }
+    return `${col} = ANY(${pgArrayLiteral(value, arrayPgType(value))})`;
+  }
+  return `${col} ${op} ${pgLiteral(leaf.value)}`;
+}
+
+function branchToLiteralSql(branch: RuleBranch): string {
+  if (branch.children.length === 0) {
+    throw new Error(`ruleTreeToLiteralSql: branch '${branch.op}' has zero children`);
+  }
+  const joiner = branch.op === 'and' ? ' AND ' : ' OR ';
+  const parts = branch.children.map(ruleTreeToLiteralSql);
+  return `(${parts.join(joiner)})`;
+}
