@@ -109,6 +109,14 @@ interface Actions {
 
   setUser: (user: User) => void;
   updateUser: (patch: Partial<User>) => void;
+  /**
+   * Phase 32 Plan 32-03 (I18N-02): atomic write of the user's locale
+   * preference. Mirrors profiles.locale on the server (the actual upsert is
+   * owned by SettingsPage.onChange so this action is local-only — no settings
+   * enqueueOp side-effect, because locale is NOT a settings-table column).
+   * Returns void; callers handle DB-write errors at the call site.
+   */
+  setUserLocale: (locale: 'en' | 'es') => void;
   resetAll: () => void;
 
   /** Phase 2 D-10/D-11: write the current disclaimer version into persisted state. */
@@ -575,6 +583,14 @@ export const useStore = create<Store>()(
           });
           deferFlush();
         }
+      },
+      // Phase 32 Plan 32-03 (I18N-02): local-only mirror of profiles.locale.
+      // Intentionally does NOT enqueue a `settings` upsert — locale lives on
+      // public.profiles (Plan 32-03 Task 1 migration), not in the settings
+      // singleton, and the SettingsPage caller owns the supabase write +
+      // rollback path. Persisted via the existing `user` slice partialize.
+      setUserLocale: (locale) => {
+        set((s) => (s.user ? { user: { ...s.user, locale } } : s));
       },
       acknowledgeDisclaimer: (version) => set({ acknowledgedDisclaimer: version }),
       resetAll: () => {
