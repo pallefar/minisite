@@ -1170,7 +1170,7 @@ begin
   if exists (
     select 1 from pg_enum
     where enumtypid = 'public.org_member_role'::regtype
-      and enumlabel in ('admin', 'viewer')
+      and enumlabel in ('admin','viewer')
   ) then
     raise exception 'P31-00 post-flight FAIL: enum still contains admin/viewer';
   end if;
