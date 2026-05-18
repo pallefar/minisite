@@ -66,6 +66,12 @@ export default defineConfig({
         /e2e\/clinic-brand-first-paint\.spec\.ts$/,
         /e2e\/patient-org-onboarding\.spec\.ts$/,
         /e2e\/admin-palette\.spec\.ts$/,
+        // Phase 26 plan 26-01: AFFTIER-01/02 are VITEST live-DB specs (not Playwright).
+        // They use vitest globals + supabase-js and run via `npm run test:e2e:rls`.
+        // Plan body mandated the .spec.ts filename — exclude here so playwright
+        // doesn't try to load them.
+        /e2e\/affiliate-tier-stamping\.spec\.ts$/,
+        /e2e\/affiliate-tier-promotion\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },

@@ -23,10 +23,15 @@ export default defineConfig({
     //   - mv-clinic-alert-metrics: matview CONCURRENTLY refresh + shape (CLIN-05).
     // Phase 27 plan 27-04: funnel-anomaly detection + 4h suppression integration
     //   tests (TAXO-05 + SC#5). Live-DB; auto-skip absent service-role key.
+    // Phase 26 plan 26-01: AFFTIER-01/02 vitest live-DB specs (note `.spec.ts`
+    //   extension per plan body; routed to vitest here AND ignored by playwright
+    //   chromium project in playwright.config.ts).
     include: [
       'e2e/rls-*.test.ts',
       'e2e/admin-impersonation-write-deny.test.ts',
       'e2e/cron-finalize-7day.test.ts',
+      'e2e/affiliate-tier-stamping.spec.ts',
+      'e2e/affiliate-tier-promotion.spec.ts',
       'src/lib/__tests__/rls-org-*.test.ts',
       'src/lib/__tests__/count-active-patients.test.ts',
       'src/lib/__tests__/stripe-namespace-separation.test.ts',
