@@ -9,7 +9,7 @@
  *
  * When 26-01 lands first, the merge resolves cleanly because 26-01 produces
  * a superset; the two type definitions below are identical in shape to
- * 26-01's spec at .planning/phases/26-*/26-01-PLAN.md lines 460-473.
+ * 26-01's spec at the phase-26 PLAN file (lines 460-473).
  */
 
 import type { AffiliateTier } from './tier-config';

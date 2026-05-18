@@ -19,6 +19,9 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { TIER_VOLUME_THRESHOLD, type AffiliateTier } from './tier-config';
+import type { TierEarningsBreakdown, TierProgress } from './types';
+
 export interface AffiliateStats {
   clicks30d: number;
   clicksPrev30d: number;
@@ -214,4 +217,121 @@ export async function fetchAffiliateProfile(
     .maybeSingle();
   if (!res.data) return null;
   return res.data as AffiliateProfile;
+}
+
+// ============================================================================
+// Phase 26 Plan 26-03 — AFFTIER-03 partner-facing tier progress.
+//
+// Two read functions powering PartnerTierProgress + PartnerTierEarningsBreakdown:
+//   1. getTierProgress: current tier + paid-conversion count + next threshold
+//      + frozen state (frozen_at / freeze_reason populated by the fraud-signal
+//      pipeline, D-04).
+//   2. getTierEarningsBreakdown: per-tier sum of commission_cents grouped by
+//      tier_at_conversion_time (the trigger-stamped column from Plan 26-01's
+//      migration 20270701000003).
+//
+// Both filter by affiliate_id and rely on Plan 19-01's
+// `pol_*_self_select` RLS policies (defense-in-depth — server enforces too).
+// ============================================================================
+
+/**
+ * AFFTIER-03 — Partner dashboard tier progress.
+ *
+ * Reads `affiliates.tier` + frozen state with a single-row lookup, then
+ * issues a head-count query against `affiliate_conversions` for paid +
+ * confirmed conversions (the rows that count toward the volume threshold
+ * per D-02).
+ *
+ * `nextTierThreshold` is `TIER_VOLUME_THRESHOLD` (10) on Standard; `null` on
+ * Gold / Lifetime (no further auto-promotion path — Lifetime is manual-only
+ * per D-03 ratchet semantics, Gold has no next step).
+ */
+export async function getTierProgress(
+  affiliateId: string,
+  client: SupabaseClient,
+): Promise<TierProgress> {
+  const { data: aff, error: affErr } = await client
+    .from('affiliates')
+    .select('tier, frozen_at, freeze_reason')
+    .eq('id', affiliateId)
+    .single();
+  if (affErr || !aff) {
+    throw new Error(`affiliate ${affiliateId} not found`);
+  }
+
+  const { count, error: convErr } = await client
+    .from('affiliate_conversions')
+    .select('id', { count: 'exact', head: true })
+    .eq('affiliate_id', affiliateId)
+    .in('status', ['paid', 'confirmed']);
+  if (convErr) {
+    throw new Error(`tier-progress count failed: ${convErr.message}`);
+  }
+
+  const tier = (aff as { tier: AffiliateTier }).tier;
+  const frozenAt = (aff as { frozen_at: string | null }).frozen_at ?? null;
+  const freezeReason = (aff as { freeze_reason: string | null }).freeze_reason ?? null;
+
+  return {
+    currentTier: tier,
+    paidConversionCount: count ?? 0,
+    nextTierThreshold: tier === 'standard' ? TIER_VOLUME_THRESHOLD : null,
+    frozenAt,
+    freezeReason,
+  };
+}
+
+/**
+ * AFFTIER-03 — Per-tier earnings breakdown.
+ *
+ * Fetches the (tier_at_conversion_time, commission_cents) projection for all
+ * paid + confirmed conversions, then defers to the pure `rollupTierEarnings`
+ * helper for the sum-by-bucket arithmetic. The two-function split keeps the
+ * arithmetic unit-testable without a Supabase mock.
+ */
+export async function getTierEarningsBreakdown(
+  affiliateId: string,
+  client: SupabaseClient,
+): Promise<TierEarningsBreakdown> {
+  const { data, error } = await client
+    .from('affiliate_conversions')
+    .select('tier_at_conversion_time, commission_cents')
+    .eq('affiliate_id', affiliateId)
+    .in('status', ['paid', 'confirmed']);
+  if (error) {
+    throw new Error(`tier-earnings failed: ${error.message}`);
+  }
+
+  return rollupTierEarnings(
+    (data ?? []) as Array<{ tier_at_conversion_time: string; commission_cents: number }>,
+  );
+}
+
+/**
+ * Pure helper — sums commission_cents grouped by tier_at_conversion_time.
+ * Exported for direct unit-testing (no Supabase mock required).
+ *
+ * Defensive: unknown tier values (anything other than standard | gold |
+ * lifetime) are silently skipped so a future tier introduction does not
+ * break partner dashboards.
+ */
+export function rollupTierEarnings(
+  rows: Array<{ tier_at_conversion_time: string; commission_cents: number }>,
+): TierEarningsBreakdown {
+  let asStandardCents = 0;
+  let asGoldCents = 0;
+  let asLifetimeCents = 0;
+  for (const r of rows) {
+    const cents = r.commission_cents ?? 0;
+    if (r.tier_at_conversion_time === 'standard') asStandardCents += cents;
+    else if (r.tier_at_conversion_time === 'gold') asGoldCents += cents;
+    else if (r.tier_at_conversion_time === 'lifetime') asLifetimeCents += cents;
+    // else: defensive skip — unknown tier values do not contribute to total.
+  }
+  return {
+    asStandardCents,
+    asGoldCents,
+    asLifetimeCents,
+    totalCents: asStandardCents + asGoldCents + asLifetimeCents,
+  };
 }
