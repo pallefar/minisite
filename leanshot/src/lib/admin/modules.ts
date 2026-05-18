@@ -244,6 +244,21 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.i18n_overrides.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
+  // Superadmin-only: vendor BAA status updates are security-sensitive; superadmin gate
+  // at RPC layer (vendor_baa_chain_update SECDEF) + minRole here (Pattern S1 dual-layer).
+  {
+    key: 'compliance',
+    label: 'Compliance',
+    route: 'compliance',
+    icon: ShieldIcon,
+    lazy: () =>
+      import('@/components/admin/pages/AdminCompliancePage').then((m) => ({
+        default: m.AdminCompliancePage,
+      })),
+    flagKey: 'admin.compliance.enabled',
+    minRole: 'superadmin' as AdminRole,
+  },
 ] as const satisfies readonly AdminModule[];
 
 export type AdminModuleKey = (typeof ADMIN_MODULES)[number]['key'];
