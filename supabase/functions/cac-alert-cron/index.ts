@@ -11,8 +11,7 @@
  *      → skip if conversions = 0 (avoid division by zero)
  *   4. Compare to threshold: target_ltv_usd * cac_multiplier
  *   5. If CAC > threshold:
- *      - Upsert cac_alerts ON CONFLICT idempotency_key DO NOTHING
- *        (idempotency_key = source|YYYY-MM-DD — composite key UNIQUE)
+ *      - Upsert cac_alerts ON CONFLICT (source, alert_date) DO NOTHING
  *      - If NEW alert (upsert returned data): captureServer + writeAdminNotification
  *   6. Return {ok, targets_evaluated, alerts_fired}
  *
@@ -23,8 +22,11 @@
  * 'system' is a reserved non-UUID sentinel per PostHog cron convention (D-13
  * normally requires auth.users.id; system crons use 'system' as distinct_id).
  *
- * Idempotency: ON CONFLICT idempotency_key DO NOTHING ensures re-runs on
- * same alert_date produce at-most-one alert row per (source, date).
+ * Idempotency: composite UNIQUE on (source, alert_date) ensures re-runs on
+ * same alert_date produce at-most-one alert row per (source, date). The
+ * original plan called for an `idempotency_key` generated column but Wave-1
+ * push rejected `alert_date::text` as non-IMMUTABLE — composite UNIQUE
+ * achieves the same semantic without the generated-column overhead.
  */
 import { captureServer as _captureServer, shutdownPostHog as _shutdownPostHog } from '../_shared/posthog-server.ts';
 import { writeAdminNotification } from '../_shared/ad-etl-utils.ts';
@@ -163,9 +165,11 @@ export async function handleRun(req: Request): Promise<Response> {
     }
 
     const breachRatio = cac7dUsd / threshold;
-    const idempotencyKey = `${target.source}|${today}`;
 
-    // Upsert alert — ON CONFLICT idempotency_key DO NOTHING
+    // Upsert alert — ON CONFLICT (source, alert_date) DO NOTHING.
+    // Wave-1 corrective dropped the `idempotency_key` generated column (non-IMMUTABLE
+    // alert_date::text rejected) in favor of composite UNIQUE on (source, alert_date)
+    // — see reference_supabase_migration_gotchas §7. Composite key matches live schema.
     // deno-lint-ignore no-explicit-any
     const { data: insertedData, error: upsertError } = (await (adminClient
       .from('cac_alerts')
@@ -176,9 +180,8 @@ export async function handleRun(req: Request): Promise<Response> {
           cac_7d_usd: cac7dUsd,
           target_ltv_usd: target.target_ltv_usd,
           breach_ratio: breachRatio,
-          idempotency_key: idempotencyKey,
         },
-        { onConflict: 'idempotency_key', ignoreDuplicates: true },
+        { onConflict: 'source,alert_date', ignoreDuplicates: true },
       )
       .select('id')
       .maybeSingle() as unknown)) as {
