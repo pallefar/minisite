@@ -29,22 +29,24 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/helpers';
+import { tabLongLabel } from '@/lib/i18n/nav-labels';
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
 
-const TABS: { id: TabId; label: string; Icon: typeof Home }[] = [
-  { id: 'home', label: 'Today', Icon: Home },
-  { id: 'medication', label: 'Medication', Icon: Syringe },
-  { id: 'symptoms', label: 'Side effects', Icon: ShieldAlert },
-  { id: 'body', label: 'Body', Icon: User },
-  { id: 'nutrition', label: 'Nutrition', Icon: Apple },
-  { id: 'activity', label: 'Activity', Icon: Activity },
-  { id: 'supplements', label: 'Stack', Icon: Pill },
-  { id: 'mood', label: 'Mood', Icon: Smile },
-  { id: 'insights', label: 'Wins', Icon: Trophy },
+const TABS: { id: TabId; Icon: typeof Home }[] = [
+  { id: 'home', Icon: Home },
+  { id: 'medication', Icon: Syringe },
+  { id: 'symptoms', Icon: ShieldAlert },
+  { id: 'body', Icon: User },
+  { id: 'nutrition', Icon: Apple },
+  { id: 'activity', Icon: Activity },
+  { id: 'supplements', Icon: Pill },
+  { id: 'mood', Icon: Smile },
+  { id: 'insights', Icon: Trophy },
 ];
 
 interface SidebarProps {
@@ -61,10 +63,11 @@ export function Sidebar({
   collapsed = false,
   onToggleCollapsed,
 }: SidebarProps) {
+  const { t } = useTranslation(['nav', 'common']);
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
   const userInitial = useStore((s) => s.user?.name?.[0]?.toUpperCase() ?? 'L');
-  const userName = useStore((s) => s.user?.name ?? 'Profile');
+  const userName = useStore((s) => s.user?.name ?? t('common:profile_fallback', 'Profile'));
   const { theme, toggle } = useTheme();
   const reduced = useReducedMotion();
 
@@ -145,8 +148,9 @@ export function Sidebar({
         )}
         aria-label="Primary navigation"
       >
-        {TABS.map(({ id, label, Icon }) => {
+        {TABS.map(({ id, Icon }) => {
           const active = currentTab === id;
+          const label = tabLongLabel(t, id);
           return (
             <button
               key={id}
@@ -207,7 +211,7 @@ export function Sidebar({
           <Bot className="size-5 shrink-0" strokeWidth={1.8} />
           {!collapsed && (
             <span className={cn('ml-3 text-[13px] font-medium', fadeCls, labelHidden)}>
-              Ask LeanShot AI
+              {t('nav:ask_ai')}
             </span>
           )}
         </button>
@@ -226,7 +230,7 @@ export function Sidebar({
           )}
           {!collapsed && (
             <span className={cn('ml-3 text-[13px] font-medium', fadeCls, labelHidden)}>
-              {theme === 'light' ? 'Dark mode' : 'Light mode'}
+              {theme === 'light' ? t('nav:dark_mode') : t('nav:light_mode')}
             </span>
           )}
         </button>
@@ -241,7 +245,7 @@ export function Sidebar({
           <Settings className="size-5 shrink-0" strokeWidth={1.8} />
           {!collapsed && (
             <span className={cn('ml-3 text-[13px] font-medium', fadeCls, labelHidden)}>
-              Settings
+              {t('nav:settings')}
             </span>
           )}
         </button>

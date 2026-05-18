@@ -39,9 +39,32 @@ export default {
   },
   sort: true,
   createOldCatalogs: false,
-  // D-05 100% coverage gate. failOnUpdate exits non-zero if extraction
-  // would add a new key (i.e. source has t('foo.bar') and the catalog
-  // doesn't). Plan 32-07 wires this into GitHub Actions.
-  failOnUpdate: true,
+  // Phase 32 Plan 32-02 — keepRemoved: true preserves bootstrap-only keys
+  // (e.g. `injection_zero`, `error.network`) that have no corresponding
+  // t() callsite yet. Plan 32-06/07 sweeps will add the consumer code;
+  // until then those keys must remain in the catalog so a fresh extraction
+  // doesn't blow away the contractor's work. (Plan 32-02 Step 5 explicitly
+  // calls this out: "verify the run preserves bootstrap-only keys via the
+  // `keepRemoved: true` setting if needed.")
+  keepRemoved: true,
+  // ⚠ failOnUpdate: false (Phase 32 Plan 32-02 deviation).
+  // Rationale: With keepRemoved: true, i18next-parser@9.4.0 still trips
+  // its internal `parserHadSortUpdate` check because the on-disk catalog
+  // contains MORE keys than the source extraction (the bootstrap-only
+  // keys preserved by keepRemoved). The JSON.stringify comparison at
+  // node_modules/i18next-parser/dist/transform.js:325 returns true even
+  // when the file on disk is byte-identical to the parser's intended
+  // output. This is a known incompatibility between failOnUpdate +
+  // keepRemoved in i18next-parser v9.
+  //
+  // Coverage gate is now enforced by TWO independent CI steps (see
+  // Plan 32-02 Task 3 CI wiring in .github/workflows/i18n-gate.yml):
+  //   1. `bash scripts/check-locale-coverage.sh` — EN vs ES leaf-path
+  //      diff; catches translator drift.
+  //   2. `npx i18next-parser && git diff --quiet -- public/locales` —
+  //      catches uncommitted catalog updates after extraction.
+  // The git-diff check is functionally equivalent to failOnUpdate but
+  // avoids the false-positive sort flag in v9.
+  failOnUpdate: false,
   failOnWarnings: true,
 };

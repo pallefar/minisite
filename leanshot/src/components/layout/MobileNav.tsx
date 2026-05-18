@@ -10,20 +10,22 @@ import {
   Smile,
   Trophy,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/helpers';
+import { tabLongLabel, tabShortLabel } from '@/lib/i18n/nav-labels';
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
 
-const TABS: { id: TabId; label: string; short: string; Icon: typeof Home }[] = [
-  { id: 'home', label: 'Today', short: 'Today', Icon: Home },
-  { id: 'medication', label: 'Medication', short: 'Shot', Icon: Syringe },
-  { id: 'symptoms', label: 'Side effects', short: 'Sx', Icon: ShieldAlert },
-  { id: 'body', label: 'Body', short: 'Body', Icon: User },
-  { id: 'nutrition', label: 'Nutrition', short: 'Food', Icon: Apple },
-  { id: 'activity', label: 'Activity', short: 'Move', Icon: Activity },
-  { id: 'supplements', label: 'Stack', short: 'Stack', Icon: Pill },
-  { id: 'mood', label: 'Mood', short: 'Mood', Icon: Smile },
-  { id: 'insights', label: 'Wins', short: 'Wins', Icon: Trophy },
+const TABS: { id: TabId; Icon: typeof Home }[] = [
+  { id: 'home', Icon: Home },
+  { id: 'medication', Icon: Syringe },
+  { id: 'symptoms', Icon: ShieldAlert },
+  { id: 'body', Icon: User },
+  { id: 'nutrition', Icon: Apple },
+  { id: 'activity', Icon: Activity },
+  { id: 'supplements', Icon: Pill },
+  { id: 'mood', Icon: Smile },
+  { id: 'insights', Icon: Trophy },
 ];
 
 /**
@@ -35,11 +37,12 @@ const TABS: { id: TabId; label: string; short: string; Icon: typeof Home }[] = [
  *  - Honors safe-area-inset-bottom
  */
 export function MobileNav() {
+  const { t } = useTranslation('nav');
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
   return (
     <nav
-      aria-label="Primary navigation"
+      aria-label={t('menu_open')}
       className="md:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-[max(8px,env(safe-area-inset-bottom))] pt-2"
     >
       <div
@@ -47,8 +50,10 @@ export function MobileNav() {
         className="glass border border-[var(--color-border)] rounded-[28px] shadow-lg overflow-x-auto scrollbar-none"
       >
         <div className="flex justify-between min-w-full px-2 py-1.5">
-          {TABS.map(({ id, short, Icon, label }) => {
+          {TABS.map(({ id, Icon }) => {
             const active = currentTab === id;
+            const label = tabLongLabel(t, id);
+            const short = tabShortLabel(t, id);
             return (
               <button
                 key={id}
