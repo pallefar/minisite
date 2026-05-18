@@ -254,6 +254,17 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 7 plans
+
+Plans:
+- [ ] 32-01-PLAN.md — i18n runtime + namespaces + missing-key telemetry (foundation)
+- [ ] 32-02-PLAN.md — String extraction sweep + EN catalogs (8 namespaces) + coverage CI gate
+- [ ] 32-03-PLAN.md — profiles.locale schema + custom detector + Settings Language picker + D-12 kg-default
+- [ ] 32-04-PLAN.md — locale_overrides table + RLS + admin module + Realtime invalidation
+- [ ] 32-05-PLAN.md — Email Edge Fn i18n: _shared/i18n-server.ts + 7 transactional fns rewired
+- [ ] 32-06-PLAN.md — Contractor delivery: ES corpus + glossary signoff + KB ES articles + TRANSLATOR-WORKFLOW.md
+- [ ] 32-07-PLAN.md — hreflang tags + CSS logical-properties audit + lint + ship gate
+
 ### Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)
 
 **Goal**: True CAC dashboard is live; ad-spend reconciles to PostHog conversions across 3 networks with FX normalization and gap detection.
