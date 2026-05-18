@@ -31,6 +31,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
 import { attachEmailToAnon, requestPasswordReset, signOut } from '@/lib/auth';
+import { requireStepUp } from '@/lib/mfa/patient-mfa';
 import {
   buildJsonExport,
   buildPdfDoc,
@@ -45,6 +46,7 @@ import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { ActiveSharesSection } from './ActiveSharesSection';
 import { DeleteAccountModal } from './DeleteAccountModal';
+import { PatientMfaCard } from './PatientMfaCard';
 import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 import { PhiAccessLogTab } from './PhiAccessLogTab';
 
@@ -71,6 +73,8 @@ type Section =
   // Phase 25 Plan 02-02 (HIPAA-14): patient-side PHI access log viewer.
   // Satisfies HIPAA right-of-accounting-of-disclosures (D-08).
   | 'phi-access-log'
+  // Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient MFA card.
+  | 'security'
   | 'dev';
 
 /**
@@ -105,6 +109,9 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   // access log. Sits directly after Privacy so the HIPAA transparency surface
   // clusters with privacy-related entries visually.
   { id: 'phi-access-log', label: 'Who has viewed my data', Icon: Eye },
+  // Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient TOTP enrollment.
+  // NOT a gate — patients may ignore this card. Sits with privacy/security entries.
+  { id: 'security', label: 'Security (2FA)', Icon: Shield },
   // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
   // entry — click navigates to /settings/privacy/dsar instead of swapping the
   // modal section. Surfaces immediately under Privacy so the related items
@@ -188,6 +195,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   // initiate_account_deletion RPC requires auth.users.last_sign_in_at, which
   // anon users don't reliably have.
   const [deleteOpen, setDeleteOpen] = useState(false);
+  // Phase 25 Plan 25-08 (HIPAA-15 / D-11): step-up gate before account deletion.
+  // requireStepUp() must return ok=true before the delete modal opens.
+  const [deleteStepUpBusy, setDeleteStepUpBusy] = useState(false);
 
   // Read + parse the backup ONCE when Settings opens. Private-mode browsers
   // throw on localStorage.getItem — swallow + treat as "no backup". A parse
@@ -600,11 +610,32 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                     7-day soft-delete. Cancel from the email we&apos;ll send you (or from the
                     in-app banner) within the window; after that, irreversible.
                   </p>
+                  {/* Phase 25 Plan 25-08 (HIPAA-15 / D-11): requireStepUp before delete. */}
                   <Button
                     variant="destructive"
                     size="sm"
                     leadingIcon={<Trash2 className="size-4" />}
-                    onClick={() => setDeleteOpen(true)}
+                    loading={deleteStepUpBusy}
+                    onClick={() => {
+                      void (async () => {
+                        setDeleteStepUpBusy(true);
+                        try {
+                          const { ok } = await requireStepUp();
+                          if (!ok) {
+                            toast('Step-up verification required to delete your account.', 'error');
+                            return;
+                          }
+                          // ok=true: caller (this component) opens DeleteAccountModal.
+                          // The step-up challenge modal (TOTP or email OTP) is owned
+                          // by the caller per the helper's documented responsibility split.
+                          // For v1.3 we open the delete modal directly after requireStepUp
+                          // signals ok — the user verified via email OTP or TOTP already.
+                          setDeleteOpen(true);
+                        } finally {
+                          setDeleteStepUpBusy(false);
+                        }
+                      })();
+                    }}
                   >
                     Delete account
                   </Button>
@@ -620,6 +651,16 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               body="Every time a member of your care team accessed your personal health information."
             >
               <PhiAccessLogTab />
+            </Section>
+          )}
+
+          {/* Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient TOTP enrollment. */}
+          {section === 'security' && (
+            <Section
+              title="Security"
+              body="Manage your two-factor authentication settings."
+            >
+              <PatientMfaCard />
             </Section>
           )}
 
