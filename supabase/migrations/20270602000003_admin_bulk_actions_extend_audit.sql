@@ -1,0 +1,32 @@
+-- Phase 27 Plan 27-01 — docs-only migration documenting the seven new
+-- audit_logs.action_name values that Phase 27 will introduce.
+--
+-- Per Phase 24 D-14, audit_logs.action_name is FREE TEXT (no CHECK
+-- constraint). This file deliberately introduces NO DDL — it exists so the
+-- catalog of Phase 27 audit names is co-located with the bulk-action
+-- migrations and shows up in `git grep action_name` searches.
+--
+-- DO NOT add a CHECK constraint here. Phase 24 deliberately omits one to
+-- preserve forward-compatibility for new admin verbs without schema churn.
+--
+-- ---------------------------------------------------------------------------
+-- Phase 27 net-new audit_logs.action_name values:
+--
+--   bulk_csv_export            — Plan 27-01 (this plan), per-export aggregate row
+--   bulk_tag                   — Plan 27-01, per-affected-user row
+--   bulk_comp_plan             — Plan 27-01, per-affected-user row
+--   bulk_ban                   — Plan 27-01, per-affected-user row
+--   bulk_force_password_reset  — Plan 27-01, per-affected-user row
+--   bulk_action_undone         — Plan 27-01, per-reversed-user row
+--   cohort_defined             — Plan 27-02 (ADMIN-05 cohort builder)
+--   cohort_archived            — Plan 27-02
+--   palette_destructive_invoked — Plan 27-03 (command palette)
+--   anomaly_baseline_computed  — Plan 27-04 (anomaly detector)
+--   anomaly_acknowledged       — Plan 27-04
+--
+-- All inserts route through public.log_admin_action — which sets source='rpc'
+-- and gates on is_admin_at_least('staff').
+-- ---------------------------------------------------------------------------
+
+-- Sentinel select so `supabase db push` accepts an otherwise empty file.
+select 1;
