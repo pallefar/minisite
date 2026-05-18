@@ -1,8 +1,9 @@
 /**
  * Phase 28 Plan 28-05 ORG-06 — org-context layer (CONTEXT D-03).
+ * Phase 31 Plan 31-01 ORG-12 — expanded to full 12-key role permission matrix.
  *
  * Additive sibling to src/lib/clinic.ts (CONTEXT D-01 — clinic.ts UNCHANGED).
- * 6 LOCKED exports per D-03; ROLE_PERMISSIONS const matrix per D-12.
+ * 6 LOCKED exports per D-03; ROLE_PERMISSIONS const matrix per D-12/D-03.
  *
  * Purpose: Centralize current-org resolution + permission check + path prefix
  * + branding overlay in one consumable module so Plan 06 (RouteOrgGuard) and
@@ -28,10 +29,18 @@ import { useStore } from './store';
 export type { OrgContext, OrgRole, CurrentOrgContext };
 
 // ---------------------------------------------------------------------------
-// ROLE_PERMISSIONS matrix (per CONTEXT D-01 + D-03 + research §Pattern 2).
-// Keys renamed in Plan 31-00 (admin→owner, staff→clinician, viewer→staff).
-// Value sets remain 6-permission shape until Plan 31-01 expands them per D-03.
+// ROLE_PERMISSIONS matrix — Full 12-key matrix per Phase 31 D-03.
+// Mirrors DB SECDEF `public.has_permission(role, perm)` (Phase 31 Plan 31-01).
+// Sync test at `src/lib/__tests__/role-matrix-sync.test.ts` asserts equality
+// across all 36 (role, perm) pairs — any drift fails CI.
+//
+// Role allocation (D-03):
+//   owner     — ALL 12 keys
+//   clinician — members.list, roster.view, alerts.ack, alerts.snooze
+//   staff     — members.list, roster.view
+//
 // The server-side has_permission() SECDEF function is the security floor.
+// This const is a CLIENT HINT for UX affordances only (T-28-05-03).
 // ---------------------------------------------------------------------------
 
 const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
@@ -39,12 +48,26 @@ const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
     'members.invite',
     'members.revoke',
     'members.list',
+    'members.role.edit',
     'settings.edit',
     'branding.edit',
-    'patients.link',
+    'onboarding.edit',
+    'roster.view',
+    'roster.thresholds.edit',
+    'alerts.ack',
+    'alerts.snooze',
+    'billing.view',
   ]),
-  clinician: new Set(['members.list', 'patients.link']),
-  staff: new Set(['members.list']),
+  clinician: new Set([
+    'members.list',
+    'roster.view',
+    'alerts.ack',
+    'alerts.snooze',
+  ]),
+  staff: new Set([
+    'members.list',
+    'roster.view',
+  ]),
 };
 
 // ---------------------------------------------------------------------------
