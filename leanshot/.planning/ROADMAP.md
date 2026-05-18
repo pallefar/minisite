@@ -603,6 +603,16 @@ Plans:
 - Scraped content stored as excerpt + canonical URL only; never full-text (D-03).
 - Medical-claim sentences stored verbatim in source language; English gloss in quote_blocks (D-05 + D-17).
 
+### Phase 51: Full traffic + conversion tracking system + unified dashboard (UTM/source attribution, funnel analytics, ad-spend rollup)
+
+**Goal:** Multi-channel traffic + conversion intelligence live for operators and clinic owners: every visit's UTM + referrer captured into `user_traffic_attribution` (first + last touch), classified via operator-configurable `channel_groups`, rolled up into per-channel × per-audience funnels (Consumer / Clinic-org / Affiliate) with D1/D7/D14/D30/D60 retention curves and CAC-to-activation joined from P33 `ad_spend_facts`, surfaced in a new `growth/traffic` admin module (Channels / Funnels / Landing Pages / Real-time) — platform-wide for admins and org-scoped for clinic owners.
+**Requirements**: TBD — planner drafts TRAFFIC-NN from CONTEXT.md decisions
+**Depends on:** Phase 33 (ad_spend_facts; sequenced matview refresh), Phase 34 (activation event as CAC north-star), Phase 24 (events.ts + captureServer + events_mirror + funnel-anomaly-cron), Phase 27 (events_mirror dual-write + admin_notifications), Phase 28/29 (org_id schema + org membership), Phase 15 (page_variant_id)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 51 to break down)
+
 ---
 
 *Last updated: 2026-05-17 — v1.3 roadmap created (26 phases, 204 REQ-IDs, 24 workstreams). Foundation-first → HIPAA-engineering-parallel-with-vendor → 3 strategic tracks (Revenue / B2B / User-depth) → M4 Community closeout.*
