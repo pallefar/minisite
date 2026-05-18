@@ -32,6 +32,7 @@ import {
   Settings as SettingsIcon,
   Shield as ShieldIcon,
   Building2 as Building2Icon,
+  Globe as GlobeIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -216,6 +217,19 @@ export const ADMIN_MODULES = [
     icon: Building2Icon,
     lazy: () => import('@/components/admin/modules/ClinicOrgsPreview'),
     flagKey: 'admin.clinic_orgs.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 32 Plan 32-04 I18N-08 — admin hot-patch surface for translation
+  // bugs. RLS-gated table (locale_overrides) + Realtime broadcast on Publish.
+  // Verify-then-bump: appended at end so existing alphabetical/ordered
+  // placement is preserved (additive only — feedback_status_machine_transition_owner).
+  {
+    key: 'i18n-overrides',
+    label: 'Locale Overrides',
+    route: 'i18n-overrides',
+    icon: GlobeIcon,
+    lazy: () => import('@/components/admin/i18n/LocaleOverridesModule'),
+    flagKey: 'admin.i18n_overrides.enabled',
     minRole: 'admin' as AdminRole,
   },
 ] as const satisfies readonly AdminModule[];

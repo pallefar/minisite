@@ -22,7 +22,6 @@
  */
 import i18next from 'i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 // ---------------------------------------------------------------------------
 // Hoisted mocks — declared via vi.mock so override-backend picks them up.
 // ---------------------------------------------------------------------------
@@ -31,7 +30,6 @@ vi.mock('@/lib/store', () => ({
     getState: vi.fn(() => ({ currentOrg: null })),
   },
 }));
-
 vi.mock('@/lib/supabase', () => {
   // Build a single mutable response slot the tests can overwrite per case.
   const responseRef: { data: unknown; error: unknown } = { data: [], error: null };
