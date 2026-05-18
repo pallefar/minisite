@@ -1,4 +1,5 @@
 // Phase 50: rag_* events appended per CONTEXT D-35. Server-only events captured via supabase/functions/_shared/posthog-server.ts per D-34.
+// Phase 33 D-05/D-06: AEM priority register — top-8 ordering PROPOSED, pending plan-checker iter-1 user confirmation.
 /**
  * Canonical event taxonomy — single source of truth for ALL PostHog events.
  *
@@ -37,6 +38,20 @@ export type EventDef = {
    * Additive field — defaults to undefined (treated as client-emittable).
    */
   readonly server_only?: true;
+  /**
+   * Phase 33 D-05: AEM (Audience Event Manager) priority register.
+   * Events with aem_priority 1-8 are forwarded to Meta CAPI via meta-capi-relay.
+   * Priority 1 = highest conversion value (payment_completed).
+   * Only 8 slots — top 8 events by Meta CAPI value weighting.
+   * Enforced: ESLint rule blocks aem_priority on phi:true events.
+   */
+  readonly aem_priority?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  /**
+   * Phase 33 D-05: aem_dropped marks events that WERE considered for the AEM
+   * top-8 but were explicitly excluded. Documents the decision; has no runtime
+   * effect. Planner proposes; user confirms in plan-checker iter-1.
+   */
+  readonly aem_dropped?: true;
 };
 
 export const EVENTS = {
@@ -55,6 +70,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'growth',
+    aem_priority: 2,
     description: 'User successfully created an account and completed signup.',
     payload: z.object({
       auth_provider: z.enum(['email', 'google', 'apple']),
@@ -65,6 +81,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'product',
+    aem_priority: 3,
     description: 'User logged their first entry in any tracking tab.',
     payload: z.object({
       tab: z.enum(['medication', 'body', 'food', 'activity']),
@@ -75,6 +92,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'billing',
+    aem_priority: 4,
     description: 'User clicked upgrade and initiated the payment flow.',
     payload: z.object({
       plan: z.enum(['monthly', 'annual']),
@@ -86,6 +104,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'billing',
+    aem_priority: 1,
     description: 'Stripe checkout session completed successfully.',
     payload: z.object({
       plan: z.enum(['monthly', 'annual']),
@@ -98,6 +117,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'billing',
+    aem_priority: 5,
     description: 'A refund was issued for a user subscription.',
     payload: z.object({
       reason: z.string(),
@@ -120,6 +140,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'platform',
+    aem_dropped: true,
     description: 'A PostHog feature flag was evaluated for the current user.',
     payload: z.object({
       flag_key: z.string(),
@@ -281,6 +302,7 @@ export const EVENTS = {
     phi: false,
     owner: 'product',
     server_only: true,
+    aem_priority: 6,
     description: 'User clicked a RAG citation link on a coach/tip/news/hub surface.',
     payload: z.object({
       chunk_id: z.string().uuid(),
@@ -294,6 +316,7 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'growth',
+    aem_priority: 7,
     description: 'User subscribed to the Research newsletter.',
     payload: z.object({
       frequency: z.enum(['weekly']),

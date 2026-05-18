@@ -120,6 +120,95 @@ export const EVENTS = {
 } as const;
 `;
 
+// ---------------------------------------------------------------------------
+// Phase 33 D-08: PHI+AEM cross-check test sources
+// ---------------------------------------------------------------------------
+
+// Event with phi:true AND aem_priority → should fire phi-aem-conflict
+const SOURCE_PHI_WITH_AEM_PRIORITY = `
+import { z } from 'zod';
+export const EVENTS = {
+  bad_phi_event: {
+    name: 'bad_phi_event',
+    version: 1,
+    phi: true,
+    owner: 'platform',
+    aem_priority: 1,
+    description: 'Should never have aem_priority.',
+    payload: z.object({ x: z.string() }),
+  },
+} as const;
+`;
+
+// Event with phi:false AND aem_priority → should be fine
+const SOURCE_NORMAL_AEM_PRIORITY = `
+import { z } from 'zod';
+export const EVENTS = {
+  payment_completed: {
+    name: 'payment_completed',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    aem_priority: 1,
+    description: 'OK event.',
+    payload: z.object({ plan: z.string() }),
+  },
+} as const;
+`;
+
+// Event with aem_dropped:true only → no error (dropped is not blocked)
+const SOURCE_AEM_DROPPED = `
+import { z } from 'zod';
+export const EVENTS = {
+  feature_flag_evaluated: {
+    name: 'feature_flag_evaluated',
+    version: 1,
+    phi: false,
+    owner: 'platform',
+    aem_dropped: true,
+    description: 'Explicitly excluded from AEM top-8.',
+    payload: z.object({ flag_key: z.string() }),
+  },
+} as const;
+`;
+
+// Event with phi:true AND aem_dropped:true → no error (dropped is fine even if phi)
+const SOURCE_PHI_WITH_AEM_DROPPED = `
+import { z } from 'zod';
+export const EVENTS = {
+  phi_dropped_event: {
+    name: 'phi_dropped_event',
+    version: 1,
+    phi: true,
+    owner: 'platform',
+    aem_dropped: true,
+    description: 'PHI event explicitly excluded from AEM.',
+    payload: z.object({ x: z.string() }),
+  },
+} as const;
+`;
+
+// EventDef type declaration with aem_priority field added → no removal error
+const SOURCE_TYPE_WITH_AEM_FIELD = `
+import { z } from 'zod';
+export type EventDef = {
+  readonly name: string;
+  readonly version: 1;
+  readonly phi: false;
+  readonly aem_priority?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+};
+export const EVENTS = {
+  signup_started: {
+    name: 'signup_started',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    description: 'Test.',
+    payload: z.object({ source: z.string() }),
+  },
+} as const;
+`;
+
 describe('additive-only-events ESLint rule', () => {
   let tempRepoDir;
 
@@ -188,6 +277,41 @@ describe('additive-only-events ESLint rule', () => {
       process.env.LEANSHOT_GIT_CWD = savedDir;
       cleanupTempRepo(noHeadDir);
     }
+  });
+
+  // Phase 33 D-08: PHI+AEM cross-check tests
+  it('Test 6 (PHI+AEM): phi:true with aem_priority → fires phi-aem-conflict', async () => {
+    const errors = await runRule(SOURCE_PHI_WITH_AEM_PRIORITY);
+    const hasConflictError = errors.some(e =>
+      e.includes('phi-aem-conflict') || e.includes('PHI') || e.includes('phi')
+    );
+    expect(hasConflictError).toBe(true);
+  });
+
+  it('Test 7 (PHI+AEM): phi:false with aem_priority:1 → no error', async () => {
+    const errors = await runRule(SOURCE_NORMAL_AEM_PRIORITY);
+    const phiAemErrors = errors.filter(e => e.includes('phi-aem-conflict'));
+    expect(phiAemErrors).toHaveLength(0);
+  });
+
+  it('Test 8 (PHI+AEM): aem_dropped:true on phi:false event → no error', async () => {
+    const errors = await runRule(SOURCE_AEM_DROPPED);
+    const phiAemErrors = errors.filter(e => e.includes('phi-aem-conflict'));
+    expect(phiAemErrors).toHaveLength(0);
+  });
+
+  it('Test 9 (PHI+AEM): phi:true with aem_dropped:true → no error (dropped is fine even if phi)', async () => {
+    const errors = await runRule(SOURCE_PHI_WITH_AEM_DROPPED);
+    const phiAemErrors = errors.filter(e => e.includes('phi-aem-conflict'));
+    expect(phiAemErrors).toHaveLength(0);
+  });
+
+  it('Test 10 (PHI+AEM): EventDef type with aem_priority field added → no removal error', async () => {
+    const errors = await runRule(SOURCE_TYPE_WITH_AEM_FIELD);
+    const fieldRemovedErrors = errors.filter(e =>
+      e.includes('event-payload-field-removed') || e.includes('field-removed')
+    );
+    expect(fieldRemovedErrors).toHaveLength(0);
   });
 });
 
