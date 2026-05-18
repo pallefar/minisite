@@ -1,9 +1,9 @@
 /**
- * Phase 30 Plan 04 — ClinicDashboardOverview tests (TDD RED phase).
+ * Phase 30 Plan 04 — ClinicDashboardOverview tests (TDD GREEN phase).
  *
- * 9 tests for the dashboard overview component and use-clinic-metrics hook.
+ * 9 tests for the dashboard overview component.
  *
- * Test 1: returns correct shape with aggregated stats
+ * Test 1: renders heading 'Clinic overview' and 4 stat cards in DOM order
  * Test 2: 'Pending alerts' card has shadow-md + 20px figure; amber/success color based on count
  * Test 3: Ack rate color coding per thresholds
  * Test 4: 'Below dosing range' renders correct count + amber when > 0
@@ -19,21 +19,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ClinicDashboardOverview } from './ClinicDashboardOverview';
 
 // ---------------------------------------------------------------------------
-// Mock use-clinic-metrics
+// Module-level mock so we can swap per-test without async import()
 // ---------------------------------------------------------------------------
 
-const mockMetrics = {
+const defaultMetrics = {
   pendingThisWeek: 3,
-  ackRatePct: 75,
+  ackRatePct: 75 as number | null,
   belowDosingRange: 2,
   alertTypeBreakdown: { dose_adherence: 2, dose_variance: 1 },
   lastRefreshedAt: new Date('2026-05-18T04:00:00Z'),
   isLoading: false,
-  error: null,
+  error: null as string | null,
 };
 
+const mockUseClinicMetrics = vi.fn(() => defaultMetrics);
+
 vi.mock('./use-clinic-metrics', () => ({
-  useClinicMetrics: vi.fn(() => mockMetrics),
+  useClinicMetrics: (...args: unknown[]) => mockUseClinicMetrics(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -42,11 +44,11 @@ vi.mock('./use-clinic-metrics', () => ({
 
 describe('ClinicDashboardOverview', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockUseClinicMetrics.mockReturnValue(defaultMetrics);
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('Test 1: renders heading "Clinic overview" and 4 stat cards in DOM order', () => {
@@ -59,12 +61,9 @@ describe('ClinicDashboardOverview', () => {
     expect(screen.getByText('Alert types')).toBeDefined();
   });
 
-  it('Test 2: Pending alerts card has shadow-md; figure uses 20px size; amber when > 0, success when 0', async () => {
-    const { useClinicMetrics } = await import('./use-clinic-metrics');
-    const mockFn = useClinicMetrics as ReturnType<typeof vi.fn>;
-
+  it('Test 2: Pending alerts card has shadow-md; figure uses 20px size; amber when > 0, success when 0', () => {
     // count > 0 case
-    mockFn.mockReturnValue({ ...mockMetrics, pendingThisWeek: 3 });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, pendingThisWeek: 3 });
     const { unmount } = render(<ClinicDashboardOverview orgId="org-1" />);
 
     const pendingCard = screen.getByTestId('stat-card-pending-alerts');
@@ -73,55 +72,50 @@ describe('ClinicDashboardOverview', () => {
     const figure = screen.getByTestId('pending-alerts-figure');
     expect(figure.textContent).toBe('3');
     expect(figure.className).toContain('text-[var(--color-amber)]');
+    expect(figure.className).toContain('text-[20px]');
 
     unmount();
 
     // count = 0 case
-    mockFn.mockReturnValue({ ...mockMetrics, pendingThisWeek: 0 });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, pendingThisWeek: 0 });
     render(<ClinicDashboardOverview orgId="org-1" />);
 
     const figure0 = screen.getByTestId('pending-alerts-figure');
     expect(figure0.className).toContain('text-[var(--color-success)]');
   });
 
-  it('Test 3: Ack rate color coding — >=80 success, 50-79 amber, <50 danger, null shows em dash', async () => {
-    const { useClinicMetrics } = await import('./use-clinic-metrics');
-    const mockFn = useClinicMetrics as ReturnType<typeof vi.fn>;
-
+  it('Test 3: Ack rate color coding — >=80 success, 50-79 amber, <50 danger, null shows em dash', () => {
     // >=80 → success
-    mockFn.mockReturnValue({ ...mockMetrics, ackRatePct: 80 });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, ackRatePct: 80 });
     const { unmount: u1 } = render(<ClinicDashboardOverview orgId="org-1" />);
     const fig80 = screen.getByTestId('ack-rate-figure');
     expect(fig80.className).toContain('text-[var(--color-success)]');
     u1();
 
     // 50-79 → amber
-    mockFn.mockReturnValue({ ...mockMetrics, ackRatePct: 75 });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, ackRatePct: 75 });
     const { unmount: u2 } = render(<ClinicDashboardOverview orgId="org-1" />);
     const fig75 = screen.getByTestId('ack-rate-figure');
     expect(fig75.className).toContain('text-[var(--color-amber)]');
     u2();
 
     // <50 → danger
-    mockFn.mockReturnValue({ ...mockMetrics, ackRatePct: 49 });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, ackRatePct: 49 });
     const { unmount: u3 } = render(<ClinicDashboardOverview orgId="org-1" />);
     const fig49 = screen.getByTestId('ack-rate-figure');
     expect(fig49.className).toContain('text-[var(--color-danger)]');
     u3();
 
     // null → em dash in tertiary color
-    mockFn.mockReturnValue({ ...mockMetrics, ackRatePct: null });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, ackRatePct: null });
     render(<ClinicDashboardOverview orgId="org-1" />);
     const figNull = screen.getByTestId('ack-rate-figure');
     expect(figNull.textContent).toBe('—');
     expect(figNull.className).toContain('text-[var(--color-text-tertiary)]');
   });
 
-  it('Test 4: Below dosing range renders count; amber when > 0', async () => {
-    const { useClinicMetrics } = await import('./use-clinic-metrics');
-    const mockFn = useClinicMetrics as ReturnType<typeof vi.fn>;
-
-    mockFn.mockReturnValue({ ...mockMetrics, belowDosingRange: 5 });
+  it('Test 4: Below dosing range renders count; amber when > 0, tertiary when 0', () => {
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, belowDosingRange: 5 });
     const { unmount } = render(<ClinicDashboardOverview orgId="org-1" />);
 
     const fig = screen.getByTestId('below-dosing-range-figure');
@@ -129,17 +123,17 @@ describe('ClinicDashboardOverview', () => {
     expect(fig.className).toContain('text-[var(--color-amber)]');
     unmount();
 
-    mockFn.mockReturnValue({ ...mockMetrics, belowDosingRange: 0 });
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, belowDosingRange: 0 });
     render(<ClinicDashboardOverview orgId="org-1" />);
     const fig0 = screen.getByTestId('below-dosing-range-figure');
     expect(fig0.className).toContain('text-[var(--color-text-tertiary)]');
   });
 
-  it('Test 5: Alert types card shows "Missed doses" and "Dose variance" sub-figures', async () => {
-    const { useClinicMetrics } = await import('./use-clinic-metrics');
-    const mockFn = useClinicMetrics as ReturnType<typeof vi.fn>;
-
-    mockFn.mockReturnValue({ ...mockMetrics, alertTypeBreakdown: { dose_adherence: 4, dose_variance: 2 } });
+  it('Test 5: Alert types card shows "Missed doses" and "Dose variance" sub-figures', () => {
+    mockUseClinicMetrics.mockReturnValue({
+      ...defaultMetrics,
+      alertTypeBreakdown: { dose_adherence: 4, dose_variance: 2 },
+    });
     render(<ClinicDashboardOverview orgId="org-1" />);
 
     expect(screen.getByText(/Missed doses/)).toBeDefined();
@@ -156,11 +150,8 @@ describe('ClinicDashboardOverview', () => {
     expect(caption.className).toContain('text-[var(--color-text-tertiary)]');
   });
 
-  it('Test 7: Empty state when lastRefreshedAt is null and all counts are 0', async () => {
-    const { useClinicMetrics } = await import('./use-clinic-metrics');
-    const mockFn = useClinicMetrics as ReturnType<typeof vi.fn>;
-
-    mockFn.mockReturnValue({
+  it('Test 7: Empty state when lastRefreshedAt is null and all counts are 0', () => {
+    mockUseClinicMetrics.mockReturnValue({
       pendingThisWeek: 0,
       ackRatePct: null,
       belowDosingRange: 0,
@@ -176,14 +167,8 @@ describe('ClinicDashboardOverview', () => {
     expect(screen.getByText(/Metrics appear after the first nightly alert scan/)).toBeDefined();
   });
 
-  it('Test 8: Loading state renders 4 Skeleton placeholders', async () => {
-    const { useClinicMetrics } = await import('./use-clinic-metrics');
-    const mockFn = useClinicMetrics as ReturnType<typeof vi.fn>;
-
-    mockFn.mockReturnValue({
-      ...mockMetrics,
-      isLoading: true,
-    });
+  it('Test 8: Loading state renders 4 Skeleton placeholders', () => {
+    mockUseClinicMetrics.mockReturnValue({ ...defaultMetrics, isLoading: true });
 
     render(<ClinicDashboardOverview orgId="org-1" />);
 
