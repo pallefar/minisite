@@ -1,0 +1,17 @@
+{
+  "activity": "Actividad",
+  "body": "Cuerpo",
+  "fab_log_dose": "Registrar dosis",
+  "fab_log_weight": "Registrar peso",
+  "help": "Ayuda",
+  "home": "Inicio",
+  "lang_en": "Inglés",
+  "lang_es": "Español",
+  "lang_label": "Idioma",
+  "medication": "Medicación",
+  "menu_close": "Cerrar menú",
+  "menu_open": "Abrir menú",
+  "settings": "Ajustes",
+  "share": "Compartir",
+  "symptoms": "Síntomas"
+}

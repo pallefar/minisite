@@ -1,0 +1,17 @@
+{
+  "activity": "Activity",
+  "body": "Body",
+  "fab_log_dose": "Log dose",
+  "fab_log_weight": "Log weight",
+  "help": "Help",
+  "home": "Home",
+  "lang_en": "English",
+  "lang_es": "Spanish",
+  "lang_label": "Language",
+  "medication": "Medication",
+  "menu_close": "Close menu",
+  "menu_open": "Open menu",
+  "settings": "Settings",
+  "share": "Share",
+  "symptoms": "Symptoms"
+}

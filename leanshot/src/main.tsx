@@ -1,7 +1,8 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import './index.css';
+import { I18nSuspenseFallback } from './components/i18n/I18nSuspenseFallback';
 import { applyThemeToDOM } from './hooks/useTheme';
 import { initAnalytics } from './lib/analytics';
 import {
@@ -192,7 +193,7 @@ try {
 
 // 2) Synchronously rehydrate Zustand from localStorage BEFORE first render.
 //    This avoids flashing the marketing page for already-onboarded users.
-void hydrate().then(() => {
+void hydrate().then(async () => {
   // Phase 28 Plan 28-05 ORG-06 — invalidate org slice on Auth USER_UPDATED
   // (CONTEXT D-02). Registered AFTER hydrate() so the store is rehydrated
   // before the listener fires, and BEFORE createRoot.render() so the app
@@ -200,10 +201,20 @@ void hydrate().then(() => {
   // T-28-05-02 mitigation: stale role after admin removed from org mid-session.
   wireAuthInvalidation(supabase);
 
+  // Phase 32 Plan 32-01 I18N-01/02/03 — initialize i18next AFTER hydrate
+  // (store warm) and BEFORE first render so /?lang=es paints Spanish without
+  // an EN flash. Dynamic-imported so i18next stays out of the entry chunk
+  // static graph (lands in the i18n-runtime lazy chunk per
+  // vite.config.ts manualChunks rule).
+  const { initI18n } = await import('./lib/i18n/init');
+  await initI18n();
+
   const root = createRoot(document.getElementById('root')!);
   root.render(
     <StrictMode>
-      <App />
+      <Suspense fallback={<I18nSuspenseFallback />}>
+        <App />
+      </Suspense>
     </StrictMode>,
   );
 

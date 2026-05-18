@@ -98,4 +98,24 @@ describe('events.ts — canonical event registry', () => {
     const key: EventName = 'signup_started';
     expect(EVENTS[key]).toBeDefined();
   });
+
+  // Phase 32 Plan 32-01 — i18n_missing_key contract assertion.
+  // Locks the four contract properties this event ships with: name, version,
+  // phi, owner, plus the payload accepts {lng, ns, key} as all-string fields.
+  it('Phase 32 — i18n_missing_key event contract', () => {
+    const def = EVENTS.i18n_missing_key;
+    expect(def).toBeDefined();
+    expect(def.name).toBe('i18n_missing_key');
+    expect(def.version).toBe(1);
+    expect(def.phi).toBe(false);
+    expect(def.owner).toBe('platform');
+
+    // Payload accepts all-string {lng, ns, key}
+    const parsed = def.payload.parse({ lng: 'es', ns: 'common', key: 'action.save' });
+    expect(parsed).toEqual({ lng: 'es', ns: 'common', key: 'action.save' });
+
+    // Payload rejects non-string field types
+    expect(() => def.payload.parse({ lng: 1, ns: 'common', key: 'x' })).toThrow();
+    expect(() => def.payload.parse({ lng: 'es', ns: null, key: 'x' })).toThrow();
+  });
 });
