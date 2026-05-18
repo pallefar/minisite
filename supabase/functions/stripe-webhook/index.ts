@@ -125,6 +125,11 @@ async function dispatch(
   const { handle: handleInvoiceUpcoming } = await import('./events/invoice-upcoming.ts');
   // Phase 19 Plan 19-04 (AFF-03) — Stripe Connect onboarding state mirror.
   const { handle: handleAccountUpdated } = await import('./events/account-updated.ts');
+  // Phase 26 Plan 26-07 (AFFTIER-04) — refund / dispute claw-back via payouts.adjustments.
+  const { handle: handleChargeRefunded } = await import('./events/charge-refunded.ts');
+  const { handle: handleChargeDisputeCreated } = await import(
+    './events/charge-dispute-created.ts'
+  );
 
   switch (event.type) {
     case 'checkout.session.completed': {
@@ -194,8 +199,17 @@ async function dispatch(
       } else {
         console.warn('[stripe-webhook] refund_issued: no user_id/supabase_uid in charge metadata — skipping PostHog capture');
       }
+      // Phase 26 Plan 26-07 (AFFTIER-04 / D-06): claw back affiliate commission
+      // via payouts.adjustments. Runs alongside the Phase 24 PostHog capture
+      // above — both must execute on every charge.refunded event.
+      await handleChargeRefunded(event, admin);
       break;
     }
+    case 'charge.dispute.created':
+      // Phase 26 Plan 26-07 (AFFTIER-04 / D-06): claw back commission AND write
+      // fraud_signals row for superadmin review (D-04 — NO auto-freeze).
+      await handleChargeDisputeCreated(event, admin);
+      break;
     default:
       // Unsubscribed event type — log + no-op + 200 (safe forward-compatibility).
       console.log('[stripe-webhook] unhandled event type', event.type);
