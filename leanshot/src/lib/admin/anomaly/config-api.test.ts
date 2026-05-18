@@ -8,6 +8,7 @@
  * Per 27-PATTERNS S7 — discriminated error contract on RPC wrappers.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as ConfigApiTypes from './config-api';
 
 const mockRpc = vi.fn();
 const mockFrom = vi.fn();
@@ -19,7 +20,7 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-let api: typeof import('./config-api');
+let api: typeof ConfigApiTypes;
 
 beforeEach(async () => {
   mockRpc.mockReset();
