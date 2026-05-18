@@ -37,7 +37,7 @@ interface AdminCommandPaletteProps {
 const AdminCommandPalette = lazy<ComponentType<AdminCommandPaletteProps>>(async () => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mod = (await import('@/components/admin/AdminCommandPalette')) as any;
+    const mod = (await import('@/components/admin/palette/AdminCommandPalette')) as any;
     const C = mod.default ?? mod.AdminCommandPalette ?? null;
     if (!C) return { default: () => null };
     return { default: C as ComponentType<AdminCommandPaletteProps> };
