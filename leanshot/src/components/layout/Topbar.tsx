@@ -1,5 +1,6 @@
 import { Search, Plus, FileDown, Sun, Moon, Menu } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, IconButton } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
 import { AIAvatar } from '@/illustrations/AIAvatar';
@@ -29,6 +30,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ onLogDose, onOpenReport, onOpenAI, onOpenSettings }: TopbarProps) {
+  const { t } = useTranslation(['nav', 'common']);
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
   const meta = TAB_TITLES[currentTab];
@@ -114,10 +116,10 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI, onOpenSettings }: To
           onClick={onOpenReport}
           leadingIcon={<FileDown className="size-4" />}
         >
-          <span className="hidden sm:inline">Export</span>
+          <span className="hidden sm:inline">{t('nav:export', 'Export')}</span>
         </Button>
         <Button onClick={onLogDose} size="sm" trailingIcon={<Plus className="size-4" />}>
-          Log dose
+          {t('nav:fab_log_dose')}
         </Button>
         <AvatarMenu onOpenSettings={onOpenSettings} />
       </div>

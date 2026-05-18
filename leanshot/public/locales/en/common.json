@@ -9,6 +9,7 @@
   },
   "day_remaining_one": "{{count}} day remaining",
   "day_remaining_other": "{{count}} days remaining",
+  "energy_label_word": "Energy",
   "error": {
     "network": "Network error. Please try again.",
     "unauthorized": "You don't have permission to do that.",
@@ -19,13 +20,24 @@
     "evening": "Good evening",
     "morning": "Good morning"
   },
+  "injection_zero": "No injections logged",
   "injection_one": "{{count}} injection logged",
   "injection_other": "{{count}} injections logged",
-  "injection_zero": "No injections logged",
   "modal": {
     "confirm_body": "Are you sure you want to continue?",
     "confirm_title": "Are you sure?"
   },
+  "mood_label": {
+    "1": "Tough",
+    "2": "Low",
+    "3": "Even",
+    "4": "Good",
+    "5": "Great"
+  },
+  "mood_label_not_yet": "Not yet",
+  "mood_label_word": "Mood",
+  "profile_fallback": "Profile",
+  "profile_friend": "friend",
   "validation": {
     "email_invalid": "Enter a valid email address.",
     "required": "This field is required.",

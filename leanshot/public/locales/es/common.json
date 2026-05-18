@@ -9,6 +9,7 @@
   },
   "day_remaining_one": "Queda {{count}} día",
   "day_remaining_other": "Quedan {{count}} días",
+  "energy_label_word": "Energía",
   "error": {
     "network": "Error de red. Vuelve a intentarlo.",
     "unauthorized": "No tienes permiso para hacer esto.",
@@ -19,13 +20,24 @@
     "evening": "Buenas noches",
     "morning": "Buenos días"
   },
+  "injection_zero": "Sin inyecciones registradas",
   "injection_one": "{{count}} inyección registrada",
   "injection_other": "{{count}} inyecciones registradas",
-  "injection_zero": "Sin inyecciones registradas",
   "modal": {
     "confirm_body": "¿Seguro que quieres continuar?",
     "confirm_title": "¿Estás seguro?"
   },
+  "mood_label": {
+    "1": "Difícil",
+    "2": "Bajo",
+    "3": "Neutro",
+    "4": "Bien",
+    "5": "Excelente"
+  },
+  "mood_label_not_yet": "Aún no",
+  "mood_label_word": "Ánimo",
+  "profile_fallback": "Perfil",
+  "profile_friend": "amigo",
   "validation": {
     "email_invalid": "Introduce un correo electrónico válido.",
     "required": "Este campo es obligatorio.",

@@ -10,16 +10,35 @@ export const shortLabel = (s: string): string => {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 };
 
-export const formatShort = (s: string): string => {
+/**
+ * Phase 32 Plan 32-02 — `locale` parameter (default `'en'`).
+ *
+ * React components SHOULD prefer the `useLocale()` hook from
+ * `src/lib/i18n/useLocale.ts` (memoized Intl.DateTimeFormat). Non-React
+ * call sites (share-card templates, AI prompt builders, PDF exporters)
+ * pass `locale` explicitly. Default `'en'` preserves backward compatibility
+ * with every pre-Phase-32 callsite that didn't supply a locale.
+ *
+ * Note: previously this function used the browser's default locale via
+ * `toLocaleDateString` with `undefined` as the first arg. Phase 32 D-09
+ * makes the app's display language explicit — that pattern would silently
+ * differ between EN-default and ES-default browsers even when the user
+ * picked "English" in our switcher. Explicit locale closes that loop.
+ */
+export const formatShort = (s: string, locale: string = 'en'): string => {
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return s;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(d);
 };
 
-export const formatLong = (s: string): string => {
+export const formatLong = (s: string, locale: string = 'en'): string => {
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return s;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(d);
 };
 
 export const lastNDays = (n: number): string[] => {
@@ -70,9 +89,30 @@ export const greeting = (): 'morning' | 'afternoon' | 'evening' => {
   return 'evening';
 };
 
-/** Friendly relative time. */
-export const relTime = (iso: string): string => {
+/**
+ * Friendly relative time.
+ *
+ * Phase 32 Plan 32-02 — when `locale` is supplied, uses
+ * `Intl.RelativeTimeFormat` so Spanish renders correctly ("hace 2 días"
+ * vs the legacy "2d ago"). Default `'en'` preserves the legacy abbreviated
+ * format for backward compatibility with every existing share-card / chart
+ * tooltip / PDF caller that relies on the compact `2d ago` / `3w ago` shape.
+ *
+ * For React components, prefer `useLocale().relative` from
+ * `src/lib/i18n/useLocale.ts` directly — it's memoized per language change.
+ */
+export const relTime = (iso: string, locale?: string): string => {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+
+  if (locale && locale !== 'en') {
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    if (days === 0) return rtf.format(0, 'day');
+    if (days < 7) return rtf.format(-days, 'day');
+    if (days < 30) return rtf.format(-Math.floor(days / 7), 'week');
+    return rtf.format(-Math.floor(days / 30), 'month');
+  }
+
+  // Legacy abbreviated format (preserved for backward compatibility).
   if (days === 0) return 'today';
   if (days === 1) return 'yesterday';
   if (days < 7) return `${days}d ago`;

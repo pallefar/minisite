@@ -23,6 +23,7 @@
 
 import { ChevronDown, Plus } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { subscribeToUserChannel } from '@/lib/clinic-realtime';
 import { cn } from '@/lib/helpers';
@@ -175,6 +176,7 @@ export interface WorkspaceSwitcherProps {
 }
 
 export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
+  const { t } = useTranslation('nav');
   const [authState, setAuthState] = useState<'pending' | 'anon' | 'signedin'>('pending');
   const [userId, setUserId] = useState<string | null>(null);
   const [memberships, setMemberships] = useState<MembershipJoined[]>([]);
@@ -474,7 +476,7 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
                 className="w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-[13px] font-medium text-[var(--color-primary)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
               >
                 <Plus className="size-4" aria-hidden />
-                Create a new workspace
+                {t('create_workspace', 'Create a new workspace')}
               </button>
             </div>
           </div>

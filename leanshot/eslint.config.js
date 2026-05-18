@@ -6,6 +6,7 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import importXPlugin from 'eslint-plugin-import-x';
+import i18nextPlugin from 'eslint-plugin-i18next';
 import { defineConfig } from 'eslint/config';
 // Phase 24 Plan 24-02 — additive-only event registry enforcement (D-10/TAXO-06)
 // Phase 28 Plan 28-02 — no-raw-service-role-client (D-06 / ADDENDUM A6)
@@ -286,6 +287,61 @@ export default defineConfig([
     },
     rules: {
       'leanshot/no-raw-service-role-client': 'error',
+    },
+  },
+
+  // Phase 32 Plan 32-02 — D-06 i18n literal-string guard.
+  //
+  // Rationale: prevents future raw JSX text additions to surfaces that have
+  // already been wrapped to useTranslation(). The rule uses
+  // `mode: 'jsx-text-only'` (per 32-RESEARCH Pitfall 2 — avoids false
+  // positives on `className`, `aria-*`, `data-*`, and other non-visible
+  // string props).
+  //
+  // ⚠ Scope discipline (Plan 32-02 deferred-items.md):
+  // Plan 32-02 ships an MVP wrap covering the `nav` + `common` namespaces
+  // (layout components + i18n/* + GreetingStrip). The other 6 namespaces
+  // (patient, onboarding, kb, admin, clinic, settings) and their owning
+  // component trees are wrapped IN STAGES by Plan 32-06 (contractor
+  // workflow) + Plan 32-07 (ship-gate sweep). Until those plans land we
+  // scope the strict rule to the wrapped directories ONLY — applying the
+  // rule globally today would emit hundreds of errors and exceed the
+  // baseline lint count (84 per project_lint_debt_import_x_order.md).
+  //
+  // As new component trees are wrapped (Plan 32-06+07), add their
+  // directory to `files` below. The final ship-state is
+  // `files: ['src/components/**/*.{ts,tsx}']` with zero `ignores`.
+  //
+  // Ignore patterns:
+  //   - src/lib/i18n/** — the runtime itself embeds key literals (allowed)
+  //   - src/lib/analytics/events*.ts — event-name strings are not user copy
+  //   - src/illustrations/** — inline SVG strings
+  //   - test files — exempt globally
+  {
+    files: [
+      'src/components/layout/**/*.{ts,tsx}',
+      'src/components/i18n/**/*.{ts,tsx}',
+    ],
+    ignores: [
+      'src/**/*.test.{ts,tsx}',
+      'src/test/**/*.{ts,tsx}',
+      'src/test-setup.ts',
+      'src/lib/i18n/**',
+      'src/lib/analytics/events*.ts',
+      'src/illustrations/**',
+    ],
+    plugins: { i18next: i18nextPlugin },
+    rules: {
+      'i18next/no-literal-string': [
+        'error',
+        {
+          mode: 'jsx-text-only',
+          // Brand names per D-11 stay HARDCODED — exclude common brand words.
+          // Per-line `eslint-disable-next-line i18next/no-literal-string` with
+          // a "// brand name — see D-11" comment is also acceptable.
+          words: { exclude: ['LeanShot', 'Ozempic', 'Wegovy', 'Mounjaro', 'Zepbound'] },
+        },
+      ],
     },
   },
 ]);
