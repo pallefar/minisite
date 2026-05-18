@@ -31,8 +31,12 @@ const BASE: AffiliatePublicRow = {
 describe('LandingTemplateGold (AFFTIER-06)', () => {
   it('T1: renders Premium partner badge with referral_code', () => {
     render(<LandingTemplateGold affiliate={BASE} />);
-    expect(screen.getByText(/premium partner/i)).toBeInTheDocument();
-    expect(screen.getByText(/alex-premium/i)).toBeInTheDocument();
+    // "Premium partner" appears in the badge (and may also appear in copy);
+    // the e2e sanity-assertion target only requires at least one match.
+    expect(screen.getAllByText(/premium partner/i).length).toBeGreaterThanOrEqual(1);
+    // referral_code is rendered inside the badge data-testid="aff-code"
+    const codeEl = screen.getByTestId('aff-code');
+    expect(codeEl.textContent).toBe('alex-premium');
   });
 
   it('T2: primary CTA href = /signup?aff={referral_code}', () => {
@@ -50,6 +54,10 @@ describe('LandingTemplateGold (AFFTIER-06)', () => {
 
   it('T4: footer references the referring affiliate display_name', () => {
     render(<LandingTemplateGold affiliate={BASE} />);
-    expect(screen.getByText(/alex premium/i)).toBeInTheDocument();
+    // display_name surfaces multiple times (subheading + footer "Referred by");
+    // assert presence rather than uniqueness.
+    expect(screen.getAllByText(/alex premium/i).length).toBeGreaterThanOrEqual(1);
+    // footer-scoped check: "Referred by {display_name}" must exist verbatim.
+    expect(screen.getByText(/referred by alex premium/i)).toBeInTheDocument();
   });
 });
