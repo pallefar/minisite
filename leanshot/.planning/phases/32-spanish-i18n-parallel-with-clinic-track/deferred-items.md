@@ -44,3 +44,22 @@ Discovered during Phase 32 execution but caused by pre-existing baseline conditi
 - **Why pre-existing in parser v9:** This is a known interaction in `i18next-parser@9.4.0` at `node_modules/i18next-parser/dist/transform.js:325`. The deprecation notice on the package itself recommends migrating to `i18next-cli`; that migration is out of scope for Plan 32-02.
 - **Workaround in this plan:** Set `failOnUpdate: false`. Coverage drift is enforced by an equivalent CI step that runs `npx i18next-parser` then `git diff --quiet -- public/locales` (any uncommitted catalog diff fails the CI step). This is functionally equivalent to `failOnUpdate` but immune to the v9 sort-diff false positive.
 - **Fix owner:** v1.4 i18next-cli migration plan (TBD).
+
+### 12 `toLocaleDateString(undefined,` callsites in non-wrapped directories
+
+- **What:** Plan 32-02 Task 2 verify gate expected `grep -rn "toLocaleDateString(undefined" leanshot/src/ | grep -v test` to be empty. 12 callsites remain in surfaces NOT yet wrapped:
+  - `src/components/admin/anomaly/AdminAnomalyTrackedFunnelsConfig.tsx:312`
+  - `src/components/admin/cohorts/CohortHeatmap.tsx:44`
+  - `src/components/admin/cohort/AdminCohortList.tsx:55`
+  - `src/components/admin/AdminAffiliatesScaffold.tsx:66`
+  - `src/components/admin/members/CancelSubModal.tsx:38`
+  - `src/components/admin/members/RefundModal.tsx:67`
+  - `src/components/admin/members/MembersTable.tsx:79`
+  - `src/components/admin/AdminAffiliatesReviewQueue.tsx:111`
+  - `src/components/partner/PartnerPayoutsPage.tsx:43`
+  - `src/components/dsar/DsarPortalPage.tsx:242`
+  - `src/components/clinic/RouteOrgGuard.tsx:103`
+  - `src/components/clinic/billing/ClinicBillingCard.tsx:55`
+  - `src/lib/dsar/dsar-export-client.ts:161`
+- **Why deferred:** All sit inside admin/clinic/partner/dsar surfaces that map to namespaces (admin, clinic) NOT wrapped by Plan 32-02. Per the scope reduction documented above, Plan 32-06 + 32-07 own the wrap pass for these surfaces and will migrate them to `useLocale()` (for React) or explicit-locale arg (for the pure utility `src/lib/dsar/dsar-export-client.ts`) as part of the same plan that adds the `admin:` / `clinic:` namespace catalogs.
+- **Fix owner:** Plan 32-06 (clinic+partner surfaces) + Plan 32-07 (admin+dsar surfaces).

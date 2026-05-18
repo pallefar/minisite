@@ -6,6 +6,8 @@ import {
   hoursSince,
   relTime,
   formatDuration,
+  formatShort,
+  formatLong,
   greeting,
   cn,
   clamp,
@@ -218,6 +220,97 @@ describe('helpers', () => {
     it('handles null/undefined without crash', () => {
       expect(escapeHtml(null)).toBe('');
       expect(escapeHtml(undefined)).toBe('');
+    });
+  });
+
+  // Phase 32 Plan 32-02 — locale-aware date formatters.
+  describe('formatShort (locale)', () => {
+    it('defaults to "en" when no locale supplied (backward compat)', () => {
+      // Jan 15 → "Jan 15" in EN
+      expect(formatShort('2026-01-15T12:00:00Z', 'en')).toMatch(/Jan/);
+      expect(formatShort('2026-01-15T12:00:00Z')).toMatch(/Jan/);
+    });
+
+    it('renders Spanish month abbreviation when locale="es"', () => {
+      // Jan 15 in Spanish → "15 ene" (no period in modern ICU; "ene"
+      // is the unambiguous Spanish January abbreviation).
+      expect(formatShort('2026-01-15T12:00:00Z', 'es')).toMatch(/ene/);
+    });
+
+    it('returns the raw input when the date is invalid', () => {
+      expect(formatShort('not-a-date', 'es')).toBe('not-a-date');
+    });
+  });
+
+  describe('formatLong (locale)', () => {
+    it('includes a year and the EN month name by default', () => {
+      const out = formatLong('2026-03-08T12:00:00Z');
+      expect(out).toMatch(/2026/);
+      expect(out).toMatch(/Mar/);
+    });
+
+    it('renders Spanish month abbreviation when locale="es"', () => {
+      const out = formatLong('2026-03-08T12:00:00Z', 'es');
+      expect(out).toMatch(/mar/);
+      expect(out).toMatch(/2026/);
+    });
+  });
+
+  describe('relTime (locale)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-05-10T12:00:00Z'));
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('returns the legacy "today" string when locale is undefined or "en"', () => {
+      expect(relTime('2026-05-10T11:00:00Z')).toBe('today');
+      expect(relTime('2026-05-10T11:00:00Z', 'en')).toBe('today');
+    });
+
+    it('renders Spanish relative day when locale="es"', () => {
+      // 1 day ago in Spanish via Intl.RelativeTimeFormat → "ayer" (numeric: 'auto')
+      const out = relTime('2026-05-09T12:00:00Z', 'es');
+      expect(out).toMatch(/ayer/);
+    });
+
+    it('renders Spanish "today" via Intl when locale="es"', () => {
+      const out = relTime('2026-05-10T11:00:00Z', 'es');
+      // numeric:'auto' for `relative.format(0, 'day')` in es → "hoy"
+      expect(out).toMatch(/hoy/);
+    });
+  });
+
+  // greeting() (Phase 32 Plan 32-02 — keep slot-returning contract).
+  describe('greeting (slot enum)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('returns "morning" at 9am local', () => {
+      const d = new Date();
+      d.setHours(9, 0, 0, 0);
+      vi.setSystemTime(d);
+      expect(greeting()).toBe('morning');
+    });
+
+    it('returns "afternoon" at 14:00 local', () => {
+      const d = new Date();
+      d.setHours(14, 0, 0, 0);
+      vi.setSystemTime(d);
+      expect(greeting()).toBe('afternoon');
+    });
+
+    it('returns "evening" at 22:00 local', () => {
+      const d = new Date();
+      d.setHours(22, 0, 0, 0);
+      vi.setSystemTime(d);
+      expect(greeting()).toBe('evening');
     });
   });
 });
