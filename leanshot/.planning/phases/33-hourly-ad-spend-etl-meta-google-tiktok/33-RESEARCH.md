@@ -857,9 +857,9 @@ Events NOT eligible (not in `events.ts` as of research date, or `phi: true` / `s
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Google Ads OAuth2 Secrets Gap (BLOCKER)**
+1. **Google Ads OAuth2 Secrets Gap (BLOCKER)** — RESOLVED in plan-checker iter-1: Plan 33-03 user_setup surfaces all 6 Google Ads Function Secrets (3 from D-03 + 3 OAuth2 supplements). vendor-gate health-check validates all 6 are present before attempting OAuth2 refresh.
    - What we know: D-03 lists `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CUSTOMER_ID`, `GOOGLE_ADS_LOGIN_CUSTOMER_ID`.
    - What's unclear: OAuth2 refresh token flow also needs `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`. Service Account alternative avoids client_id/secret but requires a JSON key file (can be stored as a multi-line secret, but more complex).
    - Recommendation: Plan-checker iter-1 must flag D-03 for supplement with these three secrets. Refresh token flow is simpler than service account for single-customer ETL.
@@ -869,10 +869,7 @@ Events NOT eligible (not in `events.ts` as of research date, or `phi: true` / `s
    - What's unclear: Whether to use a dedicated `etl_cursors` table (simple key-value: `name, value`) or a column on `ad_etl_health`.
    - Recommendation: Use a separate `etl_cursors` table (generic key-value, reusable). Planner adds this as migration `20270703000009`.
 
-3. **TikTok `stat_time_hour` vs `stat_time_day` + attribution_type**
-   - What we know: The endpoint supports `stat_time_hour` as a dimension for hourly granularity.
-   - What's unclear: Whether hourly granularity is available for all attribution types (click + view). Some TikTok API endpoints have dimension incompatibility constraints.
-   - Recommendation: Plan should include a Wave 0 smoke test that calls the endpoint with `stat_time_hour` and verifies the response code is not 40002 (invalid dimension combination).
+3. **TikTok `stat_time_hour` vs `stat_time_day` + attribution_type** — RESOLVED in plan-checker iter-1: accepted as best-effort because (a) the vendor-gated D-01 health-check pattern will catch a 40002 dimension-incompatibility error inside the try/catch of `ad-spend-cron-tiktok` and write it to `ad_etl_health.last_error`, surfacing the gap as an admin badge; (b) the TikTok credentials aren't expected to land at phase-merge time anyway (vendor-action). Plan 33-03 documents this in source comments and surfaces a runbook hint to switch to `stat_time_day` if the dimension is incompatible for the active attribution_type. No Wave-0 smoke test needed.
 
 4. **AEM Event Priority Lock (D-06)**
    - What we know: Planner picks initial top-8 from this research + funnel analysis.
