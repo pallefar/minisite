@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import i18next from 'i18next';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DisclaimerBody } from '@/components/dashboard/DisclaimerModal';
@@ -21,8 +22,8 @@ import { track } from '@/lib/analytics';
 import { todayStr } from '@/lib/helpers';
 import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import { medLabel } from '@/lib/pharmacology';
-import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type {
   ActivityLevel,
   GoalType,
@@ -40,6 +41,33 @@ import { UnitToggle } from './UnitToggle';
 interface OnboardingFlowProps {
   onCancel: () => void;
   onComplete: () => void;
+}
+
+/**
+ * Phase 32 Plan 32-03 (I18N-02 / D-12) — derive the i18n-aware locale +
+ * units defaults at the moment of signup completion. SIGNUP-TIME ONLY.
+ *
+ * Existing users keep their `units` preference forever — Pitfall 4
+ * (32-RESEARCH §Pitfalls): locale and units are decoupled post-signup.
+ * Settings → Language changes locale, NEVER units.
+ *
+ * Per CONTEXT D-12: when a new user signs up with `Accept-Language: es-*`
+ * (i18next.language === 'es' at completion-time), default `units` to 'metric'
+ * (kg) regardless of any draft toggle. The OnboardingFlow's draft already
+ * starts at 'metric' so this is a defensive override — only triggers if an
+ * ES-detected user explicitly flipped to imperial during the flow.
+ */
+export function deriveSignupLocaleAndUnits(draftUnits: Units): {
+  locale: 'en' | 'es';
+  units: Units;
+} {
+  const detected = (i18next.language ?? 'en').slice(0, 2);
+  const isSpanish = detected === 'es';
+  return {
+    locale: isSpanish ? 'es' : 'en',
+    // D-12: ES signup → force metric/kg; EN signup → preserve user's draft choice.
+    units: isSpanish ? 'metric' : draftUnits,
+  };
 }
 
 interface DraftState {
@@ -155,14 +183,18 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   const complete = (): void => {
     const weight = parseFloat(draft.weight);
     if (!weight) return toast('Weight is required', 'error');
-    const proteinFromBody = Math.round(weight * (draft.units === 'metric' ? 1.6 : 0.8));
-    const calorieBase = Math.round(weight * (draft.units === 'metric' ? 22 : 10));
+    // Phase 32 Plan 32-03 (I18N-02 / D-12): derive signup-time locale + units
+    // BEFORE the metric-dependent protein/calorie calculations so an
+    // es-MX-detected signup who toggled imperial still gets kg-scaled targets.
+    const { locale: signupLocale, units: signupUnits } = deriveSignupLocaleAndUnits(draft.units);
+    const proteinFromBody = Math.round(weight * (signupUnits === 'metric' ? 1.6 : 0.8));
+    const calorieBase = Math.round(weight * (signupUnits === 'metric' ? 22 : 10));
     const goalWeight = parseFloat(draft.goalWeight) || weight - 10;
     const protein = parseInt(draft.protein) || proteinFromBody;
 
     const user: User = {
       name: draft.name.trim() || 'Friend',
-      units: draft.units,
+      units: signupUnits,
       medication: (draft.medication || 'ozempic') as MedicationId,
       dose: draft.dose || '0.25',
       doseUnit: draft.doseUnit,
@@ -182,6 +214,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
       activityLevel: draft.activity,
       liftingLevel: draft.lifting,
       createdAt: new Date().toISOString(),
+      // Phase 32 Plan 32-03 (I18N-02): persist locale into the Zustand mirror
+      // so the profilesLocale i18next detector resolves correctly on next boot.
+      locale: signupLocale,
     };
     setUser(user);
     upsertWeight({
@@ -195,11 +230,19 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
     // Local store mutations happen first; SECDEF writes profiles.completed_onboarding_at.
     // Only fires for authenticated users (anonymous users silently skip).
     // Errors are swallowed — onComplete() is NOT blocked by the SECDEF call.
+    // Phase 32 Plan 32-03 (I18N-02): chain a profiles.locale write so the
+    // server row matches the local mirror; same best-effort semantics
+    // (anonymous skip + error swallow — UI already reflects the choice
+    // and the local mirror is durable).
     void (async () => {
       try {
         const { data: authData } = await supabase.auth.getUser();
         if (authData?.user && !authData.user.is_anonymous) {
           await supabase.rpc('mark_onboarding_complete');
+          await supabase
+            .from('profiles')
+            .update({ locale: signupLocale })
+            .eq('id', authData.user.id);
         }
       } catch (err) {
         console.warn('[OnboardingFlow] mark_onboarding_complete failed (best-effort):', err);
@@ -736,14 +779,18 @@ function OrgOnboardingFlowRenderer({
 
   const complete = (): void => {
     const weight = parseFloat(draft.weight) || 80;
-    const proteinFromBody = Math.round(weight * (draft.units === 'metric' ? 1.6 : 0.8));
-    const calorieBase = Math.round(weight * (draft.units === 'metric' ? 22 : 10));
+    // Phase 32 Plan 32-03 (I18N-02 / D-12): mirror the consumer-flow signup
+    // locale derivation here so org-invited Spanish patients also land at
+    // metric/kg defaults + a persisted profiles.locale row.
+    const { locale: signupLocale, units: signupUnits } = deriveSignupLocaleAndUnits(draft.units);
+    const proteinFromBody = Math.round(weight * (signupUnits === 'metric' ? 1.6 : 0.8));
+    const calorieBase = Math.round(weight * (signupUnits === 'metric' ? 22 : 10));
     const goalWeight = parseFloat(draft.goalWeight) || weight - 10;
     const protein = parseInt(draft.protein) || proteinFromBody;
 
     const user: User = {
       name: draft.name.trim() || 'Friend',
-      units: draft.units,
+      units: signupUnits,
       medication: (draft.medication || 'ozempic') as MedicationId,
       dose: draft.dose || '0.25',
       doseUnit: draft.doseUnit,
@@ -763,6 +810,7 @@ function OrgOnboardingFlowRenderer({
       activityLevel: draft.activity,
       liftingLevel: draft.lifting,
       createdAt: new Date().toISOString(),
+      locale: signupLocale,
     };
     setUser(user);
     if (parseFloat(draft.weight)) {
@@ -780,6 +828,10 @@ function OrgOnboardingFlowRenderer({
         const { data: authData } = await supabase.auth.getUser();
         if (authData?.user && !authData.user.is_anonymous) {
           await supabase.rpc('mark_onboarding_complete');
+          await supabase
+            .from('profiles')
+            .update({ locale: signupLocale })
+            .eq('id', authData.user.id);
         }
       } catch (err) {
         console.warn('[OrgOnboardingFlowRenderer] mark_onboarding_complete failed:', err);
