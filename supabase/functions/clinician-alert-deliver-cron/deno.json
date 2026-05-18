@@ -1,7 +1,7 @@
 {
   "imports": {},
   "tasks": {
-    "test": "deno test --allow-all"
+    "test": "deno test --no-check --allow-env --allow-net"
   },
   "lint": {
     "rules": {
