@@ -1,3 +1,4 @@
+// Phase 50: rag_* events appended per CONTEXT D-35. Server-only events captured via supabase/functions/_shared/posthog-server.ts per D-34.
 /**
  * Canonical event taxonomy — single source of truth for ALL PostHog events.
  *
@@ -29,6 +30,13 @@ export type EventDef = {
   readonly phi: false;
   readonly description: string;
   readonly owner: 'growth' | 'product' | 'platform' | 'billing' | 'admin';
+  /**
+   * Phase 50 D-34: server-only events MUST originate from Edge Functions via
+   * supabase/functions/_shared/posthog-server.ts. Client capture is forbidden
+   * to ensure ITP/uBlock resilience (P24 server-side capture pattern).
+   * Additive field — defaults to undefined (treated as client-emittable).
+   */
+  readonly server_only?: true;
 };
 
 export const EVENTS = {
@@ -134,6 +142,184 @@ export const EVENTS = {
       lng: z.string(),
       ns: z.string(),
       key: z.string(),
+    }),
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 50 — Admin-curated RAG knowledge base (CONTEXT.md §D-35).
+  // 13 events. 4 are server_only (impression/click/pageview) per D-34 for
+  // ITP/uBlock resilience — emit only from Edge Fns via posthog-server.ts.
+  // All carry phi:false (no PHI in RAG telemetry surface).
+  // ---------------------------------------------------------------------------
+  rag_topic_created: {
+    name: 'rag_topic_created',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'Admin created a new RAG topic in the curation queue.',
+    payload: z.object({
+      topic_id: z.string().uuid(),
+      tag: z.string(),
+      mode: z.enum(['curated', 'open-web']),
+      cadence: z.enum(['daily', 'weekly', 'monthly', 'manual']),
+    }),
+  },
+  rag_topic_edited: {
+    name: 'rag_topic_edited',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'Admin edited an existing RAG topic (cadence, sources, tags).',
+    payload: z.object({
+      topic_id: z.string().uuid(),
+      fields_changed: z.array(z.string()),
+    }),
+  },
+  rag_topic_deleted: {
+    name: 'rag_topic_deleted',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'Admin deleted a RAG topic (soft or hard delete).',
+    payload: z.object({
+      topic_id: z.string().uuid(),
+      soft: z.boolean(),
+    }),
+  },
+  rag_scrape_run: {
+    name: 'rag_scrape_run',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'A scheduled or manual scrape run completed for a RAG topic.',
+    payload: z.object({
+      topic_id: z.string().uuid(),
+      source_count: z.number().int().min(0),
+      chunks_found: z.number().int().min(0),
+      duration_ms: z.number().int().min(0),
+      status: z.enum(['ok', 'partial', 'failed']),
+      cost_usd: z.number().min(0),
+    }),
+  },
+  rag_chunk_reviewed: {
+    name: 'rag_chunk_reviewed',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'Admin reviewed a scraped RAG chunk in the moderation queue.',
+    payload: z.object({
+      chunk_id: z.string().uuid(),
+      source_tier: z.enum(['A', 'B', 'C']),
+      action: z.enum(['approved', 'rejected', 'edited']),
+      reject_reason: z
+        .enum([
+          'off-topic',
+          'factually-wrong',
+          'off-label',
+          'low-quality',
+          'duplicate',
+          'safety-concern',
+        ])
+        .optional(),
+      queue_age_hours: z.number().min(0),
+    }),
+  },
+  rag_chunk_published: {
+    name: 'rag_chunk_published',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'A RAG chunk was published into the embeddings table.',
+    payload: z.object({
+      chunk_id: z.string().uuid(),
+      source_tier: z.enum(['A', 'B', 'C']),
+      topic_tag: z.string(),
+      auto_published: z.boolean(),
+    }),
+  },
+  rag_chunk_retracted: {
+    name: 'rag_chunk_retracted',
+    version: 1,
+    phi: false,
+    owner: 'admin',
+    description: 'A previously-published RAG chunk was retracted from surfaces.',
+    payload: z.object({
+      chunk_id: z.string().uuid(),
+      reason: z.string(),
+      surfaces_affected: z.array(z.enum(['coach', 'tip', 'news', 'hub'])),
+    }),
+  },
+  rag_tip_impression: {
+    name: 'rag_tip_impression',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    server_only: true,
+    description: 'Tip-of-day chunk impression (server-only per D-34, ITP/uBlock resilient).',
+    payload: z.object({
+      chunk_id: z.string().uuid(),
+      topic_tag: z.string(),
+      surface: z.literal('tip-of-day'),
+    }),
+  },
+  rag_tip_clicked: {
+    name: 'rag_tip_clicked',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    server_only: true,
+    description: 'User clicked the tip-of-day chunk (server-only per D-34).',
+    payload: z.object({
+      chunk_id: z.string().uuid(),
+      topic_tag: z.string(),
+      surface: z.literal('tip-of-day'),
+    }),
+  },
+  rag_citation_clicked: {
+    name: 'rag_citation_clicked',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    server_only: true,
+    description: 'User clicked a RAG citation link on a coach/tip/news/hub surface.',
+    payload: z.object({
+      chunk_id: z.string().uuid(),
+      source_tier: z.enum(['A', 'B', 'C']),
+      topic_tag: z.string(),
+      surface: z.enum(['coach', 'tip', 'news', 'hub']),
+    }),
+  },
+  rag_newsletter_subscribed: {
+    name: 'rag_newsletter_subscribed',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    description: 'User subscribed to the Research newsletter.',
+    payload: z.object({
+      frequency: z.enum(['weekly']),
+      tags_followed: z.array(z.string()),
+    }),
+  },
+  rag_newsletter_unsubscribed: {
+    name: 'rag_newsletter_unsubscribed',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    description: 'User unsubscribed from the Research newsletter (1-click or settings).',
+    payload: z.object({
+      via: z.enum(['1click', 'settings']),
+    }),
+  },
+  rag_hub_pageview: {
+    name: 'rag_hub_pageview',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    server_only: true,
+    description: 'Public /research hub pageview (server-only per D-34).',
+    payload: z.object({
+      chunk_id: z.string().uuid().optional(),
+      topic_tag: z.string().optional(),
     }),
   },
 } as const satisfies Record<string, EventDef>;

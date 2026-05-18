@@ -19,6 +19,11 @@
  * `disclaimer_acknowledged` events that fire during onboarding's first paint).
  */
 
+// Phase 50 D-34 / HIPAA-17: re-export the session-recording deny-list regex from
+// its single source of truth so global PostHog init (this module) and any
+// downstream consumer read the same pattern.
+export { DISABLE_RECORDING_URL_REGEX } from './posthog/disable-recording-regex';
+
 /** Typed event taxonomy starter set (D-14). Other phases extend this union. */
 export type EventName =
   | 'onboarding_started'
