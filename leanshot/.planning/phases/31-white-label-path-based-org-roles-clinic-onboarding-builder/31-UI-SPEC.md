@@ -1,10 +1,11 @@
 ---
 phase: 31
 slug: white-label-path-based-org-roles-clinic-onboarding-builder
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-18
+reviewed_at: 2026-05-18
 ---
 
 # Phase 31 — UI Design Contract
@@ -55,12 +56,13 @@ P31 inherits the project type scale verbatim. No new sizes are introduced. The 4
 
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 13 px | 400 | 1.5 | Tab content body text, matrix table cells, form helper text, step list labels |
+| Body | 13 px | 400 | 1.5 | Tab content body text, matrix table cells, form helper text, step list labels, member row secondary metadata (email, last_active_at), preview-card sample body text |
 | Label | 14 px | 600 | 1.4 | Form field labels, section headings inside tab panels, nav tab labels, permission matrix column headers |
 | Subhead | 16 px | 600 | 1.4 | Tab panel H1 (e.g. "Branding", "Onboarding"), card section titles, RoleEditorModal heading |
-| Display | 20 px | 600 | 1.2 | Not used in P31 — reserved for higher-level page titles in other surfaces |
 
 **Monospace exception:** oklch input fields render in `var(--font-mono)` at 13 px / weight 400 to make color strings scannable.
+
+**Strict 3-size ceiling for P31 surfaces** — Body 13 / Label 14 / Subhead 16. The project's broader scale exposes 20 px display + smaller (12/11/10) sizes but none of those are used by P31; member-row secondary metadata and preview-card body text both collapse to 13 px (project `--text-sm`) so the type rhythm stays uniform across new and existing tabs.
 
 ---
 
@@ -103,6 +105,8 @@ Derived from `src/index.css` `@theme` tokens. No new color values are introduced
 ---
 
 ## Surface 1: BrandingTab
+
+**Visual focal point:** The LEFT form column is the primary visual anchor — it owns the editable inputs and the Save CTA. The RIGHT live preview pane is a secondary anchor (sticky for at-a-glance feedback as tokens change, but visually lighter — `<Card variant="elevated">` with smaller heading weight than the form's "Branding" H1). Executors: when in doubt about visual emphasis, prefer the left form column.
 
 **Location:** New tab inside `ClinicSettingsPage` tab strip at `/clinic/{slug}/settings/branding`. Tab added to the `NAV` array with `id: 'branding'`, icon `Palette` from lucide-react, `visibleWhen: (perms) => perms['branding.edit'] === true`.
 
@@ -164,7 +168,7 @@ Segmented control (implemented as a `<PillGroup>` with 4 options):
 - Section heading: "Patient view preview" (13 px / secondary color). `role="img"` `aria-label="Live preview of clinic branding"`.
 - Renders a miniature clinic surface (not interactive, `aria-hidden="true"` on interactive-looking elements inside):
   - A 32 px tall fake sidebar strip: shows `--brand-logo` image or LeanShot wordmark fallback, background = `--brand-bg` with a subtle `--brand-primary` accent left-border.
-  - A fake card: background = `--color-surface`, `border-radius = --brand-radius`, a mock heading in `--brand-heading-font` at 14 px weight 600, body text in `--brand-body-font` at 12 px weight 400, and a mock primary CTA button using `--brand-primary`.
+  - A fake card: background = `--color-surface`, `border-radius = --brand-radius`, a mock heading in `--brand-heading-font` at 14 px weight 600, body text in `--brand-body-font` at 13 px weight 400, and a mock primary CTA button using `--brand-primary`.
   - A text-on-bg sample: "Patient data stays private" rendered in `--brand-text` over `--brand-bg`.
 - All four `--brand-*` color props + two font props + radius prop update live as the form changes (React controlled state, no save required).
 
@@ -175,6 +179,8 @@ Segmented control (implemented as a `<PillGroup>` with 4 options):
 **Location:** New tab inside `ClinicSettingsPage` tab strip at `/clinic/{slug}/settings/onboarding`. Icon: `ListOrdered` from lucide-react. `visibleWhen: (perms) => perms['onboarding.edit'] === true` (owner gate; clinician sees a read-only "current flow" view — see below).
 
 **Owner view layout:** Two-column at `md:` breakpoint. Left column: step builder (48 % width). Right column: patient preview (48 % width). On mobile: single column, builder first, preview after a "Preview for patients" toggle button.
+
+**Visual focal point:** The LEFT step list is the primary visual anchor (it owns the interactive work). The "Steps" heading + the "Add step" CTA together form the orientation anchor when the tab first loads; the right preview pane is secondary (lighter elevation than the builder card, smaller heading weight). Executors: when in doubt about which column gets visual emphasis, prefer the left builder.
 
 ### Left: Sortable step list
 
@@ -209,12 +215,14 @@ Implemented via `<SortableTreePanel<OnboardingStepNode>>` (new generic primitive
 
 **"Add step" button** — `<Button variant="secondary" size="sm" leadingIcon={<Plus/>}>` "Add step". Positioned below the step list. Clicking opens an inline palette (not a modal — appears as a sub-panel with `animate-fade-in`) listing the available step types that are not already present AND not mandatory-locked. Each type shown as a card with its icon + name + one-line description. Clicking a type appends it to the list.
 
+**Palette ordering:** Step types in the palette appear in the canonical patient-journey order (welcome → intro_card → goals → body_stats → doctor_invite → tour). Mandatory types (`medication`, `consent`) never appear in the palette — they are seeded in any new flow and cannot be removed/added. No grouping headings — the list is short (≤6 entries) so flat order is clearer than category dividers.
+
 **Step editor modal** — `role="dialog"` `aria-modal="true"` `aria-labelledby="step-editor-title"`. Opens for `welcome` and `intro_card` only.
 - Heading: "Edit {step name}" (16 px / semibold), `id="step-editor-title"`.
 - For `welcome`: `<Input>` "Step title" (max 60 chars, character counter shown at 40+) + `<Textarea>` "Body text" (max 200 chars, character counter shown at 150+).
 - For `intro_card`: same inputs + `intro_card`-only image uploader (64 × 64 px zone, same pattern as logo upload zone but smaller; stores to `org-onboarding-assets` bucket).
 - For all other step types: "No customization available — LeanShot controls this step's contents." (13 px / secondary) with a `Info` icon. Modal should not open for these types (edit button is hidden); this fallback guards against direct calls.
-- Buttons: "Cancel" (ghost) + "Apply" (primary). "Apply" writes to local state only; does not call a server RPC until the outer Save is clicked.
+- Buttons: "Cancel" (ghost) + "Apply changes" (primary). "Apply changes" writes to local state only; does not call a server RPC until the outer Save is clicked.
 
 **Save + version history footer area:**
 - "Save flow" `<Button variant="primary">` — calls `save_org_onboarding_flow(org_id, steps)`. `aria-busy` while saving. On success: toast "Saved version {N} — new patients will see this flow." (version number from server response). Disabled while the step list has validation errors (e.g., mandatory steps missing, unknown step types).
@@ -245,8 +253,8 @@ Implemented via `<SortableTreePanel<OnboardingStepNode>>` (new generic primitive
 
 - 56 px tall row with `flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]`.
 - Avatar: 36 × 36 px circle (initials fallback on `--color-primary-soft` bg, `--color-primary` text, 13 px font weight 600).
-- Name + email: stacked, name at 13 px / weight 600, email at 11 px / tertiary color, truncated with ellipsis.
-- `last_active_at`: 11 px / tertiary color, formatted as relative time (e.g., "2 days ago"). Hidden on mobile (320 px).
+- Name + email: stacked, name at 13 px / weight 600, email at 13 px / tertiary color (slightly reduced opacity for hierarchy), truncated with ellipsis.
+- `last_active_at`: 13 px / tertiary color (reduced opacity), formatted as relative time (e.g., "2 days ago"). Hidden on mobile (320 px).
 - Role pill: `<Badge>` with tones mapped per role — owner: `tone="info"` (teal-soft bg + primary text), clinician: `tone="success"` (sage-soft bg + sage text), staff: `tone="neutral"` (cream bg + secondary text).
 - "Edit role" `<IconButton aria-label="Edit role for {name}">` with `UserCog` icon (16 px). Gated: only rendered when `surfaceCheck('members.role.edit')` returns true. Opens `<RoleEditorModal>`.
 
@@ -404,7 +412,7 @@ Per-surface copy contracts:
 | Step body input label | Body text |
 | Step body input max-length hint | 200 characters maximum |
 | Step editor "Cancel" | Cancel |
-| Step editor "Apply" | Apply |
+| Step editor "Apply" | Apply changes |
 | Save flow button | Save flow |
 | Save flow success toast | Saved version {N} — new patients will see this flow. |
 | Version history select label | Version history |
@@ -437,6 +445,21 @@ Per-surface copy contracts:
 | Saving spinner aria-label | Saving… |
 | Upload in progress aria-label | Uploading… |
 
+### Destructive-action confirmation pattern (D-16: no blocking modals for fast admin actions)
+
+All "Remove" actions follow an **optimistic-remove with undo toast** pattern — never a blocking confirmation dialog:
+
+| Action | Surface | Optimistic update | Toast copy | Undo window |
+|---|---|---|---|---|
+| Remove step from flow | OnboardingTab step row | Row animates out immediately; flow state mutated locally | "Step removed. **Undo**" (action link) | 6s before mutation is finalized in local state (still requires Save to persist) |
+| Remove uploaded logo | BrandingTab logo upload zone | Logo URL field cleared; upload zone reverts to empty state | "Logo removed. **Undo**" | 6s |
+| Remove uploaded favicon | BrandingTab favicon upload zone | Same as logo | "Favicon removed. **Undo**" | 6s |
+| Remove member from workspace | MembersTab row | Row animates out; member list mutated locally | "{Name} removed from workspace. **Undo**" | 6s before `revoke_member` SECDEF fires |
+
+Toasts use the existing `<Toast>` primitive with `tone="info"` (not destructive — the action is reversible during the window) and `role="status" aria-live="polite"`. Pressing the Undo action restores the row + cancels the pending mutation. After the 6s window expires, the toast dismisses and the mutation is committed (for member removal: SECDEF fires; for branding asset removal: cleared URL persists until Save; for onboarding step removal: stays in local pending state until Save).
+
+Server-side revoke_member is the only case that immediately fires an RPC; all others batch into the next Save click. This avoids the [[universal-anti-patterns]] hazard of orphaned destructive blocking dialogs while preserving recovery affordance.
+
 ---
 
 ## Interaction States
@@ -456,7 +479,7 @@ Derived from `BlockTreePanel` (Phase 15) — must be preserved in the extracted 
 | Space / Enter | Drop item at current position |
 | Escape | Cancel drag, restore original order |
 
-Screen reader announcements (via `@dnd-kit/accessibility` `Announcements` prop):
+Screen reader announcements (via `@dnd-kit/core` `accessibility.announcements` prop on `DndContext` — built-in to v6.3.1 that's already installed; no new package needed):
 - On pickup: "Picked up step {name}. It is in position {pos} of {total}."
 - On move: "Step {name} moved to position {pos} of {total}."
 - On drop: "Step {name} dropped at position {pos}."
@@ -483,7 +506,7 @@ Reduced motion: when `useReducedMotion()` returns true, dnd-kit `transition` is 
 | shadcn official | none — project uses custom primitives | not applicable |
 | Third-party | none | not applicable |
 
-No new npm packages are introduced beyond what Phase 15 already shipped (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `@dnd-kit/accessibility`). The `SortableTreePanel` extraction is a refactor of existing code, not a new dependency.
+No new npm packages are introduced beyond what Phase 15 already shipped (`@dnd-kit/core` 6.3.1, `@dnd-kit/sortable` 10.0.0, `@dnd-kit/utilities` 3.2.2). The `SortableTreePanel` extraction is a refactor of existing code, not a new dependency. Screen-reader announcements use the built-in `accessibility.announcements` prop on `DndContext` v6 — no separate `@dnd-kit/accessibility` package required (and none installed).
 
 ---
 
