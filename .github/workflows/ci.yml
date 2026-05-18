@@ -314,6 +314,25 @@ jobs:
         run: deno test --allow-net=api.moonshot.ai --allow-read --allow-env --import-map=supabase/functions/import_map.json supabase/functions/tests/
       - name: Run Deno tests (share Edge Function — Plan 08-02)
         run: deno test --allow-all --import-map=supabase/functions/import_map.json supabase/functions/share/
+      # ───────────────────────────────────────────────────────────────────────
+      # Phase 25 Plan 25-04 — HIPAA-04 SC #1 BAA guard refusal proof (LOAD-BEARING).
+      #
+      # Asserts that the Anthropic clinical credential path:
+      #   (a) Refuses non-BAA-allowlisted models with 403 + audit row (SC#1).
+      #   (b) Refuses clinical users when BAA flag inactive with 503 (no silent
+      #       fallthrough to consumer Moonshot credentials — T-25-04-E1).
+      #   (c) Denylist-suffix models (-beta, -preview) are refused with 403.
+      #   (d) Consumer path (orgId=null, always at v1.3) remains byte-stable.
+      #
+      # This step is REQUIRED for HIPAA-04 compliance: verifier checks for these
+      # tests to be present and GREEN. See: 25-04-PLAN.md must_haves.
+      # ───────────────────────────────────────────────────────────────────────
+      - name: HIPAA-04 SC#1 — BAA guard refusal proof (Phase 25 Plan 25-04)
+        run: |
+          test -f supabase/functions/_shared/anthropic-baa-allowlist.ts || (echo "FAIL: anthropic-baa-allowlist.ts missing" && exit 1)
+          test -f supabase/functions/_shared/anthropic-baa-allowlist.test.ts || (echo "FAIL: anthropic-baa-allowlist.test.ts missing" && exit 1)
+          test -f supabase/functions/ai-chat/ai-chat-clinical-branch.test.ts || (echo "FAIL: ai-chat-clinical-branch.test.ts missing" && exit 1)
+          deno test --no-check supabase/functions/_shared/anthropic-baa-allowlist.test.ts supabase/functions/ai-chat/ai-chat-clinical-branch.test.ts
 
   # ─────────────────────────────────────────────────────────────────────────
   # Phase 8 Plan 08-05 — 4-failure-mode revocation drill (SC#3) + extended
