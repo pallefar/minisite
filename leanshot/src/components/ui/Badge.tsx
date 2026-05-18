@@ -1,7 +1,10 @@
 import { type HTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/helpers';
 
-export type BadgeTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral' | 'inverse';
+// Phase 30 Plan 03: 'amber' is a distinct tone from 'warning' (orange #e37748).
+// amber = #e0af4e — used exclusively for pending clinician alerts per UI-SPEC §Color.
+// Do NOT redirect 'warning' → amber; other surfaces depend on orange semantics.
+export type BadgeTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral' | 'inverse' | 'amber';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: BadgeTone;
@@ -17,6 +20,8 @@ const toneClasses: Record<BadgeTone, string> = {
   neutral:
     'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
   inverse: 'bg-white/15 text-white border border-white/20',
+  // Phase 30 Plan 03 — amber: pending clinician alerts (--color-amber #e0af4e, NOT --color-warning which is orange #e37748)
+  amber: 'bg-[var(--color-amber-soft)] text-[var(--color-amber)]',
 };
 
 export function Badge({
