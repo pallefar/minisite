@@ -458,13 +458,37 @@ Plans:
 
 ### Phase 50: Admin-Curated RAG Knowledge Base — Peptide/Topic Research Scraper Feeding AI Tips + Newsletters
 
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 49
-**Plans:** 0 plans
+**Goal:** Admin defines research topics → Firecrawl scrapes external sources (allowlist + open-web hybrid) → content normalized/summarized/chunked → tiered review queue (Tier-A auto-publish, B/C manual) → embeddings in dedicated `external_kb_embeddings` pgvector table → surfaced via AI coach citations + Dashboard "Tip of the day" + Research newsletter + public `/research` hub. Additive to Phase 38 (separate embeddings table, recommender Edge Fn extended not duplicated).
+**Requirements**: (None mapped to dedicated REQ-IDs; 36 D-IDs in `.planning/phases/50-*/50-CONTEXT.md` are the requirements — covered by `must_haves.truths` per plan; decision-coverage gate PASSED)
+**Depends on:** Phase 49 (newsletter unsubscribe pattern reuse; standalone fallback documented). Plans also forward-reference Phase 24 (admin shell + event taxonomy), Phase 25 (email router + HIPAA posture), Phase 32 (i18n shim), Phase 38 (recommender Edge Fn extension; standalone fallback documented).
+**Plans:** 9 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 50 to break down)
+
+**Wave 1** (4 plans in parallel — data layer + admin surface + event registry):
+- [ ] 50-01-PLAN.md — SQL schema (9 migrations): rag_topics, rag_sources + seed, rag_chunks, external_kb_embeddings + HNSW, rag_topic_audit, rag_scrape_runs, rag_cost_ledger, rag_newsletter_subscriptions, RLS policies [Wave 1]
+- [ ] 50-02-PLAN.md — Admin module + RagLayout + Topics/Sources pages + TierBadge/HealthBadge/CostBar primitives + 8 admin RPCs + telemetry rollup [Wave 1]
+- [ ] 50-03-PLAN.md — 13 rag_* PostHog events registered in events.ts + disable_session_recording_on_url regex extension + captureRagEvent helper [Wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)* (3 plans in parallel — scrape + summarize + review queue):
+- [ ] 50-04-PLAN.md — rag-scrape-runner Edge Fn (Firecrawl + robots.txt + cost-gating + 3-attempt backoff + auto-pause) + pg_cron orchestrator [Wave 2]
+- [ ] 50-05-PLAN.md — rag-summarize-and-chunk Edge Fn (Anthropic via P25 consumer credential + quote-only-mode + prompt-injection guard + sentence-aware chunker) [Wave 2]
+- [ ] 50-06-PLAN.md — RagQueuePage + side-by-side source/quote pane + 6-reason reject taxonomy + Edit/Retract modals + state-machine RPCs + SLA backlog cron [Wave 2]
+
+**Wave 3** *(blocked on Wave 2 completion — D-22 MVP cut)* (2 plans in parallel — embeddings + must-have user surfaces):
+- [ ] 50-07-PLAN.md — rag-embed-approved Edge Fn (OpenAI text-embedding-3-small + nightly cron) + rag-retrieve Edge Fn (HNSW + tier-boost + freshness-derank; standalone until P38 ships) [Wave 3]
+- [ ] 50-08-PLAN.md — AI Coach CitationMarker+Popover + Dashboard TipOfTheDayCard + i18n disclaimer shim (rag.attribution, rag.disclaimer) + server-rag-event-relay [Wave 3 — MVP cut]
+
+**Wave 4** *(blocked on Wave 3 completion — D-22 STRETCH cut; can defer to Phase 51 if scope tightens)*:
+- [ ] 50-09-PLAN.md — Research newsletter Edge Fn (weekly cron + Resend via P25) + 1-click unsubscribe + public /research Hub + ResearchArticleDetail + NewsletterSettings + RagCostPage final (vendor cards + auto-pause + acknowledge-and-resume) [Wave 4 — STRETCH]
+
+**Cross-cutting constraints:**
+- Every SECURITY DEFINER function sets `search_path = extensions, public, pg_temp` per [[reference_supabase_migration_gotchas]].
+- Every Edge Fn that captures PostHog events calls `await ph.shutdown()` before return per Phase 24 D-13.
+- Every vendor call writes a `rag_cost_ledger` row; 100% MTD triggers auto-pause + admin acknowledge to resume (D-30).
+- Single shared i18n key `rag.attribution` + `rag.disclaimer` used across coach + tip + newsletter + Research Hub (D-33).
+- Scraped content stored as excerpt + canonical URL only; never full-text (D-03).
+- Medical-claim sentences stored verbatim in source language; English gloss in quote_blocks (D-05 + D-17).
 
 ---
 
