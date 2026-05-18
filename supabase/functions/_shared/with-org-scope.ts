@@ -48,6 +48,10 @@ export const ORG_SCOPED_TABLES = new Set<string>([
   'org_patient_links',
   'org_consent_grants',
   'org_patient_invites', // P29: D-06 patient invite consent-based table
+  // P30: clinician alert pipeline tables (EXTENSION-CONTRACT R1-R5)
+  'clinician_alerts',           // P30: alert status-machine table (debounce + RLS forced)
+  'clinician_alert_deliveries', // P30: append-only delivery log (service_role only)
+  'org_patient_thresholds',     // P30: per-patient threshold overrides (SECDEF only writes)
   // Downstream phases extend this per 28-EXTENSION-CONTRACT.md D-29
 ]);
 
