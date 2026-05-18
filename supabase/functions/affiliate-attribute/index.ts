@@ -80,6 +80,10 @@ const MOBILE_APP_UA_PREFIX = 'LeanShot/'; // D-28 exemption
 // Affiliates with `days_observed < 7` skip the Z-score check (cold-start cap above handles them).
 const ZSCORE_BASELINE_MIN_DAYS = 7;
 const ZSCORE_THRESHOLD = 3; // 3σ above the affiliate's own daily-mean
+// Phase 26 Plan 26-02 — Ratio Z-score (D-09 / D-10). MUST stay in sync with
+// leanshot/src/lib/affiliate/anomaly-detection.ts (Deno runtime cannot import
+// from the leanshot src tree; this is the documented duplication seam).
+const RATIO_ANOMALY_Z_THRESHOLD = 3;
 // Fingerprint validation (Plan 19-07): 8-128 chars of [A-Za-z0-9_-] only.
 // Source: client header `X-LeanShot-Fingerprint` OR query param `?fp=...`.
 const FINGERPRINT_PATTERN = /^[a-zA-Z0-9_-]{8,128}$/;
@@ -261,6 +265,74 @@ export async function handle(req: Request): Promise<Response> {
       // Don't echo Postgres detail (Pattern S3 — PII-safe logs).
       console.error('[affiliate-attribute] affiliate_clicks insert error', clickErr.message);
       return internalError(baseHeaders);
+    }
+
+    // 7b. Phase 26 Plan 26-02 — Ratio Z-score detector (AFFTIER-05, D-09/D-10).
+    //
+    // EXTENDS the v1.2 AFF-08 raw-count detector above (does NOT replace).
+    // Both detectors run; either flag is sufficient. Per D-09 default-trust:
+    //   - request still 302s with cookie set / suppressed via the raw-count
+    //     decision above (`flagged` already determined).
+    //   - this block ONLY writes a fraud_signal row when the ratio observation
+    //     breaches 3σ; the actual conversion flag is applied in invoice-paid.ts
+    //     when the conversion lands (next event in the funnel).
+    //
+    // No-op on errors / cold-start (RPC returns null). PII-safe payload:
+    // affiliate_id + z_score + observation only (no user_id, no Referer body).
+    try {
+      const todayStartIso = new Date(
+        new Date().toISOString().slice(0, 10) + 'T00:00:00Z',
+      ).toISOString();
+
+      const { count: ratioClicksToday } = await admin
+        .from('affiliate_clicks')
+        .select('id', { count: 'exact', head: true })
+        .eq('affiliate_id', affiliate.id)
+        .gte('created_at', todayStartIso);
+
+      const { count: ratioImpressionsToday } = await admin
+        .from('affiliate_impressions')
+        .select('id', { count: 'exact', head: true })
+        .eq('affiliate_id', affiliate.id)
+        .gte('created_at', todayStartIso);
+
+      // Pitfall 4 — divide-by-zero guard. Use Math.max(...,1) so a click-only
+      // day still produces a finite ratio (the matview-side `nullif` already
+      // excludes such days from the baseline; here we just avoid NaN).
+      const obs = (ratioClicksToday ?? 0) / Math.max(ratioImpressionsToday ?? 0, 1);
+
+      const { data: zData } = await admin.rpc('compute_affiliate_ratio_z_score', {
+        p_affiliate_id: affiliate.id,
+        p_observation: obs,
+      });
+      const z = zData as number | null;
+
+      // Inline duplicate of leanshot/src/lib/affiliate/anomaly-detection.ts —
+      // Deno cannot import from the leanshot bundle tree. Keep these two
+      // predicates in lockstep.
+      const ratioFlagged =
+        z !== null && Number.isFinite(z) && Math.abs(z) > RATIO_ANOMALY_Z_THRESHOLD;
+
+      if (ratioFlagged) {
+        await admin.from('affiliate_fraud_signals').insert({
+          affiliate_id: affiliate.id,
+          signal_type: 'anomaly_z_score',
+          payload: {
+            kind: 'anomaly_z_score',
+            z_score: z,
+            baseline_mean: null,
+            baseline_stddev: null,
+            observation: obs,
+          },
+        });
+      }
+    } catch (ratioErr) {
+      // Default-trust: never block attribution on detector failure (D-09).
+      // Log + continue.
+      console.error(
+        '[affiliate-attribute] ratio detector error',
+        ratioErr instanceof Error ? ratioErr.message : 'unknown',
+      );
     }
 
     // 8. Cookie + 302. Flagged clicks skip Set-Cookie (attribution suppressed).
