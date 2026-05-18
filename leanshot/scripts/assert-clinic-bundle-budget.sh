@@ -129,7 +129,18 @@ ASSETS_DIR="$DIST_DIR/assets"
 # before; CLIN-05/CLIN-08 blocked). Lazy import + Suspense fallback pushed clinic chunk
 # to 35,456 bytes gz. Raised ceiling to 36,000 bytes (~544 bytes headroom).
 # History: 12 → 16 → 17 → 17 → 25 → 22 → 28 → 30 → 35 → 36 kB.
-CLINIC_CEILING=36000
+#
+# CLINIC_CEILING=50000 — Phase 31 Plan 31-01 baseline raise (D-03 + RESEARCH Finding 10).
+# Phase 31 adds BrandingTab (~5 kB) + OnboardingTab (~6 kB) + RoleEditorModal 12-key matrix
+# expansion (~1.5 kB) lazy-loaded into the clinic chunk via existing manualChunks routing;
+# SortableTreePanel extraction in 31-00b is net-zero (page-builder chunk loses 1.5 kB while
+# clinic gains 1.5 kB). Raised here (Wave 1) — not in Wave 2 plan 31-05 that actually adds
+# the weight — so the ceiling lands BEFORE any Wave 2 CI run hits the bundle gate.
+# +12 kB estimate has ~2 kB variance (RESEARCH Finding 10 MEDIUM-confidence); 50 kB gives
+# ~3.5 kB headroom vs 48 kB's ~1.5 kB. Phase 32 (Spanish i18n) adds lazy-loaded translation
+# tables; setting 50 kB once is cheaper than chasing raises every phase. Reverting to 48 kB
+# is a one-line bash change. History: 12 → 16 → 17 → 17 → 25 → 22 → 28 → 30 → 35 → 36 → 50 kB.
+CLINIC_CEILING=50000
 CLINIC_SETTINGS_CEILING=18000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
@@ -188,6 +199,7 @@ ADMIN_BUNDLE_CEILING=60000
 PHASE_REF=".planning/phases/09-clinic-b2b-foundations/09-01-PLAN.md"
 PHASE_10_REF=".planning/phases/10-clinic-operator-surface/10-05-PLAN.md"
 PHASE_12_REF=".planning/phases/12-bootstrap-bundle-foundations/12-01-PLAN.md"
+PHASE_31_REF=".planning/phases/31-white-label-path-based-org-roles-clinic-onboarding-builder/31-01-PLAN.md"
 
 if [ ! -d "$DIST_DIR" ]; then
   echo "::error::dist/ not found at $DIST_DIR — run 'npm run build' first" >&2
