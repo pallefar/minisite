@@ -21,6 +21,8 @@ export default defineConfig({
     //   - clinician-alert-debounce: debounce_key UNIQUE constraint invariant (CLIN-04).
     //   - clinician-alert-auto-resolve: auto-resolve cron status transition (D-10).
     //   - mv-clinic-alert-metrics: matview CONCURRENTLY refresh + shape (CLIN-05).
+    // Phase 27 plan 27-04: funnel-anomaly detection + 4h suppression integration
+    //   tests (TAXO-05 + SC#5). Live-DB; auto-skip absent service-role key.
     include: [
       'e2e/rls-*.test.ts',
       'e2e/admin-impersonation-write-deny.test.ts',
@@ -32,6 +34,8 @@ export default defineConfig({
       'src/lib/__tests__/clinician-alert-debounce.test.ts',
       'src/lib/__tests__/clinician-alert-auto-resolve.test.ts',
       'src/lib/__tests__/mv-clinic-alert-metrics.test.ts',
+      'tests/integration/funnel-anomaly-detection.test.ts',
+      'tests/integration/anomaly-suppression.test.ts',
     ],
     testTimeout: 30000,
   },

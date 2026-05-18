@@ -35,6 +35,7 @@
  */
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import AdminGlobals from '@/components/admin/AdminGlobals';
 import AdminShell, { NotAuthorizedCard } from '@/components/admin/AdminShell';
 import SetupTotpPage from '@/components/admin/SetupTotpPage';
 import StepUpTotpPage from '@/components/admin/StepUpTotpPage';
@@ -188,6 +189,7 @@ export function AdminLayout({ heading, headerAction, children }: AdminLayoutProp
     // pass their own content as children.
     return (
       <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+        <AdminGlobals adminRole={probe.adminRole} />
         <AdminShell adminRole={probe.adminRole} navOnly />
         <main className="p-4 md:p-6">
           {heading && (
@@ -205,6 +207,7 @@ export function AdminLayout({ heading, headerAction, children }: AdminLayoutProp
   // Mode A: AdminShell manages routing.
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+      <AdminGlobals adminRole={probe.adminRole} />
       <AdminShell adminRole={probe.adminRole} />
     </div>
   );
