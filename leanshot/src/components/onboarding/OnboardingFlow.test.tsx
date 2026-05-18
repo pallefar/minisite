@@ -19,9 +19,6 @@ vi.mock('@/lib/onboarding-builder/use-org-onboarding-flow', () => ({
 // Mock supabase to avoid real network calls in tests
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-    },
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
 }));

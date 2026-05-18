@@ -57,6 +57,7 @@ export default defineConfig({
         /e2e\/clinic-ranking-weights-roster-reorder\.spec\.ts$/,
         /e2e\/clinician-alerts-realtime\.spec\.ts$/,
         /e2e\/clinic-brand-first-paint\.spec\.ts$/,
+        /e2e\/patient-org-onboarding\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -107,7 +108,10 @@ export default defineConfig({
       ? [
           {
             name: 'p31',
-            testMatch: [/e2e\/clinic-brand-first-paint\.spec\.ts$/],
+            testMatch: [
+              /e2e\/clinic-brand-first-paint\.spec\.ts$/,
+              /e2e\/patient-org-onboarding\.spec\.ts$/,
+            ],
             use: { ...devices['Desktop Chrome'] },
           },
         ]

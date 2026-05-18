@@ -24,6 +24,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useStore } from '@/lib/store';
 import type { OnboardingStepNode } from '@/types/onboarding-step';
 
 // ---------------------------------------------------------------------------
@@ -76,22 +77,31 @@ const COMPLETED_STATE: OrgOnboardingFlowState = {
 export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
   const [state, setState] = useState<OrgOnboardingFlowState>(INITIAL_STATE);
 
+  // Read signedIn.user from Zustand store so we get the user ID synchronously
+  // without waiting for supabase.auth.getSession() to resolve. The signedIn slice
+  // is populated by App.tsx's INITIAL_SESSION handler before this hook fires.
+  const signedInUser = useStore((s) => s.signedIn?.user ?? null);
+
   useEffect(() => {
     let cancelled = false;
 
     async function fetchFlowState(): Promise<void> {
       try {
-        // Phase 1: check auth
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-        if (cancelled) return;
+        // Phase 1: check auth — read from Zustand store (already set by INITIAL_SESSION handler)
+        // Avoids supabase.auth.getSession() timing race during component mount.
+        const userId = signedInUser?.id ?? null;
 
-        if (authError || !authData?.user) {
+        if (!userId) {
           // Anonymous / pre-signin → consumer path, no DB round-trip
           setState(CONSUMER_STATE);
           return;
         }
 
-        const userId = authData.user.id;
+        // Also skip if user is anonymous
+        if ((signedInUser as { is_anonymous?: boolean } | null)?.is_anonymous) {
+          setState(CONSUMER_STATE);
+          return;
+        }
 
         // Phase 2: thin profiles SELECT — primary_org_id + completed_onboarding_at only
         const { data: profileData, error: profileError } = await supabase
@@ -122,7 +132,9 @@ export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
           return;
         }
 
-        // Phase 3: fetch org name
+        // Phase 3: fetch org name (best-effort — RLS may block patients from reading org name;
+        // continue without it rather than failing open to 'consumer')
+        let orgName: string | null = null;
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('name')
@@ -132,12 +144,11 @@ export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
         if (cancelled) return;
 
         if (orgError) {
-          console.warn('[useOrgOnboardingFlow] organizations SELECT failed:', orgError.message);
-          setState(CONSUMER_STATE);
-          return;
+          // RLS recursion or other error — continue without org name (best-effort)
+          console.warn('[useOrgOnboardingFlow] organizations SELECT failed (continuing without org name):', orgError.message);
+        } else {
+          orgName = orgData?.name ?? null;
         }
-
-        const orgName = orgData?.name ?? null;
 
         // Phase 4: fetch active onboarding flow for the org
         const { data: flowData, error: flowError } = await supabase
@@ -183,8 +194,9 @@ export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mount-only; intentional empty dep array (one fetch per mount)
+  // Re-run when signedInUser changes (e.g., INITIAL_SESSION fires after mount)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedInUser?.id]);
 
   return state;
 }

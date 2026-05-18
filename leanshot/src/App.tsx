@@ -503,7 +503,7 @@ function pushViewLog(entry: ViewLogEntry): void {
  *
  * Settings BEFORE base `/clinic/` so the more-specific path wins.
  */
-function selectView(opts: { user: unknown; hash: string; pathname: string }): View {
+function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; pathname: string }): View {
   if (opts.hash.startsWith('#/share/')) return 'share';
   if (opts.hash.startsWith('#/legal/')) return 'legal';
   if (opts.hash.startsWith('#/auth/')) return 'auth';
@@ -587,10 +587,23 @@ function selectView(opts: { user: unknown; hash: string; pathname: string }): Vi
     return 'cancel-deletion';
   }
   if (opts.user) return 'dashboard';
+  // Phase 31 Plan 06 D-10: invited patients have a Supabase session but no LeanShot user.
+  // Route them to 'dashboard' so the orgFlow gate can show the org onboarding flow.
+  // For anonymous users (is_anonymous=true) and unverified users, fall through to marketing
+  // (they should go through the normal consumer onboarding path first).
+  const supabaseUser = opts.signedInUser as { is_anonymous?: boolean; email_confirmed_at?: string | null } | null;
+  if (supabaseUser && !supabaseUser.is_anonymous && supabaseUser.email_confirmed_at) {
+    return 'dashboard';
+  }
   return 'marketing';
 }
-function selectViewLogged(caller: 'init' | 'recompute', user: unknown, hash: string): View {
-  const result = selectView({ user, hash, pathname: window.location.pathname });
+function selectViewLogged(
+  caller: 'init' | 'recompute',
+  user: unknown,
+  hash: string,
+  signedInUser?: unknown,
+): View {
+  const result = selectView({ user, signedInUser: signedInUser ?? null, hash, pathname: window.location.pathname });
   pushViewLog({ t: Date.now(), caller, user: Boolean(user), hash, result });
   return result;
 }
@@ -604,6 +617,10 @@ export function App() {
   // null on net-new users so the MigrationModal lazy chunk never loads.
   const migrationState = useStore((s) => s.migration_state);
   const migrationError = useStore((s) => s.migrationError);
+  // Phase 31 Plan 06 D-10: signed-in slice for the invited-patient dashboard-entry gate.
+  // Invited patients have signedIn.user (Supabase session) but user=null (no LeanShot profile yet).
+  // selectView uses signedInUser so these patients route to 'dashboard' (where orgFlow gate applies).
+  const signedInUser = useStore((s) => s.signedIn?.user ?? null);
 
   // Phase 31 Plan 06 D-10/D-14: org onboarding flow state for the dashboard-entry gate.
   // Called unconditionally (React rules-of-hooks); only used when view==='dashboard'.
@@ -617,8 +634,9 @@ export function App() {
   const needsDisclaimer = !!user && acknowledgedDisclaimer !== 'v1';
 
   // Synchronously decide initial view based on hydrated user state + hash.
+  // Phase 31 Plan 06: also pass signedInUser so invited-patient dashboard routing works.
   const [view, setView] = useState<View>(() =>
-    selectViewLogged('init', user, window.location.hash),
+    selectViewLogged('init', user, window.location.hash, signedInUser),
   );
   const [aiOpen, setAIOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -643,9 +661,10 @@ export function App() {
   // path-based routes (/clinic/*, /clinic-invite/*); listen to popstate
   // alongside hashchange so back/forward navigation between clinic and
   // dashboard surfaces refreshes the view.
+  // Phase 31 Plan 06: also depends on signedInUser so invited patients get 'dashboard'.
   useEffect(() => {
     const recompute = (): void =>
-      setView(selectViewLogged('recompute', user, window.location.hash));
+      setView(selectViewLogged('recompute', user, window.location.hash, signedInUser));
     recompute();
     window.addEventListener('hashchange', recompute);
     window.addEventListener('popstate', recompute);
@@ -653,7 +672,7 @@ export function App() {
       window.removeEventListener('hashchange', recompute);
       window.removeEventListener('popstate', recompute);
     };
-  }, [user]);
+  }, [user, signedInUser]);
 
   // Phase 5 D-01/D-13: top-level onAuthStateChange subscription. ONE for the
   // whole app — components consume `signedIn` via the Zustand slice rather
