@@ -125,10 +125,13 @@ export const ADMIN_MODULES = [
   },
   {
     key: 'membership',
-    label: 'Membership',
+    label: 'Cohorts',
     route: 'membership',
     icon: CrownIcon,
-    lazy: () => import('@/components/admin/pages/AdminCohortsPage'),
+    // Phase 27 Plan 27-02 — replaces the Phase 22 retention heatmap placeholder
+    // (AdminCohortsPage) with the cohort builder + list (CohortsPage).
+    // Retention heatmap remains importable via AdminCohortsPage if revived later.
+    lazy: () => import('@/components/admin/cohort/CohortsPage'),
     flagKey: 'admin.membership.enabled',
     minRole: 'admin' as AdminRole,
   },
@@ -140,6 +143,20 @@ export const ADMIN_MODULES = [
     lazy: () => import('@/components/admin/pages/AdminMetricsPage'),
     flagKey: 'admin.analytics.enabled',
     minRole: 'admin' as AdminRole,
+  },
+  // Phase 27 Plan 27-05 — funnel-anomaly admin config (tracked funnels CRUD +
+  // acknowledgment queue). Superadmin-only per status-writer ownership rule.
+  {
+    key: 'anomaly',
+    label: 'Anomalies',
+    route: 'anomaly',
+    icon: BarChart3Icon,
+    lazy: () =>
+      import('@/components/admin/anomaly/AnomalyConfigPage').then((m) => ({
+        default: m.default,
+      })),
+    flagKey: 'admin.anomaly.enabled',
+    minRole: 'superadmin' as AdminRole,
   },
   {
     key: 'ai',
