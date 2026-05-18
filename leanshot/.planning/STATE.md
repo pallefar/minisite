@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: ready_to_plan
-stopped_at: Phase 26 closed (7/7) + Phase 32 partial-closed (Plan 32-07 hreflang + RTL prep) + 32-06 + 50-09 formally deferred
-last_updated: 2026-05-18T20:24:00Z
-last_activity: 2026-05-18 -- batch close session — 26-07 + 32-07 shipped, 32-06 (contractor) + 50-09 (D-22 STRETCH) deferred
+stopped_at: Phase 34 context gathered (4/4 gray areas locked; 20 decisions); Phase 51 plan-phase pending top-level re-invoke (runner-pool blocker)
+last_updated: 2026-05-18T20:35:00Z
+last_activity: 2026-05-18 -- discuss Phase 34 inline + background plan Phase 51 halted at executor-spawn (expected)
 progress:
   total_phases: 28
   completed_phases: 8
@@ -13,6 +13,10 @@ progress:
   completed_plans: 77
   percent: 28
 ---
+
+# Background dispatch note (2026-05-18)
+
+`/gsd-plan-phase 51 --auto` invoked via /gsd-manager background path HALTED at executor-spawn — the documented runner-pool blocker (background Agent loses Task/Agent tool access; see memory `feedback_skill_in_background_agent_loses_tool_access` + `reference_gsd_tooling_quirks`). No plan artifacts produced. Phase 51 stays at `discussed` status. **Resolution: user re-invokes `/gsd-plan-phase 51 --auto` at TOP-LEVEL** (not via /gsd-manager dispatch) — preconditions otherwise met (CONTEXT.md present with 16 decisions; deps satisfied by Phase 33 ship 2026-05-18 + Phase 24/27/28/29/15 shipped).
 
 # Project State
 
