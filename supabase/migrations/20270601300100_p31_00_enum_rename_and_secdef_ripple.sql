@@ -84,6 +84,12 @@ $$;
 grant execute on function public._is_org_owner(uuid, uuid) to authenticated;
 
 -- 2b. Drop old _is_org_admin
+-- Drop dependent policies FIRST (otherwise function drop fails with 2BP01).
+-- Only one policy on live DB references _is_org_admin (verified via pg_policies query
+-- against project ytnsipxxmzgaebkqmokp 2026-05-18); STEP 3 below re-creates it
+-- against _is_org_owner at line ~416.
+drop policy if exists "org_patient_invites_select_by_org_admin" on public.org_patient_invites;
+
 drop function if exists public._is_org_admin(uuid, uuid);
 
 -- =============================================================================
