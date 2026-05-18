@@ -34,6 +34,7 @@ import {
   Building2 as Building2Icon,
   BookOpenCheck as BookOpenCheckIcon,
   Globe as GlobeIcon,
+  TrendingUp as TrendingUpIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -242,6 +243,21 @@ export const ADMIN_MODULES = [
     icon: GlobeIcon,
     lazy: () => import('@/components/admin/i18n/LocaleOverridesModule'),
     flagKey: 'admin.i18n_overrides.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 33 Plan 33-05 ADETL-04/05/07/08 — CAC dashboard: health badges + gap badges
+  // + Backfill RPC + CAC cards + drill-down drawer + CSV export.
+  // Backfill routes via trigger_ad_etl_backfill SECDEF RPC (T-33-05-02 mitig).
+  {
+    key: 'growth-cac',
+    label: 'Ad Spend / CAC',
+    route: 'growth/cac',
+    icon: TrendingUpIcon,
+    lazy: () =>
+      import('@/components/admin/growth/CACDashboardPage').then((m) => ({
+        default: m.CACDashboardPage,
+      })),
+    flagKey: 'admin.growth.cac.enabled',
     minRole: 'admin' as AdminRole,
   },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
