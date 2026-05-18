@@ -141,7 +141,11 @@ ASSETS_DIR="$DIST_DIR/assets"
 # tables; setting 50 kB once is cheaper than chasing raises every phase. Reverting to 48 kB
 # is a one-line bash change. History: 12 → 16 → 17 → 17 → 25 → 22 → 28 → 30 → 35 → 36 → 50 kB.
 CLINIC_CEILING=50000
-CLINIC_SETTINGS_CEILING=18000
+# Phase 31 Plan 31-05 raised from 18,000 → 28,000: RoleEditorModal assign-mode
+# expansion (12×3 matrix + last-owner guard), ClinicSettingsPage NAV + lazy imports,
+# plus the pre-existing Phase 30 drift (was already ~20 kB before Phase 31).
+# History: 14 kB (09-03 initial) → 18 kB (09-03 bump) → 28 kB (31-05 P31 UI surfaces).
+CLINIC_SETTINGS_CEILING=28000
 CLINIC_INVITE_CEILING=6000
 IDX_PHASE9_CEILING=24500
 IDX_ABSOLUTE_CEILING=50000
