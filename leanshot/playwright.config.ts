@@ -168,6 +168,10 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.01,
+      // Phase 26 26-04 (AFFTIER-06): hard ceiling of 100 diff pixels regardless
+      // of ratio so a tight crop (gold premium badge / hero CTA) cannot drift
+      // ~50 px without tripping the regression gate. Both bounds apply jointly.
+      maxDiffPixels: 100,
       threshold: 0.2,
       animations: 'disabled',
     },
