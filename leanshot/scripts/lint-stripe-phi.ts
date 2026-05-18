@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
 /**
- * lint-stripe-phi.ts — Phase 25 D-09 + Phase 29 D-11
+ * lint-stripe-phi.ts — Phase 25 D-09 + Phase 29 D-11 + Phase 30 D-18
  *
- * CI lint guard: blocks PHI keywords from appearing in Stripe call sites.
+ * CI lint guard: blocks PHI keywords from appearing in Stripe call sites and
+ * clinician alert email templates.
  *
- * Scans all TypeScript/JavaScript files under the 4 Stripe-touching Edge Function
+ * Scans all TypeScript/JavaScript files under the 5 PHI-sensitive Edge Function
  * directories. Strips single-line comments before checking per
  * [[reference_grep_gate_comment_strip]] to avoid false-positives on doc comments
  * that mention PHI keywords for documentation purposes.
@@ -41,6 +42,7 @@ const STRIPE_PATHS = [
   join(REPO_ROOT, 'supabase', 'functions', 'stripe-checkout'),
   join(REPO_ROOT, 'supabase', 'functions', 'admin-stripe-action'),
   join(REPO_ROOT, 'supabase', 'functions', 'org-metered-billing-cron'), // P29 D-11
+  join(REPO_ROOT, 'supabase', 'functions', 'clinician-alert-deliver-cron'), // P30 D-18
 ];
 
 const KEYWORDS_PATH = join(SCRIPT_DIR, 'stripe-phi-keywords.json');
