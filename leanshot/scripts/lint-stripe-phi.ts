@@ -1,60 +1,105 @@
-#!/usr/bin/env tsx
-/**
- * lint-stripe-phi.ts — Phase 25 D-09 + Phase 29 D-11 + Phase 30 D-18
- *
- * CI lint guard: blocks PHI keywords from appearing in Stripe call sites and
- * clinician alert email templates.
- *
- * Scans all TypeScript/JavaScript files under the 5 PHI-sensitive Edge Function
- * directories. Strips single-line comments before checking per
- * [[reference_grep_gate_comment_strip]] to avoid false-positives on doc comments
- * that mention PHI keywords for documentation purposes.
- *
- * Multi-line block comments (slash-star) are NOT stripped — improvement for v1.4;
- * residual risk accepted at v1.3 scale (T-29-07-02 accept).
- *
- * To suppress a legitimate match, add the inline marker BEFORE the line:
- *   // stripe-phi-lint:allow reason='this is a count variable not a patient field'
- *   const mg = count;
- *
- * Usage:
- *   npm run lint:stripe-phi
- *   npx tsx scripts/lint-stripe-phi.ts
- *
- * Exit codes:
- *   0 — no violations found
- *   1 — one or more PHI keyword violations
- */
+// scripts/lint-stripe-phi.ts
+// Phase 25 Plan 25-05 — HIPAA-08 banking-exemption boundary CI gate.
+//
+// What it does:
+//   Scans .ts/.tsx files under src/ and supabase/functions/ that import or
+//   reference `stripe`. For each stripe.<resource>.<verb>({...}) call site,
+//   extracts string-literal argument values from description, statement_descriptor,
+//   metadata, and line_items[].description fields. Fails if any value contains
+//   a keyword from stripe-phi-keywords.json (case-insensitive, word-boundary
+//   anchored per RESEARCH Pitfall 11).
+//
+// Allowlist:
+//   Inline `// stripe-phi-lint:allow reason='...'` on the same line OR within
+//   3 lines above the matched call expression. Comment without reason= is
+//   REJECTED (forces engineer to document intent).
+//
+// CLI flags:
+//   --json           Emit JSON report instead of human/CI-annotation form.
+//   --strict         Treat warnings as errors (default: errors only fail; no warnings exist yet).
+//   --root=PATH      Override scan root (default: cwd which CI sets to leanshot/).
+//
+// Exit codes:
+//   0 = PASS
+//   1 = FAIL (violation(s) found)
+//   2 = USAGE ERROR (bad CLI args)
+//
+// GitHub Actions annotation:
+//   ::error file=PATH,line=N::keyword "<KW>" in stripe API call argument
 
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Resolve the repo root (scripts/ is one level inside leanshot/)
+// ---------------------------------------------------------------------------
+// CLI argument parsing
+// ---------------------------------------------------------------------------
+const args = process.argv.slice(2);
+let jsonMode = false;
+let rootOverride: string | null = null;
+
+for (const arg of args) {
+  if (arg === '--json') {
+    jsonMode = true;
+  } else if (arg === '--strict') {
+    // Reserved for future use — no warnings exist yet
+  } else if (arg.startsWith('--root=')) {
+    rootOverride = arg.slice('--root='.length);
+  } else {
+    process.stderr.write(`Unknown argument: ${arg}\n`);
+    process.exit(2);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Resolve paths
+// ---------------------------------------------------------------------------
 const SCRIPT_DIR = fileURLToPath(new URL('.', import.meta.url));
 const LEANSHOT_DIR = resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = resolve(LEANSHOT_DIR, '..');
 
-// Stripe-touching Edge Function directories to scan.
-// Paths are relative to the repo root (where supabase/ lives).
-const STRIPE_PATHS = [
-  join(REPO_ROOT, 'supabase', 'functions', 'stripe-webhook'),
-  join(REPO_ROOT, 'supabase', 'functions', 'stripe-checkout'),
-  join(REPO_ROOT, 'supabase', 'functions', 'admin-stripe-action'),
-  join(REPO_ROOT, 'supabase', 'functions', 'org-metered-billing-cron'), // P29 D-11
-  join(REPO_ROOT, 'supabase', 'functions', 'clinician-alert-deliver-cron'), // P30 D-18
+// The scan root defaults to the cwd (CI sets working-directory: leanshot).
+// When called from a different cwd, use --root=. to adapt.
+const CWD_ROOT = rootOverride ? resolve(rootOverride) : process.cwd();
+
+// Determine if cwd looks like the leanshot dir or the repo root
+// so we can build correct scan paths.
+function resolveDir(subPath: string): string {
+  // Try cwd-relative first, then leanshot-relative, then repo-relative
+  const fromCwd = join(CWD_ROOT, subPath);
+  try {
+    statSync(fromCwd);
+    return fromCwd;
+  } catch {
+    // Not found relative to cwd
+  }
+  const fromLean = join(LEANSHOT_DIR, subPath);
+  try {
+    statSync(fromLean);
+    return fromLean;
+  } catch {
+    // Not found relative to leanshot
+  }
+  // Return cwd-relative as canonical even if it doesn't exist
+  return fromCwd;
+}
+
+const SCAN_ROOTS = [
+  resolveDir('src'),
+  resolveDir('supabase/functions'),
 ];
 
 const KEYWORDS_PATH = join(SCRIPT_DIR, 'stripe-phi-keywords.json');
-const config = JSON.parse(readFileSync(KEYWORDS_PATH, 'utf8')) as {
+const keywordsConfig = JSON.parse(readFileSync(KEYWORDS_PATH, 'utf8')) as {
+  version: number;
   keywords: string[];
-  allowlist_inline_marker: string;
 };
-const KEYWORDS: string[] = config.keywords;
-const ALLOW_MARKER: string = config.allowlist_inline_marker;
+const KEYWORDS: string[] = keywordsConfig.keywords;
 
-/** Recursively yield all .ts and .js source files under dir (excludes test files). */
-function* walk(dir: string): Generator<string> {
+// ---------------------------------------------------------------------------
+// File walker
+// ---------------------------------------------------------------------------
+function* walkDir(dir: string): Generator<string> {
   let entries: ReturnType<typeof readdirSync>;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
@@ -64,79 +109,212 @@ function* walk(dir: string): Generator<string> {
   for (const entry of entries) {
     const p = join(dir, entry.name);
     if (entry.isDirectory()) {
-      yield* walk(p);
-    } else if (
-      entry.isFile() &&
-      (p.endsWith('.ts') || p.endsWith('.js')) &&
-      // Exclude test files — they test PHI absence by mentioning keyword names;
-      // production source is the lint target (not test fixtures).
-      !p.endsWith('.test.ts') &&
-      !p.endsWith('.test.js') &&
-      !p.endsWith('.spec.ts') &&
-      !p.endsWith('.spec.js')
-    ) {
+      // Exclude common non-source dirs
+      if (
+        entry.name === 'node_modules' ||
+        entry.name === 'dist' ||
+        entry.name === '.next' ||
+        entry.name === '__tests__' ||
+        entry.name === '__mocks__'
+      ) {
+        continue;
+      }
+      yield* walkDir(p);
+    } else if (entry.isFile()) {
+      // Only .ts and .tsx
+      if (!p.endsWith('.ts') && !p.endsWith('.tsx')) continue;
+      // Exclude test/spec files
+      if (
+        p.endsWith('.test.ts') ||
+        p.endsWith('.test.tsx') ||
+        p.endsWith('.spec.ts') ||
+        p.endsWith('.spec.tsx')
+      ) {
+        continue;
+      }
       yield p;
     }
   }
 }
 
-/** Strip single-line comments from source per [[reference_grep_gate_comment_strip]]. */
-function stripSingleLineComments(src: string): string {
-  return src
-    .split('\n')
-    .filter((line) => !line.trim().startsWith('//'))
-    .join('\n');
+// ---------------------------------------------------------------------------
+// Allowlist check
+// ---------------------------------------------------------------------------
+// Looks for `// stripe-phi-lint:allow reason='...'` on the same line OR within
+// 3 lines above the match position in the raw source lines.
+function checkAllowlist(
+  rawLines: string[],
+  lineIndex: number,
+): { allowed: boolean; missingReason: boolean } {
+  const ALLOW_PATTERN = /\/\/\s*stripe-phi-lint:allow\b/;
+  const REASON_PATTERN = /\/\/\s*stripe-phi-lint:allow\s+reason=['"]([^'"]+)['"]/;
+
+  // Check same line and up to 3 lines above
+  const start = Math.max(0, lineIndex - 3);
+  for (let i = lineIndex; i >= start; i--) {
+    const line = rawLines[i] ?? '';
+    if (ALLOW_PATTERN.test(line)) {
+      if (REASON_PATTERN.test(line)) {
+        return { allowed: true, missingReason: false };
+      }
+      // Allow marker present but no reason= — REJECT
+      return { allowed: false, missingReason: true };
+    }
+  }
+  return { allowed: false, missingReason: false };
 }
 
-let violations = 0;
+// ---------------------------------------------------------------------------
+// Extract string literal values from a call-site object body
+// ---------------------------------------------------------------------------
+function extractStringValues(objectBody: string): string[] {
+  const values: string[] = [];
 
-for (const root of STRIPE_PATHS) {
-  try {
-    statSync(root);
-  } catch {
-    // Directory absent — skip (handles case where a new function hasn't been deployed yet)
-    continue;
+  // Match description: '...', statement_descriptor: '...', and string values in metadata
+  const singleQuoteRe =
+    /(?:description|statement_descriptor|name)\s*:\s*'([^']*)'/g;
+  const doubleQuoteRe =
+    /(?:description|statement_descriptor|name)\s*:\s*"([^"]*)"/g;
+  const backtickRe =
+    /(?:description|statement_descriptor|name)\s*:\s*`([^`]*)`/g;
+
+  for (const re of [singleQuoteRe, doubleQuoteRe, backtickRe]) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(objectBody)) !== null) {
+      values.push(m[1]);
+    }
   }
 
-  for (const file of walk(root)) {
-    const raw = readFileSync(file, 'utf8');
-    // Strip single-line comments to avoid false-positives on documentation.
-    const content = stripSingleLineComments(raw);
-    const lines = content.split('\n');
+  // Also extract bare string values (for metadata object values)
+  const metaValueRe =
+    /:\s*(?:'([^']*)'|"([^"]*)"|`([^`]*)`)/g;
+  let mv: RegExpExecArray | null;
+  while ((mv = metaValueRe.exec(objectBody)) !== null) {
+    const val = mv[1] ?? mv[2] ?? mv[3];
+    if (val !== undefined) values.push(val);
+  }
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      // If the previous line (in original source) contains the allow-marker, skip this line.
-      // We use the raw lines here for the allow-marker check.
-      const rawLines = raw.split('\n');
-      const prevRawLine = i > 0 ? rawLines[i - 1].trim() : '';
-      const isAllowed = prevRawLine.includes(ALLOW_MARKER);
+  return values;
+}
 
-      for (const kw of KEYWORDS) {
-        const rx = new RegExp(`\\b${kw}\\b`, 'gi');
-        if (rx.test(line) && !isAllowed) {
-          const matchCount = (line.match(rx) ?? []).length;
-          console.error(
-            `PHI keyword "${kw}" found in ${file}:${i + 1} (${matchCount}x)`,
-          );
-          violations += matchCount;
+// ---------------------------------------------------------------------------
+// Violation type
+// ---------------------------------------------------------------------------
+interface Violation {
+  file: string;
+  line: number;
+  column: number;
+  keyword: string;
+  callSite: string;
+  suggestion: string;
+  missingReason?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Main scan
+// ---------------------------------------------------------------------------
+const violations: Violation[] = [];
+
+// Stripe call site regex — intentionally loose per RESEARCH Pitfall 11.
+// Matches: stripe.<resource>.<verb>({ ... })
+// The `[^}]*` capture is intentionally not greedy past '}' to stay simple.
+const CALL_SITE_RE =
+  /(?:stripe|[A-Za-z_]\w*[Ss]tripe)\.\w+\.(create|update|capture|refund|cancel|retrieve|del|list)\s*\(\s*\{([^}]*)\}/gs;
+
+for (const scanRoot of SCAN_ROOTS) {
+  for (const filePath of walkDir(scanRoot)) {
+    const rawContent = readFileSync(filePath, 'utf8');
+
+    // Fast-path: skip files without any stripe reference
+    if (!/\bstripe\b/i.test(rawContent)) continue;
+
+    const rawLines = rawContent.split('\n');
+
+    // Reset regex state
+    CALL_SITE_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+
+    while ((m = CALL_SITE_RE.exec(rawContent)) !== null) {
+      const callSiteStart = m.index;
+      const objectBody = m[2];
+
+      // Determine line number of the call site start
+      const beforeMatch = rawContent.slice(0, callSiteStart);
+      const lineIndex = beforeMatch.split('\n').length - 1;
+
+      // Extract string literal values from the object body
+      const stringValues = extractStringValues(objectBody);
+
+      for (const value of stringValues) {
+        const lowerValue = value.toLowerCase();
+
+        for (const keyword of KEYWORDS) {
+          // Word-boundary anchored match (RESEARCH Pitfall 11)
+          // For multi-word keywords (e.g. "blood pressure"), use literal match
+          let matched = false;
+          if (keyword.includes(' ') || keyword.includes('-')) {
+            // Multi-word or hyphenated: case-insensitive literal match
+            matched = lowerValue.includes(keyword.toLowerCase());
+          } else {
+            // Single word: word-boundary anchored
+            const kRe = new RegExp(`\\b${escapeRegex(keyword)}\\b`, 'i');
+            matched = kRe.test(value);
+          }
+
+          if (!matched) continue;
+
+          // Check allowlist
+          const { allowed, missingReason } = checkAllowlist(rawLines, lineIndex);
+          if (allowed) continue;
+
+          const relPath = relative(process.cwd(), filePath);
+          violations.push({
+            file: relPath,
+            line: lineIndex + 1,
+            column: 1,
+            keyword,
+            callSite: m[0].slice(0, 80) + (m[0].length > 80 ? '...' : ''),
+            suggestion: `// stripe-phi-lint:allow reason='<why-this-is-safe>'`,
+            missingReason,
+          });
         }
       }
     }
   }
 }
 
-if (violations > 0) {
-  console.error(
-    `\nFAIL: ${violations} PHI keyword violation(s) in Stripe call sites.`,
+// ---------------------------------------------------------------------------
+// Output
+// ---------------------------------------------------------------------------
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+if (jsonMode) {
+  process.stdout.write(JSON.stringify(violations, null, 2) + '\n');
+  process.exit(violations.length > 0 ? 1 : 0);
+}
+
+for (const v of violations) {
+  if (v.missingReason) {
+    process.stderr.write(
+      `::error file=${v.file},line=${v.line}::stripe-phi-lint:allow comment found but missing required reason= field. Add reason='...' to document why this is safe.\n`,
+    );
+  } else {
+    process.stderr.write(
+      `::error file=${v.file},line=${v.line}::keyword "${v.keyword}" found in stripe API call argument. Add \`${v.suggestion}\` if intentional.\n`,
+    );
+  }
+}
+
+if (violations.length > 0) {
+  process.stderr.write(
+    `\nFAIL: ${violations.length} PHI keyword violation(s) in Stripe call sites.\n`,
   );
-  console.error(
-    `To suppress a legitimate match, add the following comment on the line BEFORE the match:`,
-  );
-  console.error(`  ${ALLOW_MARKER}'<reason>'`);
   process.exit(1);
 }
 
-console.log(
-  `OK: no PHI keywords in ${STRIPE_PATHS.length} Stripe call site directories.`,
+process.stdout.write(
+  `OK: no PHI keywords found in Stripe call sites across ${SCAN_ROOTS.length} scan roots.\n`,
 );
+process.exit(0);

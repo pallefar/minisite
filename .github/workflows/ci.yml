@@ -205,6 +205,13 @@ jobs:
             exit 1
           fi
 
+      # Phase 25 Plan 25-05 — HIPAA-08 banking-exemption boundary CI gate.
+      # Enforces D-02 + D-09: Stripe MUST NOT receive PHI in description,
+      # metadata values, or line-item descriptions. Word-boundary anchored
+      # (RESEARCH Pitfall 11). Allowlist via inline comment with reason= required.
+      - name: Stripe PHI keyword lint (Phase 25 HIPAA-08)
+        run: npx tsx scripts/lint-stripe-phi.ts
+
       # ─────────────────────────────────────────────────────────────────────
       # Phase 13 Plan 13-06 D-04/D-05/D-06 — Visual regression suite (12
       # snapshots in e2e/visual/) runs as part of this `npm run test:e2e`
