@@ -52,6 +52,7 @@ export const ORG_SCOPED_TABLES = new Set<string>([
   'clinician_alerts',           // P30: alert status-machine table (debounce + RLS forced)
   'clinician_alert_deliveries', // P30: append-only delivery log (service_role only)
   'org_patient_thresholds',     // P30: per-patient threshold overrides (SECDEF only writes)
+  'org_onboarding_flows',       // P31-04: versioned onboarding flow (org-scoped via org_id FK + RLS join on org_members)
   // Downstream phases extend this per 28-EXTENSION-CONTRACT.md D-29
 ]);
 
