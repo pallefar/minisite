@@ -56,6 +56,15 @@ export interface User {
   activityLevel: ActivityLevel;
   liftingLevel: LiftingLevel;
   createdAt: string; // ISO
+  /**
+   * Phase 32 Plan 32-03 (I18N-02): user language preference mirrored from
+   * `profiles.locale` (text NOT NULL default 'en' CHECK locale IN ('en','es')).
+   * Optional in the client `User` shape so legacy persisted state (pre-32-03)
+   * typechecks; the profiles-locale i18next detector falls through when undef.
+   * Mutated via the Settings → Language picker (writes both `profiles.locale`
+   * via supabase and the Zustand mirror via `setUserLocale`).
+   */
+  locale?: 'en' | 'es';
 }
 
 export interface Injection {
