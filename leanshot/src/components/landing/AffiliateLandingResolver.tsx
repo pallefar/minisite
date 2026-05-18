@@ -38,7 +38,13 @@ const TEMPLATE_LOADERS = {
   coach: () => import('./LandingTemplateCoach'),
   story: () => import('./LandingTemplateStory'),
   method: () => import('./LandingTemplateMethod'),
+  // Phase 26 26-04 (AFFTIER-06): premium variant. Selected when
+  // affiliate.tier === 'gold' regardless of the row's template_choice — see
+  // the `choice` derivation in the TemplateComponent useMemo below.
+  gold: () => import('./LandingTemplateGold'),
 } as const;
+
+type TemplateKey = keyof typeof TEMPLATE_LOADERS;
 
 function LandingSkeleton(): ReactElement {
   return (
@@ -90,7 +96,12 @@ export function AffiliateLandingResolver({
       try {
         const { data } = await supabase
           .from('affiliates_public_view')
-          .select('id,display_name,photo_path,blurb,calendly_url,testimonial_quote,template_choice,referral_code')
+          // Phase 26 26-04 (AFFTIER-06): `tier` added so Gold partners route
+          // to LandingTemplateGold even when template_choice is legacy
+          // 'coach'/'story'/'method'. The view exposes only non-PII columns.
+          .select(
+            'id,display_name,photo_path,blurb,calendly_url,testimonial_quote,template_choice,referral_code,tier',
+          )
           .eq('referral_code', trimmed)
           .maybeSingle();
         if (cancelled) return;
@@ -117,9 +128,26 @@ export function AffiliateLandingResolver({
 
   const TemplateComponent = useMemo(() => {
     if (state.status !== 'found' || !state.affiliate) return null;
-    const choice = state.affiliate.template_choice;
-    const loader =
-      TEMPLATE_LOADERS[choice] ?? TEMPLATE_LOADERS.coach; /* fallback to coach */
+    // Phase 26 26-04 (AFFTIER-06): tier-override — Gold partners ALWAYS
+    // route to the premium template regardless of their legacy template_choice.
+    const choice: TemplateKey =
+      state.affiliate.tier === 'gold' ? 'gold' : state.affiliate.template_choice;
+    const loader = TEMPLATE_LOADERS[choice as TemplateKey] as
+      | (typeof TEMPLATE_LOADERS)[TemplateKey]
+      | undefined;
+    if (!loader) {
+      // Phase 26 RESEARCH Pitfall 6: silent fallback masked routing bugs.
+      // Throw in DEV so missing loaders surface in CI; serve Coach in prod
+      // as a graceful degradation that still renders SOMETHING to the visitor.
+      if (import.meta.env.DEV) {
+        throw new Error(
+          `AffiliateLandingResolver: no loader for template_choice='${choice}' ` +
+            `(affiliates.tier='${state.affiliate.tier ?? 'null'}'). ` +
+            `Add an entry to TEMPLATE_LOADERS.`,
+        );
+      }
+      return lazy(TEMPLATE_LOADERS.coach);
+    }
     return lazy(loader);
   }, [state.status, state.affiliate]);
 
