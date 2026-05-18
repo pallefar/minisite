@@ -23,20 +23,23 @@
  * wrappers + ClinicContextBar. Until they merge, this page renders a
  * minimal context header inline (workspace name + the standard tab nav).
  */
-import { Building2, History, Loader2, Shield, Users } from 'lucide-react';
+import { Building2, History, Loader2, Shield, Stethoscope, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useHasPermission } from '@/lib/clinic-permissions';
 import { cn } from '@/lib/helpers';
+import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import type { Org, Role } from '@/types/clinic';
 import { AuditTab } from './AuditTab';
+import { ClinicDoseTrendThresholdsForm } from './ClinicDoseTrendThresholdsForm';
+import { ClinicRankingWeightsForm } from './ClinicRankingWeightsForm';
 import { MembersTab } from './MembersTab';
 import { RolesTab } from './RolesTab';
 import { WorkspaceTab } from './WorkspaceTab';
 
-type TabId = 'workspace' | 'members' | 'roles' | 'audit';
+type TabId = 'workspace' | 'members' | 'roles' | 'audit' | 'clinical';
 
 interface NavEntry {
   id: TabId;
@@ -56,6 +59,12 @@ const NAV: NavEntry[] = [
     Icon: History,
     visibleWhen: (perms) => perms['audit_log.read'] === true,
   },
+  {
+    id: 'clinical',
+    label: 'Clinical',
+    Icon: Stethoscope,
+    visibleWhen: (perms) => perms['org_role.admin'] === true,
+  },
 ];
 
 /**
@@ -69,7 +78,9 @@ function parseRoute(pathname: string): { slug: string | null; tab: TabId } {
   const slug = m[1] ?? null;
   const raw = m[2];
   const tab: TabId =
-    raw === 'members' || raw === 'roles' || raw === 'audit' ? raw : 'workspace';
+    raw === 'members' || raw === 'roles' || raw === 'audit' || raw === 'clinical'
+      ? raw
+      : 'workspace';
   return { slug, tab };
 }
 
@@ -83,8 +94,12 @@ export function ClinicSettingsPage() {
   // Permission map for NAV visibility gating. Uses cached session-scoped
   // values from useHasPermission (Phase 9 clinic-permissions.ts).
   const canReadAuditLog = useHasPermission(org?.id ?? null, 'audit_log.read');
+  // Phase 30 Plan 02: Admin role check for Clinical tab visibility.
+  const currentOrgRole = useStore((s) => s.currentOrgRole);
+  const isAdmin = currentOrgRole === 'admin';
   const permMap: Record<string, boolean | null> = {
     'audit_log.read': canReadAuditLog,
+    'org_role.admin': isAdmin,
   };
 
   // Sync route on popstate (back/forward) AND on internal pushState. We
@@ -234,6 +249,20 @@ export function ClinicSettingsPage() {
           )}
           {route.tab === 'roles' && <RolesTab orgId={org.id} />}
           {route.tab === 'audit' && canReadAuditLog && <AuditTab orgId={org.id} />}
+          {route.tab === 'clinical' && isAdmin && (
+            <div className="space-y-6">
+              <header>
+                <h1 className="text-[20px] font-semibold tracking-tight text-[var(--color-text)]">
+                  Clinical settings
+                </h1>
+                <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
+                  Configure how patients are ranked and when dose-trend alerts fire for your clinic.
+                </p>
+              </header>
+              <ClinicRankingWeightsForm orgId={org.id} />
+              <ClinicDoseTrendThresholdsForm orgId={org.id} />
+            </div>
+          )}
         </div>
       </div>
     </main>

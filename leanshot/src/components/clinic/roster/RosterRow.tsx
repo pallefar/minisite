@@ -124,7 +124,8 @@ export function RosterRow({
       )}
       onClick={handleDrillIn}
       onKeyDown={handleDrillIn}
-      data-testid={`roster-row-${row.user_id}`}
+      data-testid="roster-row"
+      data-patient-id={row.user_id}
       aria-selected={onToggleSelect ? isSelected : undefined}
     >
       {/* Checkbox cell — 40×40 hit target, shown when onToggleSelect is provided */}

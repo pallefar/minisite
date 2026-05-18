@@ -39,6 +39,7 @@ import { RosterBulkSelectionBar } from './RosterBulkSelectionBar';
 import { RosterMobileCard } from './RosterMobileCard';
 import { RosterPagination } from './RosterPagination';
 import { RosterRow } from './RosterRow';
+import { useOrgSettingsRealtime } from './use-org-settings-realtime';
 import { useRankRoster } from './use-rank-roster';
 import { useRosterRealtime } from './use-roster-realtime';
 import type { PatientSignalChangePayload } from './use-roster-realtime';
@@ -193,6 +194,16 @@ export function RosterTable({
   }, []);
 
   useRosterRealtime({ orgId, onSignalChange: handleSignalChange });
+
+  // ---- Settings channel realtime (SC#1: weight saves trigger rank refresh) ---
+  // Triggers within ~1s of save in another tab/browser session.
+  // Falls back to 30s polling if subscription fails (T-30-02-03 accept).
+  const handleWeightsChanged = useCallback(() => {
+    fetchStartRef.current = performance.now();
+    hasReportedLoadRef.current = false;
+    refresh();
+  }, [refresh]);
+  useOrgSettingsRealtime({ orgId, onWeightsChanged: handleWeightsChanged });
 
   // ---- Merge Realtime patches into displayed rows --------------------------
   const displayedRows = useMemo(() => {
