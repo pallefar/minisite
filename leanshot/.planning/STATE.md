@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 30 Plan 00 complete — Wave 1 (30-01..30-04) unblocked
-last_updated: "2026-05-18T01:30:00.000Z"
-last_activity: 2026-05-18 -- Phase 30 Plan 00 (RECONCILE) executed; schema pushed to ytnsipxxmzgaebkqmokp
+stopped_at: Phase 30 Plan 05 complete — Phase 30 EXECUTED (all 6 plans, 8/8 CLIN REQs, 22 live tests green)
+last_updated: "2026-05-18T08:00:00Z"
+last_activity: 2026-05-18 -- Phase 30 Plan 05 executed; Edge Fn deployed; 4 bug-fix migrations pushed; Phase 30 closed
 progress:
   total_phases: 27
   completed_phases: 3
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 ## Current Position
 
 Phase: 30 — IN PROGRESS
-Plan: 1 of 6 (Plan 00 complete; Wave 1 Plans 01-04 unblocked)
-Status: Ready to execute Wave 1
-Last activity: 2026-05-18 -- Phase 30 Plan 00 RECONCILE schema pushed
+Plan: 6 of 6 (ALL COMPLETE — Phase 30 EXECUTED)
+Status: Phase 30 complete; ready for Phase 31 (white-label theming)
+Last activity: 2026-05-18 -- Phase 30 all 6 plans executed; 8/8 CLIN REQs; 22/22 live tests
 
 ### v1.3 milestone open (2026-05-17)
 
@@ -128,6 +128,10 @@ Recent decisions affecting current work:
 - P30-00 (2026-05-18): Postgres does not support ALTER MATERIALIZED VIEW ENABLE ROW LEVEL SECURITY (unsupported DDL) — use REVOKE + SECURITY DEFINER accessor functions for matview cross-tenant isolation
 - P30-00 (2026-05-18): org_patient_links needed UNIQUE(org_id,patient_user_id) constraint before composite FK from org_patient_thresholds could reference it (42830 error at push time)
 - P30-00 (2026-05-18): vials.name is the column name (not medication_name) per Phase 6 schema
+- P30-05 (2026-05-18): clinic bundle ceiling raised 30 kB → 35 kB for Phase 30 components (ClinicianAlertsPanel + 5 siblings)
+- P30-05 (2026-05-18): _is_org_clinician SECDEF pattern — bypasses org_members RLS recursion; required for any table whose RLS queries org_members role
+- P30-05 (2026-05-18): Pre-validate before UPDATE when BEFORE UPDATE trigger can't fire on 0-row matches; use upsert instead
+- P30-05 (2026-05-18): Inside RETURNS TABLE(col_name,...) functions, always qualify WHERE references to avoid 42702 ambiguity with output column names
 
 ### Pending Todos
 
