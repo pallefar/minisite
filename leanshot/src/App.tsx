@@ -233,6 +233,10 @@ import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBan
 // is the post-auth hook consumer; clearOverrideCache() is the SIGNED_OUT
 // hook consumer. Wiring lands in this plan; see useEffect blocks below.
 import { clearOverrideCache, loadOverrides } from '@/lib/consent/feature-flag-overrides';
+// Phase 25 Plan 25-07 HIPAA-17: session-replay PHI guard. Called as the first
+// hook inside App() so the guard is active before any tab/modal renders.
+// posthog-js stays dynamically imported (per project_phase5_bundle_regression).
+import { useSessionReplayPhiGuard } from '@/lib/posthog-route-disable';
 
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
@@ -609,6 +613,10 @@ function selectViewLogged(
 }
 
 export function App() {
+  // Phase 25 HIPAA-17 — PHI route gate for PostHog session replay.
+  // Must be the FIRST hook call so the guard is active before any view renders.
+  useSessionReplayPhiGuard();
+
   const user = useStore((s) => s.user);
   const acknowledgedDisclaimer = useStore((s) => s.acknowledgedDisclaimer);
   const currentTab = useStore((s) => s.currentTab);
