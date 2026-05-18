@@ -207,13 +207,80 @@ function getPropertyKeyName(prop) {
 // ESLint rule definition
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// PHI+AEM cross-check helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Walk the current AST to find the EVENTS object and check every event entry.
+ * If an event has `phi: true` AND `aem_priority` set (any value), report a
+ * phi-aem-conflict error on the aem_priority property node.
+ *
+ * Phase 33 D-08: PHI events cannot be forwarded to Meta CAPI.
+ * This check runs on the current working-tree AST, not the HEAD diff,
+ * so it fires even on first commit.
+ *
+ * Note: EventDef type enforces `phi: false`, so phi:true events live in
+ * events.phi.ts — the cross-check is a belt+suspenders guard for any file
+ * linted with this rule.
+ *
+ * @param {object} programNode - ESLint Program AST node (for fallback reporting)
+ * @param {object} currAst - @typescript-eslint/parser AST of the current source
+ * @param {object} context - ESLint rule context with .report()
+ */
+function checkPhiAemConflicts(programNode, currAst, context) {
+  const eventsObj = findEventsObject(currAst);
+  if (!eventsObj || !eventsObj.properties) return;
+
+  for (const eventProp of eventsObj.properties) {
+    if (eventProp.type !== 'Property') continue;
+    const eventName = getPropertyKeyName(eventProp);
+    if (!eventName) continue;
+
+    const defObject = unwrapAsConst(eventProp.value);
+    if (!defObject || defObject.type !== 'ObjectExpression') continue;
+
+    let phiIsTrue = false;
+    let aemPriorityNode = null;
+
+    for (const prop of defObject.properties) {
+      if (prop.type !== 'Property') continue;
+      const key = getPropertyKeyName(prop);
+      if (key === 'phi') {
+        // Check if value is literal `true`
+        const val = prop.value;
+        if (val && val.type === 'Literal' && val.value === true) {
+          phiIsTrue = true;
+        }
+      }
+      if (key === 'aem_priority') {
+        aemPriorityNode = prop;
+      }
+    }
+
+    if (phiIsTrue && aemPriorityNode !== null) {
+      // Extract the priority value for the error message
+      const priorityVal =
+        aemPriorityNode.value && aemPriorityNode.value.type === 'Literal'
+          ? aemPriorityNode.value.value
+          : '?';
+      context.report({
+        node: aemPriorityNode,
+        messageId: 'phi-aem-conflict',
+        data: { eventName, priority: String(priorityVal) },
+      });
+    }
+  }
+}
+
 module.exports = {
   meta: {
     type: 'problem',
     docs: {
       description:
         'Enforce additive-only evolution of the events.ts registry (Phase 24 D-10/TAXO-06). ' +
-        'Blocks payload field removal and type changes; allows additions.',
+        'Blocks payload field removal and type changes; allows additions. ' +
+        'Phase 33 D-08: blocks aem_priority on phi:true events (PHI guardrail).',
     },
     messages: {
       'event-payload-field-removed':
@@ -225,6 +292,10 @@ module.exports = {
         'from "{{prevType}}" to "{{currType}}". ' +
         'Event payload schema is additive-only (Phase 24 D-10/TAXO-06). ' +
         'Add a new optional field with the new type instead.',
+      'phi-aem-conflict':
+        'Event "{{eventName}}" has phi:true but also aem_priority={{priority}}. ' +
+        'PHI events cannot be forwarded to Meta CAPI (D-08). ' +
+        'Remove aem_priority or move event out of PHI scope.',
     },
     schema: [],
   },
@@ -235,6 +306,12 @@ module.exports = {
         // Only act on src/lib/analytics/events.ts
         const filename = context.filename ?? context.getFilename?.() ?? '';
         if (!filename.endsWith('src/lib/analytics/events.ts')) return;
+
+        // ---------------------------------------------------------------------------
+        // Phase 33 D-08: PHI+AEM cross-check (structural invariant — runs always,
+        // even when there is no HEAD version to diff against).
+        // ---------------------------------------------------------------------------
+        checkPhiAemConflicts(programNode, programNode, context);
 
         // Get current source text
         const currentSource =
