@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Building2,
   Globe,
+  Eye,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +46,7 @@ import { supabase } from '@/lib/supabase';
 import { ActiveSharesSection } from './ActiveSharesSection';
 import { DeleteAccountModal } from './DeleteAccountModal';
 import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
+import { PhiAccessLogTab } from './PhiAccessLogTab';
 
 type Section =
   | 'account'
@@ -66,6 +68,9 @@ type Section =
   | 'recovery'
   | 'subscription'
   | 'data'
+  // Phase 25 Plan 02-02 (HIPAA-14): patient-side PHI access log viewer.
+  // Satisfies HIPAA right-of-accounting-of-disclosures (D-08).
+  | 'phi-access-log'
   | 'dev';
 
 /**
@@ -96,6 +101,10 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   { id: 'language', label: 'Language', Icon: Globe },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
+  // Phase 25 Plan 02-02 (HIPAA-14 / D-08): patient-side "Who has viewed my data"
+  // access log. Sits directly after Privacy so the HIPAA transparency surface
+  // clusters with privacy-related entries visually.
+  { id: 'phi-access-log', label: 'Who has viewed my data', Icon: Eye },
   // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
   // entry — click navigates to /settings/privacy/dsar instead of swapping the
   // modal section. Surfaces immediately under Privacy so the related items
@@ -601,6 +610,16 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   </Button>
                 </div>
               )}
+            </Section>
+          )}
+
+          {/* Phase 25 Plan 02-02 (HIPAA-14 / D-08): PHI access log viewer. */}
+          {section === 'phi-access-log' && (
+            <Section
+              title="Who has viewed my data"
+              body="Every time a member of your care team accessed your personal health information."
+            >
+              <PhiAccessLogTab />
             </Section>
           )}
 
