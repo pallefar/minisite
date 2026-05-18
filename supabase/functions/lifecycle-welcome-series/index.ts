@@ -37,7 +37,23 @@ import {
   jsonResponse,
   makeLazyAdmin,
 } from '../_shared/lifecycle-utils.ts';
+// Phase 32 plan 32-05 (I18N-04): localize subject + plain-text alt per
+// recipient profiles.locale. HTML stays in EN until Plan 32-06 contractor
+// delivery + Phase 25 SES split per D-09. resolveLocale caches via LRU(100)
+// to avoid N+1 DB hits during the 4h cron burst.
+import { renderInLocale } from '../_shared/i18n-server.ts';
+import { resolveLocale } from '../_shared/profiles-locale.ts';
 import { renderTemplate } from './templates.ts';
+
+// Per-template i18n subject + body key map (welcome-series buckets map to
+// the shared `welcome.*` namespace — Plan 32-06 contractor refines the
+// bucket-specific copy if needed).
+const I18N_KEY_BY_TEMPLATE: Record<string, { subject: string; body: string }> = {
+  welcome_immediately:       { subject: 'welcome.subject',            body: 'welcome.body' },
+  getting_started_day1:      { subject: 'welcome.subject',            body: 'welcome.body' },
+  first_injection_reminder:  { subject: 'lifecycle_behavior.subject', body: 'lifecycle_behavior.body' },
+  week_1_check_in:           { subject: 'lifecycle_behavior.subject', body: 'lifecycle_behavior.body' },
+};
 
 const { admin, setAdminForTest, resetAdminForTest } = makeLazyAdmin();
 
@@ -198,11 +214,22 @@ async function handleRun(_req: Request): Promise<Response> {
       unsubscribe_url: unsubBase,
     });
 
+    // I18N-04 language layer — resolve recipient locale, then localize the
+    // subject + plain-text alternative. HTML preserved as-is per D-09.
+    const lng = await resolveLocale(u.id, admin);
+    const i18nKeys = I18N_KEY_BY_TEMPLATE[bucket.template] ?? {
+      subject: 'welcome.subject',
+      body: 'welcome.body',
+    };
+    const i18nVars = { name: firstName || 'there', reset_url: SITE_URL() };
+    const localizedSubject = await renderInLocale(lng, i18nKeys.subject, i18nVars);
+    const localizedText = await renderInLocale(lng, i18nKeys.body, i18nVars);
+
     const dispatch = await sendResendEmail({
       to: u.email,
-      subject: rendered.subject,
+      subject: localizedSubject,
       html: rendered.html,
-      text: rendered.text,
+      text: localizedText,
     });
 
     if (dispatch.ok) {

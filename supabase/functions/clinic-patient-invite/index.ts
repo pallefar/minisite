@@ -37,6 +37,12 @@
 import 'jsr:@std/dotenv/load';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import * as Sentry from '../_shared/sentry.ts';
+// Phase 32 plan 32-05 (I18N-04): inviter-locale localization for the
+// subject + plain-text alt. Recipient is patient — may not yet be a user;
+// W-1 anti-enumeration prohibits branching on recipient existence here.
+// Resolve INVITER's locale per plan 32-05 Task 3 lock table.
+import { renderInLocale } from '../_shared/i18n-server.ts';
+import { resolveLocale } from '../_shared/profiles-locale.ts';
 import { corsHeaders } from './cors.ts';
 
 // ---------------------------------------------------------------------------
@@ -126,6 +132,10 @@ interface PatientInviteEmailParams {
   to: string;
   inviteUrl: string;
   expiresDays: number;
+  /** Phase 32 plan 32-05: locale-rendered subject from _shared/i18n-server.ts */
+  subjectOverride?: string;
+  /** Phase 32 plan 32-05: locale-rendered plain-text alt */
+  textOverride?: string;
 }
 
 async function sendPatientInviteEmail(params: PatientInviteEmailParams): Promise<void> {
@@ -142,12 +152,15 @@ async function sendPatientInviteEmail(params: PatientInviteEmailParams): Promise
     return;
   }
 
-  const subject = 'You have been invited to connect with a clinic on LeanShot';
+  // Phase 32 plan 32-05 (I18N-04): caller passes locale-rendered subject +
+  // text. Default to legacy EN literals when absent.
+  const subject = params.subjectOverride ?? 'You have been invited to connect with a clinic on LeanShot';
   const acceptUrl = params.inviteUrl;
   const text =
-    `A clinic has invited you to connect your treatment tracking on LeanShot.\n\n` +
-    `Accept your invitation (expires in ${params.expiresDays} days): ${acceptUrl}\n\n` +
-    `If you did not expect this invitation, you can safely ignore this email.`;
+    params.textOverride ??
+    (`A clinic has invited you to connect your treatment tracking on LeanShot.\n\n` +
+      `Accept your invitation (expires in ${params.expiresDays} days): ${acceptUrl}\n\n` +
+      `If you did not expect this invitation, you can safely ignore this email.`);
 
   const html = `
     <p>A clinic has invited you to connect your treatment tracking on LeanShot.</p>
@@ -240,8 +253,35 @@ async function handleSend(req: Request): Promise<Response> {
 
   // 5. Dispatch non-PHI email (no-op + warn if key absent — health check gate).
   //    Email body: accept-link + expiry only. NO patient name, NO clinical context.
+  //
+  // Phase 32 plan 32-05 (I18N-04): localize subject + plain-text alt via
+  // INVITER's profiles.locale. Recipient is patient; W-1 forbids branching
+  // on recipient existence here. Resolve inviter id via admin.auth.getUser
+  // (cheap — admin client is already instantiated at module scope above).
   const inviteUrl = `${APP_ORIGIN}/accept-clinic-invite?token=${rawToken}`;
-  await sendPatientInviteEmail({ to: patientEmail, inviteUrl, expiresDays: 14 });
+  let lng: 'en' | 'es' = 'en';
+  try {
+    const admin = adminClient();
+    const { data: ud } = await admin.auth.getUser(jwt);
+    const inviterId = ud?.user?.id ?? null;
+    lng = await resolveLocale(inviterId, admin);
+  } catch {
+    // Defensive: never block email send on a locale lookup failure.
+    lng = 'en';
+  }
+  const i18nVars = {
+    reset_url: inviteUrl,
+    org_name: 'a clinic',
+  };
+  const subjectOverride = await renderInLocale(lng, 'clinic_patient_invite.subject', i18nVars);
+  const textOverride = await renderInLocale(lng, 'clinic_patient_invite.body', i18nVars);
+  await sendPatientInviteEmail({
+    to: patientEmail,
+    inviteUrl,
+    expiresDays: 14,
+    subjectOverride,
+    textOverride,
+  });
 
   // 6. W-1 invariant: always return 200 + {invite_id}.
   return jsonResponse(200, { ok: true, invite_id: inviteId });

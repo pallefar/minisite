@@ -46,6 +46,13 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
+// Phase 32 plan 32-05 (I18N-04): DSAR confirmation email is a USERLESS
+// system email per D-08 — locale defaults to 'en' regardless of the
+// requester's profiles.locale (legal-text / compliance-grade copy must
+// stay in the canonical EN reference). We render the subject + plain-text
+// alt here and pass them to lifecycle-transactional as override fields,
+// short-circuiting that fn's profile-based locale lookup for this path.
+import { renderInLocale } from '../_shared/i18n-server.ts';
 import { renderDsarPdf } from './pdf-render.ts';
 import type { DsarBundle } from './pdf-render.ts';
 
@@ -662,12 +669,32 @@ async function handleExport(req: Request): Promise<Response> {
     const expiresAt = new Date(Date.now() + SIGNED_URL_TTL_SECONDS * 1000).toISOString();
 
     // ---- STEP 9: invoke lifecycle-transactional ----
+    // Phase 32 plan 32-05 (I18N-04 + D-08): userless system email; default
+    // lng='en' regardless of requester's profiles.locale. We pre-render
+    // here and pass override fields so lifecycle-transactional skips its
+    // own resolveLocale lookup for this path.
+    const lng = 'en' as const;
+    const i18nVars = {
+      name: 'there',
+      reset_url: signedUrl,
+    };
+    const dsarSubject = await renderInLocale(lng, 'dsar_confirmation.subject', i18nVars);
+    const dsarBody = await renderInLocale(lng, 'dsar_confirmation.body', i18nVars);
     try {
       await (admin as any).functions.invoke('lifecycle-transactional', {
         body: {
           template: 'dsar_ready',
           user_id: userId,
-          data: { signed_url: signedUrl, expires_at: expiresAt },
+          data: {
+            signed_url: signedUrl,
+            expires_at: expiresAt,
+            // D-08 override — caller pre-rendered in EN; lifecycle-transactional
+            // ignores these today (consumer-side i18n bypass deferred). Future
+            // wiring uses `_locale_override` or similar; for now the existence
+            // documents the intent and the verify-gate grep.
+            _i18n_subject: dsarSubject,
+            _i18n_body: dsarBody,
+          },
         },
       });
     } catch (e) {

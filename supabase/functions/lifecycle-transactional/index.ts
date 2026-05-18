@@ -37,7 +37,20 @@ import {
   makeLazyAdmin,
 } from '../_shared/lifecycle-utils.ts';
 import { mintCancelDeletionToken } from '../_shared/cancel-token.ts';
+// Phase 32 plan 32-05 (I18N-04): per-event-type locale + i18n key map.
+// The router dispatches receipt / password_reset / dsar_ready /
+// deletion_scheduled — each maps to a stable subject + body key in
+// _shared/locales/{en,es}/emails.json. HTML stays in EN per D-09.
+import { renderInLocale } from '../_shared/i18n-server.ts';
+import { resolveLocale } from '../_shared/profiles-locale.ts';
 import { renderTemplate, type TransactionalTemplateName } from './templates.ts';
+
+const I18N_KEY_BY_TEMPLATE: Record<TransactionalTemplateName, { subject: string; body: string }> = {
+  receipt:             { subject: 'payment_receipt.subject',    body: 'payment_receipt.body' },
+  password_reset:      { subject: 'password_reset.subject',     body: 'password_reset.body' },
+  dsar_ready:          { subject: 'dsar_confirmation.subject',  body: 'dsar_confirmation.body' },
+  deletion_scheduled:  { subject: 'lifecycle_behavior.subject', body: 'lifecycle_behavior.body' },
+};
 
 const { admin, setAdminForTest, resetAdminForTest } = makeLazyAdmin();
 
@@ -136,11 +149,27 @@ async function handleSend(req: Request): Promise<Response> {
     return jsonError(500, 'render_failed');
   }
 
+  // I18N-04 language layer — resolve recipient locale, then localize the
+  // subject + plain-text alternative. HTML preserved as-is per D-09.
+  const lng = await resolveLocale(userId, admin);
+  const keys = I18N_KEY_BY_TEMPLATE[template as TransactionalTemplateName] ?? {
+    subject: 'welcome.subject',
+    body: 'welcome.body',
+  };
+  const i18nVars: Record<string, unknown> = {
+    name: recipient.first_name || 'there',
+    reset_url: (renderInput.reset_url as string | undefined) ?? (renderInput.cancel_url as string | undefined) ?? (renderInput.signed_url as string | undefined) ?? '',
+    invoice_url: (renderInput.invoice_url as string | undefined) ?? '',
+    amount: (renderInput.amount_usd as string | undefined) ? `$${renderInput.amount_usd}` : '',
+  };
+  const localizedSubject = await renderInLocale(lng, keys.subject, i18nVars);
+  const localizedText = await renderInLocale(lng, keys.body, i18nVars);
+
   const dispatch = await sendResendEmail({
     to: recipient.email,
-    subject: rendered.subject,
+    subject: localizedSubject,
     html: rendered.html,
-    text: rendered.text,
+    text: localizedText,
   });
 
   if (!dispatch.ok) {

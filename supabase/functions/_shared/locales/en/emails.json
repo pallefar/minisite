@@ -1,0 +1,20 @@
+{
+  "welcome.subject": "Welcome to LeanShot, {{name}}",
+  "welcome.body": "Hi {{name}},\n\nWelcome to LeanShot. Here is what to do first:\n  - Log your first injection (10 seconds)\n  - Upload a progress photo\n  - Invite your doctor to read-share\n\n— The LeanShot team",
+  "password_reset.subject": "Reset your LeanShot password",
+  "password_reset.body": "Hi {{name}},\n\nWe received a request to reset the password on your LeanShot account. Use the link below to set a new password. The link expires in 1 hour.\n\n{{reset_url}}\n\nIf you did not request this, you can safely ignore this email.\n\n— The LeanShot team",
+  "payment_receipt.subject": "Your LeanShot receipt — {{amount}}",
+  "payment_receipt.body": "Hi {{name}},\n\nThanks for your payment of {{amount}}. Your LeanShot subscription is active.\n\nView your invoice: {{invoice_url}}\n\n— The LeanShot team",
+  "dunning.subject": "Action needed: payment failed for LeanShot",
+  "dunning.body": "Hi {{name}},\n\nWe could not process your last payment of {{amount}} for LeanShot. Please update your payment method to keep your subscription active.\n\n{{invoice_url}}\n\n— The LeanShot team",
+  "clinic_invite.subject": "{{org_name}} invited you to share your LeanShot data",
+  "clinic_invite.body": "Hi,\n\n{{name}} at {{org_name}} has invited you to share your LeanShot treatment data so they can support your care.\n\nReview and accept the invitation here:\n{{reset_url}}\n\nThis invitation expires in 7 days. If you were not expecting it, you can safely ignore this email.\n\n— The LeanShot team",
+  "clinic_org_invite.subject": "You have been invited to join a clinic on LeanShot",
+  "clinic_org_invite.body": "Hi,\n\nYou have been invited as a {{role}} to join {{org_name}} on LeanShot.\n\nAccept your invitation:\n{{reset_url}}\n\nThis invitation expires in 7 days.\n\n— The LeanShot team",
+  "clinic_patient_invite.subject": "You have been invited to connect with a clinic on LeanShot",
+  "clinic_patient_invite.body": "Hi,\n\nA clinic has invited you to connect your treatment tracking on LeanShot.\n\nAccept the invitation (expires in 14 days):\n{{reset_url}}\n\nIf you did not expect this invitation, you can safely ignore this email.\n\n— The LeanShot team",
+  "dsar_confirmation.subject": "Your LeanShot data export is ready",
+  "dsar_confirmation.body": "Hi {{name}},\n\nYour LeanShot data export is ready to download. The link below is available for 7 days.\n\n{{reset_url}}\n\n— The LeanShot team",
+  "lifecycle_behavior.subject": "A quick LeanShot nudge, {{name}}",
+  "lifecycle_behavior.body": "Hi {{name}},\n\nQuick check-in based on your recent activity on LeanShot. Open the app to see the latest insights:\n\n{{reset_url}}\n\n— The LeanShot team"
+}
