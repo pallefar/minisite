@@ -14,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 
 // Tested under vi.hoisted + dynamic import so modules.ts can be resolved by the time tests run.
 describe('ADMIN_MODULES manifest', () => {
-  it('T1: exports exactly 13 modules with the canonical D-05 keys (+ P28 clinic-orgs)', async () => {
+  it('T1: exports exactly 14 modules with the canonical D-05 keys (+ P28 clinic-orgs + P27-08 anomaly)', async () => {
     const { ADMIN_MODULES } = await import('./modules');
-    expect(ADMIN_MODULES).toHaveLength(13);
+    expect(ADMIN_MODULES).toHaveLength(14);
     const keys = ADMIN_MODULES.map((m) => m.key);
     const expected = [
       'users',
@@ -26,6 +26,7 @@ describe('ADMIN_MODULES manifest', () => {
       'reviews',
       'membership',
       'analytics',
+      'anomaly',     // Phase 27 Plan 27-08 addendum — funnel-anomaly admin config
       'ai',
       'helpdesk',
       'billing',
@@ -36,7 +37,7 @@ describe('ADMIN_MODULES manifest', () => {
     expect(keys).toEqual(expected);
   });
 
-  it('T2: all 13 entries have every required field', async () => {
+  it('T2: all 14 entries have every required field', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const requiredKeys = ['key', 'label', 'route', 'icon', 'lazy', 'flagKey', 'minRole'] as const;
     for (const mod of ADMIN_MODULES) {
@@ -49,18 +50,18 @@ describe('ADMIN_MODULES manifest', () => {
     }
   });
 
-  it('T3: all 13 flagKey values are unique', async () => {
+  it('T3: all 14 flagKey values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const flagKeys = ADMIN_MODULES.map((m) => m.flagKey);
     const unique = new Set(flagKeys);
-    expect(unique.size).toBe(13);
+    expect(unique.size).toBe(14);
   });
 
-  it('T4: all 13 route values are unique', async () => {
+  it('T4: all 14 route values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const routes = ADMIN_MODULES.map((m) => m.route);
     const unique = new Set(routes);
-    expect(unique.size).toBe(13);
+    expect(unique.size).toBe(14);
   });
 });
 
