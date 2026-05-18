@@ -66,15 +66,15 @@
 
 ### WS6 — A Revenue: Hourly Ad-Spend ETL (ADETL, 9 REQ-IDs)
 
-- [ ] **ADETL-01**: Hourly cron Edge Fn pulls spend + click + impression + conversion from Meta Marketing API into `ad_spend_facts` (partitioned by month)
-- [ ] **ADETL-02**: Hourly cron Edge Fn pulls same metrics from Google Ads API
-- [ ] **ADETL-03**: Hourly cron Edge Fn pulls same metrics from TikTok Business API (note: most-fragile API per V13-5; hand-rolled fetch client)
-- [ ] **ADETL-04**: `ad_revenue_normalized` view joins facts to PostHog conversion events using normalized attribution window (configurable per-network override; defaults: Meta 7d-click, Google 30d-click, TikTok 7d-click)
-- [ ] **ADETL-05**: Daily gap-detection cron compares facts-row-count to expected (hours × ad-accounts × 24) and inserts `ad_etl_gaps` row + admin notification when actual < expected
-- [ ] **ADETL-06**: Idempotent re-sync covers last-72h on each run (catches API outages + late-arriving data); INSERT … ON CONFLICT replays without dupes
-- [ ] **ADETL-07**: Admin views CAC dashboard with cost-per-acquisition by source/campaign/creative; alert fires when 7-day-rolling CAC > target LTV × 0.5
-- [ ] **ADETL-08**: Creative-level attribution joins ad-creative-id → conversion-user-id (where API supports); admin filters by creative for top-5 / bottom-5
-- [ ] **ADETL-09**: `fx_rates` table + daily ECB fetch + USD-normalization view (required when ads run in EUR/MXN/etc.); FX conversion uses spend-day rate
+- [x] **ADETL-01**: Hourly cron Edge Fn pulls spend + click + impression + conversion from Meta Marketing API into `ad_spend_facts` (partitioned by month)
+- [x] **ADETL-02**: Hourly cron Edge Fn pulls same metrics from Google Ads API
+- [x] **ADETL-03**: Hourly cron Edge Fn pulls same metrics from TikTok Business API (note: most-fragile API per V13-5; hand-rolled fetch client)
+- [x] **ADETL-04**: `ad_revenue_normalized` view joins facts to PostHog conversion events using normalized attribution window (configurable per-network override; defaults: Meta 7d-click, Google 30d-click, TikTok 7d-click)
+- [x] **ADETL-05**: Daily gap-detection cron compares facts-row-count to expected (hours × ad-accounts × 24) and inserts `ad_etl_gaps` row + admin notification when actual < expected
+- [x] **ADETL-06**: Idempotent re-sync covers last-72h on each run (catches API outages + late-arriving data); INSERT … ON CONFLICT replays without dupes
+- [x] **ADETL-07**: Admin views CAC dashboard with cost-per-acquisition by source/campaign/creative; alert fires when 7-day-rolling CAC > target LTV × 0.5
+- [x] **ADETL-08**: Creative-level attribution joins ad-creative-id → conversion-user-id (where API supports); admin filters by creative for top-5 / bottom-5
+- [x] **ADETL-09**: `fx_rates` table + daily ECB fetch + USD-normalization view (required when ads run in EUR/MXN/etc.); FX conversion uses spend-day rate
 
 ### WS7 — B Depth: Embed-Provider Blocks (EMBED, 8 REQ-IDs)
 
@@ -425,15 +425,15 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | PAGEAB-05 | Phase 39 | Pending |
 | PAGEAB-06 | Phase 39 | Pending |
 | PAGEAB-07 | Phase 39 | Pending |
-| ADETL-01 | Phase 33 | Pending |
-| ADETL-02 | Phase 33 | Pending |
-| ADETL-03 | Phase 33 | Pending |
-| ADETL-04 | Phase 33 | Pending |
-| ADETL-05 | Phase 33 | Pending |
-| ADETL-06 | Phase 33 | Pending |
-| ADETL-07 | Phase 33 | Pending |
-| ADETL-08 | Phase 33 | Pending |
-| ADETL-09 | Phase 33 | Pending |
+| ADETL-01 | Phase 33 | Complete |
+| ADETL-02 | Phase 33 | Complete |
+| ADETL-03 | Phase 33 | Complete |
+| ADETL-04 | Phase 33 | Complete |
+| ADETL-05 | Phase 33 | Complete |
+| ADETL-06 | Phase 33 | Complete |
+| ADETL-07 | Phase 33 | Complete |
+| ADETL-08 | Phase 33 | Complete |
+| ADETL-09 | Phase 33 | Complete |
 | EMBED-01 | Phase 41 | Pending |
 | EMBED-02 | Phase 41 | Pending |
 | EMBED-03 | Phase 41 | Pending |

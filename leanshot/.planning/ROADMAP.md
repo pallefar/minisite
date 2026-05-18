@@ -49,7 +49,7 @@
 - [ ] **Phase 30: Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts** — Per-clinic ranking + nightly alert cron + PHI-aware delivery + ack/snooze
 - [x] **Phase 31: White-Label (Path-Based) + Org Roles + Clinic Onboarding Builder** — `org_branding` CSS-var overlay + owner/clinician/staff matrix + per-clinic onboarding override (completed 2026-05-18)
 - [ ] **Phase 32: Spanish i18n (Parallel with Clinic Track)** — react-i18next + http-backend + `?lang=es` + transactional-email shim + `locale_overrides` + ICU pluralization
-- [ ] **Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)** — 3 hourly Edge Fns + `ad_spend_facts` partitioned + gap-detection cron + normalized-attribution view + `fx_rates` + admin CAC dashboard
+- [x] **Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)** — 3 hourly Edge Fns + `ad_spend_facts` partitioned + gap-detection cron + normalized-attribution view + `fx_rates` + admin CAC dashboard (completed 2026-05-18)
 - [ ] **Phase 34: M2 Onboarding Overhaul + Activation Event** — Value-first preview + magic-link/Google/Apple SSO + drag-drop step builder + activation-event lock (blocks P39)
 - [ ] **Phase 35: M3 Gamification Engine** — `xp_ledger` append-only + streak + freeze tokens + cohort-scoped leaderboard matview + canvas-confetti
 - [ ] **Phase 36: M3 Review Prompt Engine (Web Only)** — Internal NPS as INDEPENDENT surface + promoter → external CTA + non-promoter → helpdesk ticket
@@ -524,7 +524,7 @@ Plans:
 | 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/6 | Planned | — |
 | 31. White-Label + Org Roles + Clinic Onboarding Builder | 8/8 | Complete   | 2026-05-18 |
 | 32. Spanish i18n | 0/? | Not started | — |
-| 33. Hourly Ad-Spend ETL | 0/? | Not started | — |
+| 33. Hourly Ad-Spend ETL | 5/5 | Complete    | 2026-05-18 |
 | 34. M2 Onboarding Overhaul + Activation Event | 0/? | Not started | — |
 | 35. M3 Gamification Engine | 0/? | Not started | — |
 | 36. M3 Review Prompt Engine (Web) | 0/? | Not started | — |
