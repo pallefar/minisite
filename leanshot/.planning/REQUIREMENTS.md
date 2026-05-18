@@ -125,7 +125,7 @@
 - [x] **ORG-10**: Patient invite flow: clinic admin invites email → magic link → patient onboards under clinic's org → patient's `profiles.primary_org_id` set + consent grant recorded
 - [ ] **ORG-11**: White-label theming per clinic (CSS-var overlay + custom logo + custom colors + favicon); path-based for v1.3 (`/clinic/{slug}` overlays `org_branding` CSS-vars)
 - [ ] **ORG-12**: Org admin manages 3 roles (owner / clinician / staff) with permission matrix; UI gates admin actions by role
-- [ ] **ORG-13**: Per-clinic onboarding flow override (clinics customize their patient-invite onboarding via M2 step builder reusing Phase 15 dnd-kit primitives)
+- [x] **ORG-13**: Per-clinic onboarding flow override (clinics customize their patient-invite onboarding via M2 step builder reusing Phase 15 dnd-kit primitives)
 
 ### WS11 — C B2B: Custom Rank Weights + Dose-Trend Alerts (CLIN, 8 REQ-IDs)
 
@@ -472,7 +472,7 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | ORG-10 | Phase 29 | Complete |
 | ORG-11 | Phase 31 | Pending |
 | ORG-12 | Phase 31 | Pending |
-| ORG-13 | Phase 31 | Pending |
+| ORG-13 | Phase 31 | Complete |
 | CLIN-01 | Phase 30 | Pending |
 | CLIN-02 | Phase 30 | Pending |
 | CLIN-03 | Phase 30 | Pending |
