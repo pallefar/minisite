@@ -14,9 +14,13 @@ create table if not exists public.cac_alerts (
   cac_7d_usd       numeric(10,2) not null,
   target_ltv_usd   numeric(10,2) not null,
   breach_ratio     numeric(8,4)  not null,
-  idempotency_key  text          not null generated always as (source || '|' || alert_date::text) stored,
   created_at       timestamptz   not null default now(),
-  constraint cac_alerts_idempotency_uq unique (idempotency_key)
+  -- Dedup key: (source, alert_date) composite UNIQUE replaces the original
+  -- `idempotency_key text generated always as (...)` generated column —
+  -- Supabase Postgres rejects the date::text cast inside a generated expression as
+  -- non-IMMUTABLE (DateStyle dependency). The composite UNIQUE gives the same
+  -- semantic (one alert per source per date) without a generated column.
+  constraint cac_alerts_idempotency_uq unique (source, alert_date)
 );
 
 commit;

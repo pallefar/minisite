@@ -5,7 +5,7 @@
 -- Non-admin authenticated users MUST receive zero rows on SELECT from all 7 tables.
 -- Each table has a vitest RLS denial test in Plan 33-05.
 -- Expected behavior: anon + non-admin authenticated → RLS blocks all access (zero rows).
--- Only users where public.is_admin(auth.uid()) returns TRUE can read/write.
+-- Only users where public.is_admin_at_least('admin'::public.admin_role) returns TRUE can read/write.
 --
 -- Tables covered:
 --   1. ad_spend_facts       (partitioned — RLS applies to parent + auto-cascades to partitions)
@@ -27,8 +27,8 @@ alter table public.ad_spend_facts enable row level security;
 create policy "ad_spend_facts_admin_all"
   on public.ad_spend_facts
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 2. ad_network_config
@@ -38,8 +38,8 @@ alter table public.ad_network_config enable row level security;
 create policy "ad_network_config_admin_all"
   on public.ad_network_config
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 3. fx_rates
@@ -49,8 +49,8 @@ alter table public.fx_rates enable row level security;
 create policy "fx_rates_admin_all"
   on public.fx_rates
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 4. ad_etl_health
@@ -60,8 +60,8 @@ alter table public.ad_etl_health enable row level security;
 create policy "ad_etl_health_admin_all"
   on public.ad_etl_health
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 5. ad_etl_gaps
@@ -71,8 +71,8 @@ alter table public.ad_etl_gaps enable row level security;
 create policy "ad_etl_gaps_admin_all"
   on public.ad_etl_gaps
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 6. growth_targets
@@ -82,8 +82,8 @@ alter table public.growth_targets enable row level security;
 create policy "growth_targets_admin_all"
   on public.growth_targets
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 7. cac_alerts
@@ -93,8 +93,8 @@ alter table public.cac_alerts enable row level security;
 create policy "cac_alerts_admin_all"
   on public.cac_alerts
   for all
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+  using (public.is_admin_at_least('admin'::public.admin_role))
+  with check (public.is_admin_at_least('admin'::public.admin_role));
 
 -- =============================================================================
 -- 8. etl_cursors (RLS guard — applied via DO block in case table was pre-created
@@ -118,8 +118,8 @@ begin
         create policy "etl_cursors_admin_all"
           on public.etl_cursors
           for all
-          using (public.is_admin(auth.uid()))
-          with check (public.is_admin(auth.uid()))
+          using (public.is_admin_at_least('admin'::public.admin_role))
+          with check (public.is_admin_at_least('admin'::public.admin_role))
       $policy$;
     end if;
   end if;

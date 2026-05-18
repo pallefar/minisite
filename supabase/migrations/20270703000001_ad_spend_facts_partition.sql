@@ -61,8 +61,8 @@ select cron.unschedule('ad_spend_facts_drop_old_partitions')
 select cron.schedule(
   'ad_spend_facts_drop_old_partitions',
   '0 2 1 * *',
-  $$
-  DO $$
+  $cron$
+  DO $partition$
   DECLARE
     r record;
     cutoff date := date_trunc('month', now() - interval '13 months')::date;
@@ -81,8 +81,8 @@ select cron.schedule(
       END IF;
     END LOOP;
   END;
-  $$ LANGUAGE plpgsql;
-  $$
+  $partition$ LANGUAGE plpgsql;
+  $cron$
 );
 
 commit;
