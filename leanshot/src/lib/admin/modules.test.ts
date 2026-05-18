@@ -14,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 
 // Tested under vi.hoisted + dynamic import so modules.ts can be resolved by the time tests run.
 describe('ADMIN_MODULES manifest', () => {
-  it('T1: exports exactly 16 modules (+P28 clinic-orgs +P27-08 anomaly +P50-02 rag +P32-04 i18n-overrides)', async () => {
+  it('T1: exports exactly 18 modules (+P25-09 compliance +P33-05 growth-cac)', async () => {
     const { ADMIN_MODULES } = await import('./modules');
-    expect(ADMIN_MODULES).toHaveLength(16);
+    expect(ADMIN_MODULES).toHaveLength(18);
     const keys = ADMIN_MODULES.map((m) => m.key);
     const expected = [
       'users',
@@ -35,11 +35,13 @@ describe('ADMIN_MODULES manifest', () => {
       'clinic-orgs',     // Phase 28 Plan 07 — preview module (full UI in P31)
       'rag',             // Phase 50 Plan 50-02 — admin-curated RAG knowledge base
       'i18n-overrides',  // Phase 32 Plan 32-04 — admin hot-patch surface for translations
+      'growth-cac',      // Phase 33 Plan 33-05 — CAC dashboard (ad-spend ETL)
+      'compliance',      // Phase 25 Plan 25-09 — HIPAA vendor BAA + subprocessor admin UI
     ];
     expect(keys).toEqual(expected);
   });
 
-  it('T2: all 16 entries have every required field', async () => {
+  it('T2: all 18 entries have every required field', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const requiredKeys = ['key', 'label', 'route', 'icon', 'lazy', 'flagKey', 'minRole'] as const;
     for (const mod of ADMIN_MODULES) {
@@ -52,18 +54,18 @@ describe('ADMIN_MODULES manifest', () => {
     }
   });
 
-  it('T3: all 16 flagKey values are unique', async () => {
+  it('T3: all 18 flagKey values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const flagKeys = ADMIN_MODULES.map((m) => m.flagKey);
     const unique = new Set(flagKeys);
-    expect(unique.size).toBe(16);
+    expect(unique.size).toBe(18);
   });
 
-  it('T4: all 16 route values are unique', async () => {
+  it('T4: all 18 route values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const routes = ADMIN_MODULES.map((m) => m.route);
     const unique = new Set(routes);
-    expect(unique.size).toBe(16);
+    expect(unique.size).toBe(18);
   });
 });
 
