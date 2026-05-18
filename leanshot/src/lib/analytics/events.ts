@@ -118,6 +118,24 @@ export const EVENTS = {
       variant: z.string(),
     }),
   },
+  // Phase 32 Plan 32-01 — i18n missing-key telemetry (32-RESEARCH Open Item #2).
+  // Fired by src/lib/i18n/missing-key-handler.ts when i18next emits its
+  // `missingKey` event (a runtime t() call had no translation in the
+  // requested or fallback locale). Per RESEARCH Open Question #2: no
+  // `org_id` in v1 — additive flip later if growth needs the slice.
+  i18n_missing_key: {
+    name: 'i18n_missing_key',
+    version: 1,
+    phi: false,
+    owner: 'platform',
+    description:
+      'i18next fired missingKey — a runtime t() call had no translation in the requested or fallback locale.',
+    payload: z.object({
+      lng: z.string(),
+      ns: z.string(),
+      key: z.string(),
+    }),
+  },
 } as const satisfies Record<string, EventDef>;
 
 export type EventName = keyof typeof EVENTS;

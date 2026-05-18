@@ -1,0 +1,35 @@
+{
+  "action": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "delete": "Eliminar",
+    "save": "Guardar"
+  },
+  "day_remaining_one": "Queda {{count}} día",
+  "day_remaining_other": "Quedan {{count}} días",
+  "error": {
+    "network": "Error de red. Vuelve a intentarlo.",
+    "unauthorized": "No tienes permiso para hacer esto.",
+    "unknown": "Algo salió mal."
+  },
+  "greeting": {
+    "afternoon": "Buenas tardes",
+    "evening": "Buenas noches",
+    "morning": "Buenos días"
+  },
+  "injection_one": "{{count}} inyección registrada",
+  "injection_other": "{{count}} inyecciones registradas",
+  "injection_zero": "Sin inyecciones registradas",
+  "modal": {
+    "confirm_body": "¿Seguro que quieres continuar?",
+    "confirm_title": "¿Estás seguro?"
+  },
+  "validation": {
+    "email_invalid": "Introduce un correo electrónico válido.",
+    "required": "Este campo es obligatorio.",
+    "too_long": "Demasiado largo.",
+    "too_short": "Demasiado corto."
+  }
+}

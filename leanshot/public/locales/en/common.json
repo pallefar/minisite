@@ -1,0 +1,35 @@
+{
+  "action": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "delete": "Delete",
+    "save": "Save"
+  },
+  "day_remaining_one": "{{count}} day remaining",
+  "day_remaining_other": "{{count}} days remaining",
+  "error": {
+    "network": "Network error. Please try again.",
+    "unauthorized": "You don't have permission to do that.",
+    "unknown": "Something went wrong."
+  },
+  "greeting": {
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "morning": "Good morning"
+  },
+  "injection_one": "{{count}} injection logged",
+  "injection_other": "{{count}} injections logged",
+  "injection_zero": "No injections logged",
+  "modal": {
+    "confirm_body": "Are you sure you want to continue?",
+    "confirm_title": "Are you sure?"
+  },
+  "validation": {
+    "email_invalid": "Enter a valid email address.",
+    "required": "This field is required.",
+    "too_long": "Too long.",
+    "too_short": "Too short."
+  }
+}
