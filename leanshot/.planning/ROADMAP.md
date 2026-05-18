@@ -41,7 +41,7 @@
 26 phases, 204 REQ-IDs across 24 workstreams. Triple-bet release: paying clinics under BAA, deepened consumer product, tightened unit economics, plus M4 Membership / Community in-house. Mobile (P16-21) deferred to v1.4.
 
 - [ ] **Phase 24: Foundation — Modular Admin Shell + Event Taxonomy + Server-side PostHog** — Load-bearing measurement layer; admin 2FA; canonical events.ts; `_shared/posthog-server.ts`
-- [ ] **Phase 25: HIPAA Audit Hardening + Vendor BAA Chain** — Engineering layer (BAA-scope guard, subprocessor cron, PHI lint, email-router, Sentry/PostHog scrub); vendor/legal runs PARALLEL from Wave 0
+- [x] **Phase 25: HIPAA Audit Hardening + Vendor BAA Chain** — Engineering layer (BAA-scope guard, subprocessor cron, PHI lint, email-router, Sentry/PostHog scrub); vendor/legal runs PARALLEL from Wave 0 (completed 2026-05-18)
 - [ ] **Phase 26: Multi-Tier Affiliate (Standard / Gold / Lifetime)** — Tier stamping + locked-once-earned + recurring-commission cron + co-branded landing
 - [ ] **Phase 27: Modular Admin Shell Extensions** — Bulk actions + cohort builder + command palette + funnel-anomaly cron + cohort matview
 - [ ] **Phase 28: Clinic Organizations — Schema + RLS Hardening** — 16+ org-scoped tables + `withOrgScope` + HMAC realtime + cross-tenant proof tests + `src/lib/org.ts`
@@ -99,16 +99,16 @@
 
 **Plans**: 10 plans
 
-- [ ] 25-01-PLAN.md — vendor_baa_chain + subprocessor_snapshots + admin module-seed migrations + 6 vendor seed rows + RLS integration test [Wave 1]
-- [ ] 25-02-PLAN.md — phi_access_log table + log_phi_access SECDEF RPC + patient Settings "Who has viewed my data" viewer + RLS test [Wave 1]
-- [ ] 25-03-PLAN.md — _shared/email-router.ts (Resend↔SES PHI split) + ses-bounce-webhook Edge Fn + ses_suppression_list table — vendor-gated Pattern S4 [Wave 1]
-- [ ] 25-04-PLAN.md — _shared/anthropic-baa-allowlist.ts + resolve-org-id stub + ai-chat 3-way branch (consumer Moonshot / clinical Anthropic / BAA-pending) [Wave 1]
-- [ ] 25-05-PLAN.md — scripts/lint-stripe-phi.ts + 23-keyword JSON + CI step (HIPAA-08) [Wave 1]
-- [ ] 25-06-PLAN.md — scripts/audit-sentry-mask.ts + PHI-prop JSON + CI step (HIPAA-16); baseline scan documented [Wave 2 — sequential ci.yml with 25-05]
-- [ ] 25-07-PLAN.md — PostHog session-replay PHI guard hook + analytics.ts global default (HIPAA-17 per RESEARCH correction #1) [Wave 1]
-- [ ] 25-08-PLAN.md — clinician MFA hard-cut guard + setup modal + patient optional MFA card + requireStepUp for sensitive actions + Playwright e2e [Wave 2]
-- [ ] 25-09-PLAN.md — baa-expiry-check + subprocessor-diff Edge Fns + pg_cron schedules + admin Compliance page (BaaChainTable + ExpiryBanner + SubprocessorDiffFeed) [Wave 2]
-- [ ] 25-10-PLAN.md — 7 HIPAA policy markdowns + Notion mirror script + Drata/training/risk-assessment human checkpoints [Wave 3]
+- [x] 25-01-PLAN.md — vendor_baa_chain + subprocessor_snapshots + admin module-seed migrations + 6 vendor seed rows + RLS integration test [Wave 1]
+- [x] 25-02-PLAN.md — phi_access_log table + log_phi_access SECDEF RPC + patient Settings "Who has viewed my data" viewer + RLS test [Wave 1]
+- [x] 25-03-PLAN.md — _shared/email-router.ts (Resend↔SES PHI split) + ses-bounce-webhook Edge Fn + ses_suppression_list table — vendor-gated Pattern S4 [Wave 1]
+- [x] 25-04-PLAN.md — _shared/anthropic-baa-allowlist.ts + resolve-org-id stub + ai-chat 3-way branch (consumer Moonshot / clinical Anthropic / BAA-pending) [Wave 1]
+- [x] 25-05-PLAN.md — scripts/lint-stripe-phi.ts + 23-keyword JSON + CI step (HIPAA-08) [Wave 1]
+- [x] 25-06-PLAN.md — scripts/audit-sentry-mask.ts + PHI-prop JSON + CI step (HIPAA-16); baseline scan documented [Wave 2 — sequential ci.yml with 25-05]
+- [x] 25-07-PLAN.md — PostHog session-replay PHI guard hook + analytics.ts global default (HIPAA-17 per RESEARCH correction #1) [Wave 1]
+- [x] 25-08-PLAN.md — clinician MFA hard-cut guard + setup modal + patient optional MFA card + requireStepUp for sensitive actions + Playwright e2e [Wave 2]
+- [x] 25-09-PLAN.md — baa-expiry-check + subprocessor-diff Edge Fns + pg_cron schedules + admin Compliance page (BaaChainTable + ExpiryBanner + SubprocessorDiffFeed) [Wave 2]
+- [x] 25-10-PLAN.md — 7 HIPAA policy markdowns + Notion mirror script + Drata/training/risk-assessment human checkpoints [Wave 3]
 
 ### Phase 26: Multi-Tier Affiliate (Standard / Gold / Lifetime)
 
@@ -516,7 +516,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 24. Foundation — Admin Shell + Event Taxonomy + Server PostHog | 2/8 | In Progress|  |
-| 25. HIPAA Audit Hardening + BAA Chain | 0/? | Not started | — |
+| 25. HIPAA Audit Hardening + BAA Chain | 10/10 | Complete    | 2026-05-18 |
 | 26. Multi-Tier Affiliate | 0/? | Not started | — |
 | 27. Modular Admin Shell Extensions | 0/? | Not started | — |
 | 28. Clinic Organizations — Schema + RLS Hardening | 7/8 | In Progress|  |

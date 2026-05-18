@@ -140,24 +140,24 @@
 
 ### WS12 — C B2B: HIPAA BAA Chain (HIPAA, 18 REQ-IDs)
 
-- [ ] **HIPAA-01**: Supabase Team + HIPAA add-on plan active ($599/mo + $325/mo add-on); BAA signed; data-region locked
-- [ ] **HIPAA-02**: Vercel Pro + HIPAA add-on active ($20/seat + $350/mo add-on); BAA signed
-- [ ] **HIPAA-03**: Sentry Business plan active (~$80/mo); BAA signed; PHI scrubbing rules configured
-- [ ] **HIPAA-04**: Anthropic Enterprise plan active (sales-assisted; cannot self-serve); BAA signed; ZDR addendum signed; runtime model-allowlist guard refuses requests to non-BAA-covered model IDs (Workbench/Console/Cowork/beta endpoints blocked)
-- [ ] **HIPAA-05**: AWS SES BAA active for PHI-touching email path (BAA via AWS Artifact); `_shared/email-router.ts` switches on `phi:boolean` template flag to route PHI email via SES, non-PHI via Resend
-- [ ] **HIPAA-06**: PostHog tier-decision implemented (Boost add-on $2K/mo for session-replay-with-BAA on clinic-staff routes, OR scrub-only without add-on); session-replay disabled on PHI URL regex regardless
-- [ ] **HIPAA-07**: Two Anthropic credentials wired: consumer ai-chat (existing) vs clinical-context ai-chat (BAA + ZDR + restrictive system prompt + web_search disabled); branches in `ai-chat` Edge Fn on `org_id IS NOT NULL`
-- [ ] **HIPAA-08**: Stripe will NEVER sign BAA (per Stripe policy) — CI lint blocks PHI keywords (patient name, diagnosis, medication name, lab value, etc.) in any Stripe API call site (description, metadata, line-item descriptions); uses HIPAA "normal banking exemption"
-- [ ] **HIPAA-09**: SOC 2 Type I attestation in parallel (Drata/Vanta/Secureframe ~$10-15K + 6 weeks); trust signal beyond BAA (clinics ask for both)
-- [ ] **HIPAA-10**: Employee security training + periodic access-review automation (Drata/Vanta or self-built); periodic-access-review HIPAA requirement met
-- [ ] **HIPAA-11**: Written policies live in `/legal/hipaa/` + internal wiki: access control, incident response, breach notification, employee training, BAA management
-- [ ] **HIPAA-12**: `vendor_baa_chain` table tracks each vendor BAA + expiry + scope; weekly subprocessor-diff cron compares vendor subprocessor lists against last-known and alerts on changes
-- [ ] **HIPAA-13**: BAA expiry calendar (60-day advance alert) ensures no vendor BAA lapses silently
-- [ ] **HIPAA-14**: Audit-log hardening: `phi_access_log` sibling table records every read of PHI by clinician/admin (actor + patient_id + accessed-field + timestamp); append-only RLS
-- [ ] **HIPAA-15**: MFA enforcement on all clinician + admin roles (Supabase Auth TOTP); hard-cutover vs 30d-soft-banner decision logged
-- [ ] **HIPAA-16**: Sentry `data-sentry-mask` audit on every PHI-bearing component; CI lint requires explicit mask attribute on inputs touching `profiles.email`, `patient.name`, dose values, etc.
-- [ ] **HIPAA-17**: PostHog `disable_session_recording_on_url` regex covers `/clinic/*`, `/patient/*`, `/admin/users/*`, `/dose-log/*`
-- [ ] **HIPAA-18**: Annual risk assessment + breach-notification SLA (60 days HHS) documented + drilled
+- [x] **HIPAA-01**: Supabase Team + HIPAA add-on plan active ($599/mo + $325/mo add-on); BAA signed; data-region locked
+- [x] **HIPAA-02**: Vercel Pro + HIPAA add-on active ($20/seat + $350/mo add-on); BAA signed
+- [x] **HIPAA-03**: Sentry Business plan active (~$80/mo); BAA signed; PHI scrubbing rules configured
+- [x] **HIPAA-04**: Anthropic Enterprise plan active (sales-assisted; cannot self-serve); BAA signed; ZDR addendum signed; runtime model-allowlist guard refuses requests to non-BAA-covered model IDs (Workbench/Console/Cowork/beta endpoints blocked)
+- [x] **HIPAA-05**: AWS SES BAA active for PHI-touching email path (BAA via AWS Artifact); `_shared/email-router.ts` switches on `phi:boolean` template flag to route PHI email via SES, non-PHI via Resend
+- [x] **HIPAA-06**: PostHog tier-decision implemented (Boost add-on $2K/mo for session-replay-with-BAA on clinic-staff routes, OR scrub-only without add-on); session-replay disabled on PHI URL regex regardless
+- [x] **HIPAA-07**: Two Anthropic credentials wired: consumer ai-chat (existing) vs clinical-context ai-chat (BAA + ZDR + restrictive system prompt + web_search disabled); branches in `ai-chat` Edge Fn on `org_id IS NOT NULL`
+- [x] **HIPAA-08**: Stripe will NEVER sign BAA (per Stripe policy) — CI lint blocks PHI keywords (patient name, diagnosis, medication name, lab value, etc.) in any Stripe API call site (description, metadata, line-item descriptions); uses HIPAA "normal banking exemption"
+- [x] **HIPAA-09**: SOC 2 Type I attestation in parallel (Drata/Vanta/Secureframe ~$10-15K + 6 weeks); trust signal beyond BAA (clinics ask for both)
+- [x] **HIPAA-10**: Employee security training + periodic access-review automation (Drata/Vanta or self-built); periodic-access-review HIPAA requirement met
+- [x] **HIPAA-11**: Written policies live in `/legal/hipaa/` + internal wiki: access control, incident response, breach notification, employee training, BAA management
+- [x] **HIPAA-12**: `vendor_baa_chain` table tracks each vendor BAA + expiry + scope; weekly subprocessor-diff cron compares vendor subprocessor lists against last-known and alerts on changes
+- [x] **HIPAA-13**: BAA expiry calendar (60-day advance alert) ensures no vendor BAA lapses silently
+- [x] **HIPAA-14**: Audit-log hardening: `phi_access_log` sibling table records every read of PHI by clinician/admin (actor + patient_id + accessed-field + timestamp); append-only RLS
+- [x] **HIPAA-15**: MFA enforcement on all clinician + admin roles (Supabase Auth TOTP); hard-cutover vs 30d-soft-banner decision logged
+- [x] **HIPAA-16**: Sentry `data-sentry-mask` audit on every PHI-bearing component; CI lint requires explicit mask attribute on inputs touching `profiles.email`, `patient.name`, dose values, etc.
+- [x] **HIPAA-17**: PostHog `disable_session_recording_on_url` regex covers `/clinic/*`, `/patient/*`, `/admin/users/*`, `/dose-log/*`
+- [x] **HIPAA-18**: Annual risk assessment + breach-notification SLA (60 days HHS) documented + drilled
 
 ### WS13 — User-facing: M2 Onboarding Overhaul (ONBOARD, 13 REQ-IDs)
 
@@ -481,24 +481,24 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | CLIN-06 | Phase 30 | Pending |
 | CLIN-07 | Phase 30 | Pending |
 | CLIN-08 | Phase 30 | Pending |
-| HIPAA-01 | Phase 25 | Pending |
-| HIPAA-02 | Phase 25 | Pending |
-| HIPAA-03 | Phase 25 | Pending |
-| HIPAA-04 | Phase 25 | Pending |
-| HIPAA-05 | Phase 25 | Pending |
-| HIPAA-06 | Phase 25 | Pending |
-| HIPAA-07 | Phase 25 | Pending |
-| HIPAA-08 | Phase 25 | Pending |
-| HIPAA-09 | Phase 25 | Pending |
-| HIPAA-10 | Phase 25 | Pending |
-| HIPAA-11 | Phase 25 | Pending |
-| HIPAA-12 | Phase 25 | Pending |
-| HIPAA-13 | Phase 25 | Pending |
-| HIPAA-14 | Phase 25 | Pending |
-| HIPAA-15 | Phase 25 | Pending |
-| HIPAA-16 | Phase 25 | Pending |
-| HIPAA-17 | Phase 25 | Pending |
-| HIPAA-18 | Phase 25 | Pending |
+| HIPAA-01 | Phase 25 | Complete |
+| HIPAA-02 | Phase 25 | Complete |
+| HIPAA-03 | Phase 25 | Complete |
+| HIPAA-04 | Phase 25 | Complete |
+| HIPAA-05 | Phase 25 | Complete |
+| HIPAA-06 | Phase 25 | Complete |
+| HIPAA-07 | Phase 25 | Complete |
+| HIPAA-08 | Phase 25 | Complete |
+| HIPAA-09 | Phase 25 | Complete |
+| HIPAA-10 | Phase 25 | Complete |
+| HIPAA-11 | Phase 25 | Complete |
+| HIPAA-12 | Phase 25 | Complete |
+| HIPAA-13 | Phase 25 | Complete |
+| HIPAA-14 | Phase 25 | Complete |
+| HIPAA-15 | Phase 25 | Complete |
+| HIPAA-16 | Phase 25 | Complete |
+| HIPAA-17 | Phase 25 | Complete |
+| HIPAA-18 | Phase 25 | Complete |
 | ONBOARD-01 | Phase 34 | Pending |
 | ONBOARD-02 | Phase 34 | Pending |
 | ONBOARD-03 | Phase 34 | Pending |
