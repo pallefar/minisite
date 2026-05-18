@@ -1,0 +1,20 @@
+{
+  "welcome.subject": "Bienvenido a LeanShot, {{name}}",
+  "welcome.body": "Hola {{name}},\n\nBienvenido a LeanShot. Esto es lo que puedes hacer primero:\n  - Registra tu primera inyección (10 segundos)\n  - Sube una foto de progreso\n  - Invita a tu médico para compartir tus datos\n\n— El equipo de LeanShot",
+  "password_reset.subject": "Restablece tu contraseña de LeanShot",
+  "password_reset.body": "Hola {{name}},\n\nRecibimos una solicitud para restablecer la contraseña de tu cuenta de LeanShot. Usa el siguiente enlace para crear una nueva contraseña. El enlace caduca en 1 hora.\n\n{{reset_url}}\n\nSi no realizaste esta solicitud, puedes ignorar este correo.\n\n— El equipo de LeanShot",
+  "payment_receipt.subject": "Tu recibo de LeanShot — {{amount}}",
+  "payment_receipt.body": "Hola {{name}},\n\nGracias por tu pago de {{amount}}. Tu suscripción a LeanShot está activa.\n\nVer tu factura: {{invoice_url}}\n\n— El equipo de LeanShot",
+  "dunning.subject": "Acción requerida: el pago de LeanShot falló",
+  "dunning.body": "Hola {{name}},\n\nNo pudimos procesar tu último pago de {{amount}} para LeanShot. Actualiza tu método de pago para mantener tu suscripción activa.\n\n{{invoice_url}}\n\n— El equipo de LeanShot",
+  "clinic_invite.subject": "{{org_name}} te invitó a compartir tus datos de LeanShot",
+  "clinic_invite.body": "Hola,\n\n{{name}} de {{org_name}} te invitó a compartir tus datos de tratamiento en LeanShot para apoyar tu cuidado.\n\nRevisa y acepta la invitación aquí:\n{{reset_url}}\n\nEsta invitación caduca en 7 días. Si no la esperabas, puedes ignorar este correo.\n\n— El equipo de LeanShot",
+  "clinic_org_invite.subject": "Te invitaron a unirte a una clínica en LeanShot",
+  "clinic_org_invite.body": "Hola,\n\nHas sido invitado como {{role}} a unirte a {{org_name}} en LeanShot.\n\nAcepta tu invitación:\n{{reset_url}}\n\nEsta invitación caduca en 7 días.\n\n— El equipo de LeanShot",
+  "clinic_patient_invite.subject": "Te invitaron a conectarte con una clínica en LeanShot",
+  "clinic_patient_invite.body": "Hola,\n\nUna clínica te invitó a conectar tu seguimiento de tratamiento en LeanShot.\n\nAcepta la invitación (caduca en 14 días):\n{{reset_url}}\n\nSi no esperabas esta invitación, puedes ignorar este correo.\n\n— El equipo de LeanShot",
+  "dsar_confirmation.subject": "Tu exportación de datos de LeanShot está lista",
+  "dsar_confirmation.body": "Hola {{name}},\n\nTu exportación de datos de LeanShot está lista para descargar. El enlace estará disponible durante 7 días.\n\n{{reset_url}}\n\n— El equipo de LeanShot",
+  "lifecycle_behavior.subject": "Un recordatorio rápido de LeanShot, {{name}}",
+  "lifecycle_behavior.body": "Hola {{name}},\n\nUn pequeño recordatorio basado en tu actividad reciente en LeanShot. Abre la aplicación para ver las últimas novedades:\n\n{{reset_url}}\n\n— El equipo de LeanShot"
+}
