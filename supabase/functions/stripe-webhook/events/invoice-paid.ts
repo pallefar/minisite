@@ -154,22 +154,30 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
   }
 
   // Idempotent INSERT — UNIQUE on invoice_id guarantees at-most-once-credit.
-  const { error: insErr } = await admin.from('affiliate_conversions').insert({
-    affiliate_id: affiliate.id,
-    user_id: resolvedUserId,
-    subscription_id: subId,
-    invoice_id: invoice.id,
-    commission_cents: affiliate.commission_rate_cents,
-    status: 'pending',
-    eligible_at: eligibleAtIso,
-    invoice_paid_at: invoicePaidAtIso,
-  });
+  // Phase 26 Plan 26-02: chain .select('id').single() so the just-inserted
+  // row id is captured for anomaly correlation below.
+  const { data: insertedConv, error: insErr } = await admin
+    .from('affiliate_conversions')
+    .insert({
+      affiliate_id: affiliate.id,
+      user_id: resolvedUserId,
+      subscription_id: subId,
+      invoice_id: invoice.id,
+      commission_cents: affiliate.commission_rate_cents,
+      status: 'pending',
+      eligible_at: eligibleAtIso,
+      invoice_paid_at: invoicePaidAtIso,
+    })
+    .select('id')
+    .single();
 
   if (insErr) {
     // deno-lint-ignore no-explicit-any
     const pgCode = (insErr as any).code;
     if (pgCode === '23505') {
       // Replayed webhook — already credited. Idempotent success.
+      // D-09: do NOT touch the pre-existing row's anomaly_flagged here —
+      // the first writer owns that column.
       console.log(
         '[stripe-webhook/invoice-paid] duplicate conversion (idempotent)',
         JSON.stringify({ affiliate_id: affiliate.id, invoice_id: invoice.id }),
@@ -187,4 +195,65 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
     '[stripe-webhook/invoice-paid] affiliate conversion recorded',
     JSON.stringify({ affiliate_id: affiliate.id, invoice_id: invoice.id }),
   );
+
+  // ─── Phase 26 Plan 26-02 — Anomaly correlation (AFFTIER-05, D-09) ─────────
+  //
+  // The affiliate-attribute Edge Fn writes anomaly_z_score rows into
+  // affiliate_fraud_signals on detection. At conversion time, surface today's
+  // most recent unreviewed signal onto the just-inserted conversion row as
+  // metadata. This is DEFAULT-TRUST: payment is NOT blocked, conversion
+  // status stays 'pending', flag is for admin /admin/affiliates/review (UI
+  // ships in Plan 26-05).
+  //
+  // Failure is non-fatal: a missing affiliate_fraud_signals table (e.g. in a
+  // partial-deploy scenario where Plan 26-01's migration hasn't landed yet),
+  // a missing anomaly_flagged column, or any other Postgres error MUST NOT
+  // block the conversion record. Try/catch around the whole block.
+  const insertedConvId = (insertedConv as { id: string } | null)?.id ?? null;
+  if (insertedConvId !== null) {
+    try {
+      const todayStartIso = new Date(
+        new Date().toISOString().slice(0, 10) + 'T00:00:00Z',
+      ).toISOString();
+
+      const { data: pendingSignals } = await admin
+        .from('affiliate_fraud_signals')
+        .select('id, payload, decision')
+        .eq('affiliate_id', affiliate.id)
+        .eq('signal_type', 'anomaly_z_score')
+        .is('decision', null)
+        .gte('created_at', todayStartIso)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (pendingSignals && pendingSignals.length > 0) {
+        const sig = pendingSignals[0] as { id: string; payload: { z_score?: number } | null };
+        const z = sig.payload?.z_score ?? null;
+        const { error: updErr } = await admin
+          .from('affiliate_conversions')
+          .update({ anomaly_flagged: true, anomaly_z_score: z })
+          .eq('id', insertedConvId);
+        if (updErr) {
+          console.error(
+            '[stripe-webhook/invoice-paid] anomaly flag UPDATE error (non-fatal)',
+            updErr.message,
+          );
+        } else {
+          console.log(
+            '[stripe-webhook/invoice-paid] anomaly flag applied',
+            JSON.stringify({
+              conversion_id: insertedConvId,
+              z_score: z,
+            }),
+          );
+        }
+      }
+    } catch (anomErr) {
+      // D-09 default-trust: never throw from the anomaly correlation path.
+      console.error(
+        '[stripe-webhook/invoice-paid] anomaly correlation error (non-fatal)',
+        anomErr instanceof Error ? anomErr.message : 'unknown',
+      );
+    }
+  }
 }
