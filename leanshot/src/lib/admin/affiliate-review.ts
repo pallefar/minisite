@@ -15,6 +15,8 @@
  * Error mapping mirrors the AdminApiError pattern from admin-api.ts.
  */
 import { supabase } from '@/lib/supabase';
+// Phase 26 Plan 26-05: anomaly delegates share AffiliateTierError mapping.
+import { anomalyReviewDecision } from './affiliate-tier';
 
 export type AffiliateReviewErrorCode =
   | 'not_staff'
@@ -101,4 +103,20 @@ export async function rejectAffiliateConversion(
     p_conversion_id: conversionId,
     p_reason: reason,
   });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 26 Plan 26-05 — anomaly review delegation (AFFTIER-05).
+//
+// Thin re-exports over admin_anomaly_review_decision so callers wiring the
+// Anomaly Review tab can import a domain-named helper without duplicating
+// the AffiliateTierError mapping. See affiliate-tier.ts for the error shape.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function confirmFraud(conversionId: string): Promise<void> {
+  return await anomalyReviewDecision(conversionId, 'fraud_confirmed');
+}
+
+export async function markClear(conversionId: string): Promise<void> {
+  return await anomalyReviewDecision(conversionId, 'clear');
 }
