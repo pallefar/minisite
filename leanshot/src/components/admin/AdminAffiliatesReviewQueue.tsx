@@ -1,28 +1,22 @@
 /**
  * Phase 22 Plan 22-07 — AdminAffiliatesReviewQueue (ADMIN-06).
+ * Phase 26 Plan 26-05 — extended into a 3-tab host per CONTEXT D-11.
  *
- * Operator review queue for affiliate conversions per UI-SPEC §/admin/affiliates
- * lines 268-274 + Copywriting lines 519-536. Extends the Phase 19 read-only
- * AdminAffiliatesScaffold by adding:
+ * Outer component now renders a segmented Pill switcher above one of three
+ * tab bodies:
  *
- *   - 6-state segmented filter Pill (All / Pending / Flagged / Approved /
- *     Rejected / On hold) with per-state count Badge.
- *   - 4 per-row actions: Approve, Hold, Pay out (tooltip-only, no-op trigger
- *     — cron 19-09 picks up `confirmed` rows on next monthly run), Reject
- *     (prompts for reason).
- *   - Fraud-signal badges column (one Badge per fraud_signals entry).
- *   - Row-expansion inline panel: Fraud signals · Payout history · Audit log
- *     mini-tables, per UI-SPEC line 272.
+ *   - Application Review (existing v1.2 body — unchanged, lifted into
+ *     `<ApplicationReviewBody />` internal component verbatim)
+ *   - Tier Management   (NEW — AFFTIER-01 admin grant flow + Freeze/Unfreeze)
+ *   - Anomaly Review    (NEW — AFFTIER-05 anomaly queue with per-row decisions)
  *
- * THIS COMPONENT IS THE OWNING WRITER for the `pending|flagged|on_hold →
- * confirmed` transitions per `feedback_status_machine_transition_owner.md`.
- * It closes Phase 19 BL-11 status-graph gap — without this surface the
- * monthly payout cron (19-09) silently ships $0 for every flagged row.
+ * The original Phase 19 BL-11 transition-owner contract for
+ * `pending|flagged|on_hold → confirmed` still lives inside ApplicationReviewBody.
  *
  * RLS contract: pol_affiliate_conversions_staff_all (migration 19-01) lets
  * is_staff callers read every conversion. The write path is gated server-side
- * by the SECURITY DEFINER RPCs (migration 20270601000019); the client gate
- * here is UX-only (Pattern S1 dual-layer).
+ * by the SECURITY DEFINER RPCs (migrations 20270601000019 + 20270701000011);
+ * the client gate here is UX-only (Pattern S1 dual-layer).
  */
 import { Mail } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -39,6 +33,8 @@ import {
   rejectAffiliateConversion,
 } from '@/lib/admin/affiliate-review';
 import { supabase } from '@/lib/supabase';
+import { AdminAffiliatesAnomalyTab } from './AdminAffiliatesAnomalyTab';
+import { AdminAffiliatesTierTab } from './AdminAffiliatesTierTab';
 
 type ConversionStatus =
   | 'pending'
@@ -118,20 +114,21 @@ function formatDate(iso: string | null): string {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 26 Plan 26-05 — Tab host shell
+// ─────────────────────────────────────────────────────────────────────────────
+
+type TabKey = 'application' | 'tier' | 'anomaly';
+const TIER_TABS: Array<{ key: TabKey; label: string }> = [
+  { key: 'application', label: 'Application Review' },
+  { key: 'tier', label: 'Tier Management' },
+  { key: 'anomaly', label: 'Anomaly Review' },
+];
+
 export function AdminAffiliatesReviewQueue() {
-  const toast = useToast();
   const [isStaff, setIsStaff] = useState<boolean | undefined>(undefined);
-  const [rows, setRows] = useState<ConversionRow[] | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [filter, setFilter] = useState<StatusFilter>('flagged');
-  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
-  const [busyRowId, setBusyRowId] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabKey>('application');
 
-  // Per-row expansion side-tables (lazy-loaded on first expand).
-  const [auditByRow, setAuditByRow] = useState<Record<string, AuditMiniRow[] | null>>({});
-  const [payoutsByAff, setPayoutsByAff] = useState<Record<string, PayoutMiniRow[] | null>>({});
-
-  // ── Initial probe + data load ─────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -149,18 +146,86 @@ export function AdminAffiliatesReviewQueue() {
       const staff = (profile as { is_staff?: boolean } | null)?.is_staff === true;
       if (cancelled) return;
       setIsStaff(staff);
-      if (!staff) return;
-      await reload();
     })().catch(() => {
       if (!cancelled) setIsStaff(false);
     });
     return () => {
       cancelled = true;
     };
-     
   }, []);
 
-  // ── Reload conversions ────────────────────────────────────────────────────
+  if (isStaff === undefined) return null;
+
+  if (!isStaff) {
+    return (
+      <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-6">
+        <Card variant="flat" padding="lg" className="max-w-md mx-auto mt-12 text-center">
+          <h1 className="text-xl font-semibold mb-2">This area is for admins only</h1>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            You don&apos;t have access to the affiliate review queue.
+          </p>
+          <a
+            href="/"
+            className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
+          >
+            Back to home →
+          </a>
+        </Card>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-6">
+      <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Affiliates</h1>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+            Review applications, manage tiers, and triage anomaly-flagged conversions.
+          </p>
+        </div>
+      </header>
+
+      <PillGroup segmented className="mb-6" aria-label="Affiliates section tabs">
+        {TIER_TABS.map((t) => (
+          <Pill
+            key={t.key}
+            size="sm"
+            active={tab === t.key}
+            onClick={() => setTab(t.key)}
+            role="tab"
+            aria-selected={tab === t.key}
+          >
+            {t.label}
+          </Pill>
+        ))}
+      </PillGroup>
+
+      {tab === 'application' && <ApplicationReviewBody />}
+      {tab === 'tier' && <AdminAffiliatesTierTab />}
+      {tab === 'anomaly' && <AdminAffiliatesAnomalyTab />}
+    </main>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Application Review body — lifted verbatim from v1.2 implementation.
+// Owns the pending|flagged|on_hold → confirmed transition (Phase 19 BL-11).
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ApplicationReviewBody() {
+  const toast = useToast();
+  const [rows, setRows] = useState<ConversionRow[] | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [filter, setFilter] = useState<StatusFilter>('flagged');
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  const [busyRowId, setBusyRowId] = useState<string | null>(null);
+
+  // Per-row expansion side-tables (lazy-loaded on first expand).
+  const [auditByRow, setAuditByRow] = useState<Record<string, AuditMiniRow[] | null>>({});
+  const [payoutsByAff, setPayoutsByAff] = useState<Record<string, PayoutMiniRow[] | null>>({});
+
+  // Reload conversions ──────────────────────────────────────────────────────
   const reload = async (): Promise<void> => {
     const { data, error } = await supabase
       .from('affiliate_conversions')
@@ -199,7 +264,11 @@ export function AdminAffiliatesReviewQueue() {
     setRows(normalized);
   };
 
-  // ── Per-state counts + filter ─────────────────────────────────────────────
+  useEffect(() => {
+    void reload();
+  }, []);
+
+  // Per-state counts + filter ──────────────────────────────────────────────
   const counts = useMemo(() => {
     const c: Record<StatusFilter, number> = {
       all: 0,
@@ -222,7 +291,7 @@ export function AdminAffiliatesReviewQueue() {
     return rows.filter((r) => r.status === filter);
   }, [rows, filter]);
 
-  // ── Action handlers ───────────────────────────────────────────────────────
+  // Action handlers ────────────────────────────────────────────────────────
   const runAction = async (
     rowId: string,
     op: 'approve' | 'hold' | 'reject',
@@ -258,7 +327,7 @@ export function AdminAffiliatesReviewQueue() {
     }
   };
 
-  // ── Row expansion (lazy-load side data on first open) ─────────────────────
+  // Row expansion (lazy-load side data on first open) ─────────────────────
   const toggleExpand = async (row: ConversionRow): Promise<void> => {
     const opening = expandedRowId !== row.id;
     setExpandedRowId(opening ? row.id : null);
@@ -306,39 +375,8 @@ export function AdminAffiliatesReviewQueue() {
     }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
-  if (isStaff === undefined) return null;
-
-  if (!isStaff) {
-    return (
-      <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-6">
-        <Card variant="flat" padding="lg" className="max-w-md mx-auto mt-12 text-center">
-          <h1 className="text-xl font-semibold mb-2">This area is for admins only</h1>
-          <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-            You don&apos;t have access to the affiliate review queue.
-          </p>
-          <a
-            href="/"
-            className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-          >
-            Back to home →
-          </a>
-        </Card>
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-6">
-      <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Affiliate conversions review</h1>
-          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            Approve eligible conversions so the monthly payout cron can ship transfers.
-          </p>
-        </div>
-      </header>
-
+    <>
       <PillGroup segmented className="mb-6" aria-label="Filter by conversion status">
         {STATUS_FILTERS.map((f) => (
           <Pill
@@ -574,7 +612,7 @@ export function AdminAffiliatesReviewQueue() {
           </table>
         </Card>
       )}
-    </main>
+    </>
   );
 }
 
