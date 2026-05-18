@@ -13,7 +13,9 @@
  *
  * PII / PHI safety (Phase 25 D-09):
  *   - Email body summary lines ONLY contain {affiliate_id, z_score, created_at}.
- *   - NEVER includes user_id, conversion_id, patient/medication keywords.
+ *   - NEVER includes user_id, conversion_id, or any PHI-class keywords
+ *     (the forbidden-keyword list lives in the sibling index.test.ts case
+ *     "email body is PHI-clean" — adding any here would break the grep gate).
  *   - Conversation context: this is a B2B operator email, not a marketing
  *     send. ADMIN_REVIEW_EMAIL_TO env var is the only recipient.
  *
