@@ -41,9 +41,10 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
   let clinicianUserIdX: string;   // a clinician member seeded into orgX for TC3
   let clinicianClientX: SupabaseClient;
   let secondOwnerUserIdX: string;  // second owner of orgX for TC5
-  const admin = getAdmin();
+  let admin: SupabaseClient;
 
   beforeAll(async () => {
+    admin = getAdmin();
     fixture = await createTwoOrgsTwoUsers(TEST_SLUG_PREFIX);
 
     // User A client (owner of Org X)

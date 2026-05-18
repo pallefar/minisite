@@ -46,9 +46,10 @@ describeIfLive('P31-04 RLS — org_onboarding_flows cross-tenant isolation', () 
   let fixture: TwoOrgsTwoUsers;
   let orgXFlowId: string;
   let userAClient: SupabaseClient;
-  const admin = getAdmin();
+  let admin: SupabaseClient;
 
   beforeAll(async () => {
+    admin = getAdmin();
     fixture = await createTwoOrgsTwoUsers(TEST_SLUG_PREFIX);
 
     // Per-org user clients — use fixture-provided accessToken per [[reference_rls_fixture_gotrueclient_flake]]

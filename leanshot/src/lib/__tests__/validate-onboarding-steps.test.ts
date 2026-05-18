@@ -37,7 +37,11 @@ const VALID_STEPS = [
 const describeIfLive = SHOULD_RUN ? describe : describe.skip;
 
 describeIfLive('_validate_onboarding_steps', () => {
-  const admin = getAdmin();
+  let admin: ReturnType<typeof getAdmin>;
+
+  beforeAll(() => {
+    admin = getAdmin();
+  });
 
   async function validate(steps: unknown): Promise<{ data: unknown; error: unknown }> {
     // Cast as any — function not in generated types (internal SECDEF)
