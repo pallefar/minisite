@@ -24,7 +24,7 @@ import { initReactI18next } from 'react-i18next';
 import { detectionOptions } from './detector-config';
 import { httpBackendOptions } from './http-backend-config';
 import { installMissingKeyHandler } from './missing-key-handler';
-import { overrideBackend } from './override-backend';
+import { overrideBackend, subscribeToOverrideUpdates } from './override-backend';
 import { profilesLocaleDetector } from './profiles-locale-detector';
 import { DEFAULT_LOCALE, LOCALE_CHOICES } from './types';
 
@@ -72,6 +72,13 @@ export async function initI18n(): Promise<void> {
     });
 
   installMissingKeyHandler(i18next);
+
+  // Plan 32-04 — wire the locale_overrides hot-patch surface AFTER init
+  // resolves. Subscribes to i18next 'loaded' events + a Supabase Realtime
+  // channel so admin Publish clicks propagate to every connected client
+  // without a page reload. Fail-soft inside: Supabase errors log a warning
+  // but never reject from initI18n().
+  subscribeToOverrideUpdates(i18next);
 
   // Reflect current language on <html lang="…"> for a11y + crawlers.
   i18next.on('languageChanged', (lng: string) => {

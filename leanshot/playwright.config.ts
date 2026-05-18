@@ -36,6 +36,13 @@ const P31_OPT_IN = process.env.PLAYWRIGHT_RUN_P31 === '1';
 // [[reference_playwright_conditional_project_argv]].
 const P27_OPT_IN = process.env.PLAYWRIGHT_RUN_P27 === '1';
 
+// Phase 32 Plan 32-04: opt-in admin locale-overrides e2e via
+// PLAYWRIGHT_RUN_P32_I18N=1. Requires live Supabase service-role + anon key
+// to exercise the locale_overrides table + Realtime broadcast + RLS isolation.
+// Excluded from the default chromium project via testIgnore so a bare
+// `npx playwright test` does not flake on missing creds.
+const P32_I18N_OPT_IN = process.env.PLAYWRIGHT_RUN_P32_I18N === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -66,6 +73,9 @@ export default defineConfig({
         /e2e\/clinic-brand-first-paint\.spec\.ts$/,
         /e2e\/patient-org-onboarding\.spec\.ts$/,
         /e2e\/admin-palette\.spec\.ts$/,
+        // Phase 32 Plan 32-04: admin locale-overrides e2e requires live
+        // Supabase Realtime + service-role; gated by PLAYWRIGHT_RUN_P32_I18N=1.
+        /e2e\/i18n-admin-override\.spec\.ts$/,
         // Phase 26 plan 26-01: AFFTIER-01/02 are VITEST live-DB specs (not Playwright).
         // They use vitest globals + supabase-js and run via `npm run test:e2e:rls`.
         // Plan body mandated the .spec.ts filename — exclude here so playwright
@@ -139,6 +149,17 @@ export default defineConfig({
           {
             name: 'p27',
             testMatch: [/e2e\/admin-palette\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 32 Plan 32-04 — opt-in admin locale-overrides e2e (Realtime + RLS).
+    // Invoke via `PLAYWRIGHT_RUN_P32_I18N=1 npx playwright test --project=p32-i18n`.
+    ...(P32_I18N_OPT_IN
+      ? [
+          {
+            name: 'p32-i18n',
+            testMatch: [/e2e\/i18n-admin-override\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]

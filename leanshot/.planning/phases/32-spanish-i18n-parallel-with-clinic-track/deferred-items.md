@@ -53,6 +53,19 @@ documents expected 401-before-body-parse semantics; the actual path appears
 to bypass auth and reach the body-parse error path. Owner: clinic-invite test
 maintainer pickup; non-blocking for plan 32-05 (the test is about pre-existing
 flow ordering, not about i18n).
+## Plan 32-04
+
+### admin-shell chunk delta over baseline (pre-existing + small new add)
+
+- **What:** `scripts/assert-bundle-budget.sh dist/assets` reports `admin-shell 94.89 kB OVER 45 kB ceiling` after Plan 32-04 lands. Baseline (main, no 32-04 code) measures `admin-shell 92.50 kB OVER` — so 32-04 contributed `+2.39 kB gz` for the LocaleOverridesModule + OverrideEditor + PublishButton + locale-overrides-client (4 new source files routed into admin-shell by the existing `src/components/admin/` → admin-shell manualChunks rule in vite.config.ts).
+- **Why pre-existing baseline cannot be solved here:** Plan 32-01 already documented the 45 kB ceiling as out-of-date for the post-Phase 27/28/29/30/31 admin surface (see entry above). The 32-04 add of +2.39 kB is well inside the noise vs the ~50 kB pre-existing overage and is consistent with what the plan budget anticipated (one new admin module).
+- **Fix owner:** NOT Plan 32-04. Same fix candidates as the 32-01 entry — lazy-split Page Builder out of admin-shell, OR raise the ceiling after a tree-shake / unused-export pass.
+- **Workaround for Plan 32-04:** None needed; the LocaleOverridesModule is lazy-loaded by AdminShell via `ADMIN_MODULES[i].lazy()`, so the +2.39 kB does NOT land on the initial paint of any non-admin user. Admin users already opt-in to this chunk by navigating to /admin.
+
+### i18n-runtime chunk well under ceiling
+
+- **What:** `scripts/assert-bundle-budget.sh dist/assets` reports `i18n-runtime 7.82 kB OK` (ceiling 25 kB, baseline ~7.21 kB). Plan 32-04's additions (`override-backend.ts` Realtime + applyOverrides) added ~0.6 kB gz to the i18n-runtime chunk. Comfortably under the 25 kB ceiling.
+
 ## Plan 32-02
 
 ### Bulk i18n wrap deferred to Plan 32-06 + 32-07 (intentional scope reduction)

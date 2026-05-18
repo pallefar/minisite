@@ -33,6 +33,7 @@ import {
   Shield as ShieldIcon,
   Building2 as Building2Icon,
   BookOpenCheck as BookOpenCheckIcon,
+  Globe as GlobeIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -230,6 +231,17 @@ export const ADMIN_MODULES = [
     icon: BookOpenCheckIcon,
     lazy: () => import('@/components/admin/rag/RagLayout'),
     flagKey: 'admin_rag_kb',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 32 Plan 32-04 I18N-08 — admin hot-patch surface for translation
+  // bugs. RLS-gated table (locale_overrides) + Realtime broadcast on Publish.
+  {
+    key: 'i18n-overrides',
+    label: 'Locale Overrides',
+    route: 'i18n-overrides',
+    icon: GlobeIcon,
+    lazy: () => import('@/components/admin/i18n/LocaleOverridesModule'),
+    flagKey: 'admin.i18n_overrides.enabled',
     minRole: 'admin' as AdminRole,
   },
 ] as const satisfies readonly AdminModule[];
