@@ -223,6 +223,22 @@ jobs:
         run: node scripts/audit-sentry-mask.ts
 
       # ─────────────────────────────────────────────────────────────────────
+      # Phase 25 Plan 25-10 — HIPAA-11 Notion mirror of /legal/hipaa/ policies.
+      # Runs only on push to main (not on PRs) so the Notion mirror reflects
+      # the merged, canonical state of each policy file. Secrets must be set as
+      # GitHub repo Secrets: NOTION_API_TOKEN + NOTION_HIPAA_PARENT_PAGE_ID.
+      # Credential-missing: script exits 0 (vendor-gated pattern) — CI does not
+      # fail while Notion integration is pending setup. Once credentials are set,
+      # CI failure on Notion API error is intentional (mirrors must stay current).
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Notion mirror of HIPAA policies (Phase 25 HIPAA-11)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          NOTION_API_TOKEN: ${{ secrets.NOTION_API_TOKEN }}
+          NOTION_HIPAA_PARENT_PAGE_ID: ${{ secrets.NOTION_HIPAA_PARENT_PAGE_ID }}
+        run: node scripts/notion-mirror-hipaa-policies.mjs
+
+      # ─────────────────────────────────────────────────────────────────────
       # Phase 13 Plan 13-06 D-04/D-05/D-06 — Visual regression suite (12
       # snapshots in e2e/visual/) runs as part of this `npm run test:e2e`
       # step. Playwright's testDir: './e2e' auto-discovers nested *.spec.ts,

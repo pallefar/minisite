@@ -30,3 +30,7 @@ apps/android/build/
 apps/android/app/build/
 **/xcuserdata/
 **/*.xcworkspace/xcuserdata/
+
+# Phase 25 Plan 25-10 — Notion mirror state (maps policy filename → Notion page ID)
+# Gitignored so that page IDs do not pollute git history; state is regenerable.
+scripts/.notion-mirror-state.json
