@@ -1,0 +1,17 @@
+{
+  "tasks": {
+    "test": "deno test --allow-env --allow-net --no-check ses-bounce-webhook.test.ts"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100
+  },
+  "imports": {
+    "@aws-sdk/client-sesv2": "npm:@aws-sdk/client-sesv2@^3.700.0"
+  }
+}
