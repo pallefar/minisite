@@ -511,7 +511,7 @@ Plans:
 | 28. Clinic Organizations — Schema + RLS Hardening | 7/8 | In Progress|  |
 | 29. Org Subscriptions + Per-Patient Metered Billing | 1/8 | In Progress|  |
 | 30. Clinician Dashboard + Custom Rank Weights + Dose-Trend Alerts | 0/6 | Planned | — |
-| 31. White-Label + Org Roles + Clinic Onboarding Builder | 4/8 | In Progress|  |
+| 31. White-Label + Org Roles + Clinic Onboarding Builder | 6/8 | In Progress|  |
 | 32. Spanish i18n | 0/? | Not started | — |
 | 33. Hourly Ad-Spend ETL | 0/? | Not started | — |
 | 34. M2 Onboarding Overhaul + Activation Event | 0/? | Not started | — |

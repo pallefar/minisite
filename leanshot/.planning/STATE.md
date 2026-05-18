@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: verifying
-stopped_at: Phase 31 planning complete (8 plans, plan-checker iter-2 PASSED)
-last_updated: "2026-05-18T08:13:25.337Z"
+stopped_at: Completed 31-03-PLAN.md
+last_updated: "2026-05-18T08:27:05.803Z"
 last_activity: 2026-05-18
 progress:
   total_phases: 27
   completed_phases: 4
   total_plans: 62
-  completed_plans: 35
+  completed_plans: 37
   percent: 15
 ---
 
@@ -54,7 +54,7 @@ Last activity: 2026-05-18
 
 Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
 
-Progress: [██████░░░░] 56%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -105,6 +105,7 @@ Progress: [██████░░░░] 56%
 | Phase 29 P00 | 8min | 3 tasks | 2 files |
 | Phase 30 P00 | 90min | 4 tasks | 12 files |
 | Phase 31 P00b | 6m | 3 tasks | 2 files |
+| Phase 31 P03 | 8 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,7 @@ Recent decisions affecting current work:
 - P30-05 (2026-05-18): _is_org_clinician SECDEF pattern — bypasses org_members RLS recursion; required for any table whose RLS queries org_members role
 - P30-05 (2026-05-18): Pre-validate before UPDATE when BEFORE UPDATE trigger can't fire on 0-row matches; use upsert instead
 - P30-05 (2026-05-18): Inside RETURNS TABLE(col_name,...) functions, always qualify WHERE references to avoid 42702 ambiguity with output column names
+- [Phase ?]: 31-03
 
 ### Pending Todos
 
@@ -177,8 +179,8 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-18T08:13:25.330Z
-Stopped at: Phase 31 planning complete (8 plans, plan-checker iter-2 PASSED)
+Last session: 2026-05-18T08:27:05.797Z
+Stopped at: Completed 31-03-PLAN.md
 Resume file: None
 
 ## Phase 25 plan-phase blocker (2026-05-17)
