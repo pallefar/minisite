@@ -12,6 +12,7 @@
  * - 'error':   error message + retry/close.
  */
 import { useState } from 'react';
+import { BulkJobProgress } from '@/components/admin/bulk/BulkJobProgress';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -19,7 +20,9 @@ import { useToast } from '@/hooks/useToast';
 import { buildAndDownloadCsv, executeBulkAction } from '@/lib/admin/bulk/action-handlers';
 import { BulkApiError, type BulkActionResult, type BulkActionType } from '@/lib/admin/bulk/types';
 
-type FlowState = 'confirm' | 'running' | 'done' | 'error';
+// Plan 27-06 extends FlowState with 'running-async' for the >100-row worker path.
+// The sync flow ('confirm' → 'running' → 'done' | 'error') is preserved unchanged.
+type FlowState = 'confirm' | 'running' | 'running-async' | 'done' | 'error';
 
 const ACTION_LABELS: Record<BulkActionType, { verb: string; titleVerb: string; reversible: boolean }> = {
   csv_export:           { verb: 'export',         titleVerb: 'Export',         reversible: false },
@@ -58,6 +61,8 @@ export function AdminBulkConfirmModal({
   const [tagInput, setTagInput] = useState('');
   const [daysInput, setDaysInput] = useState('30');
   const [resultSummary, setResultSummary] = useState<{ affected: number; undoToken: string | null } | null>(null);
+  // Plan 27-06: jobId captured from the async-branch RPC response; drives <BulkJobProgress>.
+  const [asyncJobId, setAsyncJobId] = useState<string | null>(null);
   const toast = useToast();
 
   const meta = ACTION_LABELS[actionType];
@@ -88,6 +93,16 @@ export function AdminBulkConfirmModal({
       }
 
       const result = await executeBulkAction(actionType, selectedIds, params);
+
+      // Plan 27-06: >100-row jobs return mode='async' + jobId — switch the
+      // running state into the progress-bar branch. The 'done' / 'error'
+      // transitions are driven by BulkJobProgress's onComplete/onError callbacks.
+      if (result.mode === 'async') {
+        setAsyncJobId(result.jobId);
+        setState('running-async');
+        onActionComplete?.({ result, actionType });
+        return;
+      }
 
       // csv_export: trigger client-side CSV download from the visible rows.
       // For v1 the rows are the selected ids only (no profile re-fetch — that
@@ -138,8 +153,8 @@ export function AdminBulkConfirmModal({
       onClose={onClose}
       title={`${meta.titleVerb} ${count} member${count === 1 ? '' : 's'}`}
       size="sm"
-      hideClose={state === 'running'}
-      dismissible={state !== 'running'}
+      hideClose={state === 'running' || state === 'running-async'}
+      dismissible={state !== 'running' && state !== 'running-async'}
     >
       {state === 'confirm' && (
         <div className="space-y-4">
@@ -187,6 +202,24 @@ export function AdminBulkConfirmModal({
         <div className="space-y-3">
           <p className="text-[14px] text-[var(--color-text-secondary)]">Working…</p>
         </div>
+      )}
+
+      {state === 'running-async' && asyncJobId && (
+        <BulkJobProgress
+          jobId={asyncJobId}
+          onComplete={({ rowsTotal, errorLog }) => {
+            setResultSummary({ affected: rowsTotal - errorLog.length, undoToken: null });
+            setState('done');
+          }}
+          onError={(errorLog) => {
+            setErrorMsg(
+              errorLog.length > 0
+                ? `Bulk action failed with ${errorLog.length} error${errorLog.length === 1 ? '' : 's'}.`
+                : 'Bulk action failed.',
+            );
+            setState('error');
+          }}
+        />
       )}
 
       {state === 'done' && resultSummary && (
