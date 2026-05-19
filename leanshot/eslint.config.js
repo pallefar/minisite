@@ -15,6 +15,9 @@ import { createRequire } from 'node:module';
 const _require = createRequire(import.meta.url);
 const additiveOnlyEventsRule = _require('./eslint-rules/additive-only-events.cjs');
 const noRawServiceRoleClientRule = _require('./eslint-rules/no-raw-service-role-client.cjs');
+// Phase 42 Plan 42-07 — no-conditional-native-review (D-20).
+// Folds P36 (review-prompt) + P42 (quarterly NPS) instruments under one rule.
+const noConditionalNativeReviewRule = _require('./eslint-rules/no-conditional-native-review.cjs');
 
 export default defineConfig([
   // Global ignores
@@ -284,6 +287,26 @@ export default defineConfig([
           },
         ],
       }],
+    },
+  },
+
+  // Phase 42 Plan 42-07 — D-20: no-conditional-native-review enforcement.
+  // Native review prompts (P36) and quarterly NPS modal (P42) must fire
+  // UNCONDITIONALLY at the call site. The rule walks ancestors of each matched
+  // CallExpression up to the enclosing function/program node; any IfStatement,
+  // ConditionalExpression, LogicalExpression, or SwitchCase ancestor reports
+  // 'conditionalSurface'.
+  //
+  // Scoped to leanshot/src/**/*.{ts,tsx} per the plan's D-20 surface boundary.
+  // Test files exempt — fixtures and assertions legitimately need conditionals.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/test-setup.ts'],
+    plugins: {
+      'leanshot-nps': { rules: { 'no-conditional-native-review': noConditionalNativeReviewRule } },
+    },
+    rules: {
+      'leanshot-nps/no-conditional-native-review': 'error',
     },
   },
 
