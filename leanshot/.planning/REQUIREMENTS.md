@@ -239,7 +239,7 @@
 - [ ] **POLISH-08**: Dark mode parity across all v1.3 new surfaces (admin shell + helpdesk + onboarding builder + clinic dashboard)
 - [ ] **POLISH-09**: WCAG 2.2 AA accessibility audit via axe-core in CI; keyboard nav + screen-reader labels + contrast + focus rings verified
 - [ ] **POLISH-10**: Public status page at `status.leanshot.app` via Better Stack ($12/mo); auto-incident detection from Sentry + Vercel + Supabase
-- [ ] **POLISH-11**: "What's New" in-app drawer surfaces shipped improvements (changelog-style, per-user dismissal state)
+- [x] **POLISH-11**: "What's New" in-app drawer surfaces shipped improvements (changelog-style, per-user dismissal state)
 - [ ] **POLISH-12**: Quarterly NPS survey (one-question + open-text follow-up) sent to active users; segmented by tenure + plan + cohort; results visible in admin
 
 ### WS19 — M4: Membership Tiers Extension (MEMBER, 4 REQ-IDs)
@@ -562,7 +562,7 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | POLISH-08 | Phase 42 | Pending |
 | POLISH-09 | Phase 42 | Pending |
 | POLISH-10 | Phase 41 | Pending |
-| POLISH-11 | Phase 42 | Pending |
+| POLISH-11 | Phase 42 | Complete |
 | POLISH-12 | Phase 42 | Pending |
 | MEMBER-01 | Phase 43 | Pending |
 | MEMBER-02 | Phase 43 | Pending |

@@ -533,7 +533,7 @@ Plans:
 | 39. A/B Trifecta — Paywall + Pharma + Page-Variant | 0/? | Not started | — |
 | 40. Cancellation Save-Offers | 0/? | Not started | — |
 | 41. Public Status Page + Embed-Provider Blocks | 0/? | Not started | — |
-| 42. v1.3 Polish Closeout | 0/? | Not started | — |
+| 42. v1.3 Polish Closeout | 8/11 | In Progress|  |
 | 43. M4 Membership Tiers Extension | 0/? | Not started | — |
 | 44. M4 Community Feed Foundation | 0/? | Not started | — |
 | 45. M4 Community Spaces + Directory + DMs + Leaderboard | 0/? | Not started | — |
