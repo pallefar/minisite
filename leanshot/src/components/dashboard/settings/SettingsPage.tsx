@@ -46,6 +46,7 @@ import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { ActiveSharesSection } from './ActiveSharesSection';
 import { DeleteAccountModal } from './DeleteAccountModal';
+import { NotificationsSubtab } from './NotificationsSubtab';
 import { PatientMfaCard } from './PatientMfaCard';
 import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 import { PhiAccessLogTab } from './PhiAccessLogTab';
@@ -575,13 +576,13 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
 
           {section === 'notifications' && (
-            <Section title="Notifications" body="Choose when LeanShot taps you on the shoulder.">
-              <Card variant="flat">
-                <p className="text-[13px] text-[var(--color-text-secondary)]">
-                  Email and push notifications aren&apos;t enabled yet — LeanShot is local-only by
-                  design. Save your data to a calendar reminder for now.
-                </p>
-              </Card>
+            <Section
+              title="Notifications"
+              body="Choose when LeanShot taps you on the shoulder."
+            >
+              {/* Phase 42 Plan 42-08 (POLISH-05/06): 5×3 matrix + push permission +
+                  snooze + caps + suppression banner. Replaces the v1.1 stub. */}
+              <NotificationsSubtab />
             </Section>
           )}
 
