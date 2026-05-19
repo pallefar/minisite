@@ -47,6 +47,10 @@ export type EmailTemplate =
   | 'receipt'
   | 'password_reset'
   | 'marketing_announcement'
+  // Phase 42 plan 42-07 (POLISH-12 D-21): quarterly NPS check-in.
+  // Non-PHI — no protected health data; just a numeric NPS score + free-text
+  // follow-up. Routes through Resend.
+  | 'nps_quarterly'
   // PHI (SES)
   | 'clinic_notification'
   | 'dose_alert'
@@ -125,6 +129,9 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
       return 'LeanShot: Shared patient data';
     case 'patient_access_log_notification':
       return 'LeanShot: Your data was accessed';
+    // Phase 42 plan 42-07 (POLISH-12 D-21) — quarterly NPS check-in.
+    case 'nps_quarterly':
+      return 'Quick check-in: how likely are you to recommend LeanShot?';
     default:
       return 'LeanShot Notification';
   }
@@ -160,6 +167,27 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
     case 'patient_access_log_notification': {
       const accessor = vars.accessor_name ? escapeHtml(String(vars.accessor_name)) : 'Someone';
       return `<html><body><h2>Data Access Notice</h2><p>${accessor} accessed your LeanShot data. This is a notification required under our HIPAA policies.</p></body></html>`;
+    }
+    // Phase 42 plan 42-07 (POLISH-12 D-21) — quarterly NPS check-in.
+    // The caller supplies `score_links` (array of {score:0..10, url:string}) as
+    // a pre-signed HMAC URL list. Non-PHI; routed through Resend.
+    case 'nps_quarterly': {
+      const quarter = vars.quarter ? escapeHtml(String(vars.quarter)) : 'this quarter';
+      const links = Array.isArray(vars.score_links) ? vars.score_links as Array<{ score: number; url: string }> : [];
+      const buttonRow = links
+        .map((l) => {
+          const safeUrl = encodeURI(String(l.url));
+          const safeScore = Number.isFinite(l.score) ? String(l.score) : '?';
+          return `<a href="${safeUrl}" style="display:inline-block;margin:2px;padding:8px 12px;border:1px solid #ccc;border-radius:4px;text-decoration:none;font-family:sans-serif;color:#0B1413;">${safeScore}</a>`;
+        })
+        .join('');
+      return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+<h2>Quick quarterly check-in</h2>
+<p>How likely are you to recommend LeanShot to a friend with similar goals? (${quarter})</p>
+<p style="margin:16px 0;"><strong>0 = Not at all likely &nbsp;&nbsp; 10 = Extremely likely</strong></p>
+<div>${buttonRow}</div>
+<p style="margin-top:24px;font-size:12px;color:#666;">One-click response — your feedback shapes the next quarter of features. If you have any thoughts, you can leave a follow-up note after clicking.</p>
+</body></html>`;
     }
     default:
       return `<html><body><p>LeanShot notification.</p></body></html>`;
