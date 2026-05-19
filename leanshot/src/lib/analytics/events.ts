@@ -345,6 +345,111 @@ export const EVENTS = {
       topic_tag: z.string().optional(),
     }),
   },
+
+  // ---------------------------------------------------------------------------
+  // Phase 42 Plan 42-08 (POLISH-05/06) — Smart notifications telemetry.
+  // 5 events: notification_sent (server-only via posthog-server.ts per D-34
+  // pattern; declared here for client-readable taxonomy + type-safety),
+  // notification_dismissed / _clicked / _snoozed / _permission_granted
+  // (client-fired from NotificationsSubtab + InAppNotificationToast +
+  // permission flow). No PHI fields — keep `phi:false` per event-def contract.
+  // ---------------------------------------------------------------------------
+  notification_sent: {
+    name: 'notification_sent',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    server_only: true,
+    description:
+      'A notification was fired by notification-send Edge Fn (one event per category × channel combo that actually delivered).',
+    payload: z.object({
+      category: z.enum(['dose-reminders', 'ai-insights', 'clinic-alerts', 'billing', 'marketing']),
+      channel: z.enum(['email', 'web-push', 'in-app']),
+      urgent: z.boolean().optional(),
+    }),
+  },
+  notification_dismissed: {
+    name: 'notification_dismissed',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description: 'User dismissed an in-app or web-push notification.',
+    payload: z.object({
+      category: z.enum(['dose-reminders', 'ai-insights', 'clinic-alerts', 'billing', 'marketing']),
+      channel: z.enum(['email', 'web-push', 'in-app']),
+    }),
+  },
+  notification_clicked: {
+    name: 'notification_clicked',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description: 'User clicked through on an in-app or web-push notification.',
+    payload: z.object({
+      category: z.enum(['dose-reminders', 'ai-insights', 'clinic-alerts', 'billing', 'marketing']),
+      channel: z.enum(['email', 'web-push', 'in-app']),
+    }),
+  },
+  notification_snoozed: {
+    name: 'notification_snoozed',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description: 'User snoozed a category from /settings/notifications.',
+    payload: z.object({
+      category: z.enum(['dose-reminders', 'ai-insights', 'clinic-alerts', 'billing', 'marketing']),
+      duration_days: z.number().int().refine((n) => [1, 7, 30].includes(n), {
+        message: 'duration_days must be 1, 7, or 30 (D-06)',
+      }),
+    }),
+  },
+  notification_permission_granted: {
+    name: 'notification_permission_granted',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description: 'User granted Notification.requestPermission inside the user-gesture flow (Pitfall 3).',
+    payload: z.object({
+      had_prior_subscription: z.boolean().optional(),
+    }),
+  },
+
+  // ---------------------------------------------------------------------------
+  // Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS instrument.
+  // SEPARATE from P36 review-prompt per D-19; same V13-3 BLOCKER UNCONDITIONAL
+  // principle covers both (no-conditional-native-review lint rule).
+  // nps_quarterly_sent — server-only (nps-quarterly-enqueue captures via
+  //                      posthog-server when Resend batch dispatches).
+  // nps_quarterly_responded — fires both server-side (respond Edge Fn) and
+  //                      client-side (QuarterlyNPSModal Submit); identical
+  //                      payload across channels so the funnel groups them.
+  // ---------------------------------------------------------------------------
+  nps_quarterly_sent: {
+    name: 'nps_quarterly_sent',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    server_only: true,
+    description:
+      'Server-only: a quarterly NPS email was dispatched to a user (D-21 email-first delivery).',
+    payload: z.object({
+      quarter: z.string(),
+      cohort: z.string().optional(),
+      plan_tier: z.string().optional(),
+    }),
+  },
+  nps_quarterly_responded: {
+    name: 'nps_quarterly_responded',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description:
+      'A user responded to the quarterly NPS survey (D-21). Fires server-side from the respond Edge Fn AND client-side from the in-app modal Submit.',
+    payload: z.object({
+      score: z.number().int().min(0).max(10),
+      responded_via: z.enum(['email', 'in-app']),
+    }),
+  },
 } as const satisfies Record<string, EventDef>;
 
 export type EventName = keyof typeof EVENTS;

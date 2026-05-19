@@ -31,3 +31,16 @@ Task 3 would fail at navigate on those 3 routes. Additionally, Playwright MCP `b
 
 **Status of 42-03 closure:** PARTIAL — 2/4 tasks shipped (Task 1 Tailwind pin commit `<task1>`, Task 2 dark-mode tokens commit `<task2>`). Task 3 + 4 deferred per above.
 
+
+## Pre-existing TS error in QuarterlyNPSModal.tsx (out of 42-08 scope)
+
+**Discovered during:** Plan 42-08 Task 1 typecheck (2026-05-19).
+
+**Issue:** `src/components/nps/QuarterlyNPSModal.tsx:119` calls `track('nps_quarterly_responded', ...)` but `nps_quarterly_responded` is NOT declared in `src/lib/analytics/events.ts` EVENTS map. tsc fails:
+```
+error TS2345: Argument of type '"nps_quarterly_responded"' is not assignable to parameter of type ...
+```
+
+**Why deferred:** This error pre-dates 42-08 (verified via `git stash` round-trip — tsc fails on `main` HEAD `6d8c351` BEFORE any 42-08 changes). Owned by Phase 42 Plan 42-11 (Quarterly NPS — the plan that should declare these events) or by whichever plan introduced `QuarterlyNPSModal.tsx`. 42-08 is the notifications UI plan, NOT the NPS plan.
+
+**Owner:** 42-11 plan-checker should catch this when it lands.
