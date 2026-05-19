@@ -24,8 +24,7 @@ import { isUserEligibleForQuarterlyNPS } from '@/lib/nps/quarterly-eligibility';
 import { QuarterlyNPSModal } from './QuarterlyNPSModal';
 
 // ---------------------------------------------------------------------------
-// Supabase mock — only `rpc` is exercised by the eligibility wrapper. The
-// modal itself uses raw `fetch`, mocked separately per test.
+// Supabase mock — both eligibility wrapper AND modal submit go through rpc.
 // ---------------------------------------------------------------------------
 const mockRpc = vi.fn();
 
@@ -106,25 +105,18 @@ describe('isUserEligibleForQuarterlyNPS — Plan 42-10 Task 1', () => {
 
 describe('<QuarterlyNPSModal /> — Plan 42-10 Task 1', () => {
   beforeEach(() => {
+    mockRpc.mockReset();
     mockCapture.mockReset();
-    vi.stubGlobal('fetch', vi.fn());
   });
 
   afterEach(() => {
     cleanup();
-    vi.unstubAllGlobals();
   });
 
   it('Modal T1: renders 5 star buttons + textarea + Submit + Skip', () => {
     const onClose = vi.fn();
     render(
-      <QuarterlyNPSModal
-        open
-        onClose={onClose}
-        nonce="n-1"
-        quarter="2026-Q2"
-        endpointUrl="https://test.local/fn"
-      />,
+      <QuarterlyNPSModal open onClose={onClose} nonce="n-1" quarter="2026-Q2" />,
     );
     // 5 stars with aria-label "Rate N star(s)".
     for (let i = 1; i <= 5; i++) {
@@ -139,37 +131,26 @@ describe('<QuarterlyNPSModal /> — Plan 42-10 Task 1', () => {
     expect(screen.getByRole('button', { name: /Skip this quarter/i })).toBeInTheDocument();
   });
 
-  it('Modal T2: click star 4 → submit POSTs { score: 8, comment, nonce, responded_via:in-app, skipped:false }', async () => {
+  it('Modal T2: click star 4 → submit calls submit_quarterly_nps_in_app RPC with {nonce, score:8, comment, skipped:false}', async () => {
     const user = userEvent.setup();
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', fetchMock);
+    mockRpc.mockResolvedValue({ data: { ok: true, quarter: '2026-Q3' }, error: null });
     const onClose = vi.fn();
-    render(
-      <QuarterlyNPSModal
-        open
-        onClose={onClose}
-        nonce="n-42"
-        quarter="2026-Q3"
-        endpointUrl="https://test.local/fn"
-      />,
-    );
+    render(<QuarterlyNPSModal open onClose={onClose} nonce="n-42" quarter="2026-Q3" />);
 
     await user.click(screen.getByRole('button', { name: 'Rate 4 stars' }));
     const textarea = screen.getByPlaceholderText(/Optional/i);
     await user.type(textarea, 'Great app');
     await user.click(screen.getByRole('button', { name: /Submit feedback/i }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    const [calledUrl, calledOpts] = fetchMock.mock.calls[0];
-    expect(calledUrl).toBe('https://test.local/fn');
-    expect(calledOpts.method).toBe('POST');
-    const body = JSON.parse(calledOpts.body as string);
-    expect(body.score).toBe(8); // 4 stars * 2 → 8 on 0-10 scale.
-    expect(body.comment).toBe('Great app');
-    expect(body.nonce).toBe('n-42');
-    expect(body.quarter).toBe('2026-Q3');
-    expect(body.responded_via).toBe('in-app');
-    expect(body.skipped).toBe(false);
+    await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(1));
+    const [rpcName, rpcArgs] = mockRpc.mock.calls[0];
+    expect(rpcName).toBe('submit_quarterly_nps_in_app');
+    expect(rpcArgs).toMatchObject({
+      p_nonce: 'n-42',
+      p_score: 8, // 4 stars * 2 → 8 on 0-10 scale.
+      p_comment: 'Great app',
+      p_skipped: false,
+    });
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(mockCapture).toHaveBeenCalledWith('nps_quarterly_responded', {
@@ -178,47 +159,29 @@ describe('<QuarterlyNPSModal /> — Plan 42-10 Task 1', () => {
     });
   });
 
-  it('Modal T3: Skip → POSTs { score: null, responded_via:in-app, nonce, skipped:true }', async () => {
+  it('Modal T3: Skip → RPC called with {nonce, score:null, skipped:true}', async () => {
     const user = userEvent.setup();
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', fetchMock);
+    mockRpc.mockResolvedValue({ data: { ok: true, quarter: '2026-Q3' }, error: null });
     const onClose = vi.fn();
-    render(
-      <QuarterlyNPSModal
-        open
-        onClose={onClose}
-        nonce="n-skip"
-        quarter="2026-Q3"
-        endpointUrl="https://test.local/fn"
-      />,
-    );
+    render(<QuarterlyNPSModal open onClose={onClose} nonce="n-skip" quarter="2026-Q3" />);
 
     await user.click(screen.getByRole('button', { name: /Skip this quarter/i }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    const [, calledOpts] = fetchMock.mock.calls[0];
-    const body = JSON.parse(calledOpts.body as string);
-    expect(body.score).toBeNull();
-    expect(body.responded_via).toBe('in-app');
-    expect(body.nonce).toBe('n-skip');
-    expect(body.skipped).toBe(true);
+    await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(1));
+    const [, rpcArgs] = mockRpc.mock.calls[0];
+    expect(rpcArgs).toMatchObject({
+      p_nonce: 'n-skip',
+      p_score: null,
+      p_skipped: true,
+    });
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('Modal T4: submit fails (non-ok response) → error banner + modal stays open', async () => {
+  it('Modal T4: submit fails (RPC error) → error banner + modal stays open', async () => {
     const user = userEvent.setup();
-    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 500 });
-    vi.stubGlobal('fetch', fetchMock);
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'rpc failed' } });
     const onClose = vi.fn();
-    render(
-      <QuarterlyNPSModal
-        open
-        onClose={onClose}
-        nonce="n-fail"
-        quarter="2026-Q3"
-        endpointUrl="https://test.local/fn"
-      />,
-    );
+    render(<QuarterlyNPSModal open onClose={onClose} nonce="n-fail" quarter="2026-Q3" />);
 
     await user.click(screen.getByRole('button', { name: 'Rate 5 stars' }));
     await user.click(screen.getByRole('button', { name: /Submit feedback/i }));
@@ -231,16 +194,18 @@ describe('<QuarterlyNPSModal /> — Plan 42-10 Task 1', () => {
 
   it('Modal T5: Submit disabled until a star is selected', () => {
     const onClose = vi.fn();
-    render(
-      <QuarterlyNPSModal
-        open
-        onClose={onClose}
-        nonce="n-1"
-        quarter="2026-Q2"
-        endpointUrl="https://test.local/fn"
-      />,
-    );
+    render(<QuarterlyNPSModal open onClose={onClose} nonce="n-1" quarter="2026-Q2" />);
     const submit = screen.getByRole('button', { name: /Submit feedback/i });
     expect(submit).toBeDisabled();
+  });
+
+  it('Modal T6: replayed=true (nonce already burned) → modal closes (treated as success)', async () => {
+    const user = userEvent.setup();
+    mockRpc.mockResolvedValue({ data: { ok: false, replayed: true }, error: null });
+    const onClose = vi.fn();
+    render(<QuarterlyNPSModal open onClose={onClose} nonce="n-replay" quarter="2026-Q3" />);
+    await user.click(screen.getByRole('button', { name: 'Rate 3 stars' }));
+    await user.click(screen.getByRole('button', { name: /Submit feedback/i }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 });

@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { capture } from '@/lib/analytics/capture';
 import { cn } from '@/lib/helpers';
+import { supabase } from '@/lib/supabase';
 
 export interface QuarterlyNPSModalProps {
   /** Render the modal open. Parent controls open/close lifecycle. */
@@ -34,19 +35,6 @@ export interface QuarterlyNPSModalProps {
   nonce: string;
   /** Current quarter (YYYY-QN), echoed back on submit for server consistency. */
   quarter: string;
-  /** Override the Edge Fn URL for testing. */
-  endpointUrl?: string;
-}
-
-/**
- * Resolve the Edge Fn URL.
- *
- * Production: `${VITE_SUPABASE_URL}/functions/v1/nps-quarterly-respond`.
- * Test / placeholder: caller can pass `endpointUrl` directly.
- */
-function defaultEndpointUrl(): string {
-  const base = import.meta.env.VITE_SUPABASE_URL ?? '';
-  return `${base}/functions/v1/nps-quarterly-respond`;
 }
 
 const STAR_VALUES = [1, 2, 3, 4, 5] as const;
@@ -56,8 +44,12 @@ export function QuarterlyNPSModal({
   onClose,
   nonce,
   quarter,
-  endpointUrl,
 }: QuarterlyNPSModalProps) {
+  // `quarter` is part of the API for documentation symmetry with the
+  // eligibility RPC response shape — the actual quarter is derived server-side
+  // via the nonce owner inside submit_quarterly_nps_in_app(). Reference it so
+  // the strict-unused-locals TS rule doesn't fail.
+  void quarter;
   const [stars, setStars] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -75,18 +67,31 @@ export function QuarterlyNPSModal({
     }
   }, [open]);
 
-  const post = useCallback(
-    async (body: Record<string, unknown>): Promise<boolean> => {
+  const submitRpc = useCallback(
+    async (args: {
+      score: number | null;
+      comment: string | null;
+      skipped: boolean;
+    }): Promise<boolean> => {
       setSubmitting(true);
       setErrorMessage(null);
       try {
-        const url = endpointUrl ?? defaultEndpointUrl();
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(body),
+        const { data, error } = await supabase.rpc('submit_quarterly_nps_in_app', {
+          p_nonce: nonce,
+          p_score: args.score,
+          p_comment: args.comment,
+          p_skipped: args.skipped,
         });
-        if (!res.ok) {
+        if (error) {
+          setErrorMessage("We couldn't save your response. Try again in a moment.");
+          setSubmitting(false);
+          return false;
+        }
+        // Treat both ok=true and replayed=true as "modal can close" — the
+        // server-side single-use ledger guarantees per-quarter uniqueness
+        // regardless of whether THIS call or a prior one wrote the row.
+        const result = (data ?? {}) as { ok?: boolean; replayed?: boolean };
+        if (!result.ok && !result.replayed) {
           setErrorMessage("We couldn't save your response. Try again in a moment.");
           setSubmitting(false);
           return false;
@@ -98,19 +103,16 @@ export function QuarterlyNPSModal({
         return false;
       }
     },
-    [endpointUrl],
+    [nonce],
   );
 
   const handleSubmit = useCallback(async () => {
     if (stars < 1 || stars > 5) return;
     const score = stars * 2; // 5-star → 0-10 NPS scale.
     const trimmedComment = comment.trim();
-    const ok = await post({
+    const ok = await submitRpc({
       score,
       comment: trimmedComment.length > 0 ? trimmedComment : null,
-      nonce,
-      quarter,
-      responded_via: 'in-app',
       skipped: false,
     });
     if (ok) {
@@ -122,22 +124,14 @@ export function QuarterlyNPSModal({
       }
       onClose();
     }
-  }, [stars, comment, nonce, quarter, post, onClose]);
+  }, [stars, comment, submitRpc, onClose]);
 
   const handleSkip = useCallback(async () => {
     // Per plan: a skip stores a row with score=NULL, responded_via='in-app'
-    // so we don't re-prompt this quarter. The Edge Fn handles the NULL-score
-    // branch via the `skipped: true` flag.
-    const ok = await post({
-      score: null,
-      comment: null,
-      nonce,
-      quarter,
-      responded_via: 'in-app',
-      skipped: true,
-    });
+    // (and skipped=true) so we don't re-prompt this quarter.
+    const ok = await submitRpc({ score: null, comment: null, skipped: true });
     if (ok) onClose();
-  }, [nonce, quarter, post, onClose]);
+  }, [submitRpc, onClose]);
 
   return (
     <Modal open={open} onClose={onClose} title="Quick quarterly check-in" size="md" mobileFullscreen>

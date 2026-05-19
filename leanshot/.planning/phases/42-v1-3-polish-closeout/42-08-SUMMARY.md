@@ -187,3 +187,13 @@ Commits verified (git log):
 This plan's final task is a `checkpoint:human-verify` gate. Per execution context, the orchestrator handles the deploy / live-fire steps inline (the gsd-executor agent does NOT resume after a checkpoint return). The verbatim resume-signal expected by the plan: **"notifications-verified"** once (a) permission grant works, (b) system push lands, (c) in-app toast renders, (d) snooze blocks fire.
 
 The full verification recipe (browser steps + curl smoke + DB inspection) is documented inline in `42-08-PLAN.md` Task 4 `<how-to-verify>`. Pre-conditions for the orchestrator to satisfy before initiating Task 4: dev server up on http://localhost:5173, a real test user signed in, VAPID public key reachable on the client, and the `notification-send` Edge Fn deployed (already shipped in 42-05).
+
+### Task 4 deferred to 42-11 (operator decision 2026-05-19)
+
+Operator chose to defer the live browser-push verify to Plan 42-11 (integration verify wave, bundles VoiceOver HUMAN-UAT + notification push e2e + other final-wave verifies).
+
+**Why:** Curl smoke-test from orchestrator was attempted; **blocked** because `notification-send` Edge Fn checks `Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')` via `constantTimeEqual` against the new Supabase `sb_secret_*` format auto-injected at Fn deploy. The legacy HS256 service-role JWT (what `supabase projects api-keys` returns) is rejected. The new `sb_secret_KMdbJ…` token is masked in CLI output → not extractable without dashboard. See [[supabase-service-role-key-format-divergence]].
+
+**Tasks 1-3 evidence remains strong:** 5/5 Deno unit tests + 6/6 integration tests (frequency-cap / sentiment-throttle / snooze / urgent / user-cap-downward / dismissal-fresh-user) + 31/31 a11y tests passing on the live build + Edge Fn deployed at 1.663 MB (`npm:web-push` bundled).
+
+POLISH-05/06 remain PARTIAL until 42-11 closes. The 4 invariants (permission / system push / in-app toast / snooze) are NOT proven yet — `42-11-PLAN.md` Task 4 (VoiceOver UAT) absorbs this verify; closing 42-11 also closes POLISH-05/06.
