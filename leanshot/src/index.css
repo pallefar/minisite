@@ -189,6 +189,41 @@
   --font-display-brand: var(--brand-heading-font, var(--font-display));
   --font-sans-brand: var(--brand-body-font, var(--font-sans));
   --radius-brand: var(--brand-radius, var(--radius));
+
+  /* ---- Phase 42 Plan 42-03 — v1.3 surface tokens (POLISH-08).
+     Each surface gets its own custom property so dark-mode parity can
+     be reasoned about per-surface (instead of every surface re-deriving
+     from --color-surface). Values pulled from existing v1.3 component
+     palettes; dark-mode counterparts live in [data-theme='dark'] below.
+  ---- */
+  /* POLISH-08 v1.3 SURFACE: admin shell (Phase 24) */
+  --color-admin-shell-bg: var(--color-cream-100);
+  --color-admin-sidebar: var(--color-cream-card);
+  --color-admin-table-row: var(--color-cream-card);
+  --color-admin-table-row-hover: var(--color-cream-200);
+
+  /* POLISH-08 v1.3 SURFACE: helpdesk (Phase 37 — scaffolded; route ships later) */
+  --color-helpdesk-msg-bg: var(--color-cream-card);
+  --color-helpdesk-msg-bg-mine: var(--color-teal-100);
+  --color-helpdesk-sidebar: var(--color-cream-200);
+
+  /* POLISH-08 v1.3 SURFACE: clinic dashboard (Phase 30) */
+  --color-clinic-dashboard-card: var(--color-cream-card);
+  --color-clinic-patient-row: var(--color-cream-card);
+
+  /* POLISH-08 v1.3 SURFACE: community feed (Phase 44 — scaffolded; route ships later) */
+  --color-community-post-bg: var(--color-cream-card);
+  --color-community-reaction-bar: var(--color-cream-200);
+
+  /* POLISH-08 v1.3 SURFACE: courses (Phase 46 — scaffolded; route ships later) */
+  --color-course-player-bg: #0b1413;
+  --color-course-lesson-row: var(--color-cream-card);
+  --color-course-progress-fill: var(--color-teal-500);
+
+  /* POLISH-08 v1.3 SURFACE: onboarding builder (Phase 31) */
+  --color-onboarding-builder-canvas: var(--color-cream-100);
+  --color-onboarding-builder-block-bg: var(--color-cream-card);
+  --color-onboarding-builder-handle: var(--color-teal-300);
 }
 
 /* ========================================================================
@@ -242,6 +277,43 @@
 
   /* v2: no paper-grain overlay in dark — `body { background-image: none }` rule below. */
   --grain-noise: none;
+
+  /* ---- Phase 42 Plan 42-03 — v1.3 surface tokens dark variants (POLISH-08).
+     Mirror the @theme block above; each surface gets readable contrast +
+     respects WCAG 2.2 AA (verified by the axe-core gate from Plan 42-02
+     once that gate is wired into CI). Surfaces flagged "scaffolded" land
+     when their owning phase ships (Phase 37 helpdesk, Phase 44 community,
+     Phase 46 courses); the tokens exist now so those phases can adopt
+     them without redefining dark-mode in their own plans.
+  ---- */
+  /* POLISH-08 v1.3 SURFACE: admin shell (Phase 24) */
+  --color-admin-shell-bg: #0b1413;
+  --color-admin-sidebar: #16201e;
+  --color-admin-table-row: #16201e;
+  --color-admin-table-row-hover: #1d2a28;
+
+  /* POLISH-08 v1.3 SURFACE: helpdesk (Phase 37 — scaffolded; route ships later) */
+  --color-helpdesk-msg-bg: #16201e;
+  --color-helpdesk-msg-bg-mine: #1a2c29;
+  --color-helpdesk-sidebar: #0f1a18;
+
+  /* POLISH-08 v1.3 SURFACE: clinic dashboard (Phase 30) */
+  --color-clinic-dashboard-card: #16201e;
+  --color-clinic-patient-row: #16201e;
+
+  /* POLISH-08 v1.3 SURFACE: community feed (Phase 44 — scaffolded; route ships later) */
+  --color-community-post-bg: #16201e;
+  --color-community-reaction-bar: #1d2a28;
+
+  /* POLISH-08 v1.3 SURFACE: courses (Phase 46 — scaffolded; route ships later) */
+  --color-course-player-bg: #07100f;
+  --color-course-lesson-row: #16201e;
+  --color-course-progress-fill: #6fcbb8;
+
+  /* POLISH-08 v1.3 SURFACE: onboarding builder (Phase 31) */
+  --color-onboarding-builder-canvas: #0b1413;
+  --color-onboarding-builder-block-bg: #16201e;
+  --color-onboarding-builder-handle: #6fcbb8;
 }
 
 /* ========================================================================
