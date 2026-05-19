@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { visualizer } from 'rollup-plugin-visualizer';
+// Phase 42 Plan 04 (POLISH-07) — PWA + offline foundation. injectManifest
+// strategy is required because Plan 42-08 adds a `push` event listener inside
+// the SW context (generateSW does not support arbitrary listeners).
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -20,6 +24,76 @@ export default defineConfig(({ mode }) => {
           gzipSize: true,
           brotliSize: true,
         }),
+      // Phase 42 Plan 04 — VitePWA plugin (POLISH-07).
+      //
+      // HIPAA constraint (Pitfall 1 / T-42-04-01): Workbox's runtime cache key
+      // is the request URL. `Authorization` headers do NOT discriminate cached
+      // responses, so caching authenticated Supabase API responses would leak
+      // PHI across users on the same PWA install. The runtime caching is
+      // owned entirely by src/sw.ts (injectManifest strategy) — see the
+      // explicit URL allowlist there for the three public-read endpoints:
+      //   /rest/v1/(kb_articles|changelog_entries|status_components)
+      // NEVER add an authenticated endpoint to that allowlist without first
+      // attaching a per-user cache-key plugin.
+      //
+      // Pitfall 9 mitigation: `injectRegister: false` keeps the auto-register
+      // glue OFF the index chunk; SW registration is lazy-imported via
+      // dynamic import() from src/App.tsx useEffect.
+      //
+      // Pitfall 5 mitigation: `devOptions.enabled: false` keeps the SW out of
+      // `vite` dev server so HMR is not intercepted by a stale precache.
+      //
+      // D-17: `skipWaiting: false` so the user controls the update via the
+      // "New version available — Reload" toast (Toast click → postMessage
+      // SKIP_WAITING → src/sw.ts handler skipWaiting()s).
+      VitePWA({
+        registerType: 'autoUpdate',
+        injectRegister: false,
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
+        devOptions: { enabled: false },
+        injectManifest: {
+          // Inherit the build-time precache manifest defaults; src/sw.ts owns
+          // the runtime caching strategies (workbox-routing registerRoute).
+          // No globPatterns override — VitePWA's defaults precache the build
+          // output (html/js/css/png/svg/woff2).
+        },
+        workbox: {
+          // injectManifest mode only consumes workbox.skipWaiting and
+          // workbox.clientsClaim from this block; everything else lives in
+          // src/sw.ts. D-17: do not auto-skipWaiting.
+          skipWaiting: false,
+          clientsClaim: true,
+        },
+        manifest: {
+          name: 'LeanShot',
+          short_name: 'LeanShot',
+          description:
+            'Clinical-grade GLP-1 medication tracker — drug-level curves, vial supply, AI coaching, and doctor-ready reports.',
+          theme_color: '#0B1413',
+          background_color: '#EFEBE0',
+          display: 'standalone',
+          start_url: '/',
+          scope: '/',
+          icons: [
+            { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+            { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+            {
+              src: 'maskable-icon-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+            {
+              src: 'apple-touch-icon.png',
+              sizes: '180x180',
+              type: 'image/png',
+              purpose: 'any',
+            },
+          ],
+        },
+      }),
       // Sentry plugin MUST be last per official guidance.
       // disable: !env.SENTRY_AUTH_TOKEN makes Preview + Development complete no-ops (D-22).
       // In Vercel Production (token set), the plugin uploads source maps then deletes

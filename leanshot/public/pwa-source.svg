@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LeanShot PWA icon source. Theme colors per CONTEXT 42-04 D-15/16:
+  background_color = #EFEBE0 (cream), theme_color = #0B1413 (deep teal).
+  Mark is a stylized "L" formed from a continuous-line stroke evoking the
+  HeroOrbital orbital arc (src/illustrations/HeroOrbital.tsx). Used by
+  @vite-pwa/assets-generator to produce 192/512/180 PNGs.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#0B1413"/>
+  <circle cx="256" cy="256" r="180" stroke="#EFEBE0" stroke-width="14" stroke-opacity="0.18" fill="none"/>
+  <path d="M 168 128 L 168 360 L 360 360" stroke="#EFEBE0" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="360" cy="360" r="24" fill="#EFEBE0"/>
+</svg>
