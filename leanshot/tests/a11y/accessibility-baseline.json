@@ -1,0 +1,127 @@
+{
+  "__meta": {
+    "captured_at": "2026-05-19T09:00:50.761Z",
+    "quarterly_review_due": "2026-08-17T09:00:50.761Z",
+    "reviewer_note": "Per Pitfall 10: re-baseline every quarter; aim to reduce blocking counts by >=1 per route"
+  },
+  "/": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/auth": {
+    "blocking": 3,
+    "moderate": 0
+  },
+  "/legal/privacy": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/legal/consumer-health": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/legal/terms": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/legal/disclaimer": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/medication": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/body": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/nutrition": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/mood": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/symptoms": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/activity": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/supplements": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/insights": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/settings": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/dashboard/settings/notifications": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/admin": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/admin/members": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/admin/metrics": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/admin/cohorts": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/admin/audit": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/admin/nps/quarterly": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/clinic/:slug/dashboard": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/clinic-invite": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/helpdesk": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/community/feed": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/courses/:slug": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/onboarding": {
+    "blocking": 2,
+    "moderate": 0
+  },
+  "/cancel-deletion": {
+    "blocking": 2,
+    "moderate": 0
+  }
+}

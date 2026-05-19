@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "test:mobile-unit": "vitest run --config vitest-mobile.config.ts",
     "test:mobile-e2e": "playwright test --project=mobile",
+    "test:a11y": "vitest run tests/a11y/axe-baseline.test.ts",
+    "test:a11y:update": "BASELINE_UPDATE=1 vitest run tests/a11y/axe-baseline.test.ts",
     "audit:privacy-manifest": "node scripts/audit-privacy-manifest.mjs",
     "audit:privacy": "node scripts/audit-privacy-manifest.mjs",
     "audit:privacy:test": "node --test scripts/audit-privacy-manifest.test.mjs",
