@@ -83,3 +83,19 @@ export function captureMessage(
     tags: options?.tags,
   });
 }
+
+/**
+ * Convenience wrapper for Phase 50 Plan 50-04 rag-scrape-runner contract.
+ * Equivalent to `captureException(err, { tags })` but matches the plan's
+ * named-arg shape so call sites read naturally:
+ *
+ *   sentryCapture(err, { 'rag.scraper.failed': '1', source_id, topic_id })
+ *
+ * Vendor-gated: no-op when SENTRY_DSN missing (delegates to captureException).
+ */
+export function sentryCapture(
+  err: unknown,
+  tags: Record<string, string> = {},
+): void {
+  captureException(err, { tags });
+}

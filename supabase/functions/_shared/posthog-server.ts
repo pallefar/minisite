@@ -154,6 +154,48 @@ export function captureServer(args: CaptureArgs): void {
 }
 
 /**
+ * Phase 50 Plan 50-04 — Deno-runtime port of Plan 50-03's captureRagEvent.
+ *
+ * Plan 50-03 placed captureRagEvent at `leanshot/src/lib/posthog/posthog-server.ts`
+ * (Vite/Node side) because no Edge Fn factory existed for it. Plan 50-04's
+ * rag-scrape-runner needs a Deno-runtime equivalent — that's this function.
+ *
+ * Differences from the Vite-side helper:
+ *   - distinctId defaults to 'rag-system' (Phase 50 D-34: server-emitted scrape
+ *     telemetry has no user; rag-system is the canonical system actor id).
+ *   - Defensively scrubs PHI properties (user_id, patient_id) before capture.
+ *   - Reuses the same env-gated PostHog client (`getClient()`) as captureServer
+ *     so we share the events_mirror dual-write infrastructure when called from
+ *     plans 50-06 / 50-08.
+ *
+ * The runner MUST still wrap the request handler in `try/finally { await
+ * shutdownPostHog() }` per D-13 — same constraint as captureServer.
+ */
+export function captureRagEvent(args: {
+  /** Defaults to 'rag-system' for cron-driven events; pass userId for user-triggered. */
+  distinctId?: string;
+  /** Event name — should be one of the rag_* events from Plan 50-03 events.ts. */
+  name: string;
+  /** Properties; user_id / patient_id are stripped defensively before send. */
+  properties?: Record<string, unknown>;
+}): void {
+  const distinctId = args.distinctId ?? 'rag-system';
+  if (!distinctId || !distinctId.trim()) {
+    throw new Error('[posthog-server] captureRagEvent: distinctId required');
+  }
+  // Defensive PHI scrub (defense-in-depth atop events.phi.ts ESLint rule).
+  const scrubbed: Record<string, unknown> = { ...(args.properties ?? {}) };
+  delete scrubbed.user_id;
+  delete scrubbed.patient_id;
+  const c = getClient();
+  if (c) {
+    c.capture({ distinctId, event: args.name, properties: scrubbed });
+  }
+  // events_mirror dual-write is intentionally skipped for rag_* system events —
+  // anomaly cron only consumes user-attributed events. Plan 50-09 may revisit.
+}
+
+/**
  * Flush all queued events and shut down the posthog-node client.
  *
  * MUST be called in the `finally` block of every Edge Function handler that
