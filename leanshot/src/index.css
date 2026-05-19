@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Resolve Tailwind's `dark:` utility prefix to our existing data-theme
+   attribute toggle (not prefers-color-scheme). Required by Tailwind v4
+   beta — see Phase 42 RESEARCH.md Pitfall 7. */
+@variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /* ========================================================================
    LEANSHOT DESIGN SYSTEM v2 — Clinical warmth.
 
