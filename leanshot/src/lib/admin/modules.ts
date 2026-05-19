@@ -35,6 +35,8 @@ import {
   BookOpenCheck as BookOpenCheckIcon,
   Globe as GlobeIcon,
   TrendingUp as TrendingUpIcon,
+  // Phase 42 Plan 42-10 — Quarterly NPS admin module icon.
+  Smile as SmileIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -258,6 +260,22 @@ export const ADMIN_MODULES = [
         default: m.CACDashboardPage,
       })),
     flagKey: 'admin.growth.cac.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 42 Plan 42-10 (POLISH-12 D-24) — Quarterly NPS admin dashboard.
+  // Reads from quarterly_nps_responses via get_quarterly_nps_dashboard SECDEF RPC
+  // (is_admin_at_least('admin') gate inside; client minRole='admin' is the
+  // Pattern S1 UX layer). Flag key follows the admin.<key>.enabled convention.
+  {
+    key: 'nps-quarterly',
+    label: 'Quarterly NPS',
+    route: 'nps/quarterly',
+    icon: SmileIcon,
+    lazy: () =>
+      import('@/components/admin/QuarterlyNPSDashboard').then((m) => ({
+        default: m.QuarterlyNPSDashboard,
+      })),
+    flagKey: 'admin.nps_quarterly.enabled',
     minRole: 'admin' as AdminRole,
   },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
