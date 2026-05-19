@@ -43,6 +43,15 @@ const P27_OPT_IN = process.env.PLAYWRIGHT_RUN_P27 === '1';
 // `npx playwright test` does not flake on missing creds.
 const P32_I18N_OPT_IN = process.env.PLAYWRIGHT_RUN_P32_I18N === '1';
 
+// Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
+// Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
+// pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
+// [[reference_playwright_conditional_project_argv]] (env var only — argv
+// detection fails in worker subprocesses). The default chromium project
+// excludes this spec via testIgnore so a bare `npx playwright test` doesn't
+// flake on missing creds.
+const NOTIFICATION_OPT_IN = process.env.PLAYWRIGHT_NOTIFICATION_RUN === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -82,6 +91,9 @@ export default defineConfig({
         // doesn't try to load them.
         /e2e\/affiliate-tier-stamping\.spec\.ts$/,
         /e2e\/affiliate-tier-promotion\.spec\.ts$/,
+        // Phase 42 Plan 42-08: notification settings e2e requires live
+        // Supabase Realtime + service-role; gated by PLAYWRIGHT_NOTIFICATION_RUN=1.
+        /e2e\/notification-settings\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -160,6 +172,17 @@ export default defineConfig({
           {
             name: 'p32-i18n',
             testMatch: [/e2e\/i18n-admin-override\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (Realtime + RLS).
+    // Invoke via `PLAYWRIGHT_NOTIFICATION_RUN=1 npx playwright test --project=p42-notifications`.
+    ...(NOTIFICATION_OPT_IN
+      ? [
+          {
+            name: 'p42-notifications',
+            testMatch: [/e2e\/notification-settings\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
