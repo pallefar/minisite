@@ -403,6 +403,16 @@ const MigrationModal = lazy(() =>
   import('@/components/sync/MigrationModal').then((m) => ({ default: m.MigrationModal })),
 );
 
+// Phase 42 Plan 04 (POLISH-07) — PWA glue components. Both lazy-loaded so
+// the workbox-window glue + branded prompt UI never reach the index chunk
+// (Pitfall 9 mitigation; the index ceiling stays at 50 kB gz).
+const OfflineBanner = lazy(() =>
+  import('@/components/pwa/OfflineBanner').then((m) => ({ default: m.OfflineBanner })),
+);
+const InstallPromptCard = lazy(() =>
+  import('@/components/pwa/InstallPromptCard').then((m) => ({ default: m.InstallPromptCard })),
+);
+
 type View =
   | 'marketing'
   | 'onboarding'
@@ -1190,6 +1200,39 @@ export function App() {
     return () => window.removeEventListener('leanshot:replay-tour', onReplay);
   }, []);
 
+  // Phase 42 Plan 04 (POLISH-07) — bootstrap PWA service worker registration +
+  // install-prompt + offline store AFTER first paint.
+  //
+  // Pitfall 9: dynamic import keeps workbox-window glue OFF the index chunk.
+  // D-17: onUpdate fires a persistent toast with a Reload button; clicking
+  //       reload triggers window.location.reload() which picks up the new
+  //       bundle (src/sw.ts handles SKIP_WAITING on the same client tick).
+  // D-18: initializePWA early-returns inside Capacitor (capacitor-shim).
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      import('@/lib/pwa/register'),
+      import('@/lib/pwa/install-prompt'),
+      import('@/lib/pwa/offline-store'),
+    ]).then(([reg, installPrompt, offlineStore]) => {
+      if (cancelled) return;
+      installPrompt.initializeInstallPromptModule();
+      offlineStore.initializeOfflineStore();
+      reg.initializePWA(() => {
+        useStore
+          .getState()
+          .showToast('New version available — tap to reload.', 'info', 60_000);
+        // The toast is a passive notification; the user reloads via the
+        // browser refresh button (or the Settings drawer's update CTA in a
+        // future polish). This avoids coupling Toast to a button-action API
+        // which the current DS does not expose.
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // D-11: fire `disclaimer_required` when the dashboard-render fallback first
   // appears. Fires once per false→true transition; if the user dismisses then
   // re-triggers (e.g. a hypothetical 'v1' → 'v2' version bump), it fires again
@@ -1611,6 +1654,14 @@ export function App() {
           onAcknowledge={() => useStore.getState().acknowledgeDisclaimer('v1')}
         />
       )}
+
+      {/* Phase 42 Plan 04 (D-13, D-16) — PWA glue overlays. OfflineBanner
+          self-renders nothing when navigator.onLine; InstallPromptCard
+          self-renders nothing until visits>=3 + beforeinstallprompt captured. */}
+      <Suspense fallback={null}>
+        <OfflineBanner />
+        <InstallPromptCard />
+      </Suspense>
     </>
   );
 }

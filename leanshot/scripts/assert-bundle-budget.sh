@@ -62,13 +62,19 @@ for entry in "${CHUNK_CONFIG[@]}"; do
   ceiling=$(echo "$entry" | awk '{print $2}')
   hint=$(echo "$entry" | awk '{$1=$2=""; sub(/^[ \t]+/, ""); print}')
 
-  # Hash-hyphen-safe regex: chunk name fully expanded; only trailing `-[hex8+].js`
-  # treated as hash. Chunk names with hyphens (e.g. course-player) still match
-  # correctly because we anchor to the exact chunk name followed by `-[a-f0-9]{8,}.js`.
-  # Vite hashes use base64url-like chars (alphanumeric + underscore/hyphen).
-  # Use [A-Za-z0-9_] to match all Vite hash chars, anchored after the chunk name.
+  # Hash-hyphen-safe regex: Vite content hashes are exactly 8 chars from the
+  # base64url charset `[A-Za-z0-9_-]`. Phase 42 Plan 04 Task 2 hit a build that
+  # produced `index-BIGRN-KO.js` (hash `BIGRN-KO` contains a hyphen); the
+  # previous regex `[A-Za-z0-9_]\{8,\}` excluded `-` and reported the chunk as
+  # MISSING (ceiling un-enforced). Fix: require EXACTLY 8 base64url chars
+  # `[A-Za-z0-9_-]\{8\}` so the regex (a) accepts hyphen-containing hashes and
+  # (b) does not greedily match longer suffixes like `clinic-invite-XXXXXXXX`
+  # for `chunk=clinic` (that would require 8 chars + .js immediately after
+  # `clinic-`, which fails on the longer chunk name). See
+  # [[reference_bundle_budget_hash_hyphen]] (Plan 10-11 fixed the parallel
+  # `assert-clinic-bundle-budget.sh`).
   files=$(find "$DIST" -maxdepth 1 -type f \
-    -regex ".*/${chunk}-[A-Za-z0-9_]\{8,\}\.js$" 2>/dev/null || true)
+    -regex ".*/${chunk}-[A-Za-z0-9_-]\{8\}\.js$" 2>/dev/null || true)
 
   if [ -z "$files" ]; then
     printf "%-24s %12s %12s %8s\n" "$chunk" "$ceiling" "0" "MISSING"
