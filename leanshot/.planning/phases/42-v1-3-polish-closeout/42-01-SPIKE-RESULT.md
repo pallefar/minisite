@@ -1,8 +1,9 @@
 # 42-01 Spike Result — Web Push signing path decision
 
-> **Status: PARTIAL — Task 2 complete, Task 3 (browser-push human-verify) pending.**
-> Final decision (`npm:web-push` works ✅ or fallback required ⚠️) is locked once
-> Task 3 confirms a real browser push notification was delivered.
+> **Status: ACCEPTED — Task 3 (browser-push end-to-end verify) SKIPPED by operator decision 2026-05-19.**
+> **Decision (provisional, deploy-time only): `npm:web-push@3.6.7` primary path.** Evidence is Task 2 deploy success (128.7 kB bundle, no resolver errors, Fn ACTIVE). Runtime correctness (a real FCM/Mozilla push reaching a browser) is NOT proven here — that risk is deferred to the **first send in Wave 2 plan 42-05/42-08**.
+>
+> **Wave 2 hot-patch contingency:** If the first production push from `notification-send` throws (e.g. `npm:web-push` runtime-fails in Deno Edge, unknown until exercised), fall back to the `crypto.subtle` ECDSA P-256 path implemented in `supabase/functions/spike-web-push/index.ts` (the helpers `importVapidPrivateKey` + `signVapidJwt` + the `Authorization: vapid t=<jwt>, k=<pubKey>` POST pattern). Spike Fn left deployed for one Wave 2 cycle as the reference; decommission in plan 42-11.
 
 ## Task 2 outcome (auto-recorded)
 
@@ -40,7 +41,12 @@ If Task 3 reports `path: "crypto.subtle-fallback"` → Wave 2 imports the helper
 
 ## Sample successful send (filled by Task 3)
 
-_(awaiting Task 3 human-verify — curl + response JSON + Chrome DevTools `PUSH ...` console-log evidence will be pasted here)_
+**SKIPPED 2026-05-19** per operator decision. Playwright MCP attempt to subscribe + curl was rejected; operator chose "accept Task 2 deploy as proof-of-concept" rather than run the verify in a real browser. No `path` field captured at runtime; `npm:web-push` is the working assumption based on bundler success alone.
+
+**If Wave 2 first send fails**, run the deferred verify by:
+1. Subscribe in real Chrome: paste the executor's DevTools snippet from the original Task 3 checkpoint (uses `VITE_VAPID_PUBLIC_KEY`).
+2. `curl -X POST https://ytnsipxxmzgaebkqmokp.functions.supabase.co/spike-web-push -H 'Content-Type: application/json' -d '{"endpoint":"...","p256dh":"...","auth":"...","payload":"hello from 42-01"}'`
+3. Record the JSON response's `path` field here; if `npm:web-push` → file Wave 2 bug as gateway / payload-encryption issue not signing-path issue. If `crypto.subtle-fallback` → patch `notification-send` Edge Fn to import the spike's helpers per the **Wave 2 hot-patch contingency** above.
 
 ## Caveats for Wave 2
 
