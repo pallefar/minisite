@@ -96,6 +96,90 @@ jobs:
           # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + SUPABASE_ANON_KEY above are
           # all that's required — no SUPABASE_JWT_SECRET env line.
 
+  # ───────────────────────────────────────────────────────────────────────
+  # Phase 42 Plan 42-02 (POLISH-09) — WCAG 2.2 AA baseline-tracked CI gate.
+  # axe-core@4.11.4 scans every route in tests/a11y/routes-manifest.ts.
+  # Per D-09: blocks PR merge ONLY when blocking-severity (critical/serious)
+  # violations exceed the per-route baseline in
+  # leanshot/tests/a11y/accessibility-baseline.json. Pre-existing v1.1/v1.2
+  # debt is grandfathered. Per D-10: moderate violations are reported on
+  # the PR (non-blocking); minor violations are ignored.
+  # Per RESEARCH validation §Sampling Rate: runs on every PR + every merge.
+  # Pitfall 10: quarterly_review_due field in baseline __meta forces a
+  # cadence to lower counts; reviewer expectation = >=1 reduction per route.
+  # ───────────────────────────────────────────────────────────────────────
+  test-a11y:
+    name: a11y baseline gate (WCAG 2.2 AA)
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+      - run: npm ci
+
+      # Run the baseline gate. Fails if any route's blocking count exceeds
+      # the baseline. Suite target: <60s for the full route set (D-10).
+      - name: a11y baseline gate
+        id: a11y_gate
+        run: npm run test:a11y
+
+      # ─────────────────────────────────────────────────────────────────
+      # Moderate-violations diff (D-10): re-run the suite in capture mode
+      # to a scratch file, diff vs baseline, and post a PR comment if any
+      # route's moderate count rose. Non-blocking — the previous step is
+      # the merge gate. `if: always() && github.event_name == 'pull_request'`
+      # so the comment posts even when the gate above fails (so reviewer
+      # sees both blocking + moderate context in one place).
+      # ─────────────────────────────────────────────────────────────────
+      - name: a11y moderate-violations capture
+        if: always() && github.event_name == 'pull_request'
+        id: a11y_moderate
+        run: |
+          # Capture current counts into a scratch file (does not overwrite
+          # the committed baseline because A11Y_OUTPUT_PATH redirects).
+          A11Y_OUTPUT_PATH=/tmp/a11y-current.json \
+            BASELINE_UPDATE=1 \
+            npx vitest run tests/a11y/axe-baseline.test.ts || true
+          # Compute moderate-only diff vs baseline.
+          node -e "
+            const fs = require('fs');
+            const base = JSON.parse(fs.readFileSync('tests/a11y/accessibility-baseline.json','utf-8'));
+            const cur  = JSON.parse(fs.readFileSync('/tmp/a11y-current.json','utf-8'));
+            const out = [];
+            for (const [k,v] of Object.entries(cur)) {
+              if (k === '__meta') continue;
+              const baseModerate = (base[k] && base[k].moderate) || 0;
+              if (v.moderate > baseModerate) {
+                out.push('- ' + k + ': moderate ' + baseModerate + ' -> ' + v.moderate);
+              }
+            }
+            if (out.length === 0) {
+              console.log('No moderate-severity regressions.');
+              process.exit(0);
+            }
+            const body = 'a11y moderate-severity violations rose vs baseline on ' + out.length + ' route(s) (non-blocking; review at next quarterly cadence):\\n' + out.join('\\n');
+            fs.writeFileSync('/tmp/a11y-moderate-diff.md', body);
+            console.log(body);
+          " || true
+
+      - name: Post a11y moderate-diff PR comment
+        if: always() && github.event_name == 'pull_request' && hashFiles('/tmp/a11y-moderate-diff.md') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/a11y-moderate-diff.md', 'utf-8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
   test-e2e:
     name: E2E smoke + production-build security check
     runs-on: ubuntu-latest

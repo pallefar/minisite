@@ -108,7 +108,10 @@ describe('axe-baseline (WCAG 2.2 AA, baseline-tracked)', () => {
         ...capturedCounts,
       } as BaselineFile;
 
-      const outPath = join(
+      // CI redirects via A11Y_OUTPUT_PATH=/tmp/... for the non-blocking
+      // moderate-diff capture step in .github/workflows/ci.yml (D-10).
+      // Default path is the committed baseline file.
+      const outPath = process.env.A11Y_OUTPUT_PATH ?? join(
         dirname(fileURLToPath(import.meta.url)),
         'accessibility-baseline.json',
       );
