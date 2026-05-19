@@ -1227,6 +1227,15 @@ export function App() {
         // future polish). This avoids coupling Toast to a button-action API
         // which the current DS does not expose.
       });
+      // TEST HOOK — leanshot e2e/pwa-*.spec.ts: ready flag tested before
+      // context.setOffline() so the e2e knows the offline-store has
+      // installed its 'online'/'offline' listeners. NOT used by app code.
+      try {
+        (window as unknown as { __leanshot_pwa_ready?: boolean }).__leanshot_pwa_ready = true;
+        window.dispatchEvent(new Event('leanshot:pwa-ready'));
+      } catch {
+        // jsdom or older browser — ignore.
+      }
     });
     return () => {
       cancelled = true;
@@ -1294,6 +1303,16 @@ export function App() {
       <ImpersonationBanner />
       <SoftDeleteCountdownBanner />
       <CookieConsentBootstrap />
+      {/* Phase 42 Plan 04 (D-13, D-16) — OfflineBanner is a global signal
+          (every view). InstallPromptCard self-gates internally on
+          visits>=3 + captured beforeinstallprompt + state not
+          installed/dismissed + snooze expired; mounting it globally is
+          safe and lets the prompt surface from any view once the
+          engagement signal trips. */}
+      <Suspense fallback={null}>
+        <OfflineBanner />
+        <InstallPromptCard />
+      </Suspense>
     </>
   );
 
@@ -1655,13 +1674,6 @@ export function App() {
         />
       )}
 
-      {/* Phase 42 Plan 04 (D-13, D-16) — PWA glue overlays. OfflineBanner
-          self-renders nothing when navigator.onLine; InstallPromptCard
-          self-renders nothing until visits>=3 + beforeinstallprompt captured. */}
-      <Suspense fallback={null}>
-        <OfflineBanner />
-        <InstallPromptCard />
-      </Suspense>
     </>
   );
 }

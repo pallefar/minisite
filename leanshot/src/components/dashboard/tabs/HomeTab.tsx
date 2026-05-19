@@ -1,5 +1,5 @@
 import { Lightbulb } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { EffectivenessCard } from '@/components/dashboard/cards/EffectivenessCard';
 import { FocusCard } from '@/components/dashboard/cards/FocusCard';
 import { GLPCurveCard } from '@/components/dashboard/cards/GLPCurveCard';
@@ -15,6 +15,25 @@ import { useStore } from '@/lib/store';
 
 export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
   const setTab = useStore((s) => s.setTab);
+
+  // Phase 42 Plan 04 (D-16) — track dashboard visits for the deferred install
+  // prompt. Lazy-imported so the install-prompt module stays in its existing
+  // PWA lazy chunk (no impact on HomeTab's chunk size).
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      import('@/lib/pwa/install-prompt'),
+      import('@/hooks/useInstallPrompt'),
+    ]).then(([ip, hook]) => {
+      if (cancelled) return;
+      ip.recordDashboardVisit();
+      hook.notifyInstallPromptTick();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // generateInsights returns a fresh array each call — using it as a Zustand
   // selector makes useSyncExternalStore's snapshot unstable. Subscribe to
   // raw slices and memoize the derived [0] insight.
