@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: ready_to_plan
-stopped_at: Phase 34 context gathered (4/4 gray areas locked; 20 decisions); Phase 36 + 37 + 41 + 51 plan-phase pending top-level re-invoke (runner-pool blocker)
-last_updated: 2026-05-19T00:30:00Z
-last_activity: 2026-05-19 -- background plan Phase 41 halted at researcher-spawn (expected, runner-pool blocker); Phase 36 + 37 + 51 also pending top-level re-invoke
+stopped_at: Phase 34 context gathered (4/4 gray areas locked; 20 decisions); Phase 36 + 37 + 40 + 41 + 51 plan-phase pending top-level re-invoke (runner-pool blocker); Phase 40 UI-SPEC committed e83b7a1
+last_updated: 2026-05-19T00:45:00Z
+last_activity: 2026-05-19 -- background plan Phase 40 halted at researcher-spawn (expected, runner-pool blocker); UI-SPEC.md inlined + committed before halt (3 surfaces, 7 dimensions PASS); Phase 36 + 37 + 41 + 51 also pending top-level re-invoke
 progress:
   total_phases: 28
   completed_phases: 8
@@ -13,6 +13,52 @@ progress:
   completed_plans: 77
   percent: 28
 ---
+
+# Background dispatch note (2026-05-19) — Phase 40
+
+`/gsd-plan-phase 40 --auto` (Cancellation Save-Offers Flow) invoked via /gsd-manager background path **HALTED at researcher-spawn** — same documented runner-pool blocker as Phases 36 / 37 / 41 / 51 below. No PLAN.md artifacts produced for Phase 40. `40-CONTEXT.md` (22 decisions D-01..D-22) + `40-DISCUSSION-LOG.md` were already committed before this run and remain untouched. Phase 40 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
+
+**Partial progress made before halt** (preserves work the user paid for):
+- **UI-SPEC.md generated + committed** at `e83b7a1` — `.planning/phases/40-cancellation-save-offers-flow/40-UI-SPEC.md`. Three surfaces:
+  - **Surface 1:** Three-step Cancellation Modal (reason picklist → server-picked offer → loss-summary). Single chunked component per CONTEXT specifics.
+  - **Surface 2:** Admin Save-Offer Rule Editor (`/admin/cancellation/rules`, new `AdminShell` module).
+  - **Surface 3:** Admin ROI Dashboard (`/admin/cancellation/roi`, P33 admin-CAC dashboard pattern reuse).
+- All 6 UI-checker dimensions self-verified PASS inline (Copywriting: specific CTAs + solution-path error states; Visuals: per-surface focal points; Color: 60/30/10 with explicit accent reserved-list; Typography: 4 sizes 13/16/18/22 / 2 weights 400/600; Spacing: all multiples of 4 with 2 justified exceptions; Registry: not applicable — custom primitives only).
+- AUTO_CHAIN flag set via `gsd-sdk query config-set workflow._auto_chain_active true` before the UI-phase delegation; the parent plan-phase orchestrator should re-read this on the top-level re-invoke. (Cleanup note: this flag should be reset to `false` before the next non-auto invocation.)
+
+**Confirmed preconditions** (verified before halt):
+- `phase_found: true`, `has_context: true`, `has_research: false`, `has_plans: false`, `plan_count: 0`, `phase_status: Pending`
+- `context_path`: `.planning/phases/40-cancellation-save-offers-flow/40-CONTEXT.md` (22 decisions across Eligibility / Pause mechanics / Discount stacking / Modal UX / Claude's Discretion sections)
+- `phase_req_ids`: POLISH-01, POLISH-02, POLISH-03, POLISH-04 (4 requirements)
+- Phase has heavy UI footprint (3 surfaces) — UI-SPEC.md is now present + committed, so the top-level re-invoke at step 5.6 (UI Design Contract Gate) will detect existing UI-SPEC and SKIP `gsd-ui-phase`.
+- Depends on (per ROADMAP): v1.2 Phase 14 (Stripe subscriptions live — shipped) + Phase 27 (cohort eligibility — shipped); also load-bearing on P19 (affiliate coupon stacking — D-15 abuse vector surfaces), P26-07 (stripe-webhook dispatcher case-arm pattern — D-11), P29 (clinic per-patient billing variance — D-04 clinic-distinct offer set), P37 (helpdesk ticket-create — D-21 service-quality-issue routing), P34 (PostHog Experiments + Ship-Winner — D-22 A/B variant pattern).
+
+**Blocker root cause:** Background-Agent runtime in this session exposes only Read/Edit/Write/Bash + MCP tools — no `Task` / `Agent` schema (confirmed via `ToolSearch select:Task` returning "No matching deferred tools found"). `gsd-plan-phase` step 5 (spawn `gsd-phase-researcher`), step 7.8 (`gsd-pattern-mapper`), step 8 (`gsd-planner`), step 10 (`gsd-plan-checker`) all require `Agent()`. Workflow cannot proceed past step 5.6 here. Per parent-prompt rule ("If you hit any access issue, do NOT work around it — let it fail and write the error to .planning/STATE.md as a blocker"), workflow halted before any agent spawn.
+
+**Resolution:** User re-invokes `/gsd-plan-phase 40 --auto` at TOP-LEVEL Claude Code session (NOT via /gsd-manager background dispatch). Top-level session has the `Task`/`Agent` tools needed to dispatch researcher → pattern-mapper → planner → plan-checker chain. Step 5.6 UI-SPEC gate will detect the existing `40-UI-SPEC.md` and SKIP `gsd-ui-phase` automatically — saving one full agent-spawn round-trip.
+
+**Planner outline guidance** (pre-computed during this background session — saves the planner one full pass when the user re-invokes):
+
+Phase 40 splits naturally into 6 plans across 3 waves. The 3-step modal is a single chunked component per CONTEXT specifics ("plan-checker must enforce that the modal is a SINGLE chunked component, not 3 separate routes"). Migration + Edge Fn + Stripe-webhook dispatcher extensions are isolated Wave 1; the customer-facing modal + admin surfaces depend on the schema landing first.
+
+| Plan | Objective | Wave | Depends on | REQs |
+|---|---|---|---|---|
+| 40-01 | Schema: `cancellation_offers_log` (append-only, 2-axis RLS) + `save_offer_rules` (cohort × tenure × reason × offer-type, priority int, active bool) + supporting CHECK constraints widening for any new status enum values per `[[feedback_planner_missed_status_enum_widening]]`. Stripe coupon-pool seed migration (6 fixed combos: SAVE-{20/25/30}-{2/3}MO per D-12/D-13). | 1 | none | POLISH-01, POLISH-04 |
+| 40-02 | Stripe webhook dispatcher extension: new case arms for `customer.subscription.paused` + `customer.subscription.resumed` (mirror to `subscriptions.paused_until` + `is_paused` per D-11; case arms BEFORE default per P26-07 lesson). New event handlers `customer-subscription-paused.ts` + `customer-subscription-resumed.ts` mirroring invoice-paid.ts pattern. T-7d resume-reminder pg_cron + T-0 confirmation email via `_shared/email-router.ts` (D-09). | 1 | none | POLISH-03 |
+| 40-03 | Edge Fn `cancellation-decide-offer`: server-side offer recommendation engine. Inputs: user_id + reason. Outputs: single `OfferType` + offer config (coupon code | pause duration | extension days | downgrade target). Logic: cohort × tenure-bucket × reason → look up matching rule by priority. Anti-gaming gates (D-02 lifetime cap, D-03 12mo cooldown) + clinic-org fork (D-04). Cold-start hardcoded reason→offer mapping; warm-start Bayesian over `cancellation_offers_log` take-rates. Stacking-cap clamp (D-15: 35% combined effective). | 2 | 40-01 | POLISH-01, POLISH-04 |
+| 40-04 | Frontend: `CancellationModal.tsx` (single lazy chunk) — 3-step funnel per UI-SPEC Surface 1 + offer-decision client (`decide-offer-client.ts`). Analytics events per CONTEXT canonical_refs (`cancellation_started`, `cancellation_reason_picked`, `save_offer_shown`, `save_offer_accepted`, `save_offer_declined`, `cancellation_completed`, `cancellation_aborted`, `cancellation_dismissed`, `subscription_paused`, `subscription_resumed`). Service-quality-issue → P37 ticket-create wire on cancellation-complete (D-21). Bundle ceiling: new `cancellation` chunk ~13 kB gz cap. | 2 | 40-01, 40-03 | POLISH-01 |
+| 40-05 | Admin Save-Offer Rule Editor — `AdminShell` module registration in `src/lib/admin/modules.ts` (`id: 'cancellation'`, `route: 'cancellation'`, `minRole: 'support_admin'` read / `'support_lead'` write, PostHog flag `admin_cancellation` default true). `CancellationRulesTab.tsx` per UI-SPEC Surface 2. SECDEF RPCs: `upsert_save_offer_rule`, `update_save_offer_rule_active`, `delete_save_offer_rule`, `reorder_save_offer_rules` (drag = priority swap). Surface gating via `surfaceCheck('admin.cancellation.rules.edit')`. | 3 | 40-01 | POLISH-01, POLISH-04 |
+| 40-06 | Admin ROI Dashboard — `CancellationRoiTab.tsx` per UI-SPEC Surface 3. Aggregate query (PG materialized view OR plain view with sane indexes; planner decides) over `cancellation_offers_log`: offers-shown / acceptance-rate / revenue-recovered (deferred MRR × months retained) / avg-retention-extension. Chart.js stacked-bar via `BaseChart`. Cohort breakdown table. CSV export Edge Fn `download_cancellation_roi_csv`. PostHog Experiments + Ship-Winner wiring per D-22 (mirrors P34 D-20). | 3 | 40-01, 40-02 (data for revenue-recovered computation), 40-05 | POLISH-02 |
+
+**Cross-cutting plan-checker concerns to flag at iter-1** (per `[[feedback_planner_iter1_anti_patterns]]`):
+- **CHECK-constraint widening** for `cancellation_offers_log.status` enum + `save_offer_rules.active`: ship in 40-01 same plan that introduces the column. Per `[[feedback_planner_missed_status_enum_widening]]`.
+- **D-15 stacking-abuse mitigation choice** must be explicit in PLAN.md (CONTEXT surfaces 4 candidates; recommended per CONTEXT specifics: cap combined effective discount at 35%, server clamps). Plan-checker enforce in 40-03.
+- **D-04 clinic-org fork** — admin must NOT see pause / extended-trial / downgrade rule-editor fields when editing a clinic-org rule. Surface 2 conditional UI; plan-checker enforce in 40-05.
+- **Stripe webhook HUMAN-UAT** — Stripe Dashboard needs to subscribe webhook endpoint to `customer.subscription.paused` + `customer.subscription.resumed` events. Add as Task 5 HUMAN-UAT in 40-02 per `[[project_phase26_shipped]]` lesson + CONTEXT deferred-ideas note.
+- **Migration filename regex** per `[[reference_supabase_migration_filename_regex]]`: 14-digit timestamp + name strict. Pre-merge collision check per `[[reference_migration_timestamp_collision_precheck]]`.
+- **D-17 single-chunk constraint**: `CancellationModal.tsx` must NOT route-split steps. Plan-checker grep for `react-router` or new route entries inside this PR — none expected.
+- **Bundle ceiling raises**: new `cancellation` chunk ~13 kB gz + admin chunk delta. Update `scripts/assert-bundle-budgets.sh` per `[[reference_bundle_budget_hash_hyphen]]`.
+- **Anti-gaming D-02 pause-exemption math**: D-02 says "pause does NOT count toward the lifetime 2-take cap" + D-10 says "extending a pause counts as a new pause-take". These two rules interact — verify 40-03 implementation increments the counter on EXTEND but not on INITIAL pause-take. Plan-checker enforce assertion test.
 
 # Background dispatch note (2026-05-18)
 
@@ -416,3 +462,83 @@ Wave-1 has 7 parallel plans (25-01..06 + 25-10 verification); Wave-2 (25-07, 25-
 
 - **PRIMARY:** Re-invoke `/gsd-execute-phase 25` from a top-level Claude Code session.
 - **PARALLEL** (still owed from Phase 24/25 Wave 0): 6 vendor BAA calls (Supabase Team+HIPAA $924/mo, Vercel HIPAA addon $350/mo, Sentry Business $80/mo, Anthropic Enterprise sales call, AWS SES via AWS Artifact, PostHog Boost ~$0-2K) + Drata SOC 2 Type I onboarding. All have 4–8 week lead times. Per [[reference_hipaa_baa_vendor_matrix]] Stripe NEVER signs BAA (banking exemption) — Plan 25-05 PHI lint enforces this at CI time.
+
+## Phase 34 plan-phase blocker (2026-05-19)
+
+**Blocker:** `Skill(gsd-plan-phase, "34 --auto")` invoked inside a background-mode subagent (parent prompt dispatched it from /gsd-manager). The plan-phase workflow requires spawning `gsd-phase-researcher` -> `gsd-planner` -> `gsd-plan-checker` subagents (per `~/.claude/get-shit-done/workflows/plan-phase.md` steps 5/8/10), but the `Task`/`Agent` tool is **not surfaced** in this background runtime. Confirmed via `ToolSearch select:Task` (no match) and keyword search `Agent task launch subagent` (no match). This is the **same blocker pattern** documented for Phase 25 plan-phase (2026-05-17) and Phase 51 plan-phase (STATE frontmatter `stopped_at`), and matches memory `feedback_skill_in_background_agent_loses_tool_access` + `reference_gsd_tooling_quirks` ("/gsd-manager background dispatch fails — runner pool lacks Task tool").
+
+Per parent-prompt rules ("If you hit a blocker, write it to STATE.md as a blocker and stop. Do NOT silently work around permission or file access errors"), workflow halted **before** the researcher spawn. No PLAN.md / RESEARCH.md / VALIDATION.md / PATTERNS.md / UI-SPEC.md artifacts written.
+
+**Pre-flight verified (workflow steps 1-4):**
+
+- `gsd-sdk query init.plan-phase 34` parsed cleanly: researcher=sonnet, planner=opus, checker=sonnet; `phase_status=Pending`; `has_context=true`; `has_research=false`; `has_plans=false`; `plan_count=0`; `commit_docs=true`; `research_enabled=true`; `plan_checker_enabled=true`; `nyquist_validation_enabled=true`; `mode=yolo`.
+- `gsd-sdk query roadmap.get-phase 34` confirms phase exists with 5 success criteria and 13 REQ-IDs (ONBOARD-01..13).
+- CONTEXT.md present: 20 D-XX decisions across 4 areas (Activation Event D-01..05, Anon->Auth Merge D-06..10, First-Action Surface D-11..15, Step Builder + A/B D-16..20) + 5 Claude's-Discretion items + canonical refs to Phase 24/19/25/31 + 6 reusable-asset pointers in existing codebase.
+- DISCUSSION-LOG.md present (gathered 2026-05-18).
+- Closed-phase gate (§1.5) PASSES — phase is Pending, not Complete; no `--force` needed.
+- UI gate (§5.6) would trigger — heavy UI surface (admin step builder drag-drop + 3-card first-action UI + mobile Lighthouse 90 + >=44px tap targets). `--auto` flag implies `AUTO_CHAIN` -> auto-generate UI-SPEC via `Skill(gsd-ui-phase, "34 --auto")`. That nested Skill ALSO lacks Task tool in this background context. Operator decision required at top level: either `--skip-ui` or run `/gsd-ui-phase 34` first.
+
+**State on disk:**
+
+- `.planning/phases/34-m2-onboarding-overhaul-activation-event/34-CONTEXT.md` — present (20 decisions, 5 success criteria, 4 deferred items, 6 reusable assets enumerated)
+- `.planning/phases/34-m2-onboarding-overhaul-activation-event/34-DISCUSSION-LOG.md` — present
+- `34-RESEARCH.md` — NOT created
+- `34-VALIDATION.md` — NOT created (needs Validation Architecture section from RESEARCH.md per §5.5)
+- `34-PATTERNS.md` — NOT created
+- `34-UI-SPEC.md` — NOT created (UI gate would trigger; `--skip-ui` would bypass)
+- `*-PLAN.md` — NONE
+
+**Resume options for operator (run from a TOP-LEVEL Claude Code session, NOT from `/gsd-manager` background dispatch or any nested Skill/Task):**
+
+1. **Recommended:** From a top-level Claude Code session, invoke `/gsd-plan-phase 34 --auto`. Top-level Claude Code has the `Task`/`Agent` tool surfaced and can dispatch researcher -> (UI-SPEC auto-gen if needed) -> planner -> plan-checker, with chunked-planning auto-fired if outline lands >=5 plans (very likely given 20 decisions across 4 workstreams).
+
+2. **Skip UI auto-gen for now:** `/gsd-plan-phase 34 --auto --skip-ui` — saves one Skill nesting hop. The planner produces task-level UI guidance from CONTEXT.md's 4 UI-bearing decisions (D-12 hybrid 3-card, D-16 palette + reorder, D-18 superadmin permission, D-19 split slider) instead of a separated UI-SPEC contract. Recommended since CONTEXT.md UI decisions are already pinned and Phase 34 mostly extends existing primitives (`OnboardingFlow.tsx` rewrite + admin shell additions per Phase 24 manifest).
+
+3. **Skip research (faster, lower fidelity):** `/gsd-plan-phase 34 --skip-research --skip-ui` — planner works from CONTEXT.md + REQUIREMENTS.md only. NOT recommended — Phase 34 has 4 net-new mechanics (anonymous_sessions richest-data merge, server-side activation event property shape, PostHog Experiments ship-winner flag flip, drag-drop palette schema) that benefit from researcher's API/landmine survey. Nyquist Dimension 8 also at risk without RESEARCH.md.
+
+**Planner outline guidance (pre-computed from CONTEXT.md to save planner one pass — chunked-planning candidate per [[feedback_parallel_chunked_planning]]):**
+
+Phase 34 is likely **9 plans across 3 waves**. Per [[feedback_chunked_planning_integration_seam_blindspot]], the integration seams between the activation event Edge Fn (D-05) and the first-action triggers in dashboard log paths must have a single explicit-owner plan, not be spread across "whoever touches the dashboard."
+
+| Plan | Objective | Wave | Depends on | REQs | Key files / decisions |
+|------|-----------|------|------------|------|-----------------------|
+| 34-01 | `anonymous_sessions` migration + RLS deny + 30-day TTL cron + cookie issuance helper (`_ls_anon`) + Edge Fn `/api/anon-session/upsert` | 1 | — | ONBOARD-01, ONBOARD-11 (partial), ONBOARD-12 (cookie reuse) | new migration; D-06, D-09, D-10; mirror Phase 31 `org_onboarding_flows` JSONB+RLS shape |
+| 34-02 | `onboarding_flows` (consumer) migration + `version_id` discipline + RLS + seed default v1 flow + `useConsumerOnboardingFlow()` hook (sibling to Phase 31 `useOrgOnboardingFlow`) | 1 | — | ONBOARD-03, ONBOARD-07 (read), ONBOARD-08 (flag binding) | new migration; D-17; mirror Phase 31 schema |
+| 34-03 | `activation_events` migration + `events.ts` registry extension (`activation_completed` with goal_type/action_type/window_days/days_since_signup) + `posthog-server.ts` `captureActivation()` wrapper + fire-once user check + 7-day-window guard + Deno test | 1 | — | ONBOARD-06 (activation), TAXO-02 (server-side capture) — LOCK consumed by P36/P38/P39 | new migration; D-01..D-05; reuse Phase 24 `_shared/posthog-server.ts` |
+| 34-04 | `profiles.primary_goal` enum column (8-goal catalog widening) + CHECK constraint widen-migration co-shipped per [[feedback_planner_missed_status_enum_widening]] + Settings UI edit per D-14 | 1 | — | ONBOARD-13 (partial) | enum widening; D-11, D-14 |
+| 34-05 | Consumer onboarding rewrite — REWRITE `OnboardingFlow.tsx` to consume config-driven steps from `onboarding_flows`, A/B variant resolution via PostHog feature flag payload + smart defaults (Accept-Language/IP/profile fallback) + magic-link + Google OAuth + Apple OAuth (web) + mobile >=44px primitives + social-proof rail (live counter + rotating 3 testimonials w/ 30s) | 2 | 34-02, 34-04 | ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05, ONBOARD-12 | depends on Phase 19 dual-cookie reuse for `_aff` propagation |
+| 34-06 | First-action surface — 3-card hybrid UI per D-12 with recommended-card emphasis per goal (D-13 mapping), action triggers fire `captureActivation()` from server-side log path on first qualifying insert (NOT the card click), `family-supporter` waitlist card | 2 | 34-03, 34-04, 34-05 | ONBOARD-06, ONBOARD-13 | D-12, D-13, server-side activation fire per D-05 |
+| 34-07 | Anonymous -> authenticated merge service-role Edge Fn — richest-data scoring (count non-null prefs + draft entries) per D-07, atomic merge of (a) prefs (b) drafts (c) PostHog alias `posthog.alias(authed_user_id, anon_distinct_id)` (d) `_aff` cookie reattach, cleanup of merged anonymous row, RLS-safe via service_role only | 2 | 34-01, 34-04 | ONBOARD-01 (merge), ONBOARD-11 (race resolution) | D-07, D-08, D-10 |
+| 34-08 | Admin step builder UI — drag/drop palette (text/single-select/multi-select/scale/weight/date/NPS/custom-component) + step reorder + JSONB save to `onboarding_flows.config` + branching if-then routing + preview route + `surfaceCheck('onboarding.ship_winner')` permission gate | 3 | 34-02 (schema) + Phase 24 admin shell | ONBOARD-07, ONBOARD-08 (draft variants), ONBOARD-09 (preview route) | D-16, D-18, D-19; reuse Phase 15 page-builder palette pattern; bundle ceiling — admin-shell 30 kB |
+| 34-09 | PostHog Experiments + Ship-Winner — bind variant to PostHog Experiment via `posthog-node` Edge Fn API, write new `onboarding_flows` version on Ship-Winner click, flip feature flag to 100% on new version, per-step funnel analytics SQL/queries fed into admin panel, rollback flip-back action | 3 | 34-02, 34-08 | ONBOARD-08, ONBOARD-10 (per-step funnel analytics) | D-17, D-19, D-20; superadmin-only via 34-08 surfaceCheck |
+
+**Cross-cutting concerns the planner must enforce:**
+
+- [[reference_supabase_migration_filename_regex]] — `<14-digits>_name.sql` strict, no letter suffix; pre-check timestamp collisions against Phase 25 (`20270702*`), Phase 50 RAG (`rag_*`), Phase 33 (`affiliate_lifetime_recurring_*`) per [[reference_migration_timestamp_collision_precheck]] — Phase 34 migrations should target `20270703000001..N` window
+- [[reference_supabase_migration_gotchas]] — SECURITY DEFINER `set search_path = public, extensions`; RLS deny patterns; partial-index expressions IMMUTABLE
+- [[reference_supabase_auth_traps]] — magic-link redirect double-`#` hash route on SPAs; free-tier 2/hr email rate-limit (e2e impact — don't call public auth-email endpoints from e2e)
+- [[feedback_planner_missed_status_enum_widening]] — Plan 34-04 MUST ship `profiles.primary_goal` CHECK widening in the SAME migration that adds the column; failure mode is 23514 in prod when first user picks `family-supporter`
+- [[reference_vite_static_env_inlining]] — no dynamic `import.meta.env[VITE_${x}]` for PostHog/Supabase keys; use enumerated literal-key ternaries
+- [[feedback_planner_iter1_anti_patterns]] — shared-file choreography across plans (Plan 34-05/06 both touch `OnboardingFlow.tsx` if not careful — Plan 34-05 OWNS rewrite, 34-06 adds the 3-card subcomponent as a sibling file)
+- [[feedback_chunked_planning_integration_seam_blindspot]] — activation event seam: D-05 says fire from Edge Fn that processes the FIRST QUALIFYING ACTION INSERT (not the card click) — Plan 34-06 owns server-side fire, NOT the dashboard log-path plan; planner must call out exactly which existing log endpoints need a `captureActivation()` shim added
+- Bundle ceilings (Phase 24 D-18..20) — admin step builder lives inside admin-shell 30 kB ceiling; consumer onboarding lazy-chunk `onboarding-preview` (already declared in CONTEXT.md Established Patterns) — likely warrants a new dedicated ceiling line in Phase 24 manifest if it exceeds the residual budget
+- HIPAA — anonymous_sessions draft entries (weight + symptoms) are SENSITIVE not PHI yet (pre-signup), but Sentry/PostHog mask lists from Phase 25 D-15/16 still apply; merge Edge Fn touches PHI post-signup so it inherits Phase 25 audit_log requirements
+
+**Risks the planner / checker must surface:**
+
+- **D-03 single event name with property shape** — if downstream P36/P38/P39 expect 8 separate event names, breakage. Plan 34-03 should include a markdown contract block enumerating the property shape verbatim so downstream phases can hold the contract.
+- **D-07 richest-data scoring tie-break** — what if two anonymous sessions tie on richness score? Planner should pick deterministic tiebreaker (suggest: most-recent `last_activity_at`).
+- **D-12 3-card UI on mobile 375px** — 3 stacked cards + emphasized one + Lighthouse 90 budget is tight; planner should call out asset budget for the recommended-card "pill badge" graphic.
+- **D-20 PostHog Experiments vs raw feature flags** — Experiments API on PostHog has different SDK call shape than feature-flag eval; verify `posthog-node` 5.10.4 Experiments support before locking in. Researcher should flag this.
+- **D-08(c) PostHog alias on merge** — `posthog.alias(authed_user_id, anonymous_distinct_id)` rewires identity; if called twice on race, identity merge can corrupt. Plan 34-07 must guard with a `merged_user_id IS NULL` check inside the Edge Fn under SELECT ... FOR UPDATE.
+- **family-supporter activation as build-habit proxy** — Plan 34-06 must NOT lock activation event property to `action_type='supported_person_configured'` for these users since that table doesn't exist v1.3; activation fires on whichever action they actually log (D-15 + Specifics).
+- **Apple OAuth web** — Apple Services ID + return URLs need configuration in Apple Developer; vendor-config-not-code task. Plan 34-05 should ship Apple OAuth wiring behind a config-presence check per [[reference_vendor_gated_send_health_check]] pattern if Apple Services ID isn't provisioned yet.
+
+## Operator Next Steps (Phase 34 plan resume)
+
+- **PRIMARY:** From a top-level Claude Code session, invoke `/gsd-plan-phase 34 --auto` (or `--auto --skip-ui` to skip the nested UI-SPEC auto-gen Skill call). The pre-computed outline above can be passed to the planner as additional context to save one planning pass.
+- **PARALLEL prep work (no top-level session required):**
+  - Confirm PostHog Experiments API support in `posthog-node` 5.10.4 — D-20 lock depends on this.
+  - Provision Apple Developer Services ID + return URLs for web Apple OAuth — vendor-config block for Plan 34-05.
+  - Verify migration timestamp window `20270703000001..N` is collision-free against any merged Phase 25/33/50 migrations on main (last seen highest: `20270702000009`).
+- **DOWNSTREAM IMPACT WARNING:** Phase 34 D-01..D-05 LOCK the activation event shape consumed by Phase 36 (review eligibility), Phase 38 (recommender retraining), and Phase 39 (paywall trigger). The CONTEXT.md decisions are sufficient to lock the shape NOW — those downstream plan-phase commands can proceed in parallel using CONTEXT.md D-01..D-05 even before Phase 34 ships, per the load-bearing note in STATE Blockers ("Phase 34 activation event lock-in is load-bearing").
