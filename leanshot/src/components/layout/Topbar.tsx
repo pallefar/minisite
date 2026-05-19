@@ -1,9 +1,14 @@
-import { Search, Plus, FileDown, Sun, Moon, Menu } from 'lucide-react';
+import { Search, Plus, FileDown, Sun, Moon, Menu, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, IconButton } from '@/components/ui/Button';
 import { useTheme } from '@/hooks/useTheme';
 import { AIAvatar } from '@/illustrations/AIAvatar';
+// Phase 42 Plan 42-09 — useChangelog drives the avatar unread-dot indicator.
+// The WhatsNewDrawer itself is React.lazy-mounted from App.tsx so the
+// react-markdown + dompurify + rehype-raw chunk stays off the index
+// static graph (Pitfall 9; bundle-budget enforces ≤50 kB gz on `index`).
+import { useChangelog } from '@/lib/changelog/changelog-store';
 import { TAB_TITLES } from '@/lib/constants';
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types';
@@ -27,15 +32,31 @@ interface TopbarProps {
   onOpenAI: () => void;
   /** Phase 5 D-04: AvatarMenu surfaces Account/Settings which both route through here. */
   onOpenSettings?: () => void;
+  /** Phase 42 Plan 42-09 (POLISH-11) — opens the lazy-loaded What's New drawer. */
+  onOpenWhatsNew?: () => void;
 }
 
-export function Topbar({ onLogDose, onOpenReport, onOpenAI, onOpenSettings }: TopbarProps) {
+export function Topbar({
+  onLogDose,
+  onOpenReport,
+  onOpenAI,
+  onOpenSettings,
+  onOpenWhatsNew,
+}: TopbarProps) {
   const { t } = useTranslation(['nav', 'common']);
   const currentTab = useStore((s) => s.currentTab);
   const setTab = useStore((s) => s.setTab);
   const meta = TAB_TITLES[currentTab];
   const [search, setSearch] = useState('');
   const { theme, toggle } = useTheme();
+  // Phase 42 Plan 42-09 — drives the avatar unread-dot indicator. Hook
+  // short-circuits to {hasUnread:false, entries:[]} when there is no
+  // session, so the dot is silent on the marketing/onboarding views.
+  const { hasUnread, entries } = useChangelog();
+  const unreadCount = entries.length;
+  const whatsNewAriaLabel = hasUnread
+    ? `What's new — ${unreadCount} unread updates`
+    : "What's new";
 
   const handleSearch = (q: string): void => {
     setSearch(q);
@@ -121,6 +142,28 @@ export function Topbar({ onLogDose, onOpenReport, onOpenAI, onOpenSettings }: To
         <Button onClick={onLogDose} size="sm" trailingIcon={<Plus className="size-4" />}>
           {t('nav:fab_log_dose')}
         </Button>
+        {/* Phase 42 Plan 42-09 (POLISH-11) — What's New trigger with unread dot.
+            The button sits BEFORE AvatarMenu so the dot rides on the changelog
+            affordance (not the profile menu). aria-label switches between
+            generic + count-bearing variants so AT users hear the unread state. */}
+        {onOpenWhatsNew && (
+          <IconButton
+            aria-label={whatsNewAriaLabel}
+            onClick={onOpenWhatsNew}
+            variant="ghost"
+            size="sm"
+            className="relative"
+          >
+            <Sparkles className="size-5" aria-hidden="true" />
+            {hasUnread && (
+              <span
+                data-testid="whats-new-unread-dot"
+                aria-hidden="true"
+                className="absolute top-1 right-1 size-2 rounded-full bg-[var(--color-primary)] ring-2 ring-[var(--color-bg)]"
+              />
+            )}
+          </IconButton>
+        )}
         <AvatarMenu onOpenSettings={onOpenSettings} />
       </div>
       {/* Hidden visual hint for the menu button placement on mobile */}

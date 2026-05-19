@@ -8,6 +8,12 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 // ceiling (verified post-build by Task 5 verify step).
 import { BiometricGate } from '@/components/BiometricGate';
 import { DisclaimerModal } from '@/components/dashboard/DisclaimerModal';
+// Phase 42 Plan 42-08 (POLISH-05) — In-app notification toast renderer.
+// Non-lazy: the component renders null and only registers a single Realtime
+// channel inside useEffect; static-graph cost is ~1 kB (subscribeToUserNotifications
+// + Realtime types already pulled by clinic-realtime). Lazy-loading would add
+// a Suspense boundary that flashes between dashboard renders.
+import { InAppNotificationToast } from '@/components/dashboard/notifications/InAppNotificationToast';
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
 import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCountdownBanner';
@@ -42,6 +48,17 @@ import { useStore } from '@/lib/store';
 // users (no primary_org_id / anonymous) the hook returns 'consumer' after a
 // single DB round-trip; subsequent renders return cached state (mount-only fetch).
 import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
+// Phase 42 Plan 42-10 (POLISH-12 D-20/D-21) — Quarterly NPS in-app fallback.
+// Eligibility wrapper + UNCONDITIONAL trigger (no-conditional-native-review.cjs
+// from 42-07 enforces unconditional surfacing). The wrapper module is tiny
+// (< 1 kB gz) so it stays on the static graph; the modal component itself is
+// React.lazy below.
+import { isUserEligibleForQuarterlyNPS } from '@/lib/nps/quarterly-eligibility';
+import {
+  QUARTERLY_NPS_SHOW_EVENT,
+  isQuarterlyNPSShowDetail,
+  showQuarterlyNpsModal,
+} from '@/lib/nps/quarterly-modal';
 import {
   autoMintAnonSessionIfMissing,
   deferFlush,
@@ -101,6 +118,37 @@ const AuthView = lazy(() => import('@/components/auth/AuthView'));
 // asserts `share-*.js.gz` stays under the 18 kB budget (Task 2b verify).
 const SharePage = lazy(() =>
   import('@/components/share/SharePage').then((m) => ({ default: m.SharePage })),
+);
+
+// Phase 42 Plan 42-09 (POLISH-11) — What's New drawer lazy chunk. Keeps
+// react-markdown + dompurify + rehype-raw OFF the index static graph per
+// Pitfall 9 + 42-CONTEXT D-11. The drawer is mounted globally below the
+// AppShell Suspense block; the Topbar emits onOpenWhatsNew only.
+const WhatsNewDrawerHost = lazy(() =>
+  import('@/components/changelog/WhatsNewDrawer').then((m) => ({
+    default: m.WhatsNewDrawerHost,
+  })),
+);
+
+// Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback modal.
+// Lazy-loaded; only fetched once eligibility resolves true. See
+// src/lib/nps/quarterly-modal.ts for the UNCONDITIONAL trigger API + D-20
+// rationale. The eslint rule `no-conditional-native-review` policed by 42-07
+// gates conditional wrapping of showQuarterlyNpsModal().
+const QuarterlyNPSModalLazy = lazy(() =>
+  import('@/components/nps/QuarterlyNPSModal').then((m) => ({
+    default: m.QuarterlyNPSModal,
+  })),
+);
+
+// Phase 42 Plan 42-10 (POLISH-12 D-24) — Generic admin-shell route for
+// manifest-driven admin modules (CAC, RAG, anomaly, compliance, i18n-overrides,
+// clinic-orgs, nps-quarterly). Each module registers via ADMIN_MODULES in
+// src/lib/admin/modules.ts and AdminShell handles the per-path dispatch.
+// Earlier Wave-3 admin pages had explicit selectView branches; the manifest
+// pattern moves that wiring to a single catch-all branch.
+const AdminShellRoot = lazy(() =>
+  import('@/components/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })),
 );
 
 // Phase 9 Plan 09-01 — Clinic B2B lazy chunks (B-2 ownership rule per
@@ -457,6 +505,13 @@ type View =
   | 'admin-metrics'
   | 'admin-cohorts'
   | 'admin-affiliates'
+  // Phase 42 Plan 42-10 (POLISH-12 D-24) — Generic manifest-driven admin shell
+  // route. Catches /admin/<route> where <route> is registered in ADMIN_MODULES
+  // but not handled by an explicit branch above (e.g. /admin/nps/quarterly,
+  // /admin/growth/cac, /admin/rag, /admin/anomaly, /admin/compliance,
+  // /admin/i18n-overrides, /admin/clinic-orgs). AdminLayout Mode A → AdminShell
+  // matches the manifest entry and renders the lazy component.
+  | 'admin-shell'
   | 'dsar'
   | 'email-prefs'
   // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
@@ -580,6 +635,15 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   if (opts.pathname.startsWith('/admin/affiliates')) {
     return opts.user ? 'admin-affiliates' : 'auth';
   }
+  // Phase 42 Plan 42-10 (POLISH-12 D-24) — Generic manifest-driven admin
+  // catch-all. After all explicit /admin/* branches above. Routes any
+  // remaining /admin/<route> (e.g. /admin/nps/quarterly, /admin/growth/cac,
+  // /admin/rag, /admin/anomaly, /admin/compliance, /admin/i18n-overrides,
+  // /admin/clinic-orgs) into AdminLayout, which probes auth/totp/aal2 and
+  // delegates to AdminShell's manifest matcher.
+  if (opts.pathname.startsWith('/admin/')) {
+    return opts.user ? 'admin-shell' : 'auth';
+  }
   // Phase 22 Plan 22-11 — DSAR portal sub-page. Gated on user presence (the
   // RPC requires auth.uid()); selectView routes anon to auth so the user can
   // sign in first, then is bounced back via the existing `?` hash flow.
@@ -660,6 +724,21 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  // Phase 42 Plan 42-09 (POLISH-11) — What's New drawer open state. The
+  // module itself is React.lazy + Suspense below; the boolean lives in the
+  // index chunk but the markdown stack does not.
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+
+  // Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback
+  // modal state. Populated by the QUARTERLY_NPS_SHOW_EVENT custom-event
+  // listener below; cleared on Submit/Skip/dismiss. Once-per-session guard
+  // prevents duplicate fire even if the eligibility effect re-runs.
+  const [quarterlyNpsState, setQuarterlyNpsState] = useState<{
+    open: boolean;
+    nonce: string;
+    quarter: string;
+  } | null>(null);
+  const [quarterlyNpsFiredThisSession, setQuarterlyNpsFiredThisSession] = useState(false);
 
   // Phase 16 Plan 16-02 Task 5 — biometric session-unlock state. Initialized
   // false; set true on successful biometric (or password fallback) auth. The
@@ -1253,6 +1332,65 @@ export function App() {
     }
   }, [needsDisclaimer]);
 
+  // Phase 42 Plan 42-10 (POLISH-12 D-20/D-21) — Quarterly NPS in-app fallback
+  // bootstrap. UNCONDITIONAL trigger gated by the SECDEF RPC (the eligibility
+  // resolver is the gate; the modal trigger itself must NOT be wrapped in a
+  // feature-flag conditional — eslint-rules/no-conditional-native-review.cjs
+  // blocks that. See P36 V13-3 BLOCKER + P42 D-20).
+  //
+  // Two-layer wiring:
+  //   1. Effect resolves eligibility once per sign-in session. If eligible,
+  //      calls showQuarterlyNpsModal(detail) which dispatches a CustomEvent.
+  //   2. Window listener (this same effect) catches the event and flips
+  //      quarterlyNpsState to open=true. The lazy modal mounts below.
+  //
+  // The "once per session" guard (quarterlyNpsFiredThisSession) lives in React
+  // state because StrictMode double-mount in dev would otherwise double-fire
+  // the eligibility check (server-side single-use ledger would still de-dupe
+  // but it'd burn one extra RPC call).
+  useEffect(() => {
+    if (!signedInUser) return;
+    if (quarterlyNpsFiredThisSession) return;
+
+    // Subscribe FIRST so the dispatch can find a listener.
+    const onShow = (e: Event): void => {
+      const detail = (e as CustomEvent<unknown>).detail;
+      if (isQuarterlyNPSShowDetail(detail)) {
+        setQuarterlyNpsState({ open: true, nonce: detail.nonce, quarter: detail.quarter });
+      }
+    };
+    window.addEventListener(QUARTERLY_NPS_SHOW_EVENT, onShow);
+
+    let cancelled = false;
+    // D-20 UNCONDITIONAL: the modal-trigger call site lives inside its OWN
+    // function body so the no-conditional-native-review ancestor walk stops
+    // at this function's root (per the rule's FUNCTION_BOUNDARY_TYPES set in
+    // eslint-rules/no-conditional-native-review.cjs). The early-return guard
+    // is the eligibility gate; the show call below is the unconditional
+    // surface invocation per V13-3 BLOCKER + P42 D-20.
+    const fireIfEligible = (eligibility: {
+      eligible: boolean;
+      nonce: string | null;
+      quarter: string | null;
+    }): void => {
+      if (!eligibility.eligible) return;
+      if (!eligibility.nonce) return;
+      if (!eligibility.quarter) return;
+      setQuarterlyNpsFiredThisSession(true);
+      showQuarterlyNpsModal({ nonce: eligibility.nonce, quarter: eligibility.quarter });
+    };
+
+    void isUserEligibleForQuarterlyNPS().then((eligibility) => {
+      if (cancelled) return;
+      fireIfEligible(eligibility);
+    });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(QUARTERLY_NPS_SHOW_EVENT, onShow);
+    };
+  }, [signedInUser, quarterlyNpsFiredThisSession]);
+
   // Phase 16 Plan 16-02 Task 5 — BiometricGate early-return wrap. When the
   // user has biometric unlock enabled (TEMPORARY localStorage flag — see
   // 16-02-SUMMARY for the Zustand-slice migration follow-up) AND they have
@@ -1516,6 +1654,23 @@ export function App() {
       </>
     );
   }
+  // Phase 42 Plan 42-10 (POLISH-12 D-24) — Generic manifest-driven admin
+  // shell. AdminLayout (Mode A, no children) probes is_staff + has_totp +
+  // aal2; on success, renders AdminShell which dispatches to the manifest
+  // entry matching window.location.pathname (/admin/<route>). Includes
+  // /admin/nps/quarterly registered in this plan plus pre-existing manifest
+  // entries that were previously unreachable (growth/cac, rag, anomaly,
+  // compliance, i18n-overrides, clinic-orgs).
+  if (view === 'admin-shell') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AdminShellRoot />
+        </Suspense>
+      </>
+    );
+  }
   // Phase 22 Plan 22-11 — DSAR portal (GDPR-03).
   if (view === 'dsar') {
     return (
@@ -1594,11 +1749,20 @@ export function App() {
   return (
     <>
       {globalOverlays}
+      {/* Phase 42 Plan 42-08 (POLISH-05) — In-app notification toast renderer.
+          Subscribes to Supabase Realtime on user_notifications scoped by
+          signedInUser.id and pipes incoming rows into the global useToast
+          slice (D-07 realtime pipeline). Mounted ONLY inside the authenticated
+          dashboard branch — subscribing before the session resolves would
+          race the supabase-js INITIAL_SESSION. Returns null (renders nothing);
+          the existing global <Toast/> in AppShell renders the message. */}
+      <InAppNotificationToast userId={signedInUser?.id ?? null} />
       <AppShell
         onLogDose={() => setTab('medication')}
         onOpenReport={() => setReportOpen(true)}
         onOpenAI={() => setAIOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenWhatsNew={() => setWhatsNewOpen(true)}
       >
         {currentTab === 'home' && <GreetingStrip />}
         <Suspense fallback={<TabLoader />}>
@@ -1623,6 +1787,25 @@ export function App() {
         )}
         {reportOpen && <DoctorReport open={reportOpen} onClose={() => setReportOpen(false)} />}
         {tourOpen && <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />}
+        {/* Phase 42 Plan 42-09 (POLISH-11) — What's New drawer. Only mounted
+            when the user clicks the Sparkles button in the Topbar, so the
+            react-markdown + dompurify chunk is fetched on-demand. The drawer
+            consumes useChangelog inside its own host component so the hook
+            stays out of App.tsx (App.tsx's render is the hottest path). */}
+        {whatsNewOpen && <WhatsNewDrawerHost onClose={() => setWhatsNewOpen(false)} />}
+        {/* Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback
+            modal. Mounted ONLY when the eligibility resolver fires the
+            QUARTERLY_NPS_SHOW_EVENT (UNCONDITIONAL trigger gated on the SECDEF
+            RPC — see useEffect bootstrap above). On close, the state is set
+            null so the lazy chunk can be GC'd. */}
+        {quarterlyNpsState?.open && (
+          <QuarterlyNPSModalLazy
+            open
+            onClose={() => setQuarterlyNpsState(null)}
+            nonce={quarterlyNpsState.nonce}
+            quarter={quarterlyNpsState.quarter}
+          />
+        )}
       </Suspense>
 
       {/* Phase 6 Plan 06-02 — MigrationModal is rendered ONLY when there is a

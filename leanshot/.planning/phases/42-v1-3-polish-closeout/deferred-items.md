@@ -44,3 +44,23 @@ error TS2345: Argument of type '"nps_quarterly_responded"' is not assignable to 
 **Why deferred:** This error pre-dates 42-08 (verified via `git stash` round-trip — tsc fails on `main` HEAD `6d8c351` BEFORE any 42-08 changes). Owned by Phase 42 Plan 42-11 (Quarterly NPS — the plan that should declare these events) or by whichever plan introduced `QuarterlyNPSModal.tsx`. 42-08 is the notifications UI plan, NOT the NPS plan.
 
 **Owner:** 42-11 plan-checker should catch this when it lands.
+
+---
+
+## Plan 42-09 — sibling-wave TS errors out of scope
+
+**Discovered during:** 42-09 Task 2 typecheck (Wave 3 What's New drawer).
+
+**Issue:** `npx tsc -p tsconfig.app.json --noEmit` reports the following pre-existing errors in files NOT touched by 42-09:
+
+- `src/App.tsx(121,7)` — `QuarterlyNPSModalLazy` declared but unused.
+- `src/App.tsx(719,10)` — `quarterlyNpsState` declared but unused.
+- `src/App.tsx(1341..)` — `isQuarterlyNPSShowDetail`, `QUARTERLY_NPS_SHOW_EVENT`, `isUserEligibleForQuarterlyNPS`, `showQuarterlyNpsModal` Cannot find name.
+- `src/components/dashboard/notifications/InAppNotificationToast.tsx(31,13)` — `'notification_sent'` not in `EventName`.
+- `src/components/dashboard/settings/NotificationsSubtab.tsx(148,15 + 186,15)` — `'notification_permission_granted'`, `'notification_snoozed'` not in `EventName`.
+- `src/components/dashboard/settings/SettingsPage.tsx(49,1)` — `NotificationsSubtab` declared but unused.
+
+**Why deferred:** All errors live in 42-08 / 42-10 / 42-11 surfaces (notifications + quarterly NPS). 42-09's edits to `src/App.tsx` (lazy import + state hook for the What's New drawer) introduce ZERO new errors — verified by grepping the tsc output for `changelog`, `WhatsNewDrawer`, `Topbar.tsx`, `AppShell.tsx` (no hits).
+
+**Owner:** The owning plans (42-08, 42-10, 42-11) — these landed concurrently on `main` with incomplete refs because Wave 1+2 of Phase 42 ran in parallel.
+

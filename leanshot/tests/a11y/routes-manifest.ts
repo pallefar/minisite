@@ -305,4 +305,46 @@ export const routesManifest: RouteEntry[] = [
       return createElement(m.CancelDeletionPage);
     },
   },
+
+  // ─── What's New drawer (Phase 42 Plan 42-09 — POLISH-11) ───────────────
+  // The drawer mounts inside a role="dialog" Sheet; baseline scans the
+  // drawer's body content (one <article> per changelog entry). Stub entries
+  // mirror the 3 seed rows from 42-06 so the baseline contains realistic
+  // markup. Real drawer module is React.lazy from App.tsx.
+  {
+    path: '/whats-new',
+    label: 'What\'s New drawer',
+    mountComponent: async () => {
+      const m = await import('@/components/changelog/WhatsNewDrawer');
+      const entries = [
+        {
+          id: 'seed-dark',
+          slug: 'v1-3-dark-mode',
+          title: 'Dark mode, everywhere',
+          body_md: 'Dark mode now covers every surface in the app.',
+          published_at: '2026-05-19T00:00:00Z',
+        },
+        {
+          id: 'seed-pwa',
+          slug: 'v1-3-pwa-offline',
+          title: 'View your data offline',
+          body_md: 'Read-only **offline** support lands in v1.3.',
+          published_at: '2026-05-18T00:00:00Z',
+        },
+        {
+          id: 'seed-notif',
+          slug: 'v1-3-smart-notifications',
+          title: 'Smart Notifications are here',
+          body_md: 'Tune your dose reminders and clinic alerts.',
+          published_at: '2026-05-17T00:00:00Z',
+        },
+      ];
+      return createElement(m.WhatsNewDrawer, {
+        open: true,
+        entries,
+        onClose: () => {},
+        markRead: () => Promise.resolve(),
+      });
+    },
+  },
 ];

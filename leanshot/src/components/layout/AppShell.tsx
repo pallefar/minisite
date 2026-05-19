@@ -17,6 +17,8 @@ export interface AppShellProps {
   onOpenReport: () => void;
   onOpenAI: () => void;
   onOpenSettings: () => void;
+  /** Phase 42 Plan 42-09 (POLISH-11) — opens the lazy What's New drawer. */
+  onOpenWhatsNew?: () => void;
 }
 
 export function AppShell({
@@ -25,6 +27,7 @@ export function AppShell({
   onOpenReport,
   onOpenAI,
   onOpenSettings,
+  onOpenWhatsNew,
 }: AppShellProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   // Phase 13 DS-08 / D-12: sidebar collapsed state. Internal only — not exposed
@@ -64,6 +67,7 @@ export function AppShell({
           onOpenReport={onOpenReport}
           onOpenAI={onOpenAI}
           onOpenSettings={onOpenSettings}
+          onOpenWhatsNew={onOpenWhatsNew}
         />
         <EmailVerificationBanner />
         {children}
