@@ -574,17 +574,17 @@ Plans:
 **Goal:** Admin defines research topics → Firecrawl scrapes external sources (allowlist + open-web hybrid) → content normalized/summarized/chunked → tiered review queue (Tier-A auto-publish, B/C manual) → embeddings in dedicated `external_kb_embeddings` pgvector table → surfaced via AI coach citations + Dashboard "Tip of the day" + Research newsletter + public `/research` hub. Additive to Phase 38 (separate embeddings table, recommender Edge Fn extended not duplicated).
 **Requirements**: (None mapped to dedicated REQ-IDs; 36 D-IDs in `.planning/phases/50-*/50-CONTEXT.md` are the requirements — covered by `must_haves.truths` per plan; decision-coverage gate PASSED)
 **Depends on:** Phase 49 (newsletter unsubscribe pattern reuse; standalone fallback documented). Plans also forward-reference Phase 24 (admin shell + event taxonomy), Phase 25 (email router + HIPAA posture), Phase 32 (i18n shim), Phase 38 (recommender Edge Fn extension; standalone fallback documented).
-**Plans:** 9 plans
+**Plans:** 4/9 plans executed
 
 Plans:
 
 **Wave 1** (4 plans in parallel — data layer + admin surface + event registry):
-- [ ] 50-01-PLAN.md — SQL schema (9 migrations): rag_topics, rag_sources + seed, rag_chunks, external_kb_embeddings + HNSW, rag_topic_audit, rag_scrape_runs, rag_cost_ledger, rag_newsletter_subscriptions, RLS policies [Wave 1]
-- [ ] 50-02-PLAN.md — Admin module + RagLayout + Topics/Sources pages + TierBadge/HealthBadge/CostBar primitives + 8 admin RPCs + telemetry rollup [Wave 1]
-- [ ] 50-03-PLAN.md — 13 rag_* PostHog events registered in events.ts + disable_session_recording_on_url regex extension + captureRagEvent helper [Wave 1]
+- [x] 50-01-PLAN.md — SQL schema (9 migrations): rag_topics, rag_sources + seed, rag_chunks, external_kb_embeddings + HNSW, rag_topic_audit, rag_scrape_runs, rag_cost_ledger, rag_newsletter_subscriptions, RLS policies [Wave 1]
+- [x] 50-02-PLAN.md — Admin module + RagLayout + Topics/Sources pages + TierBadge/HealthBadge/CostBar primitives + 8 admin RPCs + telemetry rollup [Wave 1]
+- [x] 50-03-PLAN.md — 13 rag_* PostHog events registered in events.ts + disable_session_recording_on_url regex extension + captureRagEvent helper [Wave 1]
 
 **Wave 2** *(blocked on Wave 1 completion)* (3 plans in parallel — scrape + summarize + review queue):
-- [ ] 50-04-PLAN.md — rag-scrape-runner Edge Fn (Firecrawl + robots.txt + cost-gating + 3-attempt backoff + auto-pause) + pg_cron orchestrator [Wave 2]
+- [x] 50-04-PLAN.md — rag-scrape-runner Edge Fn (Firecrawl + robots.txt + cost-gating + 3-attempt backoff + auto-pause) + pg_cron orchestrator [Wave 2]
 - [ ] 50-05-PLAN.md — rag-summarize-and-chunk Edge Fn (Anthropic via P25 consumer credential + quote-only-mode + prompt-injection guard + sentence-aware chunker) [Wave 2]
 - [ ] 50-06-PLAN.md — RagQueuePage + side-by-side source/quote pane + 6-reason reject taxonomy + Edit/Retract modals + state-machine RPCs + SLA backlog cron [Wave 2]
 

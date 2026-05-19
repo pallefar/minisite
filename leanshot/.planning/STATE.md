@@ -4,13 +4,13 @@ milestone: v1.3
 milestone_name: Platform Expansion
 status: planning
 stopped_at: Phase 42 planned (11 plans / 5 waves, plan-checker iter-2 PASS)
-last_updated: "2026-05-19T04:47:07.405Z"
+last_updated: "2026-05-19T07:12:25.063Z"
 last_activity: 2026-05-18
 progress:
   total_phases: 28
   completed_phases: 9
   total_plans: 94
-  completed_plans: 77
+  completed_plans: 78
   percent: 32
 ---
 
@@ -210,7 +210,7 @@ Last activity: 2026-05-18
 
 Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
 
-Progress: [██████░░░░] 63%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -293,6 +293,9 @@ Recent decisions affecting current work:
 - P30-05 (2026-05-18): Pre-validate before UPDATE when BEFORE UPDATE trigger can't fire on 0-row matches; use upsert instead
 - P30-05 (2026-05-18): Inside RETURNS TABLE(col_name,...) functions, always qualify WHERE references to avoid 42702 ambiguity with output column names
 - [Phase ?]: 31-03
+- [Phase ?]: Plan 50-04: Vault key 'service_role_key' (existing convention)
+- [Phase ?]: Plan 50-04: Vite-side mirror modules for Deno-runtime files using npm: specifiers (test path)
+- [Phase ?]: Plan 50-04: Open-web crawl chunk INSERT deferred to v1.4 (no synthetic open-web rag_sources row)
 
 ### Pending Todos
 
@@ -337,9 +340,9 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-19T04:47:07.397Z
+Last session: 2026-05-19T07:12:03.259Z
 Stopped at: Phase 42 planned (11 plans / 5 waves, plan-checker iter-2 PASS)
-Resume file: .planning/phases/42-v1-3-polish-closeout/42-01-PLAN.md
+Resume file: None
 
 ## Phase 25 plan-phase blocker (2026-05-17)
 
