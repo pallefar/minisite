@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
-status: ready_to_plan
-stopped_at: Phase 34 context gathered (4/4 gray areas locked; 20 decisions); Phase 36 + 37 + 40 + 41 + 51 plan-phase pending top-level re-invoke (runner-pool blocker); Phase 40 UI-SPEC committed e83b7a1
-last_updated: 2026-05-19T00:45:00Z
-last_activity: 2026-05-19 -- background plan Phase 40 halted at researcher-spawn (expected, runner-pool blocker); UI-SPEC.md inlined + committed before halt (3 surfaces, 7 dimensions PASS); Phase 36 + 37 + 41 + 51 also pending top-level re-invoke
+status: planning
+stopped_at: Phase 38 context gathered (post-AI-SPEC)
+last_updated: "2026-05-19T04:04:48.270Z"
+last_activity: 2026-05-18
 progress:
   total_phases: 28
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 83
   completed_plans: 77
-  percent: 28
+  percent: 32
 ---
 
 # Background dispatch note (2026-05-19) — Phase 40
@@ -19,6 +19,7 @@ progress:
 `/gsd-plan-phase 40 --auto` (Cancellation Save-Offers Flow) invoked via /gsd-manager background path **HALTED at researcher-spawn** — same documented runner-pool blocker as Phases 36 / 37 / 41 / 51 below. No PLAN.md artifacts produced for Phase 40. `40-CONTEXT.md` (22 decisions D-01..D-22) + `40-DISCUSSION-LOG.md` were already committed before this run and remain untouched. Phase 40 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
 
 **Partial progress made before halt** (preserves work the user paid for):
+
 - **UI-SPEC.md generated + committed** at `e83b7a1` — `.planning/phases/40-cancellation-save-offers-flow/40-UI-SPEC.md`. Three surfaces:
   - **Surface 1:** Three-step Cancellation Modal (reason picklist → server-picked offer → loss-summary). Single chunked component per CONTEXT specifics.
   - **Surface 2:** Admin Save-Offer Rule Editor (`/admin/cancellation/rules`, new `AdminShell` module).
@@ -27,6 +28,7 @@ progress:
 - AUTO_CHAIN flag set via `gsd-sdk query config-set workflow._auto_chain_active true` before the UI-phase delegation; the parent plan-phase orchestrator should re-read this on the top-level re-invoke. (Cleanup note: this flag should be reset to `false` before the next non-auto invocation.)
 
 **Confirmed preconditions** (verified before halt):
+
 - `phase_found: true`, `has_context: true`, `has_research: false`, `has_plans: false`, `plan_count: 0`, `phase_status: Pending`
 - `context_path`: `.planning/phases/40-cancellation-save-offers-flow/40-CONTEXT.md` (22 decisions across Eligibility / Pause mechanics / Discount stacking / Modal UX / Claude's Discretion sections)
 - `phase_req_ids`: POLISH-01, POLISH-02, POLISH-03, POLISH-04 (4 requirements)
@@ -51,6 +53,7 @@ Phase 40 splits naturally into 6 plans across 3 waves. The 3-step modal is a sin
 | 40-06 | Admin ROI Dashboard — `CancellationRoiTab.tsx` per UI-SPEC Surface 3. Aggregate query (PG materialized view OR plain view with sane indexes; planner decides) over `cancellation_offers_log`: offers-shown / acceptance-rate / revenue-recovered (deferred MRR × months retained) / avg-retention-extension. Chart.js stacked-bar via `BaseChart`. Cohort breakdown table. CSV export Edge Fn `download_cancellation_roi_csv`. PostHog Experiments + Ship-Winner wiring per D-22 (mirrors P34 D-20). | 3 | 40-01, 40-02 (data for revenue-recovered computation), 40-05 | POLISH-02 |
 
 **Cross-cutting plan-checker concerns to flag at iter-1** (per `[[feedback_planner_iter1_anti_patterns]]`):
+
 - **CHECK-constraint widening** for `cancellation_offers_log.status` enum + `save_offer_rules.active`: ship in 40-01 same plan that introduces the column. Per `[[feedback_planner_missed_status_enum_widening]]`.
 - **D-15 stacking-abuse mitigation choice** must be explicit in PLAN.md (CONTEXT surfaces 4 candidates; recommended per CONTEXT specifics: cap combined effective discount at 35%, server clamps). Plan-checker enforce in 40-03.
 - **D-04 clinic-org fork** — admin must NOT see pause / extended-trial / downgrade rule-editor fields when editing a clinic-org rule. Surface 2 conditional UI; plan-checker enforce in 40-05.
@@ -69,6 +72,7 @@ Phase 40 splits naturally into 6 plans across 3 waves. The 3-step modal is a sin
 `/gsd-plan-phase 41 --auto` (Public Status Page + Embed-Provider Blocks) invoked via /gsd-manager background path **HALTED at researcher-spawn** — same documented runner-pool blocker as Phases 36 / 37 / 51 below. No plan artifacts produced for Phase 41. `41-CONTEXT.md` (18 decisions D-01..D-18 across two parallel workstreams) + `41-DISCUSSION-LOG.md` were already committed and remain untouched. Phase 41 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
 
 **Confirmed preconditions** (verified before halt):
+
 - `phase_found: true`, `has_context: true`, `has_research: false`, `has_plans: false`, `plan_count: 0`, `phase_status: Pending`
 - `context_path`: `.planning/phases/41-public-status-page-embed-provider-blocks/41-CONTEXT.md` (present, 18 decisions)
 - `phase_req_ids`: POLISH-10, EMBED-01, EMBED-02, EMBED-03, EMBED-04, EMBED-05, EMBED-06, EMBED-07, EMBED-08 (9 requirements)
@@ -95,10 +99,12 @@ Phase 41 splits naturally into 2 parallel workstreams per CONTEXT.md `<domain>`:
 | 41-B6 | B — Calendly preview | PageEditor inline Calendly preview via popup OAuth per V13-EMBED pitfall (popup NOT nested iframe) — `postMessage` origin validation + OAuth token storage shape (sessionStorage per-session) + popup-blocked error UX. | 2 | 41-B1 | EMBED-08 |
 
 **Wave structure: 8 plans / 2 waves** (matches [[feedback_parallel_chunked_planning]] threshold of ≥5 plans → fire per-plan planners in parallel via `run_in_background`):
+
 - Wave 1 (5 parallel): 41-A1, 41-B1, 41-B3, 41-B4, 41-B7 — independent file zones, no cross-plan collisions
 - Wave 2 (3 plans): 41-B2 (needs block components from 41-B1), 41-B5 (needs `iframe_allowlist` from 41-B4), 41-B6 (needs block schema from 41-B1)
 
 **Cross-cutting concerns the planner MUST enforce:**
+
 - [[reference_supabase_migration_filename_regex]] — `iframe_allowlist` migration strict `<14-digits>_name.sql`
 - [[reference_supabase_migration_gotchas]] — RLS deny + service-role insert + admin select via SECURITY DEFINER with `set search_path = public, extensions`
 - [[reference_migration_timestamp_collision_precheck]] — pre-merge glob for `<prefix>*.sql` collisions before push (P25 lesson — `20270702*` window is now in use, allocate fresh prefix)
@@ -111,6 +117,7 @@ Phase 41 splits naturally into 2 parallel workstreams per CONTEXT.md `<domain>`:
 - Phase 37 dependency for EMBED-06 — KB renderer integration must be feature-flagged if P37 hasn't shipped at execute-time (P37 currently `Pending` per its own STATE blocker)
 
 **Risks the planner / checker must surface:**
+
 - D-06 HUMAN-UAT (Better Stack account upgrade + 4 OAuth integrations + 7-component config + CNAME at registrar) has founder dependency — Plan 41-A1 MUST be `autonomous: false` with explicit checkpoints; ship the engineering side behind no-op until BS account ready
 - D-14 dynamic CSP injection via Vercel middleware is the trickiest seam — research must confirm Vercel routing middleware CAN mutate `Content-Security-Policy` response header on cached + non-cached routes; alternative is Edge Fn proxy. Planner's discretion locked at 41-B5 plan-write
 - D-17 superadmin allowlist UI consumes Phase 27 `surfaceCheck('admin.embeds.allowlist')` — requires admin role enum extension; check Phase 27 admin-role manifest before 41-B4 plan-write
@@ -134,6 +141,7 @@ Phase 41 splits naturally into 2 parallel workstreams per CONTEXT.md `<domain>`:
 `/gsd-plan-phase 36 --auto` (M3 Review Prompt Engine - Web Only) invoked via /gsd-manager background path **HALTED at researcher-spawn** — same documented runner-pool blocker as Phase 51 + 37 below. No plan artifacts produced for Phase 36. CONTEXT.md (21 decisions D-01..D-21 across 5 areas; REVIEW-01..08 fully covered; canonical refs to Phase 24/27/34/35/37 resolved) + DISCUSSION-LOG.md were already committed and remain untouched. Phase 36 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
 
 **Confirmed preconditions** (verified before halt):
+
 - `phase_found: true`, `has_context: true`, `has_research: false`, `has_plans: false`, `plan_count: 0`
 - `context_path`: `.planning/phases/36-m3-review-prompt-engine-web-only/36-CONTEXT.md` (present)
 - Depends on: Phase 24 (events.ts registry) — SHIPPED in v1.2; Phase 37 (helpdesk core) — discussed but **NOT YET PLANNED** (same blocker)
@@ -151,6 +159,7 @@ Phase 41 splits naturally into 2 parallel workstreams per CONTEXT.md `<domain>`:
 `/gsd-plan-phase 37 --auto` (M6 Helpdesk Core) invoked via background path **HALTED at executor-spawn** — same documented runner-pool blocker as Phase 51 above. No plan artifacts produced for Phase 37. CONTEXT.md (16 KB, 22 decisions) + DISCUSSION-LOG.md were already committed at 2026-05-19 04:58 and remain untouched. Phase 37 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
 
 **Confirmed preconditions** (verified before halt):
+
 - `phase_status`: Pending
 - `has_context`: true (`.planning/phases/37-m6-helpdesk-core/37-CONTEXT.md` — 22 decisions across PHI routing / AI assist / widget / inbound email)
 - `has_research`: false, `has_plans`: false
@@ -328,9 +337,9 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-18T17:39:13.584Z
-Stopped at: Phase 51 context gathered
-Resume file: .planning/phases/51-full-traffic-conversion-tracking-system-unified-dashboard-ut/51-CONTEXT.md
+Last session: 2026-05-19T04:04:48.259Z
+Stopped at: Phase 38 context gathered (post-AI-SPEC)
+Resume file: .planning/phases/38-m5b-ai-recommender-pgvector-claude-digest/38-CONTEXT.md
 
 ## Phase 25 plan-phase blocker (2026-05-17)
 
@@ -542,3 +551,105 @@ Phase 34 is likely **9 plans across 3 waves**. Per [[feedback_chunked_planning_i
   - Provision Apple Developer Services ID + return URLs for web Apple OAuth — vendor-config block for Plan 34-05.
   - Verify migration timestamp window `20270703000001..N` is collision-free against any merged Phase 25/33/50 migrations on main (last seen highest: `20270702000009`).
 - **DOWNSTREAM IMPACT WARNING:** Phase 34 D-01..D-05 LOCK the activation event shape consumed by Phase 36 (review eligibility), Phase 38 (recommender retraining), and Phase 39 (paywall trigger). The CONTEXT.md decisions are sufficient to lock the shape NOW — those downstream plan-phase commands can proceed in parallel using CONTEXT.md D-01..D-05 even before Phase 34 ships, per the load-bearing note in STATE Blockers ("Phase 34 activation event lock-in is load-bearing").
+
+## Phase 35 plan-phase blocker (2026-05-19)
+
+**Blocker:** `/gsd-plan-phase 35 --auto` invoked via `/gsd-manager` background path. The plan-phase workflow needs to spawn three subagents in sequence (`gsd-phase-researcher` → `gsd-planner` → `gsd-plan-checker`), but the `Task`/`Agent` tool is not available in this subagent context (confirmed via `ToolSearch select:Task` returning no match; cross-references: [[feedback_skill_in_background_agent_loses_tool_access]] + [[reference_gsd_tooling_quirks]]). Per parent-prompt rule ("If you hit a blocker, write it to STATE.md as a blocker and stop"), workflow halted before researcher spawn. Same shape as the Phase 25 / Phase 51 / Phase 34 background-runner blockers recorded earlier in this STATE.md.
+
+**State on disk:**
+
+- `.planning/phases/35-m3-gamification-engine/35-CONTEXT.md` — present (21 D-XX decisions across XP economy, streak/freeze, leaderboard, weekly challenges + Claude's Discretion section) ✓
+- `.planning/phases/35-m3-gamification-engine/35-DISCUSSION-LOG.md` — present ✓
+- `35-RESEARCH.md` — NOT created
+- `35-VALIDATION.md` — NOT created (would be created after RESEARCH.md `## Validation Architecture` block lands)
+- `35-PATTERNS.md` — NOT created
+- `*-PLAN.md` — NONE
+- `has_research=false`, `has_plans=false`, `plan_count=0`, `phase_status=Pending`
+
+**Pre-flight verified (workflow steps 1–4):**
+
+- `gsd-sdk query init.plan-phase 35` parsed cleanly: researcher=sonnet, planner=opus, checker=sonnet, research_enabled=true, plan_checker_enabled=true, nyquist_validation_enabled=true, commit_docs=true, auto_advance=false, mode=yolo.
+- CONTEXT.md loaded — 21 D-XX decisions (D-01..D-21) + Claude's-discretion block covering confetti/share-card OG/badge-seed/ProgressRing-reuse/gamification-burst-chunk.
+- REQ-IDs from ROADMAP: `GAME-01, GAME-02, GAME-03, GAME-04, GAME-05, GAME-06, GAME-07, GAME-08, GAME-09` (9 REQs).
+- Depends on: Phase 24 (event taxonomy, server-side PostHog, bundle ceilings — gamification-burst 8 kB gz), Phase 27 (cohort builder + admin-shell extension surface). Both shipped.
+- UI gate (5.6) APPLIES — phase touches UI (dashboard cards, progress rings, settings opt-in, admin module). However: CONTEXT.md already specifies UI patterns via "reuse `src/components/ui/ProgressRing.tsx`" + "extend admin shell module pattern" + "Settings → Leaderboards subtab." This is component-level reuse, not a new design surface — per [[feedback_uispec_for_frontend_heavy_phases]] the default would be "generate UI-SPEC first," but the rich CONTEXT.md decision set (21 decisions including all UX cadence, opt-in nudge timing, confetti cooldown, handle regex) means `--skip-ui` is defensible. Operator should pick: (a) `/gsd-ui-phase 35` first for a per-phase UI contract, or (b) `--skip-ui` and rely on CONTEXT decisions + ProgressRing reuse.
+- Schema push gate (5.7) APPLIES — phase ships ≥5 new migrations (xp_ledger, freeze_tokens_ledger, streak_state, weekly_challenges, badge_catalog, leaderboard matview, cohort_definitions.leaderboard_enabled column). `[BLOCKING]` Supabase `supabase db push --linked` task MUST be injected per [[reference_supabase_worktree_temp_state]].
+
+**Resume options for operator (run from a top-level Claude Code session, NOT from a nested subagent):**
+
+1. **PRIMARY — Re-invoke at top level:** `/gsd-plan-phase 35 --auto` — top-level Claude Code has the `Task` tool and can dispatch the researcher → planner → checker chain. Recommended because:
+   - RESEARCH.md lands first (Nyquist Dimension 8 inputs)
+   - VALIDATION.md auto-created from `## Validation Architecture` section
+   - Plan-checker iterates over the planner output (max 3 revisions)
+   - Per [[feedback_parallel_chunked_planning]] with ≥5 plans, planner orchestration fires plan-by-plan in parallel via `run_in_background`
+
+2. **UI-first then plan:** `/gsd-ui-phase 35 --auto` then `/gsd-plan-phase 35 --auto` — produces a richer UI-SPEC.md contract before plans. Adds ~one round-trip but reduces UI-related plan-checker iterations. Recommended if the design-bundle pattern at `.planning/design-system/` is meant to inform the gamification surfaces — see [[feedback_design_bundle_as_ui_spec]].
+
+3. **Skip-UI:** `/gsd-plan-phase 35 --auto --skip-ui` — relies on CONTEXT decisions + existing component reuse. Acceptable because CONTEXT.md captures every UX cadence decision (D-09 single 24h-ahead notify, D-12 opt-in nudge at level 5, D-13 handle regex, D-21 Monday kickoff). Risk: planner might propose new design surfaces (admin challenge form layout, leaderboard table styling) that benefit from a UI-SPEC contract.
+
+4. **Skip research (faster, lower fidelity):** `/gsd-plan-phase 35 --skip-research --skip-ui` — planner works from CONTEXT.md + REQUIREMENTS.md only. CONTEXT.md is dense (21 locked decisions); risk is Nyquist Dimension 8 failures at plan-checker time and missed library/integration detail (e.g., `canvas-confetti` 1.9.3 stack-lock; PostHog Experiments cohort-scoped variant binding patterns from Phase 34 D-20).
+
+**Planner outline guidance (pre-computed during this session — saves one planner pass):**
+
+Based on the 21 decisions, 9 REQ-IDs, and the [[feedback_parallel_chunked_planning]] threshold (≥5 plans triggers chunked planning), Phase 35 is likely **10–12 plans across 3 waves**. The phase has natural seam boundaries — append-only ledger DB layer, streak/freeze cron service, leaderboard matview+UI, admin challenge module, share-card edge fn, dashboard surfaces — that planners can own independently:
+
+| Plan | Objective | Wave | Depends on | REQs | Key files / decisions |
+|------|-----------|------|------------|------|-----------------------|
+| 35-01 | `xp_ledger` migration + append-only RLS deny + `compute_level(xp_total)` Postgres function (D-04 deterministic) + ledger-replay rollback test (success criterion #1) | 1 | — | GAME-01 | new migration `20270703000001_xp_ledger.sql`; D-01, D-02, D-04; pure-function level computation enables the rollback test |
+| 35-02 | `streak_state` migration + `freeze_tokens_ledger` migration + hourly `pg_cron` streak job per `profiles.timezone` + monthly freeze-token grant cron + auto-apply logic (D-08) | 1 | 35-01 (xp_ledger writer fires events streak job reads) | GAME-02 | new migrations; D-06, D-07, D-08, D-10; [[reference_postgres_dollar_quote_nesting_in_cron_body]] named tags; [[reference_supabase_pg_cron_vault_service_role_pattern]] vault decrypted_secrets |
+| 35-03 | `leaderboard_matview` migration + `cohort_definitions.leaderboard_enabled` column + 15-min `pg_cron` REFRESH MATERIALIZED VIEW CONCURRENTLY + 7d rolling XP score function (D-16) + REVOKE + SECURITY DEFINER accessor pattern per P30-00 lesson | 1 | — | GAME-04 (partial) | new migration + ALTER cohort_definitions; D-11, D-14, D-15, D-16; matview RLS-bypass via accessor RPC |
+| 35-04 | XP-grant Edge Fn `xp-grant` + integration into existing log-write paths (injection-log, weight-log, symptom-log, workout-log Edge Fns or RPC triggers) + server-side PostHog capture (D-05 — Phase 24 server-side pattern) | 1 | 35-01 | GAME-01, GAME-09 | new Edge Fn `supabase/functions/xp-grant/index.ts`; Deno test naming `xp-grant.test.ts` per [[reference_deno_test_discovery]]; integrates with existing log-write call sites |
+| 35-05 | `weekly_challenges` migration + `challenge_assignments` migration + `badge_catalog` migration + initial badge seed (12-20 badges per Claude's-discretion) + challenge-completion check Edge Fn / cron | 2 | 35-01, 35-02 | GAME-05, GAME-08, GAME-09 | new migrations; D-17, D-18, D-19; status enum (active/completed/archived) — per [[feedback_planner_missed_status_enum_widening]] ship CHECK widening in SAME plan |
+| 35-06 | Admin module `/admin/gamification` — challenge create form (D-17 simple form, no drag-drop builder), cohort-scope picker, A/B variant toggle (D-20 PostHog Experiments binding mirrors Phase 34 D-20), freeze-token grant UI (D-10 with `granted_by_admin_user_id` audit), leaderboard_enabled toggle per cohort | 2 | 35-03 (cohort col), 35-05 (challenges), P27 admin shell | GAME-03, GAME-05, GAME-08 | extends `surfaceCheck('admin.gamification.*')`; admin-shell 30 kB ceiling; new admin route registered in admin shell manifest |
+| 35-07 | Dashboard surfaces — `GamificationCard` + `LevelProgressCard` + `StreakCard` + `LeaderboardCard` + share-card preview button; ProgressRing reuse for streak + level rings (D-claude); `useReducedMotion` gates all animation | 2 | 35-01, 35-02, 35-03 | GAME-01, GAME-02, GAME-04 | new files in `src/components/dashboard/cards/`; index ceiling (50 kB gz) respected by routing canvas-confetti + framer-motion through `sync-defer.ts` |
+| 35-08 | `gamification-burst` chunk packaging + canvas-confetti 1.9.3 lazy-load via `sync-defer.ts` + `useReducedMotion` fallback (ProgressRing pulse) + level-up + challenge-complete burst triggers + 60s cooldown (D-claude anti-spam) + bundle-budget CI assertion ≤8 kB gz | 2 | 35-07 | GAME-06 (success criterion confetti gate) | new file `src/lib/gamification/burst.ts`; bundle-budget script update per [[reference_bundle_budget_hash_hyphen]] |
+| 35-09 | Vercel Function `api/og/level-up.png` (share-card OG image, D-claude template) + OG meta tags wired to share modal + `?ref=share` query param → `_aff` cookie write per Phase 19 dual-cookie pattern + Twitter/X/LinkedIn/Instagram OG validation | 2 | 35-07 | GAME-07 | new Vercel function at repo root `api/og/level-up.png.ts`; SC #5 |
+| 35-10 | Settings → Leaderboards subtab — opt-in toggle (D-12 default OFF), handle picker with regex validation (D-13 `^[A-Za-z0-9]{6,24}$` + per-cohort uniqueness check), server-generated default suggestion endpoint, dismissable level-5 dashboard nudge (D-12 one-time) | 2 | 35-03 | GAME-04 | extends `src/components/dashboard/settings/SettingsPage.tsx`; handle-uniqueness RPC; nudge surfaced via dashboard widget |
+| 35-11 | Notification engine — Monday-morning challenge kickoff push/in-app (D-21) + 24h-ahead streak-break warning at 6pm local (D-09 single notification per cycle, ETHICAL-only guardrail) + Friday-evening challenge nudge if no progress; planner enforces "max 1 notification per cycle" via Postgres unique-per-user-per-cycle constraint | 3 | 35-02, 35-05 | GAME-05, GAME-02 | new `pg_cron` jobs + `notifications_outbox` integration (Phase 24 server-side path); planner BLOCKS any 2nd-warning per cycle at design-time |
+| 35-12 | Phase 24 + Phase 27 coordination patch — extend `src/lib/analytics/events.ts` with 6 new events (xp_earned, level_up, streak_milestone, freeze_token_granted, challenge_completed, badge_unlocked); confirm admin-shell manifest entries; bundle-budget script gamification-burst ceiling row | 1 | — (verification) | GAME-01..09 (analytics) | small read-write coordination plan; ensures Phase 24 server-side capture path is wired correctly before 35-04 ships |
+
+**Wave shape:** Wave 1 has 5 plans (35-01, 02, 03, 04, 12 — DB + Edge Fn + matview foundation); Wave 2 has 6 plans (35-05, 06, 07, 08, 09, 10 — admin + dashboard + share-card + settings); Wave 3 has 1 plan (35-11 — notifications, depends on both streaks and challenges). Per [[feedback_parallel_chunked_planning]] this is the chunked-planning sweet spot — fire per-plan planners in parallel via `run_in_background` at top-level.
+
+**Cross-cutting concerns the planner / checker MUST enforce:**
+
+- [[reference_supabase_migration_filename_regex]] — strict `<14-digit>_name.sql`; new range starts `20270703000001` (after Phase 25 ceiling `20270702000009`); ensure no collision with Phase 33/34 migrations (verify via `ls supabase/migrations/2027*.sql` pre-plan-write)
+- [[reference_migration_timestamp_collision_precheck]] — pre-merge glob `20270703*.sql >1` collision check between plans 35-01/02/03/05
+- [[reference_supabase_migration_gotchas]] — append-only ledger RLS = deny UPDATE/DELETE; SECURITY DEFINER `set search_path = public, extensions`
+- [[reference_postgres_dollar_quote_nesting_in_cron_body]] — streak/freeze cron uses `DO $$..$$` inside `cron.schedule(..., $$..$$)` → use named tags (`$cron$..$streak$`)
+- [[reference_supabase_pg_cron_vault_service_role_pattern]] — pg_cron + SECDEF calling Edge Fns needs vault `decrypted_secret` pattern, hardcoded URL; NEVER `current_setting('app.service_role_key')`
+- [[feedback_planner_missed_status_enum_widening]] — Plan 35-05 challenge status enum (active/completed/archived) needs CHECK widening in same plan
+- [[feedback_status_machine_transition_owner]] — every challenge status value needs an owning plan+task or feature ships dead
+- [[reference_vite_static_env_inlining]] — share-card path-detection must use enumerated ternaries, not dynamic dynamic-key access
+- [[project_phase5_bundle_regression]] — canvas-confetti + framer-motion bursts MUST route through `sync-defer.ts`; direct static imports blocked by CI guard
+- [[reference_rls_fixture_gotruechient_flake]] — RLS tests for `xp_ledger`, `freeze_tokens_ledger`, `leaderboard_matview` (via accessor RPC), `weekly_challenges` use admin.generateLink + /auth/v1/verify pattern (ES256-compat)
+- [[reference_deno_test_discovery]] — all new Edge Fn tests named `<name>.test.ts` (NOT `<name>-test.ts`)
+- [[feedback_planner_iter1_anti_patterns]] — 5 BLOCKER patterns to dodge (shared-file choreography, hedge instructions, VALIDATION flag flip-timing, defensive jsonb contracts, DDL tx safety)
+- **Ethical-only / privacy-default theme (CONTEXT specifics):** every plan's `must_haves.truths` MUST include "no dark patterns" (single notification per cycle; opt-in default; no monetization of XP/tokens; transparent freeze-token auto-apply; admin-curated leaderboards only); plan-checker should grep for and BLOCK any pattern matching: timer-based FOMO, color-shift escalation, surprise-deplete tokens, opt-out leaderboards, real-name display, paid XP boosts, sold freeze tokens, level-gated features.
+- **Bundle ceilings (Phase 24 D-18..20):** gamification-burst ≤8 kB gz (hard ceiling); index ≤50 kB gz; admin-shell ≤30 kB (Plan 35-06 admin module fits inside); plans 35-07 + 35-08 must include bundle-budget CI assertion rows.
+
+**Risks the planner / checker must surface:**
+
+- **D-05 server-side XP capture** — XP-earning events fire from Edge Fns processing qualifying-action inserts. Plan 35-04 must integrate at the right call site (injection-log, weight-log, symptom-log, workout-log Edge Fns or trigger RPCs); verify the call sites exist before planning (some may be DB triggers, not Edge Fns).
+- **D-08 freeze-token max stockpile = 3 with overflow drop** — planner needs explicit pseudocode handling for: token granted when stockpile=3 → log warning event + drop on floor; admin grant respects same cap. Don't let plans default to "extend stockpile" silently.
+- **D-11 leaderboard_enabled per cohort** — admin owns the responsibility per CONTEXT.md "ethical-only positioning"; planner must produce a doc/runbook under `docs/admin/` describing criteria ("don't enable for early-stage / newly-diagnosed cohorts"). Plan 35-06 should include this docfile in `files_modified`.
+- **D-14 leaderboard top-10 + ±5 neighborhood** — matview query needs careful pagination; planner should specify the query shape (CTE with rank window) so plan-checker can verify it doesn't fan out per-user-request (15-min matview must be pre-computed for ALL users, then sliced per request).
+- **D-20 A/B variant scope** — Phase 34 D-20 pattern (cohort-scoped PostHog Experiments + Ship-Winner write-new-version + flip flag). Plan 35-06 must mirror this exactly; planner-iter-1 anti-pattern: "experiments handle the gate" without write-new-version + flag-flip mechanics.
+- **canvas-confetti 1.9.3 stack-lock** — already in v1.3 stack additions per STATE.md (line 128 region); do NOT upgrade. Plan 35-08 must lazy-load via `sync-defer.ts` to stay under 8 kB gz.
+- **Onboarding-burst chunk audit** — confetti from Phase 34 onboarding completion (if any) shares the gamification-burst chunk OR sits in its own chunk; planner-checker should verify there's exactly one canvas-confetti import path.
+- **Vercel Function for OG image** — Plan 35-09 lives OUTSIDE `leanshot/src` (at Vercel project root `api/og/level-up.png.ts` per [[reference_vercel_project]] `leanshot-marketing`). Per [[reference_minisite_monorepo_layout]] plan `files_modified` paths are relative to git root (`/Users/karstenhaldan/minisite`), NOT `/leanshot/`.
+- **35-12 coordination plan** — small but load-bearing; ensures `src/lib/analytics/events.ts` has the 6 new event names BEFORE 35-04 tries to fire them server-side. If 35-12 ships in Wave 1 alongside 35-04, the planner must enforce file-level ownership (events.ts may be edited by both — pathspec commit pattern per [[feedback_parallel_executor_git_isolation]]).
+
+**Manifest of pre-flight state (so resumer doesn't repeat work):**
+
+- HEAD: `06eb777` `docs(42): capture phase context` (clean main, nothing staged at time of orchestrator entry).
+- STATE.md frontmatter unchanged at orchestrator entry: `status: ready_to_plan`.
+- ROADMAP.md Phase 35 entry: `[ ]` — Pending.
+- No `.planning/phases/35-m3-gamification-engine/35-*` files besides CONTEXT.md + DISCUSSION-LOG.md.
+- No worktree branches active for Phase 35.
+- Migrations directory ceiling: highest existing `20270702*` (Phase 25 chain). Phase 35 should target `20270703*` to avoid collisions.
+
+## Operator Next Steps (Phase 35 plan-phase resume)
+
+- **PRIMARY:** Re-invoke `/gsd-plan-phase 35 --auto` from a top-level Claude Code session (NOT nested under `/gsd-manager` or any background dispatch). Top-level Claude Code has the `Task`/`Agent` tool and can dispatch researcher → planner → checker. The pre-computed planner outline above can be pasted into the planner prompt as an additional `<planner_outline_hint>` block to save one outline-discovery pass.
+- **OPTIONAL UI-first:** If gamification surfaces warrant a UI-SPEC contract (admin form, leaderboard table styling, share-card template), run `/gsd-ui-phase 35 --auto` first, then `/gsd-plan-phase 35 --auto`. Otherwise pass `--skip-ui`.
+- **PARALLEL:** No vendor lead-time blockers for Phase 35 — canvas-confetti, framer-motion, Resend (for streak-break warning emails if planner picks email channel), PostHog Experiments, Vercel Functions all already wired in v1.3 stack.
