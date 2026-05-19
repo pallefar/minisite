@@ -26,6 +26,8 @@ export default defineConfig({
     // Phase 26 plan 26-01: AFFTIER-01/02 vitest live-DB specs (note `.spec.ts`
     //   extension per plan body; routed to vitest here AND ignored by playwright
     //   chromium project in playwright.config.ts).
+    // Phase 42 plan 42-07: quarterly NPS backend (POLISH-12) — RLS cross-tenant
+    //   + 3 integration tests. Live-DB; auto-skip absent service-role key.
     include: [
       'e2e/rls-*.test.ts',
       'e2e/admin-impersonation-write-deny.test.ts',
@@ -41,6 +43,10 @@ export default defineConfig({
       'src/lib/__tests__/mv-clinic-alert-metrics.test.ts',
       'tests/integration/funnel-anomaly-detection.test.ts',
       'tests/integration/anomaly-suppression.test.ts',
+      'tests/rls/quarterly-nps-rls.test.ts',
+      'tests/integration/quarterly-nps-cron.test.ts',
+      'tests/integration/quarterly-nps-respond.test.ts',
+      'tests/integration/quarterly-nps-fallback.test.ts',
     ],
     testTimeout: 30000,
   },
