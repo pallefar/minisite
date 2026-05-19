@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: ready_to_plan
-stopped_at: Phase 34 context gathered (4/4 gray areas locked; 20 decisions); Phase 51 plan-phase pending top-level re-invoke (runner-pool blocker)
-last_updated: 2026-05-18T20:35:00Z
-last_activity: 2026-05-18 -- discuss Phase 34 inline + background plan Phase 51 halted at executor-spawn (expected)
+stopped_at: Phase 34 context gathered (4/4 gray areas locked; 20 decisions); Phase 36 + 37 + 41 + 51 plan-phase pending top-level re-invoke (runner-pool blocker)
+last_updated: 2026-05-19T00:30:00Z
+last_activity: 2026-05-19 -- background plan Phase 41 halted at researcher-spawn (expected, runner-pool blocker); Phase 36 + 37 + 51 also pending top-level re-invoke
 progress:
   total_phases: 28
   completed_phases: 8
@@ -17,6 +17,103 @@ progress:
 # Background dispatch note (2026-05-18)
 
 `/gsd-plan-phase 51 --auto` invoked via /gsd-manager background path HALTED at executor-spawn — the documented runner-pool blocker (background Agent loses Task/Agent tool access; see memory `feedback_skill_in_background_agent_loses_tool_access` + `reference_gsd_tooling_quirks`). No plan artifacts produced. Phase 51 stays at `discussed` status. **Resolution: user re-invokes `/gsd-plan-phase 51 --auto` at TOP-LEVEL** (not via /gsd-manager dispatch) — preconditions otherwise met (CONTEXT.md present with 16 decisions; deps satisfied by Phase 33 ship 2026-05-18 + Phase 24/27/28/29/15 shipped).
+
+# Background dispatch note (2026-05-19) — Phase 41
+
+`/gsd-plan-phase 41 --auto` (Public Status Page + Embed-Provider Blocks) invoked via /gsd-manager background path **HALTED at researcher-spawn** — same documented runner-pool blocker as Phases 36 / 37 / 51 below. No plan artifacts produced for Phase 41. `41-CONTEXT.md` (18 decisions D-01..D-18 across two parallel workstreams) + `41-DISCUSSION-LOG.md` were already committed and remain untouched. Phase 41 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
+
+**Confirmed preconditions** (verified before halt):
+- `phase_found: true`, `has_context: true`, `has_research: false`, `has_plans: false`, `plan_count: 0`, `phase_status: Pending`
+- `context_path`: `.planning/phases/41-public-status-page-embed-provider-blocks/41-CONTEXT.md` (present, 18 decisions)
+- `phase_req_ids`: POLISH-10, EMBED-01, EMBED-02, EMBED-03, EMBED-04, EMBED-05, EMBED-06, EMBED-07, EMBED-08 (9 requirements)
+- Depends on: Phase 15 (page-builder block schema — shipped v1.2) + v1.2 Phase 22 (cookie consent — shipped); also load-bearing on P12 (CSP snapshot test + ad-free firewall — shipped), P25 (`audit_logs` schema), P37 (helpdesk KB extends embed reach — Phase 37 STILL PENDING per its own blocker), P50 (dompurify chain — shipped)
+- Two parallel workstreams in one phase: Workstream A (Better Stack status page, D-01..D-06) + Workstream B (embed blocks: consent + CSP + custom-iframe security + Calendly OAuth, D-07..D-18)
+
+**Blocker root cause:** Background-Agent runtime in this session exposes only Read/Edit/Write/Bash + MCP tools — no `Task` / `Agent` schema (confirmed via `ToolSearch select:Agent` returning no match, `ToolSearch select:Task` returning no match). `gsd-plan-phase` step 5 (spawn `gsd-phase-researcher`), step 7.8 (`gsd-pattern-mapper`), step 8 (`gsd-planner`), step 10 (`gsd-plan-checker`) all require `Agent()`. Workflow cannot proceed past step 4 (CONTEXT.md load) here. Per parent-prompt rule ("If you hit any access issue, do NOT work around it — let it fail and write the error to .planning/STATE.md as a blocker"), workflow halted before any agent spawn.
+
+**Resolution:** User re-invokes `/gsd-plan-phase 41 --auto` at TOP-LEVEL Claude Code session (NOT via /gsd-manager background dispatch). Top-level session has the `Task`/`Agent` tools needed to dispatch researcher → pattern-mapper → planner → plan-checker chain. AUTO_CHAIN branch at step 5.6 will auto-fire `gsd-ui-phase 41 --auto` because this phase touches UI (D-08 branded placeholder card, D-10 loading skeleton, D-17 superadmin allowlist UI at `/admin/embeds/allowlist`).
+
+**Planner outline guidance** (pre-computed during this background session — saves planner one pass):
+
+Phase 41 splits naturally into 2 parallel workstreams per CONTEXT.md `<domain>`:
+
+| Plan | Workstream | Objective | Wave | Depends on | REQs |
+|------|------------|-----------|------|------------|------|
+| 41-A1 | A — Better Stack | HUMAN-UAT: paid tier upgrade ($12/mo) + 7-component hybrid hierarchy (D-01) + Sentry/Vercel/Supabase OAuth + conservative auto-incident thresholds (D-02) + email subscriber form embed (D-03) + maintenance windows in BS admin (D-04) + CNAME `status.leanshot.app` (D-05). `autonomous: false`. | 1 | — | POLISH-10 |
+| 41-B1 | B — Page Builder | Register 4 embed block types (`embed.calendly` / `embed.youtube` / `embed.tally` / `embed.custom_iframe`) in Phase 15 page-builder + shared render component for PageBuilder + Helpdesk KB renderer (EMBED-06 KB shim feature-flagged behind P37 status). | 1 | — | EMBED-01, EMBED-02, EMBED-06 |
+| 41-B3 | B — CSP | Day-1 CSP enforcement per D-11/D-12: per-provider host entries in `vercel.json` + CSP snapshot test extension per P12 D-10 + Sentry CSP reporting endpoint. | 1 | — | EMBED-03, EMBED-04 |
+| 41-B4 | B — Custom-iframe | `iframe_allowlist` table migration (D-14) + RLS deny + service-role insert + superadmin-only select via P27 `surfaceCheck` + server-side hostname-exact validator (D-15) + fixed sandbox `'allow-scripts allow-same-origin'` (D-16) + superadmin allowlist UI at `/admin/embeds/allowlist` (D-17, 90d audit-log retention via P25 `audit_logs`). | 1 | — | EMBED-04, EMBED-07 |
+| 41-B7 | B — Cross-cutting | dompurify wiring for admin-pasted HTML (reuse P50 chain) + native `loading="lazy"` on every embed iframe + ad-free firewall verification (D-18: assert no embed block imports from `src/lib/native/ads*.ts` via grep gate). | 1 | — | EMBED-04 |
+| 41-B2 | B — Consent | Cookie-consent gating + branded placeholder card (D-08) + auto-load on grant via P22 consent-state event emitter (D-09) + DS Skeleton loading state (D-10) + per-provider consent category mapping (D-07) + "Manage cookie preferences" deep-link. | 2 | 41-B1 | EMBED-04, EMBED-05 |
+| 41-B5 | B — Dynamic CSP | Vercel routing middleware (or Edge Fn fallback) reads `iframe_allowlist` and injects custom-iframe hostnames at request-time per D-14 + cache invalidation when superadmin add/remove. RESEARCH must confirm middleware can mutate `Content-Security-Policy` response header on cached + non-cached routes. | 2 | 41-B4 | EMBED-04 |
+| 41-B6 | B — Calendly preview | PageEditor inline Calendly preview via popup OAuth per V13-EMBED pitfall (popup NOT nested iframe) — `postMessage` origin validation + OAuth token storage shape (sessionStorage per-session) + popup-blocked error UX. | 2 | 41-B1 | EMBED-08 |
+
+**Wave structure: 8 plans / 2 waves** (matches [[feedback_parallel_chunked_planning]] threshold of ≥5 plans → fire per-plan planners in parallel via `run_in_background`):
+- Wave 1 (5 parallel): 41-A1, 41-B1, 41-B3, 41-B4, 41-B7 — independent file zones, no cross-plan collisions
+- Wave 2 (3 plans): 41-B2 (needs block components from 41-B1), 41-B5 (needs `iframe_allowlist` from 41-B4), 41-B6 (needs block schema from 41-B1)
+
+**Cross-cutting concerns the planner MUST enforce:**
+- [[reference_supabase_migration_filename_regex]] — `iframe_allowlist` migration strict `<14-digits>_name.sql`
+- [[reference_supabase_migration_gotchas]] — RLS deny + service-role insert + admin select via SECURITY DEFINER with `set search_path = public, extensions`
+- [[reference_migration_timestamp_collision_precheck]] — pre-merge glob for `<prefix>*.sql` collisions before push (P25 lesson — `20270702*` window is now in use, allocate fresh prefix)
+- [[feedback_planner_iter1_anti_patterns]] — 41-B3 (static CSP in `vercel.json`) and 41-B5 (dynamic CSP frame-src middleware) must NOT shared-file-choreograph; clear ownership: static CSP base lives in `vercel.json`, middleware ONLY APPENDS hostnames from `iframe_allowlist` to `frame-src`, never edits `vercel.json` at runtime
+- [[reference_grep_gate_comment_strip]] — CSP snapshot test must strip comments before grepping for forbidden patterns
+- [[reference_claude_design_bundle_landmines]] — iframe height/transition CSS gotchas relevant for D-10 loading state (split-screen height stretch + transition `var()` warnings)
+- [[reference_vite_static_env_inlining]] — if any per-env CSP report endpoint URL is injected at build time, use enumerated literal keys
+- Bundle ceiling — embed block components inside existing page-builder chunk (no new chunk); admin allowlist UI inside admin-shell 30 kB ceiling (per Phase 24 D-18..20)
+- Phase 12 D-04 firewall — `src/lib/native/ads*.ts` eslint zone UNAFFECTED (per D-18 contract); 41-B7 verification plan adds grep gate
+- Phase 37 dependency for EMBED-06 — KB renderer integration must be feature-flagged if P37 hasn't shipped at execute-time (P37 currently `Pending` per its own STATE blocker)
+
+**Risks the planner / checker must surface:**
+- D-06 HUMAN-UAT (Better Stack account upgrade + 4 OAuth integrations + 7-component config + CNAME at registrar) has founder dependency — Plan 41-A1 MUST be `autonomous: false` with explicit checkpoints; ship the engineering side behind no-op until BS account ready
+- D-14 dynamic CSP injection via Vercel middleware is the trickiest seam — research must confirm Vercel routing middleware CAN mutate `Content-Security-Policy` response header on cached + non-cached routes; alternative is Edge Fn proxy. Planner's discretion locked at 41-B5 plan-write
+- D-17 superadmin allowlist UI consumes Phase 27 `surfaceCheck('admin.embeds.allowlist')` — requires admin role enum extension; check Phase 27 admin-role manifest before 41-B4 plan-write
+- D-15 hostname-exact match (no subdomain wildcard) is a security trade-off; planner MUST include unit test asserting `meet.example.org` does NOT match `sub.meet.example.org`
+- D-16 fixed sandbox flags (no admin override) — known UX trade-off; planner MUST add explicit acceptance criterion in 41-B4 that the sandbox attribute is FROZEN (no admin UI knob in v1.3)
+- EMBED-06 (helpdesk KB reach) requires Phase 37 KB article renderer to be live — Phase 37 currently `Pending` per its own STATE blocker note. Plan 41-B1 must shim the KB renderer integration behind a feature flag and not block execute
+- D-09 auto-load on consent grant uses Phase 22 consent-state event emitter; planner must read Phase 22 SUMMARY.md to confirm the exact event name + payload shape before writing 41-B2
+- D-11 CSP reporting endpoint — verify Sentry CSP-report ingest URL format + whether project already has CSP reporting enabled; if not, this is a Sentry project-config change (browser-only per `reference_sentry_org.md`)
+
+## Operator Next Steps (Phase 41 plan resume)
+
+- **PRIMARY:** Re-invoke `/gsd-plan-phase 41 --auto` from a top-level Claude Code session (NOT via /gsd-manager background dispatch). Top-level session has the `Task`/`Agent` tool and can dispatch researcher → pattern-mapper → planner → plan-checker chain. AUTO_CHAIN branch will auto-fire `gsd-ui-phase 41 --auto` at step 5.6.
+- The 8-plan / 2-wave outline above can be passed to the planner as a hint, but the planner is expected to validate against CONTEXT.md + RESEARCH.md and may diverge if RESEARCH surfaces an integration constraint (e.g., Vercel middleware CSP-mutation limits forcing 41-B5 into an Edge Fn split).
+- In PARALLEL (vendor work that can start immediately, no engineering dep): Better Stack paid tier signup + Sentry/Vercel/Supabase OAuth integrations + CNAME registration at registrar. These are D-06 HUMAN-UAT items that Plan 41-A1 will track but can run while plan-phase + Wave 1 execute-phase happens.
+- Phase 37 status check before EMBED-06 execute — if P37 still `Pending`, ensure 41-B1 ships the KB renderer shim behind a feature flag.
+
+---
+
+# Background dispatch note (2026-05-19) — Phase 36
+
+`/gsd-plan-phase 36 --auto` (M3 Review Prompt Engine - Web Only) invoked via /gsd-manager background path **HALTED at researcher-spawn** — same documented runner-pool blocker as Phase 51 + 37 below. No plan artifacts produced for Phase 36. CONTEXT.md (21 decisions D-01..D-21 across 5 areas; REVIEW-01..08 fully covered; canonical refs to Phase 24/27/34/35/37 resolved) + DISCUSSION-LOG.md were already committed and remain untouched. Phase 36 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
+
+**Confirmed preconditions** (verified before halt):
+- `phase_found: true`, `has_context: true`, `has_research: false`, `has_plans: false`, `plan_count: 0`
+- `context_path`: `.planning/phases/36-m3-review-prompt-engine-web-only/36-CONTEXT.md` (present)
+- Depends on: Phase 24 (events.ts registry) — SHIPPED in v1.2; Phase 37 (helpdesk core) — discussed but **NOT YET PLANNED** (same blocker)
+- 8 REQ-IDs ready: REVIEW-01..08
+- V13-3 BLOCKER plan-checker hook required by Success Criterion #1 → planner must inject ESLint AST rule + grep backup tasks (D-03, D-04)
+
+**Resolution:** User re-invokes `/gsd-plan-phase 36 --auto` at TOP-LEVEL (not via /gsd-manager dispatch). Top-level surfaces the Agent/Task tools needed to spawn gsd-phase-researcher, gsd-planner, and gsd-plan-checker.
+
+**Cross-phase note:** Phase 36 D-10 + D-18 references Phase 37 D-15 (helpdesk ticket-create path); Phase 37 is also pending plan-phase (same runner-pool blocker). Consider planning Phase 37 first OR planning both at top-level in sequence — Phase 36 plans will need to grep `.planning/phases/37-*/37-*-PLAN.md` for the ticket-create Edge Fn contract.
+
+---
+
+# Background dispatch note (2026-05-19) — Phase 37
+
+`/gsd-plan-phase 37 --auto` (M6 Helpdesk Core) invoked via background path **HALTED at executor-spawn** — same documented runner-pool blocker as Phase 51 above. No plan artifacts produced for Phase 37. CONTEXT.md (16 KB, 22 decisions) + DISCUSSION-LOG.md were already committed at 2026-05-19 04:58 and remain untouched. Phase 37 stays at `Pending` status (per `gsd-sdk init.plan-phase`).
+
+**Confirmed preconditions** (verified before halt):
+- `phase_status`: Pending
+- `has_context`: true (`.planning/phases/37-m6-helpdesk-core/37-CONTEXT.md` — 22 decisions across PHI routing / AI assist / widget / inbound email)
+- `has_research`: false, `has_plans`: false
+- `phase_req_ids`: HELP-01..HELP-13 (13 requirements)
+- Depends on: Phase 25 (Resend BAA decision — shipped) + Phase 27 (admin shared infra — needed to verify before execute)
+
+**Blocker root cause:** Background-Agent runtime in this session exposes only Read/Edit/Write/Bash + MCP tools — no `Task` / `Agent` schema. `gsd-plan-phase` step 5 (spawn `gsd-phase-researcher`), step 7.8 (`gsd-pattern-mapper`), step 8 (`gsd-planner`), step 10 (`gsd-plan-checker`) all require `Agent()`. Workflow cannot proceed past step 4 (CONTEXT.md load) here.
+
+**Resolution:** User re-invokes `/gsd-plan-phase 37 --auto` at TOP-LEVEL (not via /gsd-manager background dispatch). All other preconditions met.
 
 # Project State
 
