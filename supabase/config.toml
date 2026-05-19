@@ -550,6 +550,17 @@ verify_jwt = true
 [functions.account-delete]
 verify_jwt = true
 
+# Phase 42 Plan 42-01 — spike-web-push is a DISPOSABLE spike Edge Fn that proves
+# VAPID ECDSA P-256 + Web Push works inside Deno. Invoked via curl from a developer
+# shell with no Supabase user JWT, so verify_jwt = false. WILL BE DELETED in Wave 4
+# (plan 42-11) — also remove this block at that time.
+#
+# Note: original plan called this `_spike_web_push` but Supabase Fn name regex
+# `^[A-Za-z][A-Za-z0-9_-]*$` rejects leading underscores; renamed to spike-web-push
+# (Rule 3 auto-fix during Plan 42-01 Task 2 execution).
+[functions.spike-web-push]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
