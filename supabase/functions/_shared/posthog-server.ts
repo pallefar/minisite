@@ -297,6 +297,42 @@ export interface RecommendationClickedProperties {
 }
 
 /**
+ * Phase 34 Plan 34-05 (D-08c) — server-side PostHog identity alias.
+ *
+ * Used by the merge-anon-session Edge Fn post-signup to merge the pre-auth
+ * event stream into the authenticated user_id. Server-side capture is
+ * adblocker-resistant (PostHog requests from the browser get blocked; server
+ * requests from the Edge Fn don't).
+ *
+ * posthog-node's alias() argument shape differs from posthog-js:
+ *   - posthog-js:  posthog.alias(supabaseUid /* new */, anonDistinctId /* old */)
+ *   - posthog-node: client.alias({ distinctId: supabaseUid, alias: anonDistinctId })
+ * Both map "the new canonical id" to "the prior anonymous id"; getting the
+ * arg order wrong silently swaps timelines (RESEARCH Pattern 4 PITFALL).
+ *
+ * Vendor-gated: if POSTHOG_PROJECT_KEY is unset (getClient() returns null),
+ * this is a no-op — mirrors captureServer's startup-health-check behavior.
+ * Errors thrown by the client are caught + logged; never re-thrown, since
+ * alias is non-critical (it's an analytics-stitching optimization, not a
+ * load-bearing user-data write).
+ *
+ * Idempotent within a session: posthog-node accepts repeated alias() calls
+ * for the same pair without side effects (PostHog server de-dupes).
+ */
+export function aliasServerSide(supabaseUid: string, anonDistinctId: string): void {
+  if (!supabaseUid || !anonDistinctId) return;
+  const client = getClient();
+  if (!client) return;
+  try {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    (client as any).alias({ distinctId: supabaseUid, alias: anonDistinctId });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  } catch (err) {
+    console.warn('[posthog-server] aliasServerSide failed:', err);
+  }
+}
+
+/**
  * Flush all queued events and shut down the posthog-node client.
  *
  * MUST be called in the `finally` block of every Edge Function handler that
