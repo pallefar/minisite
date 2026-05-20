@@ -327,9 +327,11 @@ export default defineConfig(({ mode }) => {
       // Phase 14 D-11 — extend to include scripts/**/*.test.ts for the stripe-bootstrap smoke test.
       // Phase 24 Plan 24-02 — extend to include eslint-rules/**/*.test.js for the additive-only-events rule test.
       // Phase 28 Plan 28-02 — extend to include .test.cjs (CJS rule tests: no-raw-service-role-client).
+      // Phase 38 Plan 38-06 — extend to include tests/perf/**/*.spec.ts for the plan-personalize P99 budget gate (D-17 hot-conversion-path).
       include: [
         'src/**/*.test.{ts,tsx}',
         'tests/**/*.test.ts',
+        'tests/perf/**/*.spec.ts',
         'scripts/**/*.test.ts',
         '../shared/**/*.test.ts',
         'eslint-rules/**/*.test.{js,ts,cjs}',
