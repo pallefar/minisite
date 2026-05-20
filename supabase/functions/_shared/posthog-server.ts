@@ -305,7 +305,7 @@ export interface RecommendationClickedProperties {
  * requests from the Edge Fn don't).
  *
  * posthog-node's alias() argument shape differs from posthog-js:
- *   - posthog-js:  posthog.alias(supabaseUid /* new */, anonDistinctId /* old */)
+ *   - posthog-js:   posthog.alias(supabaseUid_new, anonDistinctId_old)
  *   - posthog-node: client.alias({ distinctId: supabaseUid, alias: anonDistinctId })
  * Both map "the new canonical id" to "the prior anonymous id"; getting the
  * arg order wrong silently swaps timelines (RESEARCH Pattern 4 PITFALL).
