@@ -657,22 +657,19 @@ ALTER TABLE public.activation_events
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **PKCE callback route in hash-router SPA**
+1. **PKCE callback route in hash-router SPA** — **RESOLVED in Plan 34-04 Task 1**
    - What we know: OAuth PKCE requires a non-hash callback URL (e.g. `/auth/callback?code=...`). App.tsx currently does all routing via hash fragments.
-   - What's unclear: Does App.tsx's existing path-based routing (clinic-invite uses `window.location.pathname`) have a hook to add a `/auth/callback` path handler, or does Phase 34 need to add a new catch in the path-routing logic?
-   - Recommendation: Inspect App.tsx's path routing block (lines ~558-600). Add `/auth/callback` as a recognized path-route that calls `supabase.auth.exchangeCodeForSession(window.location.href)` and then redirects to `/#/onboarding` or `/#/dashboard` based on `completed_onboarding_at`.
+   - Resolution: Plan 34-04 adds `/auth/callback` as a path-route in App.tsx that calls `supabase.auth.exchangeCodeForSession(window.location.href)` and then redirects to `/#/onboarding` or `/#/dashboard` based on `completed_onboarding_at`. See 34-04 Task 1 action.
 
-2. **Social proof live counter — Supabase Realtime vs RPC polling**
-   - What we know: ONBOARD-12 needs a "live user counter." Realtime broadcasts require a channel subscription, which adds ~8 kB gz to the `vendor-supabase` chunk (already present). A simple RPC returning rolling 7d signup count requires 0 additional weight.
-   - What's unclear: Whether Realtime is truly "live" enough to be worth the complexity vs polling every 30s.
-   - Recommendation: Use a lightweight RPC polling approach (`setInterval` 30s, call `get_rolling_signup_count()`) rather than a Realtime subscription. Simpler and Lighthouse-friendly.
+2. **Social proof live counter — Supabase Realtime vs RPC polling** — **RESOLVED in Plan 34-06**
+   - What we know: ONBOARD-12 needs a "live user counter." Realtime broadcasts require a channel subscription, which adds ~8 kB gz to the `vendor-supabase` chunk; RPC polling is 0 kB.
+   - Resolution: Plan 34-06 ships RPC polling (`setInterval` 30s, `get_rolling_signup_count()`). Lighthouse-friendly per ONBOARD-10 budget.
 
-3. **`onboarding.ship_winner` permission scope — owner vs superadmin**
-   - What we know: D-18 says "superadmin-only." The current `ROLE_PERMISSIONS` matrix has three roles: `owner`, `clinician`, `staff`. There is no "superadmin" role in the existing org.ts matrix — the closest is `owner`.
-   - What's unclear: Is the intent that "superadmin = a specific flag on the user row" (e.g. `profiles.admin_role = 'superadmin'`), or "superadmin = org owner role"?
-   - Recommendation: Phase 24 introduced `profiles.admin_role` for admin shell access. Check that column's values and gate `ship-winner-flag` on `admin_role = 'superadmin'` at the Edge Fn level (not org.ts `surfaceCheck`, which is org-scoped). Surface `surfaceCheck('onboarding.ship_winner')` in the UI as a display hint only.
+3. **`onboarding.ship_winner` permission scope — owner vs superadmin** — **RESOLVED in Plan 34-08 / 34-09**
+   - What we know: D-18 says "superadmin-only." `ROLE_PERMISSIONS` matrix in `org.ts` has `owner / clinician / staff` only. Phase 24 introduced `profiles.admin_role`.
+   - Resolution: Plans 34-08 + 34-09 gate Ship Winner on `profiles.admin_role = 'superadmin'` at the Edge Fn (`ship-winner-flag`) level. `org.ts` `surfaceCheck('onboarding.ship_winner')` surfaces as UI display hint only — not authoritative.
 
 ---
 
