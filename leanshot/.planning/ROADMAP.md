@@ -353,11 +353,11 @@ Plans:
   4. Recommender Edge Fn returns top-3 dashboard recommendations for a given (user_id + recent events + profile); admin dashboard tracks impression + click rates per recommendation-type
   5. Human-in-the-loop review queue lets admin approve/reject/edit AI suggestions before auto-apply; whitelisted recommendation set only
 
-**Plans:** 1/10 plans executed
+**Plans:** 2/10 plans executed
 
 Plans:
 - [x] 38-01-PLAN.md — Schema: pgvector + content_embeddings + HNSW + match_content_embeddings RPC + profiles.timezone + supporting tables (12 migrations)
-- [ ] 38-02-PLAN.md — _shared helpers: openai-embed, anthropic-summarize (/v1/messages), baa-scope, digest-schema (Zod+whitelist), render-user-facts, recommender-rank, BAA allowlist extension for claude-sonnet-4-6
+- [x] 38-02-PLAN.md — _shared helpers: openai-embed, anthropic-summarize (/v1/messages), baa-scope, digest-schema (Zod+whitelist), render-user-facts, recommender-rank, BAA allowlist extension for claude-sonnet-4-6
 - [ ] 38-03-PLAN.md — recommend-next-best-action Edge Fn + multi-surface payload + RLS cross-tenant impersonation proof + p95<800ms
 - [ ] 38-04-PLAN.md — embed-content-nightly Edge Fn (sha256 dedup + 429 backoff + soft-delete cleanup)
 - [ ] 38-05-PLAN.md — weekly-digest Edge Fn (BAA-scope first; /v1/messages; red-flag guardrail O5; DST timezone tests)
