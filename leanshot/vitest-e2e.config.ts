@@ -47,6 +47,14 @@ export default defineConfig({
       'tests/integration/quarterly-nps-cron.test.ts',
       'tests/integration/quarterly-nps-respond.test.ts',
       'tests/integration/quarterly-nps-fallback.test.ts',
+      // Phase 38 plan 38-03 — recommender RLS cross-tenant proof (T-38-13),
+      // e2e personalized/popular branching + p95 perf, and multi-surface
+      // payload contract snapshot. Live-DB; auto-skip when SUPABASE env
+      // vars (SUPABASE_URL + SUPABASE_ANON_KEY + SUPABASE_SERVICE_ROLE_KEY)
+      // are missing. `.spec.ts` extension matches affiliate-tier-* convention.
+      'tests/rls/recommender-cross-tenant.spec.ts',
+      'tests/e2e/recommender.spec.ts',
+      'tests/e2e/multi-surface-payload.spec.ts',
     ],
     testTimeout: 30000,
   },
