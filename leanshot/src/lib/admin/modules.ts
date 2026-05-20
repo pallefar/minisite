@@ -278,6 +278,21 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.nps_quarterly.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 38 Plan 38-08 (RECOMMEND-07 D-12/13/14) — HITL admin queue.
+  // Single queue for AI suggestion review across {recommender, digest, win_back}.
+  // Super-admin only (D-14) — RLS on ai_suggestion_review enforces; minRole here
+  // is the Pattern S1 UX layer. Auto-approved KB rows (status='auto_approved_kb')
+  // surface as audit-only (D-13). Approve on digest rows triggers a follow-on
+  // weekly-digest Edge Fn invocation that releases the held email.
+  {
+    key: 'hitl-queue',
+    label: 'AI Suggestion Review',
+    route: 'hitl-queue',
+    icon: ShieldIcon,
+    lazy: () => import('@/admin/modules/hitl-queue/HitlQueuePage'),
+    flagKey: 'admin.hitl_queue.enabled',
+    minRole: 'superadmin' as AdminRole,
+  },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
   // Superadmin-only: vendor BAA status updates are security-sensitive; superadmin gate
   // at RPC layer (vendor_baa_chain_update SECDEF) + minRole here (Pattern S1 dual-layer).

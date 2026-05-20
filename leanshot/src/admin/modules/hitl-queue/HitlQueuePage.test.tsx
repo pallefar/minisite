@@ -230,7 +230,7 @@ describe('HitlQueuePage', () => {
     const { default: HitlQueuePage } = await import('./HitlQueuePage');
     render(<HitlQueuePage />);
 
-    await waitFor(() => expect(screen.getByText(/Plateau strategies|kb_article/i)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Plateau strategies/i)).toBeTruthy());
 
     expect(screen.queryByRole('button', { name: /^Approve$/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Reject$/i })).toBeNull();

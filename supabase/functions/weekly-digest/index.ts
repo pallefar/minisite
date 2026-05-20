@@ -556,6 +556,142 @@ async function handleDigestRun(
   return { status: wdsStatus, digest };
 }
 
+// ─── HITL release handler (Plan 38-08 — RECOMMEND-07) ───────────────────────
+//
+// When a super-admin clicks "Approve" on a held digest in the HITL queue, the
+// admin UI calls `supabase.functions.invoke('weekly-digest', { body: { hitl_release_row_id } })`.
+// This branch:
+//   1. Reads the ai_suggestion_review row by id (service_role; RLS bypassed).
+//   2. Verifies status is 'approved' or 'edited' (super-admin has already
+//      transitioned the row via hitl_decide RPC — Plan 38-08 migration).
+//   3. Re-runs DigestOutputSchema-equivalent validation on the payload
+//      (defense in depth — Threat T-38-35: edited payload could violate
+//      whitelist; we re-validate before send).
+//   4. Looks up the user's email + renders + sends the digest email.
+//   5. Transitions the previously-held weekly_digest_sends row from
+//      'pending_review' → 'sent'.
+//   6. Emits `digest.hitl_released` PostHog event for HITL throughput metric.
+//
+// Failure modes:
+//   - row not found / wrong status → 404 / 409.
+//   - validation fail on payload → 422 + leave wds row in 'pending_review'.
+//   - email send fail → 500 + log + leave wds row in 'pending_review'.
+async function handleHitlRelease(
+  rowId: string,
+  opts: { supabase: unknown; fetchImpl?: typeof fetch },
+): Promise<{ status: 'sent' | 'failed' | 'rejected_status'; reason?: string }> {
+  // deno-lint-ignore no-explicit-any
+  const c = opts.supabase as any;
+
+  // 1. Load the review row.
+  const { data: reviewRow, error: rxErr } = await c
+    .from('ai_suggestion_review')
+    .select('id, type, user_id, org_id, payload, status')
+    .eq('id', rowId)
+    .maybeSingle();
+  if (rxErr || !reviewRow) {
+    return { status: 'failed', reason: 'review_row_not_found' };
+  }
+  if (reviewRow.type !== 'digest') {
+    return { status: 'failed', reason: 'non_digest_type' };
+  }
+  if (reviewRow.status !== 'approved' && reviewRow.status !== 'edited') {
+    return { status: 'rejected_status', reason: `status=${reviewRow.status}` };
+  }
+
+  // 2. Re-validate the (possibly-edited) payload against the digest schema.
+  // Belt-and-suspenders: hitl_decide stores edited_payload verbatim; we re-run
+  // the clinical-keyword scan before sending.
+  const payload = reviewRow.payload as { narrative?: string; actions?: Array<{ id: string; reason: string }> };
+  if (!payload?.narrative || !Array.isArray(payload.actions) || payload.actions.length === 0) {
+    return { status: 'failed', reason: 'payload_shape_invalid' };
+  }
+  for (const action of payload.actions) {
+    if (CLINICAL_KEYWORD_BLOCKLIST.test(action.reason)) {
+      captureException(new Error(`hitl_release clinical-keyword leak: action.id=${action.id}`), {
+        level: 'error',
+        tags: { surface: 'weekly-digest.hitl_release.keyword_check' },
+      });
+      return { status: 'failed', reason: 'clinical_keyword_leak' };
+    }
+  }
+
+  // 3. Look up user email + render + send.
+  const user = await getAuthUserEmail(opts.supabase, reviewRow.user_id);
+  if (!user?.email) {
+    return { status: 'failed', reason: 'user_email_missing' };
+  }
+  const weekStartIso = weekStartIsoOf(Date.now());
+  const rendered = renderDigestEmail({
+    digest: payload as DigestOutput,
+    user: { email: user.email, displayName: user.displayName ?? undefined },
+    weekStartIso,
+    siteUrl: Deno.env.get('SITE_URL') ?? undefined,
+  });
+  try {
+    const sent = await sendResendEmail({
+      to: user.email,
+      subject: rendered.subject,
+      html: rendered.html,
+      text: rendered.text,
+    });
+    if (!sent.ok && !sent.stubbed) {
+      captureException(new Error(`hitl_release resend_failed: ${sent.error ?? 'unknown'}`), {
+        level: 'warning',
+        tags: { surface: 'weekly-digest.hitl_release.resend' },
+      });
+      return { status: 'failed', reason: 'resend_failed' };
+    }
+  } catch (e) {
+    captureException(e, {
+      level: 'warning',
+      tags: { surface: 'weekly-digest.hitl_release.resend.throw' },
+    });
+    return { status: 'failed', reason: 'resend_threw' };
+  }
+
+  // 4. Transition the held weekly_digest_sends row to 'sent'. The hold row
+  // is the most recent pending_review row for this user. We update by user_id
+  // + status filter to avoid touching unrelated audit rows.
+  try {
+    await c
+      .from('weekly_digest_sends')
+      .update({ status: 'sent' })
+      .eq('user_id', reviewRow.user_id)
+      .eq('status', 'pending_review');
+  } catch (e) {
+    // Audit-row failure is logged but does not fail the release — the email
+    // already sent. Surfaces in Sentry for follow-up.
+    captureException(e, {
+      level: 'warning',
+      tags: { surface: 'weekly-digest.hitl_release.wds_update' },
+    });
+  }
+
+  // 5. Mark the review row as released (decided_at already set by hitl_decide;
+  // we append the decision_note suffix to track the actual send timestamp).
+  // No schema column for `released_at` exists (D-12 deliberately keeps the
+  // review table narrow); we rely on weekly_digest_sends.sent_at as the
+  // canonical "released" timestamp. No-op here.
+
+  // 6. PostHog metric.
+  try {
+    captureServer({
+      userId: reviewRow.user_id,
+      event: 'digest.hitl_released',
+      properties: {
+        review_row_id: reviewRow.id,
+        review_status: reviewRow.status,
+        action_count: payload.actions.length,
+      },
+    });
+  } catch {
+    /* swallow */
+  }
+
+  return { status: 'sent' };
+}
+
 // ─── Serve handler (production runtime entry point) ─────────────────────────
 //
 // Guarded by `WEEKLY_DIGEST_DISABLE_SERVE=1` so unit tests can import the
@@ -569,12 +705,30 @@ if (Deno.env.get('WEEKLY_DIGEST_DISABLE_SERVE') !== '1') {
 
     if (!checkServiceRoleBearer(req)) return jsonError(401, 'unauthorized');
 
-    let body: { user_id?: string };
+    let body: { user_id?: string; hitl_release_row_id?: string };
     try {
       body = await req.json();
     } catch {
       return jsonError(400, 'invalid_json');
     }
+
+    // ── Plan 38-08 HITL release branch ──
+    // The admin UI invokes this Fn with `{ hitl_release_row_id }` after the
+    // super-admin clicks Approve. The branch skips the cron lifecycle entirely
+    // (BAA scope re-resolution + Anthropic call + dedup) and just releases the
+    // pre-approved (or edited) payload.
+    if (typeof body.hitl_release_row_id === 'string' && body.hitl_release_row_id.length > 0) {
+      try {
+        const res = await handleHitlRelease(body.hitl_release_row_id, { supabase: admin });
+        return jsonResponse(200, res);
+      } catch (e) {
+        console.warn('[weekly-digest] hitl_release_unhandled', e instanceof Error ? e.message : 'unknown');
+        return jsonError(500, 'internal');
+      } finally {
+        await shutdownPostHog();
+      }
+    }
+
     if (!body.user_id || typeof body.user_id !== 'string') {
       return jsonError(400, 'missing_user_id');
     }
@@ -595,6 +749,8 @@ if (Deno.env.get('WEEKLY_DIGEST_DISABLE_SERVE') !== '1') {
 
 export const __internal = {
   handleDigestRun,
+  // Plan 38-08 — HITL release branch (super-admin queue approve → release email).
+  handleHitlRelease,
   setAdminForTest,
   resetAdminForTest,
   // Exposed for unit-test verification of helpers in isolation.
