@@ -115,6 +115,10 @@ const AuthView = lazy(() => import('@/components/auth/AuthView'));
 // the PATH route `/auth/callback?code=...` (NOT a #hash) because OAuth
 // providers cannot redirect to fragments (34-RESEARCH Pitfall 1).
 const AuthCallbackView = lazy(() => import('@/components/auth/AuthCallbackView'));
+// Phase 34 Plan 34-06 (ONBOARD-01) — Anonymous preview view. Mounted on the
+// `/onboard` PATH route; the lazy chunk keeps the preview body (hero + value-
+// prop + CTA + cookie-bootstrap layer) OFF the index static graph.
+const AnonymousPreviewView = lazy(() => import('@/components/onboarding/AnonymousPreviewView'));
 
 // Phase 8 Plan 08-04 — Doctor read-share lazy chunk. Mounted on the
 // `#/share/<token>` hash route via the top-priority branch in `selectView`
@@ -468,6 +472,11 @@ const InstallPromptCard = lazy(() =>
 type View =
   | 'marketing'
   | 'onboarding'
+  // Phase 34 Plan 34-06 (ONBOARD-01) — Anonymous preview surface mounted on
+  // the `/onboard` PATH route. AnonymousPreviewView wraps an
+  // AnonymousPreviewLayer that issues `_ls_anon` cookie + smart defaults
+  // (locale / units / timezone) before any signup happens.
+  | 'onboard-preview'
   | 'auth'
   // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback. PATH-routed
   // (`/auth/callback?code=...`); MUST be checked BEFORE the `#/auth/`
@@ -679,6 +688,13 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   // is the auth). Match exact path; trailing-slash tolerated.
   if (opts.pathname === '/cancel-deletion' || opts.pathname === '/cancel-deletion/') {
     return 'cancel-deletion';
+  }
+  // Phase 34 Plan 34-06 (ONBOARD-01) — anonymous preview path. AnonymousPreviewLayer
+  // creates the `_ls_anon` cookie on cold start; signed-in users hitting /onboard
+  // should fall through to dashboard (or onboarding if their profile isn't
+  // completed yet) instead of seeing the anonymous preview shell.
+  if ((opts.pathname === '/onboard' || opts.pathname === '/onboard/') && !opts.user) {
+    return 'onboard-preview';
   }
   if (opts.user) return 'dashboard';
   // Phase 31 Plan 06 D-10: invited patients have a Supabase session but no LeanShot user.
@@ -1503,6 +1519,20 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <Onboarding onCancel={() => setView('marketing')} onComplete={() => setView('dashboard')} />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 34 Plan 34-06 (ONBOARD-01) — anonymous preview view. Renders the
+  // hero + CTA wrapped in AnonymousPreviewLayer (cookie bootstrap + smart
+  // defaults). Lazy-loaded so the layer + preview body never touch the
+  // index static graph.
+  if (view === 'onboard-preview') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AnonymousPreviewView />
         </Suspense>
       </>
     );
