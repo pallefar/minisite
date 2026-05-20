@@ -53,6 +53,72 @@ export async function signInWithMagicLink(email: string): Promise<{ error: AuthE
 }
 
 /**
+ * Phase 34 Plan 34-04 (ONBOARD-02) — Apple OAuth feature gate.
+ *
+ * Vendor-gated send pattern per memory `reference_vendor_gated_send_health_check`:
+ * build the prod path now; flip the flag in Plan 34-10 once Apple Services ID
+ * + .p8 are registered and Supabase auth.apple secrets are set.
+ *
+ * Tri-source resolution:
+ *   1. `import.meta.env.VITE_AUTH_APPLE_ENABLED === 'true'` (build-time)
+ *   2. `localStorage['leanshot_auth_apple_enabled'] === 'true'` (runtime override)
+ *   3. false (default)
+ *
+ * Exported for Plan 34-06 (goal-step OAuth button row) so the gate logic is
+ * centralised — per plan-checker B-03 fix.
+ *
+ * Per memory `reference_vite_static_env_inlining` — the lookup uses a literal
+ * key (`VITE_AUTH_APPLE_ENABLED`), NEVER a dynamic
+ * `import.meta.env[\`VITE_${x}\`]` expression (would not be replaced at build).
+ */
+export function isAppleEnabled(): boolean {
+  try {
+    if (
+      typeof import.meta !== 'undefined' &&
+      (import.meta as unknown as { env?: Record<string, string | undefined> }).env
+        ?.VITE_AUTH_APPLE_ENABLED === 'true'
+    ) {
+      return true;
+    }
+  } catch {
+    /* noop — import.meta missing in some test contexts */
+  }
+  try {
+    return localStorage.getItem('leanshot_auth_apple_enabled') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth wrapper for Google + Apple.
+ *
+ * PKCE is the supabase-js v2 default flow; `redirectTo` MUST be PATH-based
+ * (`/auth/callback`) because OAuth providers cannot redirect to `#`
+ * fragments (34-RESEARCH Pitfall 1). Magic-link's `signInWithMagicLink`
+ * keeps its hash-based `#/auth/verify` redirect — only OAuth changes here.
+ *
+ * Apple is feature-gated via `isAppleEnabled()`; when disabled we short-
+ * circuit with `{ error: { message: 'apple_disabled' } }` and never invoke
+ * Supabase — protecting users from a 400 from GoTrue if Apple is not yet
+ * registered (Plan 34-10 owns the human checkpoint for .p8 setup).
+ */
+export async function signInWithOAuthProvider(
+  provider: 'google' | 'apple',
+): Promise<{ error: { message: string } | null }> {
+  if (provider === 'apple' && !isAppleEnabled()) {
+    return { error: { message: 'apple_disabled' } };
+  }
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
+  return { error: error ? { message: error.message } : null };
+}
+
+/**
  * Sign out from THIS device only.
  *
  * CRITICAL: passes `scope: 'local'`. The default `signOut()` scope is `'global'`
