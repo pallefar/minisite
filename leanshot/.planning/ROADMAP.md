@@ -353,10 +353,10 @@ Plans:
   4. Recommender Edge Fn returns top-3 dashboard recommendations for a given (user_id + recent events + profile); admin dashboard tracks impression + click rates per recommendation-type
   5. Human-in-the-loop review queue lets admin approve/reject/edit AI suggestions before auto-apply; whitelisted recommendation set only
 
-**Plans:** 10 plans
+**Plans:** 1/10 plans executed
 
 Plans:
-- [ ] 38-01-PLAN.md — Schema: pgvector + content_embeddings + HNSW + match_content_embeddings RPC + profiles.timezone + supporting tables (12 migrations)
+- [x] 38-01-PLAN.md — Schema: pgvector + content_embeddings + HNSW + match_content_embeddings RPC + profiles.timezone + supporting tables (12 migrations)
 - [ ] 38-02-PLAN.md — _shared helpers: openai-embed, anthropic-summarize (/v1/messages), baa-scope, digest-schema (Zod+whitelist), render-user-facts, recommender-rank, BAA allowlist extension for claude-sonnet-4-6
 - [ ] 38-03-PLAN.md — recommend-next-best-action Edge Fn + multi-surface payload + RLS cross-tenant impersonation proof + p95<800ms
 - [ ] 38-04-PLAN.md — embed-content-nightly Edge Fn (sha256 dedup + 429 backoff + soft-delete cleanup)
@@ -543,7 +543,7 @@ Plans:
 | 35. M3 Gamification Engine | 0/? | Not started | — |
 | 36. M3 Review Prompt Engine (Web) | 0/? | Not started | — |
 | 37. M6 Helpdesk Core | 0/? | Not started | — |
-| 38. M5b AI Recommender | 0/? | Not started | — |
+| 38. M5b AI Recommender | 1/10 | In Progress|  |
 | 39. A/B Trifecta — Paywall + Pharma + Page-Variant | 0/? | Not started | — |
 | 40. Cancellation Save-Offers | 0/? | Not started | — |
 | 41. Public Status Page + Embed-Provider Blocks | 0/? | Not started | — |

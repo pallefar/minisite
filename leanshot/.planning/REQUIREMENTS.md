@@ -216,16 +216,16 @@
 
 ### WS17 — User-facing: M5b AI Recommender (RECOMMEND, 10 REQ-IDs)
 
-- [ ] **RECOMMEND-01**: pgvector extension enabled (Supabase Pro+); `content_embeddings vector(1536)` table + HNSW (or IVFFlat — decide at plan-phase) index
+- [x] **RECOMMEND-01**: pgvector extension enabled (Supabase Pro+); `content_embeddings vector(1536)` table + HNSW (or IVFFlat — decide at plan-phase) index
 - [ ] **RECOMMEND-02**: OpenAI `text-embedding-3-small` routed via Vercel AI Gateway (same proxy posture as v1.2 Anthropic); embeddings only, not chat
 - [ ] **RECOMMEND-03**: Nightly cron embeds new content (community posts when M4 ships, KB articles, blog posts, course lessons) into `content_embeddings`
-- [ ] **RECOMMEND-04**: Next-Best-Action recommender Edge Fn takes user_id + recent events + profile → returns top-3 dashboard recommendations (cosine similarity on user-context embedding)
+- [x] **RECOMMEND-04**: Next-Best-Action recommender Edge Fn takes user_id + recent events + profile → returns top-3 dashboard recommendations (cosine similarity on user-context embedding)
 - [ ] **RECOMMEND-05**: Weekly Claude summary email (short narrative + 1-3 suggested actions) sent via Resend (or SES if PHI); cron at 09:00 user-timezone Sunday
-- [ ] **RECOMMEND-06**: Sentry recommendation-CTR tracking + admin dashboard with recommendation-impression + recommendation-click rates per recommendation-type
-- [ ] **RECOMMEND-07**: Human-in-the-loop review queue for AI suggestions; admin approves/rejects/edits before auto-apply within guardrails (whitelisted recommendation set only)
+- [x] **RECOMMEND-06**: Sentry recommendation-CTR tracking + admin dashboard with recommendation-impression + recommendation-click rates per recommendation-type
+- [x] **RECOMMEND-07**: Human-in-the-loop review queue for AI suggestions; admin approves/rejects/edits before auto-apply within guardrails (whitelisted recommendation set only)
 - [ ] **RECOMMEND-08**: Content recommendations surface in KB article footer ("Related articles") + community feed ("You might like") + course landing ("Recommended courses")
 - [ ] **RECOMMEND-09**: Pricing/offer personalization (annual nudge for monthly subscribers showing churn signal; discount eligibility per user's plan-history); plan-personalization Edge Fn called by PAYWALL + SAVE
-- [ ] **RECOMMEND-10**: Win-back prompts for at-risk users (simple churn model: days-since-last-action × declining-streak × paywall-dismissals); auto-send via SAVE-engine
+- [x] **RECOMMEND-10**: Win-back prompts for at-risk users (simple churn model: days-since-last-action × declining-streak × paywall-dismissals); auto-send via SAVE-engine
 
 ### WS18 — User-facing: M7 Polish (POLISH, 12 REQ-IDs)
 
@@ -542,16 +542,16 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | HELP-11 | Phase 37 | Pending |
 | HELP-12 | Phase 37 | Pending |
 | HELP-13 | Phase 37 | Pending |
-| RECOMMEND-01 | Phase 38 | Pending |
+| RECOMMEND-01 | Phase 38 | Complete |
 | RECOMMEND-02 | Phase 38 | Pending |
 | RECOMMEND-03 | Phase 38 | Pending |
-| RECOMMEND-04 | Phase 38 | Pending |
+| RECOMMEND-04 | Phase 38 | Complete |
 | RECOMMEND-05 | Phase 38 | Pending |
-| RECOMMEND-06 | Phase 38 | Pending |
-| RECOMMEND-07 | Phase 38 | Pending |
+| RECOMMEND-06 | Phase 38 | Complete |
+| RECOMMEND-07 | Phase 38 | Complete |
 | RECOMMEND-08 | Phase 38 | Pending |
 | RECOMMEND-09 | Phase 38 | Pending |
-| RECOMMEND-10 | Phase 38 | Pending |
+| RECOMMEND-10 | Phase 38 | Complete |
 | POLISH-01 | Phase 40 | Pending |
 | POLISH-02 | Phase 40 | Pending |
 | POLISH-03 | Phase 40 | Pending |
