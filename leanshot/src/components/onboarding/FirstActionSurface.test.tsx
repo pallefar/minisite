@@ -33,11 +33,12 @@ describe('FirstActionSurface: card rendering', () => {
   it('renders 3 cards for lose-weight; first card has "Recommended for your goal" badge', () => {
     render(<FirstActionSurface goal="lose-weight" />);
     expect(screen.getByText(/Recommended for your goal/i)).toBeInTheDocument();
-    // recommended action label appears
-    expect(screen.getByText(/Log your first weight/i)).toBeInTheDocument();
-    // and the 2 fallback labels
-    expect(screen.getByText(/Log your first injection/i)).toBeInTheDocument();
-    expect(screen.getByText(/Log your first workout/i)).toBeInTheDocument();
+    // Each label appears at least once (heading + possibly button text for
+    // fallback affordances). We assert presence via `getAllByText` so the
+    // UI choice to also show the label on fallback buttons remains valid.
+    expect(screen.getAllByText(/Log your first weight/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Log your first injection/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Log your first workout/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('family-supporter renders waitlist card as recommended', () => {
