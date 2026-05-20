@@ -353,6 +353,20 @@ Plans:
   4. Recommender Edge Fn returns top-3 dashboard recommendations for a given (user_id + recent events + profile); admin dashboard tracks impression + click rates per recommendation-type
   5. Human-in-the-loop review queue lets admin approve/reject/edit AI suggestions before auto-apply; whitelisted recommendation set only
 
+**Plans:** 10 plans
+
+Plans:
+- [ ] 38-01-PLAN.md — Schema: pgvector + content_embeddings + HNSW + match_content_embeddings RPC + profiles.timezone + supporting tables (12 migrations)
+- [ ] 38-02-PLAN.md — _shared helpers: openai-embed, anthropic-summarize (/v1/messages), baa-scope, digest-schema (Zod+whitelist), render-user-facts, recommender-rank, BAA allowlist extension for claude-sonnet-4-6
+- [ ] 38-03-PLAN.md — recommend-next-best-action Edge Fn + multi-surface payload + RLS cross-tenant impersonation proof + p95<800ms
+- [ ] 38-04-PLAN.md — embed-content-nightly Edge Fn (sha256 dedup + 429 backoff + soft-delete cleanup)
+- [ ] 38-05-PLAN.md — weekly-digest Edge Fn (BAA-scope first; /v1/messages; red-flag guardrail O5; DST timezone tests)
+- [ ] 38-06-PLAN.md — plan-personalize Edge Fn (rule-based, no LLM, p99<50ms)
+- [ ] 38-07-PLAN.md — winback-scorer Edge Fn (14d threshold + 30d cap + Phase 40 handoff)
+- [ ] 38-08-PLAN.md — HITL admin queue UI (Phase 24 module + super-admin RLS + approve/reject/edit)
+- [ ] 38-09-PLAN.md — pg_cron schedules + TAXO event registration + ForYouCard + RelatedArticlesFooter + track-rec-click
+- [ ] 38-10-PLAN.md — AI-SPEC §5 eval harness: 20-row refset + 10 dimension tests + LLM judge + nightly CI gate
+
 ### Phase 39: A/B Trifecta — Mid-Trial Paywall + Pharma Paywall + Page-Variant A/B
 
 **Goal**: Three A/B surfaces ship together with composite-goal measurement, canonical-link discipline, and the always-free safety-info carve-out.

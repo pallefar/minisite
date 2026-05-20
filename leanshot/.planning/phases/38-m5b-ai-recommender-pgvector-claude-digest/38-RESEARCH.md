@@ -833,7 +833,14 @@ CREATE INDEX content_embeddings_hnsw_cos
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All 4 open questions addressed by plans during the planner pass. Per [[research-resolution-discipline]] inline RESOLVED markers below.
+>
+> - **Q1 (recommendation_id persistence):** RESOLVED — Plan 38-03 persists at impression-time via server-generated UUID v4 for clean CTR correlation.
+> - **Q2 (`profiles.timezone` owner):** RESOLVED — Plan 38-01 migration `20270705000009` owns the ALTER (idempotent, `DEFAULT 'America/New_York'`).
+> - **Q3 (HITL queue table reuse vs new):** RESOLVED — Plan 38-01 owns dedicated `ai_suggestion_review` table; Plan 38-08 shares admin shell UI primitives from Phase 27 but NOT storage.
+> - **Q4 (Anthropic prompt caching savings):** RESOLVED — Plan 38-09 emits `anthropic.prompt_cache.hit` PostHog event from day 1; revisit Week 2 production data.
 
 1. **Should the `recommendation_id` be persisted or computed on-the-fly?**
    - What we know: D-03 requires `recommendation_id` in payload for CTR event correlation.
