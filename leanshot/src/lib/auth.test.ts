@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockSignUp = vi.fn();
 const mockSignInWithPassword = vi.fn();
 const mockSignInWithOtp = vi.fn();
+const mockSignInWithOAuth = vi.fn();
 const mockSignOut = vi.fn();
 const mockResetPasswordForEmail = vi.fn();
 const mockUpdateUser = vi.fn();
@@ -26,6 +27,7 @@ vi.mock('@/lib/supabase', () => ({
       signUp: mockSignUp,
       signInWithPassword: mockSignInWithPassword,
       signInWithOtp: mockSignInWithOtp,
+      signInWithOAuth: mockSignInWithOAuth,
       signOut: mockSignOut,
       resetPasswordForEmail: mockResetPasswordForEmail,
       updateUser: mockUpdateUser,
@@ -40,12 +42,19 @@ beforeEach(() => {
   mockSignUp.mockReset();
   mockSignInWithPassword.mockReset();
   mockSignInWithOtp.mockReset();
+  mockSignInWithOAuth.mockReset();
   mockSignOut.mockReset();
   mockResetPasswordForEmail.mockReset();
   mockUpdateUser.mockReset();
   mockResend.mockReset();
   mockGetSession.mockReset();
   mockGetUser.mockReset();
+  // Phase 34 Plan 34-04: clear apple-enabled localStorage override between tests
+  try {
+    localStorage.removeItem('leanshot_auth_apple_enabled');
+  } catch {
+    /* noop */
+  }
 });
 
 describe('signUp', () => {
@@ -188,5 +197,61 @@ describe('authRedirectTo (implicit via emailRedirectTo args)', () => {
     await signUp('a@b.co', 'Pass1234');
     const call = mockSignUp.mock.calls[0]![0];
     expect(call.options.emailRedirectTo).toBe(`${origin}/#/auth/verify`);
+  });
+});
+
+// ─── Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth wrapper ────────────────────
+// signInWithOAuthProvider wraps supabase.auth.signInWithOAuth with:
+//   - PKCE-required PATH redirect (`/auth/callback`, NOT a `#/...` hash)
+//   - Apple feature-gate via env > localStorage > false (vendor-gated send
+//     pattern per memory `reference_vendor_gated_send_health_check`)
+// isAppleEnabled is exported for Plan 34-06 (goal-step OAuth button row).
+describe('signInWithOAuthProvider — Google (Phase 34-04 ONBOARD-02)', () => {
+  it('calls supabase.auth.signInWithOAuth with provider=google and PATH redirectTo (no `#`)', async () => {
+    mockSignInWithOAuth.mockResolvedValueOnce({ data: {}, error: null });
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('google');
+    expect(mockSignInWithOAuth).toHaveBeenCalledTimes(1);
+    const call = mockSignInWithOAuth.mock.calls[0]![0];
+    expect(call.provider).toBe('google');
+    // PKCE requirement: PATH-based redirect, never hash-based.
+    expect(call.options.redirectTo).toBe(`${window.location.origin}/auth/callback`);
+    expect(call.options.redirectTo).not.toContain('#');
+    expect(res.error).toBeNull();
+  });
+});
+
+describe('signInWithOAuthProvider — Apple gate (Phase 34-04 ONBOARD-02)', () => {
+  it('returns { error: { message: "apple_disabled" } } when no env + no localStorage override; does NOT call signInWithOAuth', async () => {
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('apple');
+    expect(mockSignInWithOAuth).not.toHaveBeenCalled();
+    expect(res.error).toEqual({ message: 'apple_disabled' });
+  });
+
+  it('calls signInWithOAuth({ provider: "apple", ... }) when localStorage flag enables Apple', async () => {
+    mockSignInWithOAuth.mockResolvedValueOnce({ data: {}, error: null });
+    localStorage.setItem('leanshot_auth_apple_enabled', 'true');
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('apple');
+    expect(mockSignInWithOAuth).toHaveBeenCalledTimes(1);
+    const call = mockSignInWithOAuth.mock.calls[0]![0];
+    expect(call.provider).toBe('apple');
+    expect(call.options.redirectTo).toBe(`${window.location.origin}/auth/callback`);
+    expect(call.options.redirectTo).not.toContain('#');
+    expect(res.error).toBeNull();
+  });
+});
+
+describe('isAppleEnabled (Phase 34-04 ONBOARD-02 — exported for Plan 34-06)', () => {
+  it('returns false by default (no env var, no localStorage override)', async () => {
+    const { isAppleEnabled } = await import('./auth');
+    expect(isAppleEnabled()).toBe(false);
+  });
+
+  it('returns true when localStorage("leanshot_auth_apple_enabled") === "true"', async () => {
+    localStorage.setItem('leanshot_auth_apple_enabled', 'true');
+    const { isAppleEnabled } = await import('./auth');
+    expect(isAppleEnabled()).toBe(true);
   });
 });
