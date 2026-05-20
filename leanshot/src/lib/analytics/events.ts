@@ -82,9 +82,41 @@ export const EVENTS = {
     phi: false,
     owner: 'product',
     aem_priority: 3,
-    description: 'User logged their first entry in any tracking tab.',
+    aem_dropped: true, // Phase 34 D-03: superseded by activation_completed at AEM slot 3.
+    description:
+      '@deprecated — superseded by activation_completed (Phase 34 D-03). User logged their first entry in any tracking tab.',
     payload: z.object({
       tab: z.enum(['medication', 'body', 'food', 'activity']),
+    }),
+  },
+  // Phase 34 Plan 34-03 (D-03 + D-04) — first qualifying action within 7-day window.
+  // Fired SERVER-SIDE only by record-activation Edge Fn; client must NOT emit
+  // (server_only:true). Fire-once per user — Edge Fn re-invocations return
+  // already_activated:true without re-capture. Outside 7-day window → skipped:true.
+  activation_completed: {
+    name: 'activation_completed',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    server_only: true, // D-05: Edge Fn only — record-activation/index.ts
+    aem_priority: 3, // D-03: supersedes activation_first_log at AEM slot 3
+    description:
+      'User completed first qualifying action within the 7-day activation window. Fired once per user (D-04).',
+    payload: z.object({
+      goal_type: z.enum([
+        'lose-weight',
+        'build-muscle',
+        'new-prescription',
+        'build-habit',
+        'doctor-monitored',
+        'family-supporter',
+        'manage-symptoms',
+        'track-with-vial-supply',
+      ]),
+      action_type: z.string().min(1),
+      window_days: z.literal(7),
+      days_since_signup: z.number().int().nonnegative(),
+      source: z.literal('first_log'),
     }),
   },
   payment_initiated: {

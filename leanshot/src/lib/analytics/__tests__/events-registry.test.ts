@@ -212,3 +212,134 @@ describe('events.ts — Phase 50 rag_* additions', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 34 Plan 34-03 — activation_completed registry contract.
+// D-03 supersession of activation_first_log (kept as aem_dropped:true marker).
+// D-04 fire-once semantics + 7-day window enforced by record-activation Edge Fn;
+// here we only assert the event schema contract that the Edge Fn captures.
+// ---------------------------------------------------------------------------
+describe('events.ts — Phase 34 activation_completed', () => {
+  const VALID_GOAL_TYPES = [
+    'lose-weight',
+    'build-muscle',
+    'new-prescription',
+    'build-habit',
+    'doctor-monitored',
+    'family-supporter',
+    'manage-symptoms',
+    'track-with-vial-supply',
+  ] as const;
+
+  it('EVENTS.activation_completed exists with server_only:true, aem_priority:3, phi:false, owner:product', () => {
+    const def = (EVENTS as Record<string, unknown>).activation_completed as
+      | {
+          server_only?: true;
+          aem_priority?: number;
+          phi: false;
+          owner: string;
+          version: number;
+        }
+      | undefined;
+    expect(def, 'activation_completed must be registered in EVENTS').toBeDefined();
+    expect(def!.server_only).toBe(true);
+    expect(def!.aem_priority).toBe(3);
+    expect(def!.phi).toBe(false);
+    expect(def!.owner).toBe('product');
+    expect(def!.version).toBe(1);
+  });
+
+  it('activation_completed payload parses valid sample (D-04 contract)', () => {
+    const def = (EVENTS as Record<string, { payload: { parse: (v: unknown) => unknown } }>)
+      .activation_completed;
+    expect(() =>
+      def.payload.parse({
+        goal_type: 'lose-weight',
+        action_type: 'first_weight_log',
+        window_days: 7,
+        days_since_signup: 3,
+        source: 'first_log',
+      }),
+    ).not.toThrow();
+  });
+
+  it('activation_completed payload accepts all 8 goal_type enum values', () => {
+    const def = (EVENTS as Record<string, { payload: { parse: (v: unknown) => unknown } }>)
+      .activation_completed;
+    for (const goal_type of VALID_GOAL_TYPES) {
+      expect(() =>
+        def.payload.parse({
+          goal_type,
+          action_type: 'first_log',
+          window_days: 7,
+          days_since_signup: 0,
+          source: 'first_log',
+        }),
+      ).not.toThrow();
+    }
+  });
+
+  it('activation_completed payload rejects 4 invalid samples', () => {
+    const def = (EVENTS as Record<string, { payload: { parse: (v: unknown) => unknown } }>)
+      .activation_completed;
+    // 1. window_days != 7 → literal(7) violation
+    expect(() =>
+      def.payload.parse({
+        goal_type: 'lose-weight',
+        action_type: 'first_weight_log',
+        window_days: 14,
+        days_since_signup: 3,
+        source: 'first_log',
+      }),
+    ).toThrow();
+    // 2. goal_type not in 8-enum
+    expect(() =>
+      def.payload.parse({
+        goal_type: 'made-up-goal',
+        action_type: 'first_weight_log',
+        window_days: 7,
+        days_since_signup: 3,
+        source: 'first_log',
+      }),
+    ).toThrow();
+    // 3. days_since_signup negative
+    expect(() =>
+      def.payload.parse({
+        goal_type: 'lose-weight',
+        action_type: 'first_weight_log',
+        window_days: 7,
+        days_since_signup: -1,
+        source: 'first_log',
+      }),
+    ).toThrow();
+    // 4. missing source field
+    expect(() =>
+      def.payload.parse({
+        goal_type: 'lose-weight',
+        action_type: 'first_weight_log',
+        window_days: 7,
+        days_since_signup: 3,
+      }),
+    ).toThrow();
+  });
+
+  it('activation_first_log carries aem_dropped:true (D-03 supersession marker)', () => {
+    const def = (EVENTS as Record<string, { aem_dropped?: true; aem_priority?: number }>)
+      .activation_first_log;
+    expect(def).toBeDefined();
+    expect(def.aem_dropped).toBe(true);
+    // aem_priority field is preserved per ADDITIVE-ONLY lint rule
+    expect(def.aem_priority).toBe(3);
+  });
+
+  it('both activation_first_log and activation_completed coexist at aem_priority:3 (dropped-marker pattern)', () => {
+    const first = (EVENTS as Record<string, { aem_priority?: number; aem_dropped?: true }>)
+      .activation_first_log;
+    const completed = (EVENTS as Record<string, { aem_priority?: number; aem_dropped?: true }>)
+      .activation_completed;
+    expect(first.aem_priority).toBe(3);
+    expect(first.aem_dropped).toBe(true);
+    expect(completed.aem_priority).toBe(3);
+    expect(completed.aem_dropped).toBeUndefined();
+  });
+});
