@@ -41,13 +41,15 @@ fi
 # Alphabetized for diff hygiene. Update ceiling here when a phase ships code
 # that pushes a chunk over ceiling; changes are diffable in PRs (T-24-07b).
 CHUNK_CONFIG=(
-  "admin-shell        45 Split a lazy route, defer heavy editor panels with sync-defer.ts, or revisit ceiling. NOTE: baseline 39.7 kB gz includes Phase 15 page-builder (old admin-bundle ceiling was 60 kB); Phase 24 D-18 target was 30 kB for new admin-only code."
+  "admin-shell       130 GRANDFATHERED debt — Phase 42 Plan 42-11 raised ceiling 45→130 to acknowledge the pre-existing Phase 15 page-builder + Phase 24 AdminShell merged-chunk pattern documented in .planning/phases/42-v1-3-polish-closeout/deferred-items.md (admin-shell at 115.06 kB gz after Phase 42 NPS dashboard landed; was 105.50 kB before Phase 42, ceiling 45 kB). Owner of debt-burn: Phase 24 admin-shell ceiling-track or a future polish-debt phase. Any NEW regression beyond 130 kB gz signals NEW Phase 42+ admin code MUST be deferred via sync-defer.ts or admin-route lazy-split."
   "community-feed     20 Defer feed-virtualization with sync-defer.ts; split heavy media render path."
   "course-player      30 Lazy-load video player; consider dynamic import for chapter-list."
   "gamification-burst  8 Move particle-animation to sync-defer.ts; drop framer-motion preset if used."
   "helpdesk-widget    25 Lazy-load ticket-form; defer markdown renderer."
   "i18n-runtime       25 Ship only the active locale bundle; lazy-load other locales on language switch. Phase 32 Plan 32-01 baseline: 20.36 kB gz with i18next 26.2.0 + react-i18next 17.0.8 + http-backend 3.0.2 + browser-languagedetector 8.2.1 + html-parse-stringify (transitive, for <Trans>) + use-sync-external-store (transitive). 32-RESEARCH estimate of 15 kB was optimistic — actual i18next + react-i18next core alone is ~12 kB gz before glue + transitives. Lever to pull if pressure returns: drop i18next-browser-languagedetector (~1 kB) for an inline 20-line manual detector. Plan 32-02..07 must stay inside this ceiling; if 32-04 override-backend pushes it, revisit ceiling vs. moving locale_overrides supabase-call out of this chunk."
   "index              50 Verify no static heavy-SDK imports leaked; route through sync-defer.ts per [[project_phase5_bundle_regression]]."
+  "QuarterlyNPSModal   5 Phase 42 Plan 42-10 in-app NPS fallback modal. 5-star + textarea + Submit/Skip; lightweight modal. Keep under 5 kB gz — if it grows, audit for unused dep imports."
+  "WhatsNewDrawer    105 GRANDFATHERED debt — Phase 42 Plan 42-09 What's New drawer at 93.58 kB gz at first build (includes markdown renderer + serial markdown→HTML pass). Owner of debt-burn: Phase 42 polish or a v1.4 markdown-defer plan (lazy-load remark/rehype stack). Any regression beyond 105 kB gz signals NEW changelog feature MUST defer the markdown path via sync-defer.ts."
 )
 
 # ── Table header ─────────────────────────────────────────────────────────────

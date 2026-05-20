@@ -1,7 +1,7 @@
 {
   "__meta": {
-    "captured_at": "2026-05-19T10:40:24.553Z",
-    "quarterly_review_due": "2026-08-17T10:40:24.553Z",
+    "captured_at": "2026-05-20T08:18:10.483Z",
+    "quarterly_review_due": "2026-08-18T08:18:10.483Z",
     "reviewer_note": "Per Pitfall 10: re-baseline every quarter; aim to reduce blocking counts by >=1 per route"
   },
   "/": {
