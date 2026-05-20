@@ -76,8 +76,9 @@ export type ConsumerStepType = (typeof CONSUMER_STEP_TYPES)[number];
  * Full union of all valid step type strings (org + consumer).
  * Matches the merged allowlist in `public._validate_onboarding_steps`
  * (`supabase/migrations/20270706000002_p34_onboarding_flows_consumer.sql`).
- * Used by `OnboardingStepNode.type` so a node can carry EITHER an org or
- * consumer step type without runtime narrowing.
+ * Use this only when a value can legitimately carry EITHER phase's step types
+ * (e.g. a shared validator). Per-phase consumers should use the narrower
+ * `StepType` / `OrgStepType` / `ConsumerStepType` aliases.
  */
 export type AnyStepType = OrgStepType | ConsumerStepType;
 
@@ -167,33 +168,55 @@ export interface OnboardingStepBranchingRule {
 }
 
 /**
- * A single step in an onboarding flow (org OR consumer).
+ * A single step in a Phase 31 ORG onboarding flow.
+ *
+ * Narrow phase-specific type: keeps `type` narrowed to the org allowlist so
+ * existing `Record<StepType, ...>` lookups in Phase 31 OnboardingTab stay
+ * exhaustive. The Phase 34 fields (`copy`, `field`, etc.) are present here
+ * too so the underlying jsonb shape is identical at the DB layer, but
+ * `OnboardingTab` only authors `custom`/`skip`.
  *
  * DB-side validator `_validate_onboarding_steps` enforces:
  *   - `type` must be in the merged allowlist (UNKNOWN_STEP_TYPE).
- *
- * Phase 31 (org) consumers populate `skip` + `custom`.
- * Phase 34 (consumer) consumers populate `copy` + `field` + `options` +
- * `validation` + `branching`. All fields are optional so the same shape
- * cleanly supports both phases without runtime narrowing.
  */
 export interface OnboardingStepNode {
   /** Stable uuid per step instance — stable across edits/reorders. */
   id: string;
-  type: AnyStepType;
+  type: StepType;
   /** Phase 31 ORG: when true, patient may skip this step. */
   skip?: boolean;
   /** Phase 31 ORG: clinic-editable content overlay (welcome / intro_card only). */
   custom?: OnboardingStepCustom;
-  /** Phase 34 CONSUMER: copy (title / subtitle / helper). */
+  /** Phase 34 CONSUMER (also tolerated on org nodes): copy. */
   copy?: OnboardingStepCopy;
-  /** Phase 34 CONSUMER: data-key + required flag + default value. */
+  /** Phase 34 CONSUMER (also tolerated on org nodes): field metadata. */
   field?: OnboardingStepField;
-  /** Phase 34 CONSUMER: options array for single-select / multi-select. */
+  /** Phase 34 CONSUMER (also tolerated on org nodes): options. */
   options?: OnboardingStepOption[];
-  /** Phase 34 CONSUMER: validation constraints for text / scale / weight / etc. */
+  /** Phase 34 CONSUMER (also tolerated on org nodes): validation. */
   validation?: OnboardingStepValidation;
-  /** Phase 34 CONSUMER: branching rules — answer -> jump target. */
+  /** Phase 34 CONSUMER (also tolerated on org nodes): branching rules. */
+  branching?: OnboardingStepBranchingRule[];
+}
+
+/**
+ * Phase 34 CONSUMER step node — same structural shape as OnboardingStepNode
+ * but `type` is narrowed to the 8 D-16 consumer step types. The Phase 34
+ * admin builder (Plan 34-08) authors these; the Phase 34 consumer renderer
+ * (Plan 34-06) reads them.
+ *
+ * Structurally assignable to OnboardingStepNode at the jsonb layer (same
+ * keys); the type-level distinction prevents Phase 31 lookup tables from
+ * receiving consumer step types.
+ */
+export interface ConsumerOnboardingStepNode {
+  /** Stable uuid per step instance — stable across edits/reorders. */
+  id: string;
+  type: ConsumerStepType;
+  copy?: OnboardingStepCopy;
+  field?: OnboardingStepField;
+  options?: OnboardingStepOption[];
+  validation?: OnboardingStepValidation;
   branching?: OnboardingStepBranchingRule[];
 }
 
