@@ -57,6 +57,14 @@ const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
     'alerts.ack',
     'alerts.snooze',
     'billing.view',
+    // Phase 34 Plan 34-08 D-18 — consumer onboarding builder permission hints.
+    // These are UI hints only; the real superadmin gates live in:
+    //   - save_consumer_onboarding_flow SECDEF (admin_role='superadmin')
+    //   - ship-winner-flag Edge Fn (Plan 34-09; admin_role='superadmin')
+    // RESEARCH Open Question 3 resolution: surfaceCheck stays the CLIENT HINT
+    // surface; admin_role is the source of truth for actual enforcement.
+    'onboarding.ship_winner',
+    'onboarding.edit_draft',
   ]),
   clinician: new Set([
     'members.list',

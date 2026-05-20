@@ -101,12 +101,18 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.content.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 34 Plan 34-08 ONBOARD-07 — Consumer onboarding builder (Builder + A/B
+  // + Funnel tabs). Replaces the Phase 24 placeholder per memory
+  // [[admin-module-manifest-vs-router-branch-drift]] (verify command asserts
+  // placeholderFor no longer references onboarding). minRole stays 'admin' so
+  // standard admins can OPEN the page (read existing flows); Save / Ship Winner
+  // buttons gate further at the SECDEF/Edge Fn layer (Pattern S1 dual-layer).
   {
     key: 'onboarding',
     label: 'Onboarding',
     route: 'onboarding',
     icon: RocketIcon,
-    lazy: placeholderFor('Phase 28+ (Onboarding analytics + experiments)'),
+    lazy: () => import('@/components/admin/onboarding-builder/OnboardingBuilderModule'),
     flagKey: 'admin.onboarding.enabled',
     minRole: 'admin' as AdminRole,
   },

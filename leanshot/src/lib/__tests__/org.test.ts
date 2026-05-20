@@ -158,6 +158,37 @@ describe('org.ts surface members', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // Test 13 — Phase 34 Plan 34-08 D-18: onboarding.ship_winner + edit_draft
+  // owner-only superadmin-builder permission hints.
+  // ---------------------------------------------------------------------------
+  describe('Phase 34 D-18 consumer onboarding permissions', () => {
+    it('Test 13a: owner has onboarding.ship_winner', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'owner');
+      expect(surfaceCheck('onboarding.ship_winner')).toBe(true);
+    });
+
+    it('Test 13b: clinician does NOT have onboarding.ship_winner', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'clinician');
+      expect(surfaceCheck('onboarding.ship_winner')).toBe(false);
+    });
+
+    it('Test 13c: staff does NOT have onboarding.ship_winner', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'staff');
+      expect(surfaceCheck('onboarding.ship_winner')).toBe(false);
+    });
+
+    it('Test 13d: owner has onboarding.edit_draft', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'owner');
+      expect(surfaceCheck('onboarding.edit_draft')).toBe(true);
+    });
+
+    it('Test 13e: clinician does NOT have onboarding.edit_draft', () => {
+      useStore.getState().setCurrentOrg(orgFixture, 'clinician');
+      expect(surfaceCheck('onboarding.edit_draft')).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Test 12 — ROLE_PERMISSIONS readonly check
   // ---------------------------------------------------------------------------
   it('Test 12: _ROLE_PERMISSIONS_FOR_TEST owner set has expected permissions', () => {
