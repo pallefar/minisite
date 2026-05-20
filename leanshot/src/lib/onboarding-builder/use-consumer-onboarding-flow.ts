@@ -156,9 +156,9 @@ export function useConsumerOnboardingFlow(): ConsumerOnboardingFlowState {
     return () => {
       cancelled = true;
     };
-    // localUser?.id included so post-signup transitions re-evaluate the hook.
+    // localUser (existence) included so post-signup transitions re-evaluate.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedInUser?.id, localUser?.id]);
+  }, [signedInUser?.id, localUser]);
 
   return state;
 }

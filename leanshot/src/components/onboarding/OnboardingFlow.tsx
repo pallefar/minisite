@@ -21,6 +21,7 @@ import {
 } from '@/illustrations/OnboardSteps';
 import { track } from '@/lib/analytics';
 import { todayStr } from '@/lib/helpers';
+import { useConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
 import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import { medLabel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
@@ -36,6 +37,7 @@ import type {
   DoseUnit,
 } from '@/types';
 import type { OnboardingStepNode } from '@/types/onboarding-step';
+import { ConsumerOnboardingRenderer } from './ConsumerOnboardingRenderer';
 import { ProgressIndicator } from './ProgressIndicator';
 import { UnitToggle } from './UnitToggle';
 
@@ -101,6 +103,11 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   // Phase 31 Plan 06 D-10: render-branch hook — determines whether to show
   // the org's saved flow (invited patient) or the consumer DEFAULT_STEPS path.
   const flowState = useOrgOnboardingFlow();
+  // Phase 34 Plan 34-06 — render-branch into the consumer-renderer when the
+  // consumer `onboarding_flows` row carries a populated config. Empty config
+  // (the seeded control row) falls through to the legacy DEFAULT_STEPS body
+  // below so we don't regress users while admins seed the new flow.
+  const consumerFlowState = useConsumerOnboardingFlow();
 
   const setUser = useStore((s) => s.setUser);
   const upsertWeight = useStore((s) => s.upsertWeight);
@@ -161,6 +168,22 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
         onCancel={onCancel}
         onComplete={onComplete}
       />
+    );
+  }
+
+  // Phase 34 Plan 34-06: consumer config-driven renderer. Only switches in when
+  // the new consumer `onboarding_flows.config` carries at least one step — the
+  // seeded empty control row continues to fall through to the legacy
+  // DEFAULT_STEPS body so we never regress sign-up while the new flow is being
+  // built. The renderer owns its own DEFAULT_STEPS fallback for status='preview'
+  // on the /onboard surface.
+  if (
+    (consumerFlowState.status === 'consumer' || consumerFlowState.status === 'preview') &&
+    consumerFlowState.flow &&
+    consumerFlowState.flow.config.length > 0
+  ) {
+    return (
+      <ConsumerOnboardingRenderer flow={consumerFlowState.flow} onComplete={onComplete} />
     );
   }
 
