@@ -29,6 +29,10 @@
 import { assert, assertEquals, assertStringIncludes } from 'jsr:@std/assert@^1';
 import { __getBreadcrumbsForTest, __resetBreadcrumbsForTest } from '../_shared/sentry.ts';
 
+// MUST set BEFORE the index.ts import so the Deno.serve guard in index.ts
+// skips port binding (otherwise the test suite hits AddrInUse on :8000).
+Deno.env.set('WEEKLY_DIGEST_DISABLE_SERVE', '1');
+
 import { __internal } from './index.ts';
 
 // ─── Env setup ───────────────────────────────────────────────────────────────
@@ -38,8 +42,11 @@ function setEnv() {
   Deno.env.set('AI_GATEWAY_API_KEY_CLINICAL', 'sb_clinical_test_key');
   Deno.env.set('AI_GATEWAY_BASE_URL', 'https://ai-gateway.vercel.sh/v1');
   Deno.env.set('ANTHROPIC_MODEL_DIGEST', 'anthropic/claude-sonnet-4-6');
-  Deno.env.set('SUPABASE_URL', 'https://test.supabase.co');
-  Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'sb_test_service_role');
+  // Leave SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY UNSET so posthog-server's
+  // events_mirror dual-write short-circuits (otherwise the fire-and-forget
+  // insert leaks a fetchCancelHandle and trips deno's leak detector).
+  Deno.env.delete('SUPABASE_URL');
+  Deno.env.delete('SUPABASE_SERVICE_ROLE_KEY');
   Deno.env.set('RESEND_API_KEY', 'test-stub'); // routes to stub branch in lifecycle-send
   Deno.env.set('SITE_URL', 'https://app.leanshot.app');
 }
