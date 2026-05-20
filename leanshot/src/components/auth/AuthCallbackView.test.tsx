@@ -14,10 +14,19 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockExchangeCodeForSession = vi.fn();
-const mockFromSelect = vi.fn();
-const mockFromEq = vi.fn();
-const mockFromMaybeSingle = vi.fn();
+// vi.mock factories are hoisted ABOVE module-level const declarations.
+// Use vi.hoisted() to lift mock fns to the same hoist tier.
+const {
+  mockExchangeCodeForSession,
+  mockFromSelect,
+  mockFromEq,
+  mockFromMaybeSingle,
+} = vi.hoisted(() => ({
+  mockExchangeCodeForSession: vi.fn(),
+  mockFromSelect: vi.fn(),
+  mockFromEq: vi.fn(),
+  mockFromMaybeSingle: vi.fn(),
+}));
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -39,8 +48,6 @@ vi.mock('@/lib/supabase', () => ({
     }),
   },
 }));
-
-import AuthCallbackView from './AuthCallbackView';
 
 let originalLocation: Location;
 let replaceMock: ReturnType<typeof vi.fn>;
@@ -83,6 +90,7 @@ describe('AuthCallbackView — PKCE code exchange + onboarding routing', () => {
       error: null,
     });
 
+    const { default: AuthCallbackView } = await import('./AuthCallbackView');
     render(<AuthCallbackView />);
 
     await waitFor(() => {
@@ -105,6 +113,7 @@ describe('AuthCallbackView — PKCE code exchange + onboarding routing', () => {
       error: null,
     });
 
+    const { default: AuthCallbackView } = await import('./AuthCallbackView');
     render(<AuthCallbackView />);
 
     await waitFor(() => {
@@ -118,6 +127,7 @@ describe('AuthCallbackView — PKCE code exchange + onboarding routing', () => {
       error: { message: 'invalid_request', name: 'AuthError' },
     });
 
+    const { default: AuthCallbackView } = await import('./AuthCallbackView');
     render(<AuthCallbackView />);
 
     await waitFor(() => {
@@ -127,12 +137,13 @@ describe('AuthCallbackView — PKCE code exchange + onboarding routing', () => {
     expect(mockFromSelect).not.toHaveBeenCalled();
   });
 
-  it('Test 4 — renders spinner with role="status" and aria-live="polite" while exchanging', () => {
+  it('Test 4 — renders spinner with role="status" and aria-live="polite" while exchanging', async () => {
     // exchangeCodeForSession returns an unresolved promise so the component
     // stays in the 'exchanging' state for the duration of this synchronous
     // assertion (no await).
     mockExchangeCodeForSession.mockReturnValueOnce(new Promise(() => {}));
 
+    const { default: AuthCallbackView } = await import('./AuthCallbackView');
     render(<AuthCallbackView />);
 
     const status = screen.getByRole('status');
