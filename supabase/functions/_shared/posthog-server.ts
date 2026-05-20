@@ -212,6 +212,11 @@ export function captureRagEvent(args: {
  * otherwise the Deno isolate is torn down and batched events are dropped.
  */
 export type Phase38Event =
+  // Activation (Phase 34 Plan 34-03 D-03/D-04) ─────────────────────────────
+  // Same-plan widening per memory feedback_planner_missed_status_enum_widening
+  // — this union member MUST land in the SAME commit as the Edge Fn that
+  // fires it (supabase/functions/record-activation/index.ts).
+  | 'activation_completed'
   // Recommender ────────────────────────────────────────────────────────────
   | 'recommendation.shown'
   | 'recommendation.clicked'
