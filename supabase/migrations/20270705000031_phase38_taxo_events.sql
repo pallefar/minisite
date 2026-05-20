@@ -1,0 +1,58 @@
+-- Phase 38 Plan 38-09 — TAXO event catalog registration (RECOMMEND-06).
+--
+-- This project does NOT ship a `public.taxo_events` registry table (the Phase 24
+-- taxonomy lives in code as `leanshot/src/lib/analytics/events.ts` + the
+-- Edge-Fn-side typed catalog in `supabase/functions/_shared/posthog-server.ts`).
+-- Per the plan fallback branch ("If TAXO registry table does NOT exist, create a
+-- comment-only migration listing the events"), this migration is documentation
+-- only — the actual typed catalog lives alongside the Edge Function helper so
+-- TypeScript can catch missing fields at compile time.
+--
+-- Phase 38 events registered (all phi_sensitive=false — D-04 sanitized narrative
+-- means narratives stay in DB rows, never in PostHog payloads):
+--
+--   recommendation.shown              — One per returned rec from recommend-next-best-action.
+--   recommendation.clicked            — Fires from track-rec-click Edge Fn (this plan, Task 3).
+--   recommendation.dismissed          — Future surface; reserved.
+--   recommendation.404_on_click       — Click resolved to a deleted source row.
+--   recommendation.refusal_stripped   — Refusal-content scrubbed before render.
+--   recommendation.embedding_fallback — Embed RPC failed → popularity fallback (D-02).
+--   recommendation.rpc_fallback       — match_content_embeddings raised → popularity fallback.
+--
+--   digest.sent                       — weekly-digest Edge Fn delivered to a user.
+--   digest.skipped_optout             — user_preferences.weekly_digest_opt_in=false.
+--   digest.skipped_dedup              — 6h dedup window already covered.
+--   digest.validation_failed          — JSON schema validation rejected payload.
+--   digest.redflag_detected           — anthropic-baa-allowlist or refusal scrub fired.
+--   digest.redflag_rewrite            — Red-flag content rewritten before send.
+--   digest.redflag_action_substitution— Action substituted (D-13 HITL substitute).
+--   digest.clinical_action_leak       — Clinical leak detected post-render (audit only).
+--   digest.baa_scope_resolved         — BAA scope check passed.
+--   digest.baa_scope_violation        — BAA scope check failed; payload not sent.
+--
+--   win_back_trigger                  — winback-scorer-nightly added a user to candidate list.
+--   winback.batch_complete            — winback-scorer cron run finished; counts emitted.
+--
+--   embed.batch_complete              — embed-content-nightly cron finished.
+--   embed.dedup_skip                  — Row's body_sha256 matched → no re-embed.
+--   embed.rate_limit_429              — Persistent 429 from AI Gateway after retries.
+--
+--   hitl_approve                      — Editor approved an AI-suggested review.
+--   hitl_reject                       — Editor rejected.
+--   hitl_edit                         — Editor edited then approved.
+--
+--   plan_personalize.hint_returned    — plan-personalize Edge Fn returned a hint.
+--
+--   eval.judge.score                  — Offline LLM-as-judge eval scored a sample.
+--   anthropic.prompt_cache.hit        — Edge Fn observed prompt-cache hit in Anthropic response.
+--
+-- Telemetry rule (memory feedback_planner_iter1_anti_patterns):
+--   Every Edge Fn that calls captureServer() MUST wrap its handler in try/finally
+--   and `await shutdownPostHog()` BEFORE returning the Response — the Deno
+--   isolate is torn down immediately after Response return; in-flight batches
+--   are dropped otherwise. See `posthog-server.ts` typed catalog header.
+
+-- This migration is intentionally empty (no DDL) — its purpose is to anchor
+-- the catalog provenance for `supabase db diff` / git-history audits, so any
+-- new Phase 38 event surface can be traced back to a migration that named it.
+select 1 as phase38_taxo_events_registered;
