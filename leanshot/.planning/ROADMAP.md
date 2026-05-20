@@ -295,15 +295,15 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 10 plans
+**Plans:** 6/10 plans executed
 
 Plans:
-- [ ] 34-01-PLAN.md — Schema: anonymous_sessions + onboarding_flows + profiles.primary_goal + activation_events ALTER + SECDEFs
-- [ ] 34-02-PLAN.md — Weekly TTL cron + create-anon-session Edge Fn + _ls_anon cookie helper
-- [ ] 34-03-PLAN.md — events.ts activation_completed + Phase38Event union widening + record-activation Edge Fn + fire-once RPC
-- [ ] 34-04-PLAN.md — PKCE OAuth wrapper (signInWithOAuthProvider) + /auth/callback view in App.tsx
-- [ ] 34-05-PLAN.md — merge_anon_session SECDEF + merge-anon-session Edge Fn (preferences + aff_code + PostHog alias)
-- [ ] 34-06-PLAN.md — useConsumerOnboardingFlow + AnonymousPreviewLayer + ConsumerOnboardingRenderer + 8-goal selector + smart defaults + social proof + /onboard route
+- [x] 34-01-PLAN.md — Schema: anonymous_sessions + onboarding_flows + profiles.primary_goal + activation_events ALTER + SECDEFs
+- [x] 34-02-PLAN.md — Weekly TTL cron + create-anon-session Edge Fn + _ls_anon cookie helper
+- [x] 34-03-PLAN.md — events.ts activation_completed + Phase38Event union widening + record-activation Edge Fn + fire-once RPC
+- [x] 34-04-PLAN.md — PKCE OAuth wrapper (signInWithOAuthProvider) + /auth/callback view in App.tsx
+- [x] 34-05-PLAN.md — merge_anon_session SECDEF + merge-anon-session Edge Fn (preferences + aff_code + PostHog alias)
+- [x] 34-06-PLAN.md — useConsumerOnboardingFlow + AnonymousPreviewLayer + ConsumerOnboardingRenderer + 8-goal selector + smart defaults + social proof + /onboard route
 - [ ] 34-07-PLAN.md — FirstActionSurface 3-card hybrid UI + activation-hooks fire-once + store.replayDraftEntries
 - [ ] 34-08-PLAN.md — Admin onboarding-builder shell (StepPalette + SortableTreePanel + StepPropertyPanel) + manifest entry (autonomous: false — human verify)
 - [ ] 34-09-PLAN.md — ship-winner-flag + onboarding-funnel-query Edge Fns (vendor-gated) + OnboardingABPanel + OnboardingFunnelTab
@@ -553,7 +553,7 @@ Plans:
 | 31. White-Label + Org Roles + Clinic Onboarding Builder | 8/8 | Complete   | 2026-05-18 |
 | 32. Spanish i18n | 0/? | Not started | — |
 | 33. Hourly Ad-Spend ETL | 5/5 | Complete    | 2026-05-18 |
-| 34. M2 Onboarding Overhaul + Activation Event | 0/? | Not started | — |
+| 34. M2 Onboarding Overhaul + Activation Event | 6/10 | In Progress|  |
 | 35. M3 Gamification Engine | 0/? | Not started | — |
 | 36. M3 Review Prompt Engine (Web) | 0/? | Not started | — |
 | 37. M6 Helpdesk Core | 0/? | Not started | — |

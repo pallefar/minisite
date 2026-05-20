@@ -161,10 +161,10 @@
 
 ### WS13 — User-facing: M2 Onboarding Overhaul (ONBOARD, 13 REQ-IDs)
 
-- [ ] **ONBOARD-01**: Visitor sees value-first preview (anonymous session row keyed by cookie; populated dashboard before signup); merge to authenticated row on signup
+- [x] **ONBOARD-01**: Visitor sees value-first preview (anonymous session row keyed by cookie; populated dashboard before signup); merge to authenticated row on signup
 - [ ] **ONBOARD-02**: User signs in via magic link OR Google OAuth OR Apple OAuth (password optional, not required); native input types + ≥44px tap targets on mobile
-- [ ] **ONBOARD-03**: One question per screen on mobile (375px); progress bar; back nav; resumable across devices via Supabase row (NOT localStorage)
-- [ ] **ONBOARD-04**: Smart defaults inferred from `Accept-Language` + IP (currency, units, timezone)
+- [x] **ONBOARD-03**: One question per screen on mobile (375px); progress bar; back nav; resumable across devices via Supabase row (NOT localStorage)
+- [x] **ONBOARD-04**: Smart defaults inferred from `Accept-Language` + IP (currency, units, timezone)
 - [ ] **ONBOARD-05**: Onboarding ends by completing one real task (logged injection / scheduled dose / joined challenge based on stated goal) — activation event fires
 - [ ] **ONBOARD-06**: Activation event clearly defined for LeanShot + instrumented in TAXO event registry + measured per cohort
 - [ ] **ONBOARD-07**: Admin drag-and-drop step builder (question type / copy / validation / branching) — schema stored as JSON in `onboarding_flows.config`
@@ -172,8 +172,8 @@
 - [ ] **ONBOARD-09**: Per-step funnel analytics in admin (views / completions / drop-off / time-on-step) queried from PostHog
 - [ ] **ONBOARD-10**: Mobile Lighthouse score ≥90 on onboarding route
 - [ ] **ONBOARD-11**: Anonymous-to-authenticated session merge handles race conditions (two devices both opening anonymous sessions); merge strategy chooses richest-data row
-- [ ] **ONBOARD-12**: Social proof on signup (live user counter via Supabase Realtime + 3 rotating testimonials + tier badges) — opt-out via privacy-mode users
-- [ ] **ONBOARD-13**: First-action surface respects user goal (different first-action per stated objective: lose-weight goal → weight log; new-prescription goal → first injection log)
+- [x] **ONBOARD-12**: Social proof on signup (live user counter via Supabase Realtime + 3 rotating testimonials + tier badges) — opt-out via privacy-mode users
+- [x] **ONBOARD-13**: First-action surface respects user goal (different first-action per stated objective: lose-weight goal → weight log; new-prescription goal → first injection log)
 
 ### WS14 — User-facing: M3 Gamification Engine (GAME, 9 REQ-IDs)
 
@@ -499,10 +499,10 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | HIPAA-16 | Phase 25 | Complete |
 | HIPAA-17 | Phase 25 | Complete |
 | HIPAA-18 | Phase 25 | Complete |
-| ONBOARD-01 | Phase 34 | Pending |
+| ONBOARD-01 | Phase 34 | Complete |
 | ONBOARD-02 | Phase 34 | Pending |
-| ONBOARD-03 | Phase 34 | Pending |
-| ONBOARD-04 | Phase 34 | Pending |
+| ONBOARD-03 | Phase 34 | Complete |
+| ONBOARD-04 | Phase 34 | Complete |
 | ONBOARD-05 | Phase 34 | Pending |
 | ONBOARD-06 | Phase 34 | Pending |
 | ONBOARD-07 | Phase 34 | Pending |
@@ -510,8 +510,8 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | ONBOARD-09 | Phase 34 | Pending |
 | ONBOARD-10 | Phase 34 | Pending |
 | ONBOARD-11 | Phase 34 | Pending |
-| ONBOARD-12 | Phase 34 | Pending |
-| ONBOARD-13 | Phase 34 | Pending |
+| ONBOARD-12 | Phase 34 | Complete |
+| ONBOARD-13 | Phase 34 | Complete |
 | GAME-01 | Phase 35 | Pending |
 | GAME-02 | Phase 35 | Pending |
 | GAME-03 | Phase 35 | Pending |
