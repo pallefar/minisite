@@ -55,6 +55,11 @@ export default defineConfig({
       'tests/rls/recommender-cross-tenant.spec.ts',
       'tests/e2e/recommender.spec.ts',
       'tests/e2e/multi-surface-payload.spec.ts',
+      // Phase 38 plan 38-08 — HITL admin queue lifecycle (RECOMMEND-07).
+      // 7 e2e behaviors: kb-audit landing, pending queue, approve+release,
+      // reject, edit-then-approve, clinic-admin RLS gate, bulk approve.
+      // Live-DB; auto-skip when SUPABASE env vars are missing.
+      'tests/e2e/hitl-queue.spec.ts',
     ],
     testTimeout: 30000,
   },
