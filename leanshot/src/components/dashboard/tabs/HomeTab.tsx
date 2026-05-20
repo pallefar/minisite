@@ -1,5 +1,5 @@
 import { Lightbulb } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { Suspense, lazy, useEffect, useMemo } from 'react';
 import { EffectivenessCard } from '@/components/dashboard/cards/EffectivenessCard';
 import { FocusCard } from '@/components/dashboard/cards/FocusCard';
 import { GLPCurveCard } from '@/components/dashboard/cards/GLPCurveCard';
@@ -9,6 +9,9 @@ import { SiteRotationCard } from '@/components/dashboard/cards/SiteRotationCard'
 import { StreaksCard } from '@/components/dashboard/cards/StreaksCard';
 import { SymptomCard } from '@/components/dashboard/cards/SymptomCard';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+
+const ForYouCard = lazy(() => import('@/components/dashboard/cards/ForYouCard'));
 import { generateInsights } from '@/lib/insights';
 import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
@@ -71,6 +74,17 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
       <SymptomCard />
       <StreaksCard />
       <QuickLogCard onOpenAI={onOpenAI} />
+
+      <Suspense
+        fallback={
+          <Card span={6}>
+            <CardHeader title="For you" />
+            <Skeleton className="h-20" />
+          </Card>
+        }
+      >
+        <ForYouCard span={6} />
+      </Suspense>
 
       <Card span={12}>
         <CardHeader title="Today's insight" icon={<Lightbulb className="size-4" />} />
