@@ -85,6 +85,68 @@ export function captureMessage(
 }
 
 /**
+ * Phase 38 Plan 38-02 — add a breadcrumb to the current Sentry scope.
+ *
+ * The Anthropic-summarize wrapper emits `baa.scope.resolved` BEFORE the
+ * `/v1/messages` call so an audit replay can prove the BAA-scope decision
+ * happened before the prompt was built (Phase 25 HIPAA-01 audit pattern).
+ *
+ * The breadcrumb buffer is *also* exposed via `__getBreadcrumbsForTest()`
+ * below as a unit-test seam — Deno doesn't ship a Sentry recorder shim, so we
+ * keep an in-memory mirror tagged when SENTRY_DSN is unset (test mode).
+ *
+ * Vendor-gated: when SENTRY_DSN is set, the breadcrumb is forwarded to the
+ * real Sentry client; when unset, it lives only in the in-memory mirror.
+ *
+ * NEVER include PHI in breadcrumb.data — keep it to scope tags + timestamps.
+ */
+const _testBreadcrumbs: Array<{
+  category: string;
+  message?: string;
+  level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug' | 'log';
+  data?: Record<string, unknown>;
+  timestamp: number;
+}> = [];
+
+export function addBreadcrumb(crumb: {
+  category: string;
+  message?: string;
+  level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug' | 'log';
+  data?: Record<string, unknown>;
+}): void {
+  ensureInit();
+  const ts = Date.now() / 1000;
+  // Always record in test mirror so unit tests can assert order without
+  // needing a live Sentry DSN.
+  _testBreadcrumbs.push({ ...crumb, timestamp: ts });
+  const dsn = Deno.env.get('SENTRY_DSN');
+  if (!dsn) return; // no-op forward when DSN unset
+  SentryNode.addBreadcrumb({
+    category: crumb.category,
+    message: crumb.message,
+    level: crumb.level,
+    data: crumb.data,
+    timestamp: ts,
+  });
+}
+
+/** Test-only seam: read the in-memory breadcrumb mirror. */
+export function __getBreadcrumbsForTest(): ReadonlyArray<{
+  category: string;
+  message?: string;
+  level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug' | 'log';
+  data?: Record<string, unknown>;
+  timestamp: number;
+}> {
+  return _testBreadcrumbs;
+}
+
+/** Test-only seam: clear the in-memory breadcrumb mirror between tests. */
+export function __resetBreadcrumbsForTest(): void {
+  _testBreadcrumbs.length = 0;
+}
+
+/**
  * Convenience wrapper for Phase 50 Plan 50-04 rag-scrape-runner contract.
  * Equivalent to `captureException(err, { tags })` but matches the plan's
  * named-arg shape so call sites read naturally:

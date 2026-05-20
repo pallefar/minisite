@@ -12,15 +12,24 @@
  * from clinical context. Reviewed monthly; subprocessor-diff cron in Plan
  * 25-08 watches trust.anthropic.com/updates for vendor changes.
  *
- * Last reviewed: 2026-05-17
+ * Last reviewed: 2026-05-20 (Phase 38 Plan 38-02 — added claude-sonnet-4-6 for
+ *   weekly digest + recommender extension; review window unchanged).
  * Maintainer: see PROJECT.md Vendor Accounts table
- * Reference: [[reference_hipaa_baa_vendor_matrix]]
+ * Reference: [[reference_hipaa_baa_vendor_matrix]] + [[reference_anthropic_model_id_hyphenated_format]]
+ *
+ * Phase 38 Plan 38-02 — claude-sonnet-4-6 added to support the weekly Claude
+ * digest and AI recommender helpers in `_shared/anthropic-summarize.ts`. The
+ * extension MUST land in the SAME plan as the dependent consumer (this is the
+ * canonical [[feedback_planner_iter1_anti_patterns]] / no-temporal-gap pattern
+ * — without same-plan landing, clinical digest sends would 403 from the BAA
+ * guard for the gap between Phase 38 deploy and a separate allowlist bump).
  */
 
 export const BAA_COVERED_MODELS = [
   'claude-sonnet-4-5',
   'claude-opus-4-6',
   'claude-haiku-4-5-20251001',
+  'claude-sonnet-4-6',
 ] as const;
 
 export const DENYLIST_SUFFIXES = ['-beta', '-preview'] as const;
