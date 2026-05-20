@@ -64,3 +64,26 @@ error TS2345: Argument of type '"nps_quarterly_responded"' is not assignable to 
 
 **Owner:** The owning plans (42-08, 42-10, 42-11) — these landed concurrently on `main` with incomplete refs because Wave 1+2 of Phase 42 ran in parallel.
 
+**Update 2026-05-20 (Plan 42-11 Task 1):** All 6 TS errors no longer reproduce on HEAD `09e2b03` — `npm run typecheck` exits 0. Resolved organically by 42-09 + 42-10 follow-up commits (events registered in `src/lib/analytics/events.ts`; App.tsx refs all bound). No action required from 42-11. Marking RESOLVED.
+
+---
+
+## Plan 42-11 Task 1 — Pre-existing vitest failures (88 tests; 19 files) OUT OF SCOPE
+
+**Discovered during:** Plan 42-11 Task 1 full `npm run test:unit` run (2026-05-20).
+
+**Issue:** `vitest run` reports 88 failed / 1951 passed / 288 skipped across 19 test files. Verified pre-existing via `git stash` round-trip:
+- HEAD `09e2b03` (Plan 42-10 ship): **88 failed**
+- HEAD + 42-11 Task 1 changes (bundle script + a11y baseline timestamp): **88 failed**
+- IDENTICAL count — Plan 42-11 introduces zero new failures.
+
+Example clusters (from failure tail):
+- `src/components/clinic/drill-in/ClinicDrillInPage.test.tsx` — Supabase mock chain mismatch (`thresholds` table)
+- Several test files affected by the cross-plan parallel-wave drift from Phases 40-42 (Wave 1+2 git-index pollution)
+
+**Why deferred:** Out of Plan 42-11 scope (Plan 42-11 = integration verify + bundle/a11y + decommission spike). Failures live in v1.1/v1.2 clinic/drill-in and other unrelated surfaces. Per [[parallel-executor-git-isolation]] + Plan 42-10 SUMMARY notes, several were introduced when concurrent Wave-2 plans swept each other's intermediate file states. Out-of-scope to fix in the integration-verify plan.
+
+**Owner:** A dedicated test-debt-burn plan at v1.3 milestone close-out OR v1.4 polish entry. Tracked in MEMORY pattern [[feedback_defer_then_batch_fix_pattern]] (defer-then-batch-fix).
+
+**Note for v1.4:** The vitest failures should be assessed before any ship to confirm they are NOT silently masking a real regression. Recommend a v1.4 entry-gate task: run `npm run test:unit`, audit each of the 19 files, label each as (a) genuinely broken pre-existing v1.2 code, (b) stale mock setup vs schema drift, or (c) latent real regression introduced during Phases 38-42. Then batch-fix.
+
