@@ -235,7 +235,7 @@
 - [ ] **POLISH-04**: Discount save-offer (20%-30% off for 2-3 months) applies as Stripe coupon
 - [ ] **POLISH-05**: Smart notifications (email + web-push + in-app) with frequency-capping + snoozable + sentiment-aware per `notification_settings`
 - [ ] **POLISH-06**: User manages notification preferences in self-serve center (per-category opt-out: dose-reminders / AI-insights / clinic-alerts / billing / marketing)
-- [ ] **POLISH-07**: PWA + offline mode via `vite-plugin-pwa`; native-feeling install prompt on supported browsers
+- [x] **POLISH-07**: PWA + offline mode via `vite-plugin-pwa`; native-feeling install prompt on supported browsers
 - [ ] **POLISH-08**: Dark mode parity across all v1.3 new surfaces (admin shell + helpdesk + onboarding builder + clinic dashboard)
 - [ ] **POLISH-09**: WCAG 2.2 AA accessibility audit via axe-core in CI; keyboard nav + screen-reader labels + contrast + focus rings verified
 - [ ] **POLISH-10**: Public status page at `status.leanshot.app` via Better Stack ($12/mo); auto-incident detection from Sentry + Vercel + Supabase
@@ -558,7 +558,7 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | POLISH-04 | Phase 40 | Pending |
 | POLISH-05 | Phase 42 | Pending |
 | POLISH-06 | Phase 42 | Pending |
-| POLISH-07 | Phase 42 | Pending |
+| POLISH-07 | Phase 42 | Complete |
 | POLISH-08 | Phase 42 | Pending |
 | POLISH-09 | Phase 42 | Pending |
 | POLISH-10 | Phase 41 | Pending |
