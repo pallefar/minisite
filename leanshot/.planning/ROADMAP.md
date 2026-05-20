@@ -295,6 +295,20 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 10 plans
+
+Plans:
+- [ ] 34-01-PLAN.md — Schema: anonymous_sessions + onboarding_flows + profiles.primary_goal + activation_events ALTER + SECDEFs
+- [ ] 34-02-PLAN.md — Weekly TTL cron + create-anon-session Edge Fn + _ls_anon cookie helper
+- [ ] 34-03-PLAN.md — events.ts activation_completed + Phase38Event union widening + record-activation Edge Fn + fire-once RPC
+- [ ] 34-04-PLAN.md — PKCE OAuth wrapper (signInWithOAuthProvider) + /auth/callback view in App.tsx
+- [ ] 34-05-PLAN.md — merge_anon_session SECDEF + merge-anon-session Edge Fn (preferences + aff_code + PostHog alias)
+- [ ] 34-06-PLAN.md — useConsumerOnboardingFlow + AnonymousPreviewLayer + ConsumerOnboardingRenderer + 8-goal selector + smart defaults + social proof + /onboard route
+- [ ] 34-07-PLAN.md — FirstActionSurface 3-card hybrid UI + activation-hooks fire-once + store.replayDraftEntries
+- [ ] 34-08-PLAN.md — Admin onboarding-builder shell (StepPalette + SortableTreePanel + StepPropertyPanel) + manifest entry (autonomous: false — human verify)
+- [ ] 34-09-PLAN.md — ship-winner-flag + onboarding-funnel-query Edge Fns (vendor-gated) + OnboardingABPanel + OnboardingFunnelTab
+- [ ] 34-10-PLAN.md — Playwright e2e (anon-merge / activation / mobile Lighthouse ≥90) + Apple Services ID checkpoint + PostHog API key checkpoint
+
 ### Phase 35: M3 Gamification Engine
 
 **Goal**: XP/levels/streaks/freeze tokens/leaderboards/weekly challenges ship as ethical-only mechanics; canvas-confetti gates respect reduced-motion.
