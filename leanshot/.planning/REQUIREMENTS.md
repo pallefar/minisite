@@ -223,7 +223,7 @@
 - [ ] **RECOMMEND-05**: Weekly Claude summary email (short narrative + 1-3 suggested actions) sent via Resend (or SES if PHI); cron at 09:00 user-timezone Sunday
 - [x] **RECOMMEND-06**: Sentry recommendation-CTR tracking + admin dashboard with recommendation-impression + recommendation-click rates per recommendation-type
 - [x] **RECOMMEND-07**: Human-in-the-loop review queue for AI suggestions; admin approves/rejects/edits before auto-apply within guardrails (whitelisted recommendation set only)
-- [ ] **RECOMMEND-08**: Content recommendations surface in KB article footer ("Related articles") + community feed ("You might like") + course landing ("Recommended courses")
+- [x] **RECOMMEND-08**: Content recommendations surface in KB article footer ("Related articles") + community feed ("You might like") + course landing ("Recommended courses")
 - [ ] **RECOMMEND-09**: Pricing/offer personalization (annual nudge for monthly subscribers showing churn signal; discount eligibility per user's plan-history); plan-personalization Edge Fn called by PAYWALL + SAVE
 - [x] **RECOMMEND-10**: Win-back prompts for at-risk users (simple churn model: days-since-last-action × declining-streak × paywall-dismissals); auto-send via SAVE-engine
 
@@ -549,7 +549,7 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | RECOMMEND-05 | Phase 38 | Pending |
 | RECOMMEND-06 | Phase 38 | Complete |
 | RECOMMEND-07 | Phase 38 | Complete |
-| RECOMMEND-08 | Phase 38 | Pending |
+| RECOMMEND-08 | Phase 38 | Complete |
 | RECOMMEND-09 | Phase 38 | Pending |
 | RECOMMEND-10 | Phase 38 | Complete |
 | POLISH-01 | Phase 40 | Pending |

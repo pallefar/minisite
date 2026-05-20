@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: planning
-stopped_at: "Phase 38-02 complete (Wave 1 helper layer; 7 modules + 5 test suites; 62/62 Deno tests pass)"
-last_updated: "2026-05-20T10:21:53Z"
-last_activity: 2026-05-20
+stopped_at: Phase 38-09 complete (Wave 3 cron + TAXO + click-tracker + dashboard surfaces)
+last_updated: "2026-05-20T11:31:47.310Z"
+last_activity: 2026-05-18
 progress:
   total_phases: 28
   completed_phases: 10
   total_plans: 104
-  completed_plans: 93
-  percent: 37
+  completed_plans: 97
+  percent: 36
 ---
 
 # Background dispatch note (2026-05-19) — Phase 40
@@ -210,7 +210,7 @@ Last activity: 2026-05-18
 
 Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -265,6 +265,7 @@ Progress: [█████████░] 88%
 | Phase 31 P06 | 40min | 3 tasks | 12 files |
 | Phase 38 P01 | 12min | 3 tasks | 13 files |
 | Phase 38 P02 | 10min | 3 tasks | 15 files |
+| Phase 38 P09 | 28min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -343,9 +344,9 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-20T10:21:53Z
-Stopped at: Phase 38-02 complete (Wave 1 _shared helper layer for AI Recommender + Digest; commits 6ab270b, fd02516, 1bd20a9; 62/62 Deno tests pass)
-Resume file: None
+Last session: 2026-05-20T11:31:47.300Z
+Stopped at: Phase 38-09 complete (Wave 3 cron + TAXO + click-tracker + dashboard surfaces)
+Resume file: 
 
 ## Phase 25 plan-phase blocker (2026-05-17)
 

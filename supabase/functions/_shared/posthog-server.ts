@@ -196,6 +196,102 @@ export function captureRagEvent(args: {
 }
 
 /**
+ * Phase 38 Plan 38-09 — typed Phase 38 event catalog.
+ *
+ * All Phase 38 events are PHI-FREE by design (D-04 sanitized narrative — actual
+ * narratives stay in DB rows, never in PostHog payloads). This typed union lets
+ * TypeScript catch typos at every captureServer() call site in Phase 38 Edge Fns.
+ *
+ * Companion migration: supabase/migrations/20270705000031_phase38_taxo_events.sql
+ * is a comment-only catalog anchor; the source-of-truth registry is THIS file +
+ * leanshot/src/lib/analytics/events.ts (client-emittable events only).
+ *
+ * REQUIREMENT (memory feedback_planner_iter1_anti_patterns): every Phase 38
+ * Edge Fn that calls captureServer() MUST wrap its request handler in
+ * `try { … } finally { await shutdownPostHog(); }` BEFORE returning the Response,
+ * otherwise the Deno isolate is torn down and batched events are dropped.
+ */
+export type Phase38Event =
+  // Recommender ────────────────────────────────────────────────────────────
+  | 'recommendation.shown'
+  | 'recommendation.clicked'
+  | 'recommendation.dismissed'
+  | 'recommendation.404_on_click'
+  | 'recommendation.refusal_stripped'
+  | 'recommendation.embedding_fallback'
+  | 'recommendation.rpc_fallback'
+  // Digest ─────────────────────────────────────────────────────────────────
+  | 'digest.sent'
+  | 'digest.skipped_optout'
+  | 'digest.skipped_dedup'
+  | 'digest.validation_failed'
+  | 'digest.redflag_detected'
+  | 'digest.redflag_rewrite'
+  | 'digest.redflag_action_substitution'
+  | 'digest.clinical_action_leak'
+  | 'digest.baa_scope_resolved'
+  | 'digest.baa_scope_violation'
+  // Win-back ───────────────────────────────────────────────────────────────
+  | 'win_back_trigger'
+  | 'winback.batch_complete'
+  // Embed batch ────────────────────────────────────────────────────────────
+  | 'embed.batch_complete'
+  | 'embed.dedup_skip'
+  | 'embed.rate_limit_429'
+  // HITL editorial ─────────────────────────────────────────────────────────
+  | 'hitl_approve'
+  | 'hitl_reject'
+  | 'hitl_edit'
+  // Plan personalize ───────────────────────────────────────────────────────
+  | 'plan_personalize.hint_returned'
+  // Offline eval / model telemetry ─────────────────────────────────────────
+  | 'eval.judge.score'
+  | 'anthropic.prompt_cache.hit';
+
+/**
+ * Typed payload contract for `recommendation.shown` — fires once per returned
+ * rec (top-3 per call × every dashboard / kb_footer load). Keeping the contract
+ * pinned here catches accidental schema drift when call sites are touched.
+ */
+export interface RecommendationShownProperties {
+  recommendation_id: string;
+  source_type: string;
+  source_id: string;
+  surface_target: string[];
+  score: number;
+  fallback: 'personalized' | 'popular';
+  /** Optional — surface that originated the call (dashboard/kb_footer/etc.). */
+  surface?: string;
+}
+
+/**
+ * Typed payload contract for `digest.sent` — emitted once per delivered
+ * weekly-digest email by the weekly-digest Edge Fn.
+ */
+export interface DigestSentProperties {
+  /** Number of recs included in the digest body (1..3). */
+  recs_count: number;
+  /** ISO date of the Sunday this digest covers. */
+  week_of: string;
+  /** Channel — 'email' for v1. */
+  channel: 'email';
+  /** True when this delivery was a HITL-edited variant (D-13). */
+  hitl_edited?: boolean;
+}
+
+/**
+ * Typed payload contract for `recommendation.clicked` — emitted server-side
+ * by the track-rec-click Edge Fn (Plan 38-09 Task 3). Client browsers MUST
+ * NOT emit AI events directly (Phase 24 server-side capture rule + D-12).
+ */
+export interface RecommendationClickedProperties {
+  recommendation_id: string;
+  /** True only on the first click (idempotency — repeat clicks emit `first_click=false`). */
+  first_click: boolean;
+  surface?: string;
+}
+
+/**
  * Flush all queued events and shut down the posthog-node client.
  *
  * MUST be called in the `finally` block of every Edge Function handler that
