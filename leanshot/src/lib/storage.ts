@@ -97,6 +97,23 @@ export interface PersistedState {
   plan_id: string | null;
   /** Payment provider. null = no active subscription row. */
   provider: SubscriptionProvider;
+
+  // Phase 34 Plan 34-07 — onboarding activation event (ONBOARD-05).
+  /**
+   * ISO timestamp set on the first successful `fireActivation()` POST.
+   * Browser-side fire-once guard (D-15): even when the user changes
+   * primary_goal post-signup, activation never re-fires. Cleared only by
+   * `resetAll()`.
+   */
+  activationFiredAt: string | null;
+  /**
+   * Phase 34 Plan 34-06 hand-off — entries from the anonymous-preview cookie
+   * the post-signup merge handshake hands over. The dashboard's existing
+   * draft pipeline drains the array; v1.3 just queues them so the upgrade is
+   * observable. Persisted so a reload between merge + drain does not lose
+   * data.
+   */
+  draftEntriesPending: unknown[];
 }
 
 export const initialState: PersistedState = {
@@ -129,6 +146,9 @@ export const initialState: PersistedState = {
   current_period_end: null,
   plan_id: null,
   provider: null as SubscriptionProvider,
+  // Phase 34 Plan 34-07 — activation guard + draft-entry sink defaults.
+  activationFiredAt: null,
+  draftEntriesPending: [],
 };
 
 /**
