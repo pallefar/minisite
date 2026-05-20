@@ -111,6 +111,10 @@ const Marketing = lazy(() =>
   import('@/components/marketing/Landing').then((m) => ({ default: m.Landing })),
 );
 const AuthView = lazy(() => import('@/components/auth/AuthView'));
+// Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback view. Mounted on
+// the PATH route `/auth/callback?code=...` (NOT a #hash) because OAuth
+// providers cannot redirect to fragments (34-RESEARCH Pitfall 1).
+const AuthCallbackView = lazy(() => import('@/components/auth/AuthCallbackView'));
 
 // Phase 8 Plan 08-04 — Doctor read-share lazy chunk. Mounted on the
 // `#/share/<token>` hash route via the top-priority branch in `selectView`
@@ -465,6 +469,10 @@ type View =
   | 'marketing'
   | 'onboarding'
   | 'auth'
+  // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback. PATH-routed
+  // (`/auth/callback?code=...`); MUST be checked BEFORE the `#/auth/`
+  // branch so the callback URL routes here regardless of any residual hash.
+  | 'auth-callback'
   | 'dashboard'
   | 'legal'
   | 'share'
@@ -575,6 +583,14 @@ function pushViewLog(entry: ViewLogEntry): void {
 function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; pathname: string }): View {
   if (opts.hash.startsWith('#/share/')) return 'share';
   if (opts.hash.startsWith('#/legal/')) return 'legal';
+  // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback. MUST be matched
+  // BEFORE the `#/auth/` hash branch below: the callback URL is
+  // `${origin}/auth/callback?code=...` and matching the PATH first avoids
+  // any interaction with a residual hash. PKCE = path-routing, NOT hash
+  // (OAuth providers cannot redirect to # fragments — 34-RESEARCH Pitfall 1).
+  if (opts.pathname === '/auth/callback' || opts.pathname === '/auth/callback/') {
+    return 'auth-callback';
+  }
   if (opts.hash.startsWith('#/auth/')) return 'auth';
   // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
   // Anonymous-OK: invite token in query string IS the auth. Must be ordered
@@ -1497,6 +1513,20 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <AuthView />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback view. Renders
+  // alongside 'auth' but is keyed on the `/auth/callback` PATH branch in
+  // selectView (above) so it never collides with the magic-link `#/auth/`
+  // hash flow.
+  if (view === 'auth-callback') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AuthCallbackView />
         </Suspense>
       </>
     );
