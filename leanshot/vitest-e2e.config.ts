@@ -55,6 +55,12 @@ export default defineConfig({
       'tests/rls/recommender-cross-tenant.spec.ts',
       'tests/e2e/recommender.spec.ts',
       'tests/e2e/multi-surface-payload.spec.ts',
+      // Phase 38 plan 38-07 — winback-scorer e2e (RECOMMEND-07 + RECOMMEND-10).
+      // Live-DB; auto-skip when SUPABASE_URL / SUPABASE_ANON_KEY /
+      // SUPABASE_SERVICE_ROLE_KEY are missing. Seeds 10 users (5 active /
+      // 3 inactive-eligible / 2 inactive-capped), runs cron handler over HTTP,
+      // asserts win_back_sends + user_notifications + 30d cap behavior + Phase 40 handoff.
+      'tests/e2e/winback-scorer.spec.ts',
     ],
     testTimeout: 30000,
   },
