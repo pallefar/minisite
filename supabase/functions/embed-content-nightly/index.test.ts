@@ -16,8 +16,22 @@
 
 import { assert, assertEquals, assertStringIncludes } from 'jsr:@std/assert@^1';
 import { __internal } from './index.ts';
+import { resetMirrorAdminForTest, setMirrorAdminForTest } from '../_shared/posthog-server.ts';
 
 const { handleRun, setAdminForTest, resetAdminForTest } = __internal;
+
+/**
+ * Stub mirror admin that swallows events_mirror dual-write. Without this,
+ * captureServer creates a real `createClient(SUPABASE_URL, …)` and tries to
+ * POST to the stub URL, which leaks an async fetchCancelHandle into the test.
+ */
+function setStubMirrorAdmin(): void {
+  setMirrorAdminForTest({
+    from: () => ({
+      insert: () => Promise.resolve({ data: null, error: null }),
+    }),
+  });
+}
 
 // ─── Env setup ────────────────────────────────────────────────────────────
 
@@ -35,9 +49,11 @@ function setEnv() {
   Deno.env.set('AI_GATEWAY_API_KEY_CONSUMER', 'sb_consumer_test_key');
   Deno.env.set('AI_GATEWAY_BASE_URL', 'https://ai-gateway.test/v1');
   Deno.env.set('OPENAI_EMBED_MODEL', 'openai/text-embedding-3-small');
+  setStubMirrorAdmin();
 }
 
 function restoreEnv() {
+  resetMirrorAdminForTest();
   for (const [k, v] of Object.entries(ORIGINAL_ENV)) {
     if (v === undefined) Deno.env.delete(k);
     else Deno.env.set(k, v);
@@ -90,30 +106,42 @@ function makeMockAdmin(fixtures: ContentFixture[]): {
     rpcs: [],
   };
 
-  // The Fn calls admin.rpc('select_pending_or_stale_content', ...) OR a raw select
-  // chain. We model the simplest direct-RPC path used in the implementation.
+  // Models PostgREST `from('content').select('id, title, body_md, content_embeddings(body_sha256, stale)')`
+  // with chainable filters. The Fn awaits the chain at the end of building it.
+  const buildContentQuery = () => {
+    const result = {
+      data: state.fixtures.map((f) => ({
+        id: f.id,
+        title: f.title,
+        body_md: f.body_md,
+        content_embeddings:
+          f.stored_sha === null && f.stale === null
+            ? null
+            : { body_sha256: f.stored_sha, stale: f.stale },
+      })),
+      error: null as null,
+    };
+    const chain: Record<string, unknown> = {};
+    // Filter methods just return the same chain (mock ignores filters).
+    for (const m of ['is', 'not', 'eq', 'gte', 'lte', 'limit', 'order']) {
+      chain[m] = () => chain;
+    }
+    // Await the chain.
+    chain.then = (resolve: (v: typeof result) => void) => resolve(result);
+    return chain;
+  };
+
   const client = {
     rpc: (fn: string, args: unknown = {}) => {
       state.rpcs.push({ fn, args });
-      if (fn === 'select_pending_or_stale_content_for_embed') {
-        // Return the fixture array as the candidate set.
-        return Promise.resolve({
-          data: state.fixtures.map((f) => ({
-            content_id: f.id,
-            title: f.title,
-            body_md: f.body_md,
-            stored_sha: f.stored_sha,
-            stale: f.stale,
-          })),
-          error: null,
-        });
-      }
-      if (fn === 'cleanup_content_embeddings_soft_deleted') {
-        return Promise.resolve({ data: null, error: null });
-      }
       return Promise.resolve({ data: null, error: null });
     },
     from: (table: string) => {
+      if (table === 'content') {
+        return {
+          select: () => buildContentQuery(),
+        };
+      }
       if (table === 'content_embeddings') {
         return {
           upsert: (row: UpsertCall | UpsertCall[]) => {
@@ -121,7 +149,6 @@ function makeMockAdmin(fixtures: ContentFixture[]): {
             for (const r of rows) state.upserts.push(r);
             return {
               select: () => Promise.resolve({ data: rows, error: null }),
-              // Some callers don't chain .select() — make the upsert itself awaitable.
               then: (resolve: (v: { data: UpsertCall[]; error: null }) => void) =>
                 resolve({ data: rows, error: null }),
             };
