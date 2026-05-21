@@ -37,6 +37,8 @@ import {
   TrendingUp as TrendingUpIcon,
   // Phase 42 Plan 42-10 — Quarterly NPS admin module icon.
   Smile as SmileIcon,
+  // Phase 40 Plan 40-05 — Cancellation save-offer rule editor icon.
+  HeartCrack as HeartCrackIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -215,6 +217,24 @@ export const ADMIN_MODULES = [
         default: m.AdminAffiliatesPage,
       })),
     flagKey: 'admin.billing.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 40 Plan 40-05 (POLISH-01/04) — Cancellation save-offer rule editor.
+  // Two tabs: Rules (this plan) + ROI (40-06 placeholder, replaced by 40-06 on merge).
+  // AdminShell.tsx uses URL-prefix routing: /admin/cancellation resolves here without
+  // needing a hardcoded switch branch (per feedback_admin_module_manifest_vs_router_branch_drift).
+  // minRole 'admin' for UI gate; SECDEF RPCs re-check admin_role server-side (Pattern S1).
+  // Archive requires superadmin — enforced at save_offer_rule_archive RPC, not here.
+  {
+    key: 'cancellation',
+    label: 'Cancellation',
+    route: 'cancellation',
+    icon: HeartCrackIcon,
+    lazy: () =>
+      import('@/components/admin/cancellation/CancellationModule').then((m) => ({
+        default: m.default,
+      })),
+    flagKey: 'admin.cancellation.enabled',
     minRole: 'admin' as AdminRole,
   },
   {
