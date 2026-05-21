@@ -322,7 +322,7 @@ None yet — roadmap just created. Phase 24 plan-phase is the next runnable.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260521-gbm | Fix dashboard desktop/tablet responsiveness — unlayered `* { margin: 0 }` killed all Tailwind margin utilities; moved into `@layer base` + split AppShell main offset/centering | 2026-05-21 | 8da34fa | [260521-gbm-fix-dashboard-desktop-tablet-responsiven](./quick/260521-gbm-fix-dashboard-desktop-tablet-responsiven/) |
-| 260521-lt0 | Fix Vercel build failure — Phase 35-07 `api/` OG share-card functions had no tsconfig (JSX off + node16 extension errors); added `api/tsconfig.json` + `.js` import extensions. Supabase verified healthy (no drift). | 2026-05-21 | _pending_ | [260521-lt0-fix-vercel-build-failure-api-og-share-ca](./quick/260521-lt0-fix-vercel-build-failure-api-og-share-ca/) |
+| 260521-lt0 | Fix Vercel build failure — Phase 35-07 `api/` OG share-card functions had no tsconfig (JSX off + node16 extension errors); added `api/tsconfig.json` + `.js` import extensions. Supabase verified healthy (no drift). | 2026-05-21 | a8a9585 | [260521-lt0-fix-vercel-build-failure-api-og-share-ca](./quick/260521-lt0-fix-vercel-build-failure-api-og-share-ca/) |
 
 ### v1.2 Tech Debt + v1.3-deferred (carry-over to v1.4)
 
