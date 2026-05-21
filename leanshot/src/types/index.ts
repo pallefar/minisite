@@ -264,3 +264,6 @@ export interface BillingState {
   plan_id: string | null; // Stripe price ID (e.g. 'price_1Q…') or null
   provider: SubscriptionProvider;
 }
+
+// Phase 40 Plan 40-04 — Cancellation flow types (single-writer: 40-04)
+export * from './cancellation';

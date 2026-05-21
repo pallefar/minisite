@@ -39,7 +39,19 @@ export type EventName =
   | 'helpdesk.kb_article.viewed'
   | 'helpdesk.kb_search.performed'
   | 'helpdesk.ticket.created'
-  | 'helpdesk.ticket.replied';
+  | 'helpdesk.ticket.replied'
+  // Phase 40 Plan 40-04 (POLISH-01) — Cancellation save-offers flow.
+  // reason_other_text MUST NOT be sent to PostHog (T-40-04-01 PII mitigation).
+  | 'cancellation_started'
+  | 'cancellation_reason_picked'
+  | 'save_offer_shown'
+  | 'save_offer_accepted'
+  | 'save_offer_declined'
+  | 'cancellation_dismissed'
+  | 'cancellation_aborted'
+  | 'cancellation_completed'
+  | 'subscription_paused'
+  | 'subscription_resumed';
 
 const DISTINCT_ID_KEY = 'leanshot_distinct_id';
 

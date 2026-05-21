@@ -159,6 +159,16 @@ const AdminShellRoot = lazy(() =>
   import('@/components/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })),
 );
 
+// Phase 40 Plan 40-04 (POLISH-01) — CancellationModal lazy chunk (single chunk
+// per CONTEXT specifics + RESEARCH §Pitfall 8). ALL step sub-components are
+// non-lazy imports from CancellationModal.tsx so Vite emits ONE 'cancellation'
+// chunk. Plan 40-04 is the SINGLE writer to App.tsx for Phase 40 modal additions.
+const CancellationModalLazy = lazy(() =>
+  import('@/components/dashboard/settings/cancellation/CancellationModal').then((m) => ({
+    default: m.CancellationModal,
+  })),
+);
+
 // Phase 9 Plan 09-01 — Clinic B2B lazy chunks (B-2 ownership rule per
 // plan-checker iter 1). All three lazy boundaries land here in Plan 09-01
 // pointing at stub files; Plans 09-02 / 09-03 / 09-04 OVERWRITE the stubs
@@ -773,6 +783,10 @@ export function App() {
   // module itself is React.lazy + Suspense below; the boolean lives in the
   // index chunk but the markdown stack does not.
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  // Phase 40 Plan 40-04 (POLISH-01) — CancellationModal open state.
+  // The lazy chunk only loads when this flag is true. Plan 40-04 is single
+  // writer; SettingsPage receives setCancellationOpen via prop.
+  const [cancellationOpen, setCancellationOpen] = useState(false);
 
   // Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback
   // modal state. Populated by the QUARTERLY_NPS_SHOW_EVENT custom-event
@@ -1333,6 +1347,16 @@ export function App() {
     return () => window.removeEventListener('leanshot:open-settings', onOpenSettings);
   }, []);
 
+  // Phase 40 Plan 40-04 (POLISH-01) — cancellation modal trigger. SettingsPage
+  // dispatches `leanshot:open-cancellation` when the "Cancel subscription" button
+  // is clicked. Mirrors the leanshot:replay-tour pattern (no prop threading needed,
+  // avoids touching SettingsPage's prop signature which 40-04 is not a writer of).
+  useEffect(() => {
+    const onOpenCancellation = (): void => setCancellationOpen(true);
+    window.addEventListener('leanshot:open-cancellation', onOpenCancellation);
+    return () => window.removeEventListener('leanshot:open-cancellation', onOpenCancellation);
+  }, []);
+
   // Phase 42 Plan 04 (POLISH-07) — bootstrap PWA service worker registration +
   // install-prompt + offline store AFTER first paint.
   //
@@ -1875,6 +1899,13 @@ export function App() {
             consumes useChangelog inside its own host component so the hook
             stays out of App.tsx (App.tsx's render is the hottest path). */}
         {whatsNewOpen && <WhatsNewDrawerHost onClose={() => setWhatsNewOpen(false)} />}
+        {/* Phase 40 Plan 40-04 (POLISH-01) — CancellationModal lazy chunk.
+            Loaded only when cancellationOpen=true; chunk includes all step
+            sub-components (single Vite chunk per CONTEXT specifics + Pitfall 8).
+            onClose clears state so the chunk can be GC'd between sessions. */}
+        {cancellationOpen && (
+          <CancellationModalLazy onClose={() => setCancellationOpen(false)} />
+        )}
         {/* Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback
             modal. Mounted ONLY when the eligibility resolver fires the
             QUARTERLY_NPS_SHOW_EVENT (UNCONDITIONAL trigger gated on the SECDEF

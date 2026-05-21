@@ -787,6 +787,21 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               {/* Tier-conditional body */}
               {tier === 'free' && <UpgradeCTA />}
               {(tier === 'paid' || tier === 'past_due') && <ManageSubscriptionLink />}
+              {/* Phase 40 Plan 40-04 (POLISH-01) — Cancel subscription CTA.
+                  Only shown for paid subscribers. Dispatches leanshot:open-cancellation
+                  event (App.tsx listener pattern — no prop threading needed).
+                  The Edge Fn returns NO_SUBSCRIPTION gracefully for edge cases. */}
+              {(tier === 'paid' || tier === 'past_due') && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    window.dispatchEvent(new Event('leanshot:open-cancellation'));
+                  }}
+                  className="text-[var(--color-danger)] hover:bg-[var(--color-danger-soft,rgba(207,84,84,0.1))]"
+                >
+                  Cancel subscription
+                </Button>
+              )}
             </Section>
           )}
 
