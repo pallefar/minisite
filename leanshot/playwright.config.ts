@@ -52,6 +52,14 @@ const P32_I18N_OPT_IN = process.env.PLAYWRIGHT_RUN_P32_I18N === '1';
 // flake on missing creds.
 const NOTIFICATION_OPT_IN = process.env.PLAYWRIGHT_NOTIFICATION_RUN === '1';
 
+// Phase 34 Plan 34-10 — opt-in onboarding e2e + Lighthouse audit.
+// `p34` covers anon→merge happy path + activation tap; requires live Supabase
+// service-role. `p34-lighthouse` runs the mobile Lighthouse audit on /onboard
+// and is gated separately (audits are slow + flaky in parallel CI).
+// Both projects are excluded from the default chromium run via testIgnore.
+const P34_OPT_IN = process.env.PLAYWRIGHT_RUN_P34 === '1';
+const P34_LIGHTHOUSE_OPT_IN = process.env.PLAYWRIGHT_RUN_LIGHTHOUSE === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -94,6 +102,12 @@ export default defineConfig({
         // Phase 42 Plan 42-08: notification settings e2e requires live
         // Supabase Realtime + service-role; gated by PLAYWRIGHT_NOTIFICATION_RUN=1.
         /e2e\/notification-settings\.spec\.ts$/,
+        // Phase 34 Plan 34-10: onboarding anon-merge + activation specs require
+        // PLAYWRIGHT_RUN_P34=1 + live Supabase service-role. Lighthouse audit
+        // is opt-in via PLAYWRIGHT_RUN_LIGHTHOUSE=1.
+        /e2e\/onboarding-anon-merge-e2e\.spec\.ts$/,
+        /e2e\/onboarding-activation-e2e\.spec\.ts$/,
+        /e2e\/onboarding-mobile-lighthouse\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -183,6 +197,32 @@ export default defineConfig({
           {
             name: 'p42-notifications',
             testMatch: [/e2e\/notification-settings\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 34 Plan 34-10 — opt-in anon-merge + activation e2e specs
+    // (Realtime/Edge Fn + RLS). Invoke via
+    // `PLAYWRIGHT_RUN_P34=1 npx playwright test --project=p34`.
+    ...(P34_OPT_IN
+      ? [
+          {
+            name: 'p34',
+            testMatch: [
+              /e2e\/onboarding-anon-merge-e2e\.spec\.ts$/,
+              /e2e\/onboarding-activation-e2e\.spec\.ts$/,
+            ],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 34 Plan 34-10 — opt-in mobile Lighthouse audit on /onboard.
+    // Invoke via `PLAYWRIGHT_RUN_LIGHTHOUSE=1 npx playwright test --project=p34-lighthouse`.
+    ...(P34_LIGHTHOUSE_OPT_IN
+      ? [
+          {
+            name: 'p34-lighthouse',
+            testMatch: [/e2e\/onboarding-mobile-lighthouse\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
