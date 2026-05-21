@@ -49,7 +49,7 @@ create table if not exists public.save_offer_rules (
   active           boolean       not null default false,
   created_at       timestamptz   not null default now(),
   updated_at       timestamptz   not null default now(),
-  created_by       uuid          references public.profiles(user_id) on delete set null
+  created_by       uuid          references public.profiles(id) on delete set null
 );
 
 comment on table public.save_offer_rules is
@@ -93,7 +93,7 @@ create policy "save_offer_rules_select_admin"
   on public.save_offer_rules
   for select
   to authenticated
-  using (public.is_admin_at_least('support_admin'::public.admin_role));
+  using (public.is_admin_at_least('staff'::public.admin_role));
 
 -- NO insert/update/delete policies — denial-by-default under RLS.
 -- All writes flow through 40-05 SECDEF RPCs (save_offer_rule_create,

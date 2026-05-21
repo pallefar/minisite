@@ -18,9 +18,9 @@
 
 create table if not exists public.cancellation_offers_log (
   id                      uuid          primary key default gen_random_uuid(),
-  user_id                 uuid          references public.profiles(user_id) on delete set null,
+  user_id                 uuid          references public.profiles(id) on delete set null,
   -- NOT cascade — rows survive account deletion per GDPR audit-retention (xp_ledger precedent)
-  org_id                  uuid          references public.orgs(id) on delete set null,
+  org_id                  uuid          references public.organizations(id) on delete set null,
   subscription_id         text          references public.subscriptions(id) on delete set null,
   -- subscriptions.id is TEXT (Stripe sub_* format), not UUID — per PATTERNS §12 + Phase 40 truth
   reason                  text          not null check (reason in (
@@ -115,7 +115,7 @@ create policy "cancellation_offers_log_select_admin"
   on public.cancellation_offers_log
   for select
   to authenticated
-  using (public.is_admin_at_least('support_admin'::public.admin_role));
+  using (public.is_admin_at_least('staff'::public.admin_role));
 
 -- Explicit service_role insert (grep-able intent; service_role bypasses RLS but
 -- shipping the policy makes the threat model legible in code — Phase 19 pattern)
