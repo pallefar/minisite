@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { PastDueBanner } from '@/components/billing/PastDueBanner';
+import { PausedBanner } from './PausedBanner';
 import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 import { Toast } from '@/components/ui/Toast';
 import { cn } from '@/lib/helpers';
@@ -59,6 +60,12 @@ export function AppShell({
               Renders only when tier='past_due'. Returns null for free/paid — zero
               DOM footprint + zero layout shift. Bare component, no wrapper div. */}
           <PastDueBanner />
+          {/* Phase 40 Plan 40-07 D-07 — PausedBanner (informational, always-on chrome).
+              Renders only when is_paused=true. Returns null otherwise — zero DOM
+              footprint. Mounted here (between PastDueBanner and WorkspaceSwitcher) so
+              the visual hierarchy is: assertive payment alert → informational pause
+              notice → workspace context → topbar. Single mount — banner self-hides. */}
+          <PausedBanner />
           {/* Phase 9 Plan 09-08 — WorkspaceSwitcher (D-09 + D-14 single-identity affordance).
               Mounted above the topbar so Pitfall #8's "one auth.users + relationship-table
               contexts" invariant is visible on every authenticated route. The switcher
