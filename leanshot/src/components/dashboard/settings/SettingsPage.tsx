@@ -306,6 +306,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     // both are part of the persisted shape so the JSON export round-trips.
     activationFiredAt: fullState.activationFiredAt,
     draftEntriesPending: fullState.draftEntriesPending,
+    // Phase 35 Plan 35-08: nudge dismiss state included so PersistedState type is satisfied.
+    leaderboardNudgeDismissed: fullState.leaderboardNudgeDismissed,
   });
 
   const handleExportJson = async (): Promise<void> => {
