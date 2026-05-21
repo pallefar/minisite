@@ -65,6 +65,18 @@ const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
     // surface; admin_role is the source of truth for actual enforcement.
     'onboarding.ship_winner',
     'onboarding.edit_draft',
+    // Phase 35 Plan 35-05 GAME-05/08/11 — gamification admin surface keys.
+    // CLIENT HINTs only; SECDEF RPCs re-check profiles.admin_role server-side
+    // (Pattern S1 dual-layer per T-35-05-01 mitig). Keys map to /admin/gamification.
+    //   admin.gamification.read — view challenges, progress, variants
+    //   admin.gamification.challenges.write — create/edit weekly challenges + A/B variants
+    //   admin.gamification.freeze_tokens.grant — D-10 support-case grant path (ethical only)
+    //   admin.gamification.cohorts.enable_leaderboard — D-11 cohort leaderboard enable/disable
+    //     (owner-only in org context; SECDEF requires support_lead/superadmin)
+    'admin.gamification.read',
+    'admin.gamification.challenges.write',
+    'admin.gamification.freeze_tokens.grant',
+    'admin.gamification.cohorts.enable_leaderboard',
   ]),
   clinician: new Set([
     'members.list',
