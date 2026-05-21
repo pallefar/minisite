@@ -18,6 +18,7 @@ vi.mock('@/hooks/useToast', () => ({
 const mockGetUser = vi.fn();
 const mockFromMaybeSingle = vi.fn();
 const mockRpc = vi.fn();
+const mockInvoke = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -32,6 +33,9 @@ vi.mock('@/lib/supabase', () => ({
       }),
     }),
     rpc: (...args: unknown[]) => mockRpc(...args),
+    functions: {
+      invoke: (...args: unknown[]) => mockInvoke(...args),
+    },
   },
 }));
 
@@ -80,7 +84,10 @@ function primeSupabase(opts: {
       });
     }
     if (table === 'onboarding_flows') {
-      return Promise.resolve({ data: { config: opts.flowConfig }, error: null });
+      return Promise.resolve({
+        data: { id: 'flow-uuid-test', config: opts.flowConfig },
+        error: null,
+      });
     }
     return Promise.resolve({ data: null, error: null });
   });
@@ -91,6 +98,7 @@ beforeEach(() => {
   mockGetUser.mockReset();
   mockFromMaybeSingle.mockReset();
   mockRpc.mockReset();
+  mockInvoke.mockReset();
 });
 
 afterEach(() => {
@@ -213,25 +221,45 @@ describe('OnboardingBuilderModule — palette + reordering', () => {
   });
 });
 
-describe('OnboardingBuilderModule — tabs', () => {
-  it('A/B and Funnel tabs render the Plan 34-09 placeholder seam', async () => {
+describe('OnboardingBuilderModule — tabs (Plan 34-09 wired)', () => {
+  it('A/B tab renders the real OnboardingABPanel (no TabPlaceholder)', async () => {
+    // OnboardingABPanel calls supabase.functions.invoke('onboarding-funnel-query', ...)
+    // on mount; prime invoke to return vendor_unconfigured so we get the
+    // deterministic banner.
     primeSupabase({ adminRole: 'admin', flowConfig: [] });
+    mockInvoke.mockResolvedValue({
+      data: { error: 'vendor_unconfigured', service: 'posthog' },
+      error: null,
+    });
+
     render(<OnboardingBuilderModule />);
     await screen.findByRole('button', { name: /save flow/i });
 
     fireEvent.click(screen.getByRole('tab', { name: /a\/b/i }));
     await waitFor(() => {
-      const ab = screen.getByText(/ships in Plan/i);
-      expect(ab).toBeTruthy();
-      expect(ab.parentElement?.getAttribute('data-tab-placeholder')).toBe('34-09');
+      // The real OnboardingABPanel renders this banner on vendor-unconfigured.
+      expect(screen.getByText(/PostHog API key not yet configured/i)).toBeTruthy();
     });
+    // Confirm the legacy placeholder seam is GONE.
+    expect(screen.queryByText(/ships in Plan/i)).toBeNull();
+  });
+
+  it('Funnel tab renders the real OnboardingFunnelTab (no TabPlaceholder)', async () => {
+    primeSupabase({ adminRole: 'admin', flowConfig: [] });
+    mockInvoke.mockResolvedValue({
+      data: { error: 'vendor_unconfigured', service: 'posthog' },
+      error: null,
+    });
+
+    render(<OnboardingBuilderModule />);
+    await screen.findByRole('button', { name: /save flow/i });
 
     fireEvent.click(screen.getByRole('tab', { name: /funnel/i }));
     await waitFor(() => {
-      const funnel = screen.getByText(/ships in Plan/i);
-      expect(funnel).toBeTruthy();
-      expect(funnel.parentElement?.getAttribute('data-tab-placeholder')).toBe('34-09');
+      // OnboardingFunnelTab on vendor-unconfigured renders this copy.
+      expect(screen.getByText(/PostHog Insights not yet configured/i)).toBeTruthy();
     });
+    expect(screen.queryByText(/ships in Plan/i)).toBeNull();
   });
 });
 
