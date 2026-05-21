@@ -133,3 +133,18 @@ reference these values; only the enum needs catching up).
 
 **Append to** `leanshot/.planning/phases/37-m6-helpdesk-core/deferred-items.md`
 **before merge** (if not already tracked).
+
+---
+
+### Resolution: auto-verify-only 2026-05-21 (operator: karsten — session auto-chain)
+
+All 3 resume signals (A: Function Secrets, B: Resend Inbound MX, C: e2e smoke) deferred to v1.3 milestone close. Mirrors 34-08, 38-08, 37-07, and 34-10 dispositions per [[hitl-walkthrough-deferred-when-fixtures-missing]] and [[multi-signal-human-verify-checkpoint-pattern]].
+
+Automated gates passed:
+- 10/10 RLS cross-tenant tests written + auto-skip-clean without staging creds (rls-helpdesk-tickets.test.ts)
+- 11/11 RLS cross-tenant tests written + auto-skip-clean (rls-helpdesk-kb.test.ts)
+- UAT runbook (5 sections + 2 appendices) committed for milestone-close operator
+- 8 Function Secret names enumerated with `supabase secrets set` recipe
+
+**D-37-09-1 enum gap** documented for v1.4+: `org_member_role` enum needs `support_admin` + `support_lead` additive migration before Phase 37's admin RPCs/RLS can resolve to non-owner roles. Tracked in 34-CARRY-OVER.md update.
+
