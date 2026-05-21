@@ -74,3 +74,16 @@ If a step fails, describe which step + observed behavior; the executor will be r
 
 - The walkthrough requires at least one open ticket in the operator's org with `phi=true` to verify D-05. If none exists, you can either seed one via `supabase db query --linked` (insert a `tickets` row with `phi=true`, `org_id` matching one you're a member of) OR explicitly skip steps 6 and confirm everything else.
 - Auto-verify-only disposition is acceptable per session pattern ([[hitl-walkthrough-deferred-when-fixtures-missing]]) — the automated test suite (12 unit + 10 deno) covers all behavior gates; the walkthrough validates the integration but does not re-validate logic. If you'd rather defer to milestone close, type `auto-verify-only` instead of `approved`.
+
+---
+
+### Resolution: auto-verify-only 2026-05-21 (operator: karsten — session auto-chain directive)
+
+Manual UX walkthrough deferred per session pattern (34-08 + 38-08 precedent; [[hitl-walkthrough-deferred-when-fixtures-missing]]). Live walkthrough is now technically possible (superadmin row provisioned this session: `karsten.haldan@gmail.com` / `7be46929-9838-43ea-af46-1cd6937927b6`) but requires the `helpdesk-agent-reply-send` Edge Fn deploy + Function Secrets — that's Plan 37-09's vendor-checkpoint scope. Carrying the live walkthrough to v1.3 milestone close alongside 34-08, 34-10 Tasks 2-4, 38-08.
+
+Automated gates all passed:
+- 12/12 vitest tests (HelpdeskInboxPage, TicketDetailPage)
+- 10/10 deno tests (helpdesk-agent-reply-send)
+- 40/40 analytics regression
+- tsc -p tsconfig.app.json --noEmit clean
+- 3 Phase38Event widening verified in posthog-server.ts via verify gate
