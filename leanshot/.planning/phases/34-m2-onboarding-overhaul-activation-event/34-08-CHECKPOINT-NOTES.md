@@ -148,3 +148,18 @@ commits on this branch beyond main:
 ```
 
 DO NOT merge until operator approves.
+
+---
+
+### Resolution: approved 2026-05-21 (operator: karsten — automated-verify-only)
+
+Manual UX walkthrough deferred per operator decision. Rationale: local dev lacks the test fixtures the walkthrough script assumes (no `auth.users` rows with `admin_role='superadmin'|'admin'`, no OAuth/magic-link call-site wired into the legacy login screen — that wiring is downstream of Plan 34-10 integration). Automated gates all passed pre-checkpoint:
+
+- `tsc -p tsconfig.app.json --noEmit` — clean
+- `vitest run src/components/admin/onboarding-builder/` — 18/18 pass
+- `vitest run src/lib/__tests__/org.test.ts` — 5 new D-18 tests pass
+- `npm run build` — exits 0; admin-shell chunk owns the new files
+- `scripts/assert-clinic-bundle-budget.sh` — dnd-kit index-leak invariant OK; clinic bundle topology OK
+
+Manual UX walkthrough re-tests against a staging deploy once test-fixture seeding lands (likely Plan 34-10 close-out or a milestone-close audit phase).
+
