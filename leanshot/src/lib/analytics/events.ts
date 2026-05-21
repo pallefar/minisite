@@ -572,6 +572,116 @@ export const EVENTS = {
       ticket_id: z.string().uuid(),
     }),
   },
+
+  // ---------------------------------------------------------------------------
+  // Phase 40 Plan 40-04 (POLISH-01) — Cancellation save-offers flow telemetry.
+  // 9 events covering the 3-step funnel + subscription pause/resume lifecycle.
+  // Trust-boundary rule: reason_other_text NEVER included in PostHog payloads
+  // (T-40-04-01 mitigation — potential PII). reason enum values only.
+  // ---------------------------------------------------------------------------
+  cancellation_started: {
+    name: 'cancellation_started',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description: 'User opened the cancellation modal (Step 1 mounted).',
+    payload: z.object({}),
+  },
+  cancellation_reason_picked: {
+    name: 'cancellation_reason_picked',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description: 'User selected a cancellation reason and clicked Continue on Step 1.',
+    payload: z.object({
+      reason: z.string(),
+    }),
+  },
+  save_offer_shown: {
+    name: 'save_offer_shown',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description: 'Server returned an eligible save-offer and it was displayed on Step 2.',
+    payload: z.object({
+      offer_type: z.string(),
+    }),
+  },
+  save_offer_accepted: {
+    name: 'save_offer_accepted',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    aem_priority: 8,
+    description: 'User accepted the save-offer on Step 2.',
+    payload: z.object({
+      offer_type: z.string(),
+    }),
+  },
+  save_offer_declined: {
+    name: 'save_offer_declined',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description: 'User declined the save-offer on Step 2 and advanced to Step 3.',
+    payload: z.object({
+      offer_type: z.string(),
+    }),
+  },
+  cancellation_dismissed: {
+    name: 'cancellation_dismissed',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description:
+      'User dismissed the cancellation modal mid-funnel (Steps 1–2) without completing cancellation.',
+    payload: z.object({
+      step: z.number().int().min(1).max(3),
+      reason_picked: z.string().nullable(),
+    }),
+  },
+  cancellation_aborted: {
+    name: 'cancellation_aborted',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description:
+      'User clicked "Keep my account" on Step 3 — explicitly chose NOT to cancel after seeing the loss summary.',
+    payload: z.object({
+      reason: z.string(),
+      step: z.number().int().min(1).max(3),
+    }),
+  },
+  cancellation_completed: {
+    name: 'cancellation_completed',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description:
+      'User completed the cancellation flow (cancel_at_period_end committed after 6s undo window expired).',
+    payload: z.object({
+      reason: z.string(),
+    }),
+  },
+  subscription_paused: {
+    name: 'subscription_paused',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description: 'User accepted a pause save-offer and their subscription was paused (D-06).',
+    payload: z.object({
+      pause_months: z.number().int().min(1).max(3),
+    }),
+  },
+  subscription_resumed: {
+    name: 'subscription_resumed',
+    version: 1,
+    phi: false,
+    owner: 'billing',
+    description:
+      'A paused subscription resumed automatically on its resumes_at date (D-08 auto-resume, server-only).',
+    payload: z.object({}),
+  },
 } as const satisfies Record<string, EventDef>;
 
 export type EventName = keyof typeof EVENTS;
