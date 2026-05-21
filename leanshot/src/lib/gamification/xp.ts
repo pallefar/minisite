@@ -1,57 +1,94 @@
 /**
- * Phase 35 Plan 35-03 — Client-side XP + level computation.
+ * Client-side mirror of Postgres compute_level() for UI hints.
  *
- * Mirrors the Postgres SECURITY DEFINER function `compute_level(xp_total)`.
- * Plan 35-03 owns the canonical implementation + pgTAP parity tests;
- * this file is the client mirror (D-04: pure function of XP total).
+ * Phase 35 D-02, D-03, D-04.
  *
- * D-02: Quadratic level curve — Level N requires N² × 100 XP cumulative.
- *   Level 1: 100 · Level 2: 400 · Level 3: 900 · Level 5: 2,500 · Level 10: 10,000
- * D-03: No max-level cap. Display caps at 100 with Prestige badge thereafter.
+ * IMPORTANT: The single source of truth is the Postgres function
+ * `compute_level(xp_total int)` shipped in Plan 35-01
+ * (supabase/migrations/20270708000002_p35_compute_level_fn.sql).
  *
- * NOTE: This stub is scaffolded by Plan 35-06 to unblock sibling-wave compilation.
- * Plan 35-03 owns the Vitest parity tests (VALIDATION row 35-03-04 / T-35-06-05).
+ * This module mirrors the SQL formula so the UI can compute
+ * "XP to next level" and "current level" client-side for instant
+ * display without an RPC round-trip. If this file diverges from
+ * the SQL function, the UI hint will be wrong — DB always wins.
+ *
+ * Formula (D-02): Level N requires N² × 100 XP cumulative.
+ *   Level 1: 100 XP  | Level 2: 400 XP   | Level 5: 2,500 XP
+ *   Level 10: 10,000 | Level 20: 40,000   | Level 100: 1,000,000
+ *
+ * Spot-check values (locked by pgTAP in 35_xp_ledger_replay.sql):
+ *   computeLevel(0) = 1       (always at least level 1)
+ *   computeLevel(100) = 1     (level 1 boundary)
+ *   computeLevel(400) = 2     (2²×100 = 400)
+ *   computeLevel(2500) = 5    (5²×100 = 2500)
+ *   computeLevel(10000) = 10  (10²×100 = 10000)
+ *   computeLevel(40000) = 20  (20²×100 = 40000)
+ *   computeLevel(1000000) = 100  (100²×100 = 1000000)
+ *
+ * Vitest mirror tests: src/lib/gamification/__tests__/xp.test.ts
  */
 
 /**
- * Compute the user's current level from their cumulative XP total.
- * D-02 quadratic: Level N threshold = N² × 100.
+ * Computes the user's level from their cumulative XP total.
+ *
+ * Mirror of Postgres `compute_level(xp_total int)` — D-02 quadratic curve.
+ * Returns at least 1 (level never drops to 0).
  */
 export function computeLevel(xpTotal: number): number {
-  if (xpTotal <= 0) return 1;
-  // floor(sqrt(xpTotal / 100)) gives the highest N where N²×100 <= xpTotal
-  const level = Math.floor(Math.sqrt(xpTotal / 100));
-  return Math.max(1, level);
-}
-
-export interface XpLevelBreakdown {
-  level: number;
-  /** XP accumulated within the current level (above the level's base threshold). */
-  xpInLevel: number;
-  /** XP remaining to reach the next level. */
-  xpToNext: number;
-  /** Total XP threshold for the next level. */
-  nextLevelXp: number;
+  // D-02: Level N requires N² × 100 XP cumulative.
+  // level = floor(sqrt(xpTotal / 100)), clamped to >= 1.
+  return Math.max(1, Math.floor(Math.sqrt(Math.max(xpTotal, 0) / 100)));
 }
 
 /**
- * Decompose XP total into per-level progress metrics.
- * Used by LevelProgressCard ring display.
+ * Returns the cumulative XP required to reach the START of the given level.
+ *
+ * D-02 inverse: level N starts at N² × 100 XP.
  */
-export function xpToNextLevel(xpTotal: number): XpLevelBreakdown {
-  const level = computeLevel(xpTotal);
-  const currentLevelXp = level * level * 100;        // XP threshold for current level
-  const nextLevelXp = (level + 1) * (level + 1) * 100; // XP threshold for next level
-  const xpInLevel = Math.max(0, xpTotal - currentLevelXp);
-  const xpToNext = Math.max(0, nextLevelXp - xpTotal);
-  return { level, xpInLevel, xpToNext, nextLevelXp };
+export function xpForLevel(level: number): number {
+  // D-02: For level N >= 2, starts at N²×100 XP cumulative.
+  // Level 1 is special: starts at 0 XP (compute_level clamps floor(sqrt(xp/100)) to >= 1,
+  // so level 1 covers XP [0, 399]).
+  // Level 2: 2²×100 = 400. Level 5: 5²×100 = 2500. Level N≥2: N²×100.
+  const l = Math.max(1, level);
+  if (l <= 1) return 0;
+  return l * l * 100;
 }
 
 /**
- * Compute prestige tier (D-03: increments at level 100/200/300/...).
- * Returns 0 for non-prestige users.
+ * Returns XP progress context for the current level:
+ *   - level: user's current level (integer >= 1)
+ *   - xpInLevel: XP earned within the current level (0 to xpToNext - 1)
+ *   - xpToNext: XP remaining until the next level
+ *   - nextLevelXp: cumulative XP at which next level starts
+ *
+ * Used by LevelProgressCard and xpToNextLevel display in the dashboard.
+ */
+export function xpToNextLevel(xpTotal: number): {
+  level: number;
+  xpInLevel: number;
+  xpToNext: number;
+  nextLevelXp: number;
+} {
+  const level = computeLevel(xpTotal);
+  const currentLevelStart = xpForLevel(level);
+  const nextLevelXp = xpForLevel(level + 1);
+  return {
+    level,
+    xpInLevel: xpTotal - currentLevelStart,
+    xpToNext: nextLevelXp - xpTotal,
+    nextLevelXp,
+  };
+}
+
+/**
+ * Computes the user's prestige rank from their cumulative XP total.
+ *
+ * D-03: Prestige increments every 100 levels (level 100 = prestige 1, level 200 = prestige 2, ...).
+ * Returns 0 for normal play (levels 1-99).
+ *
+ * Mirror of Postgres `compute_prestige(xp_total int)`.
  */
 export function computePrestige(xpTotal: number): number {
-  const level = computeLevel(xpTotal);
-  return Math.floor(level / 100);
+  return Math.max(0, Math.floor(computeLevel(xpTotal) / 100));
 }
