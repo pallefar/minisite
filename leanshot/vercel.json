@@ -16,6 +16,8 @@
     { "source": "/affiliate", "destination": "/index.html" },
     { "source": "/partner/(.*)", "destination": "/index.html" },
     { "source": "/admin/affiliates", "destination": "/index.html" },
+    { "source": "/api/og/(.*)", "destination": "/api/og/$1" },
+    { "source": "/share/level/(.*)", "destination": "/api/share/level/$1" },
     { "source": "/share/(.*)", "destination": "/index.html" },
     { "source": "/sitemap.xml", "has": [{ "type": "host", "value": "leanshot.app" }], "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/sitemap" },
     { "source": "/((?!clinic|clinic-invite|admin|share|api|auth|assets|index\\.html|assets/|sitemap\\.xml|robots\\.txt|partner|affiliate|r|\\.well-known|signin|signup|reset-password|verify-email|legal).+)", "has": [{ "type": "host", "value": "leanshot.app" }], "destination": "https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/page-render?slug=$1" },
