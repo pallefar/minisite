@@ -321,6 +321,19 @@ Plans:
   3. Cohort-scoped opt-in leaderboard renders anonymized handles; matview refreshes every 15 minutes; user can opt-out and disappear from the leaderboard within the next refresh cycle
   4. Admin creates a weekly challenge (challenge_type + duration + reward) and optionally enables a cohort-scoped A/B variant; users are notified BEFORE streak break (no dark patterns)
   5. Level-up event generates a shareable OG-image card via Vercel Function; user shares to social and the card renders correctly on Twitter/X, LinkedIn, Instagram; gamification-burst chunk stays ≤8 kB gz
+**Plans:** 10 plans
+
+Plans:
+- [ ] 35-01-PLAN.md — XP ledger + compute_level pure fn + badge_catalog seed + RLS proofs
+- [ ] 35-02-PLAN.md — Streak state + freeze tokens ledger + tz crons + admin grant Edge Fn
+- [ ] 35-03-PLAN.md — xp-grant hybrid triggers + xp-event Edge Fn + combo cross-streak badge
+- [ ] 35-04-PLAN.md — Cohort leaderboard matview + opt-in + 15-min refresh + handle validation
+- [ ] 35-05-PLAN.md — Weekly challenges schema + admin form + A/B variants + admin module
+- [ ] 35-06-PLAN.md — Dashboard cards + LevelUpBurst + gamification-burst lazy chunk
+- [ ] 35-07-PLAN.md — OG share-card Vercel Function + SSR + rewrite carve-out + HMAC tokens
+- [ ] 35-08-PLAN.md — Settings Leaderboards subtab + opt-in nudge wiring + dismiss persistence
+- [ ] 35-09-PLAN.md — Notification wiring (streak-warn + challenge-notify) via lifecycle-behavior-triggered
+- [ ] 35-10-PLAN.md — Schema push + Edge Fn deploy + bundle audit + multi-signal HUMAN-UAT
 
 **UI hint**: yes
 
