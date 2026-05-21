@@ -268,7 +268,14 @@ export type Phase38Event =
   | 'helpdesk.sentiment_alert.fired'
   | 'helpdesk.ai.tagged'
   | 'helpdesk.ai.routed'
-  | 'helpdesk.ai.sentiment_flagged';
+  | 'helpdesk.ai.sentiment_flagged'
+  // Phase 37 helpdesk CSAT + SLA events ─────────────────────────────────────
+  // Same-plan widening (Plan 37-05): csat.submitted is emitted from the
+  // CSAT landing page (Plan 37-06 or future consumer) — the union value
+  // MUST exist NOW so the consumer compiles in the same milestone. sla.breach
+  // is emitted server-side by helpdesk-sla-breach-cron/index.ts.
+  | 'helpdesk.csat.submitted'
+  | 'helpdesk.sla.breach';
 
 /**
  * Typed payload contract for `recommendation.shown` — fires once per returned
