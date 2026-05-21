@@ -33,6 +33,13 @@ import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import { SendEmailCommand, SESv2Client } from 'npm:@aws-sdk/client-sesv2@^3.700.0';
 import { awsSesHealthCheck } from './aws-ses-health-check.ts';
 import { sendResendEmail } from './lifecycle-send.ts';
+// Phase 37 Plan 37-02 Task 3 — helpdesk template modules. Each module exports
+// `subject(vars)` + `render(vars)`. PHI routing is the caller's responsibility
+// (args.phi); the templates themselves are vendor-agnostic.
+import * as csatFollowup     from './email-templates/csat-followup.ts';
+import * as agentReply       from './email-templates/helpdesk-agent-reply.ts';
+import * as slaAlert         from './email-templates/sla-breach-alert.ts';
+import * as unknownSender    from './email-templates/helpdesk-unknown-sender.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,7 +62,16 @@ export type EmailTemplate =
   | 'clinic_notification'
   | 'dose_alert'
   | 'doctor_share'
-  | 'patient_access_log_notification';
+  | 'patient_access_log_notification'
+  // Phase 37 helpdesk templates ─────────────────────────────────────────────
+  // Per [[feedback_planner_missed_status_enum_widening]]: union extension +
+  // subjectFor + renderTemplate switch arms MUST land in the SAME commit.
+  // Otherwise callers in Plans 37-03/04/05 reference a value the router's
+  // default case routes to a generic subject + body → silent misroute.
+  | 'csat_followup'              // non-PHI → Resend (CSAT score link only)
+  | 'helpdesk_agent_reply'       // phi-aware → caller passes ticket.phi
+  | 'sla_breach_alert'           // non-PHI → Resend (internal agent alert)
+  | 'helpdesk_unknown_sender';   // non-PHI → Resend (auto-reply signup CTA per D-21)
 
 export type SendEmailArgs = {
   /** Template identifier — determines HTML rendering and subject line. */
@@ -132,6 +148,15 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
     // Phase 42 plan 42-07 (POLISH-12 D-21) — quarterly NPS check-in.
     case 'nps_quarterly':
       return 'Quick check-in: how likely are you to recommend LeanShot?';
+    // Phase 37 Plan 37-02 Task 3 — helpdesk templates.
+    case 'csat_followup':
+      return csatFollowup.subject(vars);
+    case 'helpdesk_agent_reply':
+      return agentReply.subject(vars);
+    case 'sla_breach_alert':
+      return slaAlert.subject(vars);
+    case 'helpdesk_unknown_sender':
+      return unknownSender.subject(vars);
     default:
       return 'LeanShot Notification';
   }
@@ -188,6 +213,27 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
 <div>${buttonRow}</div>
 <p style="margin-top:24px;font-size:12px;color:#666;">One-click response — your feedback shapes the next quarter of features. If you have any thoughts, you can leave a follow-up note after clicking.</p>
 </body></html>`;
+    }
+    // Phase 37 Plan 37-02 Task 3 — helpdesk templates.
+    // Strategy: each helpdesk template module returns a plain-text body; here
+    // we HTML-escape it and convert newlines to <br> so the email renders the
+    // same in plain-text + HTML clients. No interactive widgets, no <a> tags
+    // (URLs render as clickable text via mail-client auto-linking).
+    case 'csat_followup': {
+      const text = csatFollowup.render(vars);
+      return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
+    }
+    case 'helpdesk_agent_reply': {
+      const text = agentReply.render(vars);
+      return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
+    }
+    case 'sla_breach_alert': {
+      const text = slaAlert.render(vars);
+      return `<html><body style="font-family:monospace;max-width:640px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
+    }
+    case 'helpdesk_unknown_sender': {
+      const text = unknownSender.render(vars);
+      return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
     }
     default:
       return `<html><body><p>LeanShot notification.</p></body></html>`;
