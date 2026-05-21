@@ -295,7 +295,7 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 6/10 plans executed
+**Plans:** 9/10 plans executed
 
 Plans:
 - [x] 34-01-PLAN.md — Schema: anonymous_sessions + onboarding_flows + profiles.primary_goal + activation_events ALTER + SECDEFs
@@ -304,9 +304,9 @@ Plans:
 - [x] 34-04-PLAN.md — PKCE OAuth wrapper (signInWithOAuthProvider) + /auth/callback view in App.tsx
 - [x] 34-05-PLAN.md — merge_anon_session SECDEF + merge-anon-session Edge Fn (preferences + aff_code + PostHog alias)
 - [x] 34-06-PLAN.md — useConsumerOnboardingFlow + AnonymousPreviewLayer + ConsumerOnboardingRenderer + 8-goal selector + smart defaults + social proof + /onboard route
-- [ ] 34-07-PLAN.md — FirstActionSurface 3-card hybrid UI + activation-hooks fire-once + store.replayDraftEntries
-- [ ] 34-08-PLAN.md — Admin onboarding-builder shell (StepPalette + SortableTreePanel + StepPropertyPanel) + manifest entry (autonomous: false — human verify)
-- [ ] 34-09-PLAN.md — ship-winner-flag + onboarding-funnel-query Edge Fns (vendor-gated) + OnboardingABPanel + OnboardingFunnelTab
+- [x] 34-07-PLAN.md — FirstActionSurface 3-card hybrid UI + activation-hooks fire-once + store.replayDraftEntries
+- [x] 34-08-PLAN.md — Admin onboarding-builder shell (StepPalette + SortableTreePanel + StepPropertyPanel) + manifest entry (autonomous: false — human verify)
+- [x] 34-09-PLAN.md — ship-winner-flag + onboarding-funnel-query Edge Fns (vendor-gated) + OnboardingABPanel + OnboardingFunnelTab
 - [ ] 34-10-PLAN.md — Playwright e2e (anon-merge / activation / mobile Lighthouse ≥90) + Apple Services ID checkpoint + PostHog API key checkpoint
 
 ### Phase 35: M3 Gamification Engine
@@ -553,7 +553,7 @@ Plans:
 | 31. White-Label + Org Roles + Clinic Onboarding Builder | 8/8 | Complete   | 2026-05-18 |
 | 32. Spanish i18n | 0/? | Not started | — |
 | 33. Hourly Ad-Spend ETL | 5/5 | Complete    | 2026-05-18 |
-| 34. M2 Onboarding Overhaul + Activation Event | 6/10 | In Progress|  |
+| 34. M2 Onboarding Overhaul + Activation Event | 9/10 | In Progress|  |
 | 35. M3 Gamification Engine | 0/? | Not started | — |
 | 36. M3 Review Prompt Engine (Web) | 0/? | Not started | — |
 | 37. M6 Helpdesk Core | 0/? | Not started | — |

@@ -168,8 +168,8 @@
 - [ ] **ONBOARD-05**: Onboarding ends by completing one real task (logged injection / scheduled dose / joined challenge based on stated goal) — activation event fires
 - [ ] **ONBOARD-06**: Activation event clearly defined for LeanShot + instrumented in TAXO event registry + measured per cohort
 - [ ] **ONBOARD-07**: Admin drag-and-drop step builder (question type / copy / validation / branching) — schema stored as JSON in `onboarding_flows.config`
-- [ ] **ONBOARD-08**: A/B variants via PostHog feature flags + `getFeatureFlagPayload`; traffic split %; "ship winner" button promotes variant to 100%
-- [ ] **ONBOARD-09**: Per-step funnel analytics in admin (views / completions / drop-off / time-on-step) queried from PostHog
+- [x] **ONBOARD-08**: A/B variants via PostHog feature flags + `getFeatureFlagPayload`; traffic split %; "ship winner" button promotes variant to 100%
+- [x] **ONBOARD-09**: Per-step funnel analytics in admin (views / completions / drop-off / time-on-step) queried from PostHog
 - [ ] **ONBOARD-10**: Mobile Lighthouse score ≥90 on onboarding route
 - [ ] **ONBOARD-11**: Anonymous-to-authenticated session merge handles race conditions (two devices both opening anonymous sessions); merge strategy chooses richest-data row
 - [x] **ONBOARD-12**: Social proof on signup (live user counter via Supabase Realtime + 3 rotating testimonials + tier badges) — opt-out via privacy-mode users
@@ -506,8 +506,8 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | ONBOARD-05 | Phase 34 | Pending |
 | ONBOARD-06 | Phase 34 | Pending |
 | ONBOARD-07 | Phase 34 | Pending |
-| ONBOARD-08 | Phase 34 | Pending |
-| ONBOARD-09 | Phase 34 | Pending |
+| ONBOARD-08 | Phase 34 | Complete |
+| ONBOARD-09 | Phase 34 | Complete |
 | ONBOARD-10 | Phase 34 | Pending |
 | ONBOARD-11 | Phase 34 | Pending |
 | ONBOARD-12 | Phase 34 | Complete |

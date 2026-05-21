@@ -4,13 +4,13 @@ milestone: v1.3
 milestone_name: Platform Expansion
 status: planning
 stopped_at: Completed 34-06-PLAN.md
-last_updated: "2026-05-20T17:49:11.667Z"
+last_updated: "2026-05-21T06:42:10.028Z"
 last_activity: 2026-05-18
 progress:
   total_phases: 28
   completed_phases: 10
   total_plans: 114
-  completed_plans: 104
+  completed_plans: 107
   percent: 36
 ---
 
@@ -302,6 +302,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Plan 50-04: Open-web crawl chunk INSERT deferred to v1.4 (no synthetic open-web rag_sources row)
 - [Phase ?]: Phase 38-01: multi-source match_content_embeddings RPC signature locked for Phase 50 forward-compat
 - [Phase ?]: Plan 34-06: Consumer renderer activates only when onboarding_flows.config has steps — empty seeded row falls through to legacy DEFAULT_STEPS
+- [Phase ?]: Plan 34-09: extend onboarding-funnel-query with list_experiments branch — One Edge Fn surface owns both HogQL Insights + feature_flag listing — single auth/health-check/cache
 
 ### Pending Todos
 
@@ -346,7 +347,7 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-20T17:49:11.658Z
+Last session: 2026-05-21T06:41:57.727Z
 Stopped at: Completed 34-06-PLAN.md
 Resume file: 
 
