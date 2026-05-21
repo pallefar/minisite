@@ -32,7 +32,14 @@ export type EventName =
   | 'onboarding_abandoned'
   | 'tab_viewed'
   | 'disclaimer_acknowledged' // Phase 2 D-08: fires when user clicks "I understand" on Step 0 OR dashboard fallback
-  | 'disclaimer_required'; // Phase 2 D-11: fires once on first dashboard render when ack !== 'v1'
+  | 'disclaimer_required' // Phase 2 D-11: fires once on first dashboard render when ack !== 'v1'
+  // Phase 37 Plan 06 — helpdesk widget (HELP-02/07/09/10/11). Length-only payloads;
+  // raw subject/body/query strings MUST NOT be sent to PostHog (T-37-06-03 mitigation).
+  | 'helpdesk.widget.opened'
+  | 'helpdesk.kb_article.viewed'
+  | 'helpdesk.kb_search.performed'
+  | 'helpdesk.ticket.created'
+  | 'helpdesk.ticket.replied';
 
 const DISTINCT_ID_KEY = 'leanshot_distinct_id';
 

@@ -166,6 +166,19 @@ const AdminShellRoot = lazy(() =>
 // `scripts/assert-clinic-bundle-budget.sh` enforces per-chunk ceilings
 // (clinic ≤12kB, clinic-settings ≤14kB, clinic-invite ≤6kB gz) +
 // preserves the 50 kB index ceiling.
+// Phase 37 Plan 06 — helpdesk widget. Lazy-loaded into the `helpdesk-widget`
+// chunk (manualChunks routes /src/helpdesk/* into this chunk, ≤25 kB gz ceiling
+// enforced by scripts/assert-helpdesk-bundle-budget.sh).
+//
+// Mounted unconditionally at the App root (regardless of auth state) — the
+// widget itself reads useStore(s.user) and renders a marketing/KB-only mode
+// for anonymous visitors (D-15) and a PHI KB-only mode on PHI routes (D-17).
+const HelpdeskWidget = lazy(() =>
+  import(/* webpackChunkName: "helpdesk-widget" */ '@/helpdesk/HelpdeskWidget').then((m) => ({
+    default: m.HelpdeskWidget,
+  })),
+);
+
 const ClinicWorkspace = lazy(() =>
   import('@/components/clinic/ClinicWorkspace').then((m) => ({ default: m.ClinicWorkspace })),
 );
@@ -1916,6 +1929,17 @@ export function App() {
           onAcknowledge={() => useStore.getState().acknowledgeDisclaimer('v1')}
         />
       )}
+
+      {/* Phase 37 Plan 06 — helpdesk widget. Mounted at App root regardless of
+          auth state (D-13: widget visible on every screen). The widget reads
+          store.user + isPhiRoutePath() internally to render the correct surface:
+          marketing (anon) / phi (auth+PHI route) / auth (auth+non-PHI route).
+          Lazy boundary keeps the helpdesk-widget chunk (≤25 kB gz) off the
+          index static graph — fallback={null} preserves zero perceived cost
+          on first paint. */}
+      <Suspense fallback={null}>
+        <HelpdeskWidget />
+      </Suspense>
 
     </>
   );

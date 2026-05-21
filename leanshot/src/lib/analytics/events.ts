@@ -482,6 +482,70 @@ export const EVENTS = {
       responded_via: z.enum(['email', 'in-app']),
     }),
   },
+  // Phase 37 Plan 06 — helpdesk widget client-side events (HELP-02/07/09/10/11).
+  // Trust-boundary rule (T-37-06-03 mitigation): NEVER include raw query, subject,
+  // or body strings in payloads — only length-only properties. PHI events (clinic
+  // ticket bodies) are server-side via Edge Functions and live in events.phi.ts.
+  'helpdesk.widget.opened': {
+    name: 'helpdesk.widget.opened',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description:
+      'User opened the in-app helpdesk widget (HELP-02). Surface = auth / marketing / phi (D-13/D-17).',
+    payload: z.object({
+      surface: z.enum(['auth', 'marketing', 'phi']),
+    }),
+  },
+  'helpdesk.kb_article.viewed': {
+    name: 'helpdesk.kb_article.viewed',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description: 'User opened a KB article from the helpdesk widget (HELP-07).',
+    payload: z.object({
+      article_id: z.string().uuid(),
+      slug: z.string(),
+      locale: z.string(),
+    }),
+  },
+  'helpdesk.kb_search.performed': {
+    name: 'helpdesk.kb_search.performed',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description:
+      'User performed a KB search (HELP-11). Payload is length-only — raw query is NEVER sent (T-37-06-03).',
+    payload: z.object({
+      query_length: z.number().int().nonnegative(),
+      results_count: z.number().int().nonnegative(),
+      locale: z.string(),
+    }),
+  },
+  'helpdesk.ticket.created': {
+    name: 'helpdesk.ticket.created',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description:
+      'User submitted a new ticket from the widget (HELP-02). Length-only — raw subject and body NEVER sent.',
+    payload: z.object({
+      ticket_id: z.string().uuid(),
+      subject_length: z.number().int().nonnegative(),
+      body_length: z.number().int().nonnegative(),
+    }),
+  },
+  'helpdesk.ticket.replied': {
+    name: 'helpdesk.ticket.replied',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description: 'User added a reply to an existing ticket from the widget composer (HELP-09/10).',
+    payload: z.object({
+      ticket_id: z.string().uuid(),
+      body_length: z.number().int().nonnegative(),
+    }),
+  },
 } as const satisfies Record<string, EventDef>;
 
 export type EventName = keyof typeof EVENTS;

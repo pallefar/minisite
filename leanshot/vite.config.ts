@@ -153,7 +153,11 @@ export default defineConfig(({ mode }) => {
             // components are under src/components/admin/ but the admin-shell rule
             // fires first because it also checks src/lib/admin/.
             if (id.includes('/src/lib/admin/')) return 'admin-shell';
-            if (id.includes('/src/components/helpdesk/') || id.includes('/src/lib/helpdesk/')) return 'helpdesk-widget';
+            if (
+              id.includes('/src/helpdesk/') ||
+              id.includes('/src/components/helpdesk/') ||
+              id.includes('/src/lib/helpdesk/')
+            ) return 'helpdesk-widget';
             if (id.includes('/src/lib/i18n/') || id.includes('/src/components/i18n/')) return 'i18n-runtime';
             if (id.includes('/src/lib/gamification/') || id.includes('/src/components/gamification/')) return 'gamification-burst';
             if (id.includes('/src/components/community/')) return 'community-feed';
