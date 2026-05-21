@@ -21,7 +21,8 @@ import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import type Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-import { handle, mapStripeStatusToUxTier, type D05Spy } from './subscription-updated.ts';
+import { handle, mapStripeStatusToUxTier, type D05Spy, type P40PauseSpy } from './subscription-updated.ts';
+import type { SendEmailArgs } from '../../_shared/email-router.ts';
 
 // ─── Mock admin builder ───────────────────────────────────────────────────────
 interface UpsertCall {
@@ -233,4 +234,238 @@ Deno.test('D-05 / T3: broadcast failure caught + Sentry.captureException — doe
   // The call attempt was made (spy threw), but no re-throw upstream
   // Sentry would have captured it in production; here we just verify no throw.
   assertEquals(true, true, 'Handler survived broadcast failure without re-throwing');
+});
+
+// ============================================================================
+// Phase 40 Plan 40-02 — D-08/D-09: pause_collection mirror + T-0 email tests
+// ============================================================================
+
+/**
+ * Extended mock admin that tracks select + update calls in addition to upsert.
+ * The `prevRow` parameter controls what the read-back select returns (simulating
+ * the existing subscriptions row prior to this webhook event).
+ */
+interface PauseUpdateCall {
+  table: string;
+  data: Record<string, unknown>;
+  filter: { column: string; value: string };
+}
+
+function buildPauseMockAdmin(
+  prevRow: Record<string, unknown> | null = null,
+): [SupabaseClient, () => PauseUpdateCall[]] {
+  const updateCalls: PauseUpdateCall[] = [];
+
+  // The supabase-js builder pattern means:
+  //   SELECT: .from(t).select(cols).eq(col, val).maybeSingle() → Promise<{data, error}>
+  //   UPDATE: .from(t).update(data).eq(col, val) → Promise<{data, error}>
+  //   UPSERT: .from(t).upsert(data, opts) → Promise<{error}>
+  //
+  // We differentiate by tracking whether update() or select() was last called.
+
+  const buildFromChain = (table: string) => {
+    let _mode: 'none' | 'select' | 'update' = 'none';
+    let _updateData: Record<string, unknown> = {};
+    let _filterCol = '';
+    let _filterVal = '';
+
+    // A thenable chain-end that resolves with the appropriate result.
+    // Used for paths that return Promise directly from the chain object.
+    const makeResult = () => {
+      if (_mode === 'update') {
+        updateCalls.push({
+          table,
+          data: { ..._updateData },
+          filter: { column: _filterCol, value: _filterVal },
+        });
+        return Promise.resolve({ data: null, error: null });
+      }
+      return Promise.resolve({ data: prevRow, error: null });
+    };
+
+    const chain: Record<string, unknown> = {
+      upsert: (_data: Record<string, unknown>, _opts?: unknown) =>
+        Promise.resolve({ error: null }),
+      update: (data: Record<string, unknown>) => {
+        _mode = 'update';
+        _updateData = data;
+        return chain;
+      },
+      select: (_cols: string) => {
+        _mode = 'select';
+        return chain;
+      },
+      eq: (col: string, val: string) => {
+        _filterCol = col;
+        _filterVal = val;
+        // For UPDATE chains, .eq() is the terminal call and supabase-js returns a Promise.
+        // We return a thenable so `await admin.from(...).update({...}).eq(...)` works.
+        const result = makeResult();
+        // Augment the resolved promise so chaining still works for select paths.
+        return Object.assign(result, chain);
+      },
+      maybeSingle: () => {
+        return Promise.resolve({ data: prevRow, error: null });
+      },
+      single: () => Promise.resolve({ data: prevRow, error: null }),
+      // Make the chain itself thenable (for select paths that await the whole chain).
+      then: (resolve: (v: unknown) => void) => {
+        resolve(makeResult());
+      },
+    };
+    return chain;
+  };
+
+  const mockAdmin = {
+    from: (table: string) => buildFromChain(table),
+  } as unknown as SupabaseClient;
+
+  return [mockAdmin, () => updateCalls];
+}
+
+/** Build an event with pause_collection field. */
+function buildPauseEvent(
+  pauseCollection: { behavior: string; resumes_at: number | null } | null,
+  meta: Record<string, string> = { tier_kind: 'web', user_id: 'user-uuid-pause', provider: 'stripe' },
+  subId: string = 'sub_pause_test',
+): Stripe.Event {
+  return {
+    id: `evt_pause_${subId}`,
+    object: 'event',
+    type: 'customer.subscription.updated',
+    livemode: false,
+    created: Math.floor(Date.now() / 1000),
+    data: {
+      object: {
+        id: subId,
+        object: 'subscription',
+        status: 'active',
+        metadata: meta,
+        pause_collection: pauseCollection,
+        current_period_end: Math.floor(Date.now() / 1000) + 90 * 86400,
+        trial_end: null,
+        cancel_at_period_end: false,
+        customer: { id: 'cus_test', email: 'test@example.com' },
+        items: {
+          data: [{ price: { id: 'price_test_monthly' } }],
+        },
+      } as unknown as Stripe.Subscription,
+    },
+    api_version: '2026-04-22.dahlia',
+  } as unknown as Stripe.Event;
+}
+
+/** Build a P40PauseSpy that captures sendEmail calls. */
+function makePauseSpy(): P40PauseSpy & { calls: SendEmailArgs[] } {
+  const calls: SendEmailArgs[] = [];
+  return {
+    calls,
+    sendEmail: async (_admin: SupabaseClient, args: SendEmailArgs) => {
+      calls.push(args);
+      return { provider: 'resend' as const, id: 'mock-msg-id' };
+    },
+  };
+}
+
+// ── Test P40-T1: pause-start (pause_collection present, prev is_paused=false) ──
+
+Deno.test('P40-T1: pause-start — UPDATE called with paused_until + is_paused=true', async () => {
+  const futureTs = Math.floor(Date.now() / 1000) + 30 * 86400; // 30 days from now
+  const prevRow = { is_paused: false, clinic_id: null, user_id: 'user-uuid-pause' };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+  const pSpy = makePauseSpy();
+
+  const event = buildPauseEvent({ behavior: 'void', resumes_at: futureTs });
+  await handle(event, admin, undefined, pSpy);
+
+  const updates = getUpdateCalls();
+  const pauseUpdate = updates.find((u) => u.table === 'subscriptions');
+  assertEquals(pauseUpdate !== undefined, true, 'Expected subscriptions update call');
+  assertEquals(pauseUpdate!.data.is_paused, true, 'is_paused should be true on pause-start');
+  assertEquals(
+    typeof pauseUpdate!.data.paused_until,
+    'string',
+    'paused_until should be a string ISO timestamp',
+  );
+  // No T-0 email should fire on pause-start
+  assertEquals(pSpy.calls.length, 0, 'No T-0 email on pause-start');
+});
+
+// ── Test P40-T2: pause-extend (resumes_at moves forward, prev is_paused=true) ──
+
+Deno.test('P40-T2: pause-extend — UPDATE with new paused_until, no T-0 email', async () => {
+  const futureTs = Math.floor(Date.now() / 1000) + 60 * 86400; // extended to 60 days
+  const prevRow = { is_paused: true, clinic_id: null, user_id: 'user-uuid-pause' };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+  const pSpy = makePauseSpy();
+
+  const event = buildPauseEvent({ behavior: 'void', resumes_at: futureTs });
+  await handle(event, admin, undefined, pSpy);
+
+  const updates = getUpdateCalls();
+  const pauseUpdate = updates.find((u) => u.table === 'subscriptions');
+  assertEquals(pauseUpdate !== undefined, true, 'Expected subscriptions update call');
+  assertEquals(pauseUpdate!.data.is_paused, true, 'is_paused should remain true on pause-extend');
+  assertEquals(typeof pauseUpdate!.data.paused_until, 'string', 'paused_until updated');
+  // No T-0 email — this is still paused
+  assertEquals(pSpy.calls.length, 0, 'No T-0 email on pause-extend (still paused)');
+});
+
+// ── Test P40-T3: auto-resume (pause_collection=null, prev is_paused=true) ──
+
+Deno.test('P40-T3: auto-resume — UPDATE with is_paused=false + T-0 email sent', async () => {
+  const prevRow = { is_paused: true, clinic_id: null, user_id: 'user-uuid-resume' };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+  const pSpy = makePauseSpy();
+
+  const event = buildPauseEvent(null); // null = no pause_collection = auto-resumed
+  await handle(event, admin, undefined, pSpy);
+
+  const updates = getUpdateCalls();
+  const pauseUpdate = updates.find((u) => u.table === 'subscriptions');
+  assertEquals(pauseUpdate !== undefined, true, 'Expected subscriptions update call');
+  assertEquals(pauseUpdate!.data.is_paused, false, 'is_paused should be false on auto-resume');
+  assertEquals(pauseUpdate!.data.paused_until, null, 'paused_until should be null on auto-resume');
+  assertEquals(pauseUpdate!.data.reminded_t7, false, 'reminded_t7 reset to false on auto-resume');
+
+  // T-0 confirmation email must fire
+  assertEquals(pSpy.calls.length, 1, 'T-0 email should be sent on auto-resume');
+  assertEquals(pSpy.calls[0].template, 'pause_resumed_t0', 'Template must be pause_resumed_t0');
+  assertEquals(pSpy.calls[0].to, 'test@example.com', 'Recipient email from Stripe customer object');
+  assertEquals(pSpy.calls[0].phi, false, 'PHI=false for consumer sub (no clinic_id)');
+});
+
+// ── Test P40-T4: clinic-org auto-resume — phi=true ──
+
+Deno.test('P40-T4: clinic-org auto-resume — T-0 email sent with phi=true', async () => {
+  const prevRow = { is_paused: true, clinic_id: 'org_clinic_xyz', user_id: 'user-uuid-clinic' };
+  const [admin, _] = buildPauseMockAdmin(prevRow);
+  const pSpy = makePauseSpy();
+
+  const clinicMeta = { tier_kind: 'clinic', clinic_id: 'org_clinic_xyz', provider: 'stripe' };
+  const event = buildPauseEvent(null, clinicMeta, 'sub_clinic_resume_test');
+  await handle(event, admin, undefined, pSpy);
+
+  assertEquals(pSpy.calls.length, 1, 'T-0 email should be sent for clinic auto-resume');
+  assertEquals(pSpy.calls[0].phi, true, 'PHI=true for clinic-org sub');
+  assertEquals(pSpy.calls[0].template, 'pause_resumed_t0', 'Template must be pause_resumed_t0');
+});
+
+// ── Test P40-T5: no-op on unrelated update (no pause_collection delta) ──
+
+Deno.test('P40-T5: unrelated update (status change, no pause) — no pause update, no T-0 email', async () => {
+  // Prev row shows not paused; event has no pause_collection at all
+  const prevRow = { is_paused: false, clinic_id: null, user_id: 'user-uuid-noop' };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+  const pSpy = makePauseSpy();
+
+  // Event without pause_collection field (plain status change)
+  const event = buildPauseEvent(undefined as unknown as null, { tier_kind: 'web', user_id: 'user-uuid-noop', provider: 'stripe' }, 'sub_noop_test');
+  // Override: make pause_collection undefined (not null, not set)
+  (event.data.object as unknown as Record<string, unknown>).pause_collection = undefined;
+
+  await handle(event, admin, undefined, pSpy);
+
+  // No T-0 email should fire (was_paused=false, is_paused_now=false → no transition)
+  assertEquals(pSpy.calls.length, 0, 'No T-0 email when no pause transition occurs');
 });

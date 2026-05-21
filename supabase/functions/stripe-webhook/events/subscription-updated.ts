@@ -9,11 +9,17 @@
  * When subscription.metadata.clinic_id is present, broadcasts `subscription_updated`
  * on the Phase 28 HMAC channel so clinic admin billing UI reflects within 30s (SC#4).
  * Broadcast failure is caught + Sentry-logged; never re-thrown (Stripe retry safety).
+ *
+ * Phase 40 Plan 40-02 — D-08/D-09: pause_collection mirror + T-0 auto-resume email.
+ * Extends this handler in-place (NO new case arms in index.ts per RESEARCH §Pitfall 1).
+ * customer.subscription.paused/.resumed events do NOT fire for pause_collection pauses.
  */
 import type Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import * as Sentry from '../../_shared/sentry.ts';
 import { channelNameFor } from '../../_shared/realtime.ts';
+// Phase 40 Plan 40-02 — pause lifecycle email (D-09, T-0 confirmation on auto-resume).
+import { sendEmail } from '../../_shared/email-router.ts';
 
 // ─── UX tier type ─────────────────────────────────────────────────────────────
 type UxTier = 'free' | 'paid' | 'past_due';
@@ -61,10 +67,24 @@ export interface D05Spy {
   channelSend: (channelName: string, payload: Record<string, unknown>) => Promise<void>;
 }
 
+/**
+ * Phase 40 Plan 40-02 test spy interface for the sendEmail call.
+ * Allows tests to inject a mock sendEmail without mutating the ESM namespace.
+ * @internal — only used by subscription-updated.test.ts
+ */
+export interface P40PauseSpy {
+  /** Called with the same args as sendEmail when an auto-resume is detected. */
+  sendEmail: (
+    admin: SupabaseClient,
+    args: Parameters<typeof sendEmail>[1],
+  ) => Promise<ReturnType<typeof sendEmail>>;
+}
+
 export async function handle(
   event: Stripe.Event,
   admin: SupabaseClient,
   _d05Spy?: D05Spy,
+  _p40PauseSpy?: P40PauseSpy,
 ): Promise<void> {
   const subscription = event.data.object as Stripe.Subscription;
   const subId = subscription.id;
@@ -106,6 +126,113 @@ export async function handle(
   if (error) {
     console.error('[stripe-webhook/subscription-updated] upsert error', error.message);
     throw new Error('subscription-upsert-failed');
+  }
+
+  // ─── Phase 40 Plan 40-02: pause_collection mirror + T-0 auto-resume email ─
+  //
+  // customer.subscription.paused / .resumed events do NOT fire for pause_collection
+  // based pauses (RESEARCH §Critical Findings / §Pitfall 1). We extend here only.
+  // NO new case arms added to index.ts.
+  //
+  // Logic:
+  //  1. Extract current pause_collection from Stripe subscription object.
+  //  2. Read-back previous is_paused state to detect auto-resume transition.
+  //  3. UPDATE subscriptions with new mirror values.
+  //  4. If auto-resume detected (wasPaused && !newIsPaused) → fire T-0 email.
+  //
+  // T-40-02-05: log err.message + err.code ONLY — NEVER full event payload.
+  // T-40-02-07: at-most-2 T-0 emails on race (webhook + reconcile cron) — acceptable per UX.
+
+  try {
+    // Step 1: Extract pause_collection from Stripe subscription.
+    const pauseCollection = (subscription as unknown as Record<string, unknown>).pause_collection as
+      | { behavior: 'void' | 'mark_uncollectible' | 'keep_as_draft'; resumes_at: number | null }
+      | null
+      | undefined;
+
+    const newPausedUntil = pauseCollection?.resumes_at
+      ? new Date(pauseCollection.resumes_at * 1000).toISOString()
+      : null;
+    const newIsPaused = pauseCollection != null;
+
+    // Step 2: Read-back previous state to detect auto-resume + get clinic_id for PHI flag.
+    const { data: prev } = await admin
+      .from('subscriptions')
+      .select('is_paused, clinic_id, user_id')
+      .eq('id', subId)
+      .maybeSingle();
+
+    const wasPaused = (prev as { is_paused?: boolean } | null)?.is_paused === true;
+    // PHI flag: clinic_id IS NOT NULL → SES; else Resend. D-09.
+    const subClinicId = (prev as { clinic_id?: string | null } | null)?.clinic_id ?? clinicId;
+    const isPhi = subClinicId != null;
+
+    // Step 3: UPDATE pause mirror columns.
+    // reset reminded_t7=false on auto-resume so future pauses re-arm the reminder.
+    const updatePayload: Record<string, unknown> = {
+      paused_until: newPausedUntil,
+      is_paused: newIsPaused,
+    };
+    if (!newIsPaused) {
+      // Auto-resume path: reset dedup flag so next pause re-arms T-7d reminder.
+      updatePayload.reminded_t7 = false;
+    }
+
+    const { error: updateErr } = await admin
+      .from('subscriptions')
+      .update(updatePayload)
+      .eq('id', subId);
+
+    if (updateErr) {
+      console.error(
+        '[stripe-webhook/subscription-updated] pause mirror update error',
+        updateErr.message,
+        updateErr.code,
+      );
+      // Non-fatal — do not re-throw (Stripe retries must not be triggered for mirror errors).
+    }
+
+    // Step 4: Auto-resume detection → T-0 confirmation email.
+    if (wasPaused && !newIsPaused) {
+      // Fetch customer email from the Stripe customer field.
+      // event.data.object.customer may be a string (id) or an expanded Customer object.
+      const rawCustomer = (subscription as unknown as Record<string, unknown>).customer;
+      const customerEmail: string | null =
+        rawCustomer && typeof rawCustomer === 'object'
+          ? ((rawCustomer as Record<string, unknown>).email as string | null) ?? null
+          : null;
+
+      if (customerEmail) {
+        const sendEmailFn = _p40PauseSpy?.sendEmail ?? sendEmail;
+        await sendEmailFn(admin, {
+          template: 'pause_resumed_t0',
+          to: customerEmail,
+          vars: {
+            user_first_name: '',  // template falls back to 'there' when empty
+            resumed_at: new Date().toISOString(),
+          },
+          phi: isPhi,
+        });
+      } else {
+        // customer object is unexpanded (string ID only) — T-0 email not sent.
+        // This is best-effort; the A3 reconcile cron will catch it on next sweep.
+        console.warn(
+          '[stripe-webhook/subscription-updated] auto-resume T-0 skipped: customer unexpanded; sub_id:',
+          subId,
+        );
+      }
+    }
+  } catch (pauseErr) {
+    // T-40-02-05: log err.message + err.code ONLY — NEVER full event payload.
+    Sentry.captureException(pauseErr, {
+      tags: { phase40_pause_mirror: 'failed', sub_id: subId },
+    });
+    console.error(
+      '[stripe-webhook/subscription-updated] pause mirror failed',
+      pauseErr instanceof Error ? pauseErr.message : 'unknown',
+      (pauseErr as Record<string, unknown>)?.code ?? '',
+    );
+    // Do NOT re-throw — Stripe retries must not be triggered for local-mirror errors.
   }
 
   // ─── Phase 29 D-05: HMAC realtime broadcast ──────────────────────────────

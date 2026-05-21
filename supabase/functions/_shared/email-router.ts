@@ -40,6 +40,11 @@ import * as csatFollowup     from './email-templates/csat-followup.ts';
 import * as agentReply       from './email-templates/helpdesk-agent-reply.ts';
 import * as slaAlert         from './email-templates/sla-breach-alert.ts';
 import * as unknownSender    from './email-templates/helpdesk-unknown-sender.ts';
+// Phase 40 Plan 40-02 — pause lifecycle email templates.
+// Union widening + subjectFor + renderTemplate switch arms land in the SAME commit
+// per [[feedback_planner_missed_status_enum_widening]].
+import * as pauseReminderT7  from './email-templates/pause-reminder-t7.ts';
+import * as pauseResumedT0   from './email-templates/pause-resumed-t0.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,7 +76,14 @@ export type EmailTemplate =
   | 'csat_followup'              // non-PHI → Resend (CSAT score link only)
   | 'helpdesk_agent_reply'       // phi-aware → caller passes ticket.phi
   | 'sla_breach_alert'           // non-PHI → Resend (internal agent alert)
-  | 'helpdesk_unknown_sender';   // non-PHI → Resend (auto-reply signup CTA per D-21)
+  | 'helpdesk_unknown_sender'    // non-PHI → Resend (auto-reply signup CTA per D-21)
+  // Phase 40 Plan 40-02 (POLISH-03) — pause lifecycle emails ──────────────────
+  // Per [[feedback_planner_missed_status_enum_widening]]: union extension +
+  // subjectFor + renderTemplate switch arms land in the SAME commit.
+  // PHI flag is caller-authoritative: consumer subs → phi=false (Resend);
+  // clinic-org subs → phi=true (SES). D-09.
+  | 'pause_reminder_t7'          // non-PHI for consumer / PHI for clinic-org. T-7d reminder.
+  | 'pause_resumed_t0';          // non-PHI for consumer / PHI for clinic-org. T-0 confirmation.
 
 export type SendEmailArgs = {
   /** Template identifier — determines HTML rendering and subject line. */
@@ -157,6 +169,11 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
       return slaAlert.subject(vars);
     case 'helpdesk_unknown_sender':
       return unknownSender.subject(vars);
+    // Phase 40 Plan 40-02 — pause lifecycle emails (D-09).
+    case 'pause_reminder_t7':
+      return pauseReminderT7.subject(vars);
+    case 'pause_resumed_t0':
+      return pauseResumedT0.subject(vars);
     default:
       return 'LeanShot Notification';
   }
@@ -233,6 +250,15 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
     }
     case 'helpdesk_unknown_sender': {
       const text = unknownSender.render(vars);
+      return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
+    }
+    // Phase 40 Plan 40-02 — pause lifecycle emails (D-09).
+    case 'pause_reminder_t7': {
+      const text = pauseReminderT7.render(vars);
+      return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
+    }
+    case 'pause_resumed_t0': {
+      const text = pauseResumedT0.render(vars);
       return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
     }
     default:
