@@ -67,7 +67,15 @@ import {
   type BaaScope,
 } from '../_shared/baa-scope.ts';
 import { addBreadcrumb, captureException } from '../_shared/sentry.ts';
-import { captureServer, shutdownPostHog } from '../_shared/posthog-server.ts';
+import { captureServer as defaultCaptureServer, shutdownPostHog } from '../_shared/posthog-server.ts';
+
+// Test seam — production code calls captureServer via this indirection so
+// Deno tests can monkey-patch via __internal.setCaptureForTest without needing
+// jsr:@std/testing/mock to mutate non-configurable ESM module bindings.
+let _captureImpl: typeof defaultCaptureServer = defaultCaptureServer;
+function captureServer(args: Parameters<typeof defaultCaptureServer>[0]): void {
+  _captureImpl(args);
+}
 import { corsHeaders } from './cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -851,5 +859,11 @@ export const __internal = {
   },
   resetAdminForTest(): void {
     _adminSingleton.client = null;
+  },
+  setCaptureForTest(fn: typeof defaultCaptureServer): void {
+    _captureImpl = fn;
+  },
+  resetCaptureForTest(): void {
+    _captureImpl = defaultCaptureServer;
   },
 };
