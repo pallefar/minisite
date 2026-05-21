@@ -354,12 +354,12 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 9 plans
+**Plans:** 3/9 plans executed
 
 Plans:
-- [ ] 37-01-PLAN.md — Schema: 12 helpdesk tables + RLS + SECDEF RPCs + seed (HELP-01)
-- [ ] 37-02-PLAN.md — KB FTS (tsvector EN+ES + GIN) + pg_cron SLA schedule + email-router templates + HMAC helper (HELP-06, HELP-08, HELP-11)
-- [ ] 37-03-PLAN.md — helpdesk-inbound Edge Fn: Svix verify + 2-step body fetch + HMAC reply gate + idempotency + attachments (HELP-03)
+- [x] 37-01-PLAN.md — Schema: 12 helpdesk tables + RLS + SECDEF RPCs + seed (HELP-01)
+- [x] 37-02-PLAN.md — KB FTS (tsvector EN+ES + GIN) + pg_cron SLA schedule + email-router templates + HMAC helper (HELP-06, HELP-08, HELP-11)
+- [x] 37-03-PLAN.md — helpdesk-inbound Edge Fn: Svix verify + 2-step body fetch + HMAC reply gate + idempotency + attachments (HELP-03)
 - [ ] 37-04-PLAN.md — helpdesk-ai-assist Edge Fn: BAA-aware Claude classifier + Zod output + apply/suggest split + sentiment (HELP-04)
 - [ ] 37-05-PLAN.md — helpdesk-csat-send + helpdesk-sla-breach-cron + close trigger + UPSERT dedupe state (HELP-05, HELP-06)
 - [ ] 37-06-PLAN.md — Frontend widget: lazy chunk ≤25 kB gz, KB search, KB article, ticket form, realtime, /macro slash (HELP-02, HELP-07, HELP-09, HELP-10, HELP-11)
@@ -569,7 +569,7 @@ Plans:
 | 34. M2 Onboarding Overhaul + Activation Event | 9/10 | In Progress|  |
 | 35. M3 Gamification Engine | 0/? | Not started | — |
 | 36. M3 Review Prompt Engine (Web) | 0/? | Not started | — |
-| 37. M6 Helpdesk Core | 0/? | Not started | — |
+| 37. M6 Helpdesk Core | 3/9 | In Progress|  |
 | 38. M5b AI Recommender | 7/10 | In Progress|  |
 | 39. A/B Trifecta — Paywall + Pharma + Page-Variant | 0/? | Not started | — |
 | 40. Cancellation Save-Offers | 0/? | Not started | — |
