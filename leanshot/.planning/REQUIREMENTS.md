@@ -202,7 +202,7 @@
 
 - [ ] **HELP-01**: Schema: `tickets` + `ticket_messages` + `ticket_attachments` + `ticket_tags` + `kb_articles` + `kb_article_versions` + `csat_responses` + `agent_macros` (8+ tables); RLS isolates user-side ticket views from agent-side
 - [ ] **HELP-02**: In-app widget on every screen (KB search first → ticket form fallback if no helpful article)
-- [ ] **HELP-03**: Email-to-ticket via Resend Inbound webhook (or Postmark fallback if Resend BAA NO) → Edge Function → row insert; HMAC token in `Reply-To` for reply-threading
+- [x] **HELP-03**: Email-to-ticket via Resend Inbound webhook (or Postmark fallback if Resend BAA NO) → Edge Function → row insert; HMAC token in `Reply-To` for reply-threading
 - [ ] **HELP-04**: AI assist via Claude (draft replies + auto-tag tickets + auto-route by topic) — agent reviews + edits + sends
 - [ ] **HELP-05**: CSAT survey auto-sent after ticket close via Resend (or SES if PHI-touching); 1-tap reply
 - [ ] **HELP-06**: SLA tracking with breach alerts; `pg_cron` checks open tickets against priority SLA, emits agent + on-call notifications
@@ -531,7 +531,7 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | REVIEW-08 | Phase 36 | Pending |
 | HELP-01 | Phase 37 | Pending |
 | HELP-02 | Phase 37 | Pending |
-| HELP-03 | Phase 37 | Pending |
+| HELP-03 | Phase 37 | Complete |
 | HELP-04 | Phase 37 | Pending |
 | HELP-05 | Phase 37 | Pending |
 | HELP-06 | Phase 37 | Pending |
