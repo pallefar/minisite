@@ -116,12 +116,20 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.onboarding.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 35 Plan 35-05 GAME-05/08 — Gamification admin module.
+  // Replaces the Phase 24 placeholder per memory feedback_admin_module_manifest_vs_router_branch_drift.
+  // AdminShell.tsx already uses manifest-driven routing (no hardcoded switch):
+  //   pathname === `/admin/${m.route}` || pathname.startsWith(`/admin/${m.route}/`)
+  // So registering here + supplying the real lazy import is sufficient for BOTH
+  // manifest AND router branch coverage (no additional switch case needed).
+  // minRole 'admin' so standard admins can read + create challenges;
+  // SECDEF RPCs re-check profiles.admin_role server-side (Pattern S1 dual-layer).
   {
     key: 'gamification',
     label: 'Gamification',
     route: 'gamification',
     icon: GamepadIcon,
-    lazy: placeholderFor('Phase 30+ (Streaks, XP, badges admin)'),
+    lazy: () => import('@/components/admin/gamification/AdminGamificationModule'),
     flagKey: 'admin.gamification.enabled',
     minRole: 'admin' as AdminRole,
   },
