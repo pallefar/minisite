@@ -134,3 +134,20 @@ export const __test = {
   isPhiRoute,
   applyDecision,
 };
+
+/**
+ * Phase 37 Plan 06 D-17 — public PHI-route check for the helpdesk widget.
+ *
+ * Returns true when the given pathname is a PHI-bearing route. The widget
+ * renders in KB-only mode on PHI routes — no ticket form, no realtime channel,
+ * no AI suggestions — to keep PHI off any third-party telemetry path that
+ * might attach to user inputs (Sentry replay, PostHog session recording).
+ *
+ * Single source of truth: this helper reads PHI_URL_REGEX (HIPAA-17). Do NOT
+ * duplicate the regex inside the helpdesk module.
+ */
+export function isPhiRoutePath(
+  pathname: string = typeof window !== 'undefined' ? window.location.pathname : '/',
+): boolean {
+  return PHI_URL_REGEX.test(pathname);
+}
