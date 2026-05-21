@@ -61,6 +61,11 @@ export default defineConfig({
       // 3 inactive-eligible / 2 inactive-capped), runs cron handler over HTTP,
       // asserts win_back_sends + user_notifications + 30d cap behavior + Phase 40 handoff.
       'tests/e2e/winback-scorer.spec.ts',
+      // Phase 38 plan 38-08 — HITL admin queue lifecycle (RECOMMEND-07).
+      // 7 e2e behaviors: kb-audit landing, pending queue, approve+release,
+      // reject, edit-then-approve, clinic-admin RLS gate, bulk approve.
+      // Live-DB; auto-skip when SUPABASE env vars are missing.
+      'tests/e2e/hitl-queue.spec.ts',
     ],
     testTimeout: 30000,
   },
