@@ -178,12 +178,22 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.ai.enabled',
     minRole: 'superadmin' as AdminRole,
   },
+  // Phase 37 Plan 37-07 — agent-facing helpdesk admin module.
+  // Replaces the Phase 24 placeholder per [[admin-module-manifest-vs-router-branch-drift]].
+  // AdminShell.tsx already supports prefix-branch matching at /admin/helpdesk/*
+  // (line 124: pathname.startsWith(`/admin/${m.route}/`)), so sub-routes
+  // /admin/helpdesk/inbox, /sentiment, /kb, etc. resolve correctly into the
+  // HelpdeskLayout SUB_ROUTES table. minRole 'staff' so on-duty agents see it;
+  // RLS on tickets + org_members re-checks at the data layer (Pattern S1).
   {
     key: 'helpdesk',
     label: 'Helpdesk',
     route: 'helpdesk',
     icon: LifeBuoyIcon,
-    lazy: placeholderFor('Phase 36+ (Helpdesk ticket inbox)'),
+    lazy: () =>
+      import('@/admin/modules/helpdesk').then((m) => ({
+        default: m.HelpdeskLayout,
+      })),
     flagKey: 'admin.helpdesk.enabled',
     minRole: 'staff' as AdminRole,
   },

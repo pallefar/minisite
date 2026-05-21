@@ -546,6 +546,32 @@ export const EVENTS = {
       body_length: z.number().int().nonnegative(),
     }),
   },
+  // Phase 37 Plan 37-07 — agent close/reopen lifecycle events. Fired from
+  // TicketDetailPage after the close_ticket / reopen_ticket SECDEF RPCs
+  // succeed. Server-side mirror lands in supabase/functions/_shared/
+  // posthog-server.ts Phase38Event union.
+  'helpdesk.ticket.closed': {
+    name: 'helpdesk.ticket.closed',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description:
+      'Agent closed an existing ticket from the helpdesk admin module (Phase 37 Plan 37-07).',
+    payload: z.object({
+      ticket_id: z.string().uuid(),
+    }),
+  },
+  'helpdesk.ticket.reopened': {
+    name: 'helpdesk.ticket.reopened',
+    version: 1,
+    phi: false,
+    owner: 'product',
+    description:
+      'Agent reopened a previously-closed ticket from the helpdesk admin module (Phase 37 Plan 37-07).',
+    payload: z.object({
+      ticket_id: z.string().uuid(),
+    }),
+  },
 } as const satisfies Record<string, EventDef>;
 
 export type EventName = keyof typeof EVENTS;

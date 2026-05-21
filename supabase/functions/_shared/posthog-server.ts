@@ -275,7 +275,19 @@ export type Phase38Event =
   // MUST exist NOW so the consumer compiles in the same milestone. sla.breach
   // is emitted server-side by helpdesk-sla-breach-cron/index.ts.
   | 'helpdesk.csat.submitted'
-  | 'helpdesk.sla.breach';
+  | 'helpdesk.sla.breach'
+  // Phase 37 helpdesk agent lifecycle events ────────────────────────────────
+  // Same-plan widening (Plan 37-07) per memory
+  // feedback_planner_missed_status_enum_widening: ticket.closed and
+  // ticket.reopened are emitted CLIENT-SIDE from TicketDetailPage after the
+  // close_ticket / reopen_ticket SECDEF RPCs succeed, AND server-side from
+  // future Edge Fns that programmatically close (e.g. auto-close cron).
+  // ticket.replied is emitted client-side from AgentReplyComposer.
+  // The union widening MUST land in the same commit as the call sites or
+  // server-side consumers fail to type-check on first server-side emit.
+  | 'helpdesk.ticket.closed'
+  | 'helpdesk.ticket.reopened'
+  | 'helpdesk.ticket.replied';
 
 /**
  * Typed payload contract for `recommendation.shown` — fires once per returned
