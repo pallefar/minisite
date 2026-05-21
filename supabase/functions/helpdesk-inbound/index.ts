@@ -84,7 +84,11 @@ const HMAC_SECRET           = Deno.env.get('HELPDESK_HMAC_SECRET') ?? '';
 
 const SIGNUP_URL = 'https://app.leanshot.app/signup?utm_source=helpdesk_inbound&utm_medium=email';
 const SUPPORT_ADDRESS = 'support@app.leanshot.app';
-const REPLY_RE = /^reply\+([a-z0-9_-]+)@app\.leanshot\.app$/i;
+// REPLY_RE is case-INSENSITIVE on the `reply+` prefix + domain but its
+// capture group must preserve the ORIGINAL case of the token (base64url is
+// case-sensitive). We apply this regex against the raw (un-lowercased) value
+// so the captured token round-trips through verifyReplyToken unchanged.
+const REPLY_RE = /^reply\+([A-Za-z0-9_-]+)@app\.leanshot\.app$/i;
 const LOOP_FROM_RE = /^(noreply|no-reply|reply\+)@/i;
 const ALLOWED_MIME = new Set([
   'image/png',
@@ -722,7 +726,11 @@ export async function handler(req: Request): Promise<Response> {
   // 5. Address parsing.
   const fromEmail = String(data.from ?? '').toLowerCase();
   const toCandidates: string[] = Array.isArray(data.to) ? data.to : data.to ? [data.to] : [];
-  const toEmail = String(toCandidates[0] ?? '').toLowerCase();
+  // CASE-SENSITIVITY: keep the raw To value because the reply+<HMAC>@ token
+  // is base64url (case-sensitive). We only lowercase the domain + local-part
+  // prefix for matching; the token capture group preserves original case.
+  const toEmailRaw = String(toCandidates[0] ?? '');
+  const toEmail = toEmailRaw.toLowerCase();
 
   // 6. Loop guard — From == noreply / no-reply / reply+ → reject WITHOUT
   // auto-reply (else infinite loop). Log + return 200.
@@ -761,8 +769,9 @@ export async function handler(req: Request): Promise<Response> {
     attachments,
   };
 
-  // 8. Address dispatch.
-  const replyMatch = toEmail.match(REPLY_RE);
+  // 8. Address dispatch. Reply regex runs against the RAW (case-preserved)
+  // To value so the captured base64url token survives unchanged.
+  const replyMatch = toEmailRaw.match(REPLY_RE);
   if (replyMatch) {
     const token = replyMatch[1] ?? '';
     return await handleReplyBranch(branchArgs, token);
