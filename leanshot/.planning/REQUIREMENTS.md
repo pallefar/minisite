@@ -229,10 +229,10 @@
 
 ### WS18 — User-facing: M7 Polish (POLISH, 12 REQ-IDs)
 
-- [ ] **POLISH-01**: Cancellation flow with save-offers (pause / downgrade / discount / extended trial); user clicks Cancel → modal offers one of 4 (per eligibility rules)
-- [ ] **POLISH-02**: `cancellation_offers_log` records offer-take rate per offer-type per cohort; admin sees offer-take ROI analysis
-- [ ] **POLISH-03**: Pause subscription (1/2/3 months) returns user to active billing on resume date
-- [ ] **POLISH-04**: Discount save-offer (20%-30% off for 2-3 months) applies as Stripe coupon
+- [x] **POLISH-01**: Cancellation flow with save-offers (pause / downgrade / discount / extended trial); user clicks Cancel → modal offers one of 4 (per eligibility rules) [Phase 40 shipped — pending HUMAN-UAT browser walkthrough]
+- [x] **POLISH-02**: `cancellation_offers_log` records offer-take rate per offer-type per cohort; admin sees offer-take ROI analysis [Phase 40 shipped — ROI view + dashboard + CSV export live]
+- [x] **POLISH-03**: Pause subscription (1/2/3 months) returns user to active billing on resume date [Phase 40 shipped — pending HUMAN-UAT Stripe smoke test]
+- [x] **POLISH-04**: Discount save-offer (20%-30% off for 2-3 months) applies as Stripe coupon [Phase 40 shipped — pending Stripe coupon seed (Signal A)]
 - [ ] **POLISH-05**: Smart notifications (email + web-push + in-app) with frequency-capping + snoozable + sentiment-aware per `notification_settings`
 - [ ] **POLISH-06**: User manages notification preferences in self-serve center (per-category opt-out: dose-reminders / AI-insights / clinic-alerts / billing / marketing)
 - [x] **POLISH-07**: PWA + offline mode via `vite-plugin-pwa`; native-feeling install prompt on supported browsers
@@ -552,10 +552,10 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | RECOMMEND-08 | Phase 38 | Complete |
 | RECOMMEND-09 | Phase 38 | Pending |
 | RECOMMEND-10 | Phase 38 | Complete |
-| POLISH-01 | Phase 40 | Pending |
-| POLISH-02 | Phase 40 | Pending |
-| POLISH-03 | Phase 40 | Pending |
-| POLISH-04 | Phase 40 | Pending |
+| POLISH-01 | Phase 40 | Complete (pending HUMAN-UAT) |
+| POLISH-02 | Phase 40 | Complete |
+| POLISH-03 | Phase 40 | Complete (pending HUMAN-UAT) |
+| POLISH-04 | Phase 40 | Complete (pending Stripe seed) |
 | POLISH-05 | Phase 42 | Pending |
 | POLISH-06 | Phase 42 | Pending |
 | POLISH-07 | Phase 42 | Complete |

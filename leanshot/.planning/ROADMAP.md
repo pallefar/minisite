@@ -438,12 +438,12 @@ Plans:
 **Plans:** 6 plans (3 waves)
 
 Plans:
-- [ ] 40-01-PLAN.md — Schema: cancellation_offers_log + save_offer_rules + Stripe coupon seed (Wave 1)
-- [ ] 40-02-PLAN.md — Stripe webhook extension + pause-reminder cron + email-router widening (Wave 1)
-- [ ] 40-03-PLAN.md — Edge Fns: cancellation-decide-offer (lookup) + cancellation-accept-offer (Stripe write) (Wave 2)
-- [ ] 40-04-PLAN.md — CancellationModal single-chunk + analytics events + cancellation-feedback-to-ticket Fn (Wave 2)
-- [ ] 40-05-PLAN.md — Admin Save-Offer Rule Editor module + SECDEF RPCs (Wave 3)
-- [ ] 40-06-PLAN.md — Admin ROI Dashboard + CSV export + PostHog Ship-Winner + phase close-out (Wave 3)
+- [x] 40-01-PLAN.md — Schema: cancellation_offers_log + save_offer_rules + Stripe coupon seed (Wave 1) [SHIPPED]
+- [x] 40-02-PLAN.md — Stripe webhook extension + pause-reminder cron + email-router widening (Wave 1) [SHIPPED]
+- [x] 40-03-PLAN.md — Edge Fns: cancellation-decide-offer (lookup) + cancellation-accept-offer (Stripe write) (Wave 2) [SHIPPED]
+- [x] 40-04-PLAN.md — CancellationModal single-chunk + analytics events + cancellation-feedback-to-ticket Fn (Wave 2) [SHIPPED]
+- [x] 40-05-PLAN.md — Admin Save-Offer Rule Editor module + SECDEF RPCs (Wave 3) [SHIPPED]
+- [x] 40-06-PLAN.md — Admin ROI Dashboard + CSV export + PostHog Ship-Winner + phase close-out (Wave 3) [CHECKPOINT — pending operator Stripe seed + browser walkthrough]
 - [ ] 40-07-PLAN.md — Dashboard read-only gating during pause (D-07 audit gap) (Wave 3)
 
 ### Phase 41: Public Status Page + Embed-Provider Blocks
