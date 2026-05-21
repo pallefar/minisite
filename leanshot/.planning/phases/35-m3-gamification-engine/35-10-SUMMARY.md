@@ -2,8 +2,9 @@
 phase: 35
 plan: 10
 title: Schema push + Edge Fn deploy + bundle audit + multi-signal HUMAN-UAT
-status: checkpoint
-checkpoint_type: human-verify
+status: complete
+disposition: approved — automated-verify-only
+uat_deferred_to: .planning/v1.3-uat-deferred.md (Signals 1-6 — vault/Vercel/Twitter/LinkedIn/Instagram/copy)
 completed: 2026-05-21T13:26:00Z
 duration_minutes: 17
 tasks_completed: 3

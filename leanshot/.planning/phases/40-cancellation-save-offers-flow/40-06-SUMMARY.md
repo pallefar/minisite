@@ -2,8 +2,9 @@
 phase: 40
 plan: 06
 title: "Admin ROI Dashboard + CSV export + PostHog Ship-Winner + phase close-out"
-status: checkpoint
-checkpoint_type: human-verify
+status: complete
+disposition: approved — automated-verify-only
+uat_deferred_to: .planning/v1.3-uat-deferred.md (Signals A-D — coupons/admin-rule/cancel-flow/copy)
 completed: 2026-05-21T18:25:00Z
 duration_minutes: 21
 tasks_completed: 3

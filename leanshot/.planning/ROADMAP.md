@@ -309,7 +309,9 @@ Plans:
 - [x] 34-09-PLAN.md — ship-winner-flag + onboarding-funnel-query Edge Fns (vendor-gated) + OnboardingABPanel + OnboardingFunnelTab
 - [ ] 34-10-PLAN.md — Playwright e2e (anon-merge / activation / mobile Lighthouse ≥90) + Apple Services ID checkpoint + PostHog API key checkpoint
 
-### Phase 35: M3 Gamification Engine
+### Phase 35: M3 Gamification Engine [Complete — approved automated-verify-only; UAT deferred to v1.3 close]
+
+> 6 HUMAN-UAT signals (vault secret, Vercel env, Twitter/LinkedIn/Instagram previews, copy review) consolidated in `.planning/v1.3-uat-deferred.md` — run at milestone close.
 
 **Goal**: XP/levels/streaks/freeze tokens/leaderboards/weekly challenges ship as ethical-only mechanics; canvas-confetti gates respect reduced-motion.
 **Depends on**: Phase 24 (event taxonomy); Phase 27 (cohort builder for leaderboards)
@@ -422,7 +424,9 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 40: Cancellation Save-Offers Flow
+### Phase 40: Cancellation Save-Offers Flow [Complete — approved automated-verify-only; UAT deferred to v1.3 close]
+
+> 4 HUMAN-UAT signals (Stripe coupon seed, admin rule create, e2e cancel flow, copy review) consolidated in `.planning/v1.3-uat-deferred.md` — run at milestone close.
 
 **Goal**: Cancelling user sees one of 4 personalized save offers (pause / downgrade / discount / extended trial) before cancellation completes.
 **Depends on**: v1.2 Phase 14 (Stripe subscriptions live); Phase 27 (cohort eligibility)
