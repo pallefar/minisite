@@ -34,7 +34,10 @@
     "i18n:check": "bash scripts/check-locale-coverage.sh",
     "unused-check": "bash scripts/check-unused-baseline.sh",
     "sync-posthog": "npx tsx scripts/sync-posthog-event-defs.ts",
-    "lint:stripe-phi": "npx tsx scripts/lint-stripe-phi.ts"
+    "lint:stripe-phi": "npx tsx scripts/lint-stripe-phi.ts",
+    "lighthouse:onboard": "node scripts/lighthouse-onboarding.mjs http://localhost:5173/onboard",
+    "test:e2e:onboarding": "playwright test --grep onboarding",
+    "test:lighthouse:onboarding": "PLAYWRIGHT_RUN_LIGHTHOUSE=1 playwright test onboarding-mobile-lighthouse"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",
@@ -103,6 +106,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^4.1.5",
     "axe-core": "^4.11.4",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9.39.4",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-i18next": "6.1.4",
@@ -115,6 +119,7 @@
     "i18next-parser": "9.4.0",
     "jsdom": "^29.1.1",
     "knip": "^6.14.1",
+    "lighthouse": "^12.8.2",
     "prettier": "^3.8.3",
     "rollup-plugin-visualizer": "^6.0.4",
     "stripe": "^19.0.0",
