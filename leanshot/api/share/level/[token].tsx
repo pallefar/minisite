@@ -14,7 +14,7 @@
  *
  * Invalid / expired tokens: return 410 Gone (no eternal dead links cached by CDN).
  */
-import { verifyShareToken } from './_token';
+import { verifyShareToken } from './_token.js';
 
 export const config = { runtime: 'edge' };
 

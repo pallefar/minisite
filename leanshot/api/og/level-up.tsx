@@ -12,7 +12,7 @@
  * (Research §Pattern 8 / must_haves.truths "Bundle ceiling").
  */
 import { ImageResponse } from '@vercel/og';
-import { verifyShareToken } from '../share/level/_token';
+import { verifyShareToken } from '../share/level/_token.js';
 
 export const config = { runtime: 'edge' };
 
