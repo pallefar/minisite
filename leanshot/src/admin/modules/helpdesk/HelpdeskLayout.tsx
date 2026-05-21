@@ -28,27 +28,16 @@ import {
   useState,
   type ComponentType,
 } from 'react';
+// Note: ComponentType retained — used in SubRoute interface below.
 
 const HelpdeskInboxPage = lazy(() => import('./HelpdeskInboxPage'));
 const SentimentQueuePage = lazy(() => import('./SentimentQueuePage'));
-
-// Placeholder factory — returns a tiny inline component that doesn't need its
-// own file. Plan 37-08 will replace these lazy imports with real pages.
-function makePlaceholder(label: string): ComponentType {
-  const C = () => (
-    <div className="p-6 text-sm text-[var(--color-text-secondary)]">
-      {label}
-    </div>
-  );
-  C.displayName = `HelpdeskPlaceholder(${label})`;
-  return C;
-}
-
-const KBEditorPage = makePlaceholder('Knowledge Base — see Plan 08');
-const MacroEditorPage = makePlaceholder('Macros — see Plan 08');
-const RoutingRulesPage = makePlaceholder('Routing Rules — see Plan 08');
-const SLATargetsPage = makePlaceholder('SLA Targets — see Plan 08');
-const TrendsDashboardPage = makePlaceholder('Trends — see Plan 08');
+// Plan 37-08 — real admin sub-pages.
+const KBEditorPage = lazy(() => import('./KBEditorPage'));
+const MacroEditorPage = lazy(() => import('./MacroEditorPage'));
+const RoutingRulesPage = lazy(() => import('./RoutingRulesPage'));
+const SLATargetsPage = lazy(() => import('./SLATargetsPage'));
+const TrendsDashboardPage = lazy(() => import('./TrendsDashboardPage'));
 
 interface SubRoute {
   readonly key: string;
