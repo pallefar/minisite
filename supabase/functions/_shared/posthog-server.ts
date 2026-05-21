@@ -259,7 +259,16 @@ export type Phase38Event =
   | 'helpdesk.ticket.created'
   | 'helpdesk.inbound_email.received'
   | 'helpdesk.inbound_email.unknown_sender'
-  | 'helpdesk.attachment.scan_deferred';
+  | 'helpdesk.attachment.scan_deferred'
+  // Phase 37 helpdesk AI assist events ───────────────────────────────────────
+  // Same-plan widening per memory feedback_planner_missed_status_enum_widening:
+  // these union members land in the SAME commit as the Edge Fn that fires
+  // them (supabase/functions/helpdesk-ai-assist/index.ts — Plan 37-04).
+  | 'helpdesk.ticket.assigned'
+  | 'helpdesk.sentiment_alert.fired'
+  | 'helpdesk.ai.tagged'
+  | 'helpdesk.ai.routed'
+  | 'helpdesk.ai.sentiment_flagged';
 
 /**
  * Typed payload contract for `recommendation.shown` — fires once per returned
