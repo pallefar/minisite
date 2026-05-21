@@ -289,6 +289,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     current_period_end: fullState.current_period_end,
     plan_id: fullState.plan_id,
     provider: fullState.provider,
+    // Phase 34 Plan 34-07: activation fire-once + draft-entry queue —
+    // both are part of the persisted shape so the JSON export round-trips.
+    activationFiredAt: fullState.activationFiredAt,
+    draftEntriesPending: fullState.draftEntriesPending,
   });
 
   const handleExportJson = async (): Promise<void> => {

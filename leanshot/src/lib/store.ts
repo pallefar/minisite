@@ -370,6 +370,27 @@ interface Actions {
    * while RouteOrgGuard re-resolves the org.
    */
   setCurrentOrgLoading: (loading: boolean) => void;
+
+  // -------------------------------------------------------------------------
+  // Phase 34 Plan 34-07 — onboarding activation (ONBOARD-05 / ONBOARD-13).
+  // -------------------------------------------------------------------------
+  /**
+   * Sets the activation fire-once timestamp. Called by
+   * `fireActivation()` (`@/lib/onboarding/activation-hooks`) after a
+   * successful record-activation POST. Idempotent at the store level — a
+   * second call simply overwrites with a newer ISO string, but
+   * `fireActivation` short-circuits before reaching this action.
+   */
+  setActivationFiredAt: (ts: string) => void;
+  /**
+   * Hand-off sink for Plan 34-06's post-signup merge handshake. Appends
+   * the merged-cookie entries to `draftEntriesPending` so the dashboard's
+   * existing draft pipeline can drain them. v1.3 implementation is
+   * "queue + log" — no UI prompt yet. Idempotent: callers can invoke
+   * multiple times (e.g. retry after a sync error) without losing
+   * previously-queued entries.
+   */
+  replayDraftEntries: (entries: unknown[]) => void;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -522,6 +543,24 @@ export const useStore = create<Store>()(
       setCurrentOrg: (org, role) => set({ currentOrg: org, currentOrgRole: role, currentOrgLoading: false }),
       clearCurrentOrg: () => set({ currentOrg: null, currentOrgRole: null, currentOrgLoading: false }),
       setCurrentOrgLoading: (loading) => set({ currentOrgLoading: loading }),
+
+      // Phase 34 Plan 34-07 — activation guard + draft-entry sink actions.
+      // Both fields persist via the `partialize` allow-list so the fire-once
+      // guard survives reload (D-15) and the merge-handshake hand-off is
+      // crash-safe between merge + dashboard drain.
+      setActivationFiredAt: (ts) => set({ activationFiredAt: ts }),
+      replayDraftEntries: (entries) => {
+        if (!Array.isArray(entries) || entries.length === 0) return;
+        set((s) => ({
+          draftEntriesPending: [...(s.draftEntriesPending ?? []), ...entries],
+        }));
+        // Surface the hand-off for the dashboard's draft pipeline + ops.
+        // Plan 34-06's ConsumerOnboardingRenderer already logs a warn when
+        // the action is missing; on the success path we log a single
+        // info-level line so the count is observable in dev tools.
+        // eslint-disable-next-line no-console
+        console.info(`[store] replayDraftEntries: queued ${entries.length} entries`);
+      },
 
       setTab: (tab) => {
         set({ currentTab: tab });
@@ -1989,6 +2028,11 @@ export const useStore = create<Store>()(
         current_period_end: state.current_period_end,
         plan_id: state.plan_id,
         provider: state.provider,
+        // Phase 34 Plan 34-07: activation fire-once flag + draft-entry
+        // hand-off queue both persist across reload (D-15 / 34-06 merge
+        // handshake crash-safety).
+        activationFiredAt: state.activationFiredAt,
+        draftEntriesPending: state.draftEntriesPending,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.
