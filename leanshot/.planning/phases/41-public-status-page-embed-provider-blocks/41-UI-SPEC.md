@@ -72,13 +72,12 @@ Sizes used in this phase (pulled from existing `--text-*` ramp; no new sizes int
 | Role | Token | Size | Weight | Line Height | Usage in Phase 41 |
 |------|-------|------|--------|-------------|-------------------|
 | Body | `--text-base` | 16px | 400 (regular) | 1.55 | Embed placeholder card body copy, allowlist table cell text, PageEditor property-panel input labels, "Manage cookie preferences" link |
-| Label / micro | `--text-sm` | 13px | 500 (medium) | 1.5 | Table column headers ("Hostname", "Added by", "Last used", "References", "Actions"), input hints, validation error copy, badge text |
-| Caption | `--text-xs` | 12px | 400 (regular) | 1.45 | Last-used timestamp (relative — "3 days ago"), hostname-format hint under input, embed-block consent-category disclosure ("Functional + Analytics cookies required") |
+| Label / micro | `--text-sm` | 13px | 500 (medium) | 1.5 | Table column headers ("Hostname", "Added by", "Last used", "References", "Actions"), input hints, validation error copy, badge text, last-used timestamp (relative — "3 days ago"), hostname-format hint under input, embed-block consent-category disclosure ("Functional + Analytics cookies required"), cancel link, secondary "Manage cookie preferences" link |
 | Heading L2 | `--text-xl` | 22px | 600 (semibold) | 1.35 | Embed placeholder card title ("Enable analytics cookies to view this YouTube video"), admin page header on allowlist module |
 | Heading L1 | `--text-2xl` | 26px | 600 (semibold) | 1.25 | Allowlist page H1 ("Custom iframe allowlist") — reuses existing admin page heading scale |
 
 **Weight inventory (exactly 2 weights used):**
-- `400` (regular) — body, captions, default input text.
+- `400` (regular) — body, default input text.
 - `600` (semibold) — headings (L1/L2), table column headers, button labels, badge text.
 
 Italic is reserved for `.heading-display` (Fraunces display headings) and not used in Phase 41 surfaces — these are admin/utility surfaces, not marketing hero. No 500-weight on body — labels promote to 600 if needed for hierarchy.
@@ -151,7 +150,7 @@ LeanShot DSv2 already enforces a 60/30/10 surface split via semantic tokens. Pha
      - YouTube: "Enable analytics and marketing cookies to view this YouTube video"
      - Tally: "Enable functional cookies to view this Tally form"
      - Custom-iframe: "Enable marketing cookies to view this embed"
-  3. **Body caption** (`--text-xs` 12px, `--color-text-secondary`) — single line: "Required: [Functional | Analytics | Marketing] cookies. We never load this content until you opt in."
+  3. **Body caption** (`--text-sm` 13px, `--color-text-secondary`) — single line: "Required: [Functional | Analytics | Marketing] cookies. We never load this content until you opt in."
   4. **Inline link** (`--text-sm` 13px, `--color-primary` 600 weight) — "Manage cookie preferences →" — opens the Phase 22 consent banner via `window.dispatchEvent(new CustomEvent('leanshot:open-consent-banner'))` (or whichever event the P22 banner subscribes to — planner verifies).
 - **No** "Connect" or per-provider CTAs (those live in the editor only).
 
@@ -194,7 +193,7 @@ LeanShot DSv2 already enforces a 60/30/10 surface split via semantic tokens. Pha
 | `widthMode` | `boolean` | "Full-width" (toggle) | Default ON. OFF constrains to max-width 900px. | none |
 
 **Inline validation error display:**
-- Use existing `Input` `aria-invalid` pattern + `--color-danger` border + helper-text below input in `--color-danger` `--text-xs` font.
+- Use existing `Input` `aria-invalid` pattern + `--color-danger` border + helper-text below input in `--color-danger` `--text-sm` font.
 - Error copy variants (sentence case, no exclamation):
   - "URL must start with https://" — for protocol mismatch
   - "Hostname [example.com] is not on the allowlist. Ask a superadmin to add it at /admin/embeds/allowlist." — for allowlist miss (note the explicit URL — admin users can navigate directly)
@@ -220,18 +219,18 @@ LeanShot DSv2 already enforces a 60/30/10 surface split via semantic tokens. Pha
 
 **State D2 — Popup-OAuth in progress:**
 - CTA replaced by a DSv2 `Spinner size="md"` + tertiary-text "Waiting for Calendly confirmation in popup window…"
-- Cancel link below the spinner — `--color-text-secondary` `--text-xs` — "Cancel" (closes popup via `ref.close()`).
+- Cancel link below the spinner — `--color-text-secondary` `--text-sm` — "Cancel" (closes popup via `ref.close()`).
 
 **State D2-error — Popup blocked:**
 - Card border switches to `--color-danger`.
 - Inline error icon (lucide `ShieldAlert` size 20px `--color-danger`) + body copy: "Popup blocked. Allow popups for this site to connect Calendly."
 - Retry CTA: Button `variant="ghost"` — "Try again".
-- Secondary link below: `--text-xs` `--color-text-secondary` — "Open Calendly settings in new tab" (fallback escape — sets `target="_blank"`).
+- Secondary link below: `--text-sm` `--color-text-secondary` — "Open Calendly settings in new tab" (fallback escape — sets `target="_blank"`).
 
 **State D3 — Authenticated, preview loaded:**
-- Card body shows the configured Calendly URL hostname in `font-mono` `--text-sm` + connected-account email in `--text-xs --color-text-secondary`.
+- Card body shows the configured Calendly URL hostname in `font-mono` `--text-sm` + connected-account email in `--text-sm --color-text-secondary`.
 - Live availability preview via Calendly's embed widget rendered INSIDE the editor property panel (this is the editor surface — sandbox + CSP still apply, but no nested OAuth — token is already in session).
-- "Disconnect" link below — `--text-xs` `--color-text-secondary` — clears the in-memory OAuth token (per Claude's discretion in D-CONTEXT: token storage shape is in-memory only or sessionStorage; planner picks).
+- "Disconnect" link below — `--text-sm` `--color-text-secondary` — clears the in-memory OAuth token (per Claude's discretion in D-CONTEXT: token storage shape is in-memory only or sessionStorage; planner picks).
 
 **postMessage origin validation (planner-owned per D-CONTEXT):** Only accept postMessage events where `event.origin === 'https://calendly.com'` (and the LeanShot OAuth callback origin). Reject all others silently. Error UX on validation failure: log to Sentry + show State D2-error.
 
@@ -247,7 +246,7 @@ LeanShot DSv2 already enforces a 60/30/10 surface split via semantic tokens. Pha
 
 **Add-hostname form** (Card `variant="elevated"` `padding="lg"`, top margin `lg` = 24px):
 - Inline form layout — horizontal stack, gap `md` = 16px:
-  - `Input` (label "Hostname", placeholder `meet.example.com`, hint `--text-xs --color-text-secondary` "Exact hostname only — do not include `https://`, paths, or wildcards.")
+  - `Input` (label "Hostname", placeholder `meet.example.com`, hint `--text-sm --color-text-secondary` "Exact hostname only — do not include `https://`, paths, or wildcards.")
   - `Button variant="primary"` — label "Add hostname".
 - Validation rules (planner enforces server-side AND client-side):
   - Empty → "Hostname is required"
@@ -263,13 +262,13 @@ LeanShot DSv2 already enforces a 60/30/10 surface split via semantic tokens. Pha
 | Column | Width | Cell content |
 |--------|-------|--------------|
 | Hostname | flex-1 | `font-mono` `--text-sm`, copy-to-clipboard affordance on hover (icon button, 44×44 hit area) |
-| Added by | 160px | Avatar (DSv2 `InitialsAvatar` size sm) + admin email in `--text-xs --color-text-secondary` |
+| Added by | 160px | Avatar (DSv2 `InitialsAvatar` size sm) + admin email in `--text-sm --color-text-secondary` |
 | Added | 120px | Relative timestamp ("3 days ago"), tabular-nums; tooltip on hover with absolute ISO timestamp |
 | Last used | 120px | Relative timestamp OR "Never" in `--color-text-tertiary` italic if `last_used_at IS NULL`; tabular-nums |
 | References | 100px | Badge — `--color-success-soft` when count = 0 + label "Unused"; `--color-warning-soft` when count ≥ 1 + label "[N] page[s]". Clicking the badge opens a Sheet (DSv2 `Sheet` primitive) listing the referencing pages with deep-links into PageEditor |
 | Actions | 80px | Icon-only "Remove" button (lucide `Trash2` size 20px `--color-danger`), 44×44 hit area, opens DSv2 `Confirm` modal |
 
-**Sort:** Default sort = Added desc (newest first). Column headers click-sortable — sortable visual cue is a lucide `ChevronUp`/`ChevronDown` icon next to the active column header, `--text-xs --color-text-tertiary`.
+**Sort:** Default sort = Added desc (newest first). Column headers click-sortable — sortable visual cue is a lucide `ChevronUp`/`ChevronDown` icon next to the active column header, `--text-sm --color-text-tertiary`.
 
 **Remove confirmation modal** (DSv2 `Confirm` primitive):
 - Title: "Remove [hostname] from allowlist?"
@@ -464,3 +463,4 @@ These are NOT design-contract gaps — they are downstream implementation choice
 
 *Phase: 41-public-status-page-embed-provider-blocks*
 *UI-SPEC drafted: 2026-05-21 by gsd-ui-researcher*
+*UI-SPEC revised: 2026-05-21 — Dim 4 fix: dropped `--text-xs`, promoted 12px usages to `--text-sm` (13px). Now 4 sizes total.*
