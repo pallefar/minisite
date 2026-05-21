@@ -8,10 +8,9 @@
  *   - A/B      — placeholder; Plan 34-09 ships the real OnboardingABPanel.
  *   - Funnel   — placeholder; Plan 34-09 ships the real OnboardingFunnelTab.
  *
- * Per memory [[executor-tdd-scaffolds-sibling-files]]: this plan owns ONLY
- * the Builder tab + TabPlaceholder seams; it does NOT scaffold Plan 34-09's
- * components. The placeholder reads `plan="34-09"` so an operator can see
- * exactly which plan ships the missing tab.
+ * Plan 34-09 (Wave 4) wired the real OnboardingABPanel + OnboardingFunnelTab
+ * into the A/B and Funnel tab branches. Plan 34-08 originally owned only the
+ * Builder tab + placeholder seams; that placeholder is now removed.
  *
  * Save flow: calls `save_consumer_onboarding_flow(p_steps)` SECDEF (Plan
  * 34-01). The SECDEF re-checks `admin_role='superadmin'` server-side
@@ -33,6 +32,8 @@ import { SortableTreePanel } from '@/components/ui/SortableTreePanel';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 import type { ConsumerOnboardingStepNode } from '@/types/onboarding-step';
+import OnboardingABPanel from './OnboardingABPanel';
+import OnboardingFunnelTab from './OnboardingFunnelTab';
 import StepPalette, { createStepOfType } from './StepPalette';
 import StepPropertyPanel from './StepPropertyPanel';
 import StepRow from './StepRow';
@@ -53,6 +54,10 @@ export default function OnboardingBuilderModule() {
   const [adminRole, setAdminRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Plan 34-09: active flow id (sourced from the same onboarding_flows row the
+  // Builder tab loads). Passed to OnboardingFunnelTab so PostHog HogQL filters
+  // by the deployed flow rather than the working draft.
+  const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
 
   const isSuperadmin = adminRole === 'superadmin';
 
@@ -80,12 +85,14 @@ export default function OnboardingBuilderModule() {
 
         const { data: flow } = await supabase
           .from('onboarding_flows')
-          .select('config')
+          .select('id,config')
           .eq('is_active', true)
           .maybeSingle();
         if (!cancelled) {
-          const cfg = (flow as { config?: unknown } | null)?.config;
+          const flowRow = flow as { id?: string; config?: unknown } | null;
+          const cfg = flowRow?.config;
           setSteps(Array.isArray(cfg) ? (cfg as ConsumerOnboardingStepNode[]) : []);
+          setActiveFlowId(flowRow?.id ?? null);
           setLoading(false);
         }
       } catch (err) {
@@ -255,35 +262,16 @@ export default function OnboardingBuilderModule() {
             </aside>
           </div>
         )}
-        {tab === 'ab' && <TabPlaceholder name="A/B Experiments" plan="34-09" />}
-        {tab === 'funnel' && <TabPlaceholder name="Funnel Analytics" plan="34-09" />}
+        {tab === 'ab' && <OnboardingABPanel />}
+        {tab === 'funnel' && <OnboardingFunnelTab flowId={activeFlowId} />}
       </div>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// TabPlaceholder — seam for Plan 34-09 to replace with real panels.
-// ---------------------------------------------------------------------------
-
-interface TabPlaceholderProps {
-  name: string;
-  plan: string;
-}
-
-function TabPlaceholder({ name, plan }: TabPlaceholderProps) {
-  return (
-    <div
-      data-tab-placeholder={plan}
-      className="text-center py-12 text-[var(--color-text-tertiary)] border border-dashed border-[var(--color-border)] rounded-xl"
-    >
-      <p>
-        <strong className="text-[var(--color-text-secondary)]">{name}</strong> tab ships in Plan{' '}
-        <code>{plan}</code>.
-      </p>
-    </div>
-  );
-}
+// Plan 34-09 wired the real OnboardingABPanel + OnboardingFunnelTab here —
+// the prior placeholder seam (`Plan34-09` marker) is removed. The
+// OnboardingBuilderModule unit test now asserts the real tab markers instead.
 
 // Type re-export removed — consumers should import directly from
 // '@/types/onboarding-step'. Keeping this file as a pure component module

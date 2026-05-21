@@ -83,7 +83,9 @@ describe('OnboardingFunnelTab (Plan 34-09 ONBOARD-09)', () => {
     await waitFor(() => {
       // KPI summary
       expect(screen.getByText(/Total views/i)).toBeTruthy();
-      expect(screen.getByText('100')).toBeTruthy();
+      // "100" appears in both the KPI tile and the step_a views cell — use
+      // getAllByText to assert presence without uniqueness.
+      expect(screen.getAllByText('100').length).toBeGreaterThan(0);
       // Per-step table
       expect(screen.getByText('step_a')).toBeTruthy();
       expect(screen.getByText('step_b')).toBeTruthy();

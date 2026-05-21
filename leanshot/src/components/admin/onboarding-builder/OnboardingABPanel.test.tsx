@@ -110,7 +110,7 @@ describe('OnboardingABPanel (Plan 34-09 ONBOARD-08)', () => {
     await waitFor(() => {
       expect(screen.getByText(/CTA test/i)).toBeTruthy();
     });
-    const buttons = screen.getAllByRole('button', { name: /Ship "/i });
+    const buttons = screen.getAllByRole('button', { name: /Ship .* to 100%/i });
     expect(buttons.length).toBe(2);
     for (const btn of buttons) {
       expect((btn as HTMLButtonElement).disabled).toBe(true);
@@ -145,7 +145,7 @@ describe('OnboardingABPanel (Plan 34-09 ONBOARD-08)', () => {
 
     render(<OnboardingABPanel />);
 
-    const btn = await screen.findByRole('button', { name: /Ship "B"/i });
+    const btn = await screen.findByRole('button', { name: /Ship .B. to 100%/i });
     await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
 
     fireEvent.click(btn);
@@ -182,7 +182,7 @@ describe('OnboardingABPanel (Plan 34-09 ONBOARD-08)', () => {
 
     render(<OnboardingABPanel />);
 
-    const btn = await screen.findByRole('button', { name: /Ship "B"/i });
+    const btn = await screen.findByRole('button', { name: /Ship .B. to 100%/i });
     await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
 
     fireEvent.click(btn);
