@@ -17,8 +17,9 @@ import {
   Building2,
   Globe,
   Eye,
+  Trophy,
 } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
 import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
@@ -51,12 +52,22 @@ import { PatientMfaCard } from './PatientMfaCard';
 import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 import { PhiAccessLogTab } from './PhiAccessLogTab';
 
+// Phase 35 Plan 35-08 (GAME-04): Leaderboards subtab — lazy-loaded so the
+// gamification + supabase client code is not pulled into the settings chunk
+// on every settings open.
+const LeaderboardsSubtab = lazy(() =>
+  import('./LeaderboardsSubtab').then((m) => ({ default: m.LeaderboardsSubtab })),
+);
+
 type Section =
   | 'account'
   | 'profile'
   | 'goals'
   | 'language'
   | 'notifications'
+  // Phase 35 Plan 35-08 (GAME-04 / D-12): leaderboard opt-in + handle picker.
+  // Section enum widening lives with first writer (memory: admin_module_manifest_vs_router_branch_drift).
+  | 'leaderboards'
   | 'privacy'
   // Phase 22 plan 22-11 (ON-03 + GDPR-03): two link-out entries that navigate
   // to dedicated `/settings/*` sub-pages (full pages, not modal sections).
@@ -105,6 +116,8 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   // calls i18n.changeLanguage atomically.
   { id: 'language', label: 'Language', Icon: Globe },
   { id: 'notifications', label: 'Notifications', Icon: Bell },
+  // Phase 35 Plan 35-08 (GAME-04): leaderboard opt-in settings.
+  { id: 'leaderboards', label: 'Leaderboards', Icon: Trophy },
   { id: 'privacy', label: 'Privacy', Icon: Shield },
   // Phase 25 Plan 02-02 (HIPAA-14 / D-08): patient-side "Who has viewed my data"
   // access log. Sits directly after Privacy so the HIPAA transparency surface
@@ -293,6 +306,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     // both are part of the persisted shape so the JSON export round-trips.
     activationFiredAt: fullState.activationFiredAt,
     draftEntriesPending: fullState.draftEntriesPending,
+    // Phase 35 Plan 35-08: nudge dismiss state included so PersistedState type is satisfied.
+    leaderboardNudgeDismissed: fullState.leaderboardNudgeDismissed,
   });
 
   const handleExportJson = async (): Promise<void> => {
@@ -587,6 +602,18 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               {/* Phase 42 Plan 42-08 (POLISH-05/06): 5×3 matrix + push permission +
                   snooze + caps + suppression banner. Replaces the v1.1 stub. */}
               <NotificationsSubtab />
+            </Section>
+          )}
+
+          {/* Phase 35 Plan 35-08 (GAME-04): leaderboard opt-in + handle picker per cohort. */}
+          {section === 'leaderboards' && (
+            <Section
+              title="Leaderboards"
+              body="Opt in to cohort leaderboards. Your real name is never shown — just your chosen handle."
+            >
+              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">Loading…</div>}>
+                <LeaderboardsSubtab />
+              </Suspense>
             </Section>
           )}
 

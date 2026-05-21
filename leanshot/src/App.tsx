@@ -1324,6 +1324,15 @@ export function App() {
     return () => window.removeEventListener('leanshot:replay-tour', onReplay);
   }, []);
 
+  // Phase 35 Plan 35-08 (GAME-04): open-settings event dispatched by the
+  // GamificationCard's onOpenLeaderboardSettings handler (level-5 nudge CTA).
+  // Mirrors the leanshot:replay-tour pattern above.
+  useEffect(() => {
+    const onOpenSettings = (): void => setSettingsOpen(true);
+    window.addEventListener('leanshot:open-settings', onOpenSettings);
+    return () => window.removeEventListener('leanshot:open-settings', onOpenSettings);
+  }, []);
+
   // Phase 42 Plan 04 (POLISH-07) — bootstrap PWA service worker registration +
   // install-prompt + offline store AFTER first paint.
   //

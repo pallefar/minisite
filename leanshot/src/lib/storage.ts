@@ -114,6 +114,18 @@ export interface PersistedState {
    * data.
    */
   draftEntriesPending: unknown[];
+
+  /**
+   * Phase 35 Plan 35-08 (GAME-04 / D-12) — fast-paint cache for the level-5
+   * leaderboard nudge dismissal state. Set to `true` when the user dismisses
+   * the nudge; writes through to user_leaderboard_prefs.nudge_dismissed_at.
+   * On hydrate, the store fetches the server-side value for cross-device sync.
+   *
+   * Monotonic: once true, never set back to false (mirrors the DB trigger).
+   * Per-user via partialize — cleared on sign-out so the next user's nudge
+   * state is fetched fresh on their first sign-in.
+   */
+  leaderboardNudgeDismissed: boolean;
 }
 
 export const initialState: PersistedState = {
@@ -149,6 +161,8 @@ export const initialState: PersistedState = {
   // Phase 34 Plan 34-07 — activation guard + draft-entry sink defaults.
   activationFiredAt: null,
   draftEntriesPending: [],
+  // Phase 35 Plan 35-08 — leaderboard nudge dismiss cache (false = not dismissed).
+  leaderboardNudgeDismissed: false,
 };
 
 /**

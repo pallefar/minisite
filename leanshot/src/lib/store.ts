@@ -391,6 +391,17 @@ interface Actions {
    * previously-queued entries.
    */
   replayDraftEntries: (entries: unknown[]) => void;
+
+  // -------------------------------------------------------------------------
+  // Phase 35 Plan 35-08 (GAME-04 / D-12) — leaderboard nudge dismissal.
+  // -------------------------------------------------------------------------
+  /**
+   * Mark the level-5 leaderboard nudge as dismissed (monotonic — never clears).
+   * Immediately sets `leaderboardNudgeDismissed: true` in the store (fast-paint)
+   * then best-effort upserts user_leaderboard_prefs.nudge_dismissed_at to the DB
+   * for cross-device sync.
+   */
+  setLeaderboardNudgeDismissed: () => Promise<void>;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -560,6 +571,35 @@ export const useStore = create<Store>()(
         // info-level line so the count is observable in dev tools.
         // eslint-disable-next-line no-console
         console.info(`[store] replayDraftEntries: queued ${entries.length} entries`);
+      },
+
+      // Phase 35 Plan 35-08 (GAME-04 / D-12) — leaderboard nudge dismiss action.
+      //
+      // Monotonic fast-paint + DB write-through:
+      //   1. set({ leaderboardNudgeDismissed: true }) immediately (survives reload via partialize)
+      //   2. best-effort upsert to user_leaderboard_prefs.nudge_dismissed_at (cross-device sync)
+      //
+      // Dynamic import of supabase keeps it off the entry-chunk static graph (mirrors
+      // the signOut / clearPermissionCache pattern). localStorage cache is the
+      // fast-paint source of truth; DB is the cross-device sync layer.
+      setLeaderboardNudgeDismissed: async () => {
+        set({ leaderboardNudgeDismissed: true });
+        const userId = get().signedIn?.user?.id;
+        if (!userId) return;
+        try {
+          const { supabase: sb } = await import('@/lib/supabase');
+          await sb.from('user_leaderboard_prefs').upsert(
+            {
+              user_id: userId,
+              nudge_dismissed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' },
+          );
+        } catch (e) {
+          // Best-effort: localStorage cache already set; DB sync can retry next session.
+          console.warn('[store] persisting leaderboardNudgeDismissed failed', e);
+        }
       },
 
       setTab: (tab) => {
@@ -1275,6 +1315,29 @@ export const useStore = create<Store>()(
         const user = session.user ?? null;
         const verified = Boolean(user && !user.is_anonymous && user.email_confirmed_at != null);
         set({ signedIn: { user, session, verified } });
+
+        // Phase 35 Plan 35-08 (GAME-04 / D-12): cross-device nudge sync.
+        // When a verified user signs in, fetch their nudge_dismissed_at from
+        // user_leaderboard_prefs. Best-effort fire-and-forget — the localStorage
+        // cache (leaderboardNudgeDismissed) is the fast-paint source; server
+        // is the authoritative cross-device source.
+        if (user && verified) {
+          void (async () => {
+            try {
+              const { supabase: sb } = await import('@/lib/supabase');
+              const { data } = await sb
+                .from('user_leaderboard_prefs')
+                .select('nudge_dismissed_at')
+                .eq('user_id', user.id)
+                .maybeSingle();
+              if (data?.nudge_dismissed_at) {
+                set({ leaderboardNudgeDismissed: true });
+              }
+            } catch {
+              // Best-effort — localStorage cache remains authoritative for this session
+            }
+          })();
+        }
       },
 
       /**
@@ -1321,6 +1384,9 @@ export const useStore = create<Store>()(
           current_period_end: null,
           plan_id: null,
           provider: null as SubscriptionProvider,
+          // Phase 35 Plan 35-08: reset nudge cache on signout so the next
+          // user's dismiss state is fetched fresh on hydrate.
+          leaderboardNudgeDismissed: false,
         })),
 
       signOut: async () => {
@@ -2033,6 +2099,9 @@ export const useStore = create<Store>()(
         // handshake crash-safety).
         activationFiredAt: state.activationFiredAt,
         draftEntriesPending: state.draftEntriesPending,
+        // Phase 35 Plan 35-08 (GAME-04 / D-12): nudge dismiss cache.
+        // Persisted so the next paint is immediate; DB is the cross-device layer.
+        leaderboardNudgeDismissed: state.leaderboardNudgeDismissed,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.
