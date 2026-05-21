@@ -321,7 +321,7 @@ None yet — roadmap just created. Phase 24 plan-phase is the next runnable.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260521-gbm | Fix dashboard desktop/tablet responsiveness — unlayered `* { margin: 0 }` killed all Tailwind margin utilities; moved into `@layer base` + split AppShell main offset/centering | 2026-05-21 | _pending_ | [260521-gbm-fix-dashboard-desktop-tablet-responsiven](./quick/260521-gbm-fix-dashboard-desktop-tablet-responsiven/) |
+| 260521-gbm | Fix dashboard desktop/tablet responsiveness — unlayered `* { margin: 0 }` killed all Tailwind margin utilities; moved into `@layer base` + split AppShell main offset/centering | 2026-05-21 | 8da34fa | [260521-gbm-fix-dashboard-desktop-tablet-responsiven](./quick/260521-gbm-fix-dashboard-desktop-tablet-responsiven/) |
 
 ### v1.2 Tech Debt + v1.3-deferred (carry-over to v1.4)
 
