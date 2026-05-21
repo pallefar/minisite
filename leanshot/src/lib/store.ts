@@ -10,6 +10,7 @@ import type {
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { track } from '@/lib/analytics';
+import { PausedSubscriptionError } from '@/lib/errors';
 // Phase 28 Plan 28-05 ORG-06: org-context slice types (hoisted to break
 // potential circular import between store.ts ↔ org.ts).
 // Phase 6 D-12 CI hardening: @/lib/auth + @/lib/sync are NO LONGER eager
@@ -227,6 +228,14 @@ interface Actions {
   // Phase 14 Plan 14-05 — billing tier slice.
   /** Set the billing tier + subscription metadata. All 4 fields persist via partialize. */
   setTier: (next: Partial<BillingState> & { tier: Tier }) => void;
+
+  // Phase 40 Plan 40-07 D-07 — pause state slice.
+  /**
+   * Set the pause state mirror from the subscriptions table.
+   * Called by billing-sync.ts after fetching the subscriptions row.
+   * Both fields persist via partialize; cleared on sign-out (T-40-07-06).
+   */
+  setPauseState: (is_paused: boolean, paused_until: string | null) => void;
 
   // Phase 5 Plan 05-02 Task 2 — session + offline write queue + sync gate.
   setSession: (session: Session | null) => void;
@@ -527,6 +536,27 @@ export function migrateState(persistedState: unknown, version: number): Persiste
   return state;
 }
 
+// Phase 40 Plan 40-07 D-07 — pause-gate helper.
+//
+// Internal helper (NOT on the public store interface). Throws PausedSubscriptionError
+// when the user's subscription is paused. Called as the FIRST statement in every
+// logging action that creates NEW data (add*, upsert*). Delete/edit actions are
+// intentionally NOT guarded — D-07 allows removing/editing existing data during pause.
+//
+// Design note: declared as a named function (not arrow const) so the call inside the
+// persist() factory closure works correctly at action-call time. `useStore` is always
+// initialized by the time any action is invoked, so the getState() call is safe.
+//
+// T-40-07-07 mitigation: keep this comment prominent so future plan authors know
+// to add `_assertNotPaused()` to any new logging action they introduce.
+// ---------------------------------------------------------------------------
+function _assertNotPaused(): void {
+  const s = useStore.getState();
+  if (s.is_paused === true) {
+    throw new PausedSubscriptionError(s.paused_until);
+  }
+}
+
 export const useStore = create<Store>()(
   persist(
     (set, get) => ({
@@ -615,6 +645,11 @@ export const useStore = create<Store>()(
           plan_id: next.plan_id ?? null,
           provider: next.provider ?? null,
         }),
+
+      // Phase 40 Plan 40-07 D-07 — pause state action.
+      // Single writer to the pause slice (billing-sync.ts is the only caller).
+      setPauseState: (is_paused, paused_until) => set({ is_paused, paused_until }),
+
       showToast: (message, kind = 'success', durationMs) =>
         set({
           toast: {
@@ -682,6 +717,10 @@ export const useStore = create<Store>()(
       },
 
       addInjection: (inj) => {
+        // _assertNotPaused() throws PausedSubscriptionError (typed — callers distinguish
+        // pause refusal from other validation failures) when is_paused=true. Must be the
+        // FIRST statement before any set()/get()/enqueueOp/deferFlush side-effect.
+        _assertNotPaused();
         const log_id = inj.log_id ?? crypto.randomUUID();
         set((s) => {
           // Phase 3 D-07 / PK-05: every new injection carries the engine version
@@ -762,6 +801,7 @@ export const useStore = create<Store>()(
       },
 
       addSymptom: (sx) => {
+        _assertNotPaused();
         // Phase 6 06-03: stamp symptom_id (composite PK on public.symptoms)
         // so the cloud upsert can identify this row across local-only logging
         // and Realtime fanout. Caller may pass an existing symptom_id (e.g.
@@ -816,7 +856,8 @@ export const useStore = create<Store>()(
         deferFlush();
       },
 
-      upsertWeight: (w) =>
+      upsertWeight: (w) => {
+        _assertNotPaused();
         set((s) => {
           const idx = s.weights.findIndex((x) => x.date === w.date);
           const next = [...s.weights];
@@ -824,7 +865,8 @@ export const useStore = create<Store>()(
           else next.push(w);
           next.sort((a, b) => a.date.localeCompare(b.date));
           return { weights: next };
-        }),
+        });
+      },
       removeWeight: (idx) => {
         const target = useStore.getState().weights[idx] as
           | (WeightLog & { weight_id?: string })
@@ -841,6 +883,7 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       addWeight: (w) => {
+        _assertNotPaused();
         const wWithId = w as WeightLog & { weight_id?: string; updated_at?: string };
         const weight_id = wWithId.weight_id ?? crypto.randomUUID();
         // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
@@ -876,9 +919,13 @@ export const useStore = create<Store>()(
         deferFlush();
       },
 
-      addMeasurement: (m) => set((s) => ({ measurements: [m, ...s.measurements] })),
+      addMeasurement: (m) => {
+        _assertNotPaused();
+        set((s) => ({ measurements: [m, ...s.measurements] }));
+      },
 
       addMeal: (m) => {
+        _assertNotPaused();
         const mWithId = m as Meal & { meal_id?: string; updated_at?: string };
         const meal_id = mWithId.meal_id ?? crypto.randomUUID();
         // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
@@ -932,6 +979,7 @@ export const useStore = create<Store>()(
       setFoodNoise: (date, n) => set((s) => ({ foodNoise: { ...s.foodNoise, [date]: n } })),
 
       addWorkout: (w) => {
+        _assertNotPaused();
         const wWithId = w as Workout & { workout_id?: string; updated_at?: string };
         const workout_id = wWithId.workout_id ?? crypto.randomUUID();
         // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
@@ -1047,6 +1095,7 @@ export const useStore = create<Store>()(
           return { sleep: next };
         }),
       addMood: (m) => {
+        _assertNotPaused();
         const mWithId = m as MoodLog & { mood_id?: string; updated_at?: string };
         const mood_id = mWithId.mood_id ?? crypto.randomUUID();
         // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
@@ -1097,6 +1146,7 @@ export const useStore = create<Store>()(
         deferFlush();
       },
       addSleep: (sl) => {
+        _assertNotPaused();
         const sWithId = sl as SleepLog & { sleep_id?: string; updated_at?: string };
         const sleep_id = sWithId.sleep_id ?? crypto.randomUUID();
         // Phase 6 06-05 D-11: stamp `updated_at` for LWW loss-detection.
@@ -1147,10 +1197,14 @@ export const useStore = create<Store>()(
         deferFlush();
       },
 
-      addNSV: (text, date) => set((s) => ({ nsvs: [{ text, date }, ...s.nsvs] })),
+      addNSV: (text, date) => {
+        _assertNotPaused();
+        set((s) => ({ nsvs: [{ text, date }, ...s.nsvs] }));
+      },
       removeNSV: (idx) => set((s) => ({ nsvs: s.nsvs.filter((_, i) => i !== idx) })),
 
       addPhoto: async (blob, meta) => {
+        _assertNotPaused();
         const photo_id = crypto.randomUUID();
         // Phase 6 D-06: client-side compression — canvas, 1600px maxEdge,
         // JPEG-85. The Storage bucket also caps file_size_limit at 2 MB
@@ -1387,6 +1441,10 @@ export const useStore = create<Store>()(
           // Phase 35 Plan 35-08: reset nudge cache on signout so the next
           // user's dismiss state is fetched fresh on hydrate.
           leaderboardNudgeDismissed: false,
+          // Phase 40 Plan 40-07 D-07 (T-40-07-06): clear pause slice on signout so
+          // Account A's paused state cannot leak to Account B (cross-account isolation).
+          is_paused: false,
+          paused_until: null,
         })),
 
       signOut: async () => {
@@ -2102,6 +2160,10 @@ export const useStore = create<Store>()(
         // Phase 35 Plan 35-08 (GAME-04 / D-12): nudge dismiss cache.
         // Persisted so the next paint is immediate; DB is the cross-device layer.
         leaderboardNudgeDismissed: state.leaderboardNudgeDismissed,
+        // Phase 40 Plan 40-07 D-07: pause state persists so the banner appears
+        // on first paint before billing-sync.ts re-fetches (fast-path visibility).
+        is_paused: state.is_paused,
+        paused_until: state.paused_until,
       }),
       migrate: (persistedState, version) => migrateState(persistedState, version),
       // Synchronous-by-default. We rehydrate inside main.tsx before render.

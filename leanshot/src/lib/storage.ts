@@ -98,6 +98,15 @@ export interface PersistedState {
   /** Payment provider. null = no active subscription row. */
   provider: SubscriptionProvider;
 
+  // Phase 40 Plan 40-07 D-07 — pause state mirror (sourced from subscriptions.is_paused per 40-02).
+  // is_paused is the truth for D-07 read-only gating; paused_until drives the banner copy.
+  // Persisted so a returning user sees the banner on first paint (before billing-sync runs).
+  // Cleared on sign-out (clearUserDataSlices) — prevents Account A's paused state leaking to Account B.
+  /** True when the user's subscription is paused (Stripe pause_collection active). */
+  is_paused: boolean;
+  /** ISO timestamp from Stripe subscriptions.paused_until; null when not paused. */
+  paused_until: string | null;
+
   // Phase 34 Plan 34-07 — onboarding activation event (ONBOARD-05).
   /**
    * ISO timestamp set on the first successful `fireActivation()` POST.
@@ -158,6 +167,9 @@ export const initialState: PersistedState = {
   current_period_end: null,
   plan_id: null,
   provider: null as SubscriptionProvider,
+  // Phase 40 Plan 40-07 D-07 — pause state defaults. Cleared on sign-out (T-40-07-06).
+  is_paused: false,
+  paused_until: null,
   // Phase 34 Plan 34-07 — activation guard + draft-entry sink defaults.
   activationFiredAt: null,
   draftEntriesPending: [],
