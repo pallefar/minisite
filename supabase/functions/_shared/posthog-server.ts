@@ -251,7 +251,15 @@ export type Phase38Event =
   | 'plan_personalize.hint_returned'
   // Offline eval / model telemetry ─────────────────────────────────────────
   | 'eval.judge.score'
-  | 'anthropic.prompt_cache.hit';
+  | 'anthropic.prompt_cache.hit'
+  // Phase 37 helpdesk inbound events ─────────────────────────────────────────
+  // Same-plan widening per memory feedback_planner_missed_status_enum_widening:
+  // these union members land in the SAME commit as the Edge Fn that fires
+  // them (supabase/functions/helpdesk-inbound/index.ts).
+  | 'helpdesk.ticket.created'
+  | 'helpdesk.inbound_email.received'
+  | 'helpdesk.inbound_email.unknown_sender'
+  | 'helpdesk.attachment.scan_deferred';
 
 /**
  * Typed payload contract for `recommendation.shown` — fires once per returned
