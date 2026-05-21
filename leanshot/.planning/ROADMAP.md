@@ -354,6 +354,19 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 9 plans
+
+Plans:
+- [ ] 37-01-PLAN.md — Schema: 12 helpdesk tables + RLS + SECDEF RPCs + seed (HELP-01)
+- [ ] 37-02-PLAN.md — KB FTS (tsvector EN+ES + GIN) + pg_cron SLA schedule + email-router templates + HMAC helper (HELP-06, HELP-08, HELP-11)
+- [ ] 37-03-PLAN.md — helpdesk-inbound Edge Fn: Svix verify + 2-step body fetch + HMAC reply gate + idempotency + attachments (HELP-03)
+- [ ] 37-04-PLAN.md — helpdesk-ai-assist Edge Fn: BAA-aware Claude classifier + Zod output + apply/suggest split + sentiment (HELP-04)
+- [ ] 37-05-PLAN.md — helpdesk-csat-send + helpdesk-sla-breach-cron + close trigger + UPSERT dedupe state (HELP-05, HELP-06)
+- [ ] 37-06-PLAN.md — Frontend widget: lazy chunk ≤25 kB gz, KB search, KB article, ticket form, realtime, /macro slash (HELP-02, HELP-07, HELP-09, HELP-10, HELP-11)
+- [ ] 37-07-PLAN.md — Admin module: manifest replace + HelpdeskLayout + InboxPage + TicketDetail + AiSuggestionPane + agent-reply-send Edge Fn (HELP-04, HELP-12)
+- [ ] 37-08-PLAN.md — Admin sub-pages: KBEditor + MacroEditor + RoutingRules + SLATargets + TrendsDashboard (HELP-07, HELP-08, HELP-12, HELP-13)
+- [ ] 37-09-PLAN.md — Closeout: RLS impersonation proof tests + Resend Inbound MX human-UAT + Function Secrets + e2e smoke (all HELP-* verified)
+
 ### Phase 38: M5b AI Recommender (pgvector + Claude Digest)
 
 **Goal**: pgvector + OpenAI embeddings power Next-Best-Action; weekly Claude summary email sends per user-timezone; win-back prompts route via SAVE engine.
