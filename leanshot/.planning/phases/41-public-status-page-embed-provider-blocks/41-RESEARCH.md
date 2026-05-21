@@ -763,32 +763,37 @@ $$;
 | A6 | The Sentry CSP report-uri endpoint format `https://oXXXX.ingest.sentry.io/api/.../security/?sentry_key=...` is correct for this org | Pitfall 12 | Wrong format = silent loss of CSP violation visibility (D-13 monthly review). [ASSUMED — verify Sentry org "optimizenet" CSP-report-uri docs during plan-task setup; see memory `reference_sentry_org`] |
 | A7 | Vercel does not have a built-in feature for per-deployment CSP that we're missing | Standard Stack | If a managed solution exists (Vercel-side), the middleware is unnecessary. [VERIFIED via Vercel docs as of 2026-05: no per-request CSP in `vercel.json` schema — middleware is the documented path] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **D-14: DB table vs env var for iframe_allowlist**
    - What we know: D-17 requires `last_used_at` + page-reference counts → both need persistent storage with time.
    - What's unclear: Env var could work if we accept "no last-used tracking" — but UI-SPEC §Surface E explicitly shows the Last-used column.
    - Recommendation: **DB table** — clearer ownership, audit-logged mutations, supports the UX contract. Env var would require a deploy on every hostname change, defeats the "live edit + 60s cache" responsive feel.
+   - **RESOLVED:** DB table `public.iframe_allowlist` shipped per Plan 41-02 Task 1 (migration `20270711000001_p41_iframe_allowlist.sql`). Citation: D-14 + D-17 + EMBED-07.
 
 2. **EMBED-08: Calendly OAuth state machine in Supabase Edge Fn or PageEditor only**
    - What we know: Popup OAuth flow is locked (CONTEXT D-CONTEXT V13-EMBED). Token storage = in-memory or sessionStorage (planner picks).
    - What's unclear: Where does the OAuth start endpoint live? `/api/calendly/oauth-start` per UI-SPEC §Surface D could be a Supabase Edge Fn (`calendly-oauth-start`) OR a static Vercel rewrite to Calendly's hosted OAuth URL with client_id pre-substituted.
    - Recommendation: **Supabase Edge Fn** — keeps Calendly client_secret server-side; static rewrite would require `client_id` only (no secret) which works for the start step but the callback exchange definitely needs the secret. Two Fns: `calendly-oauth-start` + `calendly-oauth-callback`.
+   - **RESOLVED:** Two Supabase Edge Fns shipped per Plan 41-04 Task 1 (`calendly-oauth-start` + `calendly-oauth-callback`). Vercel rewrites for `/api/calendly/oauth-start` + `/api/calendly/oauth-callback` added in Plan 41-03 Task 1 (vercel.json). Token storage = in-memory closure ONLY per Plan 41-04 Task 2 verify gate (zero-localStorage grep).
 
 3. **EMBED-06: which KB editor surfaces support embed-block authoring?**
    - What we know: `src/admin/modules/helpdesk/KBEditorPage.tsx` uses ReactMarkdown + DOMPurify with `USE_PROFILES: { html: true }`.
    - What's unclear: Should the KB editor get a "drop an embed block" button (rich-text UX), or do KB authors hand-write `<embed-block type="..." data-url="...">` in markdown?
    - Recommendation: **Hand-write in v1.3** — keeps the editor change minimal (only dompurify config + ReactMarkdown components mapper). Rich-text drop-in is a v1.4 polish. Document the markdown syntax in KB editor hint text.
+   - **RESOLVED:** Hand-write in v1.3 per Plan 41-05 Task 3 — dompurify `ADD_TAGS:['embed-block']` + `ADD_ATTR:['type','data-url','data-id','data-allow']` shipped in both `KBArticleView.tsx` and `KBEditorPage.tsx`; ReactMarkdown `components` mapper resolves the lowercased custom tag → 4 React block components. Rich-text drop-in deferred to v1.4 polish.
 
 4. **D-14 cache invalidation strategy**
    - What we know: Pattern 3 uses 60s in-memory cache per edge region.
    - What's unclear: When admin removes a hostname, should the middleware purge immediately? Vercel edge functions don't share memory across regions.
    - Recommendation: **Accept 60s TTL latency** — Custom-iframe ops are rare. If immediate purge needed, expose a manual "Refresh CDN cache" button in `/admin/embeds/allowlist` that fires Vercel's purge API.
+   - **RESOLVED:** Accept 60s TTL — implemented in Plan 41-03 Task 2 (Vercel Edge Middleware `cache: {hosts, expiresAt}` with 60s window, per-region in-memory). Manual purge button is a v1.4 polish; for v1.3, Plan 41-06 admin UI (`ReferencesSheet` caption + `AllowlistPage` empty-state) documents up-to-60s propagation latency so superadmins know to wait after hostname mutations.
 
 5. **Better Stack subscriber form: embed style on /status, or just link to status.leanshot.app?**
    - What we know: D-03 says "embedded Better Stack form on /status page".
    - What's unclear: leanshot.app has no `/status` route today — only `status.leanshot.app` (the Better Stack-hosted page itself). So "embedded on /status page" probably means "on the Better Stack-hosted page", not "embedded on a LeanShot-hosted page".
    - Recommendation: **Interpret D-03 as "Better Stack hosts the form; no LeanShot embedding"**. Confirm with user in next discuss-iteration if ambiguous.
+   - **RESOLVED:** Better Stack hosts the subscriber form on `status.leanshot.app` — no LeanShot-side embedding; cited Plan 41-06 user_setup `dashboard_config` Better Stack branding tasks. v1.3 ships `status.leanshot.app` CNAME only (D-05); no /status route added to leanshot.app.
 
 ## Environment Availability
 

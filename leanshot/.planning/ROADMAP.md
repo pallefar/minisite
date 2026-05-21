@@ -495,6 +495,24 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 6 plans in 3 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 41-01-PLAN.md — Phase 22 consent-event emit retrofit + canonical event module + typed subscribe helper (EMBED-01/02/03/05 foundation) [Wave 1]
+- [ ] 41-02-PLAN.md — iframe_allowlist table + SECDEF audit-logged RPCs + BlockType union + validateCustomIframeUrl + admin client wrappers (EMBED-04/07) [Wave 1]
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 41-03-PLAN.md — Vercel Edge Middleware for D-14 dynamic CSP + vercel.json D-12 additions + atomic csp-snapshot regen + page-render Deno consent-gating retrofit (EMBED-01/02/03/04/07) [Wave 2]
+- [ ] 41-04-PLAN.md — Calendly OAuth Edge Fns (start + callback) + CalendlyPreviewPopup with postMessage origin validation (EMBED-08) [Wave 2]
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 41-05-PLAN.md — ConsentGatedEmbed HOC + EmbedPlaceholderCard + CustomIframeBlock + 3-block retrofit + PROPERTY_CONFIGS + KB-article render (EMBED-01..07) [Wave 3]
+- [ ] 41-06-PLAN.md — Superadmin allowlist admin module + BLOCKING supabase db push + Edge Fn deploys + Better Stack HUMAN-UAT close-out (POLISH-10, EMBED-04/07) [Wave 3]
+
 ### Phase 42: v1.3 Polish Closeout — WCAG 2.2 AA + Smart Notifications + PWA Offline + Dark Mode + What's New + NPS
 
 **Goal**: Cross-phase accessibility / notifications / offline / dark-mode parity / changelog / quarterly NPS survey close out v1.3.
