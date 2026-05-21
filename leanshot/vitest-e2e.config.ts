@@ -66,6 +66,17 @@ export default defineConfig({
       // reject, edit-then-approve, clinic-admin RLS gate, bulk approve.
       // Live-DB; auto-skip when SUPABASE env vars are missing.
       'tests/e2e/hitl-queue.spec.ts',
+      // Phase 37 plan 37-09 — RLS cross-tenant impersonation proofs for
+      // the helpdesk surface. File #1 covers tickets / ticket_messages /
+      // ticket_attachments / ticket_ai_suggestions (+ log_phi_access RPC
+      // end-to-end audit). File #2 covers kb_articles / kb_article_versions
+      // / agent_macros / helpdesk_routing_rules / sla_targets +
+      // publish_kb_article + search_kb_articles RPC role-gating. Live-DB;
+      // auto-skip when SUPABASE env vars are missing. Per
+      // [[reference_supabase_project]]: every RLS surface gets a live
+      // cross-tenant impersonation proof test.
+      'src/test/rls-helpdesk-tickets.test.ts',
+      'src/test/rls-helpdesk-kb.test.ts',
     ],
     testTimeout: 30000,
   },
