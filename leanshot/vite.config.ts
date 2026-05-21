@@ -153,6 +153,37 @@ export default defineConfig(({ mode }) => {
             // components are under src/components/admin/ but the admin-shell rule
             // fires first because it also checks src/lib/admin/.
             if (id.includes('/src/lib/admin/')) return 'admin-shell';
+            // Phase 37 Plan 06 — helpdesk chunk topology (D-16 / D-18 / T-37-06-06).
+            //
+            // The widget root chunk (`helpdesk-widget`) MUST stay ≤25 kB gz —
+            // mounted on every screen via App.tsx. Heavy sub-components are
+            // routed to SEPARATE chunks so their bytes only download when the
+            // user actually navigates to them inside the widget:
+            //   - KBArticleView pulls in react-markdown + remark-gfm + rehype-raw + dompurify
+            //     → 'helpdesk-article' chunk (only loads when opening an article).
+            //   - MacroTypeahead pulls in fuse.js
+            //     → 'helpdesk-macros' chunk (only loads when the agent types '/').
+            //   - TicketForm + TicketList + TicketThread + hooks → 'helpdesk-tickets'
+            //     (loads on opening the ticket form/thread; modest because supabase-js
+            //     is already in vendor-supabase).
+            // The widget root (HelpdeskWidget + KBSearchTypeahead + index barrel)
+            // stays in 'helpdesk-widget'. ORDER MATTERS — more-specific rules first.
+            if (
+              id.includes('/src/helpdesk/KBArticleView') ||
+              id.includes('/src/components/helpdesk/KBArticleView')
+            ) return 'helpdesk-article';
+            if (
+              id.includes('/src/helpdesk/MacroTypeahead') ||
+              id.includes('/src/components/helpdesk/MacroTypeahead')
+            ) return 'helpdesk-macros';
+            if (
+              id.includes('/src/helpdesk/TicketForm') ||
+              id.includes('/src/helpdesk/TicketList') ||
+              id.includes('/src/helpdesk/TicketThread') ||
+              id.includes('/src/helpdesk/ReplyComposer') ||
+              id.includes('/src/helpdesk/TypingIndicator') ||
+              id.includes('/src/helpdesk/hooks/')
+            ) return 'helpdesk-tickets';
             if (
               id.includes('/src/helpdesk/') ||
               id.includes('/src/components/helpdesk/') ||
