@@ -576,3 +576,21 @@ export const EVENTS = {
 
 export type EventName = keyof typeof EVENTS;
 export type PayloadOf<K extends EventName> = z.infer<(typeof EVENTS)[K]['payload']>;
+
+// ---------------------------------------------------------------------------
+// Phase 35 Plan 35-03 (D-05, GAME-01, GAME-09) — Gamification event taxonomy.
+// Additive-only per TAXO-01 + ESLint no-restricted-syntax.
+// These 6 events are fired by the xp-event Edge Fn (server-side, D-05) and
+// optionally by the SPA fire-and-forget wrapper (xp-event-client.ts).
+// Both paths are legal: server-side capture is the canonical PostHog record
+// (adblocker resilient); client capture is supplementary.
+// PHI-safe: the xp-event Edge Fn enforces an 8-key property allowlist before
+// forwarding to PostHog (T-35-03-04 — Phase 25 HIPAA-08 defense-in-depth).
+// ---------------------------------------------------------------------------
+export type Phase35Event =
+  | 'xp_earned'
+  | 'level_up'
+  | 'streak_milestone'
+  | 'freeze_token_granted'
+  | 'challenge_completed'
+  | 'badge_unlocked';
