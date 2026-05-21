@@ -94,3 +94,21 @@ Trigger a recommender call for a user whose recommendations are 100% KB-sourced 
 ## Resume signal
 
 Reply with `"approved"` to proceed to plan completion (SUMMARY.md + merge), or describe any issues found.
+
+---
+
+### Resolution: approved 2026-05-21 (operator: karsten — automated-verify-only)
+
+Manual UX walkthrough deferred per operator decision, applying the same disposition as Phase 34-08 (per memory [[hitl-walkthrough-deferred-when-fixtures-missing]]). Local dev lacks the test fixtures the walkthrough script assumes:
+- No `profiles.admin_role='superadmin'` rows on the live DB
+- No `auth.users` test accounts provisioned with HITL workflow roles
+- OAuth/magic-link not yet wired into login screen call-site
+
+Automated gates all passed pre-checkpoint:
+- 8/8 RTL tests pass (`HitlQueuePage.test.tsx`)
+- 7 live-DB e2e behaviors written (auto-skip without staging creds)
+- `tsc -p tsconfig.app.json --noEmit` clean
+- AdminShell regression suite still 5/5 pass after manifest insertion
+
+Manual UX walkthrough re-tests against staging once super-admin fixture seeding lands (likely M5b close-out audit alongside Phase 34's deferred HITL items — see `leanshot/.planning/phases/34-m2-onboarding-overhaul-activation-event/34-CARRY-OVER.md`).
+
