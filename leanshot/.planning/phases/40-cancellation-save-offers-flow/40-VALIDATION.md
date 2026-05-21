@@ -64,6 +64,10 @@ updated: 2026-05-21
 | 40-01-T3 | 40-01 | 1 | POLISH-04 coupon seed | T-40-01-04 | Stripe coupon seed idempotent: first run creates 6; re-run skips 6 via `resource_already_exists` catch | Edge Fn unit | `$HOME/.deno/bin/deno test --no-check --allow-env --allow-net supabase/functions/cancellation-seed-coupons/index.test.ts` | ❌ created in 40-01 T3 | ⬜ pending |
 | 40-06-T2 | 40-06 | 3 | POLISH-02 CSV | T-40-06-02 | CSV export streams admin-only; non-admin gets 403; Content-Disposition attachment + filename includes yyyymmdd | Edge Fn unit | `$HOME/.deno/bin/deno test --no-check supabase/functions/download-cancellation-roi-csv/` | ❌ created in 40-06 T2 | ⬜ pending |
 
+| 40-07-T1 | 40-07 | 3 | POLISH-03 D-07 | T-40-07-01 | All 10+ logging actions (addInjection/upsertWeight/addSymptom/addWorkout/addMeal/addMood/addSleep/addNSV/addPhoto/addMeasurement) throw PausedSubscriptionError when is_paused=true; pass when false; removeInjection NOT guarded (delete during pause allowed per D-07) | Vitest unit | `cd leanshot && npx vitest run src/lib/__tests__/paused-guards.test.ts` | ❌ created in 40-07 T1 | ⬜ pending |
+| 40-07-T2a | 40-07 | 3 | POLISH-03 D-07 banner | T-40-07-04 | PausedBanner self-hides when is_paused=false; renders with D-07 verbatim copy + formatted paused_until date when true | Vitest+RTL | `cd leanshot && npx vitest run src/components/layout/PausedBanner.test.tsx` | ❌ created in 40-07 T2 | ⬜ pending |
+| 40-07-T2b | 40-07 | 3 | POLISH-03 D-07 CTA | T-40-07-04 | Resume now? CTA dispatches CustomEvent type=leanshot:open-settings (reuses 35-08 channel); no new listener wired | Vitest+RTL | `cd leanshot && npx vitest run src/components/layout/PausedBanner.test.tsx` | ❌ created in 40-07 T2 | ⬜ pending |
+
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
