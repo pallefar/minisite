@@ -40,7 +40,7 @@ import type { SubscriptionProvider } from '@/types';
 export async function syncBillingTier(userId: string): Promise<void> {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('status, current_period_end, plan_id, provider')
+    .select('status, current_period_end, plan_id, provider, is_paused, paused_until')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -73,4 +73,14 @@ export async function syncBillingTier(userId: string): Promise<void> {
     plan_id: data?.plan_id ?? null,
     provider: (data?.provider as SubscriptionProvider) ?? null,
   });
+
+  // Phase 40 Plan 40-07 D-07 — pause state hydration.
+  // Defensive defaults: if columns are absent (staging env, pre-40-02 migration),
+  // default to is_paused=false so the banner never renders for un-paused users.
+  // Error path already returns above — if we reach here, data may still be null
+  // (no subscription row), which also maps to is_paused=false.
+  useStore.getState().setPauseState(
+    Boolean((data as { is_paused?: boolean } | null)?.is_paused ?? false),
+    ((data as { paused_until?: string | null } | null)?.paused_until as string | null) ?? null,
+  );
 }

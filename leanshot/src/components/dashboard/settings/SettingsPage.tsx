@@ -308,6 +308,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     draftEntriesPending: fullState.draftEntriesPending,
     // Phase 35 Plan 35-08: nudge dismiss state included so PersistedState type is satisfied.
     leaderboardNudgeDismissed: fullState.leaderboardNudgeDismissed,
+    // Phase 40 Plan 40-07 D-07: pause state included so PersistedState type is satisfied.
+    is_paused: fullState.is_paused,
+    paused_until: fullState.paused_until,
   });
 
   const handleExportJson = async (): Promise<void> => {
