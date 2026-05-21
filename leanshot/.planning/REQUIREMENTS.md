@@ -293,6 +293,26 @@
 - [ ] **DIGEST-03**: Weekly email digest (course progress recap + upcoming events you RSVP'd + community top-3 of the week); respects user notification preferences
 - [ ] **DIGEST-04**: Per-user digest opt-out + frequency control in notification settings (POLISH-06 extension); 1-click unsubscribe link in every digest
 
+### WS25 — A Revenue: Multi-channel Traffic + Conversion Tracking (TRAFFIC, 12 REQ-IDs)
+
+> Phase 51 — sibling of Phase 33 `growth/cac`. Drafted from CONTEXT.md D-01..D-16 + RESEARCH.md pre-drafted REQ list.
+
+- [ ] **TRAFFIC-01**: UTM source/medium/campaign/term/content captured verbatim on every visit; first-touch persisted ONCE per `lt_anon_id`, last-touch updated on every visit (D-01, D-02, D-13)
+- [ ] **TRAFFIC-02**: `lt_anon_id` HttpOnly Secure SameSite=Lax cookie (UUIDv4, Max-Age 7776000 = 90d sliding window) set server-side BEFORE the Vite SPA boots (Vercel Edge Middleware) (D-04)
+- [ ] **TRAFFIC-03**: PostHog `aliasServerSide(supabase.uid, lt_anon_id)` called on signup stitches anonymous distinct_id → identified user; `merge-anon-session` Edge Fn extended (D-04)
+- [ ] **TRAFFIC-04**: Operator-editable `channel_groups` taxonomy table with `match_rule_jsonb` rule matcher, priority order, attribution_window_days; 8 seed defaults; takes effect at next matview refresh — no deploy (D-01, D-07)
+- [ ] **TRAFFIC-05**: Operator-editable `referrer_channel_rules` table seeded with ~80 well-known referrer domains (Snowplow `referer-parser` JSON source); referrer-domain classification when UTM absent (D-03)
+- [ ] **TRAFFIC-06**: Three parallel conversion funnels — Consumer (visit→signup→activation→paid), Clinic-org (visit→clinic-signup→first-patient-added→first-paid-seat), Affiliate (visit→affiliate-signup→first-referral-conversion); audience switcher in Funnels tab (D-05)
+- [ ] **TRAFFIC-07**: Activation event (P34 ONBOARD) is north-star for ad-spend join; `traffic_channel_rollup` LEFT JOINs `ad_spend_facts` (P33) at `(channel_group, day)` grain with fixed network→channel_group mapping; surfaces `cac_to_activation` (primary) + `cac_to_paid` (secondary) (D-06, D-15)
+- [ ] **TRAFFIC-08**: Family of 4 surfaces — 3 matviews (`traffic_channel_rollup`, `traffic_funnel_rollup`, `traffic_landing_page_rollup`) + 1 regular VIEW (`traffic_realtime_v`) refreshed CONCURRENTLY with UNIQUE indexes; refresh sequenced AFTER P33's existing `ad_revenue_refresh` cron in a single pg_cron job (D-11, D-14)
+- [ ] **TRAFFIC-09**: Per-channel cohort retention curves D1/D7/D14/D30/D60 on `traffic_channel_rollup` via SECDEF helper `is_retained(user_id, audience, window_days)` with per-audience semantics (D-16)
+- [ ] **TRAFFIC-10**: Per-clinic-org dashboard scope — `org_id` dimension on `user_traffic_attribution` + all 4 matviews; SECDEF accessors gate on `is_admin()` OR `_is_org_clinician(org_id)`; cross-tenant impersonation RLS deny test required (D-12)
+- [ ] **TRAFFIC-11**: `funnel-anomaly-cron` extension scans EACH (channel_group × audience × funnel_stage_pair × date) for per-channel-stage drops vs 7-day baseline; writes to existing `admin_notifications` surface; dedup key = `(channel_group, audience, funnel, stage_pair, date)` — no new cron (D-08)
+- [ ] **TRAFFIC-12**: `growth/traffic` admin module (sibling of `growth/cac` under shared 'Growth' nav group) renders 4 tabs (Channels / Funnels / Landing Pages / Real-time) + Taxonomy admin sub-page; Pill PillGroup tab control; native `useEffect + setInterval` polling on Real-time (no TanStack Query); 4 typography sizes (11/13/18/28) / 2 weights (D-09, D-10, D-11, D-12)
+
+---
+
+
 ---
 
 ## Future Requirements (v1.4+)

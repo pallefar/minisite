@@ -727,13 +727,22 @@ Plans:
 ### Phase 51: Full traffic + conversion tracking system + unified dashboard (UTM/source attribution, funnel analytics, ad-spend rollup)
 
 **Goal:** Multi-channel traffic + conversion intelligence live for operators and clinic owners: every visit's UTM + referrer captured into `user_traffic_attribution` (first + last touch), classified via operator-configurable `channel_groups`, rolled up into per-channel × per-audience funnels (Consumer / Clinic-org / Affiliate) with D1/D7/D14/D30/D60 retention curves and CAC-to-activation joined from P33 `ad_spend_facts`, surfaced in a new `growth/traffic` admin module (Channels / Funnels / Landing Pages / Real-time) — platform-wide for admins and org-scoped for clinic owners.
-**Requirements**: TBD — planner drafts TRAFFIC-NN from CONTEXT.md decisions
+**Requirements**: TRAFFIC-01, TRAFFIC-02, TRAFFIC-03, TRAFFIC-04, TRAFFIC-05, TRAFFIC-06, TRAFFIC-07, TRAFFIC-08, TRAFFIC-09, TRAFFIC-10, TRAFFIC-11, TRAFFIC-12
 **Depends on:** Phase 33 (ad_spend_facts; sequenced matview refresh), Phase 34 (activation event as CAC north-star), Phase 24 (events.ts + captureServer + events_mirror + funnel-anomaly-cron), Phase 27 (events_mirror dual-write + admin_notifications), Phase 28/29 (org_id schema + org membership), Phase 15 (page_variant_id)
-**Plans:** 0 plans
+**Plans:** 10 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 51 to break down)
+- [ ] 51-01-PLAN.md — REQUIREMENTS.md TRAFFIC-NN block + user_traffic_attribution + channel_groups + referrer_channel_rules + is_retained + upsert RPCs + RLS + events.ts additive defs
+- [ ] 51-02-PLAN.md — Vercel Edge Middleware (lt_anon_id cookie) + traffic-attribution-recorder Edge Fn + recordTouch helper + merge-anon-session extension (PostHog alias + claim_traffic_attribution)
+- [ ] 51-03-PLAN.md — 3 matviews (channel/funnel/landing rollups) + realtime VIEW + SECDEF accessors + sequenced pg_cron refresh extending P33
+- [ ] 51-04-PLAN.md — compute_channel_stage_rate RPC + funnel-anomaly-cron per-channel-stage extension to admin_notifications
+- [ ] 51-05-PLAN.md — growth/traffic admin module manifest + TrafficDashboardPage shell + Pill PillGroup tab strip + 5 sub-tab stubs
+- [ ] 51-06-PLAN.md — Channels tab (table + retention sparkline drill-in + first/last touch toggle + CAC deep-link to growth/cac)
+- [ ] 51-07-PLAN.md — Funnels tab (3-audience switcher + BaseChart funnel-stage bars + anomaly badge + per-stage channel-origin drill-in)
+- [ ] 51-08-PLAN.md — Landing Pages tab (top-N selector + filter + sortable columns + PAGEAB variant join)
+- [ ] 51-09-PLAN.md — Real-time tab (5-min visibility-aware poll + stale pip) + Taxonomy admin sub-page (CRUD via SECDEF RPCs) + taxonomy_admin_rpcs migration
+- [ ] 51-10-PLAN.md — [BLOCKING] supabase db push --linked + 3 Edge Fn deploys + Vercel middleware deploy + cross-tenant RLS deny test + cookie smoke + 6-signal HUMAN-UAT checkpoint
 
 ---
 
