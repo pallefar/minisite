@@ -18,8 +18,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { ConfettiBurst } from './ConfettiBurst';
 import { fireXpEvent } from '@/lib/gamification/xp-event-client';
+import { ConfettiBurst } from './ConfettiBurst';
 
 export interface LevelUpBurstProps {
   /** null = no level-up overlay; non-null = show the overlay for this level */
@@ -61,6 +61,7 @@ export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
             onClick={onDismiss}
           >
+            {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
             <div
               className="bg-[var(--color-surface)] rounded-2xl p-8 shadow-xl text-center"
               onClick={(e) => e.stopPropagation()}

@@ -10,8 +10,8 @@
  *   - streak_state table (Plan 35-02 schema)
  *   - computeLevel / xpToNextLevel / computePrestige (Plan 35-03 client mirror of D-04)
  */
-import { supabase } from '@/lib/supabase';
 import { computeLevel, xpToNextLevel, computePrestige } from '@/lib/gamification/xp';
+import { supabase } from '@/lib/supabase';
 
 export interface GamificationDashboardData {
   xpTotal: number;

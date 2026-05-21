@@ -6,6 +6,7 @@ import { GLPCurveCard } from '@/components/dashboard/cards/GLPCurveCard';
 import { HeroCard } from '@/components/dashboard/cards/HeroCard';
 import { QuickLogCard } from '@/components/dashboard/cards/QuickLogCard';
 import { SiteRotationCard } from '@/components/dashboard/cards/SiteRotationCard';
+import { GamificationCard } from '@/components/dashboard/cards/GamificationCard';
 import { StreaksCard } from '@/components/dashboard/cards/StreaksCard';
 import { SymptomCard } from '@/components/dashboard/cards/SymptomCard';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -73,6 +74,9 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
       <EffectivenessCard />
       <SymptomCard />
       <StreaksCard />
+      {/* Phase 35 Plan 35-06 (NIT-3): GamificationCard mounts below StreaksCard
+          for visual continuity — Level + Streak rings + Leaderboard + Weekly Challenges */}
+      <GamificationCard />
       <QuickLogCard onOpenAI={onOpenAI} />
 
       <Suspense

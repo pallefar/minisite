@@ -6,8 +6,10 @@
  *   T-35-06-01: trigger=null → no burst fires
  *   Normal path: trigger='level-up' + reduced=false → fireLevelUpBurst called with level
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { fireChallengeCompleteBurst, fireLevelUpBurst } from '@/lib/gamification-defer';
 import { ConfettiBurst } from '../ConfettiBurst';
 
 vi.mock('@/hooks/useReducedMotion', () => ({ useReducedMotion: vi.fn() }));
@@ -15,9 +17,6 @@ vi.mock('@/lib/gamification-defer', () => ({
   fireLevelUpBurst: vi.fn(),
   fireChallengeCompleteBurst: vi.fn(),
 }));
-
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { fireLevelUpBurst, fireChallengeCompleteBurst } from '@/lib/gamification-defer';
 
 const mockUseReducedMotion = useReducedMotion as ReturnType<typeof vi.fn>;
 const mockFireLevelUpBurst = fireLevelUpBurst as ReturnType<typeof vi.fn>;

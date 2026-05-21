@@ -3,7 +3,6 @@
  * Server regex: ^[a-zA-Z0-9_-]{6,24}$
  */
 import { describe, expect, it } from 'vitest';
-
 import { validateHandle } from '../handle-validate';
 
 describe('validateHandle (D-13)', () => {
