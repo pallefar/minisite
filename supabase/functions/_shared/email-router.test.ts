@@ -179,6 +179,110 @@ Deno.test('T4: phi=true + test-stub credentials + BAA active → sends via SES',
   __resetSesForTest();
 });
 
+// ─── Phase 37 Plan 37-02 helpdesk template routing tests ────────────────────
+// Per [[feedback_planner_iter1_anti_patterns]]: caller is authoritative on phi
+// (the router NEVER infers phi from the template name). These tests verify
+// each new template member routes through the correct vendor when the caller
+// sets phi correctly.
+//
+// Strategy mirrors T1 (Resend test-stub) for non-PHI templates and T3
+// (no-credentials no-op) for the PHI-aware template. Reaching the SES
+// no-credentials no-op proves the router selected the PHI path on phi=true.
+
+Deno.test('T6 (37-02): csat_followup phi=false routes to Resend', async () => {
+  Deno.env.set('RESEND_API_KEY', 'test-stub');
+  Deno.env.delete('AWS_SES_BAA_ACTIVE');
+  __resetSesForTest();
+  const mockSupabase = makeMockSupabase(null);
+
+  const result = await sendEmail(mockSupabase, {
+    template: 'csat_followup',
+    to: 'patient@example.com',
+    vars: { ticket_ref: 'abcdef1234567890', csat_url: 'https://app.leanshot.app/csat/xyz' },
+    phi: false,
+  });
+
+  assertEquals(result.provider, 'resend');
+  assertEquals(result.skipped, undefined);
+
+  Deno.env.delete('RESEND_API_KEY');
+});
+
+Deno.test('T7 (37-02): helpdesk_agent_reply phi=true routes to SES (no-creds no-op proves PHI path)', async () => {
+  // No AWS_SES_* creds set → SES health check returns no_credentials.
+  // Router returns {provider:'ses', id:'noop-no_credentials', skipped:true}.
+  // Reaching this branch proves the agent_reply template took the PHI path,
+  // NOT the Resend non-PHI path (which would have returned provider='resend').
+  Deno.env.delete('AWS_SES_ACCESS_KEY_ID');
+  Deno.env.delete('AWS_SES_SECRET_ACCESS_KEY');
+  Deno.env.delete('AWS_SES_BAA_ACTIVE');
+  __resetSesForTest();
+  const mockSupabase = makeMockSupabase(null);
+
+  const result = await sendEmail(mockSupabase, {
+    template: 'helpdesk_agent_reply',
+    to: 'patient@example.com',
+    vars: {
+      subject: 'Re: Your support ticket',
+      body: 'Thanks for your message — here is what we recommend.',
+      reply_to: 'reply+token123@app.leanshot.app',
+    },
+    phi: true,
+  });
+
+  assertEquals(result.provider, 'ses');
+  assertEquals(result.skipped, true);
+  // no-credentials is the expected gate outcome with empty env.
+  assertEquals(result.id, 'noop-no_credentials');
+});
+
+Deno.test('T8 (37-02): sla_breach_alert always non-PHI internal → Resend even when ticket would be PHI', async () => {
+  Deno.env.set('RESEND_API_KEY', 'test-stub');
+  Deno.env.delete('AWS_SES_BAA_ACTIVE');
+  __resetSesForTest();
+  const mockSupabase = makeMockSupabase(null);
+
+  // Caller hardcodes phi=false because the alert body contains no patient
+  // identifiers — only ticket ref + tier + elapsed/target minutes.
+  const result = await sendEmail(mockSupabase, {
+    template: 'sla_breach_alert',
+    to: 'agent-oncall@leanshot.app',
+    vars: {
+      ticket_ref: 'abc12345',
+      tier: 'p1',
+      breach_type: 'first_response',
+      elapsed_minutes: 35,
+      target_minutes: 30,
+      admin_url: 'https://app.leanshot.app/admin/helpdesk/abc12345',
+    },
+    phi: false,
+  });
+
+  assertEquals(result.provider, 'resend');
+  assertEquals(result.skipped, undefined);
+
+  Deno.env.delete('RESEND_API_KEY');
+});
+
+Deno.test('T9 (37-02): helpdesk_unknown_sender phi=false routes to Resend', async () => {
+  Deno.env.set('RESEND_API_KEY', 'test-stub');
+  Deno.env.delete('AWS_SES_BAA_ACTIVE');
+  __resetSesForTest();
+  const mockSupabase = makeMockSupabase(null);
+
+  const result = await sendEmail(mockSupabase, {
+    template: 'helpdesk_unknown_sender',
+    to: 'stranger@example.com',
+    vars: { signup_url: 'https://app.leanshot.app/signup' },
+    phi: false,
+  });
+
+  assertEquals(result.provider, 'resend');
+  assertEquals(result.skipped, undefined);
+
+  Deno.env.delete('RESEND_API_KEY');
+});
+
 // ─── T5: phi=true + suppressed recipient → suppressed skipped ────────────────
 Deno.test('T5: phi=true + recipient in suppression list → suppressed skipped', async () => {
   // Set up valid-looking credentials + BAA active so we pass the health check.
