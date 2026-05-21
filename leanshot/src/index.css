@@ -324,8 +324,15 @@
 *::after {
   box-sizing: border-box;
 }
-* {
-  margin: 0;
+/* Margin reset MUST live in @layer base so Tailwind's `utilities` layer (ordered
+   after `base`) can override it. Unlayered, this `* { margin: 0 }` beats every
+   margin utility (m-*, mx-*, ms-*, …) app-wide — silently killing the dashboard's
+   `md:ms-[232px]` sidebar offset on desktop/tablet while mobile (padding/gap-based)
+   looked fine. Unlayered styles always win over layered ones in the cascade. */
+@layer base {
+  * {
+    margin: 0;
+  }
 }
 html,
 body,

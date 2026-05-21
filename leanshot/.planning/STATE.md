@@ -317,6 +317,12 @@ None yet — roadmap just created. Phase 24 plan-phase is the next runnable.
 - **Phase 33 Meta App Review (Dev → Standard tier)** has 2-4 week vendor lead time — start application during P24/25 to avoid blocking P33 entry.
 - **Carry-over runner-pool quirk**: `/gsd-manager` background plan/execute dispatch still lacks the Task tool. Use foreground Claude Code session for plan-phase + execute-phase.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260521-gbm | Fix dashboard desktop/tablet responsiveness — unlayered `* { margin: 0 }` killed all Tailwind margin utilities; moved into `@layer base` + split AppShell main offset/centering | 2026-05-21 | _pending_ | [260521-gbm-fix-dashboard-desktop-tablet-responsiven](./quick/260521-gbm-fix-dashboard-desktop-tablet-responsiven/) |
+
 ### v1.2 Tech Debt + v1.3-deferred (carry-over to v1.4)
 
 Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
