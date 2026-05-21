@@ -19,6 +19,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { fireXpEvent } from '@/lib/gamification/xp-event-client';
+import { LevelUpShareModal } from '@/components/dashboard/share/LevelUpShareModal';
 import { ConfettiBurst } from './ConfettiBurst';
 
 export interface LevelUpBurstProps {
@@ -30,6 +31,7 @@ export interface LevelUpBurstProps {
 export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
   const reduced = useReducedMotion();
   const [confettiTrigger, setConfettiTrigger] = useState<'level-up' | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     if (newLevel === null) {
@@ -72,6 +74,14 @@ export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
               <div className="text-7xl font-bold text-[var(--color-primary)] mt-2">
                 {newLevel}
               </div>
+              {/* Share CTA — Plan 35-07 integration seam */}
+              <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                className="mt-4 mr-3 px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+              >
+                Share Level {newLevel}
+              </button>
               <button
                 type="button"
                 onClick={onDismiss}
@@ -83,6 +93,15 @@ export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* LevelUpShareModal — mounts outside the overlay so it stacks correctly */}
+      {newLevel !== null && (
+        <LevelUpShareModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          level={newLevel}
+        />
+      )}
     </>
   );
 }
