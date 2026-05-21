@@ -257,6 +257,7 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
+
 - [x] 32-01-PLAN.md — i18n runtime + namespaces + missing-key telemetry (foundation)
 - [x] 32-02-PLAN.md — String extraction sweep + EN catalogs (8 namespaces) + coverage CI gate
 - [x] 32-03-PLAN.md — profiles.locale schema + custom detector + Settings Language picker + D-12 kg-default
@@ -298,6 +299,7 @@ Plans:
 **Plans:** 9/10 plans executed
 
 Plans:
+
 - [x] 34-01-PLAN.md — Schema: anonymous_sessions + onboarding_flows + profiles.primary_goal + activation_events ALTER + SECDEFs
 - [x] 34-02-PLAN.md — Weekly TTL cron + create-anon-session Edge Fn + _ls_anon cookie helper
 - [x] 34-03-PLAN.md — events.ts activation_completed + Phase38Event union widening + record-activation Edge Fn + fire-once RPC
@@ -323,9 +325,11 @@ Plans:
   3. Cohort-scoped opt-in leaderboard renders anonymized handles; matview refreshes every 15 minutes; user can opt-out and disappear from the leaderboard within the next refresh cycle
   4. Admin creates a weekly challenge (challenge_type + duration + reward) and optionally enables a cohort-scoped A/B variant; users are notified BEFORE streak break (no dark patterns)
   5. Level-up event generates a shareable OG-image card via Vercel Function; user shares to social and the card renders correctly on Twitter/X, LinkedIn, Instagram; gamification-burst chunk stays ≤8 kB gz
+
 **Plans:** 10 plans
 
 Plans:
+
 - [ ] 35-01-PLAN.md — XP ledger + compute_level pure fn + badge_catalog seed + RLS proofs
 - [ ] 35-02-PLAN.md — Streak state + freeze tokens ledger + tz crons + admin grant Edge Fn
 - [ ] 35-03-PLAN.md — xp-grant hybrid triggers + xp-event Edge Fn + combo cross-streak badge
@@ -354,6 +358,29 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 5 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 36-01-PLAN.md — Schema: 4 tables (rules/history/native/cta-catalog) + SECDEF RPCs + events.ts nps_trigger_eligible flag + V13-3 ESLint test fixtures + grep gate (REVIEW-01, REVIEW-02, REVIEW-03, REVIEW-08)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 36-02-PLAN.md — Edge Fns: nps-trigger-decide (server cooldown + variant resolve) + nps-feedback-submit (user-JWT-forwarding to create_ticket RPC) + nps-cta-click-log + useNativeReviewTrigger hook + review-shim + decide-client (REVIEW-01, REVIEW-03, REVIEW-04, REVIEW-05, REVIEW-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 36-03-PLAN.md — Consumer modals: NPSPromptModal (5★ ARIA radiogroup) + PromoterCtaModal + DetractorFeedbackModal + useNPSPromptListener + App.tsx mount (REVIEW-01, REVIEW-03, REVIEW-04, REVIEW-05)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 36-04-PLAN.md — Admin module: modules.ts placeholder swap + RulesListPage + RuleFormPanel + FunnelDashboardPage + VariantGrid (ship-winner reuse) + CtaCatalogPage + CohortPicker + funnel-aggregate RPC (REVIEW-02, REVIEW-06, REVIEW-07, REVIEW-08)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 36-05-PLAN.md — Closeout: supabase db push --linked (BLOCKING) + 3 Edge Fn deploys + multi-device cooldown E2E + A/B variant E2E + admin rule-builder E2E + 4-signal HUMAN-UAT (all REVIEW-* verified)
+
 ### Phase 37: M6 Helpdesk Core
 
 **Goal**: Tickets + KB + email-to-ticket + AI assist + CSAT ship end-to-end; Resend Inbound vs SES PHI routing decided at Phase 25 propagates here.
@@ -372,6 +399,7 @@ Plans:
 **Plans:** 3/9 plans executed
 
 Plans:
+
 - [x] 37-01-PLAN.md — Schema: 12 helpdesk tables + RLS + SECDEF RPCs + seed (HELP-01)
 - [x] 37-02-PLAN.md — KB FTS (tsvector EN+ES + GIN) + pg_cron SLA schedule + email-router templates + HMAC helper (HELP-06, HELP-08, HELP-11)
 - [x] 37-03-PLAN.md — helpdesk-inbound Edge Fn: Svix verify + 2-step body fetch + HMAC reply gate + idempotency + attachments (HELP-03)
@@ -398,6 +426,7 @@ Plans:
 **Plans:** 7/10 plans executed
 
 Plans:
+
 - [x] 38-01-PLAN.md — Schema: pgvector + content_embeddings + HNSW + match_content_embeddings RPC + profiles.timezone + supporting tables (12 migrations)
 - [x] 38-02-PLAN.md — _shared helpers: openai-embed, anthropic-summarize (/v1/messages), baa-scope, digest-schema (Zod+whitelist), render-user-facts, recommender-rank, BAA allowlist extension for claude-sonnet-4-6
 - [x] 38-03-PLAN.md — recommend-next-best-action Edge Fn + multi-surface payload + RLS cross-tenant impersonation proof + p95<800ms
@@ -442,6 +471,7 @@ Plans:
 **Plans:** 6 plans (3 waves)
 
 Plans:
+
 - [x] 40-01-PLAN.md — Schema: cancellation_offers_log + save_offer_rules + Stripe coupon seed (Wave 1) [SHIPPED]
 - [x] 40-02-PLAN.md — Stripe webhook extension + pause-reminder cron + email-router widening (Wave 1) [SHIPPED]
 - [x] 40-03-PLAN.md — Edge Fns: cancellation-decide-offer (lookup) + cancellation-accept-offer (Stripe write) (Wave 2) [SHIPPED]
@@ -647,23 +677,28 @@ Plans:
 Plans:
 
 **Wave 1** (4 plans in parallel — data layer + admin surface + event registry):
+
 - [x] 50-01-PLAN.md — SQL schema (9 migrations): rag_topics, rag_sources + seed, rag_chunks, external_kb_embeddings + HNSW, rag_topic_audit, rag_scrape_runs, rag_cost_ledger, rag_newsletter_subscriptions, RLS policies [Wave 1]
 - [x] 50-02-PLAN.md — Admin module + RagLayout + Topics/Sources pages + TierBadge/HealthBadge/CostBar primitives + 8 admin RPCs + telemetry rollup [Wave 1]
 - [x] 50-03-PLAN.md — 13 rag_* PostHog events registered in events.ts + disable_session_recording_on_url regex extension + captureRagEvent helper [Wave 1]
 
 **Wave 2** *(blocked on Wave 1 completion)* (3 plans in parallel — scrape + summarize + review queue):
+
 - [x] 50-04-PLAN.md — rag-scrape-runner Edge Fn (Firecrawl + robots.txt + cost-gating + 3-attempt backoff + auto-pause) + pg_cron orchestrator [Wave 2]
 - [ ] 50-05-PLAN.md — rag-summarize-and-chunk Edge Fn (Anthropic via P25 consumer credential + quote-only-mode + prompt-injection guard + sentence-aware chunker) [Wave 2]
 - [ ] 50-06-PLAN.md — RagQueuePage + side-by-side source/quote pane + 6-reason reject taxonomy + Edit/Retract modals + state-machine RPCs + SLA backlog cron [Wave 2]
 
 **Wave 3** *(blocked on Wave 2 completion — D-22 MVP cut)* (2 plans in parallel — embeddings + must-have user surfaces):
+
 - [ ] 50-07-PLAN.md — rag-embed-approved Edge Fn (OpenAI text-embedding-3-small + nightly cron) + rag-retrieve Edge Fn (HNSW + tier-boost + freshness-derank; standalone until P38 ships) [Wave 3]
 - [ ] 50-08-PLAN.md — AI Coach CitationMarker+Popover + Dashboard TipOfTheDayCard + i18n disclaimer shim (rag.attribution, rag.disclaimer) + server-rag-event-relay [Wave 3 — MVP cut]
 
 **Wave 4** *(blocked on Wave 3 completion — D-22 STRETCH cut; can defer to Phase 51 if scope tightens)*:
+
 - [ ] 50-09-PLAN.md — Research newsletter Edge Fn (weekly cron + Resend via P25) + 1-click unsubscribe + public /research Hub + ResearchArticleDetail + NewsletterSettings + RagCostPage final (vendor cards + auto-pause + acknowledge-and-resume) [Wave 4 — STRETCH] **[DEFERRED — D-22 explicitly marks this wave deferrable; carry-over to Phase 51 or v1.4 closeout. See 50-CARRY-OVER.md]**
 
 **Cross-cutting constraints:**
+
 - Every SECURITY DEFINER function sets `search_path = extensions, public, pg_temp` per [[reference_supabase_migration_gotchas]].
 - Every Edge Fn that captures PostHog events calls `await ph.shutdown()` before return per Phase 24 D-13.
 - Every vendor call writes a `rag_cost_ledger` row; 100% MTD triggers auto-pause + admin acknowledge to resume (D-30).
@@ -679,6 +714,7 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (run /gsd-plan-phase 51 to break down)
 
 ---
