@@ -42,6 +42,7 @@ fi
 # that pushes a chunk over ceiling; changes are diffable in PRs (T-24-07b).
 CHUNK_CONFIG=(
   "admin-shell       130 GRANDFATHERED debt — Phase 42 Plan 42-11 raised ceiling 45→130 to acknowledge the pre-existing Phase 15 page-builder + Phase 24 AdminShell merged-chunk pattern documented in .planning/phases/42-v1-3-polish-closeout/deferred-items.md (admin-shell at 115.06 kB gz after Phase 42 NPS dashboard landed; was 105.50 kB before Phase 42, ceiling 45 kB). Owner of debt-burn: Phase 24 admin-shell ceiling-track or a future polish-debt phase. Any NEW regression beyond 130 kB gz signals NEW Phase 42+ admin code MUST be deferred via sync-defer.ts or admin-route lazy-split."
+  "cancellation       13 Plan 40-04 baseline — three-step modal single chunk (D-17 reason picklist + D-19 server-picked offer + D-20 loss-summary). If regressed, lazy-split OfferCard animation via sync-defer.ts or remove framer-motion from loss-summary tile fade-in."
   "community-feed     20 Defer feed-virtualization with sync-defer.ts; split heavy media render path."
   "course-player      30 Lazy-load video player; consider dynamic import for chapter-list."
   "gamification-burst  8 Move particle-animation to sync-defer.ts; drop framer-motion preset if used."
