@@ -737,9 +737,11 @@ for (const stage of channelStages) {
 | A7 | Cookie set via `response.cookies.set()` in middleware survives the SPA HTML response | Pattern 1 | Vercel quirks. **Mitigation: deploy-verify task per A1.** |
 | A8 | `traffic_realtime_v` regular VIEW (not matview) over last-60min `events_mirror` performs well enough for 5-min polling | D-10 / Architecture | If `events_mirror` is huge by Phase 51 launch and the index `(event_name, created_at desc)` doesn't cover, query latency may spike. **Mitigation: planner adds composite index on `(created_at desc) where created_at > now() - interval '1 hour'` — wait, partial-index predicates must be IMMUTABLE per `reference_supabase_migration_gotchas`. Use plain `(created_at desc)` instead.** |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 ### Q1. Where does the landing-page initial response come from, and can Vercel Edge Middleware set HttpOnly cookies on a Vite static SPA?
+
+**RESOLVED:** Plan 51-02 Task 1 (Vercel Edge Middleware) implements the canonical `middleware.ts` at the SPA project root; Plan 51-10 Task 2 deploy-verifies via `curl -I https://app.leanshot.app/?utm_source=research_smoke` asserting `Set-Cookie: lt_anon_id=` is present. Per W5 fix, Plan 51-02 Task 4 also ships the SPA-mount fire-touch fallback (`leanshot/src/lib/traffic/fire-touch.ts`) wired from `src/main.tsx`, guaranteeing end-to-end TRAFFIC-01 delivery even if the middleware deploy-verify fails on the Vite preset.
 
 **What we know:** Project is a static Vite SPA per `CLAUDE.md`; deployed via Vercel (`reference_vercel_project`). No SSR, no Vercel rewrites in tree, no Vercel middleware in tree. The Vite SPA's index.html is served as a static asset by Vercel's edge.
 
@@ -749,6 +751,8 @@ for (const stage of channelStages) {
 
 ### Q2. Does the planner need to ship a `page_variants` table to satisfy D-11?
 
+**RESOLVED:** Plan 51-03 Task 1 ships `traffic_landing_page_rollup` with `page_variant_id` as nullable; preflight on the linked DB decides whether to join `page_variants` (if it exists) or emit `NULL::uuid` (carry-over to PAGEAB). Plan 51-08 Landing Pages tab renders an em-dash for null variants per UI-SPEC. PAGEAB is unblocked when (if) it later ships a `page_variants` table — no FK constraint here.
+
 **What we know:** PAGEAB-01..07 are unchecked in REQUIREMENTS.md. P15 (Page Builder) shipped `landing_pages` + `landing_page_revisions` but no `page_variants` table.
 
 **What's unclear:** Whether PAGEAB will eventually ship a `page_variants` table, or if variants will live as columns on `landing_page_revisions`.
@@ -756,6 +760,8 @@ for (const stage of channelStages) {
 **Recommendation:** Phase 51 stores `page_variant_id` as a NULLABLE `text` column on `traffic_landing_page_rollup` and `user_traffic_attribution`. PAGEAB (whenever it ships) populates the value via event property on `traffic_visit`. No FK constraint. Plan-checker should explicitly note: "page_variant_id is text-typed for future PAGEAB compatibility; no FK to page_variants table (which does not exist on main)."
 
 ### Q3. Should `lt_org_id` cookie be set at the edge or resolved server-side via slug→org_id lookup?
+
+**RESOLVED:** Plan 51-02 Task 1 sets `lt_clinic_slug_seen={slug}` (5min TTL) at the middleware without resolving slug → org_id (anti-enumeration preserved). The recorder Edge Fn (Plan 51-02 Task 2, service-role) resolves on receipt; org_id flows into `user_traffic_attribution` via `upsert_traffic_attribution` RPC (Plan 51-01). No `lt_org_id` cookie is set in v1.3 — org_id lives in the SQL row, not in the cookie jar.
 
 **What we know:** CONTEXT D-12 says `/share/clinic-{slug}` landings populate `org_id` on `user_traffic_attribution`. P28 ships `resolve_clinic_slug(slug)` SECDEF RPC (anti-enumeration protected) but it requires `auth.uid()` context (authenticated only).
 

@@ -733,15 +733,29 @@ Plans:
 
 Plans:
 
+**Wave 1**
+
 - [ ] 51-01-PLAN.md — REQUIREMENTS.md TRAFFIC-NN block + user_traffic_attribution + channel_groups + referrer_channel_rules + is_retained + upsert RPCs + RLS + events.ts additive defs
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 51-02-PLAN.md — Vercel Edge Middleware (lt_anon_id cookie) + traffic-attribution-recorder Edge Fn + recordTouch helper + merge-anon-session extension (PostHog alias + claim_traffic_attribution)
 - [ ] 51-03-PLAN.md — 3 matviews (channel/funnel/landing rollups) + realtime VIEW + SECDEF accessors + sequenced pg_cron refresh extending P33
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 51-04-PLAN.md — compute_channel_stage_rate RPC + funnel-anomaly-cron per-channel-stage extension to admin_notifications
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 51-05-PLAN.md — growth/traffic admin module manifest + TrafficDashboardPage shell + Pill PillGroup tab strip + 5 sub-tab stubs
 - [ ] 51-06-PLAN.md — Channels tab (table + retention sparkline drill-in + first/last touch toggle + CAC deep-link to growth/cac)
 - [ ] 51-07-PLAN.md — Funnels tab (3-audience switcher + BaseChart funnel-stage bars + anomaly badge + per-stage channel-origin drill-in)
 - [ ] 51-08-PLAN.md — Landing Pages tab (top-N selector + filter + sortable columns + PAGEAB variant join)
 - [ ] 51-09-PLAN.md — Real-time tab (5-min visibility-aware poll + stale pip) + Taxonomy admin sub-page (CRUD via SECDEF RPCs) + taxonomy_admin_rpcs migration
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 51-10-PLAN.md — [BLOCKING] supabase db push --linked + 3 Edge Fn deploys + Vercel middleware deploy + cross-tenant RLS deny test + cookie smoke + 6-signal HUMAN-UAT checkpoint
 
 ---
