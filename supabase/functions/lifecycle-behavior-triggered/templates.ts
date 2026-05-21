@@ -26,6 +26,61 @@ export interface RenderedTemplate {
 
 type BehaviorTemplateName = 'first_injection_celebration' | '7_day_streak' | 'missed_dose_day3';
 
+// Phase 35 plan 35-09 — gamification in-app notification copy templates.
+// D-09 ethical-only guardrail: friendly, no urgency-escalation, no FOMO, no shame language.
+// These templates produce in-app payload copy (not HTML email) — no renderEmailLayout needed.
+export interface GamificationTemplateData {
+  streak_days?: number;        // for streak_warn
+  challenge_framing?: string;  // for challenge_kickoff / challenge_nudge
+  progress_count?: number;     // for challenge_nudge
+  threshold?: number;          // for challenge_nudge
+}
+
+export type GamificationSubtype =
+  | 'gamification.streak_warn'
+  | 'gamification.challenge_kickoff'
+  | 'gamification.challenge_nudge';
+
+export interface GamificationNotificationPayload {
+  subtype: GamificationSubtype;
+  streak_days?: number;
+  challenge_id?: string;
+  framing: string;
+  cta_url: string;
+}
+
+/** Build in-app notification framing copy (ethical-only). */
+export function renderGamificationPayload(
+  subtype: GamificationSubtype,
+  data: GamificationTemplateData & { challenge_id?: string },
+): GamificationNotificationPayload {
+  switch (subtype) {
+    case 'gamification.streak_warn':
+      return {
+        subtype,
+        streak_days: data.streak_days,
+        framing: `You have time today to log something — your ${data.streak_days ?? 1}-day streak is at stake.`,
+        cta_url: '/log',
+      };
+    case 'gamification.challenge_kickoff':
+      return {
+        subtype,
+        challenge_id: data.challenge_id,
+        framing: data.challenge_framing ?? 'This week\'s challenge is live.',
+        cta_url: '/challenges',
+      };
+    case 'gamification.challenge_nudge':
+      return {
+        subtype,
+        challenge_id: data.challenge_id,
+        framing: `You can still hit this week's challenge: ${data.challenge_framing ?? ''} (${data.progress_count ?? 0}/${data.threshold ?? 1} so far).`,
+        cta_url: '/challenges',
+      };
+    default:
+      throw new Error(`unknown_gamification_subtype:${subtype}`);
+  }
+}
+
 const APP_URL_DEFAULT = 'https://app.leanshot.app';
 
 export function renderTemplate(name: string, data: BehaviorTemplateData): RenderedTemplate {
