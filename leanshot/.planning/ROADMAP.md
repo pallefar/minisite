@@ -52,7 +52,7 @@
 - [x] **Phase 33: Hourly Ad-Spend ETL (Meta + Google + TikTok)** — 3 hourly Edge Fns + `ad_spend_facts` partitioned + gap-detection cron + normalized-attribution view + `fx_rates` + admin CAC dashboard (completed 2026-05-18)
 - [ ] **Phase 34: M2 Onboarding Overhaul + Activation Event** — Value-first preview + magic-link/Google/Apple SSO + drag-drop step builder + activation-event lock (blocks P39)
 - [ ] **Phase 35: M3 Gamification Engine** — `xp_ledger` append-only + streak + freeze tokens + cohort-scoped leaderboard matview + canvas-confetti
-- [ ] **Phase 36: M3 Review Prompt Engine (Web Only)** — Internal NPS as INDEPENDENT surface + promoter → external CTA + non-promoter → helpdesk ticket
+- [x] **Phase 36: M3 Review Prompt Engine (Web Only)** — Internal NPS as INDEPENDENT surface + promoter → external CTA + non-promoter → helpdesk ticket
 - [ ] **Phase 37: M6 Helpdesk Core** — `tickets` + `kb_articles` + Resend Inbound webhook + HMAC reply-threading + Claude AI assist + CSAT + realtime
 - [ ] **Phase 38: M5b AI Recommender (pgvector + Claude Digest)** — `content_embeddings vector(1536)` + IVFFlat-vs-HNSW + OpenAI via AI Gateway + weekly Claude summary + win-back prompts
 - [ ] **Phase 39: A/B Trifecta — Mid-Trial Paywall + Pharma Paywall + Page-Variant A/B** — Activation-triggered paywall + composite-goal kill-switch + canonical-link + 42-day cap + safety-info carve-out
