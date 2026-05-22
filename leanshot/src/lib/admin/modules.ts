@@ -135,14 +135,20 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.gamification.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 36 Plan 36-04 (REVIEW-02/06/07/08) — admin reviews module
+  // (Rules + Funnel + CTA Catalog sub-pages). Replaces the Phase 24 placeholder
+  // per memory [[admin-module-manifest-vs-router-branch-drift]] — AdminShell.tsx
+  // already prefix-routes /admin/reviews/* (line 119: pathname.startsWith(...)).
+  // minRole upgraded from 'staff' → 'admin' per CONTEXT D-02: rule editing is an
+  // admin operation; SECDEF RPCs re-check admin_role server-side (Pattern S1).
   {
     key: 'reviews',
     label: 'Reviews',
     route: 'reviews',
     icon: StarIcon,
-    lazy: placeholderFor('Phase 32+ (Review-prompt moderation)'),
+    lazy: () => import('@/admin/modules/reviews'),
     flagKey: 'admin.reviews.enabled',
-    minRole: 'staff' as AdminRole,
+    minRole: 'admin' as AdminRole,
   },
   {
     key: 'membership',
