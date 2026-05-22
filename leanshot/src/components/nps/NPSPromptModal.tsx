@@ -13,12 +13,9 @@
  *     so dismissal does not need to re-write history.
  *   - useReducedMotion()=true → no transition utility class on star buttons.
  *
- * V13-3 (CONTEXT D-03/D-21):
- *   - No import from `@/hooks/useNativeReviewTrigger`.
- *   - No import from `@/lib/native/review-shim`.
- *   - No import from `@/lib/supabase` (W9 — modal has no DB authority).
- *   - The unconditional native-review trigger is wired in
- *     useNPSPromptListener.ts (Task 3), NOT inside this consumer modal.
+ * V13-3 (CONTEXT D-03/D-21) — see useNPSPromptListener.ts for the
+ * unconditional native-review wiring; this consumer modal never imports the
+ * native trigger hook nor the native shim, nor the DB client (W9).
  *
  * Forbidden copy (per Surface A spec): no mention of cooldown duration /
  * lifetime cap / "you'll see this again in N days".
