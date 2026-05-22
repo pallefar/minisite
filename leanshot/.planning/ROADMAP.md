@@ -453,6 +453,38 @@ Plans:
 
 **UI hint**: yes
 
+
+**Plans:** 10 plans in 6 waves
+
+Plans:
+
+**Wave 1** *(parallel: zero file overlap)*
+
+- [ ] 39-01-PLAN.md — Schema foundation: 11 migrations (user_experiments, variant_config, utm_variant_map, pharma_content, pharma_content_versions, page_variants, experiment_results matview, cohort + UTM seeds, subscriptions.refunded_at, resolve_cohort_for_user RPC) + 3 pgTAP RLS proofs
+- [ ] 39-02-PLAN.md — 3-layer phaCheck enforcement (ESLint AST rule + runtime helper + CI grep gate) + BlockNode.variant_set_id extension (D-06 + D-13)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 39-03-PLAN.md — variant-resolver Edge Fn + slack-alert-experiments Edge Fn + bayes-posterior helper + 3 pg_cron jobs (42-day archive, refund kill, pharma NPS kill) + 3 pgTAP proofs
+
+**Wave 3** *(blocked on Wave 1+2; parallel: zero overlap)*
+
+- [ ] 39-04-PLAN.md — Consumer paywall surfaces: PaywallModal + 6-screen OnboardingFlowPaywall + PaywallGate + consent-adapter + UTM capture (PAYWALL-01/02/05/06/07)
+- [ ] 39-05-PLAN.md — Pharma consumer: PharmaContentBlock + SafetyInfoBadge + region-detect + tier resolution + RLS append-only proof (PHARMA-01/02/05/06/07)
+
+**Wave 4** *(blocked on Wave 1+2)*
+
+- [ ] 39-06-PLAN.md — Admin growth/experiments module shell + ExperimentDashboardPage 3-tab chrome + experiment-types module + AdminShell parity test
+
+**Wave 5** *(blocked on Wave 1+2+6)*
+
+- [ ] 39-07-PLAN.md — Paywall + Page-Builder admin tabs + ShipWinnerConfirmModal (D-12) + BayesianBadge + TrafficSplitSlider + 2 SECDEF RPCs (PAYWALL-03/04, PAGEAB-03/05/07)
+- [ ] 39-08-PLAN.md — Pharma admin tab + version list + metrics card + 3 SECDEF RPCs (get_pharma_experiments, version write, disable) + 2 Playwright e2e (PHARMA-03/04/07/08) — SEQUENCED after 39-07 due to ExperimentDashboardPage co-edit
+- [ ] 39-09-PLAN.md — Page-render extension (Vary + per-variant cache key + canonical + per-block resolver) + PageEditorView extension + BlockVariantDrawer + page-variant-create e2e (PAGEAB-01/02/04/06)
+
+**Wave 6 — Close-out** *(blocked on all prior waves)*
+
+- [ ] 39-10-PLAN.md — [BLOCKING] supabase db push + 3 Edge Fn deploys + Slack webhook secret + Vercel deploy + automated sweep + 6 HUMAN-UAT signals
 ### Phase 40: Cancellation Save-Offers Flow [Complete — approved automated-verify-only; UAT deferred to v1.3 close]
 
 > 4 HUMAN-UAT signals (Stripe coupon seed, admin rule create, e2e cancel flow, copy review) consolidated in `.planning/v1.3-uat-deferred.md` — run at milestone close.
