@@ -225,6 +225,28 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.billing.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 43 Plan 05 (MEMBER-02 D-03) — Grandfathered Pricing admin CRUD.
+  // SIBLING entry next to 'billing' (NOT a sub-route edit of the existing
+  // entry) per [[feedback_admin_module_manifest_vs_router_branch_drift]].
+  // AdminShell.tsx URL-prefix routing resolves /admin/billing/grandfathered-prices
+  // here deterministically (longest-prefix match wins via the order-of-iteration
+  // — but our router uses exact-or-prefix on each entry independently, so this
+  // sibling entry's route 'billing/grandfathered-prices' matches its URL without
+  // colliding with the bare 'billing' entry).
+  // minRole 'admin' for the UI gate; the SECDEF RPCs re-check admin_role
+  // server-side (Pattern S1 dual-layer).
+  {
+    key: 'billing-grandfathered',
+    label: 'Grandfathered Pricing',
+    route: 'billing/grandfathered-prices',
+    icon: CreditCardIcon,
+    lazy: () =>
+      import('@/admin/modules/billing/GrandfatheredPricesPage').then((m) => ({
+        default: m.GrandfatheredPricesPage,
+      })),
+    flagKey: 'admin.billing.grandfathered.enabled',
+    minRole: 'admin' as AdminRole,
+  },
   // Phase 40 Plan 40-05 (POLISH-01/04) — Cancellation save-offer rule editor.
   // Two tabs: Rules (this plan) + ROI (40-06 placeholder, replaced by 40-06 on merge).
   // AdminShell.tsx uses URL-prefix routing: /admin/cancellation resolves here without
