@@ -147,4 +147,47 @@ describe('PaywallUpsell', () => {
 
     expect(window.location.href).toBe('');
   });
+
+  // Phase 43 Plan 05 — MEMBER-04 D-11 additive gating_reason variant.
+  // These three cases verify the OPTIONAL prop extension:
+  //   - default (omitted) preserves Phase 39 activation-paywall copy
+  //   - 'pro_only_resource' renders pro-only-resource copy mentioning resource_name
+  //   - resource_name omitted falls back to "This content"
+  it('case 5: default gating_reason — no copy regression vs Phase 39 baseline', async () => {
+    const { PaywallUpsell } = await import('./PaywallUpsell');
+    render(<PaywallUpsell variant="overlay" feature="pharma-forecast" />);
+    // Default copy retained: 7-day forecast headline (existing default headline path).
+    expect(screen.getByText(/7-day forecast/i)).toBeTruthy();
+    // Activation-paywall trial copy still rendered (no Phase 43 hijack).
+    expect(screen.getByText(/7-day free trial/i)).toBeTruthy();
+  });
+
+  it('case 6: gating_reason=pro_only_resource — renders pro-only-resource copy with resource_name', async () => {
+    const { PaywallUpsell } = await import('./PaywallUpsell');
+    render(
+      <PaywallUpsell
+        variant="overlay"
+        feature="advanced-ai"
+        gating_reason="pro_only_resource"
+        resource_type="community"
+        resource_name="GLP-1 Starters"
+      />,
+    );
+    expect(screen.getByText(/GLP-1 Starters is Pro-only/i)).toBeTruthy();
+    expect(screen.getByText(/Unlock the full community library with Pro/i)).toBeTruthy();
+  });
+
+  it('case 7: gating_reason=pro_only_resource without resource_name falls back to "This content"', async () => {
+    const { PaywallUpsell } = await import('./PaywallUpsell');
+    render(
+      <PaywallUpsell
+        variant="overlay"
+        feature="advanced-ai"
+        gating_reason="pro_only_resource"
+      />,
+    );
+    expect(screen.getByText(/This content is Pro-only/i)).toBeTruthy();
+    // resource_type omitted → falls back to "resource"
+    expect(screen.getByText(/Unlock the full resource library with Pro/i)).toBeTruthy();
+  });
 });
