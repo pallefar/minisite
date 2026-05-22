@@ -44,6 +44,11 @@ import { applyDiscount } from './apply-discount.ts';
 import { extendPause } from './extend-pause.ts';
 import { applyExtendedTrial } from './apply-extended-trial.ts';
 import { applyDowngrade } from './apply-downgrade.ts';
+// Phase 43 Plan 04 — MEMBER-03 D-06/D-07: multiplicative discount-stack clamp.
+// D-07 convention: clampCombinedDiscount(clippable, preserved). Existing promo
+// is lower priority → clippable (first arg). New SAVE-offer is preserved
+// (second arg). See _shared/clamp-combined-discount.ts for math.
+import { clampCombinedDiscount } from '../_shared/clamp-combined-discount.ts';
 import type {
   AcceptOfferRequest,
   AcceptOfferResponse,
@@ -262,6 +267,87 @@ Deno.serve(async (req: Request): Promise<Response> => {
       if (!couponId) {
         return jsonError(400, 'missing_coupon_id');
       }
+
+      // Phase 43 Plan 04 — MEMBER-03 D-06/D-07: 70%-cap clamp runs BEFORE
+      // applyDiscount. Read existing discounts on the subscription, compute
+      // their combined percent_off multiplicatively, then call
+      // clampCombinedDiscount(existingPromoPct, newSaveOfferPct).
+      //
+      // D-07 convention: existing promo (lower priority) is the FIRST arg →
+      // clippable side. New SAVE-offer (preserved) is the SECOND arg.
+      //
+      // Stripe per-coupon percent override mid-subscription is not supported;
+      // therefore if the clamp clips, we fail fast with 400.
+      let existingPromoPct = 0;
+      try {
+        const existingSub = await stripe.subscriptions.retrieve(subData.id, {
+          expand: ['discounts'],
+        });
+        const discounts = (existingSub.discounts ?? []) as Array<string | Stripe.Discount>;
+        // Resolve each coupon's percent_off; multiplicatively combine.
+        let combinedRemainder = 1;
+        const seen = new Set<string>();
+        for (const d of discounts) {
+          let cid: string | null = null;
+          let pct: number | null = null;
+          if (typeof d === 'string') {
+            cid = d;
+          } else {
+            const cf = d.coupon;
+            if (typeof cf === 'string') {
+              cid = cf;
+            } else if (cf) {
+              cid = (cf as Stripe.Coupon).id;
+              if (typeof (cf as Stripe.Coupon).percent_off === 'number') {
+                pct = (cf as Stripe.Coupon).percent_off as number;
+              }
+            }
+          }
+          if (!cid || seen.has(cid)) continue;
+          seen.add(cid);
+          if (pct == null) {
+            try {
+              const c = await stripe.coupons.retrieve(cid);
+              pct = typeof c.percent_off === 'number' ? c.percent_off : 0;
+            } catch {
+              pct = 0;
+            }
+          }
+          combinedRemainder *= 1 - (pct ?? 0) / 100;
+        }
+        existingPromoPct = 1 - combinedRemainder;
+      } catch (err) {
+        console.warn('[cancellation-accept-offer] existing-discounts lookup failed:', (err as Error).message);
+        // Fail-safe to 0 (no clamp interference) on lookup failure; applyDiscount
+        // will surface any Stripe error downstream.
+        existingPromoPct = 0;
+      }
+
+      // Compute new SAVE-offer percent_off. offerConfig (discount variant)
+      // carries percent_off when produced by decide-offer (Phase 40), but we
+      // defensively retrieve the coupon if missing.
+      let newSaveOfferPct = 0;
+      // deno-lint-ignore no-explicit-any
+      const cfg: any = offerConfig;
+      if (typeof cfg.percent_off === 'number') {
+        // percent_off may be 0..1 OR 0..100. Normalize.
+        newSaveOfferPct = cfg.percent_off > 1 ? cfg.percent_off / 100 : cfg.percent_off;
+      } else {
+        try {
+          const c = await stripe.coupons.retrieve(couponId);
+          newSaveOfferPct = (typeof c.percent_off === 'number' ? c.percent_off : 0) / 100;
+        } catch {
+          newSaveOfferPct = 0;
+        }
+      }
+
+      const clamp = clampCombinedDiscount(existingPromoPct, newSaveOfferPct);
+      if (clamp.clipped) {
+        // Per D-07: existing promo cannot be safely overridden mid-subscription;
+        // surface 400 to caller (PROMO clippable side, SAVE preserved).
+        return jsonError(400, 'discount_combination_exceeds_max');
+      }
+
       const { appliedCouponId } = await applyDiscount(subData.id, couponId, stripe);
       acceptResult = {
         accepted: true,
@@ -269,15 +355,68 @@ Deno.serve(async (req: Request): Promise<Response> => {
       };
     } else if (offerType === 'extended_trial') {
       const extensionDays = offerConfig.type === 'extended_trial' ? offerConfig.extension_days : 7;
-      const { nextInvoiceDate } = await applyExtendedTrial(
-        subData.id,
-        extensionDays as 7 | 14 | 30,
-        stripe,
-      );
-      acceptResult = {
-        accepted: true,
-        next_invoice_date: nextInvoiceDate,
-      };
+
+      // Phase 43 Plan 04 — MEMBER-03 D-08 idempotency.
+      // Cancellation-flow surface where subscription_id IS known. PK
+      // (subscription_id, promo_code_id) gates the Stripe call: first call
+      // inserts and proceeds; retry collides on PK and skips Stripe.
+      // Stripe-checkout-side extension at new-sub creation is DEFERRED per
+      // 43-CARRY-OVER.md item #1.
+      //
+      // promo_code_id: prefer coupon ID from offerConfig if present (matches
+      // the underlying Stripe coupon backing the extended_trial offer); else
+      // fall back to a stable rule-derived key.
+      // deno-lint-ignore no-explicit-any
+      const trialCfg: any = offerConfig;
+      const promoCodeId =
+        typeof trialCfg.coupon_id === 'string' && trialCfg.coupon_id.length > 0
+          ? trialCfg.coupon_id
+          : `trial:${offerRow.rule_id ?? 'unknown'}`;
+
+      // INSERT first; ignoreDuplicates so retries get a soft no-op.
+      const { data: insertedRows, error: idempInsertErr } = await admin
+        .from('promo_trial_extensions_log')
+        .insert(
+          {
+            subscription_id: subData.id,
+            promo_code_id: promoCodeId,
+            extension_days: extensionDays,
+          },
+          { onConflict: 'subscription_id,promo_code_id', ignoreDuplicates: true },
+        )
+        .select();
+
+      if (idempInsertErr) {
+        console.warn(
+          '[cancellation-accept-offer] promo_trial_extensions_log insert error:',
+          idempInsertErr.code,
+        );
+        captureException(new Error(`promo_trial_extensions_log:${idempInsertErr.code}`));
+        return jsonError(500, 'accept_failed');
+      }
+
+      // PostgREST + ignoreDuplicates returns an empty array when the row was
+      // a duplicate (i.e. ON CONFLICT DO NOTHING fired). Fresh insert → 1 row.
+      const fresh = Array.isArray(insertedRows) && insertedRows.length > 0;
+
+      if (fresh) {
+        const { nextInvoiceDate } = await applyExtendedTrial(
+          subData.id,
+          extensionDays as 7 | 14 | 30,
+          stripe,
+        );
+        acceptResult = {
+          accepted: true,
+          next_invoice_date: nextInvoiceDate,
+          trial_extended: true,
+        } as AcceptOfferResponse & { trial_extended: boolean };
+      } else {
+        // Idempotent no-op: PK collision → don't call Stripe again.
+        acceptResult = {
+          accepted: true,
+          trial_extended: false,
+        } as AcceptOfferResponse & { trial_extended: boolean };
+      }
     } else if (offerType === 'downgrade') {
       const { nextInvoiceDate } = await applyDowngrade(subData.id, stripe);
       acceptResult = {
