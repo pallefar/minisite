@@ -52,6 +52,15 @@ export type EventDef = {
    * effect. Planner proposes; user confirms in plan-checker iter-1.
    */
   readonly aem_dropped?: true;
+  /**
+   * Phase 36 D-01: positive-engagement trigger whitelist. Events with this
+   * flag set to true are admissible as NPS review-prompt trigger events
+   * (consumed by review_prompt_rules.trigger_event picker UI in Wave 4).
+   * Negative-state events (payment_failed, ticket_escalated, error_thrown)
+   * MUST NOT have it. Addition is audit-logged by the existing
+   * additive-only-events ESLint rule.
+   */
+  readonly nps_trigger_eligible?: true;
 };
 
 export const EVENTS = {
@@ -100,6 +109,7 @@ export const EVENTS = {
     owner: 'product',
     server_only: true, // D-05: Edge Fn only — record-activation/index.ts
     aem_priority: 3, // D-03: supersedes activation_first_log at AEM slot 3
+    nps_trigger_eligible: true, // P36 D-01: NPS-eligible trigger event.
     description:
       'User completed first qualifying action within the 7-day activation window. Fired once per user (D-04).',
     payload: z.object({
