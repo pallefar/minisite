@@ -23,6 +23,7 @@ Deno.env.set('STRIPE_PRICE_PLUS_MONTHLY', 'price_monthly_test');
 Deno.env.set('STRIPE_PRICE_PLUS_YEARLY', 'price_yearly_test');
 Deno.env.set('STRIPE_PRICE_CLINIC_BASE', 'price_base_test');
 Deno.env.set('STRIPE_PRICE_CLINIC_OVERAGE', 'price_overage_test');
+Deno.env.set('STRIPE_PRICE_LIFETIME', 'price_lifetime_test');
 Deno.env.set('PUBLIC_APP_ORIGIN', 'https://test.local');
 
 import { assertEquals, assertExists } from 'jsr:@std/assert';
@@ -607,7 +608,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: '19-04 / Test F: no ?aff=, no cookie, no ?aff_manual= → empty aff_code, checkout proceeds',
+  name: '19-04 / Test F: no aff= and no cookie and no aff_manual= leaves aff_code empty',
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -638,5 +639,302 @@ Deno.test({
     const subData = params['subscription_data'] as Record<string, unknown>;
     const subMeta = subData['metadata'] as Record<string, string>;
     assertEquals(subMeta['aff_code'], '');
+  },
+});
+
+// =============================================================================
+// Phase 43 Plan 04 — lifetime branch + grandfathered resolver + 70%-cap tests
+// =============================================================================
+
+/**
+ * Build a fake admin that supports:
+ *   - auth.getUser
+ *   - from(table).select.eq.maybeSingle (existing pattern)
+ *   - from(table).select.eq.eq.order.limit.maybeSingle (cancellation_offers_log)
+ *   - rpc(name, args) → returns staged value
+ */
+function makeP43Admin(opts: {
+  user?: { id: string; email?: string } | null;
+  tables?: Record<string, unknown>;
+  rpcs?: Record<string, unknown>;
+  rpcCalls?: Array<{ name: string; args: unknown }>;
+}): unknown {
+  const { user = null, tables = {}, rpcs = {}, rpcCalls = [] } = opts;
+
+  function makeChain(value: unknown) {
+    const chain: Record<string, unknown> = {};
+    chain['select'] = (_: string) => chain;
+    chain['eq'] = (_: string, __: unknown) => chain;
+    chain['is'] = (_: string, __: unknown) => chain;
+    chain['order'] = (_: string, __: unknown) => chain;
+    chain['limit'] = (_: number) => chain;
+    chain['insert'] = (_: unknown) => Promise.resolve({ data: null, error: null });
+    chain['maybeSingle'] = () => Promise.resolve({ data: value, error: null });
+    return chain;
+  }
+
+  const fakeAdmin = {
+    auth: {
+      getUser: (_jwt: string) => {
+        if (user) return Promise.resolve({ data: { user }, error: null });
+        return Promise.resolve({ data: { user: null }, error: 'unauthenticated' });
+      },
+    },
+    from: (table: string) => {
+      const staged = tables[table] ?? null;
+      const baseChain = makeChain(staged);
+      return {
+        ...baseChain,
+        select: (_: string) => baseChain,
+        insert: (_: unknown) => Promise.resolve({ data: null, error: null }),
+      };
+    },
+    rpc: (name: string, args: unknown) => {
+      rpcCalls.push({ name, args });
+      const v = Object.prototype.hasOwnProperty.call(rpcs, name) ? rpcs[name] : null;
+      return Promise.resolve({ data: v, error: null });
+    },
+  };
+  return fakeAdmin;
+}
+
+// --- 43-04 / Test 1: lifetime + no promo → 200, mode=payment ---------------
+
+Deno.test({
+  name: '43-04 / Test 1: lifetime + no promo → mode=payment + resolved price',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const rpcCalls: Array<{ name: string; args: unknown }> = [];
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-LT', email: 'lt@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_lifetime_1' } },
+      rpcs: { resolve_user_effective_price: 'price_LIFETIME_DEFAULT' },
+      rpcCalls,
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'lifetime' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const { calls } = stripeStub.checkout.sessions.create;
+    assertEquals(calls.length, 1);
+    const params = calls[0]![0] as Record<string, unknown>;
+
+    assertEquals(params['mode'], 'payment');
+    assertEquals(params['subscription_data'], undefined);
+
+    const pid = params['payment_intent_data'] as Record<string, unknown>;
+    const pidMeta = pid['metadata'] as Record<string, string>;
+    assertEquals(pidMeta['tier_kind'], 'lifetime');
+    assertEquals(pidMeta['user_id'], 'user-uuid-LT');
+
+    const lineItems = params['line_items'] as Array<{ price: string; quantity: number }>;
+    assertEquals(lineItems.length, 1);
+    assertEquals(lineItems[0]!.price, 'price_LIFETIME_DEFAULT');
+
+    const lt = rpcCalls.find((c) => c.name === 'resolve_user_effective_price');
+    assertExists(lt);
+    assertEquals((lt!.args as { p_plan: string }).p_plan, 'lifetime');
+    assertEquals((lt!.args as { p_user_id: string }).p_user_id, 'user-uuid-LT');
+  },
+});
+
+// --- 43-04 / Test 2: lifetime + promo → 400 lifetime_no_promo_code ----------
+
+Deno.test({
+  name: '43-04 / Test 2: lifetime + promo_code → 400 lifetime_no_promo_code',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-LT2', email: 'lt2@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_lt_2' } },
+      rpcs: { resolve_user_effective_price: 'price_LIFETIME_DEFAULT' },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'lifetime', promo_code: 'WELCOMEBACK' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body, { error: 'lifetime_no_promo_code' });
+
+    assertEquals(stripeStub.checkout.sessions.create.calls.length, 0);
+  },
+});
+
+// --- 43-04 / Test 3: plus_monthly resolves via RPC → grandfathered price ----
+
+Deno.test({
+  name: '43-04 / Test 3: plus_monthly resolves via RPC + grandfathered price used',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const rpcCalls: Array<{ name: string; args: unknown }> = [];
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-GF', email: 'gf@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_gf_1' } },
+      rpcs: { resolve_user_effective_price: 'price_GRANDFATHERED_X' },
+      rpcCalls,
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'plus_monthly' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const lineItems = params['line_items'] as Array<{ price: string; quantity: number }>;
+    assertEquals(lineItems[0]!.price, 'price_GRANDFATHERED_X');
+
+    const gf = rpcCalls.find((c) => c.name === 'resolve_user_effective_price');
+    assertExists(gf);
+    assertEquals((gf!.args as { p_plan: string }).p_plan, 'plus_monthly');
+  },
+});
+
+// --- 43-04 / Test 4: plus_monthly + promo above cap → 400 ------------------
+
+Deno.test({
+  name: '43-04 / Test 4: clamp exceeds → 400 discount_combination_exceeds_max',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const sessionSpy = makeSpy({ url: 'https://checkout.stripe.com/c/pay/should_not_call' });
+    const couponSpy = makeSpy({ id: 'PROMO50', percent_off: 50 });
+    const customerSpy = makeSpy({ id: 'cus_new_clamp' });
+
+    const stripeProxy = {
+      checkout: { sessions: { create: (...a: unknown[]) => sessionSpy.fn(...a) } },
+      coupons: { retrieve: (...a: unknown[]) => couponSpy.fn(...a) },
+      customers: { create: (...a: unknown[]) => customerSpy.fn(...a) },
+      billingPortal: { sessions: { create: () => Promise.resolve({ url: '' }) } },
+    };
+    __setStripeForTest(stripeProxy);
+
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-CL', email: 'cl@test.com' },
+      tables: {
+        stripe_customers: { stripe_customer_id: 'cus_clamp_1' },
+        cancellation_offers_log: { offer_payload: { offer_type: 'discount', percent_off: 50 } },
+      },
+      rpcs: { resolve_user_effective_price: 'price_GRANDFATHERED_X' },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'plus_monthly', promo_code: 'PROMO50' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body, { error: 'discount_combination_exceeds_max' });
+
+    assertEquals(sessionSpy.calls.length, 0);
+  },
+});
+
+// --- 43-04 / Test 5: empty price → 503 vendor_unconfigured -----------------
+
+Deno.test({
+  name: '43-04 / Test 5: empty price → 503 vendor_unconfigured',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    Deno.env.set('STRIPE_PRICE_LIFETIME', '');
+
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-VG', email: 'vg@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_vg_1' } },
+      rpcs: { resolve_user_effective_price: null },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'lifetime' }),
+    });
+
+    const res = await handleSession(req);
+    Deno.env.set('STRIPE_PRICE_LIFETIME', 'price_lifetime_test');
+
+    assertEquals(res.status, 503);
+    const body = await res.json();
+    assertEquals(body, { error: 'vendor_unconfigured' });
+
+    assertEquals(stripeStub.checkout.sessions.create.calls.length, 0);
+  },
+});
+
+// --- 43-04 / Test 6: existing 'clinic' branch unchanged (regression) -------
+
+Deno.test({
+  name: '43-04 / Test 6: clinic branch unchanged (regression guard)',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-CLN', email: 'cln@test.com' },
+      tables: {
+        memberships: { id: 'mbr-1', roles: { name: 'Owner' } },
+        clinic_stripe_customers: { stripe_customer_id: 'cus_cln_1' },
+      },
+      rpcs: {},
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const clinicId = '00000000-0000-0000-0000-000000000010';
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'clinic', clinic_id: clinicId }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const lineItems = params['line_items'] as Array<{ price: string; quantity: number }>;
+    assertEquals(lineItems.length, 2);
+    const priceIds = new Set(lineItems.map((li) => li.price));
+    assertEquals(priceIds.has('price_base_test'), true);
+    assertEquals(priceIds.has('price_overage_test'), true);
+    assertEquals(params['mode'], 'subscription');
   },
 });
