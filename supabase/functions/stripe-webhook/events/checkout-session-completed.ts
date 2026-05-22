@@ -47,6 +47,55 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
       console.error('[stripe-webhook/checkout-completed] subscriptions upsert', subErr.message);
       throw new Error('subscriptions-upsert-failed');
     }
+  } else if (meta.tier_kind === 'lifetime') {
+    // P43 Plan 01 — Lifetime tier (D-02): one-time Checkout payment, idempotent upsert
+    // keyed by stripe_payment_intent_id. NO subscription row is written — tier_effective
+    // joins lifetime_purchases via UNION ALL.
+    const paymentIntentId = session.payment_intent as string;
+    const amountTotal = session.amount_total ?? 0;
+
+    const { error: lpErr } = await admin.from('lifetime_purchases').upsert(
+      {
+        user_id: meta.user_id,
+        stripe_payment_intent_id: paymentIntentId,
+        stripe_customer_id: customerId,
+        paid_at: new Date().toISOString(),
+        amount_cents: amountTotal,
+        metadata: { stripe_session_id: session.id },
+      },
+      { onConflict: 'stripe_payment_intent_id', ignoreDuplicates: true },
+    );
+    if (lpErr) {
+      console.error(
+        '[stripe-webhook/checkout-completed] lifetime_purchases upsert',
+        lpErr.message,
+      );
+      throw new Error('lifetime-purchases-upsert-failed');
+    }
+
+    // Non-blocking Slack alert to #growth-experiments (CONTEXT specifics line 118 +
+    // 43-RESEARCH.md Pattern 4 + Pitfall 11). Wrapped in EdgeRuntime.waitUntil so the
+    // webhook 200s back to Stripe regardless of Slack availability. Threat T-43-01-06.
+    try {
+      const slackUrl = Deno.env.get('SLACK_WEBHOOK_EXPERIMENTS_URL') ?? '';
+      if (slackUrl) {
+        const dispatch = fetch(slackUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text:
+              `💎 New Lifetime purchase: user=${meta.user_id} amount=$${(amountTotal / 100).toFixed(2)}`,
+          }),
+        }).catch((e) => console.error('[slack-alert/lifetime]', e));
+        // EdgeRuntime is only present in the Supabase Edge runtime; guard for Deno-test contexts.
+        const edgeRuntime = (globalThis as {
+          EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void };
+        }).EdgeRuntime;
+        edgeRuntime?.waitUntil?.(dispatch);
+      }
+    } catch (e) {
+      console.error('[slack-alert/lifetime] dispatch failed', e);
+    }
   } else if (meta.tier_kind === 'clinic') {
     // Write clinic_stripe_customers mapping
     const { error: cusErr } = await admin.from('clinic_stripe_customers').upsert(
@@ -89,7 +138,7 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
     // Missing metadata.tier_kind — integration bug in plan 14-04's Checkout session creation.
     // Return error so dispatcher returns 500 and Stripe retries until 14-04 fixes its wiring.
     throw new Error(
-      `metadata-missing: tier_kind not in {web,clinic} for session ${session.id}`,
+      `metadata-missing: tier_kind not in {web,clinic,lifetime} for session ${session.id}`,
     );
   }
 }
