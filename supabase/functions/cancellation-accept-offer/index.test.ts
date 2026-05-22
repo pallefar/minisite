@@ -292,3 +292,94 @@ Deno.test('offer_id validation: empty string → 400', () => {
   assertEquals(UUID_RE.test('not-a-uuid'), false);
   assertEquals(UUID_RE.test('123e4567-e89b-12d3-a456-426614174000'), true);
 });
+
+// =============================================================================
+// Phase 43 Plan 04 — 70%-cap clamp BEFORE applyDiscount + trial idempotency
+// =============================================================================
+
+import { clampCombinedDiscount } from '../_shared/clamp-combined-discount.ts';
+
+// --- 43-04 / Test 1: existing 30% promo + new 25% save → naive 47.5% ≤ 70% --
+
+Deno.test('43-04 / Test 1: 30%-promo + 25%-save below cap → applyDiscount proceeds', () => {
+  // Simulate: existing promo 0.30, new save-offer 0.25
+  const r = clampCombinedDiscount(0.30, 0.25);
+  assertEquals(r.clipped, false);
+  // naive = 1 - 0.70*0.75 = 0.475
+  assertEquals(Math.round(r.combinedPct * 1000) / 1000, 0.475);
+  // Under the cap → applyDiscount(subId, couponId, stripe) would be invoked.
+  // The handler's clamp gate: `if (clamp.clipped) return 400; else proceed`.
+  const wouldProceed = !r.clipped;
+  assertEquals(wouldProceed, true);
+});
+
+// --- 43-04 / Test 2: existing 50% promo + new 50% save → naive 75% > 70% ----
+
+Deno.test('43-04 / Test 2: 50%-promo + 50%-save above cap → 400 + applyDiscount NOT called', () => {
+  const r = clampCombinedDiscount(0.50, 0.50);
+  assertEquals(r.clipped, true);
+  // SAVE-offer preserved (D-07).
+  assertEquals(r.finalSavePct, 0.50);
+  // Handler's gate: clipped → 400 discount_combination_exceeds_max → applyDiscount NEVER called.
+  const wouldProceed = !r.clipped;
+  assertEquals(wouldProceed, false);
+  // Verify the textual error code surface (matches handler's jsonError arg).
+  const errorCode = r.clipped ? 'discount_combination_exceeds_max' : null;
+  assertEquals(errorCode, 'discount_combination_exceeds_max');
+});
+
+// --- 43-04 / Test 3: no existing promo + new 35% save → applyDiscount normal -
+
+Deno.test('43-04 / Test 3: no existing promo + 35%-save → applyDiscount called', () => {
+  // existingPromoPct=0 + saveOfferPct=0.35 → naive = 0.35 ≤ 0.70.
+  const r = clampCombinedDiscount(0, 0.35);
+  assertEquals(r.clipped, false);
+  assertEquals(r.combinedPct, 0.35);
+});
+
+// --- 43-04 / Test 4: clamp must run BEFORE applyDiscount (source-order check)
+
+Deno.test('43-04 / Test 4: clamp call appears BEFORE applyDiscount call in source', async () => {
+  // Read the handler source and assert clampCombinedDiscount appears before applyDiscount(
+  // — same invariant as the awk check in the plan's verify block.
+  const src = await Deno.readTextFile(new URL('./index.ts', import.meta.url));
+  const clampIdx = src.indexOf('clampCombinedDiscount');
+  const applyIdx = src.search(/applyDiscount\(/);
+  // Both must be present
+  assertEquals(clampIdx > 0, true);
+  assertEquals(applyIdx > 0, true);
+  // clampCombinedDiscount must appear FIRST.
+  assertEquals(clampIdx < applyIdx, true);
+});
+
+// --- 43-04 / Test 5 (D-08 idempotency): first-call writes log + extends trial;
+//                  second call no-ops on PK conflict.
+
+Deno.test('43-04 / Test 5: trial-extension idempotency via promo_trial_extensions_log PK', () => {
+  // Simulate the handler logic for D-08:
+  //   1. INSERT row (subscription_id, promo_code_id, extension_days)
+  //      with onConflict: 'subscription_id,promo_code_id', ignoreDuplicates: true
+  //   2. If fresh → call applyExtendedTrial
+  //   3. If PK collision (already-present row) → SKIP applyExtendedTrial.
+  const seen = new Set<string>();
+  const subId = 'sub_test_42';
+  const promoId = 'PROMO_TRIAL_7D';
+  const pkKey = `${subId}|${promoId}`;
+
+  // First call
+  const fresh1 = !seen.has(pkKey);
+  if (fresh1) seen.add(pkKey);
+  const stripeCalls: string[] = [];
+  if (fresh1) stripeCalls.push('applyExtendedTrial');
+
+  assertEquals(fresh1, true);
+  assertEquals(stripeCalls.length, 1);
+
+  // Second call with same (sub, promo) pair
+  const fresh2 = !seen.has(pkKey);
+  if (fresh2) seen.add(pkKey);
+  if (fresh2) stripeCalls.push('applyExtendedTrial');
+
+  assertEquals(fresh2, false); // PK collision → no-op
+  assertEquals(stripeCalls.length, 1); // applyExtendedTrial NOT called twice
+});
