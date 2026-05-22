@@ -568,9 +568,27 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. User pays Stripe one-time price → `tier_effective` returns `has_active=true` permanently for that user; lifetime entitlement persists across renewal cycles
-  2. Admin sets per-cohort grandfathered pricing (e.g., "Pro early-adopters keep $9.99/mo when public price moves to $14.99"); grandfathered users see no upgrade prompt
+  2. Admin sets per-cohort grandfathered pricing; NEW subscribers matching the cohort see the grandfathered price at stripe-checkout. Existing-subscriber renewal-time price update deferred per 43-CARRY-OVER.md.
   3. Coupon-driven Pro upgrade + 7-day trial extension stack with SAVE-offer discount; admin creates coupons via Stripe Coupons + Promotion Codes
   4. Community spaces / courses / events flagged as `pro_only=true` return 403 to free-tier users; tier check uses `tier_effective` lookup (NOT `tier='paid'` string match — uses `has_active` per P19 D-04 contract)
+
+**Plans:** 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 43-01-PLAN.md — lifetime_purchases schema + tier_effective view UNION extension + stripe-webhook lifetime branch + Slack alert (MEMBER-01)
+- [ ] 43-02-PLAN.md — grandfathered_prices schema + admin SECDEF write RPCs (MEMBER-02)
+- [ ] 43-03-PLAN.md — Entitlement helpers (current_user_has_pro + user_has_pro) + resolve_user_effective_price + 43-PRO-GATING-CONTRACT.md (MEMBER-02, MEMBER-04)
+
+**Wave 2**
+
+- [ ] 43-04-PLAN.md — stripe-checkout lifetime branch + grandfathered resolver wiring + 70%-cap clamp + trial-extension idempotency log + cancellation-accept-offer cap injection (MEMBER-01, MEMBER-02, MEMBER-03)
+
+**Wave 3**
+
+- [ ] 43-05-PLAN.md — PaywallUpsell pro_only_resource variant + useCurrentUserHasPro 60s LRU cache + LifetimeBadge + GrandfatheredPricesPage admin CRUD + ADMIN_MODULES manifest entry (MEMBER-01, MEMBER-02, MEMBER-04)
+- [ ] 43-06-PLAN.md — [BLOCKING] supabase db push --linked + 3-Fn deploy + STRIPE_PRICE_LIFETIME secret + stripe_price_lookup populate + 4-signal HUMAN-UAT (MEMBER-01, MEMBER-02, MEMBER-03, MEMBER-04)
 
 ### Phase 44: M4 Community Feed Foundation
 

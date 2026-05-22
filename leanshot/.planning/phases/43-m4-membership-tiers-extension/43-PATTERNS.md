@@ -9,8 +9,8 @@
 | New/Modified File | Role | Data Flow | Closest Analog | Match Quality |
 |-------------------|------|-----------|----------------|---------------|
 | `supabase/migrations/20270715000001_p43_lifetime_purchases.sql` | migration (table + RLS) | CRUD | `supabase/migrations/20270602000010_cohort_definitions.sql` | role-match (table+RLS+SECDEF-write pattern) |
-| `supabase/migrations/20270715000002_p43_grandfathered_prices.sql` | migration (table + RLS) | CRUD | `supabase/migrations/20270602000010_cohort_definitions.sql` | exact (admin-read-only + SECDEF-writes pattern) |
-| `supabase/migrations/20270715000003_p43_tier_effective_view_v2.sql` | migration (view replacement) | request-response | `supabase/migrations/20270101000004_tier_effective_view.sql` | exact (CREATE OR REPLACE on same view) |
+| `supabase/migrations/20270715000003_p43_grandfathered_prices.sql` | migration (table + RLS) | CRUD | `supabase/migrations/20270602000010_cohort_definitions.sql` | exact (admin-read-only + SECDEF-writes pattern) |
+| `supabase/migrations/20270715000002_p43_tier_effective_view_v2.sql` | migration (view replacement) | request-response | `supabase/migrations/20270101000004_tier_effective_view.sql` | exact (CREATE OR REPLACE on same view) |
 | `supabase/migrations/20270715000004_p43_current_user_has_pro_fn.sql` | migration (SECDEF function) | request-response | `supabase/migrations/20270602000011_cohort_membership_matview.sql` (`cohort_is_member`) | exact (SECDEF + STABLE + search_path + grant pattern) |
 | `supabase/migrations/20270715000005_p43_grandfathered_prices_rpcs.sql` | migration (SECDEF write RPCs) | CRUD | `supabase/migrations/20270602000012_cohort_rpcs.sql` (`cohort_define`) | exact (admin-gate + suppress_audit + log_admin_action pattern) |
 | `supabase/migrations/20270715000006_p43_resolve_user_effective_price.sql` | migration (SECDEF helper) | request-response | `supabase/migrations/20270602000011_cohort_membership_matview.sql` (`cohort_is_member`) | role-match (SECDEF STABLE lookup) |
@@ -28,7 +28,7 @@
 
 ## Pattern Assignments
 
-### `supabase/migrations/20270715000003_p43_tier_effective_view_v2.sql` (view replacement)
+### `supabase/migrations/20270715000002_p43_tier_effective_view_v2.sql` (view replacement)
 
 **Analog:** `supabase/migrations/20270101000004_tier_effective_view.sql`
 
