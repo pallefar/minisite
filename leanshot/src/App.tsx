@@ -149,6 +149,19 @@ const QuarterlyNPSModalLazy = lazy(() =>
   })),
 );
 
+// Phase 36 Plan 36-03 (W4 + REVIEW-01/04/05) — NPS prompt listener host.
+// Lazy chunk subscribes to ANALYTICS_TRIGGER_EVENT (broadcast by track()
+// inside src/lib/analytics.ts). On admissible event fire, the host renders
+// the rating prompt → promoter CTA / detractor feedback swap. The host
+// mounts unconditionally inside the dashboard branch (NOT marketing /
+// onboarding) — server-side cooldown + cap gating keeps it inert when not
+// admissible.
+const NPSPromptListenerHostLazy = lazy(() =>
+  import('@/hooks/useNPSPromptListener').then((m) => ({
+    default: m.NPSPromptListenerHost,
+  })),
+);
+
 // Phase 42 Plan 42-10 (POLISH-12 D-24) — Generic admin-shell route for
 // manifest-driven admin modules (CAC, RAG, anomaly, compliance, i18n-overrides,
 // clinic-orgs, nps-quarterly). Each module registers via ADMIN_MODULES in
@@ -1919,6 +1932,14 @@ export function App() {
             quarter={quarterlyNpsState.quarter}
           />
         )}
+        {/* Phase 36 Plan 36-03 — NPS prompt listener host. Renders the rating
+            prompt (Surface A) + promoter CTA (Surface B) + detractor feedback
+            (Surface C) lazily. Host body returns null until decision.fire is
+            true (server-cooldown gate), so the lazy chunk is fetched once on
+            dashboard mount but contributes zero rendered DOM until admissible.
+            Mounted INSIDE the dashboard branch only — marketing / onboarding
+            users never load the chunk. */}
+        <NPSPromptListenerHostLazy />
       </Suspense>
 
       {/* Phase 6 Plan 06-02 — MigrationModal is rendered ONLY when there is a

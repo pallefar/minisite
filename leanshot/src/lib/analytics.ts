@@ -24,6 +24,16 @@
 // downstream consumer read the same pattern.
 export { DISABLE_RECORDING_URL_REGEX } from './posthog/disable-recording-regex';
 
+// Phase 36 Plan 36-03 (W4) — in-app analytics-event broadcast for the NPS
+// prompt listener (and any future event-driven UI). Fires AFTER posthog
+// capture inside `track()`, REGARDLESS of analytics-upload enablement —
+// the in-app bus is a separate concern from the PostHog upload gate (the
+// listener needs to react even if VITE_ANALYTICS_ENABLED=false).
+import { dispatchAnalyticsTrigger, ANALYTICS_TRIGGER_EVENT } from '@/lib/nps/analytics-trigger-bus';
+// Re-export to give downstream callers a single import surface for the bus
+// name + analytics module.
+export { ANALYTICS_TRIGGER_EVENT };
+
 /** Typed event taxonomy starter set (D-14). Other phases extend this union. */
 export type EventName =
   | 'onboarding_started'
@@ -151,6 +161,12 @@ export function track(
   event: EventName,
   properties?: Record<string, string | number | boolean>,
 ): void {
+  // P36 W4: broadcast for in-app listeners (NPS trigger, future event-driven UI).
+  // Fires regardless of analytics-upload enablement — the in-app bus is a
+  // separate concern from the PostHog gate. dispatchAnalyticsTrigger is
+  // fail-soft so it cannot break the PostHog capture path below.
+  dispatchAnalyticsTrigger({ name: event, properties });
+
   if (!isEnabled()) return;
   if (posthogInstance) {
     posthogInstance.capture(event, properties);
