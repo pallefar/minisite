@@ -50,6 +50,10 @@ import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { getCookies } from 'https://deno.land/std@0.224.0/http/cookie.ts';
 import { corsHeaders } from './cors.ts';
+// Phase 43 Plan 04 — MEMBER-03 D-06/D-07: multiplicative discount-stack clamp
+// with 70% cap. clampCombinedDiscount(clippable, preserved) — promo is the
+// first arg (lower priority → clippable); SAVE-offer is preserved.
+import { clampCombinedDiscount } from '../_shared/clamp-combined-discount.ts';
 
 // Phase 19 Plan 19-04 — affiliate-code propagation (AFF-02, D-23).
 // Validates the same 4–80 lowercase/digit/dash format used by `affiliate-attribute`.
@@ -75,6 +79,9 @@ const getPricePlusMonthly = () => env('STRIPE_PRICE_PLUS_MONTHLY');
 const getPricePlusYearly = () => env('STRIPE_PRICE_PLUS_YEARLY');
 const getPriceClinicBase = () => env('STRIPE_PRICE_CLINIC_BASE');
 const getPriceClinicOverage = () => env('STRIPE_PRICE_CLINIC_OVERAGE');
+// Phase 43 Plan 04 — MEMBER-01 D-02 default lifetime price (env-var fallback
+// chain: resolve_user_effective_price → STRIPE_PRICE_LIFETIME → 503).
+const getPriceLifetime = () => env('STRIPE_PRICE_LIFETIME');
 const getPublicAppOrigin = () => env('PUBLIC_APP_ORIGIN', 'https://app.leanshot.app');
 
 // =============================================================================
@@ -324,11 +331,14 @@ async function resolveAffCode(req: Request): Promise<string | null> {
 // /session handler
 // =============================================================================
 
-type Plan = 'plus_monthly' | 'plus_yearly' | 'clinic';
+// Phase 43 Plan 04 — MEMBER-01 D-02 adds 'lifetime' to the plan enum.
+type Plan = 'plus_monthly' | 'plus_yearly' | 'clinic' | 'lifetime';
 
 interface SessionBody {
   plan?: Plan;
   clinic_id?: string;
+  /** Phase 43 Plan 04 — MEMBER-03 D-06: optional Stripe coupon ID to apply. */
+  promo_code?: string;
 }
 
 export async function handleSession(req: Request): Promise<Response> {
@@ -349,9 +359,16 @@ export async function handleSession(req: Request): Promise<Response> {
   }
 
   const plan = body.plan;
-  const validPlans: Plan[] = ['plus_monthly', 'plus_yearly', 'clinic'];
+  // Phase 43 Plan 04 — MEMBER-01 D-02: 'lifetime' added to plan enum.
+  const validPlans: Plan[] = ['plus_monthly', 'plus_yearly', 'clinic', 'lifetime'];
   if (!plan || !validPlans.includes(plan)) {
     return jsonError(400, 'invalid_plan');
+  }
+
+  // Phase 43 Plan 04 — OQ-6 RESOLVED: lifetime + promo_code is an EoP attempt
+  // (T-43-04-01). Reject BEFORE any Stripe call.
+  if (plan === 'lifetime' && body.promo_code) {
+    return jsonError(400, 'lifetime_no_promo_code');
   }
 
   // 3. Clinic-specific validation
@@ -378,19 +395,97 @@ export async function handleSession(req: Request): Promise<Response> {
   }
 
   // 4. Build line_items
-  // A3 = PASS: clinic uses 2 line_items (base + overage, each quantity 1)
+  //
+  // A3 = PASS: clinic uses 2 line_items (base + overage, each quantity 1).
+  //
+  // Phase 43 Plan 04 — MEMBER-02 D-03/D-04: plus_monthly / plus_yearly /
+  // lifetime route through resolve_user_effective_price for grandfathered
+  // cohort routing. Fallback chain: RPC → env helper → 503. v1.3 scope: NEW
+  // stripe-checkout only; existing-subscriber renewal-time update DEFERRED
+  // per 43-CARRY-OVER.md item #2. Clinic grandfathering also deferred —
+  // clinic branch unchanged from Phase 14.
   type LineItem = { price: string; quantity: number };
   let lineItems: LineItem[];
-  if (plan === 'plus_monthly') {
-    lineItems = [{ price: getPricePlusMonthly(), quantity: 1 }];
-  } else if (plan === 'plus_yearly') {
-    lineItems = [{ price: getPricePlusYearly(), quantity: 1 }];
+  if (plan === 'plus_monthly' || plan === 'plus_yearly' || plan === 'lifetime') {
+    // deno-lint-ignore no-explicit-any
+    const resolved = await (adminInstance as any).rpc('resolve_user_effective_price', {
+      p_user_id: user.id,
+      p_plan: plan,
+    });
+    const grandfathered = (resolved?.data as string | null) ?? null;
+    const fallback =
+      plan === 'plus_monthly'
+        ? getPricePlusMonthly()
+        : plan === 'plus_yearly'
+          ? getPricePlusYearly()
+          : getPriceLifetime();
+    const priceId = grandfathered && grandfathered !== '' ? grandfathered : fallback;
+    if (!priceId) {
+      // Vendor-gated-send: neither cohort nor stripe_price_lookup configured.
+      // No Stripe call.
+      return jsonError(503, 'vendor_unconfigured');
+    }
+    lineItems = [{ price: priceId, quantity: 1 }];
   } else {
-    // clinic — A3 PASS branch: 2 line_items
+    // clinic — A3 PASS branch: 2 line_items (unchanged from Phase 14).
     lineItems = [
       { price: getPriceClinicBase(), quantity: 1 },
       { price: getPriceClinicOverage(), quantity: 1 },
     ];
+  }
+
+  // Phase 43 Plan 04 — MEMBER-03 D-06/D-07: 70%-cap multiplicative clamp
+  // applied BEFORE sessions.create. Only fires on subscription plans with a
+  // user-supplied promo_code (lifetime rejects promo upstream). If the user
+  // has an accepted SAVE-offer in cancellation_offers_log AND a promo_code is
+  // requested, the multiplicative combination must not exceed 70%.
+  if (
+    body.promo_code &&
+    (plan === 'plus_monthly' || plan === 'plus_yearly')
+  ) {
+    // Look up the promo coupon's percent_off via Stripe.
+    let promoPct = 0;
+    try {
+      // deno-lint-ignore no-explicit-any
+      const coupon: any = await stripeInstance.coupons.retrieve(body.promo_code);
+      const pctOff = typeof coupon?.percent_off === 'number' ? coupon.percent_off : 0;
+      promoPct = pctOff / 100;
+    } catch (err) {
+      console.error('[stripe-checkout] coupons.retrieve failed', err instanceof Error ? err.message : 'unknown');
+      // Defensive: refuse rather than silently letting an unverified coupon through.
+      return jsonError(400, 'invalid_promo_code');
+    }
+
+    // Find any most-recent accepted SAVE-discount offer for this user.
+    let savePct = 0;
+    try {
+      // deno-lint-ignore no-explicit-any
+      const { data: saveRow } = await (adminInstance.from('cancellation_offers_log')
+        .select('offer_payload')
+        .eq('user_id', user.id)
+        .eq('status', 'accepted') as any)
+        .order('decided_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      // deno-lint-ignore no-explicit-any
+      const payload = (saveRow as any)?.offer_payload as
+        | { offer_type?: string; percent_off?: number }
+        | null
+        | undefined;
+      if (payload && payload.offer_type === 'discount' && typeof payload.percent_off === 'number') {
+        // percent_off may be stored as 0..1 OR 0..100 depending on producer.
+        savePct = payload.percent_off > 1 ? payload.percent_off / 100 : payload.percent_off;
+      }
+    } catch (err) {
+      // Best-effort lookup; absent row → savePct stays 0.
+      console.warn('[stripe-checkout] save-offer lookup failed', err instanceof Error ? err.message : 'unknown');
+    }
+
+    const clamp = clampCombinedDiscount(promoPct, savePct);
+    if (clamp.clipped) {
+      // D-07 strict reading: fail fast with user-visible error.
+      return jsonError(400, 'discount_combination_exceeds_max');
+    }
   }
 
   // 5. Resolve Stripe customer
@@ -399,6 +494,7 @@ export async function handleSession(req: Request): Promise<Response> {
     if (plan === 'clinic' && clinicId) {
       customerId = await ensureClinicCustomer(clinicId, user.email ?? '');
     } else {
+      // plus_monthly / plus_yearly / lifetime all use ensureWebCustomer (user-scoped).
       customerId = await ensureWebCustomer({ id: user.id, email: user.email });
     }
   } catch {
@@ -412,11 +508,15 @@ export async function handleSession(req: Request): Promise<Response> {
   const successUrl = `${origin}${basePath}?from=checkout&session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${origin}${basePath}?from=cancel`;
 
-  // 7. Build subscription_data.metadata
+  // 7. Build metadata
   // Phase 19 Plan 19-04: resolve aff code (?aff= → ?aff_manual= → _aff cookie)
   // and propagate into BOTH session.metadata AND subscription_data.metadata so
   // invoice.paid renewal events can still read it from the subscription
   // (RESEARCH Pitfall 2 — session metadata is one-shot, sub metadata persists).
+  //
+  // Phase 43 Plan 04 — MEMBER-01 D-02: lifetime uses payment_intent_data
+  // instead of subscription_data because mode='payment' has no subscription
+  // metadata channel. tier_kind='lifetime' propagates through PaymentIntent.
   const affCode = await resolveAffCode(req);
   const subMetadata: Record<string, string> = isClinic
     ? { clinic_id: clinicId!, provider: 'stripe', tier_kind: 'clinic', aff_code: affCode ?? '' }
@@ -424,24 +524,48 @@ export async function handleSession(req: Request): Promise<Response> {
 
   // 8. Create Stripe Checkout session
   try {
-    const session = await stripeInstance.checkout.sessions.create({
-      mode: 'subscription',
+    // deno-lint-ignore no-explicit-any
+    const sessionParams: Record<string, any> = {
       customer: customerId,
       payment_method_collection: 'always',
       line_items: lineItems,
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: subMetadata,
-      },
-      // Session-level metadata mirrors the aff code for checkout.session.completed
-      // forward-compat (Phase 14 doesn't wire that handler today but may in v1.3).
-      metadata: { aff_code: affCode ?? '' },
       success_url: successUrl,
       cancel_url: cancelUrl,
+      // Aff-code attribution at session-level (forward-compat for checkout.session.completed).
+      metadata: { aff_code: affCode ?? '' },
       // client_reference_id remains the clinic_id/user_id linkage (Phase 14 contract).
-      // Aff-code attribution flows through subscription_data.metadata.aff_code.
       client_reference_id: clinicId ?? user.id,
-    });
+    };
+
+    if (plan === 'lifetime') {
+      // Pitfall 10 (per 43-RESEARCH): lifetime MUST be mode='payment', never
+      // 'subscription'. payment_intent_data carries the user/tier metadata.
+      Object.assign(sessionParams, {
+        mode: 'payment',
+        payment_intent_data: {
+          metadata: {
+            user_id: user.id,
+            provider: 'stripe',
+            tier_kind: 'lifetime',
+            aff_code: affCode ?? '',
+          },
+        },
+      });
+    } else {
+      Object.assign(sessionParams, {
+        mode: 'subscription',
+        subscription_data: {
+          trial_period_days: 7,
+          metadata: subMetadata,
+        },
+      });
+      // Phase 43 Plan 04: include promo coupon when present (subscription plans only).
+      if (body.promo_code) {
+        sessionParams['discounts'] = [{ coupon: body.promo_code }];
+      }
+    }
+
+    const session = await stripeInstance.checkout.sessions.create(sessionParams);
 
     return jsonResponse(200, { url: session.url });
   } catch (err) {

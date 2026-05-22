@@ -148,6 +148,9 @@ function makeFakeAdmin(opts: {
         insert: (_: unknown) => Promise.resolve({ data: null, error: null }),
       };
     },
+    // Phase 43 Plan 04: stripe-checkout calls admin.rpc('resolve_user_effective_price').
+    // Default to null (vendor-gated-send falls through to env helper).
+    rpc: (_name: string, _args: unknown) => Promise.resolve({ data: null, error: null }),
   };
   return fakeAdmin;
 }
@@ -195,6 +198,9 @@ function makeQueueAdmin(opts: {
         insert: (_: unknown) => Promise.resolve({ data: null, error: null }),
       };
     },
+    // Phase 43 Plan 04: rpc stub. clinic-mode (the consumer of makeQueueAdmin)
+    // doesn't call rpc, so null is safe.
+    rpc: (_name: string, _args: unknown) => Promise.resolve({ data: null, error: null }),
   };
 }
 
