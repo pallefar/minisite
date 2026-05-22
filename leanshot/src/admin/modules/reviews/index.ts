@@ -1,11 +1,8 @@
 /**
- * Phase 36 Plan 36-04 — admin reviews module entry.
+ * Phase 36 Plan 36-04 — admin reviews module barrel.
  *
- * NOTE: Task 1 bootstraps a minimal default export so the lazy import in
- * `src/lib/admin/modules.ts` typechecks. Task 2 fleshes out the real
- * sub-route router (rules / funnel / cta-catalog).
+ * AdminShell consumes this via `@/admin/modules/reviews` (lazy import in
+ * `src/lib/admin/modules.ts`) and expects a default export router component.
+ * Sub-route table lives in ReviewsLayout.tsx.
  */
-import type { ComponentType } from 'react';
-
-const ReviewsPlaceholder: ComponentType = () => null;
-export default ReviewsPlaceholder;
+export { default } from './ReviewsLayout';
