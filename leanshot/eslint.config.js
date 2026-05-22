@@ -310,6 +310,46 @@ export default defineConfig([
     },
   },
 
+  // Phase 36 Plan 36-01 — V13-3 BLOCKER bundle-isolation zones (Pitfall 6).
+  // Per [[reference_eslint_import_x_path_gotcha]]: use GLOB targets, NOT bare
+  // file paths — bare file paths silently no-op in import-x/no-restricted-paths.
+  //
+  // Zones:
+  //   (1) src/components/nps/** must NOT import src/admin/** (consumer modal
+  //       cannot pull admin bundle code — bundle ceiling).
+  //   (2) src/components/nps/** must NOT import src/lib/admin/** (same — admin
+  //       module manifest + cohort builder).
+  //
+  // V13-3 compliance: the native-review shim is the inverse of this fence —
+  // the hook IS wired UNCONDITIONALLY at the trigger-event handler layer, NOT
+  // from inside the consumer modal (CONTEXT D-20). So we do NOT also block
+  // NPS components from importing `src/lib/native/review-shim.ts` here —
+  // because in v1.3 the consumer modal never imports the shim (the hook
+  // wiring lives elsewhere). If a future plan adds shim wiring on the modal
+  // surface, the no-conditional-native-review AST rule above + the
+  // D-04 grep gate (scripts/check-no-conditional-native-review.sh) catch the
+  // regression.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { 'import-x': importXPlugin },
+    rules: {
+      'import-x/no-restricted-paths': ['error', {
+        zones: [
+          {
+            target: './src/components/nps/**',
+            from: './src/admin/**',
+            message: 'V13-3 BLOCKER (Phase 36 Pitfall 6): NPS consumer modal must not import admin code (bundle budget + isolation). See 36-CONTEXT.md.',
+          },
+          {
+            target: './src/components/nps/**',
+            from: './src/lib/admin/**',
+            message: 'V13-3 BLOCKER (Phase 36 Pitfall 6): NPS consumer modal must not import lib/admin code (bundle budget + isolation). See 36-CONTEXT.md.',
+          },
+        ],
+      }],
+    },
+  },
+
   // Phase 28 Plan 28-02 — D-06 / ADDENDUM A6: no-raw-service-role-client enforcement.
   // Blocks createClient(..., SERVICE_ROLE_KEY) outside supabase/functions/_shared/supabase-server.ts.
   // Rule file is .cjs per ADDENDUM A6 (package.json "type":"module" → ESLint rules must use .cjs).
