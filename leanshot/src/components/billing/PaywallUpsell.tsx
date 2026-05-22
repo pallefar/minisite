@@ -42,6 +42,29 @@ export interface PaywallUpsellProps {
    * the 'plus_monthly' default — zero changes needed at those call sites.
    */
   plan?: Plan;
+  /**
+   * Phase 43 Plan 05 (MEMBER-04 D-11) — gating reason variant. Default
+   * 'activation_paywall' preserves the existing Phase 39 activation-paywall
+   * copy + trial-pitch behavior verbatim. 'pro_only_resource' switches
+   * headline/body to the resource-gated copy that mentions the specific
+   * resource name + type.
+   *
+   * Existing call sites (MedLevelChart, AIChatPanel) omit this prop and
+   * therefore continue to render the activation-paywall variant — zero
+   * call-site edits required (additive + optional).
+   */
+  gating_reason?: 'activation_paywall' | 'pro_only_resource';
+  /**
+   * Phase 43 Plan 05 — resource taxonomy bucket. Only consulted when
+   * gating_reason='pro_only_resource'. Falls back to 'resource' if omitted.
+   */
+  resource_type?: 'community' | 'course' | 'event';
+  /**
+   * Phase 43 Plan 05 — display name of the gated resource (e.g. "GLP-1
+   * Starters"). Only consulted when gating_reason='pro_only_resource'.
+   * Falls back to "This content" if omitted.
+   */
+  resource_name?: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -64,9 +87,19 @@ export function PaywallUpsell({
   feature,
   headline,
   plan = 'plus_monthly',
+  gating_reason = 'activation_paywall',
+  resource_type,
+  resource_name,
 }: PaywallUpsellProps) {
   const reduced = useReducedMotion();
-  const title = headline ?? defaultHeadline(feature);
+  // Phase 43 D-11: branch copy on gating_reason. Default keeps Phase 39 behavior.
+  const isProOnlyResource = gating_reason === 'pro_only_resource';
+  const title = isProOnlyResource
+    ? `${resource_name ?? 'This content'} is Pro-only`
+    : (headline ?? defaultHeadline(feature));
+  const subline = isProOnlyResource
+    ? `Unlock the full ${resource_type ?? 'resource'} library with Pro.`
+    : '7-day free trial — cancel anytime';
 
   const handleUpgrade = async (): Promise<void> => {
     try {
@@ -100,9 +133,7 @@ export function PaywallUpsell({
           className="max-w-xs w-full text-center shadow-lg"
         >
           <p className="text-[15px] font-bold text-[var(--color-text)] mb-1">{title}</p>
-          <p className="text-[12px] text-[var(--color-text-secondary)] mb-4">
-            7-day free trial — cancel anytime
-          </p>
+          <p className="text-[12px] text-[var(--color-text-secondary)] mb-4">{subline}</p>
           <Button
             variant="primary"
             size="md"

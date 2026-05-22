@@ -41,16 +41,20 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 async function importModule() {
-  // Fresh import each test (caching is module-scope).
+  // Fresh import each test (caching is module-scope) — combined with
+  // _proCacheClear in beforeEach to guarantee isolation across tests.
   vi.resetModules();
   return import('./current-user-has-pro');
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   mockSessionUser = null;
   mockTierEffectiveRow = null;
   maybeSingleCallCount = 0;
   vi.useRealTimers();
+  // Clear module-scope cache so each test starts from empty.
+  const mod = await import('./current-user-has-pro');
+  mod._proCacheClear();
 });
 
 afterEach(() => {
@@ -110,24 +114,26 @@ describe('useCurrentUserHasPro + invalidateProCache', () => {
   });
 
   it('T4: 10001st distinct userId evicts the oldest entry (LRU)', async () => {
-    const { useCurrentUserHasPro, _proCacheSize, _proCacheHas } = await importModule();
+    const { useCurrentUserHasPro, _proCacheSize, _proCacheHas, _proCachePut } =
+      await importModule();
     mockTierEffectiveRow = { has_active: true };
 
-    // Seed 10_000 distinct user IDs through the cache.
+    // Seed MAX_ENTRIES=10_000 distinct user IDs directly into the cache
+    // (test seam — bypasses the hook → supabase round-trip so this stays
+    // sub-second). Insertion order = LRU iteration order, so 'user-0'
+    // becomes the oldest entry.
     for (let i = 0; i < 10_000; i++) {
-      mockSessionUser = { id: `user-${i}` };
-      const r = renderHook(() => useCurrentUserHasPro());
-      await waitFor(() => expect(r.result.current.loading).toBe(false));
+      _proCachePut(`user-${i}`, true);
     }
     expect(_proCacheSize()).toBe(10_000);
     expect(_proCacheHas('user-0')).toBe(true);
 
-    // Insert the 10_001st → oldest (user-0) evicted.
+    // Insert the 10_001st through the real hook path → eviction must fire.
     mockSessionUser = { id: 'user-10000' };
     const r = renderHook(() => useCurrentUserHasPro());
     await waitFor(() => expect(r.result.current.loading).toBe(false));
     expect(_proCacheSize()).toBe(10_000);
-    expect(_proCacheHas('user-0')).toBe(false);
+    expect(_proCacheHas('user-0')).toBe(false); // oldest evicted
     expect(_proCacheHas('user-10000')).toBe(true);
   });
 
