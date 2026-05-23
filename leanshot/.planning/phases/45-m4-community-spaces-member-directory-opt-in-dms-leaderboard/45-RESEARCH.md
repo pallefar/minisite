@@ -949,7 +949,7 @@ CREATE INDEX idx_community_space_lb_space_rank
 - `.planning/phases/35-m3-gamification-engine/35-CONTEXT.md` — Phase 35 leaderboard decisions (D-11..D-16)
 
 ### Tertiary (LOW confidence — unresolvable without live DB query)
-- `profiles.handle` and `profiles.display_name` migration source — columns confirmed to exist in live DB by frontend code, but the migration file was not found in 48 files searched [ASSUMED: added via Supabase dashboard or migration outside the numbered series; plan 45-01 should use `ADD COLUMN IF NOT EXISTS` as guard]
+- `profiles.handle` and `profiles.display_name` migration source — INITIALLY ASSUMED to exist; orchestrator pre-checked live DB 2026-05-23 via `npx supabase db query --linked` and confirmed BOTH ARE ABSENT (live profiles table has only 12 columns: account_state, admin_role, completed_onboarding_at, created_at, has_totp, id, is_staff, locale, primary_goal, primary_org_id, tags, timezone). Plan 45-01 MUST add BOTH as net-new bare `ALTER TABLE profiles ADD COLUMN handle text` + `ADD COLUMN display_name text` (NOT `IF NOT EXISTS`) plus the `profiles_handle_unique` partial UNIQUE index + `profiles_handle_format` CHECK constraint. Frontend code that references these columns (MentionTypeahead, mention-parse) likely returns nulls today.
 
 ---
 

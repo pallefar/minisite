@@ -71,7 +71,7 @@ updated: 2026-05-23
 
 ## Wave 0 Requirements
 
-- [ ] `supabase/migrations/20270727000001_p45_schema.sql` — 11 profiles cols (incl. leaderboard_handle + leaderboard_opt_in per RESEARCH correction) + 5 new tables + community_spaces.leaderboard_enabled
+- [ ] `supabase/migrations/20270727000001_p45_schema.sql` — 13 net-new profiles cols (incl. handle, display_name per Fix-D live-DB pre-check + leaderboard_handle + leaderboard_opt_in per RESEARCH critical correction) + 5 new tables + community_spaces.leaderboard_enabled + profiles_handle_unique partial index + profiles_handle_format CHECK
 - [ ] `supabase/migrations/20270727000002_p45_rls.sql` — ≥8 RLS policies; two-mode directory; symmetric dm_threads block; is_staff() (not staff_users)
 - [ ] `supabase/migrations/20270727000003_p45_secdef_rpcs.sql` — 7 SECDEF RPCs; no ON CONFLICT DO DELETE
 - [ ] `supabase/migrations/20270727000004_p45_notification_widening.sql` — atomic 4 CHECK + 2 category_config UPSERT in one transaction
