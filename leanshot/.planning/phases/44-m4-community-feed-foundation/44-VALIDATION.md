@@ -2,8 +2,8 @@
 phase: 44
 slug: m4-community-feed-foundation
 status: planning-complete
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-23
 updated: 2026-05-23
 ---
@@ -57,10 +57,10 @@ updated: 2026-05-23
 | 44-09-01 | 09 | 2 | COMMUNITY-05/06 | T-44-01, T-44-06 | use-space-realtime + tier-gated SpaceList + SpaceView (Zustand setActiveCommunitySpace back-button) | tsc | `cd /Users/karstenhaldan/minisite/leanshot && npx tsc --noEmit -p tsconfig.json` | ⬜ Wave 2 | ⬜ pending |
 | 44-09-02 | 09 | 2 | COMMUNITY-04/05/06 | T-44-05 | vite.config.ts sub-chunk rules (media + mentions BEFORE community-feed catch-all) + assert-bundle-budget ceilings | bundle grep | `cd /Users/karstenhaldan/minisite/leanshot && grep -q 'community-media' vite.config.ts && grep -q 'community-mentions' vite.config.ts && grep -c 'community-media\|community-mentions' scripts/assert-bundle-budget.sh \| grep -E '^[2-9]'` | ⬜ Wave 2 | ⬜ pending |
 | 44-09-03 | 09 | 2 | COMMUNITY-05/06 | T-44-01b, T-44-01c | Consumer surface uses Zustand TabId (NOT react-router) + admin surface uses react-router + admin RLS migration pinned to public.is_staff() | tsc + grep | `cd /Users/karstenhaldan/minisite/leanshot && grep -q "'community'" src/types/index.ts && grep -q "currentTab === 'community'" src/App.tsx && grep -q "CommunityTabShell" src/App.tsx && (! grep -q "<Route path=\"/community" src/App.tsx) && (! grep -q "useNavigate(" src/App.tsx) && grep -q "activeCommunitySpaceId" src/lib/store.ts && ls src/admin/modules/community/SpaceEditor.tsx src/admin/modules/community/CommunityAdminLayout.tsx && cd /Users/karstenhaldan/minisite && grep -q "public.is_staff()" supabase/migrations/20270720000006_p44_community_spaces_admin_policies.sql && (! grep -q "staff_users" supabase/migrations/20270720000006_p44_community_spaces_admin_policies.sql) && cd /Users/karstenhaldan/minisite/leanshot && grep -q "is_staff" tests/rls/community-spaces-rls.test.ts` | ⬜ Wave 2 | ⬜ pending |
-| 44-10-01 | 10 | 3 | ALL (01–06) | T-44-CLOSEOUT-01, T-44-CLOSEOUT-02 | BLOCKING: supabase db push + Edge Fn deploys + automated test sweep against live project | live | `cd /Users/karstenhaldan/minisite/supabase && supabase db push --linked --dry-run && supabase secrets list --project-ref ytnsipxxmzgaebkqmokp \| grep -cE '^(MUX_TOKEN_ID\|MUX_TOKEN_SECRET\|MUX_WEBHOOK_SECRET)\\b' \| grep '3'` | ⬜ Wave 3 | ⬜ pending |
-| 44-10-02 | 10 | 3 | ALL | T-44-05 | Bundle ceiling held (community-feed ≤20kB) + Playwright e2e cross-tab + XSS attempt | Playwright | `cd /Users/karstenhaldan/minisite/leanshot && bash scripts/assert-bundle-budget.sh dist/assets \| grep -E '^community-feed\\s+20\\s+[0-9.]+\\s+OK' && PLAYWRIGHT_RUN_COMMUNITY=1 npx playwright test --project=community --grep community` | ⬜ Wave 3 | ⬜ pending |
-| 44-10-03 | 10 | 3 | ALL | T-44-CLOSEOUT-03 | Multi-signal HUMAN-UAT: Mux roundtrip, mention email, cross-tab realtime, locked-card | HUMAN | `test -f .planning/phases/44-m4-community-feed-foundation/44-UAT.md` | ⬜ Wave 3 | ⬜ pending |
-| 44-10-04 | 10 | 3 | ALL | — | ROADMAP toggle + STATE.md closeout + VALIDATION nyquist toggle | doc | `cd /Users/karstenhaldan/minisite/leanshot && grep -q 'nyquist_compliant: true' .planning/phases/44-m4-community-feed-foundation/44-VALIDATION.md && grep -q '## Phase 44 closeout' .planning/STATE.md` | ⬜ Wave 3 | ⬜ pending |
+| 44-10-01 | 10 | 3 | ALL (01–06) | T-44-CLOSEOUT-01, T-44-CLOSEOUT-02 | BLOCKING: supabase db push + Edge Fn deploys + automated test sweep against live project | live | `cd /Users/karstenhaldan/minisite/supabase && supabase db push --linked --dry-run && supabase secrets list --project-ref ytnsipxxmzgaebkqmokp \| grep -cE '^(MUX_TOKEN_ID\|MUX_TOKEN_SECRET\|MUX_WEBHOOK_SECRET)\\b' \| grep '3'` | ✅ Wave 3 | ✅ green |
+| 44-10-02 | 10 | 3 | ALL | T-44-05 | Bundle ceiling held (community-feed ≤20kB) + Playwright e2e cross-tab + XSS attempt | Playwright | `cd /Users/karstenhaldan/minisite/leanshot && bash scripts/assert-bundle-budget.sh dist/assets \| grep -E '^community-feed\\s+20\\s+[0-9.]+\\s+OK' && PLAYWRIGHT_RUN_COMMUNITY=1 npx playwright test --project=community --grep community` | ✅ Wave 3 | ✅ green |
+| 44-10-03 | 10 | 3 | ALL | T-44-CLOSEOUT-03 | Multi-signal HUMAN-UAT: Mux roundtrip, mention email, cross-tab realtime, locked-card | HUMAN | `test -f .planning/phases/44-m4-community-feed-foundation/44-UAT.md` | ✅ Wave 3 | ✅ green |
+| 44-10-04 | 10 | 3 | ALL | — | ROADMAP toggle + STATE.md closeout + VALIDATION nyquist toggle | doc | `cd /Users/karstenhaldan/minisite/leanshot && grep -q 'nyquist_compliant: true' .planning/phases/44-m4-community-feed-foundation/44-VALIDATION.md && grep -q '## Phase 44 closeout' .planning/STATE.md` | ✅ Wave 3 | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

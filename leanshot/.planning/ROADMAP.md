@@ -60,7 +60,7 @@
 - [ ] **Phase 41: Public Status Page + Embed-Provider Blocks** — Better Stack on `status.leanshot.app` + Calendly/YouTube/Tally sandboxed iframes + dompurify + Custom-iframe allowlist
 - [ ] **Phase 42: v1.3 Polish Closeout — WCAG 2.2 AA + Smart Notifications + PWA Offline + Dark Mode + What's New + NPS** — axe-core CI + per-category notification center + `vite-plugin-pwa` + admin-shell dark mode + quarterly NPS
 - [x] **Phase 43: M4 Membership Tiers Extension** — Lifetime tier on `tier_effective` + grandfathering coupons + community-gated entitlements
-- [ ] **Phase 44: M4 Community Feed Foundation** — Posts + threaded comments + reactions + @mentions + image/Mux video embeds + Realtime
+- [x] **Phase 44: M4 Community Feed Foundation** — Posts + threaded comments + reactions + @mentions + image/Mux video embeds + Realtime [COMPLETE — approved automated-verify-only; Signals A-D deferred to v1.3-uat-deferred.md]
 - [ ] **Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard** — Per-space tier visibility + DM rate-limiting + cohort-scoped leaderboard
 - [ ] **Phase 46: M4 Courses / Classroom** — Modules + lessons + Mux adaptive video + completion certificates (jsPDF) + landing-page A/B + Pro-gated resources
 - [ ] **Phase 47: M4 Events Calendar + Zoom + Reminders + Recording** — RSVPs with capacity/waitlist + Zoom OAuth + timezone-aware reminders + post-event lesson conversion
