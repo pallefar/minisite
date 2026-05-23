@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 44 Wave 1 merging (44-04, 44-05 merged)
+stopped_at: Phase 44 Wave 1 merging (44-04, 44-05, 44-07 merged)
 last_updated: "2026-05-23T06:42:52.606Z"
-last_activity: 2026-05-23 -- Phase 44 Wave 1 merge: 44-04 (Mux Edge Fns; 19 Deno tests green), 44-05 (notify-community dual-auth fan-out; 12 Deno tests green)
+last_activity: 2026-05-23 -- Phase 44 Wave 1 merge: 44-04 (Mux Edge Fns; 19 Deno tests), 44-05 (notify-community dual-auth; 12 Deno tests), 44-07 (Composers + MentionTypeahead)
 progress:
   total_phases: 28
   completed_phases: 14

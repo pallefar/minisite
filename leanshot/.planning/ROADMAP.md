@@ -613,7 +613,7 @@ Plans:
 - [ ] 44-04-PLAN.md — mux-create-upload (tier-gated) + mux-webhook (HMAC) Edge Fns + Deno tests (Wave 1)
 - [x] 44-05-PLAN.md — notify-community Edge Fn (dual-auth) + 2 vitest-e2e integration tests (Wave 1)
 - [ ] 44-06-PLAN.md — CommunityPost + CommunityFeed + CommentThread + ReactionBar + use-feed (Wave 1)
-- [ ] 44-07-PLAN.md — CommunityPostComposer + CommunityCommentComposer + MentionTypeahead (Wave 1)
+- [x] 44-07-PLAN.md — CommunityPostComposer + CommunityCommentComposer + MentionTypeahead (Wave 1)
 - [ ] 44-08-PLAN.md — CommunityImageUploader + CommunityMediaUploader + CommunityVideoPlayer + media strip (Wave 1)
 - [ ] 44-09-PLAN.md — use-space-realtime + SpaceList + SpaceView + admin SpaceEditor + vite.config.ts chunk rules + App route (Wave 2)
 - [ ] 44-10-PLAN.md — [BLOCKING] supabase db push + Edge Fn deploys + bundle gate + Playwright e2e + 4-signal HUMAN-UAT (Wave 3)
