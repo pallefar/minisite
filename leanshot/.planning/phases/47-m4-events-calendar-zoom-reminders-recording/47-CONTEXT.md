@@ -63,6 +63,14 @@ Events platform layered onto Phase 44's community_spaces — every event lives i
 
 - **D-16:** Event covers / images = **optional `cover_url`, stored in NEW `event-covers` Supabase Storage bucket**. Path-prefix `event-covers/{event_id}/{filename}`. RLS = admin (creator) writes; public read (matches Phase 44 `community-media` pattern for non-PHI; org-scoped events still public-bucket because the *event row* gates visibility via RLS, not the asset). MIME whitelist (image/jpeg, image/png, image/webp) + 2MB cap.
 
+### Resolved After Research (D-17..D-19)
+
+- **D-17:** Past-events video archive = **link out to classroom tab** (resolved 2026-05-23 from researcher open question). Event card on the events tab shows "View recording →" CTA when `events.recording_mux_asset_id IS NOT NULL` AND `events.attach_to_module_id IS NOT NULL` — clicking navigates to the classroom tab + drill-in to the lesson. NO Mux Player loaded into the `events` chunk. Bundle ceiling protected.
+
+- **D-18:** `event-join-url` Edge Fn pre-window = **`now() BETWEEN events.start_at - INTERVAL '15 minutes' AND events.end_at`**. Returns 403 outside the window with body `{ error: 'too_early', opens_at: <start_at - 15min ISO> }` so the UI can render "Opens in Xm" countdown. Defense-in-depth against pre-event URL harvesting. Mirror in admin-facing fetch path (admin can preview the URL anytime — RLS on the events row already lets admin SELECT join_url directly).
+
+- **D-19:** `notification_settings` widening = **add 3 categories `event_reminders_1d`, `event_reminders_1h`, `event_promotion` to the `VALID_CATEGORIES` CHECK constraint** (per memory `feedback_state_counter_table_needs_upsert_on_event` + the pattern researcher cited as `feedback_planner_missed_status_enum_widening`). Defaults all three ON for existing users. `event-reminders-fanout` Edge Fn skips the send for any (user, kind) where the user's notification_settings row has the matching category OFF. Migration ships in the same Wave 0 as the events schema.
+
 ### Claude's Discretion
 
 - Exact Zoom Server-to-Server OAuth SDK / npm package — researcher confirms latest Deno-compatible. Likely direct `fetch` to `https://api.zoom.us/v2/users/me/meetings` with bearer token; no SDK needed.
