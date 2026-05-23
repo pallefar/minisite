@@ -50,13 +50,26 @@ begin
     raise exception 'invalid_emoji' using errcode = '22023';
   end if;
 
-  -- D-02: INSERT...ON CONFLICT DO DELETE = idempotent toggle.
-  -- First call: inserts the row (reaction added).
-  -- Second call: UNIQUE violation → DO DELETE removes the row (reaction removed).
-  -- Postgres 15+ pattern; confirmed on Supabase cloud (PG15+).
-  insert into public.community_reactions (user_id, target_type, target_id, emoji)
-    values (v_user_id, p_target_type, p_target_id, p_emoji)
-  on conflict (user_id, target_type, target_id, emoji) do delete;
+  -- D-02: Idempotent toggle — check existence first, then insert or delete.
+  -- Using explicit SELECT + conditional INSERT/DELETE for Postgres compatibility.
+  -- First call: no row exists → INSERT (reaction added).
+  -- Second call: row exists → DELETE (reaction removed).
+  if exists (
+    select 1 from public.community_reactions
+    where user_id     = v_user_id
+      and target_type = p_target_type
+      and target_id   = p_target_id
+      and emoji       = p_emoji
+  ) then
+    delete from public.community_reactions
+    where user_id     = v_user_id
+      and target_type = p_target_type
+      and target_id   = p_target_id
+      and emoji       = p_emoji;
+  else
+    insert into public.community_reactions (user_id, target_type, target_id, emoji)
+      values (v_user_id, p_target_type, p_target_id, p_emoji);
+  end if;
 
   -- Return aggregate counts per emoji for the target entity after toggle.
   -- reacted_by_me = true if the current user has this emoji on this target.
@@ -73,7 +86,7 @@ end;
 $fn$;
 
 comment on function public.toggle_community_reaction(text, uuid, text) is
-  'Phase 44 D-02 — idempotent reaction toggle; INSERT...ON CONFLICT DO DELETE pattern (Postgres 15+ Supabase cloud). '
+  'Phase 44 D-02 — idempotent reaction toggle; SELECT-then-INSERT-or-DELETE pattern. '
   'COMMUNITY-02 proof: first call count=1 reacted_by_me=true; second call count=0 reacted_by_me=false.';
 
 -- Revoke from public/anon per convention; grant to authenticated callers

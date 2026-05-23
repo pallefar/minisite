@@ -197,8 +197,10 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/src/components/community/media/')) return 'community-media';
             // community-mentions: Fuse.js (8 kB gz) kept out of community-feed (mirrors helpdesk-macros).
             if (id.includes('/src/components/community/mentions/')) return 'community-mentions';
-            // Mux player + uploader npm packages → community-media (catches transitive imports from node_modules).
-            if (/node_modules\/@mux\/(mux-player-react|mux-uploader-react)(\/|$)/.test(id)) {
+            // Mux player + uploader npm packages + all transitive @mux deps → community-media.
+            // Catches mux-player-react, mux-uploader-react, mux-player (custom element), mux-uploader,
+            // playback-core, upchunk, mux-video, mux-data-* and any other @mux/* transitive deps.
+            if (id.includes('node_modules/@mux/')) {
               return 'community-media';
             }
             if (id.includes('/src/components/community/')) return 'community-feed';

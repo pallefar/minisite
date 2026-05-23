@@ -19,7 +19,7 @@ import remarkGfm from 'remark-gfm';
 
 import { Card } from '@/components/ui/Card';
 import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
-import type { CommunityPost, CommunityReaction } from '@/lib/community/community-types';
+import type { CommunityPostWithMedia, CommunityReaction } from '@/lib/community/community-types';
 
 import { CommunityPostMediaStrip } from './CommunityPostMediaStrip';
 import { ReactionBar } from './ReactionBar';
@@ -27,7 +27,7 @@ import { ReactionBar } from './ReactionBar';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CommunityPostProps {
-  post: CommunityPost;
+  post: CommunityPostWithMedia;
   /** Pre-fetched aggregate reactions; filtered to (target_type='post', target_id=post.id) by caller. */
   reactions: CommunityReaction[];
   /** Storage path → signed URL; pre-resolved by CommunityFeed. */

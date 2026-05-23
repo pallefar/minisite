@@ -60,6 +60,14 @@ const NOTIFICATION_OPT_IN = process.env.PLAYWRIGHT_NOTIFICATION_RUN === '1';
 const P34_OPT_IN = process.env.PLAYWRIGHT_RUN_P34 === '1';
 const P34_LIGHTHOUSE_OPT_IN = process.env.PLAYWRIGHT_RUN_LIGHTHOUSE === '1';
 
+// Phase 44 Plan 44-10 — opt-in community feed e2e (cross-tab realtime + XSS + tier-lock).
+// Invoke via `PLAYWRIGHT_RUN_COMMUNITY=1 npx playwright test --project=community --grep community`.
+// Requires live Supabase + dev server + seeded test user sessions.
+// Per [[reference_playwright_conditional_project_argv]]: env var gate only (never argv).
+// Tests self-skip when required env vars (E2E_ALICE_SESSION, E2E_BOB_SESSION,
+// E2E_CHARLIE_SESSION, E2E_COMMUNITY_SPACE_ID, E2E_COMMUNITY_PRO_SPACE_ID) are absent.
+const COMMUNITY_OPT_IN = process.env.PLAYWRIGHT_RUN_COMMUNITY === '1';
+
 export default defineConfig({
   testDir: './e2e',
   // Phase 5 05-01: e2e/rls-*.test.ts are VITEST cross-tenant RLS proofs (not
@@ -108,6 +116,9 @@ export default defineConfig({
         /e2e\/onboarding-anon-merge-e2e\.spec\.ts$/,
         /e2e\/onboarding-activation-e2e\.spec\.ts$/,
         /e2e\/onboarding-mobile-lighthouse\.spec\.ts$/,
+        // Phase 44 Plan 44-10: community feed e2e requires live Supabase + seeded
+        // test user sessions + dev server. Gated by PLAYWRIGHT_RUN_COMMUNITY=1.
+        /e2e\/community\/.*\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -223,6 +234,19 @@ export default defineConfig({
           {
             name: 'p34-lighthouse',
             testMatch: [/e2e\/onboarding-mobile-lighthouse\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 44 Plan 44-10 — opt-in community feed e2e (post + reactions + realtime + XSS + tier-lock).
+    // Invoke via `PLAYWRIGHT_RUN_COMMUNITY=1 npx playwright test --project=community --grep community`.
+    // Tests self-skip when fixture env vars absent (safe no-op in CI without seeded users).
+    // Base URL: localhost:5173 (dev server) or PLAYWRIGHT_BASE_URL override.
+    ...(COMMUNITY_OPT_IN
+      ? [
+          {
+            name: 'community',
+            testMatch: [/e2e\/community\/.*\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]

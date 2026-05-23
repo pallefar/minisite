@@ -18,17 +18,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { supabase } from '@/lib/supabase';
-import type { CommunityPost } from '@/lib/community/community-types';
+import type { CommunityPostWithMedia } from '@/lib/community/community-types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20;
 
-// ─── Extended post type with joined media ─────────────────────────────────────
-
-export interface CommunityPostWithMedia extends CommunityPost {
-  community_post_media: Array<{ path: string; display_order: number }>;
-}
+// Re-export canonical type so CommunityFeed.tsx can import it from here for convenience.
+export type { CommunityPostWithMedia };
 
 // ─── Cursor type ──────────────────────────────────────────────────────────────
 
@@ -72,7 +69,7 @@ export function useFeed(spaceId: string): UseFeedResult {
       let q = supabase
         .from('community_posts')
         .select(
-          'id, body, created_at, edited_at, deleted_at, author_id, space_id, mux_upload_id, mux_playback_id, video_status, community_post_media(path, display_order)',
+          'id, body, created_at, edited_at, deleted_at, author_id, space_id, mux_upload_id, mux_playback_id, video_status, community_post_media(id, post_id, path, display_order)',
         )
         .eq('space_id', spaceId)
         .is('deleted_at', null)
@@ -138,7 +135,7 @@ export function useFeed(spaceId: string): UseFeedResult {
       let q = supabase
         .from('community_posts')
         .select(
-          'id, body, created_at, edited_at, deleted_at, author_id, space_id, mux_upload_id, mux_playback_id, video_status, community_post_media(path, display_order)',
+          'id, body, created_at, edited_at, deleted_at, author_id, space_id, mux_upload_id, mux_playback_id, video_status, community_post_media(id, post_id, path, display_order)',
         )
         .eq('space_id', spaceId)
         .is('deleted_at', null)

@@ -129,6 +129,7 @@ export const TAB_TITLES: Record<TabId, { title: string; sub: string }> = {
   supplements: { title: 'Stack', sub: '10 essentials for serious GLP-1 users' },
   mood: { title: 'Mood & sleep', sub: 'Real GLP-1 signals. Track them.' },
   insights: { title: 'Wins & insights', sub: "The things scales don't measure" },
+  community: { title: 'Community', sub: 'Connect with others on the same journey' },
 };
 
 export const SITES = [
