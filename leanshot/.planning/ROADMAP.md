@@ -632,6 +632,17 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 9 plans across 4 waves (0/1/2/3)
+- [ ] 45-01-PLAN.md — Schema + RLS + 7 SECDEF RPCs + 3 cross-tenant RLS proof tests (Wave 0)
+- [ ] 45-02-PLAN.md — Notification CHECK widening ATOMIC (4 tables + email-router + VALID_CATEGORIES + 2 templates) (Wave 0)
+- [ ] 45-03-PLAN.md — dm-attachments Storage bucket + RLS via dm_threads JOIN (Wave 0)
+- [ ] 45-04-PLAN.md — dm-create-thread Edge Fn (rate-limit + block + clinician bypass + 5-min activity debounce) (Wave 1)
+- [ ] 45-05-PLAN.md — community-admin-report-digest Edge Fn + daily 9am UTC cron (Wave 1)
+- [ ] 45-06-PLAN.md — community_space_leaderboard_matview + Phase 35 cron CONSOLIDATION (one job, two REFRESH calls) (Wave 1)
+- [ ] 45-07-PLAN.md — Consumer UI (directory + DM inbox/thread/composer + LeaderboardChip + Settings toggles + vite chunks + bundle budget) (Wave 2)
+- [ ] 45-08-PLAN.md — Admin UI (AdminCliniciansPage + AdminReportsDigestPage + SpaceEditor leaderboard toggle; pathname-routed) (Wave 2)
+- [ ] 45-09-PLAN.md — [BLOCKING] supabase db push + Fn deploys + bundle gate + Playwright + 6-signal HUMAN-UAT + close-out (Wave 3)
+
 ### Phase 46: M4 Courses / Classroom
 
 **Goal**: Self-paced course platform — Mux video + lessons + completion certs + landing-page A/B + Pro-gated resources.
