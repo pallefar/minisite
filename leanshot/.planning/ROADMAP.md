@@ -605,6 +605,20 @@ Plans:
 
 **UI hint**: yes
 
+**Plans:** 10 plans
+
+- [ ] 44-01-PLAN.md — Community schema + RLS + bucket + SECDEF RPCs + RLS tests (Wave 0)
+- [ ] 44-02-PLAN.md — Notification CHECK widening + email-router union + VALID_CATEGORIES + 2 templates (Wave 0)
+- [ ] 44-03-PLAN.md — dompurify-config + tier-gate + community-storage + mention-parse + types + 4 unit tests (Wave 0)
+- [ ] 44-04-PLAN.md — mux-create-upload (tier-gated) + mux-webhook (HMAC) Edge Fns + Deno tests (Wave 1)
+- [ ] 44-05-PLAN.md — notify-community Edge Fn (dual-auth) + 2 vitest-e2e integration tests (Wave 1)
+- [ ] 44-06-PLAN.md — CommunityPost + CommunityFeed + CommentThread + ReactionBar + use-feed (Wave 1)
+- [ ] 44-07-PLAN.md — CommunityPostComposer + CommunityCommentComposer + MentionTypeahead (Wave 1)
+- [ ] 44-08-PLAN.md — CommunityImageUploader + CommunityMediaUploader + CommunityVideoPlayer + media strip (Wave 1)
+- [ ] 44-09-PLAN.md — use-space-realtime + SpaceList + SpaceView + admin SpaceEditor + vite.config.ts chunk rules + App route (Wave 2)
+- [ ] 44-10-PLAN.md — [BLOCKING] supabase db push + Edge Fn deploys + bundle gate + Playwright e2e + 4-signal HUMAN-UAT (Wave 3)
+
+
 ### Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard
 
 **Goal**: Discovery layer above the feed — directory + DMs + per-month leaderboard close the community loop.
