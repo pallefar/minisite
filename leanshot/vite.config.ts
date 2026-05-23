@@ -191,6 +191,16 @@ export default defineConfig(({ mode }) => {
             ) return 'helpdesk-widget';
             if (id.includes('/src/lib/i18n/') || id.includes('/src/components/i18n/')) return 'i18n-runtime';
             if (id.includes('/src/lib/gamification/') || id.includes('/src/components/gamification/')) return 'gamification-burst';
+            // Phase 44 Plan 09 — community sub-chunk rules.
+            // ORDER MATTERS: more-specific rules must appear BEFORE the community/ catch-all.
+            // community-media: Mux player (~170 kB gz) + Mux uploader (~16 kB gz) kept out of community-feed.
+            if (id.includes('/src/components/community/media/')) return 'community-media';
+            // community-mentions: Fuse.js (8 kB gz) kept out of community-feed (mirrors helpdesk-macros).
+            if (id.includes('/src/components/community/mentions/')) return 'community-mentions';
+            // Mux player + uploader npm packages → community-media (catches transitive imports from node_modules).
+            if (/node_modules\/@mux\/(mux-player-react|mux-uploader-react)(\/|$)/.test(id)) {
+              return 'community-media';
+            }
             if (id.includes('/src/components/community/')) return 'community-feed';
             if (id.includes('/src/components/course/')) return 'course-player';
 

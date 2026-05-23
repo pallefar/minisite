@@ -9,6 +9,7 @@ import {
   Pill,
   Smile,
   Trophy,
+  Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/helpers';
@@ -26,6 +27,7 @@ const TABS: { id: TabId; Icon: typeof Home }[] = [
   { id: 'supplements', Icon: Pill },
   { id: 'mood', Icon: Smile },
   { id: 'insights', Icon: Trophy },
+  { id: 'community', Icon: Users },
 ];
 
 /**

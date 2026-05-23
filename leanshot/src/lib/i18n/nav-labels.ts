@@ -36,6 +36,8 @@ export function tabLongLabel(t: TFunction, id: TabId): string {
       return t('nav:mood');
     case 'insights':
       return t('nav:insights');
+    case 'community':
+      return t('nav:community');
     default: {
       const _exhaustive: never = id;
       return _exhaustive;
@@ -63,6 +65,8 @@ export function tabShortLabel(t: TFunction, id: TabId): string {
       return t('nav:tab_short_mood');
     case 'insights':
       return t('nav:tab_short_insights');
+    case 'community':
+      return t('nav:tab_short_community');
     default: {
       const _exhaustive: never = id;
       return _exhaustive;
