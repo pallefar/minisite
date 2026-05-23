@@ -172,6 +172,11 @@ const VALID_CATEGORIES = new Set<Category>([
   'clinic-alerts',
   'billing',
   'marketing',
+  // Phase 44 Plan 44-02 — community notification categories.
+  // Must match the CHECK constraints in 20270720000004_p44_notification_community.sql
+  // and the Category type in _shared/notification-types.ts.
+  'community-mentions',
+  'community-replies',
 ]);
 
 interface SendBody {

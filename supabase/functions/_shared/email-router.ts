@@ -45,6 +45,11 @@ import * as unknownSender    from './email-templates/helpdesk-unknown-sender.ts'
 // per [[feedback_planner_missed_status_enum_widening]].
 import * as pauseReminderT7  from './email-templates/pause-reminder-t7.ts';
 import * as pauseResumedT0   from './email-templates/pause-resumed-t0.ts';
+// Phase 44 Plan 44-02 — community notification email templates.
+// Non-PHI → Resend. Union widening + subjectFor + renderTemplate + VALID_CATEGORIES
+// (notification-send) ALL land in the SAME commit per feedback_planner_missed_status_enum_widening.
+import * as communityMention from './email-templates/community-mention.ts';
+import * as communityReply   from './email-templates/community-reply.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -83,7 +88,12 @@ export type EmailTemplate =
   // PHI flag is caller-authoritative: consumer subs → phi=false (Resend);
   // clinic-org subs → phi=true (SES). D-09.
   | 'pause_reminder_t7'          // non-PHI for consumer / PHI for clinic-org. T-7d reminder.
-  | 'pause_resumed_t0';          // non-PHI for consumer / PHI for clinic-org. T-0 confirmation.
+  | 'pause_resumed_t0'           // non-PHI for consumer / PHI for clinic-org. T-0 confirmation.
+  // Phase 44 Plan 44-02 — community notification templates (non-PHI → Resend).
+  // Per [[feedback_planner_missed_status_enum_widening]]: union extension +
+  // subjectFor + renderTemplate switch arms land in the SAME commit.
+  | 'community_mention'          // non-PHI → Resend. @mention notification.
+  | 'community_reply';           // non-PHI → Resend. Comment-on-post notification.
 
 export type SendEmailArgs = {
   /** Template identifier — determines HTML rendering and subject line. */
@@ -174,6 +184,11 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
       return pauseReminderT7.subject(vars);
     case 'pause_resumed_t0':
       return pauseResumedT0.subject(vars);
+    // Phase 44 Plan 44-02 — community notification emails (non-PHI → Resend).
+    case 'community_mention':
+      return communityMention.subject(vars);
+    case 'community_reply':
+      return communityReply.subject(vars);
     default:
       return 'LeanShot Notification';
   }
@@ -261,6 +276,12 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
       const text = pauseResumedT0.render(vars);
       return `<html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0B1413;">${escapeHtml(text).replace(/\n/g, '<br>')}</body></html>`;
     }
+    // Phase 44 Plan 44-02 — community notification emails (non-PHI → Resend).
+    // Templates render complete HTML (self-contained with unsubscribe footer).
+    case 'community_mention':
+      return communityMention.render(vars);
+    case 'community_reply':
+      return communityReply.render(vars);
     default:
       return `<html><body><p>LeanShot notification.</p></body></html>`;
   }
