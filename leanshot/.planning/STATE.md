@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 44 Wave 0 merged (44-01, 44-02, 44-03)
-last_updated: "2026-05-23T06:30:49.089Z"
-last_activity: 2026-05-23 -- Phase 44 Wave 0 merged: 44-01 (schema + RLS + bucket + RPCs + 3 tests), 44-02 (notification CHECK widening + email-router + 2 templates), 44-03 (5 community lib files + 4 unit test files; 40 tests green)
+stopped_at: Phase 44 Wave 1 in progress (44-04 complete)
+last_updated: "2026-05-23T06:40:39Z"
+last_activity: 2026-05-23 -- Phase 44 Plan 44-04 complete: mux-create-upload + mux-webhook Edge Fns (tier-gate + passthrough.post_id + HMAC verify + import.meta.main guard); 19 Deno tests green
 progress:
   total_phases: 28
   completed_phases: 14
   total_plans: 187
-  completed_plans: 145
+  completed_plans: 146
   percent: 50
 ---
 
