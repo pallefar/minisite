@@ -154,7 +154,7 @@ Events platform layered onto Phase 44's community_spaces — every event lives i
 ### Integration Points
 
 - **Events tab in consumer App.tsx** — new top-level TabId; widens `TabId` union; new lazy-loaded `EventsTab` route. Position between `'classroom'` and `'community'`.
-- **Admin Events Editor** — new admin module under `src/admin/modules/events/` following Phase 42 + 44 admin shell pattern (per memory `reference_react_router_consumer_admin_split` — admin uses react-router). New route `/admin/events`.
+- **Admin Events Editor** — new admin module under `src/admin/modules/events/` following the **live admin pattern: pathname-based switching, NOT react-router** (live audit 2026-05-23 confirms zero `react-router` imports in `src/admin/`; `CommunityAdminLayout.tsx` lines 6, 17, 125, 137-145 use `window.location.pathname` + `useState` + `popstate` event listener). Fork `src/admin/modules/community/CommunityAdminLayout.tsx` as the analog. New pathname prefix `/admin/events`. **Correction:** CONTEXT D-13 previously cited memory `reference_react_router_consumer_admin_split` claiming admin uses react-router — that memory is **stale**; live code does NOT use it. Memory updated.
 - **`event-join-url` Edge Fn** — net-new; RLS-shaped access check; redirects or returns JSON `{ url }`.
 - **`zoom-create-meeting` Edge Fn** — net-new; called from admin event-create form; writes back `zoom_meeting_id` + `join_url` to the events row via service role.
 - **`event-reminders-fanout` Edge Fn** — net-new; hourly cron target; reads events + profiles.timezone + event_rsvps + event_promotion_queue; calls email-router.
