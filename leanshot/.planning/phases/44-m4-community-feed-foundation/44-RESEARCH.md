@@ -698,22 +698,19 @@ $$;
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Mention regex inside code blocks**
    - What we know: D-14 provides `/@([a-z0-9_]{3,30})\b/i`; DOMPurify converts backtick fences to `<code>` HTML.
-   - What's unclear: Should the server-side mention extraction run on the raw markdown (before DOMPurify) or on the sanitized HTML output?
-   - Recommendation: Run on raw markdown; strip `` `...` `` and ```` ```...``` ```` patterns before applying the regex. This avoids false mentions in code examples.
+   - RESOLVED: Run extraction on RAW markdown (pre-DOMPurify); strip inline `` `...` `` and fenced ```` ```...``` ```` blocks before applying the regex. This avoids false mentions in code examples and is what `src/lib/community/mention-parse.ts` ships in plan 44-03. Verified against unit fixtures in `tests/unit/community-mention-parse.test.ts`.
 
 2. **notify-community Edge Fn: extend notification-send or new Fn?**
    - What we know: `notification-send` accepts `{ user_id, category, payload, channelHint? }` with service-role bearer. It already handles in-app + email dispatch.
-   - What's unclear: Fan-out for mentions could be N users. notification-send is a per-user call.
-   - Recommendation: New Edge Fn `notify-community` that iterates over `community_post_mentions` rows and calls `notification-send` once per mentioned user. This keeps `notification-send` as a single-user primitive and keeps fan-out logic separate.
+   - RESOLVED: NEW Edge Fn `notify-community` (plan 44-05) that iterates over `community_post_mentions` / `community_comment_mentions` rows and calls `notification-send` once per mentioned user. Keeps `notification-send` as a single-user primitive; isolates community-fan-out logic. Dual-auth (service-role OR user JWT with `sub` self-check) ships in 44-05.
 
 3. **community_spaces visibility_tier column type**
    - What we know: D-08 / D-06 need to gate spaces by tier (Free/Pro/Lifetime). Phase 43 `tier_effective.tier_label` uses values `'free' | 'trial' | 'pro' | 'lifetime'`.
-   - What's unclear: Should `community_spaces.min_tier` be a `text` CHECK constraint or a Postgres enum?
-   - Recommendation: Use `text CHECK (min_tier IN ('free','pro','lifetime'))` to match `tier_effective.tier_label` values. Skip `trial` — trial users see Pro content.
+   - RESOLVED: `text CHECK (min_tier IN ('free','pro','lifetime'))` to match `tier_effective.tier_label`. Trial users are treated as Pro for access decisions (consistent with Claude's Discretion in 44-CONTEXT; trial = full feature evaluation). `'trial'` is NOT an allowed `min_tier` value because admins should not configure a "trial-only" space — Pro is the lowest gated tier.
 
 ---
 
