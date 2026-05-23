@@ -645,18 +645,31 @@ Plans:
 
 ### Phase 46: M4 Courses / Classroom
 
-**Goal**: Self-paced course platform — Mux video + lessons + completion certs + landing-page A/B + Pro-gated resources.
-**Depends on**: Phase 44 (Mux integration patterns); Phase 39 (PAGEAB-06 per-block variants); Phase 43 (entitlement check)
+**Goal**: Self-paced course platform — Mux video + lessons + completion certs + landing-page (single-template v1) + Pro-gated resources.
+**Depends on**: Phase 44 (Mux integration patterns); Phase 43 (entitlement check); Phase 15 (PageBuilder)
 **Requirements**: COURSE-01, COURSE-02, COURSE-03, COURSE-04, COURSE-05, COURSE-06
 **Success Criteria** (what must be TRUE):
 
   1. Admin creates course → adds modules → adds lessons; each lesson supports video (Mux asset_id) + markdown text + downloadable resources
   2. User watches a Mux-transcoded lesson via Mux Player with adaptive HLS; lesson_progress updates per playback; user resumes where left off across devices; course-player chunk ≤30 kB gz
-  3. On course completion, server generates a PDF certificate (jsPDF, already in v1.2 stack) with user name + course title + date + verification URL; user downloads via signed URL
-  4. Course landing page uses PageBuilder with per-block A/B variants (reuses PAGEAB-06); admin selects from long-form / outcome-focused / FAQ-heavy templates
+  3. On course completion, server generates a PDF certificate (jsPDF, already in v1.2 stack) with user name + course title + date + verification URL; user downloads via signed URL; public /verify/<cert_id>?t=<hmac> renders proof card
+  4. Course landing page uses PageBuilder single-template in v1 (Phase 39 PAGEAB-06 retrofits per-block A/B later); admin selects from long-form / outcome-focused / FAQ-heavy templates
   5. Pro-gated downloadable resources return 403 to free-tier users; entitlement check uses `tier_effective.has_active`
 
 **UI hint**: yes
+
+**Plans:** 11 plans across 4 waves (0/1/2/3)
+- [ ] 46-01-PLAN.md — Schema + RLS + 3 SECDEF RPCs + 4 cross-tenant proof tests (Wave 0)
+- [ ] 46-02-PLAN.md — certificates + course-resources Storage buckets (Wave 0)
+- [ ] 46-03-PLAN.md — course-types + browser HMAC cert-verify-token + isResourceAllowed extension (Wave 0)
+- [ ] 46-04-PLAN.md — mux-sign-playback Edge Fn (RS256 JWT explicit keyId/keySecret + tier gate) (Wave 1)
+- [ ] 46-05-PLAN.md — mux-create-upload + mux-webhook extensions (course-lesson branch; signed policy; admin-only) (Wave 1)
+- [ ] 46-06-PLAN.md — lesson-progress-beacon Edge Fn (req.text() sendBeacon-friendly + update_lesson_position RPC) (Wave 1)
+- [ ] 46-07-PLAN.md — generate-course-certificate Edge Fn (jsPDF + qrcode + HMAC; Wave 0 qrcode smoke test) (Wave 1)
+- [ ] 46-08-PLAN.md — Consumer Classroom UI (TabId 'classroom' + LessonPlayerView + bundle ≤30 kB gz) (Wave 2)
+- [ ] 46-09-PLAN.md — Admin Course Editor (pathname routing + SortableTreePanel reorder + LessonVideoUploader) (Wave 2)
+- [ ] 46-10-PLAN.md — Public /verify/<cert_id> route + compareCertToken helper (Wave 3)
+- [ ] 46-11-PLAN.md — [BLOCKING] vendor secrets + db push + 5 Fn deploys + bundle gate + Playwright + 6-signal HUMAN-UAT + close-out (Wave 3)
 
 ### Phase 47: M4 Events Calendar + Zoom + Reminders + Recording
 
@@ -672,6 +685,22 @@ Plans:
   5. Post-event Mux recording optionally attaches as new lesson in an adjacent course (admin-toggled)
 
 **UI hint**: yes
+
+**Plans**: 12 plans
+
+Plans:
+- [ ] 47-01-PLAN.md — events schema + RLS (Wave 0)
+- [ ] 47-02-PLAN.md — event_rsvps schema + RLS + UNIQUE (Wave 0)
+- [ ] 47-03-PLAN.md — SECDEF RPCs (event_rsvp_create, event_get_join_url) + waitlist promotion trigger + reminder_sent + promotion_queue tables (Wave 0)
+- [ ] 47-04-PLAN.md — event-covers Storage bucket + notification_settings VALID_CATEGORIES widening (Wave 0)
+- [ ] 47-05-PLAN.md — pg_cron + 14 Wave 0 test scaffolds + bundle-budget extend (Wave 0)
+- [ ] 47-06-PLAN.md — zoom-create-meeting Edge Fn (S2S OAuth + retry-on-401) (Wave 1)
+- [ ] 47-07-PLAN.md — event-join-url Edge Fn (RSVP gate + 15-min pre-window) (Wave 1)
+- [ ] 47-08-PLAN.md — event-reminders-fanout Edge Fn + select_event_reminder_targets RPC + _shared/event-phi.ts helper (Wave 1)
+- [ ] 47-09-PLAN.md — mux-create-upload + mux-webhook EXTEND (kind=event-recording) (Wave 1)
+- [ ] 47-10-PLAN.md — Consumer events tab (EventsTab + EventCard + EventDetailSheet + RsvpPills + JoinMeetingButton + types + RPC client + TabId/store/App/Sidebar/MobileNav widening + vite chunk) (Wave 2)
+- [ ] 47-11-PLAN.md — Admin events module (pathname-based; EventEditPage + Zoom radio + attach-to-module picker + cover upload + recording uploader + manifest registration) (Wave 2)
+- [ ] 47-12-PLAN.md — Phase close-out: db push + 5 Fn deploys + Deno sweep + bundle gate + 6-signal HUMAN-UAT + ROADMAP/STATE/REQUIREMENTS flips (Wave 3)
 
 ### Phase 48: M4 Moderation
 
