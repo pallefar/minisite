@@ -251,12 +251,12 @@
 
 ### WS20 — M4: Community Feed (COMMUNITY, 9 REQ-IDs)
 
-- [ ] **COMMUNITY-01**: User posts + threaded comments (markdown body via react-markdown + dompurify, shared with HELP-07); posts schema with author_id + space_id + parent_comment_id + body + reactions
-- [ ] **COMMUNITY-02**: Likes + reactions (extensible to emoji reactions); post_reactions table with idempotent toggle
+- [x] **COMMUNITY-01**: User posts + threaded comments (markdown body via react-markdown + dompurify, shared with HELP-07); posts schema with author_id + space_id + parent_comment_id + body + reactions
+- [x] **COMMUNITY-02**: Likes + reactions (extensible to emoji reactions); post_reactions table with idempotent toggle
 - [ ] **COMMUNITY-03**: @mentions in posts + comments fire in-app + email notifications to mentioned user (respect notification_settings)
 - [ ] **COMMUNITY-04**: Image embeds (Supabase Storage signed URLs) + video embeds (Mux upload + adaptive playback); per-post image-count cap
 - [ ] **COMMUNITY-05**: Realtime feed updates via Supabase Realtime (new posts + new comments + reaction updates) — reuses Phase 9 + HELP-09 Realtime patterns
-- [ ] **COMMUNITY-06**: Spaces / categories admin-configurable (e.g., "GLP-1 starters", "Trial month tips", "Clinic Q&A"); per-space visibility (Free / Pro / Lifetime)
+- [x] **COMMUNITY-06**: Spaces / categories admin-configurable (e.g., "GLP-1 starters", "Trial month tips", "Clinic Q&A"); per-space visibility (Free / Pro / Lifetime)
 - [ ] **COMMUNITY-07**: Member directory with profile pages (bio, links, joined-date, badges); admin sets directory visibility (org-only for clinics)
 - [ ] **COMMUNITY-08**: Opt-in DMs (1:1 message threads); per-user DM-open toggle; rate limiting (max N new DM threads/day)
 - [ ] **COMMUNITY-09**: Community leaderboard (separate from GAME app leaderboard); top contributors per space + per month; cohort-scoped opt-in (anonymized handles)
@@ -588,12 +588,12 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | MEMBER-02 | Phase 43 | Pending |
 | MEMBER-03 | Phase 43 | Pending |
 | MEMBER-04 | Phase 43 | Pending |
-| COMMUNITY-01 | Phase 44 | Pending |
-| COMMUNITY-02 | Phase 44 | Pending |
+| COMMUNITY-01 | Phase 44 | Complete |
+| COMMUNITY-02 | Phase 44 | Complete |
 | COMMUNITY-03 | Phase 44 | Pending |
 | COMMUNITY-04 | Phase 44 | Pending |
 | COMMUNITY-05 | Phase 44 | Pending |
-| COMMUNITY-06 | Phase 44 | Pending |
+| COMMUNITY-06 | Phase 44 | Complete |
 | COMMUNITY-07 | Phase 45 | Pending |
 | COMMUNITY-08 | Phase 45 | Pending |
 | COMMUNITY-09 | Phase 45 | Pending |
