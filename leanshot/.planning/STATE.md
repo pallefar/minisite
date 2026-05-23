@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: executing
-stopped_at: Phase 44 Wave 1 in progress (44-04 complete)
-last_updated: "2026-05-23T06:40:39Z"
-last_activity: 2026-05-23 -- Phase 44 Plan 44-04 complete: mux-create-upload + mux-webhook Edge Fns (tier-gate + passthrough.post_id + HMAC verify + import.meta.main guard); 19 Deno tests green
+stopped_at: Phase 44 Wave 1 merging (44-04, 44-05 merged)
+last_updated: "2026-05-23T06:42:52.606Z"
+last_activity: 2026-05-23 -- Phase 44 Wave 1 merge: 44-04 (Mux Edge Fns; 19 Deno tests green), 44-05 (notify-community dual-auth fan-out; 12 Deno tests green)
 progress:
   total_phases: 28
   completed_phases: 14
   total_plans: 187
-  completed_plans: 146
+  completed_plans: 148
   percent: 50
 ---
 
@@ -182,7 +182,7 @@ See: .planning/PROJECT.md (updated 2026-05-17 for v1.3 milestone)
 ## Current Position
 
 Phase: 43 — COMPLETE
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-05-23
 
@@ -210,7 +210,7 @@ Last activity: 2026-05-23
 
 Milestone v1.2 SHIPPED 2026-05-17. 7 active phases (12-15, 19, 22-23) / 59 plans / 487 commits / +150,341 LOC. Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs. 5 phases (16-18, 20-21 — mobile/push/HealthKit/ads/watch) descoped to v1.4 = 44 REQs.
 
-Progress: [████████░░] 78%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -269,6 +269,7 @@ Progress: [████████░░] 78%
 | Phase 34 P06 | 708 | 3 tasks | 14 files |
 | Phase 37 P03 | 8m | 3 tasks | 4 files |
 | Phase 44 P01 | 35 | 2 tasks | 8 files |
+| Phase 44 P05 | 30min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -308,6 +309,7 @@ Recent decisions affecting current work:
 - [Phase 44]: trial users included in Pro branch of cpost_select_tier (D-06 + Claude's Discretion)
 - [Phase 44]: community_comments.space_id denormalized NOT NULL for Realtime filter per RESEARCH Pitfall 5
 - [Phase 44]: community-media bucket private with MIME whitelist jpeg/png/webp, path-prefix auth.uid() RLS defense (T-44-04)
+- [Phase ?]: 44-05
 
 ### Pending Todos
 
@@ -359,7 +361,7 @@ Items NOT addressed in v1.3 (per user direction: v1.3 = new-features-only):
 
 ## Session Continuity
 
-Last session: 2026-05-23T06:30:15.894Z
+Last session: 2026-05-23T06:42:52.598Z
 Stopped at: Phase 44 context gathered
 Resume file: 
 
