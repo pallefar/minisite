@@ -806,22 +806,19 @@ CREATE INDEX idx_community_space_lb_space_rank
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`profiles.handle` and `profiles.display_name` migration not found**
-   - What we know: Both columns are referenced by live Phase 44 code (`MentionTypeahead.tsx` queries `profiles` for `id, handle, display_name`; `mention-parse.ts` references "30-char CHECK constraint on `profiles.handle`").
-   - What's unclear: Which migration file added these columns. They are not in any file in `supabase/migrations/` that was found.
-   - Recommendation: Plan 45-01 should include `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS handle text` and `ADD COLUMN IF NOT EXISTS display_name text` as idempotent statements. If columns already exist (live DB), the `IF NOT EXISTS` guard prevents errors.
+   - What we know: Live code references these columns (`MentionTypeahead.tsx`, `mention-parse.ts`); RESEARCH could not find the creating migration.
+   - RESOLVED (orchestrator pre-checked live DB 2026-05-23 via `supabase db query --linked`): These columns DO NOT exist in the live `profiles` table. The full live column list is: `account_state, admin_role, completed_onboarding_at, created_at, has_totp, id, is_staff, locale, primary_goal, primary_org_id, tags, timezone` (12 columns). Phase 44 code referencing `handle`/`display_name` likely returns nulls or fails. Plan 45-01 MUST add BOTH as net-new `ALTER TABLE profiles ADD COLUMN handle text` + `ADD COLUMN display_name text` (NOT `IF NOT EXISTS` guards — these are net-new columns, not idempotent guards).
 
 2. **Leaderboard matview score formula precision**
-   - What we know: D-12 formula is `posts × 3 + comments × 1 + reactions_received × 1`. `reactions_received` means reactions received ON the user's posts/comments in the 7d window.
-   - What's unclear: The exact GROUP BY / aggregate structure to compute `reactions_received` without double-counting across multiple posts by the same author in the same space.
-   - Recommendation: Planner should use a CTE to pre-aggregate per-author post counts + comment counts + reaction counts separately, then JOIN for the score.
+   - What we know: D-12 formula is `posts × 3 + comments × 1 + reactions_received × 1`.
+   - RESOLVED: Plan 45-06 uses CTE pre-aggregation per-author (separate CTEs for `posts_per_author`, `comments_per_author`, `reactions_received_per_author`) joined into the final SELECT. Prevents double-counting across multiple posts by the same author in the same space.
 
 3. **`profiles.leaderboard_opt_in` vs Phase 35 `leaderboard_optin.active`**
-   - What we know: D-16 says unified opt-in. Phase 35's `leaderboard_optin.active` is per (user_id, cohort_id). Phase 45 needs a global flag.
-   - What's unclear: Should opt-in to the community leaderboard ALSO opt the user into the gamification leaderboard (for all cohorts)? Or are they truly independent?
-   - Recommendation: They are independent in Phase 45 v1. Add `profiles.leaderboard_opt_in boolean default false` as a SEPARATE column from Phase 35's per-cohort `leaderboard_optin.active`. A user can be opted into the community leaderboard without being in any gamification cohort leaderboard.
+   - What we know: D-16 says unified opt-in. Phase 35's `leaderboard_optin.active` is per (user_id, cohort_id).
+   - RESOLVED: Independent global boolean per Phase 45 v1, NOT linked to Phase 35 per-cohort rows. `profiles.leaderboard_opt_in boolean default false` is a SEPARATE column. A user can opt into the community leaderboard without being in any gamification cohort leaderboard. The "unified handle" in D-16 is preserved — `profiles.leaderboard_handle` is the canonical anonymized handle used by BOTH surfaces; the opt-in flags are independent.
 
 ---
 
