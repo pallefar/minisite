@@ -48,7 +48,7 @@ created: 2026-05-23
 
 ## Wave 0 Requirements
 
-- [ ] `supabase/tests/p48_*.sql` — 16 RLS-proof + SQL integration files
+- [ ] `supabase/tests/p48_*.sql` — 15 RLS-proof + SQL integration files (reconciled iter-1: plan-checker overcounted; 15 unique files scaffolded by 48-06)
 - [ ] `supabase/functions/claude-moderation/{index.ts,deno.json,index.test.ts}`
 - [ ] `supabase/functions/banned-words-sweep/{index.ts,deno.json,index.test.ts}`
 - [ ] `supabase/functions/ban-enforcement/{index.ts,deno.json,index.test.ts}`
