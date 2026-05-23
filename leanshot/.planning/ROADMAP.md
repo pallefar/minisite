@@ -715,6 +715,22 @@ Plans:
   4. Claude API auto-flags posts/comments/DMs for toxicity + spam + medical-misinformation; flagged content goes to admin queue (NOT auto-removed); compounds with HELP AI-assist Claude budget
   5. Every moderation action (admin + automated) writes to moderation_audit_log (immutable per HIPAA-14 pattern); audit log queryable by admin
 
+**Plans:** 12 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — community_reports EXTEND (status enum widen + triage cols + 2 partial UNIQUEs) (Wave 0)
+- [ ] 48-02-PLAN.md — can_moderate_report_org SECDEF helper + report_content SECDEF RPC + community_reports SELECT RLS update (Wave 0)
+- [ ] 48-03-PLAN.md — user_moderation_state schema + RLS + apply_user_moderation SECDEF RPC + temp_suspended_restore pg_cron (Wave 0)
+- [ ] 48-04-PLAN.md — moderation_audit_log + log_moderation_action SECDEF RPC + audit-archive Fn EXTEND (Wave 0)
+- [ ] 48-05-PLAN.md — banned_words schema + RLS + upsert/remove SECDEF RPCs + notification_settings VALID_CATEGORIES widening (Wave 0)
+- [ ] 48-06-PLAN.md — Triggers (auto-flag PHI WHEN + banned_words match) + mute/ban RLS predicate widen + 16 SQL + 3 Deno + 6 SPA test scaffolds (Wave 0)
+- [ ] 48-07-PLAN.md — claude-moderation Edge Fn (Anthropic structured output; NEVER auto-remove; PHI defense-in-depth) (Wave 1)
+- [ ] 48-08-PLAN.md — banned-words-sweep Edge Fn (cursored, idempotent) (Wave 1)
+- [ ] 48-09-PLAN.md — ban-enforcement Edge Fn (service-role DELETE auth.sessions + auth.refresh_tokens) (Wave 1)
+- [ ] 48-10-PLAN.md — Admin moderation module (pathname-based; ModerationLayout + 5 sub-views + 3 triage RPCs + manifest entry + vite chunk + bundle ceiling) (Wave 2)
+- [ ] 48-11-PLAN.md — Consumer AccountSuspended blocker + App.tsx branch + store ephemeral slice + main.tsx hydration + RLS predicate doc module (Wave 2)
+- [ ] 48-12-PLAN.md — Phase close-out: db push + 4 Fn deploys + Deno sweep + bundle gate + 4-signal HUMAN-UAT + ROADMAP/STATE/REQUIREMENTS/VALIDATION flips + CARRY-OVER.md (Wave 3)
+
 **UI hint**: yes
 
 ### Phase 49: M4 Search + Email Digests
