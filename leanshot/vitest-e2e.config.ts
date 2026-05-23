@@ -77,6 +77,14 @@ export default defineConfig({
       // cross-tenant impersonation proof test.
       'src/test/rls-helpdesk-tickets.test.ts',
       'src/test/rls-helpdesk-kb.test.ts',
+      // Phase 44 plan 44-05 — COMMUNITY-03 notify-community integration (mention fan-out
+      // + toggle-respect + user-JWT auth + impersonation reject).
+      // Phase 44 plan 44-05 — COMMUNITY-04 mux-create-upload tier gate (Free=403, Pro=200,
+      // Trial=200, missing-bearer=401).
+      // Both self-skip when SUPABASE env vars are missing.
+      // REQUIRES: 44-10 supabase db push --linked + supabase functions deploy first.
+      'tests/integration/community-mention-notification.test.ts',
+      'tests/integration/mux-tier-gate.test.ts',
     ],
     testTimeout: 30000,
   },
