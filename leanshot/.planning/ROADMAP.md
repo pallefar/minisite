@@ -605,16 +605,16 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 1/10 plans executed
+**Plans:** 4/10 plans executed
 
 - [x] 44-01-PLAN.md — Community schema + RLS + bucket + SECDEF RPCs + RLS tests (Wave 0)
-- [ ] 44-02-PLAN.md — Notification CHECK widening + email-router union + VALID_CATEGORIES + 2 templates (Wave 0)
-- [ ] 44-03-PLAN.md — dompurify-config + tier-gate + community-storage + mention-parse + types + 4 unit tests (Wave 0)
+- [x] 44-02-PLAN.md — Notification CHECK widening + email-router union + VALID_CATEGORIES + 2 templates (Wave 0)
+- [x] 44-03-PLAN.md — dompurify-config + tier-gate + community-storage + mention-parse + types + 4 unit tests (Wave 0)
 - [ ] 44-04-PLAN.md — mux-create-upload (tier-gated) + mux-webhook (HMAC) Edge Fns + Deno tests (Wave 1)
 - [ ] 44-05-PLAN.md — notify-community Edge Fn (dual-auth) + 2 vitest-e2e integration tests (Wave 1)
 - [ ] 44-06-PLAN.md — CommunityPost + CommunityFeed + CommentThread + ReactionBar + use-feed (Wave 1)
 - [ ] 44-07-PLAN.md — CommunityPostComposer + CommunityCommentComposer + MentionTypeahead (Wave 1)
-- [ ] 44-08-PLAN.md — CommunityImageUploader + CommunityMediaUploader + CommunityVideoPlayer + media strip (Wave 1)
+- [x] 44-08-PLAN.md — CommunityImageUploader + CommunityMediaUploader + CommunityVideoPlayer + media strip (Wave 1)
 - [ ] 44-09-PLAN.md — use-space-realtime + SpaceList + SpaceView + admin SpaceEditor + vite.config.ts chunk rules + App route (Wave 2)
 - [ ] 44-10-PLAN.md — [BLOCKING] supabase db push + Edge Fn deploys + bundle gate + Playwright e2e + 4-signal HUMAN-UAT (Wave 3)
 
@@ -715,7 +715,7 @@ Plans:
 | 41. Public Status Page + Embed-Provider Blocks | 0/? | Not started | — |
 | 42. v1.3 Polish Closeout | 8/11 | In Progress|  |
 | 43. M4 Membership Tiers Extension | 0/? | Not started | — |
-| 44. M4 Community Feed Foundation | 1/10 | In Progress|  |
+| 44. M4 Community Feed Foundation | 4/10 | In Progress|  |
 | 45. M4 Community Spaces + Directory + DMs + Leaderboard | 0/? | Not started | — |
 | 46. M4 Courses / Classroom | 0/? | Not started | — |
 | 47. M4 Events Calendar | 0/? | Not started | — |
