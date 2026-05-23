@@ -23,14 +23,15 @@ export const COMMUNITY_MEDIA_BUCKET = 'community-media' as const;
 
 const SIGNED_URL_TTL = 3600; // 60 min per D-04
 
-const COMMUNITY_MEDIA_MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
-
 // No SVG per security threat table (T-44-05: SVG can embed script content)
-const COMMUNITY_MEDIA_MIMES: ReadonlySet<string> = new Set([
+export const COMMUNITY_MEDIA_MIMES: ReadonlySet<string> = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
 ]);
+
+// Exported so CommunityImageUploader can enforce the same limit client-side
+export const COMMUNITY_MEDIA_MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpeg',
