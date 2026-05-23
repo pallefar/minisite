@@ -103,6 +103,9 @@ const MoodTab = lazy(() =>
 const InsightsTab = lazy(() =>
   import('@/components/dashboard/tabs/InsightsTab').then((m) => ({ default: m.InsightsTab })),
 );
+// Phase 44 Plan 09 — Community tab shell (Zustand-driven navigation per CLAUDE.md no-router rule).
+// DO NOT add react-router-dom Route or useNavigate here — consumer surface uses setTab + store.activeCommunitySpaceId.
+const CommunityTabShell = lazy(() => import('@/components/community/CommunityTabShell'));
 
 const Onboarding = lazy(() =>
   import('@/components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })),
@@ -1895,6 +1898,7 @@ export function App() {
             {currentTab === 'supplements' && <SupplementsTab />}
             {currentTab === 'mood' && <MoodTab />}
             {currentTab === 'insights' && <InsightsTab />}
+            {currentTab === 'community' && <CommunityTabShell />}
           </TabSwitcher>
         </Suspense>
       </AppShell>

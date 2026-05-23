@@ -240,7 +240,8 @@ export type TabId =
   | 'activity'
   | 'supplements'
   | 'mood'
-  | 'insights';
+  | 'insights'
+  | 'community';
 
 export type Theme = 'light' | 'dark';
 

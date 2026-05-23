@@ -75,6 +75,12 @@ export interface SignedInSlice {
 interface UIState {
   currentTab: TabId;
   /**
+   * Phase 44 Plan 09 — active community space for list-vs-detail navigation.
+   * NOT persisted (transient UI state — excluded from partialize).
+   * null = show CommunitySpaceList; string = show CommunitySpaceView for that spaceId.
+   */
+  activeCommunitySpaceId: string | null;
+  /**
    * Phase 6 Plan 06-01 (UI-CHECK N4): `durationMs?: number` is an optional
    * override for the default 2400 ms auto-dismiss honored by Toast.tsx's
    * setTimeout. Phase 6's conflict-toast (Plan 06-05) passes 5000 ms;
@@ -105,6 +111,11 @@ interface UIState {
 
 interface Actions {
   setTab: (tab: TabId) => void;
+  /**
+   * Phase 44 Plan 09 — set or clear the active community space.
+   * Transient UI state: NOT persisted (excluded from partialize).
+   */
+  setActiveCommunitySpace: (id: string | null) => void;
   showToast: (message: string, kind?: 'success' | 'error' | 'info', durationMs?: number) => void;
   dismissToast: () => void;
 
@@ -571,6 +582,7 @@ export const useStore = create<Store>()(
       // than a tri-state with `undefined`.
       migration_state: null,
       currentTab: 'home',
+      activeCommunitySpaceId: null,
       toast: null,
       signedIn: null,
       migrationError: null,
@@ -636,6 +648,9 @@ export const useStore = create<Store>()(
         set({ currentTab: tab });
         track('tab_viewed', { tab });
       },
+
+      // Phase 44 Plan 09 — community list-vs-detail navigation (Zustand-driven, no router).
+      setActiveCommunitySpace: (id) => set({ activeCommunitySpaceId: id }),
 
       // Phase 14 Plan 14-05 — billing tier action.
       setTier: (next) =>

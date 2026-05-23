@@ -22,6 +22,7 @@ import {
   Pill,
   Smile,
   Trophy,
+  Users,
   Bot,
   Moon,
   Sun,
@@ -47,6 +48,7 @@ const TABS: { id: TabId; Icon: typeof Home }[] = [
   { id: 'supplements', Icon: Pill },
   { id: 'mood', Icon: Smile },
   { id: 'insights', Icon: Trophy },
+  { id: 'community', Icon: Users },
 ];
 
 interface SidebarProps {
