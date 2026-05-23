@@ -605,9 +605,9 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 10 plans
+**Plans:** 1/10 plans executed
 
-- [ ] 44-01-PLAN.md — Community schema + RLS + bucket + SECDEF RPCs + RLS tests (Wave 0)
+- [x] 44-01-PLAN.md — Community schema + RLS + bucket + SECDEF RPCs + RLS tests (Wave 0)
 - [ ] 44-02-PLAN.md — Notification CHECK widening + email-router union + VALID_CATEGORIES + 2 templates (Wave 0)
 - [ ] 44-03-PLAN.md — dompurify-config + tier-gate + community-storage + mention-parse + types + 4 unit tests (Wave 0)
 - [ ] 44-04-PLAN.md — mux-create-upload (tier-gated) + mux-webhook (HMAC) Edge Fns + Deno tests (Wave 1)
@@ -715,7 +715,7 @@ Plans:
 | 41. Public Status Page + Embed-Provider Blocks | 0/? | Not started | — |
 | 42. v1.3 Polish Closeout | 8/11 | In Progress|  |
 | 43. M4 Membership Tiers Extension | 0/? | Not started | — |
-| 44. M4 Community Feed Foundation | 0/? | Not started | — |
+| 44. M4 Community Feed Foundation | 1/10 | In Progress|  |
 | 45. M4 Community Spaces + Directory + DMs + Leaderboard | 0/? | Not started | — |
 | 46. M4 Courses / Classroom | 0/? | Not started | — |
 | 47. M4 Events Calendar | 0/? | Not started | — |
