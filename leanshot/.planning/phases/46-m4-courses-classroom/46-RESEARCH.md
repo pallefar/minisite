@@ -682,7 +682,7 @@ export const COURSE_RESOURCES_MAX_BYTES = 200 * 1024 * 1024; // 200 MB
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`qrcode` in Deno — canvas dependency**
    - What we know: `qrcode` npm uses canvas for PNG rendering; Deno Edge Runtime does not have native canvas
