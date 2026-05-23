@@ -2,7 +2,7 @@
  * Phase 44 Plan 03 — Community Feed Foundation: DOMPurify config.
  *
  * FORKED from src/helpdesk/KBArticleView.tsx line 66.
- * Helpdesk uses `USE_PROFILES: { html: true }` (permissive for staff).
+ * Helpdesk uses USE_PROFILES with html=true (permissive for staff — do NOT replicate here).
  * Community uses an EXPLICIT ALLOWLIST + FORBID_TAGS (T-44-05 XSS defense).
  *
  * Key differences from helpdesk:
