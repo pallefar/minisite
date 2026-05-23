@@ -73,6 +73,15 @@ export interface CommunityPostMedia {
   display_order: number;
 }
 
+/**
+ * CommunityPost with the joined community_post_media relation.
+ * Used by CommunityFeed when querying posts with SELECT community_post_media(...).
+ * CommunityPost → CommunityPostMediaStrip → CommunityMediaUploader all consume this shape.
+ */
+export type CommunityPostWithMedia = CommunityPost & {
+  community_post_media: CommunityPostMedia[];
+};
+
 // ─── Tier gate ────────────────────────────────────────────────────────────────
 
 /**

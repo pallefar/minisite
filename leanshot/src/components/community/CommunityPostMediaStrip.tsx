@@ -5,14 +5,7 @@
 
 import { lazy, Suspense, useState } from 'react';
 
-import type { CommunityPost, CommunityPostMedia } from '@/lib/community/community-types';
-
-// Extended post type that includes the joined community_post_media relation.
-// CommunityFeed (Plan 44-06) selects this relation in its Supabase query and
-// passes the combined shape to CommunityPost → CommunityPostMediaStrip.
-type CommunityPostWithMedia = CommunityPost & {
-  community_post_media: CommunityPostMedia[];
-};
+import type { CommunityPostWithMedia } from '@/lib/community/community-types';
 
 // ─── Lazy Mux Player ─────────────────────────────────────────────────────────
 // CommunityVideoPlayer lives under media/ which 44-09's vite.config.ts routes to
