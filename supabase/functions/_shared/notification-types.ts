@@ -18,7 +18,11 @@ export type Category =
   | 'ai-insights'
   | 'clinic-alerts'
   | 'billing'
-  | 'marketing';
+  | 'marketing'
+  // Phase 44 Plan 44-02 — community notification categories.
+  // Must match the CHECK constraints widened in 20270720000004_p44_notification_community.sql.
+  | 'community-mentions'
+  | 'community-replies';
 
 export type Channel = 'email' | 'web-push' | 'in-app';
 
