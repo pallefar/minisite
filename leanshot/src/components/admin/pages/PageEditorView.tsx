@@ -16,7 +16,8 @@
  * pushed into `window.history` so URL deep-links work and a refresh keeps
  * the user on the same draft.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { TrafficSplitSlider } from '@/components/admin/growth/TrafficSplitSlider';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -32,6 +33,8 @@ import {
   type PageSeoFields,
   type RevisionListRow,
 } from '@/lib/page-builder/page-api';
+import { supabase } from '@/lib/supabase';
+import { BlockVariantDrawer } from './BlockVariantDrawer';
 import { BlockTreePanel } from './editor/BlockTreePanel';
 import { PreviewPane } from './editor/PreviewPane';
 import { PropertyPanel } from './editor/PropertyPanel';
@@ -96,6 +99,26 @@ export function PageEditorView() {
   const [seoOpen, setSeoOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [revisions, setRevisions] = useState<RevisionListRow[]>([]);
+
+  // Phase 39 Plan 39-09 (PAGEAB-01 / PAGEAB-06) — variant authoring state.
+  // `variantModalOpen` drives the "Create variant" modal (page-level A/B
+  // variant of the entire landing page). `trafficSplit` is the variant share
+  // collected in the modal (UI-SPEC TrafficSplitSlider, default 50%).
+  // `blockVariantOpen` drives the per-block BlockVariantDrawer (PAGEAB-06 /
+  // D-13 per-block A/B). `addVariantBtnRefs` caches the per-block "Add
+  // variant" button DOM nodes for focus restoration when the drawer closes.
+  const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [trafficSplit, setTrafficSplit] = useState(50);
+  const [variantPublishState, setVariantPublishState] = useState<
+    'idle' | 'publishing' | 'error'
+  >('idle');
+  const [blockVariantOpen, setBlockVariantOpen] = useState(false);
+  const [blockVariantTargetId, setBlockVariantTargetId] = useState<string | null>(
+    null,
+  );
+  const addVariantBtnRefs = useRef<Map<string, HTMLButtonElement | null>>(
+    new Map(),
+  );
 
   // Template scaffold handoff (PAGE-04): TemplatePicker on /admin/pages
   // writes a JSON blob into sessionStorage before navigating here; consume it
@@ -212,6 +235,122 @@ export function PageEditorView() {
     setPublishState('published');
   };
 
+  // Phase 39 Plan 39-09 (PAGEAB-01) — Publish variant handler.
+  //
+  // Per <interfaces>: on Publish variant click, INSERT a page_variants row
+  // with canonical_page_id = current page id + traffic_split + an empty
+  // variant_blocks payload (the staff user can subsequently per-block-edit
+  // the variant via the BlockVariantDrawer on Surface D), then navigate
+  // to the variant editor for the just-created row.
+  //
+  // Threat model T-39-09-05: created_by FK to auth.users is set automatically
+  // by the SECDEF RPC (when present) OR by the supabase-js client's session
+  // JWT context (RLS gate on direct INSERT). The plan threat-model expects
+  // the second path; per memory feedback_executor_auto_adds_missing_migration
+  // a SECDEF RPC migration may be added in a follow-up plan when the direct
+  // INSERT is blocked by missing INSERT policy (deferred-issue documented in
+  // 39-09-SUMMARY).
+  const handlePublishVariant = async (): Promise<void> => {
+    if (isNewDraft || pageId === 'new') return;
+    setVariantPublishState('publishing');
+    setErrorMessage('');
+    try {
+      const { data, error } = await supabase
+        .from('page_variants')
+        .insert({
+          canonical_page_id: pageId,
+          variant_blocks: [],
+          traffic_split: trafficSplit / 100,
+        })
+        .select('id')
+        .single();
+      if (error || !data) {
+        setVariantPublishState('error');
+        setErrorMessage(
+          'Could not create variant. Try again, or contact admin if the problem continues.',
+        );
+        return;
+      }
+      setVariantPublishState('idle');
+      setVariantModalOpen(false);
+      // Navigate to the variant editor. The variant uses the same editor
+      // surface with the variant id mounted at /admin/pages/{id}/variants/{vid}.
+      const variantId = (data as { id: string }).id;
+      window.history.pushState(
+        null,
+        '',
+        `/admin/pages/${pageId}/variants/${variantId}`,
+      );
+    } catch (err) {
+      console.error(
+        '[PageEditorView] publishVariant',
+        err instanceof Error ? err.message : 'unknown',
+      );
+      setVariantPublishState('error');
+      setErrorMessage(
+        'Could not create variant. Try again, or contact admin if the problem continues.',
+      );
+    }
+  };
+
+  const openBlockVariantDrawer = (blockId: string): void => {
+    setBlockVariantTargetId(blockId);
+    setBlockVariantOpen(true);
+  };
+
+  const closeBlockVariantDrawer = (): void => {
+    setBlockVariantOpen(false);
+  };
+
+  const handleSaveBlockVariants = async (
+    variantBlocks: BlockNode[],
+  ): Promise<void> => {
+    // Per <interfaces>: the drawer hands us the variant block list; we
+    // persist via the page_variants table (variant_blocks jsonb column).
+    // For a brand-new per-block variant set, we create a row + stamp the
+    // canonical block's variant_set_id with the new row's id; for existing
+    // sets we update the existing row.
+    if (!blockVariantTargetId) return;
+    const target = blocks.find((b) => b.id === blockVariantTargetId);
+    if (!target) return;
+    try {
+      if (target.variant_set_id) {
+        await supabase
+          .from('page_variants')
+          .update({ variant_blocks: variantBlocks })
+          .eq('id', target.variant_set_id);
+      } else {
+        const { data, error } = await supabase
+          .from('page_variants')
+          .insert({
+            canonical_page_id: pageId,
+            variant_blocks: variantBlocks,
+            traffic_split: 0.5,
+          })
+          .select('id')
+          .single();
+        if (error || !data) {
+          setErrorMessage('Could not save variant. Try again.');
+          return;
+        }
+        const newVariantSetId = (data as { id: string }).id;
+        setBlocks((prev) =>
+          prev.map((b) =>
+            b.id === blockVariantTargetId
+              ? { ...b, variant_set_id: newVariantSetId }
+              : b,
+          ),
+        );
+      }
+    } catch (err) {
+      console.error(
+        '[PageEditorView] saveBlockVariants',
+        err instanceof Error ? err.message : 'unknown',
+      );
+      setErrorMessage('Could not save variant. Try again.');
+    }
+  };
+
   const statusLabel =
     publishState === 'publishing'
       ? 'Publishing...'
@@ -283,6 +422,16 @@ export function PageEditorView() {
           >
             History
           </Button>
+          {/* Phase 39 Plan 39-09 (PAGEAB-01) — Create variant toolbar entry. */}
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => setVariantModalOpen(true)}
+            disabled={isNewDraft}
+            data-testid="open-create-variant"
+          >
+            Create variant
+          </Button>
           <Button
             variant="secondary"
             size="md"
@@ -341,12 +490,45 @@ export function PageEditorView() {
 
       {/* 3-panel layout */}
       <div className="grid grid-cols-1 md:grid-cols-[260px_minmax(0,1fr)_320px] gap-4 p-4 h-[calc(100vh-72px)]">
-        <BlockTreePanel
-          blocks={blocks}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          onChange={setBlocks}
-        />
+        <div className="flex flex-col gap-3 overflow-auto">
+          <BlockTreePanel
+            blocks={blocks}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onChange={setBlocks}
+          />
+          {/* Phase 39 Plan 39-09 (PAGEAB-06 / D-13) — per-block "Add variant"
+              affordances. One button per root block. Clicking opens the
+              BlockVariantDrawer for that block. */}
+          {blocks.filter((b) => b.parent_id === null).length > 0 && (
+            <Card variant="flat" padding="md">
+              <h3 className="text-[13px] font-semibold mb-2 tracking-tight">
+                Per-block A/B
+              </h3>
+              <ul className="flex flex-col gap-1" data-testid="block-variant-list">
+                {blocks
+                  .filter((b) => b.parent_id === null)
+                  .map((b) => (
+                    <li key={b.id} className="flex items-center justify-between">
+                      <span className="text-[12px] truncate">{b.type}</span>
+                      <button
+                        type="button"
+                        ref={(el) => {
+                          addVariantBtnRefs.current.set(b.id, el);
+                        }}
+                        onClick={() => openBlockVariantDrawer(b.id)}
+                        className="text-[12px] font-medium px-2 py-1 rounded hover:bg-[var(--color-surface)]"
+                        data-testid={`add-variant-${b.id}`}
+                        aria-label={`Add variant for ${b.type} block`}
+                      >
+                        Add variant
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </Card>
+          )}
+        </div>
         {/* 15-05: live preview iframe + viewport toggle. Renders the staff
             user's own /{slug}?preview=true draft via page-render. For a new
             unsaved draft (no slug yet) we keep a hint instead of pointing at
@@ -407,6 +589,66 @@ export function PageEditorView() {
           }}
         />
       )}
+
+      {/* Phase 39 Plan 39-09 (PAGEAB-01) — Create variant modal. */}
+      <Modal
+        open={variantModalOpen}
+        onClose={() => setVariantModalOpen(false)}
+        title="Create variant"
+        size="md"
+      >
+        <div className="flex flex-col gap-4" data-testid="create-variant-modal">
+          <p className="text-[13px] text-[var(--color-text-secondary)]">
+            Create an A/B variant of this page. Visitors will be partitioned at
+            the edge — the canonical page stays live for the control cohort.
+          </p>
+          <div>
+            <p className="text-[13px] font-medium mb-2">Traffic share</p>
+            <TrafficSplitSlider
+              value={trafficSplit}
+              onChange={setTrafficSplit}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => setVariantModalOpen(false)}
+              data-testid="cancel-create-variant"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => void handlePublishVariant()}
+              disabled={variantPublishState === 'publishing'}
+              aria-busy={variantPublishState === 'publishing'}
+              data-testid="publish-variant"
+            >
+              Publish variant
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Phase 39 Plan 39-09 (PAGEAB-06 / D-13) — per-block variant drawer. */}
+      {blockVariantTargetId &&
+        (() => {
+          const targetBlock = blocks.find((b) => b.id === blockVariantTargetId);
+          if (!targetBlock) return null;
+          return (
+            <BlockVariantDrawer
+              open={blockVariantOpen}
+              onClose={closeBlockVariantDrawer}
+              block={targetBlock}
+              restoreFocusTo={
+                addVariantBtnRefs.current.get(blockVariantTargetId) ?? null
+              }
+              onSave={handleSaveBlockVariants}
+            />
+          );
+        })()}
     </div>
   );
 }
