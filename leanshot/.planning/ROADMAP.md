@@ -876,7 +876,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 51-10-PLAN.md — [BLOCKING] supabase db push --linked + 3 Edge Fn deploys + Vercel middleware deploy + cross-tenant RLS deny test + cookie smoke + 6-signal HUMAN-UAT checkpoint
+- [x] 51-10-PLAN.md — [BLOCKING] supabase db push --linked + 3 Edge Fn deploys + Vercel middleware deploy + cross-tenant RLS deny test + cookie smoke + 6-signal HUMAN-UAT checkpoint
 
 ---
 
