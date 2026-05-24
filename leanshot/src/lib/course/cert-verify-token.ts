@@ -101,3 +101,37 @@ export async function verifyCertToken(
   const expected = await mintCertToken(certId, userId, courseId, issuedAt, secret);
   return constantTimeEqual(token, expected);
 }
+
+/**
+ * Constant-time string compare for cert verification token lookups that
+ * happen WITHOUT access to CERT_VERIFICATION_SECRET.
+ *
+ * Phase 46 Plan 10 (`/verify/<cert_id>?t=<token>` public no-auth SPA route):
+ * the HMAC was minted server-side by the generate-course-certificate Edge Fn
+ * (Plan 46-07) and persisted to `certificates.verification_token`. The browser
+ * does NOT have the secret (and must not — surface exposure). Instead, the
+ * browser fetches the canonical token from the DB (RLS allows anon SELECT
+ * when verification_token IS NOT NULL per Plan 46-01) and compares it
+ * byte-for-byte against the URL `?t=` param.
+ *
+ * Same primitive as the internal `constantTimeEqual` above (XOR-accumulator)
+ * — exposed here as a public helper so the route-level component does not
+ * need to call `verifyCertToken` with a fake secret.
+ *
+ * T-46-03 mitigation: timing-safe — execution time depends only on input
+ * length, not on the position of the first byte mismatch.
+ *
+ * @param urlToken token from the URL `?t=` query param
+ * @param dbToken  canonical token from `certificates.verification_token`
+ * @returns true iff both strings are equal byte-for-byte; false on length
+ *          mismatch, empty input on either side, or any character difference
+ */
+export function compareCertToken(urlToken: string, dbToken: string): boolean {
+  if (!urlToken || !dbToken) return false;
+  if (urlToken.length !== dbToken.length) return false;
+  let diff = 0;
+  for (let i = 0; i < urlToken.length; i++) {
+    diff |= urlToken.charCodeAt(i) ^ dbToken.charCodeAt(i);
+  }
+  return diff === 0;
+}
