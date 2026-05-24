@@ -14,7 +14,6 @@
  *      D-07 cookie-mode-v2 wiring).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { CONSENT_CHANGE_EVENT, type ConsentChangeDetail } from '@/lib/consent/consent-event';
 
 // Spy on the consent-records writer so we can assert the regression guard

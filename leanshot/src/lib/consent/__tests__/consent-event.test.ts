@@ -17,7 +17,6 @@
  *     avoid stale handlers leaking past unmount.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import {
   CONSENT_CHANGE_EVENT,
   type ConsentChangeDetail,

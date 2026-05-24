@@ -32,6 +32,7 @@ import * as CookieConsent from 'vanilla-cookieconsent';
 // (consent-config + its CSS both stay off the index static graph).
 import 'vanilla-cookieconsent/dist/cookieconsent.css';
 
+import { CONSENT_CHANGE_EVENT, type ConsentChangeDetail } from '@/lib/consent/consent-event';
 import { upsertConsentRecord } from '@/lib/consent/consent-records';
 
 /**
@@ -122,6 +123,33 @@ function updateGtagConsent(): void {
     ad_personalization: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
     personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
   });
+}
+
+/**
+ * Phase 41 plan 41-01 (D-09 foundation) — emit the canonical
+ * `leanshot:consent-change` CustomEvent so downstream subscribers (Plan 41-05
+ * ConsentGatedEmbed HOC, Plan 41-03 Deno-rendered marketing pages) can
+ * auto-load embeds the moment the user grants the required category.
+ *
+ * Additive only — Phase 22 side-effects (updateGtagConsent +
+ * upsertConsentRecord) still fire BEFORE this emit so persisted state is in
+ * sync when subscribers read `cc_cookie` (T-41-01-03 mitigation).
+ *
+ * The `functional` category mirrors `acceptedCategory('necessary')` per
+ * RESEARCH §Code Examples (no separate functional toggle in v3 schema).
+ */
+function emitConsentChange(): void {
+  if (typeof window === 'undefined') return;
+  const detail: ConsentChangeDetail = {
+    categories: {
+      necessary: true,
+      analytics: CookieConsent.acceptedCategory('analytics'),
+      marketing: CookieConsent.acceptedCategory('marketing'),
+      personalization: CookieConsent.acceptedCategory('personalization'),
+      functional: CookieConsent.acceptedCategory('necessary'),
+    },
+  };
+  window.dispatchEvent(new CustomEvent<ConsentChangeDetail>(CONSENT_CHANGE_EVENT, { detail }));
 }
 
 /**
@@ -261,14 +289,17 @@ export function initCookieConsent(): void {
     onFirstConsent: ({ cookie }) => {
       updateGtagConsent();
       void upsertConsentRecord(cookie);
+      emitConsentChange();
     },
     onConsent: ({ cookie }) => {
       updateGtagConsent();
       void upsertConsentRecord(cookie);
+      emitConsentChange();
     },
     onChange: ({ cookie }) => {
       updateGtagConsent();
       void upsertConsentRecord(cookie);
+      emitConsentChange();
     },
   });
 }
