@@ -228,8 +228,17 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
       clamp(typeof body.landingPath === 'string' ? body.landingPath : null, LANDING_PATH_MAX_BYTES) ?? '/';
     const landingPath = redactPath(landingPathRaw);
 
-    const audience =
-      typeof body.audience === 'string' && VALID_AUDIENCES.has(body.audience)
+    // REVIEW WR-12: previously coerced unknown audience values to 'consumer'
+    // silently — combined with WR-03's body.orgId path, an attacker could
+    // probe controlled audience+org_id pairs with no feedback. Now we
+    // explicitly reject malformed audience values (400) and only coerce when
+    // the field is absent. Operators see the rejection in Fn logs.
+    if (typeof body.audience === 'string' && !VALID_AUDIENCES.has(body.audience)) {
+      console.warn('[traffic-recorder] rejected invalid audience:', body.audience);
+      return jsonError(400, 'invalid_audience');
+    }
+    const audience: 'consumer' | 'clinic-org' | 'affiliate' =
+      typeof body.audience === 'string'
         ? (body.audience as 'consumer' | 'clinic-org' | 'affiliate')
         : 'consumer';
 
@@ -238,7 +247,15 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
       PAGE_VARIANT_MAX_BYTES,
     );
 
-    const orgId = typeof body.orgId === 'string' ? body.orgId : null;
+    // REVIEW WR-03: body.orgId is UNTRUSTED INPUT. Previously it was accepted
+    // verbatim and forwarded to upsert_traffic_attribution.p_org_id, letting
+    // any browser stamp their attribution row with an arbitrary valid org UUID
+    // (cross-org pollution in the "Traffic — {orgName}" matview slice; defeats
+    // the planned signed-cookie flow's authority over org_id). The slug→
+    // org_id resolution lands in a future plan (51-10 wires
+    // resolve_clinic_slug_rpc); until then orgId is ALWAYS null on the
+    // recorder write path. Server-resolved slug cookie is observed elsewhere.
+    const orgId: string | null = null;
 
     const result = await recordTouch({
       anonId,

@@ -204,9 +204,23 @@ async function runTrafficFunnelAnomalyScan(
         const expected = numOrNull(row.expected_rate);
         const stddev = numOrNull(row.expected_stddev);
         if (observed === null || expected === null || stddev === null) continue;
-        if (stddev === 0 || expected === 0) continue; // not enough baseline
-
-        const sigmas = (expected - observed) / stddev;
+        if (expected === 0) continue; // no baseline rate to compare against
+        // REVIEW WR-05 + WR-06: this scan uses the convention
+        //   sigmas = (expected - observed) / stddev   // POSITIVE => drop
+        // which is the INVERSE of the per-funnel scan's
+        //   z_score = (observed - expected) / stddev  // NEGATIVE => drop
+        // (see line ~413 below for the per-funnel `z_score >= -threshold`).
+        // The two paths use opposite z-score conventions; this is correct but
+        // easy to misread — DO NOT swap one for the other without flipping
+        // the sign in the threshold comparison.
+        //
+        // WR-06: a perfectly-flat baseline (stddev=0) is the EXACT case where
+        // a drop alert is MOST warranted (e.g., consistent 50% rate that
+        // suddenly crashes to 5%). Previously `stddev === 0 → continue` bailed
+        // out of the most informative alert. Floor stddev at 0.01 so flat
+        // baselines still surface large drops.
+        const effectiveStddev = Math.max(stddev, 0.01);
+        const sigmas = (expected - observed) / effectiveStddev;
         if (!Number.isFinite(sigmas)) continue;
         if (sigmas < TRAFFIC_FUNNEL_SIGMA_THRESHOLD) continue; // not anomalous
 

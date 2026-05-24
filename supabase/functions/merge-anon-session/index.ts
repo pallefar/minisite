@@ -326,19 +326,14 @@ async function handleMergeAnonSession(req: Request): Promise<Response> {
     //    previously null, so re-calls on already-stitched rows are no-ops.
     const ltAnonId = parseCookie(req.headers.get('cookie'), 'lt_anon_id');
     if (ltAnonId) {
-      // PostHog alias against the lt_anon_id is independent of the
-      // anon_distinct_id alias above (different identity systems —
-      // anon_distinct_id is posthog-js's local distinct id; lt_anon_id is
-      // our server-issued traffic-attribution key). Both can/should alias
-      // to the same user_id when present.
-      try {
-        doAlias(userId, ltAnonId);
-      } catch (err) {
-        console.warn(
-          '[merge-anon-session] lt_anon_id alias failed (non-fatal):',
-          err instanceof Error ? err.message : String(err),
-        );
-      }
+      // REVIEW WR-11: claim FIRST, alias only on success. Previously the
+      // PostHog alias fired BEFORE the SQL claim, so a browser could pre-set
+      // an arbitrary lt_anon_id cookie value and force a PostHog person
+      // alias to a distinct_id of its choosing. claim_traffic_attribution
+      // only sets user_id when previously null, so the SQL side is naturally
+      // idempotent + the row's existence is server-controlled. Gating the
+      // alias on claim success prevents the alias-pollution attack.
+      let claimSucceeded = false;
       try {
         /* eslint-disable @typescript-eslint/no-explicit-any */
         const { error: claimErr } = (await (admin() as any).rpc('claim_traffic_attribution', {
@@ -351,12 +346,29 @@ async function handleMergeAnonSession(req: Request): Promise<Response> {
             '[merge-anon-session] claim_traffic_attribution failed (non-fatal):',
             claimErr.message ?? 'unknown',
           );
+        } else {
+          claimSucceeded = true;
         }
       } catch (err) {
         console.warn(
           '[merge-anon-session] claim_traffic_attribution threw (non-fatal):',
           err instanceof Error ? err.message : String(err),
         );
+      }
+
+      // PostHog alias only after the SQL claim has successfully bound
+      // lt_anon_id → userId. The two identity systems (anon_distinct_id +
+      // lt_anon_id) remain independent at the PostHog layer; both alias to
+      // the same user_id when present.
+      if (claimSucceeded) {
+        try {
+          doAlias(userId, ltAnonId);
+        } catch (err) {
+          console.warn(
+            '[merge-anon-session] lt_anon_id alias failed (non-fatal):',
+            err instanceof Error ? err.message : String(err),
+          );
+        }
       }
     }
 
