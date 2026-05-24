@@ -33,6 +33,18 @@ export const COMMUNITY_MEDIA_MIMES: ReadonlySet<string> = new Set([
 // Exported so CommunityImageUploader can enforce the same limit client-side
 export const COMMUNITY_MEDIA_MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 
+// ─── DM-attachments bucket (Phase 45 Plan 45-03) ─────────────────────────────
+//
+// `dm-attachments` is a separate private bucket for direct-message attachments.
+// Key divergences from community-media:
+//   - 5 MB per attachment (NOT 10 MB) per D-09
+//   - Path: {thread_id}/{message_id}.{ext} (NOT {user_id}/{post_id}/{uuid}.{ext})
+//   - INSERT/SELECT RLS gate on dm_threads participant JOIN (NOT foldername=uid)
+//   - DELETE RLS gate on direct_messages.sender_user_id (author-only)
+// MIME whitelist reuses COMMUNITY_MEDIA_MIMES — same image set for both buckets.
+export const DM_ATTACHMENTS_BUCKET = 'dm-attachments' as const;
+export const DM_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024; // 5 MB per D-09 — DIFFERENT from community-media (10 MB)
+
 const MIME_TO_EXT: Record<string, string> = {
   'image/jpeg': 'jpeg',
   'image/png': 'png',
@@ -125,4 +137,29 @@ export async function getCommunityMediaSignedUrl(
     .createSignedUrl(path, SIGNED_URL_TTL);
   if (error || !data) return { error: 'network' };
   return { url: data.signedUrl };
+}
+
+/**
+ * Generate a 60-minute signed URL for a dm-attachments object (Phase 45 Plan 45-03).
+ *
+ * Bucket: 'dm-attachments'. TTL = 3600s per D-09 (matches community-media).
+ * RLS enforces thread-participant access on SELECT; this helper trusts that gate
+ * and surfaces network errors as { error: 'network' } (consistent with the
+ * community-media analog).
+ *
+ * Used by DMMessageComposer / DMThreadView (plan 45-07) to render the inline
+ * attachment thumbnail after upload — paths are stored on direct_messages.attachment_path.
+ */
+export async function getDmAttachmentSignedUrl(
+  path: string,
+): Promise<{ url: string } | { error: string }> {
+  try {
+    const { data, error } = await supabase.storage
+      .from(DM_ATTACHMENTS_BUCKET)
+      .createSignedUrl(path, SIGNED_URL_TTL);
+    if (error || !data) return { error: 'network' };
+    return { url: data.signedUrl };
+  } catch {
+    return { error: 'network' };
+  }
 }
