@@ -18,7 +18,6 @@
  * loading, render a Skeleton (no error, no iframe).
  */
 import { useEffect, useState, type JSX } from 'react';
-
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { listHostnames } from '@/lib/admin/iframe-allowlist';
@@ -29,9 +28,8 @@ import {
   type CustomIframeContent,
 } from '@/lib/page-builder/embed-src';
 import { supabase } from '@/lib/supabase';
-
-import { ConsentGatedEmbed } from './ConsentGatedEmbed';
 import { backgroundToneClass, paddingForDensity } from './block-style-helpers';
+import { ConsentGatedEmbed } from './ConsentGatedEmbed';
 
 export interface CustomIframeBlockProps {
   block: BlockNode;

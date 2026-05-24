@@ -12,9 +12,8 @@
 import { Card } from '@/components/ui/Card';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
 import { EMBED_IFRAME_TITLES, buildYouTubeSrc } from '@/lib/page-builder/embed-src';
-
-import { ConsentGatedEmbed } from './ConsentGatedEmbed';
 import { backgroundToneClass, paddingForDensity } from './block-style-helpers';
+import { ConsentGatedEmbed } from './ConsentGatedEmbed';
 
 export interface YouTubeBlockProps {
   block: BlockNode;

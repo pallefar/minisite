@@ -234,7 +234,16 @@ export default function KBEditorPage(): React.JSX.Element {
   // ─── Preview-source selection ─────────────────────────────────────────────
   const previewBody = editLocale === 'en' ? editBody : editBodyEs;
   const sanitizedPreview = useMemo(
-    () => DOMPurify.sanitize(previewBody, { USE_PROFILES: { html: true } }),
+    () =>
+      DOMPurify.sanitize(previewBody, {
+        USE_PROFILES: { html: true },
+        // Phase 41 41-05 EMBED-06 — preserve `<embed-block>` custom tag so
+        // KB authors can hand-write embeds. ADD_ATTR is tight: only the four
+        // data-* attributes the React renderer reads. NO event handlers,
+        // NO style — defends T-41-05-04.
+        ADD_TAGS: ['embed-block'],
+        ADD_ATTR: ['type', 'data-url', 'data-id', 'data-allow'],
+      }),
     [previewBody],
   );
 

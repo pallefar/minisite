@@ -13,8 +13,9 @@
  */
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { CONSENT_CHANGE_EVENT, type ConsentChangeDetail } from '@/lib/consent/consent-event';
+import { ConsentGatedEmbed } from '../ConsentGatedEmbed';
+import { EmbedPlaceholderCard } from '../EmbedPlaceholderCard';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 const acceptedCategoryMock = vi.fn((_cat: string) => false);
@@ -48,10 +49,6 @@ function dispatchConsentChange(categories: Partial<ConsentChangeDetail['categori
     window.dispatchEvent(new CustomEvent(CONSENT_CHANGE_EVENT, { detail }));
   });
 }
-
-// Module under test imported AFTER mocks defined.
-import { ConsentGatedEmbed } from '../ConsentGatedEmbed';
-import { EmbedPlaceholderCard } from '../EmbedPlaceholderCard';
 
 describe('ConsentGatedEmbed HOC (Phase 41 41-05 Task 1)', () => {
   beforeEach(() => {

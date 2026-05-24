@@ -15,7 +15,6 @@
  */
 import { Calendar, ExternalLink, FileText, Video } from 'lucide-react';
 import type { JSX } from 'react';
-
 import { Card } from '@/components/ui/Card';
 
 export type EmbedProvider = 'calendly' | 'youtube' | 'tally' | 'custom_iframe';

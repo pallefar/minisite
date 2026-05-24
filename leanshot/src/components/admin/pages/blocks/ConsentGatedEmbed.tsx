@@ -16,12 +16,10 @@
  */
 import { useCallback, useEffect, useState, type JSX } from 'react';
 import * as CookieConsent from 'vanilla-cookieconsent';
-
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { subscribeToConsentChange } from '@/lib/consent/consent-event';
-
 import { EmbedPlaceholderCard, type ConsentCategory, type EmbedProvider } from './EmbedPlaceholderCard';
 
 export interface ConsentGatedEmbedProps {

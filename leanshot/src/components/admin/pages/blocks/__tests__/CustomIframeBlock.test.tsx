@@ -12,6 +12,9 @@
  */
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PROPERTY_CONFIGS } from '@/components/admin/pages/editor/property-configs';
+import type { BlockNode } from '@/lib/page-builder/block-schema';
+import { CustomIframeBlock } from '../CustomIframeBlock';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 // Mock CookieConsent so the HOC's synchronous mount-time read returns true →
@@ -41,10 +44,6 @@ vi.mock('@/lib/admin/iframe-allowlist', () => ({
 vi.mock('@/lib/supabase', () => ({
   supabase: {} as unknown,
 }));
-
-import { CustomIframeBlock } from '../CustomIframeBlock';
-import { PROPERTY_CONFIGS } from '@/components/admin/pages/editor/property-configs';
-import type { BlockNode } from '@/lib/page-builder/block-schema';
 
 function makeBlock(content: Record<string, unknown>): BlockNode {
   return {
