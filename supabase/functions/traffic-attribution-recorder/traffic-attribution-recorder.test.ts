@@ -36,6 +36,7 @@ const {
   setRecordTouchForTest,
   clamp,
   redactPath,
+  redactReferrer,
   isAllowedOrigin,
 } = mod;
 
@@ -208,6 +209,85 @@ Deno.test('helper: redactPath() PHI regex coverage', () => {
   assertEquals(redactPath('/clinic/abc/patient/xyz'), '/[redacted]');
   assertEquals(redactPath('/pricing'), '/pricing');
   assertEquals(redactPath('/share/clinic-abc'), '/share/clinic-abc');
+});
+
+// ============================================================================
+// CR-01: same-origin referrer PHI redaction
+// ============================================================================
+
+Deno.test('CR-01: redacts same-origin referrer PHI path before recordTouch', async () => {
+  let capturedArgs: { referrer: string | null } | null = null;
+  setRecordTouchForTest(async (args) => {
+    capturedArgs = args as typeof capturedArgs;
+    return { ok: true, channelGroup: 'Direct' };
+  });
+
+  // Scenario A: same-origin /patient/<id> referrer must be redacted.
+  const reqA = new Request('https://app.leanshot.app/functions/v1/traffic-attribution-recorder', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: 'https://app.leanshot.app',
+    },
+    body: JSON.stringify({
+      anonId: 'cr01-a',
+      referrer: 'https://app.leanshot.app/patient/abc-123-phi/notes?q=secret',
+      audience: 'consumer',
+    }),
+  });
+  const resA = await handleTrafficAttributionRecorder(reqA);
+  assertEquals(resA.status, 200);
+  assert(capturedArgs !== null, 'recordTouch should have been invoked (A)');
+  // pathname redacted; search dropped; origin preserved.
+  assertEquals(
+    (capturedArgs as { referrer: string | null }).referrer,
+    'https://app.leanshot.app/[redacted]',
+  );
+
+  // Scenario B: cross-origin referrer is passed through untouched.
+  capturedArgs = null;
+  const reqB = new Request('https://app.leanshot.app/functions/v1/traffic-attribution-recorder', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: 'https://app.leanshot.app',
+    },
+    body: JSON.stringify({
+      anonId: 'cr01-b',
+      referrer: 'https://google.com/search?q=glp1',
+      audience: 'consumer',
+    }),
+  });
+  const resB = await handleTrafficAttributionRecorder(reqB);
+  assertEquals(resB.status, 200);
+  assert(capturedArgs !== null, 'recordTouch should have been invoked (B)');
+  assertEquals(
+    (capturedArgs as { referrer: string | null }).referrer,
+    'https://google.com/search?q=glp1',
+  );
+
+  setRecordTouchForTest(null);
+});
+
+Deno.test('helper: redactReferrer() — same-origin paths only', () => {
+  assertEquals(
+    redactReferrer('https://app.leanshot.app/patient/x/notes'),
+    'https://app.leanshot.app/[redacted]',
+  );
+  assertEquals(
+    redactReferrer('https://app.leanshot.app/dose-log/123?foo=1'),
+    'https://app.leanshot.app/[redacted]',
+  );
+  assertEquals(
+    redactReferrer('https://app.leanshot.app/pricing'),
+    'https://app.leanshot.app/pricing',
+  );
+  assertEquals(
+    redactReferrer('https://other.example.com/patient/abc'),
+    'https://other.example.com/patient/abc',
+  );
+  assertEquals(redactReferrer(null), null);
+  assertEquals(redactReferrer('not a url'), 'not a url');
 });
 
 Deno.test('helper: isAllowedOrigin() allowlist', () => {

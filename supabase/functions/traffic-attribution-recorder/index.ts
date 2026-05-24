@@ -85,6 +85,40 @@ export function redactPath(p: string): string {
   return PHI_PATH_REGEX.test(p) ? '/[redacted]' : p;
 }
 
+/**
+ * Phase 51 REVIEW CR-01 — redact PHI paths from same-origin referrers.
+ *
+ * user_traffic_attribution.first_touch_referrer / last_touch_referrer are
+ * declared PHI-free by the table's RESEARCH §Security V6 contract; only
+ * `landingPath` was redacted previously. A same-origin referrer like
+ * `https://app.leanshot.app/patient/<phi>/notes` would otherwise persist
+ * cleartext PHI in this non-PHI table AND get mirrored to PostHog as a
+ * `last_touch_referrer` person property.
+ *
+ * Strategy:
+ *   - Same-origin referrers (host in ALLOWED_ORIGINS): pathname is run
+ *     through `redactPath`; the search string is dropped (query params can
+ *     also leak PHI in our domain).
+ *   - Cross-origin referrers: passed through untouched. We never edit a
+ *     third-party URL — the only thing we strip is our own PHI.
+ *   - Unparseable referrers (`new URL(...)` throws): passed through; the
+ *     downstream byte clamp still caps length.
+ */
+export function redactReferrer(ref: string | null): string | null {
+  if (ref == null) return null;
+  try {
+    const u = new URL(ref);
+    if (ALLOWED_ORIGINS.has(u.origin)) {
+      u.pathname = redactPath(u.pathname);
+      u.search = '';
+      return u.toString();
+    }
+    return ref;
+  } catch {
+    return ref;
+  }
+}
+
 export function isAllowedOrigin(origin: string | null): boolean {
   return origin !== null && ALLOWED_ORIGINS.has(origin);
 }
@@ -184,7 +218,12 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
         clamp(typeof rawUtm.content === 'string' ? rawUtm.content : null, UTM_MAX_BYTES) ?? undefined,
     };
 
-    const referrer = clamp(typeof body.referrer === 'string' ? body.referrer : null, REFERRER_MAX_BYTES);
+    // CR-01: redact same-origin PHI paths from referrer BEFORE clamping. The
+    // clamp still applies (defense in depth against giant URLs).
+    const referrer = clamp(
+      redactReferrer(typeof body.referrer === 'string' ? body.referrer : null),
+      REFERRER_MAX_BYTES,
+    );
     const landingPathRaw =
       clamp(typeof body.landingPath === 'string' ? body.landingPath : null, LANDING_PATH_MAX_BYTES) ?? '/';
     const landingPath = redactPath(landingPathRaw);
