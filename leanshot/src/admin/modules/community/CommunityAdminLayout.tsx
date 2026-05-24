@@ -1,7 +1,8 @@
 /**
- * Phase 44 Plan 09 — CommunityAdminLayout.
+ * Phase 44 Plan 09 — CommunityAdminLayout (extended by Phase 45 Plan 45-08).
  *
- * Admin module entry for Community Spaces CRUD.
+ * Admin module entry for Community Spaces CRUD + clinician verification +
+ * report-digest opt-in.
  *
  * Routing model: pathname-based (consistent with other admin modules
  * per ReviewsLayout.tsx, AdminShell.tsx — no react-router-dom).
@@ -10,9 +11,12 @@
  *   /admin/community           → SpacesListPage (list)
  *   /admin/community/new       → SpaceEditor (create)
  *   /admin/community/:id/edit  → SpaceEditor (edit)
+ *   /admin/community/profiles  → AdminCliniciansPage   (P45-08)
+ *   /admin/community/reports   → AdminReportsDigestPage (P45-08)
  *
  * Registers in ADMIN_MODULES manifest via src/lib/admin/modules.ts
- * (separate PR/plan adds the manifest entry — this file is the module entrypoint).
+ * (P45-08 adds the entry — keyed on URL prefix `/admin/community/*` per
+ * memory feedback_admin_module_manifest_vs_router_branch_drift).
  *
  * Admin surface — react-router-dom NOT required here; pathname-based switching
  * matches the existing project convention for admin modules.
@@ -24,6 +28,14 @@ import { supabase } from '@/lib/supabase';
 
 const SpaceEditor = lazy(() =>
   import('./SpaceEditor').then((m) => ({ default: m.SpaceEditor })),
+);
+const AdminCliniciansPage = lazy(() =>
+  import('./AdminCliniciansPage').then((m) => ({ default: m.AdminCliniciansPage })),
+);
+const AdminReportsDigestPage = lazy(() =>
+  import('./AdminReportsDigestPage').then((m) => ({
+    default: m.AdminReportsDigestPage,
+  })),
 );
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -120,9 +132,18 @@ function SpacesListPage({
 type View =
   | { type: 'list' }
   | { type: 'new' }
-  | { type: 'edit'; spaceId: string };
+  | { type: 'edit'; spaceId: string }
+  | { type: 'clinicians' }
+  | { type: 'reports-digest' };
 
-function resolveView(pathname: string): View {
+export function resolveView(pathname: string): View {
+  // P45-08 — match /admin/community/profiles + /admin/community/reports BEFORE
+  // generic :id segment so they don't fall through to { type: 'edit' }.
+  if (pathname.startsWith('/admin/community/profiles'))
+    return { type: 'clinicians' };
+  if (pathname.startsWith('/admin/community/reports'))
+    return { type: 'reports-digest' };
+
   const m = pathname.match(/^\/admin\/community\/?([^/]+)?(?:\/([^/]+))?/);
   const seg1 = m?.[1];
   const seg2 = m?.[2];
@@ -130,6 +151,30 @@ function resolveView(pathname: string): View {
   if (seg1 && seg2 === 'edit') return { type: 'edit', spaceId: seg1 };
   return { type: 'list' };
 }
+
+// ─── Sub-nav tabs ─────────────────────────────────────────────────────────────
+
+const NAV_LINKS: ReadonlyArray<{
+  href: string;
+  label: string;
+  match: (v: View) => boolean;
+}> = [
+  {
+    href: '/admin/community',
+    label: 'Spaces',
+    match: (v) => v.type === 'list' || v.type === 'new' || v.type === 'edit',
+  },
+  {
+    href: '/admin/community/profiles',
+    label: 'Profiles',
+    match: (v) => v.type === 'clinicians',
+  },
+  {
+    href: '/admin/community/reports',
+    label: 'Reports',
+    match: (v) => v.type === 'reports-digest',
+  },
+];
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
@@ -157,6 +202,31 @@ export default function CommunityAdminLayout() {
 
   return (
     <div className="community-admin-module space-y-6">
+      <nav
+        aria-label="Community sub-navigation"
+        className="flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-2"
+      >
+        {NAV_LINKS.map((link) => {
+          const active = link.match(view);
+          return (
+            <button
+              key={link.href}
+              type="button"
+              onClick={() => navigate(link.href)}
+              aria-current={active ? 'page' : undefined}
+              className={
+                'rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ' +
+                (active
+                  ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
+                  : 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]')
+              }
+            >
+              {link.label}
+            </button>
+          );
+        })}
+      </nav>
+
       <Suspense
         fallback={
           <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
@@ -189,6 +259,12 @@ export default function CommunityAdminLayout() {
             </button>
             <SpaceEditor spaceId={view.spaceId} onSaved={handleSaved} />
           </div>
+        )}
+        {view.type === 'clinicians' && (
+          <AdminCliniciansPage />
+        )}
+        {view.type === 'reports-digest' && (
+          <AdminReportsDigestPage />
         )}
       </Suspense>
     </div>

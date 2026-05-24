@@ -389,6 +389,31 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.moderation.enabled',
     minRole: 'staff' as AdminRole,
   },
+  // Phase 44 Plan 09 + Phase 45 Plan 45-08 — Community admin module.
+  // CommunityAdminLayout uses pathname-based resolveView; AdminShell.tsx already
+  // URL-prefix-routes via pathname.startsWith('/admin/community') (see
+  // AdminShell.tsx line ~118 where the generic form pathname.startsWith(`/admin/${m.route}/`)
+  // resolves with `m.route === 'community'`). That is a URL-prefix catch-all that
+  // automatically covers sub-routes /admin/community/profiles + /reports +
+  // /:id/edit + /new. Per memory feedback_admin_module_manifest_vs_router_branch_drift
+  // we MUST NOT introduce a hardcoded switch branch keyed on tab id; the
+  // URL-prefix catch-all is the correct contract.
+  // minRole 'staff' so on-duty moderators see it; admin RPCs
+  // (admin_set_clinician_verified, admin_toggle_report_digest_opt_in,
+  // admin_toggle_space_leaderboard) re-check public.is_staff() at the SECDEF
+  // layer (Pattern S1 dual-layer).
+  {
+    key: 'community',
+    label: 'Community',
+    route: 'community',
+    icon: UsersIcon,
+    lazy: () =>
+      import('@/admin/modules/community/CommunityAdminLayout').then((m) => ({
+        default: m.default,
+      })),
+    flagKey: 'admin.community.enabled',
+    minRole: 'staff' as AdminRole,
+  },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
   // Superadmin-only: vendor BAA status updates are security-sensitive; superadmin gate
   // at RPC layer (vendor_baa_chain_update SECDEF) + minRole here (Pattern S1 dual-layer).
