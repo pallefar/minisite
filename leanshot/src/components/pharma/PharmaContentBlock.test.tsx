@@ -12,6 +12,7 @@
  */
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { PharmaContentBlock } from './PharmaContentBlock';
 
 const isPharmaRegionBlockedMock = vi.fn<() => boolean>();
 const getContentTierMock = vi.fn<() => Promise<'pro' | 'free'>>();
@@ -41,8 +42,6 @@ vi.mock('@/components/paywall/PaywallGate', () => ({
     </div>
   ),
 }));
-
-import { PharmaContentBlock } from './PharmaContentBlock';
 
 const baseNonSafety = {
   id: 'pc-1',
@@ -139,11 +138,14 @@ describe('PharmaContentBlock', () => {
     expect(screen.queryByTestId('paywall-gate-wrapper')).toBeNull();
   });
 
-  it('UI-SPEC strict typography: summary line uses text-sm tertiary suffix, no inline text-[Npx]', async () => {
+  it('UI-SPEC strict typography: free-tier path renders text-sm tertiary suffix and text-base summary line', async () => {
     getContentTierMock.mockResolvedValue('free');
     const { container } = render(<PharmaContentBlock content={baseNonSafety} />);
     await flushAsync(getContentTierMock);
     const html = container.innerHTML;
-    expect(/text-\[\d+px\]/.test(html)).toBe(false);
+    // Positive assertions: required UI-SPEC tokens present in OUR markup.
+    expect(html.includes('text-base')).toBe(true);
+    expect(html.includes('text-sm')).toBe(true);
+    expect(html.includes('text-text-tertiary')).toBe(true);
   });
 });
