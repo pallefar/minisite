@@ -115,7 +115,7 @@ const CROSS_RUNTIME_VECTOR = {
   courseId: 'course-vec-001',
   issuedAt: '2026-01-01T00:00:00.000Z',
   secret: 'CROSS_RUNTIME_TEST_SECRET_46',
-  expectedToken: '<TO-BE-FILLED-AFTER-FIRST-RUN>',
+  expectedToken: 'VkvWn-pOnuE3pmNb1Y2LyBFhcZmO9gehMViOvszVwsw',
 } as const;
 
 Deno.test('cross-runtime test vector — token matches the locked literal (browser-parity gate)', () => {
