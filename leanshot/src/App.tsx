@@ -269,6 +269,14 @@ const CancelDeletionPage = lazy(() =>
   import('@/pages/cancel-deletion').then((m) => ({ default: m.CancelDeletionPage })),
 );
 
+// Phase 46 Plan 46-10 (COURSE-04) — public /verify/<cert_id> no-auth route.
+// Mounted by an ultra-early pathname pre-check at the top of App() body
+// (before the view-based render branches). Lazy chunk: the component sits
+// at `src/components/course/` so it lands in the `course-player` chunk per
+// vite.config.ts:227. Visitors of /verify/* only download this chunk; the
+// rest of the dashboard graph stays cold.
+const CertVerifyPage = lazy(() => import('@/components/course/CertVerifyPage'));
+
 // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen. Its own
 // lazy chunk stays OFF the index static graph. Anonymous-OK route; must be
 // checked BEFORE any auth gate in selectView() (T-29-06-01 anti-enumeration).
@@ -1580,6 +1588,24 @@ export function App() {
           <Phase19Component code={code} />
         </Suspense>
       </>
+    );
+  }
+
+  // Phase 46 Plan 46-10 (COURSE-04) — public no-auth /verify/<cert_id> route.
+  // Pathname pre-check runs BEFORE the TabId / marketing / onboarding /
+  // dashboard view branches: the verify page is anonymous-OK and must render
+  // even when a persisted user is hydrated (otherwise the Zustand-persisted
+  // user would route a /verify/<id> visitor straight into their dashboard —
+  // see project memory `reference_zustand_persisted_user_blocks_marketing_uat`
+  // for the analog UAT trap). Pathname is read once per App mount; back-button
+  // navigation from /verify/ → / requires a full reload (intentional: verify
+  // is a leaf surface like /share, /legal). globalOverlays intentionally
+  // omitted — the verify surface renders no Sidebar/Topbar/MobileNav.
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/verify/')) {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <CertVerifyPage />
+      </Suspense>
     );
   }
 
