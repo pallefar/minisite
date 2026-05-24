@@ -414,6 +414,28 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.community.enabled',
     minRole: 'staff' as AdminRole,
   },
+  // Phase 46 Plan 46-09 (COURSE-01/02/06) — Admin Course Editor module.
+  // CoursesAdminLayout uses pathname-based resolveView; AdminShell.tsx already
+  // URL-prefix-routes via pathname.startsWith('/admin/courses/') (line ~118 of
+  // AdminShell.tsx where `m.route === 'courses'` resolves the prefix catch-all).
+  // That generic catch-all automatically covers sub-routes /admin/courses/new,
+  // /admin/courses/<id>, /admin/courses/<id>/modules, and
+  // /admin/courses/<id>/lesson/<lessonId>. Per memory
+  // feedback_admin_module_manifest_vs_router_branch_drift the URL-prefix
+  // catch-all is the correct contract — do NOT introduce a hardcoded
+  // switch branch keyed on tab id.
+  // minRole 'admin' so standard admins can author courses; SECDEF RPCs +
+  // RLS policies created by Plan 46-01 re-check public.is_staff() at the
+  // DB layer (Pattern S1 dual-layer).
+  {
+    key: 'courses',
+    label: 'Courses',
+    route: 'courses',
+    icon: BookOpenCheckIcon,
+    lazy: () => import('@/admin/modules/courses/CoursesAdminLayout'),
+    flagKey: 'admin.courses.enabled',
+    minRole: 'admin' as AdminRole,
+  },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
   // Superadmin-only: vendor BAA status updates are security-sensitive; superadmin gate
   // at RPC layer (vendor_baa_chain_update SECDEF) + minRole here (Pattern S1 dual-layer).
