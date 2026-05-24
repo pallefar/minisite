@@ -263,12 +263,12 @@
 
 ### WS21 — M4: Courses / Classroom (COURSE, 6 REQ-IDs)
 
-- [ ] **COURSE-01**: courses + modules + lessons schema; admin creates course → adds modules → adds lessons (video + text + downloadable files)
-- [ ] **COURSE-02**: Mux video integration (admin uploads MP4 → Mux transcodes to adaptive HLS → playback via Mux Player); per-lesson video stored as `mux_asset_id`
-- [ ] **COURSE-03**: lesson_progress tracking + per-user completion %; resume-where-left-off across devices
-- [ ] **COURSE-04**: Completion certificates generated server-side as PDFs (jsPDF, already in v1.2 stack); certificate includes user name + course title + completion date + verification URL
-- [ ] **COURSE-05**: Course landing pages reuse PageBuilder + A/B (PAGEAB-06 per-block variants); admin templates: long-form sales + outcome-focused + FAQ-heavy
-- [ ] **COURSE-06**: Lesson resources (downloadable files via Supabase Storage signed URLs); per-resource entitlement check (Pro-only resources gated)
+- [x] **COURSE-01**: courses + modules + lessons schema; admin creates course → adds modules → adds lessons (video + text + downloadable files)
+- [x] **COURSE-02**: Mux video integration (admin uploads MP4 → Mux transcodes to adaptive HLS → playback via Mux Player); per-lesson video stored as `mux_asset_id`
+- [x] **COURSE-03**: lesson_progress tracking + per-user completion %; resume-where-left-off across devices
+- [x] **COURSE-04**: Completion certificates generated server-side as PDFs (jsPDF, already in v1.2 stack); certificate includes user name + course title + completion date + verification URL
+- [x] **COURSE-05**: Course landing pages reuse PageBuilder + A/B (PAGEAB-06 per-block variants); admin templates: long-form sales + outcome-focused + FAQ-heavy
+- [x] **COURSE-06**: Lesson resources (downloadable files via Supabase Storage signed URLs); per-resource entitlement check (Pro-only resources gated)
 
 ### WS22 — M4: Events / Calendar (EVENT, 5 REQ-IDs)
 
@@ -597,12 +597,12 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | COMMUNITY-07 | Phase 45 | Complete |
 | COMMUNITY-08 | Phase 45 | Complete |
 | COMMUNITY-09 | Phase 45 | Complete |
-| COURSE-01 | Phase 46 | Pending |
-| COURSE-02 | Phase 46 | Pending |
-| COURSE-03 | Phase 46 | Pending |
-| COURSE-04 | Phase 46 | Pending |
-| COURSE-05 | Phase 46 | Pending |
-| COURSE-06 | Phase 46 | Pending |
+| COURSE-01 | Phase 46 | Complete |
+| COURSE-02 | Phase 46 | Complete |
+| COURSE-03 | Phase 46 | Complete |
+| COURSE-04 | Phase 46 | Complete |
+| COURSE-05 | Phase 46 | Complete |
+| COURSE-06 | Phase 46 | Complete |
 | EVENT-01 | Phase 47 | Pending |
 | EVENT-02 | Phase 47 | Pending |
 | EVENT-03 | Phase 47 | Pending |

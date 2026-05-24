@@ -62,7 +62,7 @@
 - [x] **Phase 43: M4 Membership Tiers Extension** — Lifetime tier on `tier_effective` + grandfathering coupons + community-gated entitlements
 - [x] **Phase 44: M4 Community Feed Foundation** — Posts + threaded comments + reactions + @mentions + image/Mux video embeds + Realtime [COMPLETE — approved automated-verify-only; Signals A-D deferred to v1.3-uat-deferred.md]
 - [x] **Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard** — Per-space tier visibility + DM rate-limiting + cohort-scoped leaderboard
-- [ ] **Phase 46: M4 Courses / Classroom** — Modules + lessons + Mux adaptive video + completion certificates (jsPDF) + landing-page A/B + Pro-gated resources
+- [x] **Phase 46: M4 Courses / Classroom** — Modules + lessons + Mux adaptive video + completion certificates (jsPDF) + landing-page A/B + Pro-gated resources
 - [ ] **Phase 47: M4 Events Calendar + Zoom + Reminders + Recording** — RSVPs with capacity/waitlist + Zoom OAuth + timezone-aware reminders + post-event lesson conversion
 - [x] **Phase 48: M4 Moderation** — Reports queue + mute/ban/suspend + banned-words + Claude auto-flagging + immutable audit log
 - [ ] **Phase 49: M4 Search + Email Digests** — Postgres FTS (English + Spanish dictionaries shared with HELP-11) + daily/weekly Resend digests + opt-out + 1-click unsubscribe
@@ -659,17 +659,17 @@ Plans:
 **UI hint**: yes
 
 **Plans:** 11 plans across 4 waves (0/1/2/3)
-- [ ] 46-01-PLAN.md — Schema + RLS + 3 SECDEF RPCs + 4 cross-tenant proof tests (Wave 0)
-- [ ] 46-02-PLAN.md — certificates + course-resources Storage buckets (Wave 0)
-- [ ] 46-03-PLAN.md — course-types + browser HMAC cert-verify-token + isResourceAllowed extension (Wave 0)
-- [ ] 46-04-PLAN.md — mux-sign-playback Edge Fn (RS256 JWT explicit keyId/keySecret + tier gate) (Wave 1)
-- [ ] 46-05-PLAN.md — mux-create-upload + mux-webhook extensions (course-lesson branch; signed policy; admin-only) (Wave 1)
-- [ ] 46-06-PLAN.md — lesson-progress-beacon Edge Fn (req.text() sendBeacon-friendly + update_lesson_position RPC) (Wave 1)
-- [ ] 46-07-PLAN.md — generate-course-certificate Edge Fn (jsPDF + qrcode + HMAC; Wave 0 qrcode smoke test) (Wave 1)
-- [ ] 46-08-PLAN.md — Consumer Classroom UI (TabId 'classroom' + LessonPlayerView + bundle ≤30 kB gz) (Wave 2)
-- [ ] 46-09-PLAN.md — Admin Course Editor (pathname routing + SortableTreePanel reorder + LessonVideoUploader) (Wave 2)
-- [ ] 46-10-PLAN.md — Public /verify/<cert_id> route + compareCertToken helper (Wave 3)
-- [ ] 46-11-PLAN.md — [BLOCKING] vendor secrets + db push + 5 Fn deploys + bundle gate + Playwright + 6-signal HUMAN-UAT + close-out (Wave 3)
+- [x] 46-01-PLAN.md — Schema + RLS + 3 SECDEF RPCs + 4 cross-tenant proof tests (Wave 0)
+- [x] 46-02-PLAN.md — certificates + course-resources Storage buckets (Wave 0)
+- [x] 46-03-PLAN.md — course-types + browser HMAC cert-verify-token + isResourceAllowed extension (Wave 0)
+- [x] 46-04-PLAN.md — mux-sign-playback Edge Fn (RS256 JWT explicit keyId/keySecret + tier gate) (Wave 1)
+- [x] 46-05-PLAN.md — mux-create-upload + mux-webhook extensions (course-lesson branch; signed policy; admin-only) (Wave 1)
+- [x] 46-06-PLAN.md — lesson-progress-beacon Edge Fn (req.text() sendBeacon-friendly + update_lesson_position RPC) (Wave 1)
+- [x] 46-07-PLAN.md — generate-course-certificate Edge Fn (jsPDF + qrcode + HMAC; Wave 0 qrcode smoke test) (Wave 1)
+- [x] 46-08-PLAN.md — Consumer Classroom UI (TabId 'classroom' + LessonPlayerView + bundle ≤30 kB gz) (Wave 2)
+- [x] 46-09-PLAN.md — Admin Course Editor (pathname routing + SortableTreePanel reorder + LessonVideoUploader) (Wave 2)
+- [x] 46-10-PLAN.md — Public /verify/<cert_id> route + compareCertToken helper (Wave 3)
+- [x] 46-11-PLAN.md — [BLOCKING] vendor secrets + db push + 5 Fn deploys + bundle gate + Playwright + 6-signal HUMAN-UAT + close-out (Wave 3)
 
 ### Phase 47: M4 Events Calendar + Zoom + Reminders + Recording
 

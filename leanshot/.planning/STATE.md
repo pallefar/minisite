@@ -4,14 +4,14 @@ milestone: v1.3
 milestone_name: Platform Expansion
 status: verifying
 stopped_at: Phase 47 context gathered
-last_updated: "2026-05-24T06:15:00.000Z"
-last_activity: 2026-05-24 -- Phase 45 (M4 Community Spaces + Directory + DMs + Leaderboard) complete 9/10 plans shipped + 45-09 close-out (automated-verify-only, 6 HUMAN-UAT signals + 2 Fn deploys + 7 migrations deferred to v1.3 milestone UAT)
+last_updated: "2026-05-24T07:45:00.000Z"
+last_activity: 2026-05-24 -- Phase 46 (M4 Courses / Classroom) complete 10/11 plans shipped + 46-11 close-out (automated-verify-only, 6 HUMAN-UAT signals + 5 Fn deploys + 6 migrations + 3 NEW Mux/cert secrets deferred to v1.3 milestone UAT)
 progress:
   total_phases: 28
-  completed_phases: 19
-  total_plans: 230
-  completed_plans: 179
-  percent: 67
+  completed_phases: 20
+  total_plans: 241
+  completed_plans: 190
+  percent: 70
 ---
 
 # Background dispatch note (2026-05-19) — Phase 40
