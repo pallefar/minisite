@@ -257,9 +257,9 @@
 - [x] **COMMUNITY-04**: Image embeds (Supabase Storage signed URLs) + video embeds (Mux upload + adaptive playback); per-post image-count cap
 - [x] **COMMUNITY-05**: Realtime feed updates via Supabase Realtime (new posts + new comments + reaction updates) — reuses Phase 9 + HELP-09 Realtime patterns
 - [x] **COMMUNITY-06**: Spaces / categories admin-configurable (e.g., "GLP-1 starters", "Trial month tips", "Clinic Q&A"); per-space visibility (Free / Pro / Lifetime)
-- [ ] **COMMUNITY-07**: Member directory with profile pages (bio, links, joined-date, badges); admin sets directory visibility (org-only for clinics)
-- [ ] **COMMUNITY-08**: Opt-in DMs (1:1 message threads); per-user DM-open toggle; rate limiting (max N new DM threads/day)
-- [ ] **COMMUNITY-09**: Community leaderboard (separate from GAME app leaderboard); top contributors per space + per month; cohort-scoped opt-in (anonymized handles)
+- [x] **COMMUNITY-07**: Member directory with profile pages (bio, links, joined-date, badges); admin sets directory visibility (org-only for clinics)
+- [x] **COMMUNITY-08**: Opt-in DMs (1:1 message threads); per-user DM-open toggle; rate limiting (max N new DM threads/day)
+- [x] **COMMUNITY-09**: Community leaderboard (separate from GAME app leaderboard); top contributors per space + per month; cohort-scoped opt-in (anonymized handles)
 
 ### WS21 — M4: Courses / Classroom (COURSE, 6 REQ-IDs)
 
@@ -594,9 +594,9 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | COMMUNITY-04 | Phase 44 | Complete |
 | COMMUNITY-05 | Phase 44 | Complete |
 | COMMUNITY-06 | Phase 44 | Complete |
-| COMMUNITY-07 | Phase 45 | Pending |
-| COMMUNITY-08 | Phase 45 | Pending |
-| COMMUNITY-09 | Phase 45 | Pending |
+| COMMUNITY-07 | Phase 45 | Complete |
+| COMMUNITY-08 | Phase 45 | Complete |
+| COMMUNITY-09 | Phase 45 | Complete |
 | COURSE-01 | Phase 46 | Pending |
 | COURSE-02 | Phase 46 | Pending |
 | COURSE-03 | Phase 46 | Pending |

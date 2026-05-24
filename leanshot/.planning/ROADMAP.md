@@ -61,7 +61,7 @@
 - [ ] **Phase 42: v1.3 Polish Closeout — WCAG 2.2 AA + Smart Notifications + PWA Offline + Dark Mode + What's New + NPS** — axe-core CI + per-category notification center + `vite-plugin-pwa` + admin-shell dark mode + quarterly NPS
 - [x] **Phase 43: M4 Membership Tiers Extension** — Lifetime tier on `tier_effective` + grandfathering coupons + community-gated entitlements
 - [x] **Phase 44: M4 Community Feed Foundation** — Posts + threaded comments + reactions + @mentions + image/Mux video embeds + Realtime [COMPLETE — approved automated-verify-only; Signals A-D deferred to v1.3-uat-deferred.md]
-- [ ] **Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard** — Per-space tier visibility + DM rate-limiting + cohort-scoped leaderboard
+- [x] **Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard** — Per-space tier visibility + DM rate-limiting + cohort-scoped leaderboard
 - [ ] **Phase 46: M4 Courses / Classroom** — Modules + lessons + Mux adaptive video + completion certificates (jsPDF) + landing-page A/B + Pro-gated resources
 - [ ] **Phase 47: M4 Events Calendar + Zoom + Reminders + Recording** — RSVPs with capacity/waitlist + Zoom OAuth + timezone-aware reminders + post-event lesson conversion
 - [x] **Phase 48: M4 Moderation** — Reports queue + mute/ban/suspend + banned-words + Claude auto-flagging + immutable audit log
@@ -633,15 +633,15 @@ Plans:
 **UI hint**: yes
 
 **Plans:** 9 plans across 4 waves (0/1/2/3)
-- [ ] 45-01-PLAN.md — Schema + RLS + 7 SECDEF RPCs + 3 cross-tenant RLS proof tests (Wave 0)
-- [ ] 45-02-PLAN.md — Notification CHECK widening ATOMIC (4 tables + email-router + VALID_CATEGORIES + 2 templates) (Wave 0)
-- [ ] 45-03-PLAN.md — dm-attachments Storage bucket + RLS via dm_threads JOIN (Wave 0)
-- [ ] 45-04-PLAN.md — dm-create-thread Edge Fn (rate-limit + block + clinician bypass + 5-min activity debounce) (Wave 1)
-- [ ] 45-05-PLAN.md — community-admin-report-digest Edge Fn + daily 9am UTC cron (Wave 1)
-- [ ] 45-06-PLAN.md — community_space_leaderboard_matview + Phase 35 cron CONSOLIDATION (one job, two REFRESH calls) (Wave 1)
-- [ ] 45-07-PLAN.md — Consumer UI (directory + DM inbox/thread/composer + LeaderboardChip + Settings toggles + vite chunks + bundle budget) (Wave 2)
-- [ ] 45-08-PLAN.md — Admin UI (AdminCliniciansPage + AdminReportsDigestPage + SpaceEditor leaderboard toggle; pathname-routed) (Wave 2)
-- [ ] 45-09-PLAN.md — [BLOCKING] supabase db push + Fn deploys + bundle gate + Playwright + 6-signal HUMAN-UAT + close-out (Wave 3)
+- [x] 45-01-PLAN.md — Schema + RLS + 7 SECDEF RPCs + 3 cross-tenant RLS proof tests (Wave 0)
+- [x] 45-02-PLAN.md — Notification CHECK widening ATOMIC (4 tables + email-router + VALID_CATEGORIES + 2 templates) (Wave 0)
+- [x] 45-03-PLAN.md — dm-attachments Storage bucket + RLS via dm_threads JOIN (Wave 0)
+- [x] 45-04-PLAN.md — dm-create-thread Edge Fn (rate-limit + block + clinician bypass + 5-min activity debounce) (Wave 1)
+- [x] 45-05-PLAN.md — community-admin-report-digest Edge Fn + daily 9am UTC cron (Wave 1)
+- [x] 45-06-PLAN.md — community_space_leaderboard_matview + Phase 35 cron CONSOLIDATION (one job, two REFRESH calls) (Wave 1)
+- [x] 45-07-PLAN.md (split into 45-07a + 45-07b) — Consumer UI (directory + DM inbox/thread/composer + LeaderboardChip + Settings toggles + vite chunks + bundle budget) (Wave 2)
+- [x] 45-08-PLAN.md — Admin UI (AdminCliniciansPage + AdminReportsDigestPage + SpaceEditor leaderboard toggle; pathname-routed) (Wave 2)
+- [x] 45-09-PLAN.md — [BLOCKING] supabase db push + Fn deploys + bundle gate + Playwright + 6-signal HUMAN-UAT + close-out (Wave 3)
 
 ### Phase 46: M4 Courses / Classroom
 
