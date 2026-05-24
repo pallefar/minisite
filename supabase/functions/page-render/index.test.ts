@@ -43,6 +43,14 @@ interface MockScenario {
   rows?: Record<string, PublishedPageRow | null>;
   /** Force a query error (T-15-03-04 path). */
   queryError?: string;
+  /**
+   * Phase 41 Plan 41-03 — Hostnames returned for the BLOCKING
+   * iframe_allowlist fetch in handleRender. Default `[]` (empty allowlist
+   * — Custom-iframe blocks render as inert placeholders).
+   */
+  allowlistHostnames?: string[];
+  /** Force an error on the iframe_allowlist fetch. */
+  allowlistError?: string;
 }
 
 function buildMockAdmin(scenario: MockScenario): {
@@ -51,9 +59,9 @@ function buildMockAdmin(scenario: MockScenario): {
 } {
   const calls = { selects: [] as string[], eqs: [] as Array<[string, unknown]> };
 
-  function makeBuilder(_table: string): unknown {
+  function makeBuilder(table: string): unknown {
     const where: Record<string, unknown> = {};
-    const builder = {
+    const builder: Record<string, unknown> = {
       select(cols: string) {
         calls.selects.push(cols);
         return builder;
@@ -79,6 +87,22 @@ function buildMockAdmin(scenario: MockScenario): {
           return Promise.resolve({ data: null, error: null });
         }
         return Promise.resolve({ data: row, error: null });
+      },
+      // Phase 41 Plan 41-03 (B3) — `await client.from('iframe_allowlist').select('hostname')`
+      // resolves to { data, error }. supabase-js builders are thenable after
+      // .select(). Mock matches: when the table is iframe_allowlist, the
+      // builder resolves on .then; for other tables, .then is absent so
+      // `await` proceeds through the existing maybeSingle/limit terminators.
+      then(resolve: (v: { data: Array<{ hostname: string }> | null; error: { message: string } | null }) => unknown) {
+        if (table !== 'iframe_allowlist') {
+          // Defensive: shouldn't be reached for non-allowlist tables.
+          return resolve({ data: null, error: null });
+        }
+        if (scenario.allowlistError) {
+          return resolve({ data: null, error: { message: scenario.allowlistError } });
+        }
+        const hosts = (scenario.allowlistHostnames ?? []).map((h) => ({ hostname: h }));
+        return resolve({ data: hosts, error: null });
       },
     };
     return builder;
