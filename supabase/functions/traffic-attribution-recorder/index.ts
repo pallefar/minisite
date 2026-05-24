@@ -89,6 +89,31 @@ export function isAllowedOrigin(origin: string | null): boolean {
   return origin !== null && ALLOWED_ORIGINS.has(origin);
 }
 
+/**
+ * Phase 51 Plan 51-02 Task 4 follow-up: the `lt_anon_id` cookie minted by
+ * `leanshot/middleware.ts` is HttpOnly, so the SPA fire-touch helper cannot
+ * read it from `document.cookie`. In production the SPA omits `anonId` from
+ * the POST body; the browser ALSO attaches the Cookie header automatically
+ * via `credentials: 'include'`. This parser pulls lt_anon_id from that
+ * server-side-readable header as the fallback.
+ *
+ * Without this fallback TRAFFIC-01 cannot work end-to-end on HttpOnly
+ * cookies (Rule 2 auto-fix during 51-02 Task 4 — missing critical
+ * functionality for the documented production behavior).
+ */
+export function readLtAnonIdFromCookieHeader(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  const m = cookieHeader.match(/(?:^|;\s*)lt_anon_id=([^;]+)/);
+  return m ? decodeURIComponent(m[1] ?? '') : null;
+}
+
+/** Same fallback for the transient lt_clinic_slug_seen cookie (D-12). */
+export function readClinicSlugFromCookieHeader(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  const m = cookieHeader.match(/(?:^|;\s*)lt_clinic_slug_seen=([^;]+)/);
+  return m ? decodeURIComponent(m[1] ?? '') : null;
+}
+
 // ============================================================================
 // Test seam — inject a mock recordTouch implementation
 // ============================================================================
@@ -132,8 +157,21 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
       return jsonError(400, 'invalid_body');
     }
 
-    const anonId = clamp(typeof body.anonId === 'string' ? body.anonId : null, ANON_ID_MAX_BYTES);
+    // Resolve anonId: prefer body.anonId (test/non-HttpOnly path); fall back
+    // to the Cookie header (production HttpOnly path; browser auto-attaches
+    // via the SPA's credentials:'include' fetch).
+    const bodyAnon = typeof body.anonId === 'string' ? body.anonId : null;
+    const cookieAnon = readLtAnonIdFromCookieHeader(req.headers.get('cookie'));
+    const anonId = clamp(bodyAnon ?? cookieAnon, ANON_ID_MAX_BYTES);
     if (!anonId) return jsonError(400, 'anon_id_required');
+
+    // Resolve orgId: prefer body.orgId; else read clinic-slug cookie. The
+    // slug→org_id lookup itself happens in a future plan (51-10 wires
+    // resolve_clinic_slug_rpc); for now we surface the slug-presence signal
+    // by leaving orgId null when only the slug cookie is present (the
+    // helper accepts null and the SQL UPSERT preserves coalesce semantics).
+    const _slugFromCookie = readClinicSlugFromCookieHeader(req.headers.get('cookie'));
+    void _slugFromCookie; // referenced for D-12 traceability; resolved in 51-10
 
     const rawUtm = (body.utm ?? {}) as Record<string, unknown>;
     const utm = {
