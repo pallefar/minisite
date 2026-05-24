@@ -855,7 +855,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 51-01-PLAN.md — REQUIREMENTS.md TRAFFIC-NN block + user_traffic_attribution + channel_groups + referrer_channel_rules + is_retained + upsert RPCs + RLS + events.ts additive defs
+- [x] 51-01-PLAN.md — REQUIREMENTS.md TRAFFIC-NN block + user_traffic_attribution + channel_groups + referrer_channel_rules + is_retained + upsert RPCs + RLS + events.ts additive defs
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

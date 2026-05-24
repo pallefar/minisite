@@ -692,6 +692,86 @@ export const EVENTS = {
       'A paused subscription resumed automatically on its resumes_at date (D-08 auto-resume, server-only).',
     payload: z.object({}),
   },
+
+  // ---------------------------------------------------------------------------
+  // Phase 51 Plan 51-01 (D-13, D-04, D-05) — Traffic + conversion taxonomy.
+  // 4 additive event defs covering the cross-audience funnel:
+  //   traffic_visit       — first-touch + last-touch landing event (server-only,
+  //                          recorded by traffic-attribution-recorder Edge Fn
+  //                          which dual-writes to events_mirror via captureServer).
+  //   traffic_signup      — signup completed; carries the resolved
+  //                          channel_group + audience to bind the row to the
+  //                          attribution snapshot at conversion time.
+  //   traffic_activation  — north-star activation event mirror (P34 ONBOARD
+  //                          locked activation; captured alongside for the
+  //                          ad-spend join in Plan 51-03 traffic_channel_rollup).
+  //   traffic_paid        — paid conversion mirror (P14 PAYMENT / P29 metered
+  //                          seat / P26 affiliate referral) — secondary CAC.
+  // PHI-safe: properties carry channel_group + audience + landing_path +
+  // page_variant_id only. PHI events live in events.phi.ts.
+  // ---------------------------------------------------------------------------
+  traffic_visit: {
+    name: 'traffic_visit',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    server_only: true,
+    description:
+      'A landing-page visit captured by traffic-attribution-recorder Edge Fn; first-touch or last-touch update on user_traffic_attribution.',
+    payload: z.object({
+      channel_group: z.string(),
+      audience: z.enum(['consumer', 'clinic-org', 'affiliate']),
+      landing_path: z.string().optional(),
+      page_variant_id: z.string().nullable().optional(),
+    }),
+  },
+  traffic_signup: {
+    name: 'traffic_signup',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    description:
+      'Signup completed with the attribution channel_group + audience resolved at conversion time (D-05 funnel stage 2).',
+    payload: z.object({
+      channel_group: z.string(),
+      audience: z.enum(['consumer', 'clinic-org', 'affiliate']),
+      landing_path: z.string().optional(),
+      page_variant_id: z.string().nullable().optional(),
+      user_id: z.string().optional(),
+    }),
+  },
+  traffic_activation: {
+    name: 'traffic_activation',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    server_only: true,
+    description:
+      'Activation reached (D-06 north-star). Mirrors P34 activation with attribution snapshot for CAC_to_activation rollup.',
+    payload: z.object({
+      channel_group: z.string(),
+      audience: z.enum(['consumer', 'clinic-org', 'affiliate']),
+      landing_path: z.string().optional(),
+      page_variant_id: z.string().nullable().optional(),
+      user_id: z.string().optional(),
+    }),
+  },
+  traffic_paid: {
+    name: 'traffic_paid',
+    version: 1,
+    phi: false,
+    owner: 'growth',
+    server_only: true,
+    description:
+      'Paid conversion reached (secondary CAC). Mirrors payment_completed / metered-seat / affiliate-conversion with attribution snapshot.',
+    payload: z.object({
+      channel_group: z.string(),
+      audience: z.enum(['consumer', 'clinic-org', 'affiliate']),
+      landing_path: z.string().optional(),
+      page_variant_id: z.string().nullable().optional(),
+      user_id: z.string().optional(),
+    }),
+  },
 } as const satisfies Record<string, EventDef>;
 
 export type EventName = keyof typeof EVENTS;
