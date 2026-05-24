@@ -30,8 +30,15 @@ function makeMockAdmin(opts: {
   tierLabel?: string;
   shouldThrow?: boolean;
   isStaff?: boolean;
+  eventExists?: boolean;
 }): unknown {
-  const { userId = 'user-1', tierLabel = 'pro', shouldThrow = false, isStaff = false } = opts;
+  const {
+    userId = 'user-1',
+    tierLabel = 'pro',
+    shouldThrow = false,
+    isStaff = false,
+    eventExists = true,
+  } = opts;
 
   const mockAdmin = {
     auth: {
@@ -69,6 +76,22 @@ function makeMockAdmin(opts: {
                 if (shouldThrow) return Promise.reject(new Error('DB error'));
                 return Promise.resolve({
                   data: { is_staff: isStaff },
+                  error: null,
+                });
+              },
+            }),
+          }),
+        };
+      }
+      if (table === 'events') {
+        // Plan 47-09: pre-flight check for event existence
+        return {
+          select: (_cols: string) => ({
+            eq: (_col: string, _val: string) => ({
+              maybeSingle: () => {
+                if (shouldThrow) return Promise.reject(new Error('DB error'));
+                return Promise.resolve({
+                  data: eventExists ? { id: _val } : null,
                   error: null,
                 });
               },
@@ -534,6 +557,127 @@ Deno.test('REGRESSION: community-post path (no kind field) still works for pro t
   // Community-post path: public policy + 300s cap
   assertEquals(lastMuxCallArgs!.new_asset_settings.playback_policies, ['public']);
   assertEquals(lastMuxCallArgs!.new_asset_settings.max_duration_seconds, 300);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+// ---------------------------------------------------------------------------
+// Plan 47-09: event-recording branch tests (EVENT-05)
+// passthrough shape: { kind: 'event-recording', event_id, user_id }
+// Admin-gated via is_staff().
+// ---------------------------------------------------------------------------
+
+Deno.test('event-recording + is_staff=true + event exists → 200 + upload URL', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  muxShouldThrow = false;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true, eventExists: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'event-recording', event_id: 'event-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.url, MUX_UPLOAD_URL);
+  assertEquals(body.upload_id, MUX_UPLOAD_ID);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('event-recording + is_staff=false → 403 ADMIN_REQUIRED (T-46-07 mirror)', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'user-1', isStaff: false }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'event-recording', event_id: 'event-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 403);
+  const body = await res.json();
+  assertEquals(body.error, 'ADMIN_REQUIRED');
+  assertEquals(lastMuxCallArgs, null);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('event-recording missing event_id → 400 event_id_required', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'event-recording' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 400);
+  const body = await res.json();
+  assertEquals(body.error, 'event_id_required');
+  assertEquals(lastMuxCallArgs, null);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('event-recording event not found → 404 event_not_found', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(
+    makeMockAdmin({ userId: 'admin-1', isStaff: true, eventExists: false }),
+  );
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'event-recording', event_id: 'event-missing' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 404);
+  const body = await res.json();
+  assertEquals(body.error, 'event_not_found');
+  assertEquals(lastMuxCallArgs, null);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('event-recording passthrough carries kind+event_id+user_id', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-XYZ', isStaff: true, eventExists: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'event-recording', event_id: 'event-XYZ' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertExists(lastMuxCallArgs);
+  const passthrough = JSON.parse(lastMuxCallArgs!.new_asset_settings.passthrough);
+  assertEquals(passthrough.kind, 'event-recording');
+  assertEquals(passthrough.event_id, 'event-XYZ');
+  assertEquals(passthrough.user_id, 'admin-XYZ');
 
   resetAdminForTest();
   resetMuxForTest();
