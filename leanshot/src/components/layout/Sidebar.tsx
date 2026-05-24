@@ -23,6 +23,7 @@ import {
   Smile,
   Trophy,
   Users,
+  BookOpen,
   Bot,
   Moon,
   Sun,
@@ -49,6 +50,10 @@ const TABS: { id: TabId; Icon: typeof Home }[] = [
   { id: 'mood', Icon: Smile },
   { id: 'insights', Icon: Trophy },
   { id: 'community', Icon: Users },
+  // Phase 46 Plan 08 — Classroom (consumer-side course surface).
+  // EXCEPTION to the no-new-TabId rule per CONTEXT (see TabId in src/types/index.ts).
+  // Nav button below calls setTab('classroom') via the TABS.map iteration.
+  { id: 'classroom', Icon: BookOpen },
 ];
 
 interface SidebarProps {

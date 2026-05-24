@@ -38,6 +38,9 @@ export function tabLongLabel(t: TFunction, id: TabId): string {
       return t('nav:insights');
     case 'community':
       return t('nav:community');
+    case 'classroom':
+      // Phase 46 — Classroom (consumer-side course surface).
+      return t('nav:classroom');
     default: {
       const _exhaustive: never = id;
       return _exhaustive;
@@ -67,6 +70,9 @@ export function tabShortLabel(t: TFunction, id: TabId): string {
       return t('nav:tab_short_insights');
     case 'community':
       return t('nav:tab_short_community');
+    case 'classroom':
+      // Phase 46 — short label for iOS-bottom-nav style strip.
+      return t('nav:tab_short_classroom');
     default: {
       const _exhaustive: never = id;
       return _exhaustive;
