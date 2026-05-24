@@ -3,13 +3,12 @@
  * Plan 39-05 PharmaContentBlock + any other gated content surface).
  *
  * Cascade (in order):
- *   1. phaCheck(content) inside try/catch (D-06 layer 2). Never crash render
- *      even if a synthetic phaCheck failure escapes — fall through to free.
- *   2. content.safety_category non-null → render children directly (D-05
- *      safety carveout — never paywall safety info).
- *   3. consent-adapter returns false → render children directly (UI-SPEC
+ *   1. shouldShortCircuitForSafety(content) (delegates to phaCheck inside
+ *      try/catch, D-06 layer 2 + D-05 carveout) — render children directly
+ *      when the gate is asked about safety-info content.
+ *   2. consent-adapter returns false → render children directly (UI-SPEC
  *      Hard Constraint #6 cookie-consent gate).
- *   4. consent=true + non-safety → invoke variant-resolver Edge Fn (Plan 39-03)
+ *   3. consent=true + non-safety → invoke variant-resolver Edge Fn (Plan 39-03)
  *      and render a paywall slot marked with data-testid="paywall-content"
  *      that downstream surfaces (PaywallModal, OnboardingFlowPaywall) wrap.
  *      On any resolver error / null variant → silently fall through to children.
@@ -19,15 +18,24 @@
  *
  * Per UI-SPEC Interaction States: NO loading state visible — paywall
  * either renders or doesn't; the render decision is the loading state.
+ *
+ * Why is the safety-info read extracted into ./safety-carveout.ts? The
+ * D-06 layer 3 CI grep gate flags any source file with both a Paywall*
+ * identifier and a category-key read in the same comment-stripped body.
+ * The helper keeps the field-name read OUT of this file so the gate
+ * passes per its documented "split into two files" carveout. See
+ * scripts/check-no-paywall-on-safety-category.sh option 3.
  */
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { phaCheck } from '@/lib/pharma/phaCheck';
 import { getPaywallTrackingConsent } from '@/lib/paywall/consent-adapter';
 import { supabase } from '@/lib/supabase';
+import type { PharmaContent } from '@/lib/pharma/phaCheck';
+
+import { shouldShortCircuitForSafety } from './safety-carveout';
 
 export interface PaywallGateProps {
-  content: { safety_category?: string | null; [k: string]: unknown };
+  content: PharmaContent;
   children: ReactNode;
   /** 'pharma' uses the same gate cascade but flags downstream which surface invoked. Default 'paywall'. */
   surface?: 'pharma' | 'paywall';
@@ -39,17 +47,9 @@ interface ResolvedVariant {
 }
 
 export function PaywallGate({ content, children, surface = 'paywall' }: PaywallGateProps) {
-  // Layer 1: defense-in-depth phaCheck. Wrap in try/catch — the assertion
-  // is loud-in-test (throws) but the render path must never crash.
-  let safetyCarveOut = false;
-  try {
-    phaCheck(content);
-    safetyCarveOut = Boolean(content?.safety_category);
-  } catch {
-    // phaCheck throwing means safety_category WAS present and dev/test
-    // signalled the violation. Honour the carveout regardless.
-    safetyCarveOut = true;
-  }
+  // Layer 1 + 2 (D-06 layer 2 phaCheck + D-05 carveout) delegated to the
+  // sibling helper so this file is safe to grep-gate (see header comment).
+  const safetyCarveOut = shouldShortCircuitForSafety(content);
 
   const consentGranted = (() => {
     try {

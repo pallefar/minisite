@@ -366,6 +366,12 @@ import { clearOverrideCache, loadOverrides } from '@/lib/consent/feature-flag-ov
 // hook inside App() so the guard is active before any tab/modal renders.
 // posthog-js stays dynamically imported (per project_phase5_bundle_regression).
 import { useSessionReplayPhiGuard } from '@/lib/posthog-route-disable';
+// Phase 39 Plan 39-04 (PAYWALL-07 / D-09 / OQ-5) — first-touch UTM cookie
+// writer. Phase 39 OWNS the lt_utm_source cookie key; Phase 51 will adopt
+// the same key when shipping its UTM map pipeline. Idempotent: post-React-
+// mount call so jsdom tests that stub window.location after main.tsx init
+// still see the value at App body invocation time (NOT in main.tsx).
+import { captureFirstTouchUtm } from '@/lib/utm/capture-first-touch';
 
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy
@@ -795,6 +801,14 @@ export function App() {
   // Phase 25 HIPAA-17 — PHI route gate for PostHog session replay.
   // Must be the FIRST hook call so the guard is active before any view renders.
   useSessionReplayPhiGuard();
+
+  // Phase 39 Plan 39-04 (PAYWALL-07) — first-touch UTM capture. Idempotent
+  // helper; safe under StrictMode double-invoke. Mounted from App body (not
+  // main.tsx) so jsdom tests that stub window.location after main.tsx init
+  // observe the captured cookie when assertions run.
+  useEffect(() => {
+    captureFirstTouchUtm();
+  }, []);
 
   const user = useStore((s) => s.user);
   const acknowledgedDisclaimer = useStore((s) => s.acknowledgedDisclaimer);
