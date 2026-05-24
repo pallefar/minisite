@@ -132,6 +132,8 @@ export const TAB_TITLES: Record<TabId, { title: string; sub: string }> = {
   community: { title: 'Community', sub: 'Connect with others on the same journey' },
   // Phase 46 Plan 08 — Classroom tab title strip.
   classroom: { title: 'Classroom', sub: 'Courses, lessons, and earned certificates' },
+  // Phase 47 Plan 10 — Events tab title strip (EVENT-01 / 02 / 03).
+  events: { title: 'Events', sub: 'Live calls, workshops, and Q&As — RSVP and join' },
 };
 
 export const SITES = [
