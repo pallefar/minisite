@@ -22,7 +22,13 @@ export type Category =
   // Phase 44 Plan 44-02 — community notification categories.
   // Must match the CHECK constraints widened in 20270720000004_p44_notification_community.sql.
   | 'community-mentions'
-  | 'community-replies';
+  | 'community-replies'
+  // Phase 45 Plan 45-02 — DM + admin report digest categories.
+  // Must match the CHECK constraints widened in
+  // 20270727000004_p45_notification_widening.sql and the VALID_CATEGORIES
+  // Set in notification-send/index.ts.
+  | 'community-dm'
+  | 'community-admin-report';
 
 export type Channel = 'email' | 'web-push' | 'in-app';
 

@@ -16,6 +16,10 @@
  *   reply   → looks up community_posts.author_id
  *             → if author_id === commenter_user_id → fanout_count=0 (self-reply skip)
  *             → else → calls notification-send with category='community-replies'
+ *   dm_new  → single-recipient fan-out (Phase 45 Plan 45-02)
+ *             → calls notification-send with category='community-dm'
+ *             → skips if sender_user_id === recipient_user_id (defense in depth)
+ *             → identity binding: user JWT.sub MUST equal body.sender_user_id (T-45-02)
  *
  * Threat model mitigations (44-05):
  *   T-44-03b — constantTimeEqual + admin.auth.getUser sub-check
@@ -126,7 +130,12 @@ type AuthOutcome =
 
 async function authenticate(
   req: Request,
-  body: { mentioned_by_user_id?: string; commenter_user_id?: string },
+  body: {
+    mentioned_by_user_id?: string;
+    commenter_user_id?: string;
+    // Phase 45 Plan 45-02 — dm_new identity field (T-45-02 mirrors T-44-08).
+    sender_user_id?: string;
+  },
 ): Promise<AuthOutcome> {
   const bearer = bearerFromReq(req);
   if (!bearer) return { kind: 'reject', status: 401, code: 'unauthorized' };
@@ -147,8 +156,10 @@ async function authenticate(
     return { kind: 'reject', status: 401, code: 'unauthorized' };
   }
 
-  // T-44-08: JWT sub must match the claimed identity in body
-  const claimedUserId = body.mentioned_by_user_id ?? body.commenter_user_id ?? '';
+  // T-44-08 / T-45-02: JWT sub must match the claimed identity in body.
+  // For dm_new the claimed identity is body.sender_user_id (the message author).
+  const claimedUserId =
+    body.mentioned_by_user_id ?? body.commenter_user_id ?? body.sender_user_id ?? '';
   if (!claimedUserId || claimedUserId !== data.user.id) {
     return { kind: 'reject', status: 403, code: 'identity_mismatch' };
   }
@@ -162,7 +173,8 @@ async function authenticate(
 
 async function callNotificationSend(
   userId: string,
-  category: 'community-mentions' | 'community-replies',
+  // Phase 45 Plan 45-02 — widened to include 'community-dm' for DM fan-out.
+  category: 'community-mentions' | 'community-replies' | 'community-dm',
   payload: Record<string, unknown>,
 ): Promise<void> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -199,7 +211,21 @@ interface ReplyBody {
   commenter_name: string;
 }
 
-type NotifyBody = MentionBody | ReplyBody;
+// Phase 45 Plan 45-02 — DM fan-out path (single-recipient, not N-mention loop).
+// dm-create-thread (45-04) calls this Fn with kind='dm_new' after creating the
+// thread + message. The fan-out goes to exactly one user (body.recipient_user_id),
+// with category='community-dm'. The body_excerpt is dompurified + truncated to
+// ≤80 chars server-side BEFORE being POSTed here (T-45-05 XSS defense in depth).
+interface DmNewBody {
+  kind: 'dm_new';
+  thread_id: string;
+  sender_user_id: string;
+  sender_handle: string;
+  recipient_user_id: string;
+  body_excerpt: string;
+}
+
+type NotifyBody = MentionBody | ReplyBody | DmNewBody;
 
 function validateBody(
   raw: unknown,
@@ -247,6 +273,27 @@ function validateBody(
     };
   }
 
+  // Phase 45 Plan 45-02 — dm_new validation (single-recipient fan-out).
+  if (obj.kind === 'dm_new') {
+    if (
+      typeof obj.thread_id !== 'string' ||
+      obj.thread_id.length === 0 ||
+      typeof obj.sender_user_id !== 'string' ||
+      obj.sender_user_id.length === 0 ||
+      typeof obj.sender_handle !== 'string' ||
+      obj.sender_handle.length === 0 ||
+      typeof obj.recipient_user_id !== 'string' ||
+      obj.recipient_user_id.length === 0 ||
+      typeof obj.body_excerpt !== 'string'
+    ) {
+      return { ok: false, reason: 'invalid_body' };
+    }
+    return {
+      ok: true,
+      body: obj as unknown as DmNewBody,
+    };
+  }
+
   return { ok: false, reason: 'invalid_body' };
 }
 
@@ -273,6 +320,8 @@ async function handleNotify(req: Request): Promise<Response> {
   const authResult = await authenticate(req, {
     mentioned_by_user_id: body.kind === 'mention' ? body.mentioned_by_user_id : undefined,
     commenter_user_id: body.kind === 'reply' ? body.commenter_user_id : undefined,
+    // Phase 45 Plan 45-02 (T-45-02): dm_new identity binding.
+    sender_user_id: body.kind === 'dm_new' ? body.sender_user_id : undefined,
   });
 
   if (authResult.kind === 'reject') {
@@ -325,6 +374,26 @@ async function handleNotify(req: Request): Promise<Response> {
     }
 
     return jsonResponse(200, { fanout_count });
+  }
+
+  // --- DM fan-out (Phase 45 Plan 45-02) ---
+  // Single-recipient fan-out (NOT N-mention loop). Sender ≠ recipient is
+  // enforced upstream by dm-create-thread RPC (cannot DM yourself); we still
+  // skip if they coincide to keep this Fn defensive.
+  if (body.kind === 'dm_new') {
+    if (body.sender_user_id === body.recipient_user_id) {
+      return jsonResponse(200, { fanout_count: 0 });
+    }
+    const hashId = await hashForLog(body.recipient_user_id);
+    console.log(`[notify-community] dm fan-out to recipient sha256:${hashId}`);
+    await callNotificationSend(body.recipient_user_id, 'community-dm', {
+      thread_id: body.thread_id,
+      sender_user_id: body.sender_user_id,
+      sender_handle: body.sender_handle,
+      body_excerpt: body.body_excerpt,
+      thread_url: `https://app.leanshot.app/community/dm/${body.thread_id}`,
+    });
+    return jsonResponse(200, { fanout_count: 1 });
   }
 
   // --- Reply fan-out ---
