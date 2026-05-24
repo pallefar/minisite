@@ -12,8 +12,15 @@
  *     `calendly`, `youtube`, `tally`.
  */
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
+
+// Phase 41-05 retrofit: blocks now gate iframe behind ConsentGatedEmbed.
+// Grant all categories so iframe still renders on mount (preserves Phase 15 assertions).
+vi.mock('vanilla-cookieconsent', () => ({
+  acceptedCategory: () => true,
+  show: vi.fn(),
+}));
 import { EMBED_IFRAME_TITLES } from '@/lib/page-builder/embed-src';
 import { PROPERTY_CONFIGS } from '../editor/property-configs';
 import { CalendlyBlock } from './CalendlyBlock';
