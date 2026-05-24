@@ -14,7 +14,7 @@ import {
 import { detectPlatform } from './lib/native/platform';
 import { beforeSend } from './lib/sentry';
 import { initSentryNative } from './lib/sentry-native';
-import { hydrate } from './lib/store';
+import { hydrate, useStore } from './lib/store';
 // Phase 28 Plan 28-05 ORG-06: supabase singleton for wireAuthInvalidation.
 import { supabase } from './lib/supabase';
 import { scheduleSyncInit } from './lib/sync-defer';
@@ -200,6 +200,28 @@ void hydrate().then(async () => {
   // boots with the listener active from the first render cycle.
   // T-28-05-02 mitigation: stale role after admin removed from org mid-session.
   wireAuthInvalidation(supabase);
+
+  // Phase 48 Plan 11 — consumer moderation status fetch + subscribe (D-15 SPA blocker).
+  //
+  // Post-hydrate one-shot: fire-and-forget (NOT awaited) so first paint isn't
+  // delayed by the user_moderation_state SELECT round-trip. The 'active'
+  // fail-soft fallback means a transient error still lets legitimate users
+  // through; RLS write-deny is the durable backstop for malicious writes.
+  //
+  // onAuthStateChange listener: re-fetches on SIGNED_IN / TOKEN_REFRESHED /
+  // USER_UPDATED so server-side moderation actions (admin ban via Plan 48-04)
+  // surface within the residual JWT window before the ban-enforcement Edge
+  // Function's session DELETE forces a fresh JWT.
+  void useStore.getState().fetchUserModerationStatus();
+  supabase.auth.onAuthStateChange((event) => {
+    if (
+      event === 'SIGNED_IN' ||
+      event === 'TOKEN_REFRESHED' ||
+      event === 'USER_UPDATED'
+    ) {
+      void useStore.getState().fetchUserModerationStatus();
+    }
+  });
 
   // Phase 32 Plan 32-01 I18N-01/02/03 — initialize i18next AFTER hydrate
   // (store warm) and BEFORE first render so /?lang=es paints Spanish without

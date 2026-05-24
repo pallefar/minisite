@@ -123,6 +123,12 @@ const AuthCallbackView = lazy(() => import('@/components/auth/AuthCallbackView')
 // prop + CTA + cookie-bootstrap layer) OFF the index static graph.
 const AnonymousPreviewView = lazy(() => import('@/components/onboarding/AnonymousPreviewView'));
 
+// Phase 48 Plan 11 — AccountSuspended consumer-blocker (D-15 SPA blocker).
+// Rendered by the view-selector branch below when userModerationStatus is
+// 'banned' or 'temp_suspended'. Lazy-loaded so the blocker bytes never touch
+// the index static graph (typical legitimate users never render it).
+const AccountSuspended = lazy(() => import('@/components/AccountSuspended'));
+
 // Phase 8 Plan 08-04 — Doctor read-share lazy chunk. Mounted on the
 // `#/share/<token>` hash route via the top-priority branch in `selectView`
 // below. The chunk is OFF the index static graph; bundle CI (Plan 08-06)
@@ -774,6 +780,12 @@ export function App() {
   // Invited patients have signedIn.user (Supabase session) but user=null (no LeanShot profile yet).
   // selectView uses signedInUser so these patients route to 'dashboard' (where orgFlow gate applies).
   const signedInUser = useStore((s) => s.signedIn?.user ?? null);
+
+  // Phase 48 Plan 11 — consumer moderation status (D-15 SPA blocker).
+  // Server-driven slice fetched on hydrate + every auth-state change from
+  // main.tsx; NOT persisted (excluded from partialize per T-48-28). Drives
+  // the AccountSuspended view-selector branch BEFORE the dashboard branch.
+  const userModerationStatus = useStore((s) => s.userModerationStatus);
 
   // Phase 31 Plan 06 D-10/D-14: org onboarding flow state for the dashboard-entry gate.
   // Called unconditionally (React rules-of-hooks); only used when view==='dashboard'.
@@ -1839,6 +1851,28 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <ConsentAcceptScreen />
+        </Suspense>
+      </>
+    );
+  }
+
+  // Phase 48 Plan 11 — consumer ban/temp_suspend full-page blocker (D-15).
+  // Placed BEFORE the dashboard branches so a banned/temp_suspended user is
+  // intercepted regardless of orgFlow state. main.tsx re-fetches the slice
+  // on every supabase auth state change so server-side moderation actions
+  // surface within the residual JWT window (~1h before ban-enforcement Fn's
+  // session DELETE forces a fresh JWT). Renders nothing on marketing /
+  // onboarding / clinic / admin / auth surfaces — those branches return
+  // earlier above.
+  if (
+    userModerationStatus === 'banned' ||
+    userModerationStatus === 'temp_suspended'
+  ) {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <AccountSuspended />
         </Suspense>
       </>
     );
