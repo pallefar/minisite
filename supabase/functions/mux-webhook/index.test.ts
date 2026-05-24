@@ -21,9 +21,14 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Track calls to admin.from('community_posts').update().eq()
+ * Track calls to admin.from(<table>).update().eq()
+ *
+ * Plan 46-05: separate tracking for community_posts vs course_lessons so
+ * regression tests assert that course-lesson webhooks do NOT touch
+ * community_posts and vice versa.
  */
 interface UpdateCall {
+  table: string;
   payload: Record<string, unknown>;
   filterCol: string;
   filterVal: string;
@@ -32,21 +37,28 @@ interface UpdateCall {
 let updateCalls: UpdateCall[] = [];
 
 function makeMockAdmin(): unknown {
+  const mkTableStub = (table: string) => ({
+    update: (payload: Record<string, unknown>) => ({
+      eq: (col: string, val: string) => {
+        updateCalls.push({ table, payload, filterCol: col, filterVal: val });
+        return Promise.resolve({ error: null });
+      },
+    }),
+  });
   return {
     from: (table: string) => {
-      if (table === 'community_posts') {
-        return {
-          update: (payload: Record<string, unknown>) => ({
-            eq: (col: string, val: string) => {
-              updateCalls.push({ payload, filterCol: col, filterVal: val });
-              return Promise.resolve({ error: null });
-            },
-          }),
-        };
-      }
+      if (table === 'community_posts') return mkTableStub('community_posts');
+      if (table === 'course_lessons') return mkTableStub('course_lessons');
       return {};
     },
   };
+}
+
+function communityUpdateCalls(): UpdateCall[] {
+  return updateCalls.filter((c) => c.table === 'community_posts');
+}
+function courseLessonUpdateCalls(): UpdateCall[] {
+  return updateCalls.filter((c) => c.table === 'course_lessons');
 }
 
 /** A verifySignature stub that succeeds (returns void) */
@@ -269,6 +281,237 @@ Deno.test('returns 405 for non-POST methods', async () => {
   });
   const res = await handler(req);
   assertEquals(res.status, 405);
+});
+
+// ---------------------------------------------------------------------------
+// Plan 46-05: course-lesson dispatch tests (passthrough.kind === 'course-lesson')
+// ---------------------------------------------------------------------------
+
+function makeCourseLessonReadyEvent(opts: {
+  lessonId?: string;
+  courseId?: string;
+  assetId?: string;
+  playbackId?: string;
+  missingLessonId?: boolean;
+}): unknown {
+  const {
+    lessonId = 'lesson-1',
+    courseId = 'course-1',
+    assetId = 'asset-cl-1',
+    playbackId = 'playback-cl-1',
+    missingLessonId = false,
+  } = opts;
+  return {
+    type: 'video.asset.ready',
+    data: {
+      id: assetId,
+      playback_ids: [{ id: playbackId, policy: 'signed' }],
+      passthrough: JSON.stringify(
+        missingLessonId
+          ? { kind: 'course-lesson', course_id: courseId }
+          : { kind: 'course-lesson', lesson_id: lessonId, course_id: courseId },
+      ),
+    },
+  };
+}
+
+Deno.test('course-lesson video.asset.ready → UPDATE course_lessons (mux_playback_id + mux_status=ready)', async () => {
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const LESSON_ID = 'lesson-aaa';
+  const ASSET_ID = 'asset-aaa';
+  const PLAYBACK_ID = 'playback-aaa';
+  const req = makeRequest({
+    body: makeCourseLessonReadyEvent({ lessonId: LESSON_ID, assetId: ASSET_ID, playbackId: PLAYBACK_ID }),
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), 'ok');
+  // Must hit course_lessons, NOT community_posts
+  assertEquals(communityUpdateCalls().length, 0);
+  assertEquals(courseLessonUpdateCalls().length, 1);
+
+  const call = courseLessonUpdateCalls()[0]!;
+  assertEquals(call.payload.mux_asset_id, ASSET_ID);
+  assertEquals(call.payload.mux_playback_id, PLAYBACK_ID);
+  assertEquals(call.payload.mux_status, 'ready');
+  assertEquals(call.filterCol, 'id');
+  assertEquals(call.filterVal, LESSON_ID);
+
+  resetAdminForTest();
+  resetVerifyForTest();
+});
+
+Deno.test('course-lesson video.asset.errored → UPDATE course_lessons (mux_status=rejected)', async () => {
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const LESSON_ID = 'lesson-err';
+  const req = makeRequest({
+    body: {
+      type: 'video.asset.errored',
+      data: {
+        id: 'asset-err',
+        passthrough: JSON.stringify({
+          kind: 'course-lesson',
+          lesson_id: LESSON_ID,
+          course_id: 'course-err',
+        }),
+      },
+    },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertEquals(communityUpdateCalls().length, 0);
+  assertEquals(courseLessonUpdateCalls().length, 1);
+
+  const call = courseLessonUpdateCalls()[0]!;
+  assertEquals(call.payload.mux_status, 'rejected');
+  // errored event should NOT include playback_id (asset never became playable)
+  assertEquals(Object.keys(call.payload).includes('mux_playback_id'), false);
+  assertEquals(call.filterCol, 'id');
+  assertEquals(call.filterVal, LESSON_ID);
+
+  resetAdminForTest();
+  resetVerifyForTest();
+});
+
+Deno.test('course-lesson video.upload.asset_created → UPDATE course_lessons (mux_asset_id + mux_status=processing)', async () => {
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const LESSON_ID = 'lesson-proc';
+  const ASSET_ID = 'asset-proc';
+  const req = makeRequest({
+    body: {
+      type: 'video.upload.asset_created',
+      data: {
+        id: ASSET_ID,
+        passthrough: JSON.stringify({
+          kind: 'course-lesson',
+          lesson_id: LESSON_ID,
+          course_id: 'course-proc',
+        }),
+      },
+    },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertEquals(communityUpdateCalls().length, 0);
+  assertEquals(courseLessonUpdateCalls().length, 1);
+
+  const call = courseLessonUpdateCalls()[0]!;
+  assertEquals(call.payload.mux_asset_id, ASSET_ID);
+  assertEquals(call.payload.mux_status, 'processing');
+  assertEquals(call.filterCol, 'id');
+  assertEquals(call.filterVal, LESSON_ID);
+
+  resetAdminForTest();
+  resetVerifyForTest();
+});
+
+Deno.test('course-lesson missing lesson_id → 200 ok + NO DB write (warn only)', async () => {
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const req = makeRequest({
+    body: makeCourseLessonReadyEvent({ missingLessonId: true }),
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), 'ok');
+  // No DB writes anywhere — neither community_posts nor course_lessons
+  assertEquals(updateCalls.length, 0);
+
+  resetAdminForTest();
+  resetVerifyForTest();
+});
+
+Deno.test('REGRESSION: community-post passthrough (no kind) still routes to community_posts only', async () => {
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const req = makeRequest({
+    body: makeAssetReadyEvent({ postId: 'post-regression', playbackId: 'pl-regression' }),
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertEquals(communityUpdateCalls().length, 1);
+  assertEquals(courseLessonUpdateCalls().length, 0);
+
+  resetAdminForTest();
+  resetVerifyForTest();
+});
+
+Deno.test('course-lesson does NOT touch community_posts even on asset.ready', async () => {
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const req = makeRequest({
+    body: makeCourseLessonReadyEvent({ lessonId: 'lesson-isolation' }),
+  });
+  await handler(req);
+
+  assertEquals(communityUpdateCalls().length, 0);
+  assertEquals(courseLessonUpdateCalls().length, 1);
+
+  resetAdminForTest();
+  resetVerifyForTest();
+});
+
+Deno.test('NO video.view handler exists (Mux does not emit this event — RESEARCH Pitfall 1)', async () => {
+  // If video.view ever lands as an event, it should be treated as "unknown" — return 200 + no DB write.
+  resetAdminForTest();
+  resetVerifyForTest();
+  updateCalls = [];
+  setAdminForTest(makeMockAdmin());
+  setVerifyForTest(verifyOk);
+
+  const req = makeRequest({
+    body: {
+      type: 'video.view',
+      data: {
+        id: 'asset-view',
+        passthrough: JSON.stringify({
+          kind: 'course-lesson',
+          lesson_id: 'lesson-view',
+          course_id: 'course-view',
+        }),
+      },
+    },
+  });
+  const res = await handler(req);
+
+  // No-op for course-lesson + unhandled event type
+  assertEquals(res.status, 200);
+  assertEquals(updateCalls.length, 0);
+
+  resetAdminForTest();
+  resetVerifyForTest();
 });
 
 Deno.test('raw body text is read BEFORE verifySignature (behavioral: body passed as string)', async () => {
