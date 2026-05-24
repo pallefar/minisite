@@ -20,6 +20,7 @@ interface MuxUploadCallArgs {
     playback_policies: string[];
     max_duration_seconds: number;
     passthrough: string;
+    generated_subtitles?: Array<{ language_code: string; name: string }>;
   };
   timeout: number;
 }
@@ -28,8 +29,9 @@ function makeMockAdmin(opts: {
   userId?: string | null;
   tierLabel?: string;
   shouldThrow?: boolean;
+  isStaff?: boolean;
 }): unknown {
-  const { userId = 'user-1', tierLabel = 'pro', shouldThrow = false } = opts;
+  const { userId = 'user-1', tierLabel = 'pro', shouldThrow = false, isStaff = false } = opts;
 
   const mockAdmin = {
     auth: {
@@ -52,6 +54,21 @@ function makeMockAdmin(opts: {
                 if (shouldThrow) return Promise.reject(new Error('DB error'));
                 return Promise.resolve({
                   data: tierLabel ? { tier_label: tierLabel } : null,
+                  error: null,
+                });
+              },
+            }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: (_cols: string) => ({
+            eq: (_col: string, _val: string) => ({
+              single: () => {
+                if (shouldThrow) return Promise.reject(new Error('DB error'));
+                return Promise.resolve({
+                  data: { is_staff: isStaff },
                   error: null,
                 });
               },
@@ -297,4 +314,227 @@ Deno.test('OPTIONS preflight returns 204 with CORS headers', async () => {
   const res = await handler(req);
   assertEquals(res.status, 204);
   assertExists(res.headers.get('Access-Control-Allow-Origin'));
+});
+
+// ---------------------------------------------------------------------------
+// Plan 46-05: course-lesson branch tests (kind discriminator + admin gate)
+// ---------------------------------------------------------------------------
+
+Deno.test('course-lesson + is_staff=true → 200 + upload URL', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  muxShouldThrow = false;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-1', course_id: 'course-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.url, MUX_UPLOAD_URL);
+  assertEquals(body.upload_id, MUX_UPLOAD_ID);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson + is_staff=false → 403 ADMIN_REQUIRED', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'user-1', isStaff: false }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-1', course_id: 'course-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 403);
+  const body = await res.json();
+  assertEquals(body.error, 'ADMIN_REQUIRED');
+  // No Mux call when admin gate fails
+  assertEquals(lastMuxCallArgs, null);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson + is_staff=false denies even when tier=pro (T-46-07)', async () => {
+  // Pro user should NOT bypass admin gate on course-lesson kind
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'pro-non-admin', tierLabel: 'pro', isStaff: false }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-1', course_id: 'course-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 403);
+  const body = await res.json();
+  assertEquals(body.error, 'ADMIN_REQUIRED');
+  assertEquals(lastMuxCallArgs, null);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson missing lesson_id → 400 invalid_lesson_id', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', course_id: 'course-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 400);
+  const body = await res.json();
+  assertEquals(body.error, 'invalid_lesson_id');
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson missing course_id → 400 invalid_lesson_id', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 400);
+  const body = await res.json();
+  assertEquals(body.error, 'invalid_lesson_id');
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson + is_staff=true sets playback_policies:["signed"] (NOT public)', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-99', course_id: 'course-99' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertExists(lastMuxCallArgs);
+  assertEquals(lastMuxCallArgs!.new_asset_settings.playback_policies, ['signed']);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson + is_staff=true sets max_duration_seconds:1800 (30 min, NOT 300)', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-1', course_id: 'course-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertExists(lastMuxCallArgs);
+  assertEquals(lastMuxCallArgs!.new_asset_settings.max_duration_seconds, 1800);
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson + is_staff=true sets generated_subtitles English (D-06)', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-1', course_id: 'course-1' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertExists(lastMuxCallArgs);
+  const subs = lastMuxCallArgs!.new_asset_settings.generated_subtitles;
+  assertExists(subs);
+  assertEquals(subs!.length, 1);
+  assertEquals(subs![0]!.language_code, 'en');
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('course-lesson passthrough carries kind+lesson_id+course_id (NOT user_id+post_id)', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'admin-1', isStaff: true }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({
+    bearer: 'valid-jwt',
+    body: { kind: 'course-lesson', lesson_id: 'lesson-XYZ', course_id: 'course-XYZ' },
+  });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertExists(lastMuxCallArgs);
+  const passthrough = JSON.parse(lastMuxCallArgs!.new_asset_settings.passthrough);
+  assertEquals(passthrough.kind, 'course-lesson');
+  assertEquals(passthrough.lesson_id, 'lesson-XYZ');
+  assertEquals(passthrough.course_id, 'course-XYZ');
+
+  resetAdminForTest();
+  resetMuxForTest();
+});
+
+Deno.test('REGRESSION: community-post path (no kind field) still works for pro tier', async () => {
+  resetAdminForTest();
+  resetMuxForTest();
+  lastMuxCallArgs = null;
+  setAdminForTest(makeMockAdmin({ userId: 'user-1', tierLabel: 'pro' }));
+  setMuxForTest(makeMockMux());
+
+  const req = makeRequest({ bearer: 'valid-jwt', body: { post_id: 'post-regression' } });
+  const res = await handler(req);
+
+  assertEquals(res.status, 200);
+  assertExists(lastMuxCallArgs);
+  // Community-post path: public policy + 300s cap
+  assertEquals(lastMuxCallArgs!.new_asset_settings.playback_policies, ['public']);
+  assertEquals(lastMuxCallArgs!.new_asset_settings.max_duration_seconds, 300);
+
+  resetAdminForTest();
+  resetMuxForTest();
 });
