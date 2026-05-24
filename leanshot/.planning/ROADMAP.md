@@ -532,7 +532,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 41-01-PLAN.md — Phase 22 consent-event emit retrofit + canonical event module + typed subscribe helper (EMBED-01/02/03/05 foundation) [Wave 1]
+- [x] 41-01-PLAN.md — Phase 22 consent-event emit retrofit + canonical event module + typed subscribe helper (EMBED-01/02/03/05 foundation) [Wave 1]
 - [ ] 41-02-PLAN.md — iframe_allowlist table + SECDEF audit-logged RPCs + BlockType union + validateCustomIframeUrl + admin client wrappers (EMBED-04/07) [Wave 1]
 
 **Wave 2** *(blocked on Wave 1 completion)*
