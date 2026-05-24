@@ -336,6 +336,35 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.growth.cac.enabled',
     minRole: 'admin' as AdminRole,
   },
+  // Phase 39 Plan 39-06 (PAYWALL-06, PAGEAB-01, PAGEAB-07, PHARMA-08) —
+  // Growth Experiments dashboard. Surface E (chrome) + Surface H (router
+  // entry) per 39-UI-SPEC; 3 Pill tabs (Paywall / Page-Builder / Pharma)
+  // are filled in by Plans 39-07 (paywall + page) and 39-08 (pharma).
+  //
+  // Routing: AdminShell.tsx URL-prefix branch (pathname.startsWith)
+  // covers `/admin/growth/experiments` automatically — no hardcoded
+  // switch branch required per
+  // [[feedback_admin_module_manifest_vs_router_branch_drift]]. The
+  // AdminShell parity test in __tests__/AdminShell.test.tsx asserts
+  // this route resolves via the manifest entry (single mitigation for
+  // the manifest/router drift footgun).
+  //
+  // minRole 'admin' is the Pattern S1 UX layer; SECDEF RPCs added by
+  // Plans 39-07/08 (get_experiment_results, ship_paywall_winner,
+  // ship_page_winner, ship_pharma_winner) re-check admin role at the
+  // DB layer (Pattern S1 dual-layer).
+  {
+    key: 'growth-experiments',
+    label: 'Experiments',
+    route: 'growth/experiments',
+    icon: TrendingUpIcon,
+    lazy: () =>
+      import('@/components/admin/growth/ExperimentDashboardPage').then((m) => ({
+        default: m.ExperimentDashboardPage,
+      })),
+    flagKey: 'admin.growth.experiments.enabled',
+    minRole: 'admin' as AdminRole,
+  },
   // Phase 42 Plan 42-10 (POLISH-12 D-24) — Quarterly NPS admin dashboard.
   // Reads from quarterly_nps_responses via get_quarterly_nps_dashboard SECDEF RPC
   // (is_admin_at_least('admin') gate inside; client minRole='admin' is the

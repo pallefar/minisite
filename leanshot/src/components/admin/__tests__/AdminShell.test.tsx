@@ -100,6 +100,52 @@ describe('AdminShell', () => {
       expect(result).toBeInstanceOf(Promise);
     }
   });
+
+  // Phase 39 Plan 39-06 — manifest entry growth-experiments resolves via
+  // AdminShell pathname.startsWith branch.
+  //
+  // Single mitigation for [[feedback_admin_module_manifest_vs_router_branch_drift]]:
+  // the manifest+router are decoupled via the URL-prefix branch (AdminShell.tsx
+  // lines 116-120). This test fails on drift before deploy — e.g. if someone
+  // hardcodes a switch branch on tab id or removes the prefix catch-all.
+  it('T6: manifest entry growth-experiments resolves via AdminShell pathname.startsWith branch', async () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: {
+        pathname: '/admin/growth/experiments',
+        href: 'http://localhost/admin/growth/experiments',
+      },
+    });
+
+    render(
+      <AdminShell adminRole="admin" currentPath="/admin/growth/experiments" />,
+    );
+
+    // Confirm the lazy chunk resolves — ExperimentDashboardPage's testid
+    // appears once the Suspense boundary settles. We do NOT assert the
+    // module-not-found placeholder ("Admin module not found.") which would
+    // fire if the manifest entry were missing or the URL-prefix branch
+    // failed to match.
+    await waitFor(() => {
+      expect(screen.getByTestId('experiment-dashboard-shell')).toBeInTheDocument();
+    });
+  });
+
+  // Phase 39 Plan 39-06 — verify the manifest entry itself has all 7
+  // required fields per the AdminModule interface. Belt-and-braces against
+  // a partial entry that compiles (e.g. missing flagKey would be a TS error
+  // but a typo'd route would not).
+  it('T7: ADMIN_MODULES has a growth-experiments entry with route=growth/experiments', async () => {
+    const { ADMIN_MODULES } = await import('@/lib/admin/modules');
+    const entry = ADMIN_MODULES.find((m) => m.key === 'growth-experiments');
+    expect(entry).toBeDefined();
+    expect(entry!.label).toBe('Experiments');
+    expect(entry!.route).toBe('growth/experiments');
+    expect(entry!.flagKey).toBe('admin.growth.experiments.enabled');
+    expect(entry!.minRole).toBe('admin');
+    expect(typeof entry!.lazy).toBe('function');
+    expect(entry!.lazy()).toBeInstanceOf(Promise);
+  });
 });
 
 describe('AdminLayout refactor', () => {
