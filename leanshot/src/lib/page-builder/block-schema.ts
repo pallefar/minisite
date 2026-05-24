@@ -83,6 +83,16 @@ export interface BlockNode {
   order: number; // integer sibling sort key
   content: Record<string, unknown>;
   style: BlockStyle;
+  /**
+   * Phase 39 Plan 39-02 (PAGEAB-06 / D-13) — optional reference to a row
+   * in `page_variants` (Phase 39-01 schema) so a single block can resolve
+   * to one of N A/B variant payloads at render time. OPTIONAL: existing
+   * non-variant blocks continue to validate without the field. Resolution
+   * to actual variant content happens in the Wave 2 page-variant-resolver
+   * Edge Function; the public render output emits only the resolved
+   * variant blocks, never the field itself (T-39-02-04 mitigation).
+   */
+  variant_set_id?: string;
 }
 
 /** Alias — the JSONB shape stored in `landing_page_revisions.blocks`. */
