@@ -61,8 +61,32 @@ export interface CourseLesson {
   is_required: boolean;
   /** D-06: caption auto-generation default on (override per-lesson in admin UI). */
   captions_enabled: boolean;
+  /**
+   * P46 Plan 08 / COURSE-06 — per-lesson downloadable resources.
+   * Column added by `supabase/migrations/20270725000006_p46_course_lessons_resources_column.sql`
+   * (jsonb default '[]'). Writers: admin LessonResourceUploader (Plan 46-09);
+   * readers: LessonResourceList (Plan 46-08). `requires_pro` is the per-row
+   * tier-gate flag — gate via isResourceAllowed(tier, mimeToResourceType(mime))
+   * before showing the download button.
+   */
+  resources: LessonResource[];
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Shape of each entry in `course_lessons.resources` jsonb array.
+ *
+ * `path` is a `course-resources` Storage bucket key — pass to
+ * `downloadResourceSignedUrl()` to obtain a 60-min signed URL.
+ * `size` is bytes (display formatting handled at the UI layer).
+ */
+export interface LessonResource {
+  name: string;
+  path: string;
+  mime: string;
+  size?: number;
+  requires_pro: boolean;
 }
 
 // ─── Lesson progress (D-04, D-09, D-12) ───────────────────────────────────────

@@ -72,7 +72,7 @@ export function CourseDetailView({
             course_lessons(
               id, module_id, title, content_md, order_index,
               mux_asset_id, mux_playback_id, mux_status, duration_seconds,
-              is_free_preview, is_required, captions_enabled,
+              is_free_preview, is_required, captions_enabled, resources,
               created_at, updated_at
             )
           )
