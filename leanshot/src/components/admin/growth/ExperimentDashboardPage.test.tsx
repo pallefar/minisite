@@ -215,12 +215,12 @@ describe('ExperimentDashboardPage', () => {
       });
     });
 
+    // Plan 39-08: pharma tab calls the dedicated get_pharma_experiments RPC,
+    // NOT get_experiment_results with surface='pharma'.
     fireEvent.click(screen.getByRole('button', { name: 'Pharma' }));
 
     await waitFor(() => {
-      expect(mockRpc).toHaveBeenLastCalledWith('get_experiment_results', {
-        surface: 'pharma',
-      });
+      expect(mockRpc).toHaveBeenLastCalledWith('get_pharma_experiments');
     });
   });
 
@@ -264,19 +264,53 @@ describe('ExperimentDashboardPage', () => {
     expect(screen.getByText(/This variant auto-archives in/)).toBeInTheDocument();
   });
 
-  it('T12: pharma tab keeps the placeholder (Plan 39-08 fills it in)', async () => {
-    mockRpc.mockResolvedValue({ data: [makeRow({ surface: 'pharma' })], error: null });
+  it('T12 (Plan 39-08): pharma tab calls get_pharma_experiments RPC + renders PharmaExperimentTab', async () => {
+    mockRpc.mockImplementation((fn: string) => {
+      if (fn === 'get_pharma_experiments') {
+        return Promise.resolve({
+          data: [
+            {
+              variant_id: 'pv1',
+              variant_name: 'Pharma V Alpha',
+              surface: 'pharma',
+              cohort_id: null,
+              cohort_label: null,
+              sample_size: 12,
+              paid_rate: null,
+              retention_30d_rate: null,
+              composite_score: null,
+              posterior: 0,
+              refund_rate_7d: null,
+              refund_rate_baseline_30d: null,
+              warned_at: null,
+              archived_at: null,
+              created_at: '2026-05-22T00:00:00Z',
+              nps_delta: 2.5,
+              one_star_rate_ratio: 1.1,
+              safety_categories_in_variant: [],
+            },
+          ],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: [], error: null });
+    });
     const { ExperimentDashboardPage } = await import('./ExperimentDashboardPage');
     render(<ExperimentDashboardPage />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Pharma' }));
 
     await waitFor(() => {
-      // Pharma tab still shows the placeholder copy from 39-06
-      expect(
-        screen.getByText(/Per-tab table renders ship in Plans 39-07 \/ 39-08/),
-      ).toBeInTheDocument();
+      expect(mockRpc).toHaveBeenCalledWith('get_pharma_experiments');
     });
+    await waitFor(() => {
+      expect(screen.getByText('Pharma V Alpha')).toBeInTheDocument();
+    });
+    // Pharma tab does NOT fire the generic get_experiment_results for surface=pharma
+    const pharmaResultsCalls = mockRpc.mock.calls.filter(
+      (c) => c[0] === 'get_experiment_results' && c[1]?.surface === 'pharma',
+    );
+    expect(pharmaResultsCalls.length).toBe(0);
   });
 
   it('T13: paywall Ship-Winner cascade — high posterior calls onShip directly', async () => {

@@ -39,9 +39,17 @@ import { Pill } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
-import type { ExperimentRow, ExperimentSurface, InvokeError } from './experiment-types';
+import type {
+  ExperimentRow,
+  ExperimentSurface,
+  InvokeError,
+} from './experiment-types';
 import { PageExperimentTab } from './PageExperimentTab';
 import { PaywallExperimentTab } from './PaywallExperimentTab';
+import {
+  PharmaExperimentTab,
+  type PharmaExperimentRowWithVersions,
+} from './PharmaExperimentTab';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -63,14 +71,17 @@ export function ExperimentDashboardPage(): React.JSX.Element {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState<ExperimentSurface>('paywall');
   const [rows, setRows] = useState<ExperimentRow[] | null>(null);
+  // Plan 39-08: separate state for pharma rows (different RPC + shape).
+  const [pharmaRows, setPharmaRows] = useState<PharmaExperimentRowWithVersions[] | null>(null);
   const [vendorUnconfigured, setVendorUnconfigured] = useState(false);
   // Plan 39-07: busyKey is now writable — set when the Ship-Winner Edge Fn
   // invocation is in-flight (verbatim contract from OnboardingABPanel.tsx).
+  // Plan 39-08: also used to gate concurrent disable_pharma_variant calls.
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   // ---------------------------------------------------------------------------
-  // Fetch: get_experiment_results RPC. Mirror CACDashboardPage cancellation
-  // pattern. The RPC body itself ships in Plan 39-07.
+  // Fetch: get_experiment_results RPC (paywall + page). Mirror CACDashboardPage
+  // cancellation pattern. The RPC body ships in Plan 39-07.
   // ---------------------------------------------------------------------------
   const load = useCallback(async (surface: ExperimentSurface, cancelled: { v: boolean }) => {
     setRows(null);
@@ -89,8 +100,39 @@ export function ExperimentDashboardPage(): React.JSX.Element {
     }
   }, []);
 
+  // Plan 39-08: pharma uses its dedicated SECDEF RPC (different return shape:
+  // adds nps_delta + one_star_rate_ratio + safety_categories_in_variant; no
+  // composite_score or posterior since pharma killswitch is NPS-based, not
+  // Bayesian Ship-Winner). Separate cancellation flag prevents pileup across
+  // tab toggles.
+  const loadPharma = useCallback(async (cancelled: { v: boolean }) => {
+    setPharmaRows(null);
+    setVendorUnconfigured(false);
+    const { data, error } = await supabase.rpc('get_pharma_experiments');
+    if (cancelled.v) return;
+    if (error) {
+      const msg = (error as { message?: string }).message ?? '';
+      if (msg.includes('vendor_unconfigured')) {
+        setVendorUnconfigured(true);
+      }
+      setPharmaRows([]);
+    } else {
+      setPharmaRows((data as PharmaExperimentRowWithVersions[]) ?? []);
+    }
+  }, []);
+
   useEffect(() => {
     const cancelled = { v: false };
+    if (activeTab === 'pharma') {
+      void loadPharma(cancelled);
+      const intervalId = setInterval(() => {
+        void loadPharma(cancelled);
+      }, POLL_INTERVAL_MS);
+      return () => {
+        cancelled.v = true;
+        clearInterval(intervalId);
+      };
+    }
     void load(activeTab, cancelled);
     const intervalId = setInterval(() => {
       void load(activeTab, cancelled);
@@ -99,7 +141,44 @@ export function ExperimentDashboardPage(): React.JSX.Element {
       cancelled.v = true;
       clearInterval(intervalId);
     };
-  }, [activeTab, load]);
+  }, [activeTab, load, loadPharma]);
+
+  // Plan 39-08 — admin 1-click disable for a pharma variant. Calls the
+  // disable_pharma_variant SECDEF RPC (NOT ship-winner-flag — PHARMA-04 is a
+  // kill, not a promotion; UI-SPEC Hard Constraint 8). Sets busyKey to prevent
+  // double-submission. On success, refresh the pharma list so archived state
+  // appears.
+  const handleDisablePharma = useCallback(
+    async (variantId: string): Promise<void> => {
+      const row = (pharmaRows ?? []).find((r) => r.variant_id === variantId);
+      if (!row) return;
+      setBusyKey(variantId);
+      try {
+        const { error } = await supabase.rpc('disable_pharma_variant', {
+          p_variant_id: row.variant_id,
+          p_reason: 'admin_1click_disable',
+        });
+        if (error) {
+          const code =
+            (error as { code?: string }).code ??
+            (error as { message?: string }).message ??
+            'unknown';
+          if (String(code).includes('forbidden_not_admin')) {
+            toast('Admin role required', 'error');
+          } else {
+            toast(`Disable failed: ${code}`, 'error');
+          }
+          return;
+        }
+        toast(`Disabled variant ${row.variant_name}`, 'success');
+        const cancelled = { v: false };
+        await loadPharma(cancelled);
+      } finally {
+        setBusyKey(null);
+      }
+    },
+    [pharmaRows, toast, loadPharma],
+  );
 
   // Plan 39-07 — Ship-Winner Edge Fn invocation (verbatim contract from
   // OnboardingABPanel.tsx:98-122, per UI-SPEC Hard Constraint 8). The
@@ -145,8 +224,11 @@ export function ExperimentDashboardPage(): React.JSX.Element {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  const isLoading = rows === null;
-  const isEmpty = rows !== null && rows.length === 0 && !vendorUnconfigured;
+  const isPharma = activeTab === 'pharma';
+  const isLoading = isPharma ? pharmaRows === null : rows === null;
+  const isEmpty = isPharma
+    ? pharmaRows !== null && pharmaRows.length === 0 && !vendorUnconfigured
+    : rows !== null && rows.length === 0 && !vendorUnconfigured;
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-6">
@@ -240,13 +322,13 @@ export function ExperimentDashboardPage(): React.JSX.Element {
             busyKey={busyKey}
           />
         ) : (
-          // activeTab === 'pharma' — Plan 39-08 fills this slot.
-          <Card variant="flat" padding="md">
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              {rows!.length} experiment{rows!.length === 1 ? '' : 's'} loaded.
-              Per-tab table renders ship in Plans 39-07 / 39-08.
-            </p>
-          </Card>
+          // activeTab === 'pharma' — Plan 39-08 fills this slot with the
+          // PharmaExperimentTab + dedicated get_pharma_experiments RPC fetch.
+          <PharmaExperimentTab
+            rows={pharmaRows ?? []}
+            onDisable={(vid) => handleDisablePharma(vid)}
+            busyKey={busyKey}
+          />
         )}
       </section>
 
