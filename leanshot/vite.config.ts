@@ -206,6 +206,14 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/src/components/community/')) return 'community-feed';
             if (id.includes('/src/components/course/')) return 'course-player';
 
+            // Phase 48 Plan 10 — admin-moderation chunk (≤30 kB gz per CONTEXT).
+            // Owns ModerationLayout + 5 sub-views + api.ts + shared types.
+            // MUST precede the generic /src/components/admin/ → 'admin-shell'
+            // rule below so moderation bytes land in their own chunk and the
+            // admin-moderation budget script asserts its own ceiling.
+            if (id.includes('/src/admin/modules/moderation/')) return 'admin-moderation';
+            if (id.includes('/src/lib/moderation/')) return 'admin-moderation';
+
             // Phase 8 Plan 08-06 — group all `src/components/share/*` files
             // into a single `share` chunk. SharePage is already lazy-loaded
             // from App.tsx, so this just ensures CodeEntryScreen,
