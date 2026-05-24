@@ -1,0 +1,114 @@
+name: Phase 38 eval — nightly
+
+# AI-SPEC §5 — runs against linked staging Supabase nightly at 06:00 UTC.
+# Per CI/CD Integration section: "posts results to PostHog dashboard
+# `phase38-eval-runs`" via the JSON eval.judge.score lines printed by the
+# judge harness (collected by the dashboard post-step).
+#
+# Manual trigger (workflow_dispatch) supported for ad-hoc re-runs after
+# code changes that should hit the eval suite without waiting for cron.
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC nightly
+  workflow_dispatch:
+    inputs:
+      run_id_label:
+        description: 'Optional run label appended to RUN_ID for dashboard grouping'
+        required: false
+        default: ''
+
+concurrency:
+  group: phase38-eval-nightly
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  eval:
+    name: AI-SPEC §5 dimension gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Gate envs — populated from GH secrets (set via `gh secret set <NAME>`).
+      # Per HUMAN-UAT pre-flight (38-10), three secrets pending operator:
+      #   - AI_GATEWAY_API_KEY_CONSUMER
+      #   - AI_GATEWAY_API_KEY_CLINICAL
+      #   - STAGING_BASE_URL
+      STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      AI_GATEWAY_BASE_URL: ${{ secrets.AI_GATEWAY_BASE_URL }}
+      AI_GATEWAY_API_KEY_CONSUMER: ${{ secrets.AI_GATEWAY_API_KEY_CONSUMER }}
+      AI_GATEWAY_API_KEY_CLINICAL: ${{ secrets.AI_GATEWAY_API_KEY_CLINICAL }}
+      AI_GATEWAY_USAGE_TOKEN: ${{ secrets.AI_GATEWAY_USAGE_TOKEN }}
+      ANTHROPIC_MODEL_JUDGE: ${{ secrets.ANTHROPIC_MODEL_JUDGE || 'anthropic/claude-sonnet-4-6' }}
+      POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+      POSTHOG_HOST: ${{ secrets.POSTHOG_HOST || 'https://us.i.posthog.com' }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Pre-flight — required secrets
+        run: |
+          missing=()
+          for v in STAGING_BASE_URL AI_GATEWAY_API_KEY_CONSUMER AI_GATEWAY_API_KEY_CLINICAL; do
+            if [ -z "${!v}" ]; then missing+=("$v"); fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required GH secrets: ${missing[*]}"
+            echo "Operator: set via 'gh secret set <NAME> --body \"...\"'."
+            exit 1
+          fi
+          echo "all required secrets present"
+
+      - name: Run Phase 38 eval suite
+        id: run_eval
+        run: npm run test:eval:phase38
+        continue-on-error: true
+
+      - name: Upload JUnit XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase38-eval-junit-${{ github.run_id }}
+          path: tests/eval/phase38-junit.xml
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Post Slack alert on failure
+        if: steps.run_eval.outcome == 'failure' && env.SLACK_WEBHOOK_URL != ''
+        working-directory: ${{ github.workspace }}
+        run: |
+          curl -sS -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -d "$(cat <<JSON
+          {
+            "text": ":rotating_light: *Phase 38 eval nightly FAILED*",
+            "blocks": [
+              { "type": "header", "text": { "type": "plain_text", "text": "Phase 38 eval nightly FAILED" } },
+              { "type": "section", "text": { "type": "mrkdwn",
+                "text": "Run: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|#${{ github.run_id }}>\nBranch: \`${{ github.ref_name }}\`\nWorkflow: phase38-eval-nightly\nDashboard: phase38-eval-runs" } }
+            ]
+          }
+          JSON
+          )"
+
+      - name: Fail step (propagate eval outcome after Slack)
+        if: steps.run_eval.outcome == 'failure'
+        run: |
+          echo "Phase 38 eval suite failed — see uploaded JUnit XML + dashboard phase38-eval-runs"
+          exit 1

@@ -38,7 +38,8 @@
     "lint:stripe-phi": "npx tsx scripts/lint-stripe-phi.ts",
     "lighthouse:onboard": "node scripts/lighthouse-onboarding.mjs http://localhost:5173/onboard",
     "test:e2e:onboarding": "playwright test --grep onboarding",
-    "test:lighthouse:onboarding": "PLAYWRIGHT_RUN_LIGHTHOUSE=1 playwright test onboarding-mobile-lighthouse"
+    "test:lighthouse:onboarding": "PLAYWRIGHT_RUN_LIGHTHOUSE=1 playwright test onboarding-mobile-lighthouse",
+    "test:eval:phase38": "vitest run --project=phase38-eval"
   },
   "dependencies": {
     "@mux/mux-player-react": "^3.13.0",
