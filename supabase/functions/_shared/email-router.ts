@@ -59,6 +59,11 @@ import * as communityAdminDigest from './email-templates/community-admin-report-
 // Per feedback_planner_missed_status_enum_widening: union extension +
 // subjectFor + renderTemplate switch arms land in the SAME commit.
 import * as communityDailyDigest from './email-templates/community-daily-digest.ts';
+// Phase 49 Plan 49-07 — community weekly digest (non-PHI → Resend).
+// Sunday 09:00 user-local; SEPARATE from Phase 38 weekly-digest per CONTEXT D-09.
+// Per feedback_planner_missed_status_enum_widening: union extension +
+// subjectFor + renderTemplate switch arms land in the SAME commit.
+import * as communityWeeklyDigest from './email-templates/community-weekly-digest.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,7 +116,10 @@ export type EmailTemplate =
   // Phase 49 Plan 49-06 — community daily digest (non-PHI → Resend).
   // Per feedback_planner_missed_status_enum_widening: union extension +
   // subjectFor + renderTemplate switch arms land in the SAME commit.
-  | 'community_daily_digest';    // non-PHI → Resend. Per-user daily digest (top posts / comments / mentions).
+  | 'community_daily_digest'     // non-PHI → Resend. Per-user daily digest (top posts / comments / mentions).
+  // Phase 49 Plan 49-07 — community weekly digest (non-PHI → Resend).
+  // Sunday 09:00 user-local; SEPARATE from Phase 38 weekly-digest per CONTEXT D-09.
+  | 'community_weekly_digest';   // non-PHI → Resend. Per-user weekly digest (course progress / upcoming events / community top-3).
 
 export type SendEmailArgs = {
   /** Template identifier — determines HTML rendering and subject line. */
@@ -223,6 +231,9 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
     // Phase 49 Plan 49-06 — community daily digest.
     case 'community_daily_digest':
       return communityDailyDigest.subject(vars);
+    // Phase 49 Plan 49-07 — community weekly digest.
+    case 'community_weekly_digest':
+      return communityWeeklyDigest.subject(vars);
     default:
       return 'LeanShot Notification';
   }
@@ -324,6 +335,11 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
     // Phase 49 Plan 49-06 — community daily digest.
     case 'community_daily_digest': {
       const rendered = communityDailyDigest.render(vars);
+      return rendered.html;
+    }
+    // Phase 49 Plan 49-07 — community weekly digest.
+    case 'community_weekly_digest': {
+      const rendered = communityWeeklyDigest.render(vars);
       return rendered.html;
     }
     default:
