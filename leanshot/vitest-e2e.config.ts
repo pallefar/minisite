@@ -77,6 +77,11 @@ export default defineConfig({
       // cross-tenant impersonation proof test.
       'src/test/rls-helpdesk-tickets.test.ts',
       'src/test/rls-helpdesk-kb.test.ts',
+      // Phase 39 plan 39-05 — PHARMA-07 RLS append-only proof for
+      // pharma_content_versions (admin-only SELECT + no INSERT/UPDATE/DELETE
+      // policies; service-role seeds rows as stand-in for the Plan 39-08 SECDEF
+      // RPC). Live-DB; auto-skip when SUPABASE env vars missing.
+      'src/test/rls-pharma-content-versions.test.ts',
       // Phase 44 plan 44-05 — COMMUNITY-03 notify-community integration (mention fan-out
       // + toggle-respect + user-JWT auth + impersonation reject).
       // Phase 44 plan 44-05 — COMMUNITY-04 mux-create-upload tier gate (Free=403, Pro=200,
