@@ -107,6 +107,22 @@ interface UIState {
    * error surfaces (e.g. quota exceeded) would extend this union.
    */
   migrationError: 'corrupted' | null;
+  /**
+   * Phase 48 Plan 11 — consumer-side moderation status slice (D-15 SPA blocker).
+   *
+   * Read from `public.user_moderation_state` on hydrate + every supabase auth
+   * state change (SIGNED_IN / TOKEN_REFRESHED / USER_UPDATED). Drives the
+   * AccountSuspended full-page blocker rendered by App.tsx's view selector
+   * when status IN ('banned','temp_suspended').
+   *
+   * Server is the source of truth — these 3 fields MUST stay EXCLUDED from
+   * `partialize` so a persisted `'active'` value cannot bypass the blocker
+   * after a server-side ban (T-48-28). RLS write-deny on content tables is
+   * the durable backstop (T-48-06).
+   */
+  userModerationStatus: 'active' | 'muted' | 'banned' | 'temp_suspended' | null;
+  userModerationExpiresAt: string | null;
+  userModerationReason: string | null;
 }
 
 interface Actions {
@@ -422,6 +438,22 @@ interface Actions {
    * for cross-device sync.
    */
   setLeaderboardNudgeDismissed: () => Promise<void>;
+
+  // -------------------------------------------------------------------------
+  // Phase 48 Plan 11 — consumer-side moderation status fetcher (D-15 SPA blocker).
+  // -------------------------------------------------------------------------
+  /**
+   * Fetch the current user's moderation state from
+   * `public.user_moderation_state` and populate the three ephemeral fields
+   * (userModerationStatus / userModerationExpiresAt / userModerationReason).
+   *
+   * Fail-soft: RLS denial or network error → status: 'active' (don't block
+   * legitimate users on transient errors; RLS write-deny is the durable
+   * backstop for malicious-write attempts during the residual JWT window).
+   *
+   * Called by main.tsx post-hydrate and on supabase auth state changes.
+   */
+  fetchUserModerationStatus: () => Promise<void>;
 }
 
 export type Store = PersistedState & UIState & Actions;
@@ -587,6 +619,13 @@ export const useStore = create<Store>()(
       signedIn: null,
       migrationError: null,
 
+      // Phase 48 Plan 11 — ephemeral moderation slice initial values.
+      // NOT persisted (excluded from partialize — server is source of truth per
+      // T-48-28; persisted 'active' could otherwise bypass the SPA blocker).
+      userModerationStatus: null,
+      userModerationExpiresAt: null,
+      userModerationReason: null,
+
       // Phase 28 Plan 28-05 ORG-06 — ephemeral org-context slice initial values.
       // NOT in PersistedState / not persisted (partialize excludes all 3 fields).
       currentOrg: null,
@@ -641,6 +680,62 @@ export const useStore = create<Store>()(
         } catch (e) {
           // Best-effort: localStorage cache already set; DB sync can retry next session.
           console.warn('[store] persisting leaderboardNudgeDismissed failed', e);
+        }
+      },
+
+      // Phase 48 Plan 11 — fetch consumer moderation status (D-15 SPA blocker).
+      //
+      // Dynamic-imports supabase to keep the supabase client off the entry-chunk
+      // static graph (mirrors the setLeaderboardNudgeDismissed + signOut pattern).
+      //
+      // Fail-soft: any error (RLS denial, network, missing row) falls back to
+      // 'active' so legitimate users aren't blocked on transient errors. The
+      // RLS write-deny policy on content tables is the durable backstop for
+      // attackers who tamper with this slice via dev-tools (T-48-06).
+      fetchUserModerationStatus: async () => {
+        try {
+          const { supabase: sb } = await import('@/lib/supabase');
+          const {
+            data: { user },
+          } = await sb.auth.getUser();
+          if (!user) {
+            set({
+              userModerationStatus: null,
+              userModerationExpiresAt: null,
+              userModerationReason: null,
+            });
+            return;
+          }
+          const { data, error } = await sb
+            .from('user_moderation_state')
+            .select('status, expires_at, reason')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (error) {
+            set({
+              userModerationStatus: 'active',
+              userModerationExpiresAt: null,
+              userModerationReason: null,
+            });
+            return;
+          }
+          set({
+            userModerationStatus: (data?.status as
+              | 'active'
+              | 'muted'
+              | 'banned'
+              | 'temp_suspended'
+              | null) ?? 'active',
+            userModerationExpiresAt: data?.expires_at ?? null,
+            userModerationReason: data?.reason ?? null,
+          });
+        } catch (e) {
+          console.warn('[store] fetchUserModerationStatus failed', e);
+          set({
+            userModerationStatus: 'active',
+            userModerationExpiresAt: null,
+            userModerationReason: null,
+          });
         }
       },
 
