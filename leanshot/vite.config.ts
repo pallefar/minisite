@@ -203,6 +203,26 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/@mux/')) {
               return 'community-media';
             }
+            // Phase 45 Plan 45-07b — community-directory + community-dm sub-chunks.
+            // ORDER MATTERS: must appear BEFORE the community-feed catch-all below
+            // (per 45-RESEARCH Pitfall 6 + memory reference_bundle_budget_hash_hyphen).
+            // community-directory groups the directory surface (45-07a) so the
+            // member-directory + ReportButton + LeaderboardChip stay out of
+            // community-feed (which already carries 44-09 feed + reactions).
+            if (
+              id.includes('/src/components/community/CommunityDirectoryView') ||
+              id.includes('/src/components/community/ProfileCard') ||
+              id.includes('/src/components/community/LeaderboardChip') ||
+              id.includes('/src/components/community/ReportButton')
+            ) return 'community-directory';
+            // community-dm groups every DM surface (45-07b) + its realtime hook
+            // so DMInboxView + DMThreadView + DMComposer + DMAttachmentUploader
+            // and use-dm-inbox-realtime stay together and load on demand from
+            // CommunityTabShell's lazy import.
+            if (
+              id.includes('/src/components/community/dm/') ||
+              id.includes('/src/components/community/use-dm-inbox-realtime')
+            ) return 'community-dm';
             if (id.includes('/src/components/community/')) return 'community-feed';
             if (id.includes('/src/components/course/')) return 'course-player';
 

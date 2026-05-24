@@ -1932,6 +1932,10 @@ export function App() {
             {currentTab === 'supplements' && <SupplementsTab />}
             {currentTab === 'mood' && <MoodTab />}
             {currentTab === 'insights' && <InsightsTab />}
+            {/* Phase 45 Plan 45-07b — sub-view dispatch (directory / dm / feed)
+                is handled INSIDE CommunityTabShell by reading activeCommunityView
+                from the Zustand store. NO new TabId, NO <Route> per memory
+                reference_react_router_consumer_admin_split. */}
             {currentTab === 'community' && <CommunityTabShell />}
           </TabSwitcher>
         </Suspense>
