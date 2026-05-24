@@ -137,11 +137,66 @@ function htmlResponse(status: number, body: string): Response {
 }
 
 /**
+ * Allow-list of Calendly OAuth error codes per RFC 6749 §4.1.2.1 + Calendly
+ * docs. Reflected values outside this list are coerced to `'oauth_error'` to
+ * prevent attacker-controlled strings from reaching the response body.
+ *
+ * Defense-in-depth: the `jsonForScript` escaper below also neutralizes any
+ * payload, but the allow-list keeps the user-facing error string meaningful.
+ */
+const CALENDLY_OAUTH_ERROR_ALLOWLIST = new Set<string>([
+  'access_denied',
+  'invalid_request',
+  'unauthorized_client',
+  'unsupported_response_type',
+  'invalid_scope',
+  'server_error',
+  'temporarily_unavailable',
+]);
+
+export function sanitizeCalendlyOAuthError(raw: string): string {
+  return CALENDLY_OAUTH_ERROR_ALLOWLIST.has(raw) ? raw : 'oauth_error';
+}
+
+/**
+ * Escape a value for safe inline-script embedding. `JSON.stringify` alone does
+ * NOT escape `<`, `>`, `&`, or U+2028/U+2029 — an attacker-controlled string
+ * containing `</script>` can break out of the surrounding `<script>` block
+ * (CR-01 in Phase 41 review).
+ */
+// U+2028 (LINE SEPARATOR) and U+2029 (PARAGRAPH SEPARATOR) are valid JSON
+// string contents but terminate JS source lines — they MUST be escaped when
+// embedding JSON inside a `<script>` block. Built via fromCharCode so the
+// surrounding source file stays plain ASCII (editors strip these silently).
+const LS_RE = new RegExp(String.fromCharCode(0x2028), 'g');
+const PS_RE = new RegExp(String.fromCharCode(0x2029), 'g');
+
+function jsonForScript(v: unknown): string {
+  return JSON.stringify(v)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(LS_RE, '\\u2028')
+    .replace(PS_RE, '\\u2029');
+}
+
+/** HTML-escape for element-text contexts. Defense-in-depth for `<title>`. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Build the HTML page that fires `postMessage` back to the opener and closes
  * the popup. `targetOrigin` is the EXACT LeanShot app origin — never `'*'`.
  *
- * T-41-04-02 mitigation: targetOrigin is interpolated as a JSON-stringified
- * value of the env-derived origin (not the wildcard literal).
+ * T-41-04-02 mitigation: targetOrigin is interpolated via `jsonForScript`
+ * which escapes HTML-script-breakout characters (`<`, `>`, `&`, U+2028/9).
+ * Plain `JSON.stringify` is NOT sufficient — see CR-01 in 41-REVIEW.md.
  */
 export function buildPostMessageHtml(args: {
   payload: Record<string, unknown>;
@@ -149,21 +204,18 @@ export function buildPostMessageHtml(args: {
   title?: string;
 }): string {
   const { payload, leanshotOrigin, title = 'Calendly connected' } = args;
-  // JSON.stringify provides both string escaping and embedding safety. The
-  // payload + origin are NEVER attacker-controlled (token from Calendly,
-  // origin from server env).
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>${title}</title>
+    <title>${escapeHtml(title)}</title>
   </head>
   <body>
     <p>Closing window…</p>
     <script>
       try {
         if (window.opener) {
-          window.opener.postMessage(${JSON.stringify(payload)}, ${JSON.stringify(leanshotOrigin)});
+          window.opener.postMessage(${jsonForScript(payload)}, ${jsonForScript(leanshotOrigin)});
         }
       } catch (e) {
         // noop — best-effort message; user can retry from PageEditor
@@ -224,12 +276,17 @@ export async function handleCallback(req: Request): Promise<Response> {
   const leanshotOrigin = getLeanshotAppOrigin();
 
   // 1. Surface Calendly-side errors (e.g. user denied consent) → close popup
-  //    with error payload. Origin guard still applies.
+  //    with error payload. Origin guard still applies. Per CR-01 (41-REVIEW)
+  //    the raw `error` value is whitelisted to RFC 6749 codes before being
+  //    reflected into the response (defense-in-depth alongside jsonForScript).
   if (calendlyError) {
     return htmlResponse(
       200,
       buildPostMessageHtml({
-        payload: { type: 'calendly-oauth-result', error: calendlyError },
+        payload: {
+          type: 'calendly-oauth-result',
+          error: sanitizeCalendlyOAuthError(calendlyError),
+        },
         leanshotOrigin,
         title: 'Calendly connection failed',
       }),
@@ -359,4 +416,5 @@ export const __internal = {
   buildPostMessageHtml,
   verifyState,
   exchangeCodeForToken,
+  sanitizeCalendlyOAuthError,
 };
