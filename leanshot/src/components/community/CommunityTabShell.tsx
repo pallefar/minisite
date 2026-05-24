@@ -38,11 +38,15 @@ const CommunitySpaceView = lazy(() =>
 const CommunityDirectoryView = lazy(() =>
   import('./CommunityDirectoryView').then((m) => ({ default: m.CommunityDirectoryView })),
 );
+// Phase 45 Plan 07b — DM components live under ./dm/ so the community-dm vite
+// manualChunk rule (id.includes('/src/components/community/dm/')) routes them
+// into a separate sub-chunk. The 45-07a stubs that previously sat at
+// ./DMInboxView and ./DMThreadView are removed by 45-07b.
 const DMInboxView = lazy(() =>
-  import('./DMInboxView').then((m) => ({ default: m.DMInboxView })),
+  import('./dm/DMInboxView').then((m) => ({ default: m.DMInboxView })),
 );
 const DMThreadView = lazy(() =>
-  import('./DMThreadView').then((m) => ({ default: m.DMThreadView })),
+  import('./dm/DMThreadView').then((m) => ({ default: m.DMThreadView })),
 );
 
 // ─── Component ────────────────────────────────────────────────────────────────
