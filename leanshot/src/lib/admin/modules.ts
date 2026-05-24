@@ -43,6 +43,8 @@ import {
   CalendarDays as CalendarDaysIcon,
   // Phase 41 Plan 41-06 — Custom-iframe embeds allowlist admin module icon.
   ShieldCheck as ShieldCheckIcon,
+  // Phase 51 Plan 51-05 — growth/traffic admin module icon.
+  Activity as ActivityIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -353,6 +355,33 @@ export const ADMIN_MODULES = [
         default: m.CACDashboardPage,
       })),
     flagKey: 'admin.growth.cac.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 51 Plan 51-05 (TRAFFIC-12) — growth/traffic admin module shell.
+  // SIBLING entry next to 'growth-cac' (NOT a sub-route edit) per
+  // [[feedback_admin_module_manifest_vs_router_branch_drift]]. AdminShell.tsx
+  // URL-prefix routing (pathname.startsWith(`/admin/${m.route}/`)) auto-covers
+  // all 5 sub-routes /admin/growth/traffic/{channels,funnels,landing,realtime,taxonomy}
+  // — no hardcoded switch branch required.
+  //
+  // The TrafficDashboardPage shell renders a 5-pill segmented PillGroup; the
+  // 4 dashboard tabs (Channels / Funnels / Landing / Real-time) are filled in
+  // by Plans 51-06..09 by overwriting the stub sub-tab files this plan ships.
+  // Taxonomy admin sub-page is the 5th tab (51-09).
+  //
+  // minRole 'admin' is the Pattern S1 UX layer; SECDEF RPCs added by Plans
+  // 51-06..09 (get_traffic_channel_rollup, get_traffic_funnel_rollup, etc.)
+  // re-check admin role at the DB layer (Pattern S1 dual-layer).
+  {
+    key: 'growth-traffic',
+    label: 'Traffic',
+    route: 'growth/traffic',
+    icon: ActivityIcon,
+    lazy: () =>
+      import('@/components/admin/growth/TrafficDashboardPage').then((m) => ({
+        default: m.TrafficDashboardPage,
+      })),
+    flagKey: 'admin.growth.traffic.enabled',
     minRole: 'admin' as AdminRole,
   },
   // Phase 39 Plan 39-06 (PAYWALL-06, PAGEAB-01, PAGEAB-07, PHARMA-08) —
