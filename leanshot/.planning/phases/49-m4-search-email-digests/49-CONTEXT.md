@@ -78,6 +78,52 @@ Search platform + digest platform layered on Phase 44/46/47 content tables. Per-
 
 - **D-16:** Frequency control UI = **toggles in `/settings/notifications`** (Phase 44 + 47 + 48 surface — pathname-based admin pattern does NOT apply here; consumer-side `/settings/notifications` is Zustand-driven). NEW "Email digests" section with 2 toggles + "last sent X days ago" transparency text (read from `digest_send_log`). DIGEST-04 (POLISH-06 extension) satisfied. Custom-frequency picker REJECTED for v1 (daily/weekly covers 90%+ use cases).
 
+### Resolved After Research (Corrections + Additions)
+
+- **D-17 (CORRECTS D-02 for community_posts):** Live-DB pre-check (researcher 2026-05-24) confirmed `community_posts` has **NO `title` column** — only `body`. D-02's `setweight(title=A, body=B)` formula does NOT apply to posts. Posts use `search_en = setweight(to_tsvector('english', coalesce(body,'')), 'A')` — whole body at weight A (no title to upweight). `course_lessons` keeps `(title=A, content_md=B)`; `events` keeps `(title=A, description=B)`. Per memory `feedback_doc_drift_sweep_after_critical_correction` sub-pattern — prose-fix must propagate to SQL skeleton.
+
+- **D-18 (CORRECTS D-10 mention 24h filter):** Live-DB confirmed `community_post_mentions` + `community_comment_mentions` have NO timestamp columns. Daily digest 24h filter MUST JOIN to the parent's `created_at`:
+  ```sql
+  -- mentions on posts
+  from community_post_mentions m
+  join community_posts p on p.id = m.post_id
+  where m.user_id = $1 and p.created_at >= now() - interval '24 hours'
+
+  -- mentions in comments
+  from community_comment_mentions m
+  join community_comments c on c.id = m.comment_id
+  where m.user_id = $1 and c.created_at >= now() - interval '24 hours'
+  ```
+
+- **D-19 (CORRECTS D-15 backfill):** Live-DB confirmed `notification_settings` rows missing for a (user, category) pair fall through to `notification_category_config.email_enabled_default` at runtime (per `notification-fire-decision.ts`). **DROP** the Wave 0 per-user backfill INSERT migration — seed `notification_category_config` with `email_enabled_default=true` + `in_app_enabled_default=true` for the 2 new categories instead. Saves a `|users| × 2` INSERT migration. Default opt-IN preserved.
+
+- **D-20 (NEW — cron offset staggering):** Phase 38 weekly-digest cron fires at `0 * * * *`. Phase 49 daily fires at `5 * * * *`; Phase 49 weekly at `15 * * * *`. Avoids HTTP burst collision when multiple cron jobs converge on the same hourly tick. Distinct cron job names: `phase49-community-daily-digest-hourly-fanout` + `phase49-community-weekly-digest-hourly-fanout`. Dollar-quote tags: outer `$cron$`, inner `$daily$` + `$weekly$` (distinct from Phase 38 `$digest$`, Phase 47 `$reminders$`, Phase 48 `$restore$`).
+
+- **D-21 (NEW — ts_headline CTE pattern):** `ts_headline` does NOT use GIN index; runs after row materialization. `search_content` RPC must use CTE-per-type that LIMITs 5 BEFORE applying `ts_headline`. Skeleton:
+  ```sql
+  with posts as (
+    select id, body, ts_rank_cd(search_en, q) as rank
+    from community_posts, websearch_to_tsquery('english', $1) q
+    where search_en @@ q
+    order by rank desc limit 5
+  )
+  select 'post' as type, id, null as title,
+         ts_headline('english', body, websearch_to_tsquery('english', $1),
+           'StartSel=<b>,StopSel=</b>,MaxWords=20,MinWords=5,ShortWord=3,HighlightAll=false') as snippet,
+         rank
+    from posts
+  union all
+  -- (similar CTE for lessons + events)
+  ;
+  ```
+  Use `websearch_to_tsquery` (NOT `plainto_tsquery`) for natural-language query parsing.
+
+- **D-22 (NEW — cmdk Vite chunk audit):** `cmdk@1.1.1` is currently routed into the `admin-shell` chunk (Phase 27 command palette). Consumer SearchModal importing cmdk could duplicate the lib into the `search` chunk. Wave 2 plan MUST audit `vite.config.ts manualChunks` and either (a) extract cmdk to its own shared chunk, OR (b) route consumer search to the same chunk that owns the admin command palette. Bundle ceiling 20 kB gz target for `search` chunk excluding cmdk.
+
+- **D-23 (NEW — Deno.serve env-var disable guards):** Each new Edge Fn wraps `Deno.serve()` in `if (Deno.env.get('<FN>_DISABLE_SERVE') !== '1') { Deno.serve(handler); }` per memory `reference_deno_test_top_level_serve_trap`. Env var names: `COMMUNITY_DAILY_DIGEST_DISABLE_SERVE`, `COMMUNITY_WEEKLY_DIGEST_DISABLE_SERVE`, `UNSUBSCRIBE_HANDLER_DISABLE_SERVE`.
+
+- **D-24 (NEW — Phase 46+47+48 dependency markers):** Phase 49's ROADMAP `Depends on:` list currently reads "Phase 37 (FTS infra shared); Phase 44 (community schema); Phase 46 (courses)". RESEARCH live-DB confirmed `course_lessons`, `course_modules`, `events`, `event_rsvps` do NOT exist yet (Phase 46 + 47 are planned but unexecuted). **Phase 49 EXECUTE blocks on Phase 46 + 47 EXECUTE merging**, NOT just landing in plan-mode. Phase 48 D-14 mute-RLS predicate is also a dependency (Phase 49 search inherits it). Add Phase 47 + 48 to roadmap deps at close-out.
+
 ### Claude's Discretion
 
 - Vault secret name = `UNSUBSCRIBE_SECRET` (NEW; orchestrator surfaces in Wave 0 dispatch per memory `feedback_vendor_secret_preflight_surface`).
