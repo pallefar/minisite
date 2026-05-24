@@ -18,6 +18,13 @@ export interface ResendSendInput {
   subject: string;
   html: string;
   text: string;
+  /**
+   * Optional outbound HTTP headers passed through to the Resend `headers`
+   * payload (e.g. RFC 8058 `List-Unsubscribe` + `List-Unsubscribe-Post`).
+   * Added Phase 49 Plan 49-06: required by Gmail bulk-sender enforcement on
+   * automated digest emails.
+   */
+  headers?: Record<string, string>;
 }
 
 export interface ResendSendResult {
@@ -50,6 +57,9 @@ export async function sendResendEmail(input: ResendSendInput): Promise<ResendSen
         subject: input.subject,
         html: input.html,
         text: input.text,
+        ...(input.headers && Object.keys(input.headers).length > 0
+          ? { headers: input.headers }
+          : {}),
       }),
     });
   } catch (e) {
