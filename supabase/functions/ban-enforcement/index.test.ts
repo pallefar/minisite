@@ -54,11 +54,12 @@ function makeReq(body: unknown, opts?: { bearer?: string | null; method?: string
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const bearer = opts?.bearer !== undefined ? opts.bearer : SERVICE_BEARER;
   if (bearer !== null) headers['Authorization'] = `Bearer ${bearer}`;
-  return new Request('http://test/functions/v1/ban-enforcement', {
-    method: opts?.method ?? 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  const method = opts?.method ?? 'POST';
+  const init: RequestInit = { method, headers };
+  if (method !== 'GET' && method !== 'HEAD') {
+    init.body = JSON.stringify(body);
+  }
+  return new Request('http://test/functions/v1/ban-enforcement', init);
 }
 
 // ---------------------------------------------------------------------------
