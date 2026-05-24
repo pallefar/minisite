@@ -1,0 +1,15 @@
+{
+  "imports": {},
+  "tasks": {
+    "test": "deno test --no-check --allow-env --allow-net"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100
+  }
+}
