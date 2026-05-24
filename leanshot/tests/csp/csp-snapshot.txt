@@ -1,11 +1,11 @@
 base-uri 'self';
-connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://*.posthog.com https://api.anthropic.com https://api.stripe.com https://m.stripe.network;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://*.posthog.com https://api.anthropic.com https://api.stripe.com https://m.stripe.network https://api.calendly.com;
 default-src 'none';
 font-src 'self' data: https://fonts.gstatic.com;
 form-action 'self';
-frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://calendly.com https://www.youtube-nocookie.com https://tally.so;
-img-src 'self' data: blob:;
+frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://calendly.com https://*.calendly.com https://www.youtube-nocookie.com https://youtube-nocookie.com https://tally.so https://*.tally.so;
+img-src 'self' data: blob: https://i.ytimg.com;
 object-src 'none';
-script-src 'self' https://js.stripe.com;
+script-src 'self' https://js.stripe.com https://assets.calendly.com https://www.youtube-nocookie.com https://s.ytimg.com https://tally.so;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 worker-src 'self' blob:;

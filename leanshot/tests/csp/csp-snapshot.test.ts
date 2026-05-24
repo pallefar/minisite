@@ -43,9 +43,12 @@ describe('CSP snapshot (Phase 12 D-10/D-11/D-12)', () => {
   it('vercel.json Content-Security-Policy matches tests/csp/csp-snapshot.txt', () => {
     const vercelJson = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf-8'));
 
-    const headers: Array<{ key: string; value: string }> =
-      vercelJson.headers?.[0]?.headers ?? [];
-    const cspHeader = headers.find((h) => h.key === 'Content-Security-Policy');
+    // CSP header may live in any headers[] entry (vercel.json supports multiple source rules);
+    // find the entry that defines Content-Security-Policy regardless of position.
+    const allHeaderEntries: Array<{ source: string; headers: Array<{ key: string; value: string }> }> =
+      vercelJson.headers ?? [];
+    const flatHeaders = allHeaderEntries.flatMap((e) => e.headers ?? []);
+    const cspHeader = flatHeaders.find((h) => h.key === 'Content-Security-Policy');
 
     if (!cspHeader) {
       throw new Error(
