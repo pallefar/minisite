@@ -55,6 +55,10 @@ import * as communityReply   from './email-templates/community-reply.ts';
 // subjectFor + renderTemplate switch arms MUST land in the SAME commit.
 import * as communityDmNew       from './email-templates/community-dm-new.ts';
 import * as communityAdminDigest from './email-templates/community-admin-report-digest.ts';
+// Phase 49 Plan 49-06 — community daily digest (non-PHI → Resend).
+// Per feedback_planner_missed_status_enum_widening: union extension +
+// subjectFor + renderTemplate switch arms land in the SAME commit.
+import * as communityDailyDigest from './email-templates/community-daily-digest.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,7 +107,11 @@ export type EmailTemplate =
   // Per [[feedback_planner_missed_status_enum_widening]]: union extension +
   // subjectFor + renderTemplate switch arms land in the SAME commit.
   | 'community_dm_new'           // non-PHI → Resend. New direct-message notification.
-  | 'community_admin_report_digest'; // non-PHI → Resend. Daily admin digest of open community reports.
+  | 'community_admin_report_digest' // non-PHI → Resend. Daily admin digest of open community reports.
+  // Phase 49 Plan 49-06 — community daily digest (non-PHI → Resend).
+  // Per feedback_planner_missed_status_enum_widening: union extension +
+  // subjectFor + renderTemplate switch arms land in the SAME commit.
+  | 'community_daily_digest';    // non-PHI → Resend. Per-user daily digest (top posts / comments / mentions).
 
 export type SendEmailArgs = {
   /** Template identifier — determines HTML rendering and subject line. */
@@ -118,6 +126,14 @@ export type SendEmailArgs = {
    * false → route via Resend (non-PHI path; existing wiring untouched).
    */
   phi: boolean;
+  /**
+   * Optional outbound HTTP headers (e.g. RFC 8058 `List-Unsubscribe` and
+   * `List-Unsubscribe-Post`). Added Phase 49 Plan 49-06 for Gmail bulk-sender
+   * compliance on community digest emails. Currently only the Resend (non-PHI)
+   * path forwards these; the SES (PHI) path ignores them since no PHI template
+   * currently requires one-click unsubscribe headers.
+   */
+  headers?: Record<string, string>;
 };
 
 export type SendEmailResult = {
@@ -204,6 +220,9 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
       return communityDmNew.subject(vars);
     case 'community_admin_report_digest':
       return communityAdminDigest.subject(vars);
+    // Phase 49 Plan 49-06 — community daily digest.
+    case 'community_daily_digest':
+      return communityDailyDigest.subject(vars);
     default:
       return 'LeanShot Notification';
   }
@@ -302,6 +321,11 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
       return communityDmNew.render(vars);
     case 'community_admin_report_digest':
       return communityAdminDigest.render(vars);
+    // Phase 49 Plan 49-06 — community daily digest.
+    case 'community_daily_digest': {
+      const rendered = communityDailyDigest.render(vars);
+      return rendered.html;
+    }
     default:
       return `<html><body><p>LeanShot notification.</p></body></html>`;
   }
@@ -331,6 +355,9 @@ export async function sendEmail(
       subject,
       html,
       text: `LeanShot: ${subject}`,
+      ...(args.headers && Object.keys(args.headers).length > 0
+        ? { headers: args.headers }
+        : {}),
     });
     if (!result.ok) {
       throw new Error(result.error ?? 'resend_send_failed');
