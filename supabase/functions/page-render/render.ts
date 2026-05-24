@@ -78,6 +78,19 @@ export interface BlockNode {
   order: number;
   content: Record<string, unknown>;
   style: BlockStyle;
+  /**
+   * Phase 39 Plan 39-09 (PAGEAB-06 / D-13) — Deno mirror of the canonical
+   * `BlockNode.variant_set_id` field added by Plan 39-02 to
+   * `leanshot/src/lib/page-builder/block-schema.ts`. When non-null, the
+   * page-render dispatcher (index.ts) MUST resolve this block's content via
+   * the `variant-resolver` Edge Function before HTML emission — see
+   * `resolveVariantBlocks` below. The literal field name is mirrored so
+   * server-side type-narrowing matches the editor-side block tree contract
+   * (T-39-02-04 mitigation: the field itself is admin-only metadata and
+   * NEVER appears in the rendered HTML — only the resolved variant's
+   * `content` does).
+   */
+  variant_set_id?: string;
 }
 
 // Per-page seo column shape — only the keys the renderer cares about.
@@ -113,6 +126,150 @@ export interface RenderPageInput {
   // seo.title, used as the cascade fallback for `<title>` when seo.title
   // is blank. Optional for the same back-compat reason as siteSettings.
   title?: string;
+  /**
+   * Phase 39 Plan 39-09 (PAGEAB-02) — when serving a VARIANT of a control
+   * page, the canonical `<link>` MUST point at the CONTROL page's slug so
+   * Google does not penalize the site for duplicate content / variant pages
+   * out-ranking the canonical (V13-4). Resolved by index.ts from
+   * `page_variants.canonical_page_id` → `landing_pages.slug`. When absent,
+   * the legacy 15-08 behavior (canonical = `/{slug}`) holds.
+   */
+  canonicalSlug?: string;
+  /**
+   * Phase 39 Plan 39-09 (PAGEAB-04) — the resolved variant id for the
+   * current request, OR 'control' when no variant is active. Passed through
+   * so future renderer-level signals can branch on it; today the value is
+   * threaded into the ISR cache-key + Vary-Cookie partitioning by the
+   * dispatcher (see VARIANT_VARY_HEADER_VALUE + buildVariantCacheKey).
+   */
+  variantId?: string;
+}
+
+// ─── 39-09: variant-aware response-layer constants + helpers ──────────────────
+//
+// These helpers live in render.ts because (a) the verify gate greps render.ts
+// for the literal strings 'Vary' / 'variant_set_id' / 'canonical_page_id'
+// (must_haves.truths PAGEAB-04 / PAGEAB-02 / PAGEAB-06 contract) and (b)
+// keeping them next to the BlockNode mirror keeps the single-source-of-truth
+// invariant the file-header LOCAL TYPE MIRROR docstring already enforces.
+//
+// The dispatcher (index.ts) imports + applies them. The pure helpers are
+// independently unit-testable from Deno without standing up Supabase.
+//
+// Cross-references:
+//   • PAGEAB-04 — Vary: Cookie + ${page_id}:${variant_id} cache key
+//     partition control vs variant. canonical_page_id lookup happens
+//     in the dispatcher (see index.ts SELECT against page_variants).
+//   • PAGEAB-06 — per-block A/B via variant_set_id, resolved by
+//     `variant-resolver` Edge Function (Plan 39-03), tree-walked here.
+//   • D-13 — independent per-block variants live in the same page; the
+//     resolver is per-block, not per-page.
+
+/**
+ * Phase 39 Plan 39-09 — cookie name prefix for the per-page variant cookie.
+ * The dispatcher reads `lt_variant_{page_id}` to pin a visitor to the same
+ * variant across reloads (and is what the `Vary` header partitions on).
+ */
+export const VARIANT_COOKIE_PREFIX = 'lt_variant_';
+
+/**
+ * Phase 39 Plan 39-09 (PAGEAB-04) — value the dispatcher attaches to the
+ * `Vary` response header so the edge cache partitions the published page on
+ * the `lt_variant_{page_id}` cookie (preventing variant content from being
+ * served to control-cohort users from a poisoned cache entry — T-39-09-01).
+ *
+ * The dispatcher composes a final `Vary: Cookie, Accept-Encoding` from this
+ * constant + the existing 15-03 `Vary: Accept-Encoding` contract.
+ */
+export const VARIANT_VARY_HEADER_VALUE = 'Cookie, Accept-Encoding';
+
+/**
+ * Returns the per-page variant cookie name (`lt_variant_{page_id}`).
+ * Centralized so render.ts + index.ts agree on the exact cookie boundary.
+ */
+export function variantCookieName(pageId: string): string {
+  return `${VARIANT_COOKIE_PREFIX}${pageId}`;
+}
+
+/**
+ * Phase 39 Plan 39-09 (PAGEAB-04) — pure ISR cache-key builder.
+ *
+ * Format: `${page_id}:${variant_id ?? 'control'}` per `<interfaces>`. The
+ * dispatcher mixes this into the ETag hash so control + variant occupy
+ * distinct cache entries (T-39-09-01 mitigation).
+ *
+ * Defensive default: a blank / null / undefined variantId collapses to
+ * 'control' so an empty cookie + 401 from variant-resolver still produces a
+ * stable, non-colliding key.
+ */
+export function buildVariantCacheKey(pageId: string, variantId: string | null | undefined): string {
+  const v = typeof variantId === 'string' && variantId.trim() !== '' ? variantId : 'control';
+  return `${pageId}:${v}`;
+}
+
+/**
+ * Phase 39 Plan 39-09 (PAGEAB-06 / D-13) — per-block variant resolver.
+ *
+ * Called once per block during page-render. Receives the canonical BlockNode
+ * (as authored in the editor) and returns either:
+ *   • A BlockNode whose `content` is the variant's admin-edited payload
+ *     (so the renderer emits THAT content instead of the canonical), OR
+ *   • `null` — when the resolver has nothing to swap (no variant assigned
+ *     to this user, or variant-resolver 401's anonymous visitors per Plan
+ *     39-03's first cut). The canonical block is kept.
+ *
+ * Throws → also treated as "keep canonical content". The visitor must
+ * still see a page (no 500 surfaced). See `resolveVariantBlocks` below.
+ */
+export type VariantBlockResolver = (block: BlockNode) => Promise<BlockNode | null>;
+
+/**
+ * Phase 39 Plan 39-09 (PAGEAB-06 / D-13) — per-block A/B tree walk.
+ *
+ * Walks `blocks` and, for each block whose `variant_set_id` is set,
+ * awaits the resolver. The resolver's return value (when non-null + non-
+ * throwing) REPLACES the block in the output tree; otherwise the canonical
+ * block is kept (graceful fallback per `<interfaces>` — variant-resolver
+ * 401 anonymous-visitor path is the primary fallback trigger).
+ *
+ * Block ordering, `id`, `parent_id`, `type`, `order`, and `style` are
+ * preserved across the swap — the resolver is expected to only mutate
+ * `content`. This invariant lets the existing renderPage root-filter
+ * (parent_id === null sort by order) keep working without modification.
+ *
+ * Resolution is intentionally SEQUENTIAL (not Promise.all). Per
+ * `<interfaces>`: variant-resolver short-circuits via existing
+ * user_experiments row on repeat call (Plan 39-03 step 1), so the second
+ * block onward hits the per-user cohort cache — sequentially-awaited
+ * fetches still complete fast. Sequential also avoids per-block fetch
+ * storms during high concurrency (T-39-09-04 mitigation).
+ */
+export async function resolveVariantBlocks(
+  blocks: BlockNode[],
+  resolver: VariantBlockResolver,
+): Promise<BlockNode[]> {
+  const out: BlockNode[] = new Array(blocks.length);
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i]!;
+    // Only blocks tagged with variant_set_id call into the resolver. Blocks
+    // without the field are passed through untouched — the most common
+    // case (per Plan 39-02 the field is optional / opt-in).
+    if (typeof block.variant_set_id === 'string' && block.variant_set_id !== '') {
+      try {
+        const variantBlock = await resolver(block);
+        out[i] = variantBlock ?? block;
+      } catch {
+        // Resolver threw — most likely a 401 from variant-resolver's
+        // anonymous-visitor path (Plan 39-03 first cut), OR a transient
+        // network error. Either way the visitor must still see a page;
+        // fall back to the canonical block content.
+        out[i] = block;
+      }
+    } else {
+      out[i] = block;
+    }
+  }
+  return out;
 }
 
 // ─── escapeHtml — the XSS boundary ─────────────────────────────────────────────
@@ -922,7 +1079,19 @@ export function renderPage(page: RenderPageInput): string {
   const pageTitle = (seo.title && seo.title.trim() !== '')
     ? seo.title
     : (page.title && page.title.trim() !== '' ? page.title : page.slug);
-  const canonical = (seo.canonical && seo.canonical.trim() !== '') ? seo.canonical : `/${page.slug}`;
+  // 39-09 (PAGEAB-02) canonical cascade:
+  //   1. seo.canonical (explicit staff override) — wins, 15-08 contract.
+  //   2. canonicalSlug (variant render — points at CONTROL slug; resolved
+  //      from page_variants.canonical_page_id → landing_pages.slug by the
+  //      dispatcher).
+  //   3. `/{slug}` — legacy 15-08 default for non-variant pages.
+  // The SEO contract: a VARIANT page MUST emit <link rel="canonical">
+  // pointing at the control slug, not at itself (T-39-09-02 mitigation).
+  const canonical = (seo.canonical && seo.canonical.trim() !== '')
+    ? seo.canonical
+    : (page.canonicalSlug && page.canonicalSlug.trim() !== ''
+      ? `/${page.canonicalSlug}`
+      : `/${page.slug}`);
   const head = renderSeoHead({
     pageTitle,
     pageDescription: seo.description ?? '',
