@@ -1,9 +1,9 @@
 ---
 phase: 48
 slug: m4-moderation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-23
 ---
 

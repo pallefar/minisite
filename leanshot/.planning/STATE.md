@@ -4,14 +4,14 @@ milestone: v1.3
 milestone_name: Platform Expansion
 status: verifying
 stopped_at: Phase 47 context gathered
-last_updated: "2026-05-24T01:25:00.000Z"
-last_activity: 2026-05-24 -- Phase 38 marked complete (38-10 LLM-judge eval harness shipped) + Phase 37 SUMMARY rescued from pwd-drift
+last_updated: "2026-05-24T04:30:00.000Z"
+last_activity: 2026-05-24 -- Phase 48 (M4 Moderation) complete 11/12 plans shipped + 48-12 close-out (automated-verify-only, HUMAN-UAT deferred to milestone)
 progress:
   total_phases: 28
-  completed_phases: 17
-  total_plans: 208
-  completed_plans: 157
-  percent: 60
+  completed_phases: 18
+  total_plans: 220
+  completed_plans: 169
+  percent: 64
 ---
 
 # Background dispatch note (2026-05-19) — Phase 40

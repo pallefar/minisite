@@ -280,11 +280,11 @@
 
 ### WS23 — M4: Moderation (MOD, 5 REQ-IDs)
 
-- [ ] **MOD-01**: User reports post / comment / DM → admin queue with reporter context + reported-content snapshot + cooldown on duplicate-reports
-- [ ] **MOD-02**: Admin mutes (silent suspend) + bans (account disable) + temporary suspensions (auto-restore after duration)
-- [ ] **MOD-03**: Banned-words list (admin-configurable) + automatic post-create flagging on match → admin queue
-- [ ] **MOD-04**: Auto-flagging via Claude API for toxicity + spam + medical-misinformation; compounds with HELP AI-assist Claude budget; flagged content sent to admin queue NOT auto-removed
-- [ ] **MOD-05**: Moderation audit log (every admin action + automated flag) for compliance trail; immutable per HIPAA-14 pattern
+- [x] **MOD-01**: User reports post / comment / DM → admin queue with reporter context + reported-content snapshot + cooldown on duplicate-reports
+- [x] **MOD-02**: Admin mutes (silent suspend) + bans (account disable) + temporary suspensions (auto-restore after duration)
+- [x] **MOD-03**: Banned-words list (admin-configurable) + automatic post-create flagging on match → admin queue
+- [x] **MOD-04**: Auto-flagging via Claude API for toxicity + spam + medical-misinformation; compounds with HELP AI-assist Claude budget; flagged content sent to admin queue NOT auto-removed
+- [x] **MOD-05**: Moderation audit log (every admin action + automated flag) for compliance trail; immutable per HIPAA-14 pattern
 
 ### WS24 — M4: Search + Email Digests (DIGEST, 4 REQ-IDs)
 
@@ -608,11 +608,11 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | EVENT-03 | Phase 47 | Pending |
 | EVENT-04 | Phase 47 | Pending |
 | EVENT-05 | Phase 47 | Pending |
-| MOD-01 | Phase 48 | Pending |
-| MOD-02 | Phase 48 | Pending |
-| MOD-03 | Phase 48 | Pending |
-| MOD-04 | Phase 48 | Pending |
-| MOD-05 | Phase 48 | Pending |
+| MOD-01 | Phase 48 | Complete |
+| MOD-02 | Phase 48 | Complete |
+| MOD-03 | Phase 48 | Complete |
+| MOD-04 | Phase 48 | Complete |
+| MOD-05 | Phase 48 | Complete |
 | DIGEST-01 | Phase 49 | Pending |
 | DIGEST-02 | Phase 49 | Pending |
 | DIGEST-03 | Phase 49 | Pending |
