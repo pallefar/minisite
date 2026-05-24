@@ -81,6 +81,20 @@ daily_visits as (
 ),
 -- ---------------------------------------------------------------------------
 -- Daily activations (consumer audience only — activation_event in events_mirror).
+--
+-- REVIEW CR-02 fix: the previous join
+--   `join utat on utat.user_id::text = em.distinct_id OR utat.user_id = em.user_id`
+-- fanned each activation event out across ALL utat rows sharing the user's
+-- identity (multi-anon-device users have N utat rows, each potentially
+-- classified to a different last_touch_channel_group). The activation then
+-- counted ONCE per channel_group the user ever touched from, inflating the
+-- activations column N-fold and depressing CAC by the same factor — exactly
+-- the multi-touch segment operators care about.
+--
+-- Fix: lateral-pick the SINGLE most-recent utat row per em.user_id (last-touch
+-- semantic: attribute each activation to the channel the user was on at the
+-- TIME OF the activation event). distinct_id is matched against utat.user_id::text
+-- for post-stitch events and against utat.anon_id for pre-stitch events.
 -- ---------------------------------------------------------------------------
 daily_activations as (
   select
@@ -90,14 +104,21 @@ daily_activations as (
     utat.org_id,
     count(distinct em.distinct_id) as activations
   from public.events_mirror em
-  join public.user_traffic_attribution utat
-    on utat.user_id::text = em.distinct_id
-   or utat.user_id = em.user_id
+  join lateral (
+    select u.last_touch_channel_group, u.org_id, u.last_touch_at
+    from public.user_traffic_attribution u
+    where (em.user_id is not null and u.user_id = em.user_id)
+       or (u.user_id::text = em.distinct_id)
+       or (u.anon_id = em.distinct_id)
+    order by u.last_touch_at desc
+    limit 1
+  ) utat on true
   where em.event_name = 'activation_event'
   group by 1, 2, 3, 4
 ),
 -- ---------------------------------------------------------------------------
 -- Daily paids (consumer audience only — paid + subscription/seat/referral conv).
+-- REVIEW CR-02 fix: lateral-pick same as activations CTE.
 -- ---------------------------------------------------------------------------
 daily_paids as (
   select
@@ -107,9 +128,15 @@ daily_paids as (
     utat.org_id,
     count(distinct em.distinct_id) as paids
   from public.events_mirror em
-  join public.user_traffic_attribution utat
-    on utat.user_id::text = em.distinct_id
-   or utat.user_id = em.user_id
+  join lateral (
+    select u.last_touch_channel_group, u.org_id, u.last_touch_at
+    from public.user_traffic_attribution u
+    where (em.user_id is not null and u.user_id = em.user_id)
+       or (u.user_id::text = em.distinct_id)
+       or (u.anon_id = em.distinct_id)
+    order by u.last_touch_at desc
+    limit 1
+  ) utat on true
   where em.event_name in ('paid', 'subscription_started', 'first_paid_seat', 'first_referral_conversion')
   group by 1, 2, 3, 4
 ),

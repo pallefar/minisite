@@ -50,6 +50,10 @@ daily_visits as (
   left join public.affiliates af on af.user_id = utat.user_id
   group by 1, 2, 3, 4
 ),
+-- REVIEW CR-02 fix (FIRST-touch mirror of last-touch matview): lateral-pick
+-- the EARLIEST utat row per em.user_id so each activation/paid is attributed
+-- to exactly one first-touch channel_group (otherwise N anon devices = N rows
+-- = N-fold inflation, see migration 20271102000007 for full rationale).
 daily_activations as (
   select
     utat.first_touch_channel_group as channel_group,
@@ -58,9 +62,15 @@ daily_activations as (
     utat.org_id,
     count(distinct em.distinct_id) as activations
   from public.events_mirror em
-  join public.user_traffic_attribution utat
-    on utat.user_id::text = em.distinct_id
-   or utat.user_id = em.user_id
+  join lateral (
+    select u.first_touch_channel_group, u.org_id, u.first_touch_at
+    from public.user_traffic_attribution u
+    where (em.user_id is not null and u.user_id = em.user_id)
+       or (u.user_id::text = em.distinct_id)
+       or (u.anon_id = em.distinct_id)
+    order by u.first_touch_at asc
+    limit 1
+  ) utat on true
   where em.event_name = 'activation_event'
   group by 1, 2, 3, 4
 ),
@@ -72,9 +82,15 @@ daily_paids as (
     utat.org_id,
     count(distinct em.distinct_id) as paids
   from public.events_mirror em
-  join public.user_traffic_attribution utat
-    on utat.user_id::text = em.distinct_id
-   or utat.user_id = em.user_id
+  join lateral (
+    select u.first_touch_channel_group, u.org_id, u.first_touch_at
+    from public.user_traffic_attribution u
+    where (em.user_id is not null and u.user_id = em.user_id)
+       or (u.user_id::text = em.distinct_id)
+       or (u.anon_id = em.distinct_id)
+    order by u.first_touch_at asc
+    limit 1
+  ) utat on true
   where em.event_name in ('paid', 'subscription_started', 'first_paid_seat', 'first_referral_conversion')
   group by 1, 2, 3, 4
 ),

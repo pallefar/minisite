@@ -68,9 +68,20 @@ left join public.events_mirror em_out
   on em_out.distinct_id = em_in.distinct_id
  and em_out.event_name  = sp.event_out
  and em_out.created_at >= em_in.created_at
-left join public.user_traffic_attribution utat
-  on utat.user_id::text = em_in.distinct_id
-  or utat.anon_id        = em_in.distinct_id
+-- REVIEW WR-07 fix: lateral-pick the SINGLE most-recent utat row keyed by
+-- em_in.distinct_id (covers both pre-stitch anon_id matches and post-stitch
+-- user_id::text matches). Previous OR-join multiplied the in_count and
+-- out_count per channel_group when a user had N anon_ids, inflating the
+-- per-channel funnel breakdown. Top-of-page funnel chart (sum across
+-- channel_groups) was over-estimating in_count/out_count by the same factor.
+left join lateral (
+  select u.last_touch_channel_group, u.org_id, u.last_touch_at
+  from public.user_traffic_attribution u
+  where u.user_id::text = em_in.distinct_id
+     or u.anon_id        = em_in.distinct_id
+  order by u.last_touch_at desc
+  limit 1
+) utat on true
 group by 1, 2, 3, 4, 5, 6, 7;
 
 create unique index traffic_funnel_rollup_uq
