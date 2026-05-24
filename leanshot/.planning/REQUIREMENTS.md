@@ -46,23 +46,23 @@
 
 ### WS4 — A Revenue: Mid-Trial Paywall A/B (PAYWALL, 7 REQ-IDs)
 
-- [ ] **PAYWALL-01**: Trialing user sees a paywall variant after activation event (NOT at signup, NOT at trial end) via PostHog flag + variant config
-- [ ] **PAYWALL-02**: Variant assignment server-side captured by TAXO-02 server-side PostHog (immune to adblockers + flag-stickiness race conditions per V13-7)
-- [ ] **PAYWALL-03**: Composite goal measured (paid conversion + retained 30 days post-conversion); short-term wins that hurt retention DO NOT promote
-- [ ] **PAYWALL-04**: Refund-rate kill-switch auto-disables variant if 7-day refund rate exceeds 2× baseline; admin gets Slack notification
-- [ ] **PAYWALL-05**: Per-cohort paywall variant (free-user cohort vs past-due cohort vs trial-day-N cohort sees distinct paywall)
-- [ ] **PAYWALL-06**: Multi-screen onboarding paywall (5-7 screens with value pillars + social proof + pricing) variant available alongside single-screen modal
-- [ ] **PAYWALL-07**: Pricing-page experiments per UTM source (visitors from "lean" keyword see different copy than "transformation"); LandingPage cookie maps utm_source → variant_id at first visit, persisted to user_experiments table
+- [x] **PAYWALL-01**: Trialing user sees a paywall variant after activation event (NOT at signup, NOT at trial end) via PostHog flag + variant config
+- [x] **PAYWALL-02**: Variant assignment server-side captured by TAXO-02 server-side PostHog (immune to adblockers + flag-stickiness race conditions per V13-7)
+- [x] **PAYWALL-03**: Composite goal measured (paid conversion + retained 30 days post-conversion); short-term wins that hurt retention DO NOT promote
+- [x] **PAYWALL-04**: Refund-rate kill-switch auto-disables variant if 7-day refund rate exceeds 2× baseline; admin gets Slack notification
+- [x] **PAYWALL-05**: Per-cohort paywall variant (free-user cohort vs past-due cohort vs trial-day-N cohort sees distinct paywall)
+- [x] **PAYWALL-06**: Multi-screen onboarding paywall (5-7 screens with value pillars + social proof + pricing) variant available alongside single-screen modal
+- [x] **PAYWALL-07**: Pricing-page experiments per UTM source (visitors from "lean" keyword see different copy than "transformation"); LandingPage cookie maps utm_source → variant_id at first visit, persisted to user_experiments table
 
 ### WS5 — A Revenue: Page-Builder A/B (PAGEAB, 7 REQ-IDs)
 
-- [ ] **PAGEAB-01**: Admin creates a variant of any published page via the page-builder editor with PostHog flag-controlled traffic split
-- [ ] **PAGEAB-02**: Every variant page emits `<link rel="canonical">` to the control page (avoids V13-4 silent SEO penalty)
-- [ ] **PAGEAB-03**: Variants cap at 42 days live; after 42 days variant auto-archives + admin gets nudge to ship-or-rollback
-- [ ] **PAGEAB-04**: Per-variant ISR cache key prevents control + variant cross-cache-poisoning
-- [ ] **PAGEAB-05**: Admin clicks "Ship Winner" on a variant's experiment-summary page → variant promotes to 100% traffic + becomes new control + PostHog flag stickiness preserved
-- [ ] **PAGEAB-06**: Per-block A/B (Hero CTA copy variants without ratting the rest of the page); block-level variant overrides via PageEditor
-- [ ] **PAGEAB-07**: Statistical-significance badge in admin (Bayesian posterior probability of variant winning); badge color codes by confidence (gray<80% / yellow 80-95% / green >95%)
+- [x] **PAGEAB-01**: Admin creates a variant of any published page via the page-builder editor with PostHog flag-controlled traffic split
+- [x] **PAGEAB-02**: Every variant page emits `<link rel="canonical">` to the control page (avoids V13-4 silent SEO penalty)
+- [x] **PAGEAB-03**: Variants cap at 42 days live; after 42 days variant auto-archives + admin gets nudge to ship-or-rollback
+- [x] **PAGEAB-04**: Per-variant ISR cache key prevents control + variant cross-cache-poisoning
+- [x] **PAGEAB-05**: Admin clicks "Ship Winner" on a variant's experiment-summary page → variant promotes to 100% traffic + becomes new control + PostHog flag stickiness preserved
+- [x] **PAGEAB-06**: Per-block A/B (Hero CTA copy variants without ratting the rest of the page); block-level variant overrides via PageEditor
+- [x] **PAGEAB-07**: Statistical-significance badge in admin (Bayesian posterior probability of variant winning); badge color codes by confidence (gray<80% / yellow 80-95% / green >95%)
 
 ### WS6 — A Revenue: Hourly Ad-Spend ETL (ADETL, 9 REQ-IDs)
 
@@ -89,14 +89,14 @@
 
 ### WS8 — B Depth: Pharmacology Paywall Test (PHARMA, 8 REQ-IDs)
 
-- [ ] **PHARMA-01**: Pro-tier users see full pharmacology content (drug interactions + dosing schedules + contraindications); free-tier users see paywall on these specific content surfaces
-- [ ] **PHARMA-02**: Safety-information content (overdose warnings, contraindication alerts, FDA black-box warnings) NEVER paywalled — free for everyone (always-free carve-out enforced in `phaCheck()` helper)
-- [ ] **PHARMA-03**: A/B test runs 4 weeks measuring composite goal (conversion uplift + NPS no-drop + no spike in 1-star reviews)
-- [ ] **PHARMA-04**: Reversibility plan automated: kill-switch flag + 1-click rollback + variant config archived for forensic review
-- [ ] **PHARMA-05**: Free users see content summaries (1-2 sentence overview); Pro users see full details — tiered access vs hard paywall (lower backlash risk per V13-PHARMA-03)
-- [ ] **PHARMA-06**: WMHMDA (Washington) + CTDPA (Connecticut) per-region pharma compliance carveouts: pharma paywall disabled for users with detected state-of-residence WA or CT (belt-and-suspenders against consumer-health-data law inquiry)
-- [ ] **PHARMA-07**: Pharma content versioning + audit log (every pharma copy change creates `pharma_content_versions` row with author + diff + clinical-review-signoff); regulator-audience differentiator
-- [ ] **PHARMA-08**: Pharma paywall surface visible in admin (current variant config + composite-goal metrics + 1-click disable)
+- [x] **PHARMA-01**: Pro-tier users see full pharmacology content (drug interactions + dosing schedules + contraindications); free-tier users see paywall on these specific content surfaces
+- [x] **PHARMA-02**: Safety-information content (overdose warnings, contraindication alerts, FDA black-box warnings) NEVER paywalled — free for everyone (always-free carve-out enforced in `phaCheck()` helper)
+- [x] **PHARMA-03**: A/B test runs 4 weeks measuring composite goal (conversion uplift + NPS no-drop + no spike in 1-star reviews)
+- [x] **PHARMA-04**: Reversibility plan automated: kill-switch flag + 1-click rollback + variant config archived for forensic review
+- [x] **PHARMA-05**: Free users see content summaries (1-2 sentence overview); Pro users see full details — tiered access vs hard paywall (lower backlash risk per V13-PHARMA-03)
+- [x] **PHARMA-06**: WMHMDA (Washington) + CTDPA (Connecticut) per-region pharma compliance carveouts: pharma paywall disabled for users with detected state-of-residence WA or CT (belt-and-suspenders against consumer-health-data law inquiry)
+- [x] **PHARMA-07**: Pharma content versioning + audit log (every pharma copy change creates `pharma_content_versions` row with author + diff + clinical-review-signoff); regulator-audience differentiator
+- [x] **PHARMA-08**: Pharma paywall surface visible in admin (current variant config + composite-goal metrics + 1-click disable)
 
 ### WS9 — B Depth: Spanish i18n (I18N, 10 REQ-IDs)
 
@@ -431,20 +431,20 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | AFFTIER-04 | Phase 26 | Pending |
 | AFFTIER-05 | Phase 26 | Pending |
 | AFFTIER-06 | Phase 26 | Pending |
-| PAYWALL-01 | Phase 39 | Pending |
-| PAYWALL-02 | Phase 39 | Pending |
-| PAYWALL-03 | Phase 39 | Pending |
-| PAYWALL-04 | Phase 39 | Pending |
-| PAYWALL-05 | Phase 39 | Pending |
-| PAYWALL-06 | Phase 39 | Pending |
-| PAYWALL-07 | Phase 39 | Pending |
-| PAGEAB-01 | Phase 39 | Pending |
-| PAGEAB-02 | Phase 39 | Pending |
-| PAGEAB-03 | Phase 39 | Pending |
-| PAGEAB-04 | Phase 39 | Pending |
-| PAGEAB-05 | Phase 39 | Pending |
-| PAGEAB-06 | Phase 39 | Pending |
-| PAGEAB-07 | Phase 39 | Pending |
+| PAYWALL-01 | Phase 39 | Complete |
+| PAYWALL-02 | Phase 39 | Complete |
+| PAYWALL-03 | Phase 39 | Complete |
+| PAYWALL-04 | Phase 39 | Complete |
+| PAYWALL-05 | Phase 39 | Complete |
+| PAYWALL-06 | Phase 39 | Complete |
+| PAYWALL-07 | Phase 39 | Complete |
+| PAGEAB-01 | Phase 39 | Complete |
+| PAGEAB-02 | Phase 39 | Complete |
+| PAGEAB-03 | Phase 39 | Complete |
+| PAGEAB-04 | Phase 39 | Complete |
+| PAGEAB-05 | Phase 39 | Complete |
+| PAGEAB-06 | Phase 39 | Complete |
+| PAGEAB-07 | Phase 39 | Complete |
 | ADETL-01 | Phase 33 | Complete |
 | ADETL-02 | Phase 33 | Complete |
 | ADETL-03 | Phase 33 | Complete |
@@ -462,14 +462,14 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | EMBED-06 | Phase 41 | Pending |
 | EMBED-07 | Phase 41 | Pending |
 | EMBED-08 | Phase 41 | Pending |
-| PHARMA-01 | Phase 39 | Pending |
-| PHARMA-02 | Phase 39 | Pending |
-| PHARMA-03 | Phase 39 | Pending |
-| PHARMA-04 | Phase 39 | Pending |
-| PHARMA-05 | Phase 39 | Pending |
-| PHARMA-06 | Phase 39 | Pending |
-| PHARMA-07 | Phase 39 | Pending |
-| PHARMA-08 | Phase 39 | Pending |
+| PHARMA-01 | Phase 39 | Complete |
+| PHARMA-02 | Phase 39 | Complete |
+| PHARMA-03 | Phase 39 | Complete |
+| PHARMA-04 | Phase 39 | Complete |
+| PHARMA-05 | Phase 39 | Complete |
+| PHARMA-06 | Phase 39 | Complete |
+| PHARMA-07 | Phase 39 | Complete |
+| PHARMA-08 | Phase 39 | Complete |
 | I18N-01 | Phase 32 | Pending |
 | I18N-02 | Phase 32 | Pending |
 | I18N-03 | Phase 32 | Pending |
