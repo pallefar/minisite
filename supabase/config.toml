@@ -597,6 +597,17 @@ verify_jwt = false
 [functions.traffic-attribution-recorder]
 verify_jwt = false
 
+# Phase 51 Plan 51-04 — funnel-anomaly-cron is a CRON-CALLED Edge Fn invoked by
+# pg_cron with a service_role bearer (existing Phase 24 schedule). With the
+# default `verify_jwt = true` the gateway rejects the new sb_secret_* token
+# format before the function runs (project memory:
+# reference_supabase_service_role_key_format_divergence,
+# reference_supabase_config_toml_verify_jwt). The Fn enforces auth itself via
+# checkServiceRoleBearer() (../_shared/lifecycle-utils.ts) so dropping the
+# gateway gate is safe.
+[functions.funnel-anomaly-cron]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

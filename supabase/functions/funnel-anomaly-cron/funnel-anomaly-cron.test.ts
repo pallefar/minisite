@@ -1,5 +1,8 @@
 /**
- * funnel-anomaly-cron.test.ts — Deno tests for the */5 cron Edge Function.
+ * funnel-anomaly-cron.test.ts — Deno tests for the every-5-minute cron Edge Function.
+ *
+ * (Note: do not put the literal cron expression with an asterisk-slash inside this
+ * JSDoc — Deno's parser closes the block comment on the first `* /` sequence.)
  *
  * Per project rule: file is `<name>.test.ts` (Deno glob `{*_,*.,}test.*`
  * matches per [[reference_deno_test_discovery]]).
@@ -67,6 +70,32 @@ function makeStubAdmin(state: StubState): Stub {
         }),
       };
     }
+    if (table === 'channel_groups') {
+      // Phase 51 / Plan 51-04 extension — return empty taxonomy by default so
+      // the new per-channel-stage loop short-circuits without firing.
+      return {
+        select: () => ({
+          order: () => Promise.resolve({ data: [], error: null }),
+        }),
+      };
+    }
+    if (table === 'admin_notifications') {
+      // Phase 51 / Plan 51-04 extension — supports both the suppression read
+      // (.select().eq().gte().limit()) and the upsert write. With empty
+      // channel_groups above, neither path is exercised in default tests; the
+      // stub is here defensively.
+      return {
+        select: () => ({
+          eq: () => ({
+            gte: () => ({
+              limit: () => Promise.resolve({ data: [], error: null }),
+            }),
+          }),
+        }),
+        upsert: async (_row: Record<string, unknown>, _opts?: Record<string, unknown>) =>
+          Promise.resolve({ data: null, error: null }),
+      };
+    }
     if (table === 'funnel_anomaly_alerts') {
       return {
         // suppression query: .select('fired_at').eq('funnel_id',X).order().limit(1).maybeSingle()
@@ -118,6 +147,12 @@ function makeStubAdmin(state: StubState): Stub {
       if (name === 'funnel_anomaly_baseline_compute') {
         const bl = state.baselineByEvent[args.p_event_name];
         return Promise.resolve({ data: bl ? [bl] : null, error: null });
+      }
+      if (name === 'compute_channel_stage_rate') {
+        // Phase 51 / Plan 51-04 — default stub returns null so the new
+        // per-channel-stage loop yields zero firings. Per-test overrides
+        // can swap this via setAdminForTest with a richer stub if needed.
+        return Promise.resolve({ data: null, error: null });
       }
       return Promise.resolve({ data: null, error: null });
     },

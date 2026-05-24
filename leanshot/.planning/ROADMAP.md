@@ -864,7 +864,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 51-04-PLAN.md — compute_channel_stage_rate RPC + funnel-anomaly-cron per-channel-stage extension to admin_notifications
+- [x] 51-04-PLAN.md — compute_channel_stage_rate RPC + funnel-anomaly-cron per-channel-stage extension to admin_notifications
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
