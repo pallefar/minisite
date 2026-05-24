@@ -61,26 +61,21 @@ async function fallbackShowBanner(): Promise<void> {
 
 function defaultOpenBanner(): void {
   if (typeof window === 'undefined') return;
-  // Dispatch the canonical open-banner event. If no listener is registered
-  // by Phase 22, fall back to calling CookieConsent.show() directly.
-  let handled = false;
-  const sentinel = (): void => {
-    handled = true;
-  };
-  window.addEventListener('leanshot:open-consent-banner', sentinel, { once: true });
+  // Dispatch the canonical open-banner event so Phase 22's banner module
+  // (when present) can open the banner with its own UI state. CR-03 fix:
+  // the previous sentinel-listener pattern was dead-code — `dispatchEvent`
+  // fires listeners synchronously, so the sentinel ALWAYS marks `handled`
+  // true and the fallback `CookieConsent.show()` never ran. On surfaces
+  // where Phase 22's listener has not yet registered (KB articles inside
+  // the helpdesk widget; lazy-loaded consent chunks), clicking the link
+  // was a permanent no-op.
+  //
+  // New behavior: always dispatch the event AND always call CookieConsent.show().
+  // The latter is idempotent if the banner is already visible — running both
+  // covers both "listener registered" and "module loaded but listener not yet
+  // attached" cases.
   window.dispatchEvent(new CustomEvent('leanshot:open-consent-banner'));
-  // The sentinel listener itself counts as a handler — but if any OTHER
-  // listener prevented default / signaled it took action, we trust that.
-  // For simplicity: always try the fallback after dispatching when no
-  // app-level listener has been registered by the consent layer. The Phase 22
-  // banner registers its own listener; if it ran before our sentinel detached,
-  // dispatch is already consumed. We unconditionally attempt the fallback —
-  // CookieConsent.show is idempotent if the banner is already visible.
-  window.removeEventListener('leanshot:open-consent-banner', sentinel);
-  if (!handled) {
-    // Belt-and-suspenders: try direct CookieConsent.show().
-    void fallbackShowBanner();
-  }
+  void fallbackShowBanner();
 }
 
 export function EmbedPlaceholderCard({
@@ -108,7 +103,7 @@ export function EmbedPlaceholderCard({
       <button
         type="button"
         onClick={handleManage}
-        className="inline-flex items-center justify-start min-h-[44px] min-w-[44px] text-[13px] font-semibold text-[var(--color-primary)] hover:underline self-start"
+        className="inline-flex items-center justify-start min-h-[44px] min-w-[44px] px-3 -mx-3 text-[13px] font-semibold text-[var(--color-primary)] hover:underline self-start"
       >
         Manage cookie preferences →
       </button>
