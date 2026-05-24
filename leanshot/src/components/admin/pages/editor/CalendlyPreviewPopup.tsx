@@ -106,14 +106,59 @@ export function CalendlyPreviewPopup(): React.ReactElement {
     };
   }, [handlePopupMessage]);
 
+  // WR-01 fix: enforce token TTL. While in state d3 with a token in state,
+  // schedule auto-disconnect at expiresAt. If the token has already expired
+  // (clock skew or remount with a stale token reference), disconnect
+  // synchronously.
+  useEffect(() => {
+    if (state !== 'd3' || token === null) return;
+    const remainingMs = token.expiresAt - Date.now();
+    if (remainingMs <= 0) {
+      setToken(null);
+      setState('d1');
+      return;
+    }
+    const id = window.setTimeout(() => {
+      setToken(null);
+      setState('d1');
+    }, remainingMs);
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [state, token]);
+
+  // WR-02 fix: while the popup is in flight (state d2), poll for popup.closed.
+  // If the user dismisses the popup without completing OAuth, the message-event
+  // path never fires — without this watch the UI sits in d2 indefinitely until
+  // the user clicks Cancel.
+  useEffect(() => {
+    if (state !== 'd2') return;
+    const id = window.setInterval(() => {
+      const p = popupRef.current;
+      if (p === null || p.closed) {
+        window.clearInterval(id);
+        // If we've already transitioned to d3 via message before close, leave
+        // state alone — the message handler clears popupRef.current to null.
+        // Only surface the error if we're still in d2 here.
+        setState((prev) => (prev === 'd2' ? 'd2-error' : prev));
+      }
+    }, 500);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [state]);
+
   const handleConnect = useCallback(() => {
     const popup = window.open(
       '/api/calendly/oauth-start',
       'calendly_oauth',
       'width=560,height=720,popup=yes',
     );
-    // Popup-blocked detection per UI-SPEC §Surface D State D2-error.
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+    // WR-02 fix: window.open returns either null (popup blocked) or a Window.
+    // Window.closed is always a defined boolean, so the old `typeof popup.closed
+    // === 'undefined'` clause was dead. Some browsers return a Window whose
+    // .closed is immediately true under strict popup policy — keep that check.
+    if (!popup || popup.closed) {
       setState('d2-error');
       return;
     }
