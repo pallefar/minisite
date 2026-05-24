@@ -153,15 +153,72 @@ export async function handler(req: Request): Promise<Response> {
     return jsonError(401, 'unauthorized');
   }
 
-  // Parse body — extended for course-lesson kind (Plan 46-05)
-  let body: { post_id?: string; lesson_id?: string; course_id?: string; kind?: string };
+  // Parse body — extended for course-lesson kind (Plan 46-05) + event-recording kind (Plan 47-09)
+  let body: { post_id?: string; lesson_id?: string; course_id?: string; event_id?: string; kind?: string };
   try {
-    body = await req.json() as { post_id?: string; lesson_id?: string; course_id?: string; kind?: string };
+    body = await req.json() as { post_id?: string; lesson_id?: string; course_id?: string; event_id?: string; kind?: string };
   } catch {
     return jsonError(400, 'invalid_json');
   }
 
   const kind = body?.kind ?? 'community-post';
+
+  // ==========================================================================
+  // Plan 47-09: event-recording branch — admin-only, public playback, 2h cap
+  //   EVENT-05: admin uploads post-event recording; mux-webhook routes to
+  //     either course_lessons (if events.attach_to_module_id set) or
+  //     events.recording_* columns (inline recording).
+  //   Admin gate mirrors course-lesson branch (T-46-07): is_staff required,
+  //     tier_effective bypass NOT permitted.
+  //   passthrough envelope: { kind, event_id, user_id }
+  // ==========================================================================
+  if (kind === 'event-recording') {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('is_staff')
+      .eq('id', user.id)
+      .single();
+    if (!(profile as { is_staff?: boolean } | null)?.is_staff) {
+      return jsonError(403, 'ADMIN_REQUIRED');
+    }
+
+    const eventId = body?.event_id;
+    if (typeof eventId !== 'string' || eventId.trim() === '') {
+      return jsonError(400, 'event_id_required');
+    }
+
+    // Defense-in-depth: verify the event row exists (else short-circuit before Mux)
+    const { data: ev } = await admin
+      .from('events')
+      .select('id')
+      .eq('id', eventId)
+      .maybeSingle();
+    if (!ev) {
+      return jsonError(404, 'event_not_found');
+    }
+
+    try {
+      const mux = getMux();
+      const upload = await mux.video.uploads.create({
+        cors_origin: req.headers.get('origin') ?? '*',
+        new_asset_settings: {
+          playback_policies: ['public'],
+          max_duration_seconds: 7200, // 2h cap (event recordings can be long)
+          passthrough: JSON.stringify({
+            kind: 'event-recording',
+            event_id: eventId,
+            user_id: user.id,
+          }),
+        },
+        timeout: 3600,
+      });
+      return jsonResponse(200, { url: upload.url, upload_id: upload.id });
+    } catch (_e) {
+      console.error('[mux-create-upload] Mux API error (event-recording)', _e instanceof Error ? _e.message : 'unknown');
+      return jsonError(500, 'mux_error');
+    }
+  }
+  // End event-recording branch — existing course-lesson + community-post branches continue below.
 
   // ==========================================================================
   // Plan 46-05: course-lesson branch — admin-only, signed playback, 30-min cap
