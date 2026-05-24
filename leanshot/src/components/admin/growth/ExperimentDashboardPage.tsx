@@ -37,8 +37,11 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
-import type { ExperimentRow, ExperimentSurface } from './experiment-types';
+import type { ExperimentRow, ExperimentSurface, InvokeError } from './experiment-types';
+import { PageExperimentTab } from './PageExperimentTab';
+import { PaywallExperimentTab } from './PaywallExperimentTab';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -57,14 +60,13 @@ const TABS: ReadonlyArray<{ key: ExperimentSurface; label: string }> = [
 // ---------------------------------------------------------------------------
 
 export function ExperimentDashboardPage(): React.JSX.Element {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<ExperimentSurface>('paywall');
   const [rows, setRows] = useState<ExperimentRow[] | null>(null);
   const [vendorUnconfigured, setVendorUnconfigured] = useState(false);
-  // busyKey is consumed by Plan 39-07 Ship-Winner button — kept in this shell
-  // so the per-tab content slot has a stable in-flight signal contract. The
-  // setter is exposed indirectly via data-busy-key wiring; Plan 39-07 reads
-  // setBusyKey from a context once it lands. Until then the state stays null.
-  const [busyKey] = useState<string | null>(null);
+  // Plan 39-07: busyKey is now writable — set when the Ship-Winner Edge Fn
+  // invocation is in-flight (verbatim contract from OnboardingABPanel.tsx).
+  const [busyKey, setBusyKey] = useState<string | null>(null);
 
   // ---------------------------------------------------------------------------
   // Fetch: get_experiment_results RPC. Mirror CACDashboardPage cancellation
@@ -98,6 +100,47 @@ export function ExperimentDashboardPage(): React.JSX.Element {
       clearInterval(intervalId);
     };
   }, [activeTab, load]);
+
+  // Plan 39-07 — Ship-Winner Edge Fn invocation (verbatim contract from
+  // OnboardingABPanel.tsx:98-122, per UI-SPEC Hard Constraint 8). The
+  // sub-tab components call this with a variantId; we look up the row from
+  // current state to pass the variant name into the invoke body shape
+  // expected by ship-winner-flag ({ flag_id, variant }).
+  const handleShip = useCallback(
+    async (variantId: string): Promise<void> => {
+      const row = (rows ?? []).find((r) => r.variant_id === variantId);
+      if (!row) return;
+      setBusyKey(variantId);
+      try {
+        const { data, error } = await supabase.functions.invoke('ship-winner-flag', {
+          body: { flag_id: row.variant_id, variant: row.variant_name },
+        });
+        const payload = data as ({ ok?: boolean } & InvokeError) | null;
+        if (error || payload?.error) {
+          const code = payload?.error;
+          if (code === 'forbidden_not_superadmin') {
+            toast('Superadmin role required', 'error');
+          } else if (code === 'vendor_unconfigured') {
+            setVendorUnconfigured(true);
+            toast('PostHog not yet configured', 'error');
+          } else {
+            toast(
+              `Ship failed: ${(error as Error | undefined)?.message ?? code ?? 'unknown'}`,
+              'error',
+            );
+          }
+          return;
+        }
+        toast(`Shipped variant ${row.variant_name} to 100%`, 'success');
+        // Refresh the list so the new rollout state appears.
+        const cancelled = { v: false };
+        await load(activeTab, cancelled);
+      } finally {
+        setBusyKey(null);
+      }
+    },
+    [rows, toast, load, activeTab],
+  );
 
   // ---------------------------------------------------------------------------
   // Render
@@ -184,9 +227,20 @@ export function ExperimentDashboardPage(): React.JSX.Element {
               }
             />
           </Card>
+        ) : activeTab === 'paywall' ? (
+          <PaywallExperimentTab
+            rows={rows!}
+            onShip={(vid) => void handleShip(vid)}
+            busyKey={busyKey}
+          />
+        ) : activeTab === 'page' ? (
+          <PageExperimentTab
+            rows={rows!}
+            onShip={(vid) => void handleShip(vid)}
+            busyKey={busyKey}
+          />
         ) : (
-          // Plans 39-07 / 39-08 fill this slot. Until then, a non-stub
-          // placeholder showing the count keeps the chrome non-empty.
+          // activeTab === 'pharma' — Plan 39-08 fills this slot.
           <Card variant="flat" padding="md">
             <p className="text-sm text-[var(--color-text-secondary)]">
               {rows!.length} experiment{rows!.length === 1 ? '' : 's'} loaded.

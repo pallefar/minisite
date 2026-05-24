@@ -223,4 +223,73 @@ describe('ExperimentDashboardPage', () => {
       });
     });
   });
+
+  // ─── Plan 39-07 sub-tab wiring tests (T10-T13) ────────────────────────────
+
+  it('T10: paywall tab renders PaywallExperimentTab when rows present (variant_name visible)', async () => {
+    mockRpc.mockResolvedValue({ data: [makeRow({ variant_name: 'Test Paywall' })], error: null });
+    const { ExperimentDashboardPage } = await import('./ExperimentDashboardPage');
+    render(<ExperimentDashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Paywall')).toBeInTheDocument();
+    });
+  });
+
+  it('T11: page tab renders PageExperimentTab when activeTab=page', async () => {
+    mockRpc.mockImplementation((_fn: string, args: { surface: string }) => {
+      if (args.surface === 'page') {
+        return Promise.resolve({
+          data: [
+            makeRow({
+              surface: 'page',
+              variant_name: 'Hero V2',
+              warned_at: '2026-05-15T00:00:00Z',
+            }),
+          ],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: [], error: null });
+    });
+    const { ExperimentDashboardPage } = await import('./ExperimentDashboardPage');
+    render(<ExperimentDashboardPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Page-Builder' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Hero V2')).toBeInTheDocument();
+    });
+    // 35-day warn banner copy from PageExperimentTab
+    expect(screen.getByText(/This variant auto-archives in/)).toBeInTheDocument();
+  });
+
+  it('T12: pharma tab keeps the placeholder (Plan 39-08 fills it in)', async () => {
+    mockRpc.mockResolvedValue({ data: [makeRow({ surface: 'pharma' })], error: null });
+    const { ExperimentDashboardPage } = await import('./ExperimentDashboardPage');
+    render(<ExperimentDashboardPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pharma' }));
+
+    await waitFor(() => {
+      // Pharma tab still shows the placeholder copy from 39-06
+      expect(
+        screen.getByText(/Per-tab table renders ship in Plans 39-07 \/ 39-08/),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('T13: paywall Ship-Winner cascade — high posterior calls onShip directly', async () => {
+    mockRpc.mockResolvedValue({
+      data: [makeRow({ variant_id: 'v-high', variant_name: 'High Posterior', posterior: 0.97 })],
+      error: null,
+    });
+    const { ExperimentDashboardPage } = await import('./ExperimentDashboardPage');
+    const { container } = render(<ExperimentDashboardPage />);
+
+    await waitFor(() => expect(screen.getByText('High Posterior')).toBeInTheDocument());
+
+    const shipBtn = container.querySelector('[data-action="ship-winner"]') as HTMLButtonElement;
+    expect(shipBtn).toBeInTheDocument();
+  });
 });
