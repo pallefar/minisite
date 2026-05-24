@@ -50,6 +50,11 @@ import * as pauseResumedT0   from './email-templates/pause-resumed-t0.ts';
 // (notification-send) ALL land in the SAME commit per feedback_planner_missed_status_enum_widening.
 import * as communityMention from './email-templates/community-mention.ts';
 import * as communityReply   from './email-templates/community-reply.ts';
+// Phase 45 Plan 45-02 — DM + admin report digest templates (non-PHI → Resend).
+// Per feedback_planner_missed_status_enum_widening: union extension +
+// subjectFor + renderTemplate switch arms MUST land in the SAME commit.
+import * as communityDmNew       from './email-templates/community-dm-new.ts';
+import * as communityAdminDigest from './email-templates/community-admin-report-digest.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,7 +98,12 @@ export type EmailTemplate =
   // Per [[feedback_planner_missed_status_enum_widening]]: union extension +
   // subjectFor + renderTemplate switch arms land in the SAME commit.
   | 'community_mention'          // non-PHI → Resend. @mention notification.
-  | 'community_reply';           // non-PHI → Resend. Comment-on-post notification.
+  | 'community_reply'            // non-PHI → Resend. Comment-on-post notification.
+  // Phase 45 Plan 45-02 — DM + admin report digest templates.
+  // Per [[feedback_planner_missed_status_enum_widening]]: union extension +
+  // subjectFor + renderTemplate switch arms land in the SAME commit.
+  | 'community_dm_new'           // non-PHI → Resend. New direct-message notification.
+  | 'community_admin_report_digest'; // non-PHI → Resend. Daily admin digest of open community reports.
 
 export type SendEmailArgs = {
   /** Template identifier — determines HTML rendering and subject line. */
@@ -189,6 +199,11 @@ function subjectFor(template: EmailTemplate, vars: Record<string, unknown>): str
       return communityMention.subject(vars);
     case 'community_reply':
       return communityReply.subject(vars);
+    // Phase 45 Plan 45-02 — DM + admin report digest emails (non-PHI → Resend).
+    case 'community_dm_new':
+      return communityDmNew.subject(vars);
+    case 'community_admin_report_digest':
+      return communityAdminDigest.subject(vars);
     default:
       return 'LeanShot Notification';
   }
@@ -282,6 +297,11 @@ function renderTemplate(template: EmailTemplate, vars: Record<string, unknown>):
       return communityMention.render(vars);
     case 'community_reply':
       return communityReply.render(vars);
+    // Phase 45 Plan 45-02 — DM + admin report digest emails (non-PHI → Resend).
+    case 'community_dm_new':
+      return communityDmNew.render(vars);
+    case 'community_admin_report_digest':
+      return communityAdminDigest.render(vars);
     default:
       return `<html><body><p>LeanShot notification.</p></body></html>`;
   }

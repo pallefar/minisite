@@ -177,6 +177,12 @@ const VALID_CATEGORIES = new Set<Category>([
   // and the Category type in _shared/notification-types.ts.
   'community-mentions',
   'community-replies',
+  // Phase 45 Plan 45-02 — DM + admin report digest categories.
+  // Must match the CHECK constraints widened in
+  // 20270727000004_p45_notification_widening.sql and the Category type union
+  // extension in _shared/notification-types.ts.
+  'community-dm',
+  'community-admin-report',
 ]);
 
 interface SendBody {
@@ -292,8 +298,18 @@ async function loadContext(userId: string, category: Category): Promise<LoadedCo
 // ============================================================================
 
 /**
- * Map our 5 categories × PHI flag to the EmailRouter's EmailTemplate enum.
- * For categories without a dedicated template, use a sensible non-PHI default.
+ * Map our notification categories × PHI flag to the EmailRouter's
+ * EmailTemplate enum. For categories without a dedicated template, use a
+ * sensible non-PHI default.
+ *
+ * Phase 45 Plan 45-02 — added 'community-dm' + 'community-admin-report' arms
+ * (Rule 2: missing critical functionality; without them fanOutEmail crashes
+ * on destructuring undefined when category cfg has email_enabled_default=true).
+ *
+ * NOTE: 'community-mentions' + 'community-replies' arms remain unwired here
+ * (Phase 44 latent gap, OUT OF SCOPE per execute scope-boundary rules); the
+ * default branch below returns 'marketing_announcement' to keep the function
+ * total. Tracked in deferred-items.md for Phase 44 cleanup.
  */
 function templateForCategory(category: Category): { template: EmailTemplate; phi: boolean } {
   switch (category) {
@@ -306,6 +322,16 @@ function templateForCategory(category: Category): { template: EmailTemplate; phi
     case 'billing':
       return { template: 'receipt', phi: false };
     case 'marketing':
+      return { template: 'marketing_announcement', phi: false };
+    // Phase 45 Plan 45-02 — DM + admin report digest categories (non-PHI → Resend).
+    case 'community-dm':
+      return { template: 'community_dm_new', phi: false };
+    case 'community-admin-report':
+      return { template: 'community_admin_report_digest', phi: false };
+    // Pre-existing Phase 44 gap (community-mentions / community-replies) +
+    // exhaustiveness guard. Returning a non-PHI default keeps the function
+    // total; mis-categorized sends will render the email-router default body.
+    default:
       return { template: 'marketing_announcement', phi: false };
   }
 }
