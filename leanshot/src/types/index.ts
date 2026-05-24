@@ -241,7 +241,15 @@ export type TabId =
   | 'supplements'
   | 'mood'
   | 'insights'
-  | 'community';
+  | 'community'
+  // Phase 46 NEW TabId — courses are a distinct content surface (CONTEXT D-?
+  // + RESEARCH). EXCEPTION to the no-new-TabId convention from memory
+  // reference_react_router_consumer_admin_split: the consumer-facing
+  // Classroom is large enough to warrant its own top-level tab rather than
+  // a Community sub-view. Sidebar + MobileNav iterate `TABS`, so adding
+  // 'classroom' here is enough to surface a new entry; nav-labels.ts is
+  // extended with matching exhaustive switch arms.
+  | 'classroom';
 
 export type Theme = 'light' | 'dark';
 

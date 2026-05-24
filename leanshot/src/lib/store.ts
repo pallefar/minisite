@@ -81,6 +81,23 @@ interface UIState {
    */
   activeCommunitySpaceId: string | null;
   /**
+   * Phase 46 Plan 08 — active course + lesson IDs for the Classroom surface.
+   * Two-level UI router shared by ClassroomTabShell / CourseDetailView /
+   * LessonPlayerView (Zustand-driven; no react-router per CLAUDE.md no-router
+   * rule for the consumer surface).
+   *
+   * Semantics:
+   *   - activeCourseId === null AND activeLessonId === null  → CourseListView
+   *   - activeCourseId !== null AND activeLessonId === null  → CourseDetailView (course landing + sidebar)
+   *   - activeCourseId !== null AND activeLessonId !== null  → LessonPlayerView (Mux Player + anti-skip)
+   *
+   * NOT persisted (transient UI state — mirrors activeCommunitySpaceId
+   * treatment per memory reference_zustand_persisted_user_blocks_marketing_uat;
+   * persisted-deep-link would re-hydrate user inside a course on every reload).
+   */
+  activeCourseId: string | null;
+  activeLessonId: string | null;
+  /**
    * Phase 45 Plan 07a — active community sub-view for directory/DM dispatch.
    * 3-variant union (NOT a new TabId per memory reference_react_router_consumer_admin_split).
    * NOT persisted (ephemeral UI state — excluded from partialize per
@@ -157,6 +174,14 @@ interface Actions {
    * Transient UI state: NOT persisted (excluded from partialize).
    */
   setActiveCommunitySpace: (id: string | null) => void;
+  /**
+   * Phase 46 Plan 08 — set the active course + (optional) lesson for the
+   * Classroom two-level navigation. Call with `(null)` to return to the
+   * course list; with `(courseId)` to land on the course detail view; with
+   * `(courseId, lessonId)` to jump straight into the lesson player.
+   * Transient UI state: NOT persisted (excluded from partialize).
+   */
+  setActiveCourse: (courseId: string | null, lessonId?: string | null) => void;
   /** Phase 45 Plan 07a — set the active community sub-view (directory / dm / null). */
   setActiveCommunityView: (v: 'directory' | 'dm' | null) => void;
   /** Phase 45 Plan 07a — set the active DM thread id within the 'dm' sub-view. */
@@ -644,6 +669,10 @@ export const useStore = create<Store>()(
       migration_state: null,
       currentTab: 'home',
       activeCommunitySpaceId: null,
+      // Phase 46 Plan 08 — Classroom navigation slice initial values.
+      // Both NOT persisted (excluded from partialize — ephemeral UI state).
+      activeCourseId: null,
+      activeLessonId: null,
       // Phase 45 Plan 07a — community sub-view dispatch. Both ephemeral; excluded
       // from partialize (server is source of truth for any thread state — these
       // are pure UI-routing flags).
@@ -780,6 +809,12 @@ export const useStore = create<Store>()(
 
       // Phase 44 Plan 09 — community list-vs-detail navigation (Zustand-driven, no router).
       setActiveCommunitySpace: (id) => set({ activeCommunitySpaceId: id }),
+      // Phase 46 Plan 08 — Classroom two-level navigation (Zustand-driven, no router).
+      // `lessonId` defaults to null so callers may pass just `courseId` to land on
+      // the detail view, or both ids to deep-link into the player. Setting
+      // `setActiveCourse(null)` returns to the course list.
+      setActiveCourse: (courseId, lessonId = null) =>
+        set({ activeCourseId: courseId, activeLessonId: lessonId }),
       // Phase 45 Plan 07a — community sub-view dispatch (directory / dm / null).
       setActiveCommunityView: (v) => set({ activeCommunityView: v }),
       setActiveDmThread: (id) => set({ activeDmThreadId: id }),

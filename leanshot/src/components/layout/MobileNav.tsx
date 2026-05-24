@@ -10,6 +10,7 @@ import {
   Smile,
   Trophy,
   Users,
+  BookOpen,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/helpers';
@@ -28,6 +29,12 @@ const TABS: { id: TabId; Icon: typeof Home }[] = [
   { id: 'mood', Icon: Smile },
   { id: 'insights', Icon: Trophy },
   { id: 'community', Icon: Users },
+  // Phase 46 Plan 08 — Classroom (consumer-side course surface).
+  // Added as the 11th entry; MobileNav uses overflow-x scroll
+  // (className includes `overflow-x-auto scrollbar-none`) so iOS-style
+  // strip remains usable without dropping Insights or other tabs.
+  // Nav button below calls setTab('classroom') via the TABS.map iteration.
+  { id: 'classroom', Icon: BookOpen },
 ];
 
 /**
