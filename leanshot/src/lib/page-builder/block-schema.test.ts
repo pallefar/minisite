@@ -166,5 +166,35 @@ describe('block-schema', () => {
       ];
       expect(tree).toHaveLength(2);
     });
+
+    // Phase 39 Plan 39-02 (PAGEAB-06 / D-13) — variant_set_id optional FK.
+    // The field is appended to BlockNode as `variant_set_id?: string` so a
+    // block can reference a row in page_variants for per-block A/B variant
+    // resolution at render time. Optional — existing blocks without the field
+    // continue to validate.
+    it('accepts BlockNode with optional variant_set_id (D-13 / PAGEAB-06)', () => {
+      const withVariant: BlockNode = {
+        id: 'v1',
+        type: 'hero',
+        parent_id: null,
+        order: 0,
+        content: { heading: 'Variant A' },
+        style: {},
+        variant_set_id: 'variant-abc-123',
+      };
+      expect(withVariant.variant_set_id).toBe('variant-abc-123');
+
+      // Backwards-compat: BlockNode without variant_set_id still satisfies
+      // the interface (the field is optional).
+      const withoutVariant: BlockNode = {
+        id: 'v2',
+        type: 'hero',
+        parent_id: null,
+        order: 0,
+        content: {},
+        style: {},
+      };
+      expect(withoutVariant.variant_set_id).toBeUndefined();
+    });
   });
 });

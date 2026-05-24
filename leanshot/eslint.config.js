@@ -18,6 +18,9 @@ const noRawServiceRoleClientRule = _require('./eslint-rules/no-raw-service-role-
 // Phase 42 Plan 42-07 — no-conditional-native-review (D-20).
 // Folds P36 (review-prompt) + P42 (quarterly NPS) instruments under one rule.
 const noConditionalNativeReviewRule = _require('./eslint-rules/no-conditional-native-review.cjs');
+// Phase 39 Plan 39-02 — no-paywall-on-safety-category (D-06 layer 1 of 3).
+// D-05 enumerates 5 safety-info categories that must never sit behind a paywall.
+const noPaywallOnSafetyCategoryRule = _require('./eslint-rules/no-paywall-on-safety-category.cjs');
 
 export default defineConfig([
   // Global ignores
@@ -307,6 +310,23 @@ export default defineConfig([
     },
     rules: {
       'leanshot-nps/no-conditional-native-review': 'error',
+    },
+  },
+
+  // Phase 39 Plan 39-02 — D-06 layer 1 of 3: no-paywall-on-safety-category enforcement.
+  // Detects any Paywall* JSX component (Paywall, PaywallGate, PaywallModal) whose
+  // subtree references `safety_category`. D-05 enumerates 5 categories that must
+  // never sit behind a paywall (overdose-warning, contraindication-alert,
+  // fda-black-box, serious-adverse-event-signal, pregnancy-lactation-contraindication).
+  // Test files exempt — fixtures legitimately exercise both sides of the gate.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/test-setup.ts'],
+    plugins: {
+      'leanshot-pharma': { rules: { 'no-paywall-on-safety-category': noPaywallOnSafetyCategoryRule } },
+    },
+    rules: {
+      'leanshot-pharma/no-paywall-on-safety-category': 'error',
     },
   },
 

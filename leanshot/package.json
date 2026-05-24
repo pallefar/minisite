@@ -11,6 +11,7 @@
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "lint:safety": "bash scripts/check-no-paywall-on-safety-category.sh src",
     "format": "prettier --write src",
     "format:check": "prettier --check src",
     "test": "vitest run && playwright test",
