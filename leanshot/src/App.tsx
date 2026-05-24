@@ -106,6 +106,12 @@ const InsightsTab = lazy(() =>
 // Phase 44 Plan 09 — Community tab shell (Zustand-driven navigation per CLAUDE.md no-router rule).
 // DO NOT add react-router-dom Route or useNavigate here — consumer surface uses setTab + store.activeCommunitySpaceId.
 const CommunityTabShell = lazy(() => import('@/components/community/CommunityTabShell'));
+// Phase 46 Plan 08 — Classroom tab shell (Zustand-driven; new TabId 'classroom').
+// EXCEPTION to the no-new-TabId rule per CONTEXT — courses are a distinct content
+// surface, not a Community sub-view. The shell + sub-views all live under
+// src/components/course/ so vite.config.ts routes them into the 'course-player'
+// chunk (≤30 kB gz ceiling). DO NOT add a Route — consumer surface stays Zustand.
+const ClassroomTabShell = lazy(() => import('@/components/course/ClassroomTabShell'));
 
 const Onboarding = lazy(() =>
   import('@/components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })),
@@ -1937,6 +1943,10 @@ export function App() {
                 from the Zustand store. NO new TabId, NO <Route> per memory
                 reference_react_router_consumer_admin_split. */}
             {currentTab === 'community' && <CommunityTabShell />}
+            {/* Phase 46 Plan 08 — Classroom surface. Two-level Zustand
+                navigation (activeCourseId / activeLessonId) handled INSIDE
+                ClassroomTabShell. NO new <Route>; consumer stays router-free. */}
+            {currentTab === 'classroom' && <ClassroomTabShell />}
           </TabSwitcher>
         </Suspense>
       </AppShell>
