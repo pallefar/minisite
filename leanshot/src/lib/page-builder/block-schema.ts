@@ -45,7 +45,8 @@ export type BlockType =
   | 'calendly'
   | 'youtube'
   | 'tally'
-  | 'lead-form';
+  | 'lead-form'
+  | 'custom_iframe'; // P41 EMBED-07 — superadmin-allowlisted iframe
 
 /**
  * Token-bounded style options shared by every block (D-05). All fields are
