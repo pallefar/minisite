@@ -143,14 +143,69 @@ export async function handler(req: Request): Promise<Response> {
     return new Response('ok', { status: 200 });
   }
 
-  // Parse passthrough JSON to recover post_id — AUTHORITATIVE key for UPDATE
-  // (T-44-02b: passthrough was server-minted by mux-create-upload from auth.uid() + post_id)
-  let passthrough: { user_id?: string; post_id?: string } | null = null;
+  // Parse passthrough JSON — extended in Plan 46-05 with `kind` discriminator.
+  // (T-44-02b: passthrough was server-minted by mux-create-upload — implicitly
+  //  signed by Mux's HMAC. Trust to route the UPDATE.)
+  let passthrough: {
+    user_id?: string;
+    post_id?: string;
+    kind?: string;
+    lesson_id?: string;
+    course_id?: string;
+  } | null = null;
   try {
     passthrough = event.data?.passthrough ? JSON.parse(event.data.passthrough) : null;
   } catch {
     passthrough = null;
   }
+
+  const kind = passthrough?.kind ?? 'community-post';
+
+  // ==========================================================================
+  // Plan 46-05: course-lesson branch — dispatches Mux asset events to
+  // course_lessons (NOT community_posts).
+  //
+  // Critical: only the three real Mux webhook events handled here. Anti-skip
+  // accounting is client-side accumulate per RESEARCH Pitfall 1; there is no
+  // server-side per-playback-segment webhook from Mux.
+  // ==========================================================================
+  if (kind === 'course-lesson') {
+    const lessonId = passthrough?.lesson_id ?? null;
+    if (!lessonId) {
+      console.warn('[mux-webhook] course-lesson missing lesson_id; skipping', {
+        event_type: event.type,
+        asset_id: event.data?.id,
+      });
+      return new Response('ok', { status: 200 });
+    }
+
+    if (event.type === 'video.asset.ready') {
+      const playbackId = event.data.playback_ids?.[0]?.id ?? null;
+      await (admin as SupabaseClient)
+        .from('course_lessons')
+        .update({
+          mux_asset_id: event.data.id,
+          mux_playback_id: playbackId,
+          mux_status: 'ready',
+        })
+        .eq('id', lessonId);
+    } else if (event.type === 'video.asset.errored') {
+      await (admin as SupabaseClient)
+        .from('course_lessons')
+        .update({ mux_status: 'rejected' })
+        .eq('id', lessonId);
+    } else if (event.type === 'video.upload.asset_created') {
+      await (admin as SupabaseClient)
+        .from('course_lessons')
+        .update({ mux_asset_id: event.data.id, mux_status: 'processing' })
+        .eq('id', lessonId);
+    } else {
+      // Unknown event type for course-lesson — forward-compatible no-op
+      console.log('[mux-webhook] course-lesson unhandled event type', event.type, 'lesson_id', lessonId);
+    }
+    return new Response('ok', { status: 200 });
+  }
+  // End course-lesson branch — existing community-post path continues below.
 
   const postId = passthrough?.post_id ?? null;
   if (!postId) {

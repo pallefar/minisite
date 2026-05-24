@@ -153,13 +153,66 @@ export async function handler(req: Request): Promise<Response> {
     return jsonError(401, 'unauthorized');
   }
 
-  // Parse body
-  let body: { post_id?: string };
+  // Parse body — extended for course-lesson kind (Plan 46-05)
+  let body: { post_id?: string; lesson_id?: string; course_id?: string; kind?: string };
   try {
-    body = await req.json() as { post_id?: string };
+    body = await req.json() as { post_id?: string; lesson_id?: string; course_id?: string; kind?: string };
   } catch {
     return jsonError(400, 'invalid_json');
   }
+
+  const kind = body?.kind ?? 'community-post';
+
+  // ==========================================================================
+  // Plan 46-05: course-lesson branch — admin-only, signed playback, 30-min cap
+  //   T-46-01 (Information Disclosure): is_staff gate BEFORE Mux call.
+  //   T-46-07 (Elevation of Privilege): is_staff is separate from tier_effective;
+  //     a Pro/Trial user without is_staff=true cannot mint a course-lesson upload.
+  //   Critical divergences from community-post path:
+  //     - playback_policies:['signed']  (NOT 'public')   — Plan 46-04 JWT required
+  //     - max_duration_seconds: 1800    (NOT 300)        — D-05: 30 min cap
+  //     - generated_subtitles: en       (D-06: caption auto-gen)
+  //     - passthrough envelope: { kind, lesson_id, course_id } (no user_id/post_id)
+  // ==========================================================================
+  if (kind === 'course-lesson') {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('is_staff')
+      .eq('id', user.id)
+      .single();
+    if (!(profile as { is_staff?: boolean } | null)?.is_staff) {
+      return jsonError(403, 'ADMIN_REQUIRED');
+    }
+
+    const lessonId = body?.lesson_id;
+    const courseId = body?.course_id;
+    if (typeof lessonId !== 'string' || typeof courseId !== 'string') {
+      return jsonError(400, 'invalid_lesson_id');
+    }
+
+    try {
+      const mux = getMux();
+      const upload = await mux.video.uploads.create({
+        cors_origin: req.headers.get('origin') ?? '*',
+        new_asset_settings: {
+          playback_policies: ['signed'],     // CRITICAL: signed (NOT public)
+          max_duration_seconds: 1800,         // D-05: 30 min
+          passthrough: JSON.stringify({
+            kind: 'course-lesson',
+            lesson_id: lessonId,
+            course_id: courseId,
+          }),
+          generated_subtitles: [{ language_code: 'en', name: 'English (auto)' }], // D-06
+        },
+        timeout: 3600,
+      });
+      return jsonResponse(200, { url: upload.url, upload_id: upload.id });
+    } catch (_e) {
+      console.error('[mux-create-upload] Mux API error (course-lesson)', _e instanceof Error ? _e.message : 'unknown');
+      return jsonError(500, 'mux_error');
+    }
+  }
+  // End course-lesson branch — existing community-post branch continues below.
 
   const postId = body?.post_id;
   if (typeof postId !== 'string' || postId.trim() === '') {
