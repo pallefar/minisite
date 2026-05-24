@@ -31,10 +31,19 @@
 
 // ─── A11y titles — non-empty per UI-SPEC + Lighthouse ≥95 ─────────────────────
 
-export const EMBED_IFRAME_TITLES: Record<'calendly' | 'youtube' | 'tally', string> = {
+export const EMBED_IFRAME_TITLES: Record<
+  'calendly' | 'youtube' | 'tally' | 'custom_iframe',
+  string
+> = {
   calendly: 'Schedule a meeting',
   youtube: 'YouTube video player',
   tally: 'Tally form',
+  // Phase 41 EMBED-07 — Custom-iframe default a11y title when admin's
+  // `iframeTitle` content field is missing / too short to be screen-reader
+  // useful. The CustomIframeBlock content editor enforces ≥3 chars at the
+  // UI layer (see UI-SPEC §Surface E); the renderer falls back to this
+  // string on bad input as defense-in-depth.
+  custom_iframe: 'Embedded content',
 };
 
 // ─── YouTube ───────────────────────────────────────────────────────────────────
@@ -207,6 +216,82 @@ export function buildTallyIframeHtml(content: TallyContent): string {
     ` style="width:100%;height:100%;border:0;"`;
   return (
     `<div class="block-embed block-embed-tally" style="width:100%;min-height:400px;">` +
+    `<iframe src="${escapeHtmlAttr(src)}" ${attrs}></iframe>` +
+    `</div>`
+  );
+}
+
+// ─── Custom-iframe (Phase 41 EMBED-07) ─────────────────────────────────────────
+//
+// Per-deployment superadmin-allowlisted hostnames (D-14, D-17). The allowlist
+// is fetched at render time from public.iframe_allowlist (Plan 41-02 schema)
+// and passed to these helpers as a hostname array. NEVER use `endsWith` /
+// `includes` / regex on the hostname — D-15 requires exact equality
+// (defeats `evil.com.allowlisted.com` look-alikes and accidental subdomain
+// expansion). Sandbox is FIXED per D-16 — admin cannot override in v1.3.
+
+export interface CustomIframeContent {
+  embedUrl: string;
+  iframeTitle: string;
+  widthMode?: boolean;
+}
+
+/**
+ * Validates `raw` against the per-deployment allowlist using EXACT hostname
+ * equality. Returns the canonicalised URL string on success, `null` on any
+ * failure (non-string, unparseable, non-https, or hostname not on the
+ * allowlist). Pure — safe to call from both client and server (Deno) code.
+ *
+ * D-15 enforcement: `allowlistHostnames.includes(parsed.hostname)` ONLY.
+ * Do NOT introduce string-pattern matching here.
+ */
+export function validateCustomIframeUrl(
+  raw: unknown,
+  allowlistHostnames: ReadonlyArray<string>,
+): string | null {
+  if (typeof raw !== 'string' || raw.trim() === '') return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== 'https:') return null;
+  // D-15 — exact hostname match; no subdomain expansion, no endsWith.
+  if (!allowlistHostnames.includes(parsed.hostname)) return null;
+  return parsed.toString();
+}
+
+/**
+ * Renders the full Custom-iframe HTML string (wrapper + iframe) from validated
+ * content. On any validation failure returns an empty string — callers
+ * (page-render/render.ts, CustomIframeBlock preview) render a safe non-iframe
+ * fallback rather than emit an iframe with an unvalidated src.
+ *
+ * D-16: the `sandbox` attribute is a string literal `'allow-scripts
+ * allow-same-origin'`. There is NO parameterisation, NO content-driven flag,
+ * NO admin-override surface. Plan 41-05's CustomIframeBlock and Plan 41-03's
+ * Deno renderer MUST call this helper rather than build iframe attrs ad-hoc.
+ */
+export function buildCustomIframeIframeHtml(
+  content: CustomIframeContent,
+  allowlistHostnames: ReadonlyArray<string>,
+): string {
+  const src = validateCustomIframeUrl(content.embedUrl, allowlistHostnames);
+  if (!src) return '';
+  const title =
+    typeof content.iframeTitle === 'string' && content.iframeTitle.length >= 3
+      ? content.iframeTitle
+      : EMBED_IFRAME_TITLES.custom_iframe;
+  const attrs =
+    commonIframeAttrs(title) +
+    // D-16 FIXED sandbox — admin cannot override in v1.3. Provider-specific
+    // embeds (Calendly/YouTube/Tally) have their own per-provider sandbox
+    // attributes; Custom-iframe is the locked-down posture.
+    ` sandbox="allow-scripts allow-same-origin"` +
+    ` style="width:100%;height:100%;border:0;"`;
+  return (
+    `<div class="block-embed block-embed-custom-iframe" style="width:100%;min-height:400px;">` +
     `<iframe src="${escapeHtmlAttr(src)}" ${attrs}></iframe>` +
     `</div>`
   );
