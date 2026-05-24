@@ -39,6 +39,8 @@ import {
   Smile as SmileIcon,
   // Phase 40 Plan 40-05 — Cancellation save-offer rule editor icon.
   HeartCrack as HeartCrackIcon,
+  // Phase 47 Plan 47-11 — Admin Events module icon.
+  CalendarDays as CalendarDaysIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -435,6 +437,25 @@ export const ADMIN_MODULES = [
     lazy: () => import('@/admin/modules/courses/CoursesAdminLayout'),
     flagKey: 'admin.courses.enabled',
     minRole: 'admin' as AdminRole,
+  },
+  // Phase 47 Plan 47-11 (EVENT-01/03/05) — Admin Events module.
+  // AdminEventsLayout uses pathname-based resolveView; AdminShell.tsx URL-prefix
+  // catch-all (pathname.startsWith('/admin/events/')) routes all sub-routes
+  // here automatically — /admin/events, /new, /:id/edit, /:id/attendees,
+  // /:id/recording — per feedback_admin_module_manifest_vs_router_branch_drift.
+  // minRole 'staff' so on-duty operations staff see the module; events
+  // INSERT/UPDATE/DELETE RLS (20270801000002_p47_events_rls.sql) re-checks
+  // public.is_staff() at the DB layer (Pattern S1 dual-layer). The
+  // zoom-create-meeting + mux-create-upload Edge Fns re-check is_staff
+  // server-side too (defense in depth, T-46-07 mirror).
+  {
+    key: 'events',
+    label: 'Events',
+    route: 'events',
+    icon: CalendarDaysIcon,
+    lazy: () => import('@/admin/modules/events/AdminEventsLayout'),
+    flagKey: 'admin.events.enabled',
+    minRole: 'staff' as AdminRole,
   },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
   // Superadmin-only: vendor BAA status updates are security-sensitive; superadmin gate
