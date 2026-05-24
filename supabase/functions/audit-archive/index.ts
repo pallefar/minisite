@@ -39,6 +39,54 @@ const CHUNK_SIZE = 10_000;
 const HOT_WINDOW_DAYS = 90;
 const BUCKET = 'audit-archive';
 
+/**
+ * Table archive registry. Each entry drives one independent archival pass
+ * (fetch → CSV/Parquet → upload → SECDEF delete RPC).
+ *
+ * Phase 24 (D-16) shipped this Fn for `audit_logs` only.
+ * Phase 48 Plan 48-04 (D-16) widens coverage to `moderation_audit_log` for
+ * HIPAA-14 immutability (moderation actions retained 90d hot + Parquet cold,
+ * mirroring phi_access_log immutability invariant).
+ *
+ * Each entry MUST have a corresponding SECDEF delete RPC named
+ * `delete_archived_<short_name>_rows(p_cutoff timestamptz)`. The RPC is
+ * required because the source table has `REVOKE UPDATE, DELETE FROM
+ * service_role` (append-only invariant); only a SECDEF function owned by the
+ * table owner can DELETE archived rows.
+ *
+ * If the delete RPC is missing at runtime (e.g., a new table is registered
+ * before its delete RPC migration ships), the per-table pass returns a 207
+ * partial-success warning rather than aborting the whole run — other tables
+ * still get archived.
+ */
+export interface ArchiveTable {
+  /** Source table name in public schema. */
+  source: string;
+  /** Short name used in storage path + delete RPC name. */
+  short_name: string;
+  /** Column projection for SELECT. Order is preserved in CSV header. */
+  columns: string;
+  /** SECDEF delete RPC name. */
+  delete_rpc: string;
+}
+
+export const TABLES_TO_ARCHIVE: ArchiveTable[] = [
+  {
+    source: 'audit_logs',
+    short_name: 'audit_logs',
+    columns:
+      'id, created_at, actor_user_id, target_user_id, action_name, table_name, row_pk, before_data, after_data, source, org_id',
+    delete_rpc: 'delete_archived_audit_rows',
+  },
+  {
+    source: 'moderation_audit_log',
+    short_name: 'moderation_audit_log',
+    columns:
+      'id, created_at, actor_id, action_type, target_type, target_id, before_state, after_state, reason',
+    delete_rpc: 'delete_archived_moderation_audit_rows',
+  },
+];
+
 const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -232,105 +280,181 @@ async function handle(req: Request): Promise<Response> {
     });
   }
 
-  // ── 5. Build storage path ─────────────────────────────────────────────────
+  // ── 5. Per-table archive loop ─────────────────────────────────────────────
+  // Each entry in TABLES_TO_ARCHIVE produces an independent fetch → upload →
+  // delete pass. Per-table failures degrade the overall response status but
+  // do not abort sibling tables — moderation_audit_log unavailable should
+  // not prevent audit_logs from being archived.
   const { yyyy, mm, dd } = utcDateParts(now);
   const ext = 'csv'; // DuckDB fallback is CSV; parquet when DuckDB confirmed
-  let storagePath = `${yyyy}/${mm}/${dd}.${ext}`;
 
-  // Idempotency: check if path already exists; append rerun suffix if so
-  // deno-lint-ignore no-explicit-any
-  const { data: existingFile } = await (admin as any)
-    .storage
-    .from(BUCKET)
-    .list(`${yyyy}/${mm}`, { search: `${dd}.${ext}` }) as { data: Array<{ name: string }> | null };
-
-  if (existingFile && existingFile.length > 0) {
-    storagePath = `${yyyy}/${mm}/${dd}-rerun-${Date.now()}.${ext}`;
-    console.warn(`audit-archive: path already exists for today — using rerun suffix: ${storagePath}`);
+  interface TableResult {
+    table: string;
+    archived_count: number;
+    archived_path: string | null;
+    format?: 'csv' | 'parquet';
+    warning?: string;
+    detail?: string;
   }
 
-  // ── 6. Fetch + archive in chunks ──────────────────────────────────────────
-  let offset = 0;
-  let totalArchived = 0;
-  const allRows: ArchiveRow[] = [];
+  const results: TableResult[] = [];
+  let anyWarning = false;
+  let anyError = false;
 
-  while (true) {
+  for (const entry of TABLES_TO_ARCHIVE) {
+    // ── 5a. Build per-table storage path with idempotency ──────────────────
+    let storagePath = `${entry.short_name}/${yyyy}/${mm}/${dd}.${ext}`;
+
     // deno-lint-ignore no-explicit-any
-    const { data: chunk, error: fetchErr } = await (admin as any)
-      .from('audit_logs')
-      .select('id, created_at, actor_user_id, target_user_id, action_name, table_name, row_pk, before_data, after_data, source, org_id')
-      .lt('created_at', cutoff.toISOString())
-      .order('created_at', { ascending: true })
-      .range(offset, offset + CHUNK_SIZE - 1) as {
-        data: ArchiveRow[] | null;
-        error: { message: string } | null;
+    const { data: existingFile } = await (admin as any)
+      .storage
+      .from(BUCKET)
+      .list(`${entry.short_name}/${yyyy}/${mm}`, { search: `${dd}.${ext}` }) as {
+        data: Array<{ name: string }> | null;
       };
 
-    if (fetchErr) {
-      return jsonResponse(500, { error: 'fetch_failed', detail: fetchErr.message });
+    if (existingFile && existingFile.length > 0) {
+      storagePath = `${entry.short_name}/${yyyy}/${mm}/${dd}-rerun-${Date.now()}.${ext}`;
+      console.warn(`audit-archive(${entry.source}): path already exists for today — using rerun suffix: ${storagePath}`);
     }
 
-    if (!chunk || chunk.length === 0) break;
+    // ── 5b. Fetch in chunks ────────────────────────────────────────────────
+    let offset = 0;
+    let totalArchived = 0;
+    const allRows: ArchiveRow[] = [];
 
-    allRows.push(...chunk);
-    totalArchived += chunk.length;
-    offset += CHUNK_SIZE;
+    while (true) {
+      // deno-lint-ignore no-explicit-any
+      const { data: chunk, error: fetchErr } = await (admin as any)
+        .from(entry.source)
+        .select(entry.columns)
+        .lt('created_at', cutoff.toISOString())
+        .order('created_at', { ascending: true })
+        .range(offset, offset + CHUNK_SIZE - 1) as {
+          data: ArchiveRow[] | null;
+          error: { message: string } | null;
+        };
 
-    if (chunk.length < CHUNK_SIZE) break; // last page
+      if (fetchErr) {
+        results.push({
+          table: entry.source,
+          archived_count: 0,
+          archived_path: null,
+          warning: 'fetch_failed',
+          detail: fetchErr.message,
+        });
+        anyError = true;
+        break;
+      }
+
+      if (!chunk || chunk.length === 0) break;
+
+      allRows.push(...chunk);
+      totalArchived += chunk.length;
+      offset += CHUNK_SIZE;
+
+      if (chunk.length < CHUNK_SIZE) break; // last page
+    }
+
+    // If fetch already errored above we recorded a result; skip the rest.
+    if (results.length > 0 && results[results.length - 1]!.table === entry.source && results[results.length - 1]!.warning === 'fetch_failed') {
+      continue;
+    }
+
+    if (allRows.length === 0) {
+      results.push({
+        table: entry.source,
+        archived_count: 0,
+        archived_path: null,
+      });
+      continue;
+    }
+
+    // ── 5c. Serialize rows (DuckDB Parquet → CSV fallback) ─────────────────
+    const parquetBytes = await tryDuckDB(allRows);
+    const bytes = parquetBytes ?? rowsToCSV(allRows);
+    const contentType = parquetBytes ? 'application/octet-stream' : 'text/csv';
+    const finalPath = parquetBytes ? storagePath.replace(`.${ext}`, '.parquet') : storagePath;
+
+    // ── 5d. Upload to Storage ──────────────────────────────────────────────
+    // deno-lint-ignore no-explicit-any
+    const { error: uploadErr } = await (admin as any)
+      .storage
+      .from(BUCKET)
+      .upload(finalPath, bytes, { contentType, upsert: false }) as { error: { message: string } | null };
+
+    if (uploadErr) {
+      results.push({
+        table: entry.source,
+        archived_count: 0,
+        archived_path: null,
+        warning: 'upload_failed',
+        detail: uploadErr.message,
+      });
+      anyError = true;
+      continue;
+    }
+
+    // ── 5e. Delete archived rows via SECDEF RPC ────────────────────────────
+    // RLS DENY for DELETE on source table — must go through SECDEF RPC that
+    // (for audit_logs) also sets `app.suppress_audit = 'on'` to prevent
+    // recursive audit triggers.
+    // deno-lint-ignore no-explicit-any
+    const { error: deleteErr } = await (admin as any)
+      .rpc(entry.delete_rpc, { p_cutoff: cutoff.toISOString() }) as {
+      error: { message: string } | null;
+    };
+
+    if (deleteErr) {
+      // Archive succeeded but delete failed (e.g. delete RPC not yet
+      // deployed for a newly-registered table). Log + record partial-success;
+      // sibling tables continue.
+      console.error(`audit-archive(${entry.source}): DELETE RPC ${entry.delete_rpc} failed after successful upload: ${deleteErr.message}`);
+      results.push({
+        table: entry.source,
+        archived_count: totalArchived,
+        archived_path: finalPath,
+        format: parquetBytes ? 'parquet' : 'csv',
+        warning: 'rows_not_deleted',
+        detail: deleteErr.message,
+      });
+      anyWarning = true;
+      continue;
+    }
+
+    results.push({
+      table: entry.source,
+      archived_count: totalArchived,
+      archived_path: finalPath,
+      format: parquetBytes ? 'parquet' : 'csv',
+    });
   }
 
-  if (allRows.length === 0) {
+  // ── 6. Aggregate response ─────────────────────────────────────────────────
+  // Sum across tables for top-level archived_count / archived_path back-compat
+  // with the single-table response shape from Phase 24. archived_path reports
+  // the first successful path (callers needing per-table detail read `tables`).
+  const totalArchived = results.reduce((acc, r) => acc + r.archived_count, 0);
+  const firstPath = results.find((r) => r.archived_path)?.archived_path ?? null;
+  const firstFormat = results.find((r) => r.format)?.format;
+
+  if (totalArchived === 0 && !anyError) {
     return jsonResponse(200, {
       archived_count: 0,
       archived_path: null,
       message: 'No rows older than cutoff to archive.',
+      tables: results,
+      cutoff: cutoff.toISOString(),
     });
   }
 
-  // ── 7. Serialize rows ─────────────────────────────────────────────────────
-  // Try DuckDB Parquet first; fall back to CSV.
-  const parquetBytes = await tryDuckDB(allRows);
-  const bytes = parquetBytes ?? rowsToCSV(allRows);
-  const contentType = parquetBytes ? 'application/octet-stream' : 'text/csv';
-  const finalPath = parquetBytes ? storagePath.replace(`.${ext}`, '.parquet') : storagePath;
-
-  // ── 8. Upload to Storage ──────────────────────────────────────────────────
-  // deno-lint-ignore no-explicit-any
-  const { error: uploadErr } = await (admin as any)
-    .storage
-    .from(BUCKET)
-    .upload(finalPath, bytes, { contentType, upsert: false }) as { error: { message: string } | null };
-
-  if (uploadErr) {
-    return jsonResponse(500, { error: 'upload_failed', detail: uploadErr.message });
-  }
-
-  // ── 9. Delete archived rows via SECURITY DEFINER RPC ─────────────────────
-  // RLS DENY for DELETE on audit_logs — must go through SECDEF RPC that also
-  // sets `app.suppress_audit = 'on'` to prevent recursive audit trigger.
-  // deno-lint-ignore no-explicit-any
-  const { error: deleteErr } = await (admin as any)
-    .rpc('delete_archived_audit_rows', { p_cutoff: cutoff.toISOString() }) as {
-    error: { message: string } | null;
-  };
-
-  if (deleteErr) {
-    // Archive succeeded but delete failed — log + return partial success.
-    console.error(`audit-archive: DELETE RPC failed after successful upload: ${deleteErr.message}`);
-    return jsonResponse(207, {
-      archived_count: totalArchived,
-      archived_path: finalPath,
-      warning: 'rows_not_deleted',
-      detail: deleteErr.message,
-    });
-  }
-
-  // ── 10. Return success ────────────────────────────────────────────────────
-  return jsonResponse(200, {
+  const status = anyError ? 500 : anyWarning ? 207 : 200;
+  return jsonResponse(status, {
     archived_count: totalArchived,
-    archived_path: finalPath,
-    format: parquetBytes ? 'parquet' : 'csv',
+    archived_path: firstPath,
+    format: firstFormat,
     cutoff: cutoff.toISOString(),
+    tables: results,
   });
 }
 

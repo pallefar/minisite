@@ -135,6 +135,11 @@ Deno.test(
 );
 
 // ── Test 2: 200 + archived_count + archived_path on valid cron POST ───────────
+//
+// Phase 48 Plan 48-04: Fn now archives multiple tables per run (audit_logs +
+// moderation_audit_log). The mock `from(_table)` returns the same `rows` for
+// every table, so total archived_count = rows.length × TABLES_TO_ARCHIVE.length.
+// The per-table breakdown lives in body.tables[].
 
 Deno.test(
   'Returns 200 + archived_count + archived_path when source=cron is POSTed',
@@ -151,9 +156,16 @@ Deno.test(
       assertEquals(res.status, 200);
       const body = await res.json() as Record<string, unknown>;
       assertEquals(typeof body.archived_count, 'number');
-      assertEquals(body.archived_count, 3);
+      // Each registered table contributes `rows.length` (mock returns same fixture per table).
+      const tables = body.tables as Array<Record<string, unknown>>;
+      assertEquals(Array.isArray(tables), true, 'response must include per-table breakdown');
+      assertEquals(body.archived_count, rows.length * tables.length);
       assertEquals(typeof body.archived_path, 'string');
       assertStringIncludes(body.archived_path as string, '/');
+      // Each table's per-table archived_count matches the mock fixture row count.
+      for (const t of tables) {
+        assertEquals(t.archived_count, rows.length, `table ${t.table} should archive ${rows.length} rows`);
+      }
     }),
 );
 
@@ -245,9 +257,14 @@ Deno.test(
 
       assertEquals(res.status, 200);
 
-      // The uploaded path must contain '-rerun-' (idempotency suffix)
-      assertEquals(uploadPaths.length, 1, 'Should have uploaded exactly one file');
-      assertStringIncludes(uploadPaths[0], '-rerun-',
-        `Expected idempotency suffix in path: ${uploadPaths[0]}`);
+      // Phase 48 Plan 48-04: Fn now archives multiple tables per run; mock's
+      // `list()` returns `existingFiles` for every table, so every upload gets
+      // a rerun suffix. Per-table invariant: every uploaded path contains
+      // '-rerun-'.
+      assertEquals(uploadPaths.length > 0, true, 'Should have uploaded at least one file');
+      for (const p of uploadPaths) {
+        assertStringIncludes(p, '-rerun-',
+          `Expected idempotency suffix in path: ${p}`);
+      }
     }),
 );
