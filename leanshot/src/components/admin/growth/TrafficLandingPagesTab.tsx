@@ -29,7 +29,11 @@
  *   - Filter input placeholder: `Filter by path…` (client-side substring).
  *   - Top-N pill group: `Top 10` / `Top 25` / `Top 50` (default 25).
  *   - Audience pill group: All / Consumer / Clinic-org / Affiliate.
- *   - Table columns: Path, Variant, Visits, Bounce %, Signup Rate, Paid Conv.
+ *   - Table columns: Path, Variant, Visits, Non-Signup %, Signup Rate, Paid Conv.
+ *     (Phase 51 REVIEW WR-13: column was labeled "Bounce %" but computed
+ *     1 - signups/visits — i.e., "did not sign up" rate, not a true single-
+ *     page bounce. Renamed to Non-Signup % until matview gains a real
+ *     single-event-session count.)
  *   - Variant cell shows `—` (em-dash) for non-PAGEAB pages (page_variant_id
  *     is null in matview).
  *   - Sortable: Visits / Bounce % / Signup Rate / Paid Conv (default Visits desc).
@@ -48,8 +52,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { useOrgScope } from './useOrgScope';
 
 // ---------------------------------------------------------------------------
 // Inline types — no new types file (mirrors CACDashboardPage convention)
@@ -90,14 +94,13 @@ export const TrafficLandingPagesTab: React.FC = () => {
   const [sortKey, setSortKey] = useState<SortKey>('visits');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-  // Role-scoped org filter (see file-header rationale).
-  const role = useStore(
-    (s) =>
-      (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ??
-      null,
-  );
-  const currentOrgId = useStore((s) => s.currentOrg?.id ?? null);
-  const orgFilter = role === 'clinic_owner' ? currentOrgId : null;
+  // REVIEW WR-04: switched from s.currentOrg?.id to app_metadata.org_id via
+  // useOrgScope() to match the other three Traffic tabs. Previously this tab
+  // could show a different org's data than Channels/Funnels/Realtime if
+  // currentOrg was stale or unset. SECDEF RPC's _is_org_clinician() validates
+  // server-side against the same JWT app_metadata, so both sources are
+  // authorization-equivalent; we standardize on the JWT-anchored one.
+  const orgFilter = useOrgScope();
 
   const { startDate, endDate } = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -309,14 +312,15 @@ export const TrafficLandingPagesTab: React.FC = () => {
                   className="py-2 pe-3 text-end cursor-pointer select-none"
                   role="button"
                   tabIndex={0}
-                  aria-label="Sort by bounce rate"
+                  aria-label="Sort by non-signup rate"
                   aria-sort={ariaSortFor('bounce')}
                   onClick={() => handleSort('bounce')}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') handleSort('bounce');
                   }}
+                  title="Visits that did not result in signup. NOT a single-page bounce rate — see REVIEW WR-13."
                 >
-                  Bounce % {sortArrow('bounce')}
+                  Non-Signup % {sortArrow('bounce')}
                 </th>
                 <th
                   className="py-2 pe-3 text-end cursor-pointer select-none"

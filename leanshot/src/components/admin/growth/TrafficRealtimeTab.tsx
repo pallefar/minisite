@@ -22,6 +22,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { useOrgScope } from './useOrgScope';
 
 type Row = {
   channel_group: string;
@@ -54,18 +55,11 @@ export const TrafficRealtimeTab: React.FC = () => {
       (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ??
       null,
   );
-  // REVIEW CR-03 fix: forward the clinic_owner's org_id so the SECDEF RPC's
-  // `(p_org_id is not null and _is_org_clinician(p_org_id))` branch can
-  // authorize. Previously hardcoded null, which made every clinic_owner
-  // hit the 42501 forbidden branch (admin-only data). Matches
-  // TrafficChannelsTab / TrafficFunnelsTab pattern (app_metadata.org_id).
-  // Admin sees all orgs (p_org_id = null).
-  const orgFilter = useStore((s) => {
-    const meta = s.signedIn?.user?.app_metadata as
-      | { role?: string; org_id?: string }
-      | undefined;
-    return meta?.role === 'clinic_owner' ? (meta?.org_id ?? null) : null;
-  });
+  // REVIEW CR-03 + WR-04: forward the clinic_owner's org_id so the SECDEF
+  // RPC's `(p_org_id is not null and _is_org_clinician(p_org_id))` branch can
+  // authorize. Single source of truth via useOrgScope (canonical:
+  // app_metadata.org_id).
+  const orgFilter = useOrgScope();
 
   const fetchRealtime = useCallback(async () => {
     setLoading(true);

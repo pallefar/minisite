@@ -31,8 +31,8 @@ import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Sheet } from '@/components/ui/Sheet';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Sparkline } from '@/components/ui/Sparkline';
-import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { useOrgScope } from './useOrgScope';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -91,15 +91,11 @@ export const TrafficChannelsTab: React.FC = () => {
   const [touchMode, setTouchMode] = useState<TouchMode>('last');
   const [drawerChannel, setDrawerChannel] = useState<string | null>(null);
 
-  // Org scoping (D-12): clinic_owner is auto-scoped to their org by RLS; we
-  // also forward their org_id explicitly so the SECDEF accessor returns the
-  // correct subset. Admin sees all orgs (p_org_id = null).
-  const orgFilter = useStore((s) => {
-    const meta = s.signedIn?.user?.app_metadata as
-      | { role?: string; org_id?: string }
-      | undefined;
-    return meta?.role === 'clinic_owner' ? meta?.org_id ?? null : null;
-  });
+  // REVIEW WR-04: org scoping via useOrgScope() (single source — JWT
+  // app_metadata.org_id). Previously inlined; extracted so all four Traffic
+  // tabs read the same source. Admin sees all orgs (p_org_id = null);
+  // clinic_owner is scoped to their JWT-anchored org.
+  const orgFilter = useOrgScope();
 
   const dateBounds = useMemo(() => {
     const end = new Date();

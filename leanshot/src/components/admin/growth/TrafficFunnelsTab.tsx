@@ -52,8 +52,8 @@ import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Sheet } from '@/components/ui/Sheet';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { BaseChart } from '@/components/dashboard/charts/BaseChart';
-import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import { useOrgScope } from './useOrgScope';
 
 // ─── Audience taxonomy (CONTEXT.md D-05) ─────────────────────────────────────
 //
@@ -190,16 +190,8 @@ export const TrafficFunnelsTab: React.FC = () => {
   // cross-org visibility (T-51-31 mitigation). Reading defensively so an
   // unauthenticated state doesn't crash; the SECDEF RPC will 28000 unauth
   // and we surface that as an error.
-  const role = useStore(
-    (s) =>
-      (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ?? null,
-  );
-  const orgId = useStore(
-    (s) =>
-      (s.signedIn?.user?.app_metadata as { org_id?: string } | undefined)?.org_id ??
-      null,
-  );
-  const orgFilter = role === 'clinic_owner' ? orgId : null;
+  // REVIEW WR-04: org scoping via useOrgScope() (single source of truth).
+  const orgFilter = useOrgScope();
 
   // 7-day rolling window (matches Plan 51-04 baseline window so anomaly
   // badges line up with the data the operator sees in the chart).
