@@ -41,6 +41,8 @@ import {
   HeartCrack as HeartCrackIcon,
   // Phase 47 Plan 47-11 — Admin Events module icon.
   CalendarDays as CalendarDaysIcon,
+  // Phase 41 Plan 41-06 — Custom-iframe embeds allowlist admin module icon.
+  ShieldCheck as ShieldCheckIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -185,6 +187,23 @@ export const ADMIN_MODULES = [
         default: m.default,
       })),
     flagKey: 'admin.anomaly.enabled',
+    minRole: 'superadmin' as AdminRole,
+  },
+  // Phase 41 Plan 41-06 (EMBED-04/07, POLISH-10, D-17) — Custom-iframe
+  // allowlist admin module. Superadmin-only per D-17 (audit-logged write
+  // ops). AdminShell URL-prefix routing resolves /admin/embeds and
+  // /admin/embeds/allowlist into AllowlistPage automatically — the W8
+  // route convention is `route: 'embeds'` (NOT 'embeds/allowlist') per
+  // feedback_admin_module_manifest_vs_router_branch_drift. SECDEF RPCs
+  // (add_iframe_allowlist_hostname / remove_iframe_allowlist_hostname)
+  // re-check admin_role server-side (Pattern S1 dual-layer).
+  {
+    key: 'embeds',
+    label: 'Embeds',
+    route: 'embeds',
+    icon: ShieldCheckIcon,
+    lazy: () => import('@/components/admin/embeds/AllowlistPage'),
+    flagKey: 'admin.embeds.enabled',
     minRole: 'superadmin' as AdminRole,
   },
   {
