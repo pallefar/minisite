@@ -76,3 +76,25 @@ export function canAccessSpace(
   // spaceTier === 'lifetime'
   return userTier === 'lifetime';
 }
+
+// ─── Resource download gate (Phase 46 D-16 / COURSE-06) ───────────────────────
+
+/**
+ * Phase 46 lesson-resource download types. Storage RLS on the
+ * `course-resources` bucket (Plan 46-02) is the enforcement boundary; this
+ * function is the advisory UX gate (renders disabled/upgrade-CTA buttons).
+ */
+export type ResourceType = 'pdf' | 'video' | 'zip';
+
+/**
+ * Returns true when the user's tier grants access to download a lesson
+ * resource. Trial inclusion matches isVideoAllowed semantics.
+ *
+ * Free tier: download button shows upgrade CTA; Storage signed-URL Fn rejects
+ * on bypass. The `_resourceType` parameter is reserved for future per-type
+ * differentiation (e.g. zip-only for Pro+, video-passthrough for Lifetime);
+ * underscore prefix is the project convention to satisfy noUnusedParameters.
+ */
+export function isResourceAllowed(tier: TierLabel, _resourceType: ResourceType): boolean {
+  return tier === 'pro' || tier === 'lifetime' || tier === 'trial';
+}
