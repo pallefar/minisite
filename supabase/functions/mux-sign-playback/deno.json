@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "test": "deno test --no-check --allow-env --allow-net ."
+  },
+  "imports": {
+    "npm:@supabase/supabase-js@2": "npm:@supabase/supabase-js@2",
+    "npm:@mux/mux-node@14": "npm:@mux/mux-node@14"
+  },
+  "lint": { "rules": { "tags": ["recommended"] } },
+  "fmt": { "useTabs": false, "lineWidth": 100 }
+}
