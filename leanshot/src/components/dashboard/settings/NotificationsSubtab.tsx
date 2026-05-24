@@ -29,13 +29,17 @@ import {
   type SettingKey,
 } from '@/lib/notifications/settings-store';
 import {
-  CATEGORIES,
   CHANNELS,
   type Category,
   type CategoryConfig,
   type Channel,
   type DismissalState,
 } from '@/lib/notifications/types';
+
+// Phase 49 Plan 09 — narrow snoozeable categories (analytics event schema
+// limits `notification_snoozed` to the original 5 categories per
+// src/lib/analytics/events.ts).
+type SnoozeableCategory = Exclude<Category, `${string}_digest`>;
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 
@@ -45,7 +49,30 @@ const CATEGORY_LABEL: Record<Category, string> = {
   'clinic-alerts': 'Clinic alerts',
   billing: 'Billing',
   marketing: 'Marketing',
+  // Phase 49 Plan 09 — community email digests (D-15 opt-IN).
+  daily_community_digest: 'Daily community digest',
+  weekly_community_digest: 'Weekly community digest',
 };
+
+// Phase 49 Plan 09 — digest categories surfaced in a dedicated "Email digests"
+// section below (last-sent transparency + opt-in toggles). Kept OUT of the
+// 5×3 channel matrix so the matrix stays at 5×3 = 15 toggles; the digests
+// surface their email/in-app channels via the standalone DigestToggleRow.
+const DIGEST_CATEGORIES: ReadonlyArray<Extract<Category, `${string}_digest`>> = [
+  'daily_community_digest',
+  'weekly_community_digest',
+];
+
+// Matrix-visible categories — every Category EXCEPT digests. Matrix iteration
+// uses this list so the 5×3 grid stays at 15 cells even after the underlying
+// CATEGORIES const is widened by Plan 49-09.
+const MATRIX_CATEGORIES: ReadonlyArray<Exclude<Category, `${string}_digest`>> = [
+  'dose-reminders',
+  'ai-insights',
+  'clinic-alerts',
+  'billing',
+  'marketing',
+];
 
 const CHANNEL_LABEL: Record<Channel, string> = {
   email: 'Email',
@@ -63,6 +90,10 @@ const DEFAULT_ENABLED: Record<Category, Record<Channel, boolean>> = {
   'clinic-alerts': { email: true, 'web-push': true, 'in-app': true },
   billing: { email: true, 'web-push': false, 'in-app': false },
   marketing: { email: true, 'web-push': false, 'in-app': false },
+  // Phase 49 Plan 09 — D-15 opt-IN for community digests. Push:false because
+  // digests are an email-only feature (no web-push fan-out per RESEARCH §D-15).
+  daily_community_digest: { email: true, 'web-push': false, 'in-app': true },
+  weekly_community_digest: { email: true, 'web-push': false, 'in-app': true },
 };
 
 function isEnabled(
@@ -83,7 +114,7 @@ export function NotificationsSubtab() {
   const { settings, isLoading, update, refetch } = useNotificationSettings(userId);
   const [configs, setConfigs] = useState<CategoryConfig[]>([]);
   const [dismissals, setDismissals] = useState<DismissalState[]>([]);
-  const [snoozeCategory, setSnoozeCategory] = useState<Category>('ai-insights');
+  const [snoozeCategory, setSnoozeCategory] = useState<SnoozeableCategory>('ai-insights');
   const [snoozeBusy, setSnoozeBusy] = useState<number | null>(null);
   const [permission, setPermission] = useState<NotificationPermission | 'unknown'>(
     typeof Notification !== 'undefined' ? Notification.permission : 'unknown',
@@ -315,7 +346,7 @@ export function NotificationsSubtab() {
               </tr>
             </thead>
             <tbody>
-              {CATEGORIES.map((cat) => (
+              {MATRIX_CATEGORIES.map((cat) => (
                 <tr key={cat} className="border-t border-[var(--color-border)]">
                   <th scope="row" className="text-start font-semibold py-3 pr-4">
                     {CATEGORY_LABEL[cat]}
@@ -368,10 +399,10 @@ export function NotificationsSubtab() {
             <select
               aria-label="Snooze category"
               value={snoozeCategory}
-              onChange={(e) => setSnoozeCategory(e.target.value as Category)}
+              onChange={(e) => setSnoozeCategory(e.target.value as SnoozeableCategory)}
               className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[13px]"
             >
-              {CATEGORIES.map((c) => (
+              {MATRIX_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {CATEGORY_LABEL[c]}
                 </option>
@@ -402,7 +433,7 @@ export function NotificationsSubtab() {
           exceed the admin default.
         </p>
         <div className="space-y-2">
-          {CATEGORIES.map((cat) => {
+          {MATRIX_CATEGORIES.map((cat) => {
             const cfg = cfgByCat.get(cat);
             const adminCap = cfg?.daily_cap;
             if (adminCap === null || adminCap === undefined) {
@@ -453,6 +484,122 @@ export function NotificationsSubtab() {
           })}
         </div>
       </Card>
+
+      {/* Phase 49 Plan 09 — Email digests section (D-15 opt-IN).
+          Renders 2 standalone digest toggles + last-sent transparency line
+          read from digest_send_log (kind='daily'|'weekly', most-recent
+          sent_at). Toggles route through the same `handleToggle` /
+          `useNotificationSettings` plumbing as the 5×3 matrix above. */}
+      <Card>
+        <h3 className="text-[14px] font-semibold mb-2">Email digests</h3>
+        <p className="text-[12px] text-[var(--color-text-secondary)] mb-3">
+          Recap of activity in your spaces. Daily and weekly are independent —
+          opt out of one without affecting the other.
+        </p>
+        <div className="space-y-2" data-testid="email-digests-section">
+          {DIGEST_CATEGORIES.map((cat) => (
+            <DigestToggleRow
+              key={cat}
+              category={cat}
+              label={CATEGORY_LABEL[cat]}
+              userId={userId}
+              enabled={isEnabled(settings, cat, 'email')}
+              isLoading={isLoading}
+              onToggle={() => void handleToggle(cat, 'email')}
+            />
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+interface DigestToggleRowProps {
+  category: Extract<Category, `${string}_digest`>;
+  label: string;
+  userId: string;
+  enabled: boolean;
+  isLoading: boolean;
+  onToggle: () => void;
+}
+
+/**
+ * Phase 49 Plan 09 — single digest toggle row + last-sent transparency text.
+ *
+ * Reads the most-recent `digest_send_log` row for (user_id, kind, status='sent')
+ * and renders a "Last sent N days ago" footnote. Empty state: "Never sent".
+ */
+function DigestToggleRow({
+  category,
+  label,
+  userId,
+  enabled,
+  isLoading,
+  onToggle,
+}: DigestToggleRowProps) {
+  const [lastSent, setLastSent] = useState<string | null>(null);
+  const [loadingLast, setLoadingLast] = useState(true);
+  const kind = category === 'daily_community_digest' ? 'daily' : 'weekly';
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      setLoadingLast(true);
+      const { data } = await supabase
+        .from('digest_send_log')
+        .select('sent_at')
+        .eq('user_id', userId)
+        .eq('kind', kind)
+        .eq('status', 'sent')
+        .order('sent_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      setLastSent((data?.sent_at as string | undefined) ?? null);
+      setLoadingLast(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, kind]);
+
+  const lastSentText = (() => {
+    if (loadingLast) return '…';
+    if (!lastSent) return 'Never sent';
+    const days = Math.max(0, Math.floor((Date.now() - new Date(lastSent).getTime()) / 86_400_000));
+    if (days === 0) return 'Last sent today';
+    if (days === 1) return 'Last sent 1 day ago';
+    return `Last sent ${days} days ago`;
+  })();
+
+  return (
+    <div className="flex items-center justify-between gap-3" data-digest-row={category}>
+      <div className="flex flex-col">
+        <span className="text-[13px] font-medium">{label}</span>
+        <span className="text-[11px] text-[var(--color-text-tertiary)]">{lastSentText}</span>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        aria-label={`${label} email`}
+        disabled={isLoading}
+        onClick={onToggle}
+        className={
+          'inline-flex items-center justify-center w-11 h-6 rounded-full transition-colors ' +
+          (enabled
+            ? 'bg-[var(--color-primary)]'
+            : 'bg-[var(--color-surface-elevated)] border border-[var(--color-border)]')
+        }
+      >
+        <span
+          className={
+            'inline-block size-5 rounded-full bg-white transition-transform ' +
+            (enabled ? 'translate-x-2' : '-translate-x-2')
+          }
+          aria-hidden
+        />
+      </button>
     </div>
   );
 }
