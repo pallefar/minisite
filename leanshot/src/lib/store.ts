@@ -81,6 +81,31 @@ interface UIState {
    */
   activeCommunitySpaceId: string | null;
   /**
+   * Phase 45 Plan 07a — active community sub-view for directory/DM dispatch.
+   * 3-variant union (NOT a new TabId per memory reference_react_router_consumer_admin_split).
+   * NOT persisted (ephemeral UI state — excluded from partialize per
+   * memory reference_zustand_persisted_user_blocks_marketing_uat).
+   *
+   * Semantics:
+   *   - null         → legacy feed-or-space view (driven by activeCommunitySpaceId)
+   *   - 'directory'  → CommunityDirectoryView
+   *   - 'dm'         → DMInboxView (when activeDmThreadId === null) or DMThreadView
+   *
+   * NOTE: CONTEXT D-16 also listed 'feed' and 'space:<id>' variants; both are
+   * intentionally OMITTED here. Space drill-in still uses activeCommunitySpaceId
+   * (set when user clicks a space card); 'feed' is the implicit default when
+   * activeCommunityView === null AND activeCommunitySpaceId === null. Keeps the
+   * type discriminator focused on the directory/dm sub-routing this phase adds.
+   * (Within Claude's Discretion per CONTEXT line 64.)
+   */
+  activeCommunityView: 'directory' | 'dm' | null;
+  /**
+   * Phase 45 Plan 07a — currently selected DM thread within the 'dm' sub-view.
+   * Consumed by the DMThreadView shipped in sibling plan 45-07b.
+   * NOT persisted (ephemeral — excluded from partialize).
+   */
+  activeDmThreadId: string | null;
+  /**
    * Phase 6 Plan 06-01 (UI-CHECK N4): `durationMs?: number` is an optional
    * override for the default 2400 ms auto-dismiss honored by Toast.tsx's
    * setTimeout. Phase 6's conflict-toast (Plan 06-05) passes 5000 ms;
@@ -132,6 +157,10 @@ interface Actions {
    * Transient UI state: NOT persisted (excluded from partialize).
    */
   setActiveCommunitySpace: (id: string | null) => void;
+  /** Phase 45 Plan 07a — set the active community sub-view (directory / dm / null). */
+  setActiveCommunityView: (v: 'directory' | 'dm' | null) => void;
+  /** Phase 45 Plan 07a — set the active DM thread id within the 'dm' sub-view. */
+  setActiveDmThread: (id: string | null) => void;
   showToast: (message: string, kind?: 'success' | 'error' | 'info', durationMs?: number) => void;
   dismissToast: () => void;
 
@@ -615,6 +644,11 @@ export const useStore = create<Store>()(
       migration_state: null,
       currentTab: 'home',
       activeCommunitySpaceId: null,
+      // Phase 45 Plan 07a — community sub-view dispatch. Both ephemeral; excluded
+      // from partialize (server is source of truth for any thread state — these
+      // are pure UI-routing flags).
+      activeCommunityView: null,
+      activeDmThreadId: null,
       toast: null,
       signedIn: null,
       migrationError: null,
@@ -746,6 +780,9 @@ export const useStore = create<Store>()(
 
       // Phase 44 Plan 09 — community list-vs-detail navigation (Zustand-driven, no router).
       setActiveCommunitySpace: (id) => set({ activeCommunitySpaceId: id }),
+      // Phase 45 Plan 07a — community sub-view dispatch (directory / dm / null).
+      setActiveCommunityView: (v) => set({ activeCommunityView: v }),
+      setActiveDmThread: (id) => set({ activeDmThreadId: id }),
 
       // Phase 14 Plan 14-05 — billing tier action.
       setTier: (next) =>
