@@ -137,6 +137,14 @@ interface UIState {
    */
   activeDmThreadId: string | null;
   /**
+   * Phase 49 Plan 09 — consumer cmd+k Spotlight search modal open flag.
+   * NOT persisted (ephemeral UI state — excluded from partialize per
+   * memory reference_zustand_persisted_user_blocks_marketing_uat; a
+   * persisted `true` would re-open the modal on every page load).
+   * Mounted in App.tsx as a lazy import gated on this flag.
+   */
+  searchOpen: boolean;
+  /**
    * Phase 6 Plan 06-01 (UI-CHECK N4): `durationMs?: number` is an optional
    * override for the default 2400 ms auto-dismiss honored by Toast.tsx's
    * setTimeout. Phase 6's conflict-toast (Plan 06-05) passes 5000 ms;
@@ -207,6 +215,8 @@ interface Actions {
   setActiveCommunityView: (v: 'directory' | 'dm' | null) => void;
   /** Phase 45 Plan 07a — set the active DM thread id within the 'dm' sub-view. */
   setActiveDmThread: (id: string | null) => void;
+  /** Phase 49 Plan 09 — open/close the consumer cmd+k search modal. */
+  setSearchOpen: (open: boolean) => void;
   showToast: (message: string, kind?: 'success' | 'error' | 'info', durationMs?: number) => void;
   dismissToast: () => void;
 
@@ -702,6 +712,9 @@ export const useStore = create<Store>()(
       // are pure UI-routing flags).
       activeCommunityView: null,
       activeDmThreadId: null,
+      // Phase 49 Plan 09 — search modal flag. NOT persisted (excluded from
+      // partialize — ephemeral UI state).
+      searchOpen: false,
       toast: null,
       signedIn: null,
       migrationError: null,
@@ -844,6 +857,8 @@ export const useStore = create<Store>()(
       // Phase 45 Plan 07a — community sub-view dispatch (directory / dm / null).
       setActiveCommunityView: (v) => set({ activeCommunityView: v }),
       setActiveDmThread: (id) => set({ activeDmThreadId: id }),
+      // Phase 49 Plan 09 — consumer cmd+k Spotlight (Zustand-driven, no router).
+      setSearchOpen: (open) => set({ searchOpen: open }),
 
       // Phase 14 Plan 14-05 — billing tier action.
       setTier: (next) =>

@@ -161,6 +161,12 @@ const WhatsNewDrawerHost = lazy(() =>
   })),
 );
 
+// Phase 49 Plan 09 — consumer cmd+k Spotlight modal. Lazy chunk keeps cmdk +
+// search components off the index static graph; only fetched when the user
+// hits cmd+k for the first time. Mounted under <Suspense> inside globalOverlays
+// gated on the Zustand `searchOpen` flag.
+const SearchModal = lazy(() => import('@/components/search/SearchModal'));
+
 // Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback modal.
 // Lazy-loaded; only fetched once eligibility resolves true. See
 // src/lib/nps/quarterly-modal.ts for the UNCONDITIONAL trigger API + D-20
@@ -862,6 +868,24 @@ export function App() {
   useEffect(() => {
     installDeepLinkHandler();
   }, []);
+
+  // Phase 49 Plan 09 — global cmd+k (mac) / ctrl+k (win/linux) listener.
+  // Mirrors the AdminCommandPalette wiring at
+  // src/components/admin/palette/AdminCommandPalette.tsx; toggles the
+  // ephemeral `searchOpen` Zustand flag which the SearchModal lazy chunk
+  // (rendered below in globalOverlays) reads.
+  const searchOpen = useStore((s) => s.searchOpen);
+  const setSearchOpen = useStore((s) => s.setSearchOpen);
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen(!searchOpen);
+      }
+    };
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, [searchOpen, setSearchOpen]);
 
   // Keep view aligned to user state + hash + pathname. Phase 9 added
   // path-based routes (/clinic/*, /clinic-invite/*); listen to popstate
@@ -1579,6 +1603,15 @@ export function App() {
         <OfflineBanner />
         <InstallPromptCard />
       </Suspense>
+      {/* Phase 49 Plan 09 — consumer cmd+k Spotlight. Lazy chunk only
+          fetched once searchOpen flips true; null fallback so no
+          flash. Closing via Esc / outside click flips searchOpen back to
+          false but does not unmount (cmdk handles its own dialog state). */}
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <SearchModal onClose={() => setSearchOpen(false)} />
+        </Suspense>
+      )}
     </>
   );
 

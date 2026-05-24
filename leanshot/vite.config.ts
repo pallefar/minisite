@@ -233,6 +233,17 @@ export default defineConfig(({ mode }) => {
             // import-graph because EventsTab is the sole consumer.
             if (id.includes('/src/components/events/')) return 'events';
 
+            // Phase 49 Plan 09 — consumer cmd+k Spotlight search chunk
+            // (D-05; ~20 kB gz target excluding shared cmdk). Inserts AFTER
+            // consumer-feature chunks (community-*, events) and BEFORE the
+            // admin-shell catch-all so search components land in their own
+            // lazy chunk. cmdk is shared with the admin-shell chunk; D-22
+            // audit (Task 3) verifies cmdk lives in exactly one chunk; if
+            // it duplicates, the `cmdk-shared` rule below de-dupes it.
+            if (id.includes('node_modules/cmdk/')) return 'cmdk-shared';
+            if (id.includes('/src/components/search/')) return 'search';
+            if (id.includes('/src/lib/search/')) return 'search';
+
             // Phase 48 Plan 10 — admin-moderation chunk (≤30 kB gz per CONTEXT).
             // Owns ModerationLayout + 5 sub-views + api.ts + shared types.
             // MUST precede the generic /src/components/admin/ → 'admin-shell'

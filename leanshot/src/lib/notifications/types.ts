@@ -15,7 +15,12 @@ export type Category =
   | 'ai-insights'
   | 'clinic-alerts'
   | 'billing'
-  | 'marketing';
+  | 'marketing'
+  // Phase 49 Plan 09 — community email digests. Default opt-IN per
+  // 49-CONTEXT D-15; widens the CHECK constraint (see
+  // supabase/migrations/20271001000005).
+  | 'daily_community_digest'
+  | 'weekly_community_digest';
 
 export type Channel = 'email' | 'web-push' | 'in-app';
 
@@ -97,6 +102,10 @@ export const CATEGORIES: readonly Category[] = [
   'clinic-alerts',
   'billing',
   'marketing',
+  // Phase 49 Plan 09 — digest categories appended last so the matrix order
+  // is unchanged for the original 5 (preserves existing snapshot tests).
+  'daily_community_digest',
+  'weekly_community_digest',
 ] as const;
 
 export const CHANNELS: readonly Channel[] = ['email', 'web-push', 'in-app'] as const;

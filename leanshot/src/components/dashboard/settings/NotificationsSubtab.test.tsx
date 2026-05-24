@@ -85,6 +85,11 @@ function setDismissalRows(rows: unknown[]) {
   dismissalResponse.current = { data: rows, error: null };
 }
 
+// Phase 49 Plan 09 — `digest_send_log` mock surface: per-kind most-recent row.
+const digestSendLogRows: {
+  current: Record<'daily' | 'weekly', { sent_at: string } | null>;
+} = { current: { daily: null, weekly: null } };
+
 function getResponse(table: string) {
   if (table === 'notification_settings') return settingsResponse.current;
   if (table === 'notification_category_config') return configResponse.current;
@@ -96,6 +101,27 @@ function getResponse(table: string) {
 // the select-returned object PromiseLike so `await supabase.from(t).select(...)`
 // resolves.
 function makeQBPromiseLike(table: string) {
+  // Phase 49 Plan 09 — `digest_send_log` is queried with a 3-eq chain
+  // + order + limit + maybeSingle; capture the `kind` filter to return the
+  // correct row.
+  if (table === 'digest_send_log') {
+    let capturedKind: 'daily' | 'weekly' | null = null;
+    const chain: Record<string, unknown> = {
+      select: () => chain,
+      eq: (col: string, val: string) => {
+        if (col === 'kind') capturedKind = val as 'daily' | 'weekly';
+        return chain;
+      },
+      order: () => chain,
+      limit: () => chain,
+      maybeSingle: () =>
+        Promise.resolve({
+          data: capturedKind ? digestSendLogRows.current[capturedKind] : null,
+          error: null,
+        }),
+    };
+    return chain;
+  }
   const selectResult = {
     eq: () => Promise.resolve(getResponse(table)),
     then: (resolve: (r: unknown) => void) => {
@@ -161,6 +187,8 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
       },
     ]);
     setDismissalRows([]);
+    // Phase 49 Plan 09 — reset digest_send_log mock to empty (no rows).
+    digestSendLogRows.current = { daily: null, weekly: null };
     upsertMock.mockClear().mockResolvedValue({ error: null });
     updateMock
       .mockClear()
@@ -181,11 +209,12 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
     });
   });
 
-  it('renders 5×3 matrix = 15 toggle cells with proper aria-label per cell', async () => {
+  it('renders 5×3 matrix = 15 matrix toggles + 2 digest toggles = 17 switch cells total', async () => {
     render(<NotificationsSubtab />);
-    // 15 role=switch elements after render (table + permission button uses role=button).
+    // 15 role=switch in the matrix + 2 in the Email digests section (Plan 49-09).
+    // Permission button uses role=button so it's not counted.
     const switches = await screen.findAllByRole('switch');
-    expect(switches.length).toBe(15);
+    expect(switches.length).toBe(17);
 
     // Spot-check a known label:
     expect(screen.getByRole('switch', { name: 'AI insights In-app' })).toBeInTheDocument();
@@ -286,5 +315,54 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
     // Five th[scope=row] (one per category):
     const rowHeaders = within(table).getAllByRole('rowheader');
     expect(rowHeaders.length).toBe(5);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 49 Plan 09 — Email digests section (D-15 opt-IN + last-sent transparency).
+  // ---------------------------------------------------------------------------
+  it('renders 2 digest toggles in the Email digests section (daily + weekly)', async () => {
+    render(<NotificationsSubtab />);
+    await screen.findByLabelText('Notification preferences');
+    const section = screen.getByTestId('email-digests-section');
+    expect(within(section).getByRole('switch', { name: /Daily community digest email/i })).toBeInTheDocument();
+    expect(within(section).getByRole('switch', { name: /Weekly community digest email/i })).toBeInTheDocument();
+  });
+
+  it('toggling a digest off calls supabase upsert with enabled:false', async () => {
+    render(<NotificationsSubtab />);
+    const user = userEvent.setup();
+    const section = await screen.findByTestId('email-digests-section');
+    const dailyToggle = within(section).getByRole('switch', {
+      name: /Daily community digest email/i,
+    });
+    // Default is enabled:true (D-15 opt-IN) → click flips to false.
+    await user.click(dailyToggle);
+    expect(upsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'u1',
+        category: 'daily_community_digest',
+        channel: 'email',
+        enabled: false,
+      }),
+      { onConflict: 'user_id,category,channel' },
+    );
+  });
+
+  it('renders "Last sent 1 day ago" when digest_send_log has a row 24h+ old', async () => {
+    digestSendLogRows.current = {
+      daily: { sent_at: new Date(Date.now() - 26 * 3600 * 1000).toISOString() },
+      weekly: null,
+    };
+    render(<NotificationsSubtab />);
+    expect(await screen.findByText(/Last sent 1 day ago/i)).toBeInTheDocument();
+  });
+
+  it('renders "Never sent" for digest categories with no digest_send_log row', async () => {
+    digestSendLogRows.current = { daily: null, weekly: null };
+    render(<NotificationsSubtab />);
+    const section = await screen.findByTestId('email-digests-section');
+    // Both rows show "Never sent" when no log rows exist.
+    const neverSentMatches = await within(section).findAllByText(/Never sent/i);
+    expect(neverSentMatches.length).toBe(2);
   });
 });
