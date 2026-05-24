@@ -1,27 +1,19 @@
 /**
- * Phase 15 Plan 15-06 — YouTubeBlock editor preview.
+ * Phase 15 Plan 15-06 / Phase 41 Plan 41-05 — YouTubeBlock editor preview.
  *
- * Renders the in-editor preview of an embed-youtube block. Uses the SAME
- * `buildYouTubeSrc` helper that the public renderer's iframe-HTML builder
- * uses — the editor preview and the published page resolve to byte-identical
- * iframe `src` strings.
+ * Phase 41 retrofit: iframe is now wrapped in <ConsentGatedEmbed> (D-07/D-09
+ * consent gating + D-10 loading transition + D-08 placeholder fallback).
+ * Sandbox flags PRESERVED per UI-SPEC §Surface B State 3:
+ *   `allow-scripts allow-same-origin allow-presentation`.
  *
- * Security posture (Threat T-15-06-01 / T-15-06-02 / T-15-06-03):
- *   • iframe `src` ONLY from `buildYouTubeSrc` (allow-list videoId match) —
- *     null result renders NO iframe (safe non-iframe fallback).
- *   • `sandbox="allow-scripts allow-same-origin allow-presentation"` — no
- *     popups, no top-navigation, no modals.
- *   • `referrerpolicy="no-referrer"` blocks parent-URL disclosure.
- *   • `title` is REQUIRED — non-empty per UI-SPEC + Lighthouse ≥95.
- *   • Skeleton overlay shown until iframe `onLoad` fires; respects
- *     `useReducedMotion()` for the opacity transition.
+ * Categories per D-07: analytics + marketing.
+ * Aspect ratio 16/9 per UI-SPEC §Surface B per-provider iframe heights.
  */
-import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
 import { EMBED_IFRAME_TITLES, buildYouTubeSrc } from '@/lib/page-builder/embed-src';
+
+import { ConsentGatedEmbed } from './ConsentGatedEmbed';
 import { backgroundToneClass, paddingForDensity } from './block-style-helpers';
 
 export interface YouTubeBlockProps {
@@ -39,8 +31,6 @@ export function YouTubeBlock({ block }: YouTubeBlockProps) {
   const tone = block.style.backgroundTone ?? 'default';
   const density = block.style.spacingDensity ?? 'default';
   const hideOnMobile = !!block.style.hideOnMobile;
-  const reduceMotion = useReducedMotion();
-  const [loaded, setLoaded] = useState(false);
 
   const src = buildYouTubeSrc({
     videoId: typeof content.videoId === 'string' ? content.videoId : '',
@@ -59,26 +49,15 @@ export function YouTubeBlock({ block }: YouTubeBlockProps) {
     >
       <div className="max-w-3xl mx-auto">
         {src ? (
-          <div
-            className="block-embed block-embed-youtube relative w-full mx-auto"
-            style={{ aspectRatio: '16 / 9', maxWidth: 960 }}
-          >
-            {!loaded && (
-              <Skeleton className="absolute inset-0 w-full h-full" />
-            )}
-            <iframe
-              src={src}
-              title={EMBED_IFRAME_TITLES.youtube}
-              loading="lazy"
-              referrerPolicy="no-referrer"
+          <div className="mx-auto" style={{ maxWidth: 960 }}>
+            <ConsentGatedEmbed
+              provider="youtube"
+              categories={['analytics', 'marketing']}
+              aspectRatio="16 / 9"
               sandbox="allow-scripts allow-same-origin allow-presentation"
               allow="encrypted-media; picture-in-picture"
-              onLoad={() => setLoaded(true)}
-              className={
-                'absolute inset-0 w-full h-full border-0 ' +
-                (reduceMotion ? '' : 'transition-opacity duration-200 ease-out ') +
-                (loaded ? 'opacity-100' : 'opacity-0')
-              }
+              title={EMBED_IFRAME_TITLES.youtube}
+              src={src}
             />
           </div>
         ) : (

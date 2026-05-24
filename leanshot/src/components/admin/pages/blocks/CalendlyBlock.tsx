@@ -1,16 +1,20 @@
 /**
- * Phase 15 Plan 15-06 — CalendlyBlock editor preview.
+ * Phase 15 Plan 15-06 / Phase 41 Plan 41-05 — CalendlyBlock editor preview.
  *
- * Same security posture as YouTubeBlock (see file). Calendly booking opens
- * popups so the sandbox set adds `allow-popups` + `allow-forms`. min-height
- * 600px per 15-UI-SPEC visual contract.
+ * Phase 41 retrofit: iframe is now wrapped in <ConsentGatedEmbed> (D-07/D-09
+ * consent gating + D-10 loading transition + D-08 placeholder fallback).
+ * Sandbox flags PRESERVED per UI-SPEC §Surface B State 3:
+ *   `allow-scripts allow-same-origin allow-popups allow-forms` (Calendly docs
+ *   require popups for the confirm step).
+ *
+ * Categories per D-07: functional + analytics.
+ * min-height 700 per UI-SPEC §Surface B per-provider iframe heights.
  */
-import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { BlockNode } from '@/lib/page-builder/block-schema';
 import { EMBED_IFRAME_TITLES, buildCalendlySrc } from '@/lib/page-builder/embed-src';
+
+import { ConsentGatedEmbed } from './ConsentGatedEmbed';
 import { backgroundToneClass, paddingForDensity } from './block-style-helpers';
 
 export interface CalendlyBlockProps {
@@ -27,8 +31,6 @@ export function CalendlyBlock({ block }: CalendlyBlockProps) {
   const tone = block.style.backgroundTone ?? 'default';
   const density = block.style.spacingDensity ?? 'default';
   const hideOnMobile = !!block.style.hideOnMobile;
-  const reduceMotion = useReducedMotion();
-  const [loaded, setLoaded] = useState(false);
 
   const src = buildCalendlySrc({
     calendlyUrl: typeof content.calendlyUrl === 'string' ? content.calendlyUrl : '',
@@ -46,29 +48,15 @@ export function CalendlyBlock({ block }: CalendlyBlockProps) {
     >
       <div className="max-w-3xl mx-auto">
         {src ? (
-          <div
-            className="block-embed block-embed-calendly relative w-full"
-            style={{ minHeight: 600 }}
-          >
-            {!loaded && (
-              <Skeleton className="absolute inset-0 w-full h-full" />
-            )}
-            <iframe
-              src={src}
-              title={EMBED_IFRAME_TITLES.calendly}
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              allow="clipboard-write; payment"
-              onLoad={() => setLoaded(true)}
-              className={
-                'w-full border-0 ' +
-                (reduceMotion ? '' : 'transition-opacity duration-200 ease-out ') +
-                (loaded ? 'opacity-100' : 'opacity-0')
-              }
-              style={{ minHeight: 600 }}
-            />
-          </div>
+          <ConsentGatedEmbed
+            provider="calendly"
+            categories={['functional', 'analytics']}
+            minHeight={700}
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            allow="clipboard-write; payment"
+            title={EMBED_IFRAME_TITLES.calendly}
+            src={src}
+          />
         ) : (
           <Card variant="flat" padding="md" className="text-center">
             <p className="text-[14px] text-[var(--color-text-secondary)]">
