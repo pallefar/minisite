@@ -77,6 +77,205 @@ interface RunResult {
   suppressed: number;
   emails_sent: number;
   email_skipped_unverified: boolean;
+  /** Phase 51 / Plan 51-04 — per (channel_group × audience × stage_pair) scan counters. */
+  channel_stage_checked: number;
+  channel_stage_fired: number;
+  channel_stage_suppressed: number;
+}
+
+// =============================================================================
+// Phase 51 / Plan 51-04 — Per-channel-stage anomaly scan extension.
+// Decision refs: D-06 / D-08. Requirements: TRAFFIC-11.
+//
+// Reads channel_groups taxonomy, fans out (channel_group × audience × stage_pair),
+// calls compute_channel_stage_rate RPC, writes admin_notifications rows with a
+// multi-dimensional dedup_key. Pure-additive: existing per-funnel loop is
+// untouched and runs first; this new loop runs serially AFTER it.
+// =============================================================================
+
+type TrafficAudience = 'consumer' | 'clinic-org' | 'affiliate';
+
+const TRAFFIC_AUDIENCES: readonly TrafficAudience[] = [
+  'consumer',
+  'clinic-org',
+  'affiliate',
+] as const;
+
+// Mirror of migration 20271102000009 stage_pairs VALUES list — must stay in sync
+// with the traffic_funnel_rollup matview definition.
+const TRAFFIC_STAGE_PAIRS: Record<TrafficAudience, ReadonlyArray<readonly [string, string]>> = {
+  'consumer': [
+    ['visit', 'signup'],
+    ['signup', 'activation'],
+    ['activation', 'paid'],
+  ],
+  'clinic-org': [
+    ['visit', 'clinic_signup'],
+    ['clinic_signup', 'first_patient_added'],
+    ['first_patient_added', 'first_paid_seat'],
+  ],
+  'affiliate': [
+    ['visit', 'affiliate_signup'],
+    ['affiliate_signup', 'first_referral_conversion'],
+  ],
+};
+
+const TRAFFIC_FUNNEL_DROP_KIND = 'traffic_funnel_drop';
+const TRAFFIC_FUNNEL_SIGMA_THRESHOLD = 2; // 2σ — mirrors per-funnel default
+const TRAFFIC_FUNNEL_SUPPRESSION_MS = 4 * 60 * 60 * 1000; // 4h — mirrors per-funnel
+
+interface ChannelStageRateRow {
+  observed_rate: number | string | null;
+  expected_rate: number | string | null;
+  expected_stddev: number | string | null;
+}
+
+interface ChannelGroupRow {
+  label: string;
+}
+
+function numOrNull(v: number | string | null | undefined): number | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function runTrafficFunnelAnomalyScan(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adminClient: any,
+  result: RunResult,
+  now: Date,
+): Promise<void> {
+  // 1. Enumerate channel_groups (operator-editable taxonomy).
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const { data: channelGroupsData, error: cgErr } = (await (adminClient
+    .from('channel_groups')
+    .select('label')
+    .order('priority', { ascending: true }) as any)) as {
+      data: ChannelGroupRow[] | null;
+      error: { message?: string } | null;
+    };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  if (cgErr) {
+    console.warn('[funnel-anomaly-cron] channel_groups read failed', cgErr.message ?? 'unknown');
+    return;
+  }
+  const channelGroups = channelGroupsData ?? [];
+  if (channelGroups.length === 0) return;
+
+  const today = now.toISOString().slice(0, 10);
+  const fourHrAgo = new Date(now.getTime() - TRAFFIC_FUNNEL_SUPPRESSION_MS).toISOString();
+
+  for (const cg of channelGroups) {
+    for (const audience of TRAFFIC_AUDIENCES) {
+      const pairs = TRAFFIC_STAGE_PAIRS[audience];
+      for (const [stageIn, stageOut] of pairs) {
+        result.channel_stage_checked += 1;
+
+        // 2. Compute per (channel × audience × stage_pair) baseline + today.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { data: rateData, error: rateErr } = (await (adminClient.rpc(
+          'compute_channel_stage_rate',
+          {
+            p_channel_group: cg.label,
+            p_audience: audience,
+            p_stage_in: stageIn,
+            p_stage_out: stageOut,
+            p_window_days: 7,
+          },
+        ) as any)) as {
+          data: ChannelStageRateRow[] | ChannelStageRateRow | null;
+          error: { message?: string } | null;
+        };
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+        if (rateErr) {
+          console.warn(
+            `[funnel-anomaly-cron] compute_channel_stage_rate failed channel=${cg.label} audience=${audience} stages=${stageIn}->${stageOut}`,
+            rateErr.message ?? 'unknown',
+          );
+          continue;
+        }
+        const row: ChannelStageRateRow | null = Array.isArray(rateData)
+          ? (rateData[0] ?? null)
+          : (rateData ?? null);
+        if (!row) continue;
+        const observed = numOrNull(row.observed_rate);
+        const expected = numOrNull(row.expected_rate);
+        const stddev = numOrNull(row.expected_stddev);
+        if (observed === null || expected === null || stddev === null) continue;
+        if (stddev === 0 || expected === 0) continue; // not enough baseline
+
+        const sigmas = (expected - observed) / stddev;
+        if (!Number.isFinite(sigmas)) continue;
+        if (sigmas < TRAFFIC_FUNNEL_SIGMA_THRESHOLD) continue; // not anomalous
+
+        // 3. Multi-dimensional dedup key per plan must_haves.
+        const dedupKey =
+          `${TRAFFIC_FUNNEL_DROP_KIND}:${cg.label}:${audience}:${stageIn}_${stageOut}:${today}`;
+
+        // 4. 4h suppression — mirror existing per-funnel pattern.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { data: recentRows } = (await (adminClient
+          .from('admin_notifications')
+          .select('id')
+          .eq('dedup_key', dedupKey)
+          .gte('created_at', fourHrAgo)
+          .limit(1) as any)) as {
+            data: Array<{ id: string }> | null;
+            error: { message?: string } | null;
+          };
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+        if (recentRows && recentRows.length > 0) {
+          result.channel_stage_suppressed += 1;
+          continue;
+        }
+
+        // 5. Idempotent upsert (onConflict:dedup_key, ignoreDuplicates) — if
+        //    the admin_notifications.kind widening migration has not been
+        //    pushed yet, this raises a CHECK violation; we log + continue so
+        //    the per-funnel loop's results still propagate.
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { error: insErr } = (await (adminClient
+          .from('admin_notifications')
+          .upsert(
+            {
+              kind: TRAFFIC_FUNNEL_DROP_KIND,
+              dedup_key: dedupKey,
+              // Map to legacy columns too so existing P27 admin UI surfaces
+              // these rows without code changes.
+              type: TRAFFIC_FUNNEL_DROP_KIND,
+              title: `Traffic funnel drop: ${cg.label} / ${audience}`,
+              body:
+                `${stageIn} → ${stageOut} dropped ${sigmas.toFixed(2)}σ ` +
+                `(observed ${(observed * 100).toFixed(2)}% vs expected ${(expected * 100).toFixed(2)}%).`,
+              payload: {
+                channel_group: cg.label,
+                audience,
+                funnel: audience,
+                stage_in: stageIn,
+                stage_out: stageOut,
+                observed_rate: observed,
+                expected_rate: expected,
+                expected_stddev: stddev,
+                sigmas,
+                date: today,
+              },
+            },
+            { onConflict: 'dedup_key', ignoreDuplicates: true },
+          ) as any)) as { error: { message?: string } | null };
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+        if (insErr) {
+          console.warn(
+            `[funnel-anomaly-cron] admin_notifications upsert failed channel=${cg.label} audience=${audience} stages=${stageIn}->${stageOut}`,
+            insErr.message ?? 'unknown',
+          );
+          continue;
+        }
+        result.channel_stage_fired += 1;
+      }
+    }
+  }
 }
 
 function tickBucket(now: Date): string {
@@ -147,6 +346,9 @@ async function handleRun(_req: Request): Promise<Response> {
     suppressed: 0,
     emails_sent: 0,
     email_skipped_unverified: false,
+    channel_stage_checked: 0,
+    channel_stage_fired: 0,
+    channel_stage_suppressed: 0,
   };
 
   // 1. Enumerate enabled funnels.
@@ -330,6 +532,19 @@ async function handleRun(_req: Request): Promise<Response> {
         `[funnel-anomaly-cron] email send failed funnel=${funnel.event_name} err=${e instanceof Error ? e.message : 'unknown'}`,
       );
     }
+  }
+
+  // Phase 51 / Plan 51-04 — Per (channel_group × audience × stage_pair) scan.
+  // Runs SERIALLY after the existing per-funnel loop. Errors are logged + the
+  // cron tick still returns 200 with whatever counters succeeded — same
+  // tolerance posture as the per-funnel loop above.
+  try {
+    await runTrafficFunnelAnomalyScan(admin, result, now);
+  } catch (e) {
+    console.warn(
+      '[funnel-anomaly-cron] traffic-funnel-anomaly scan threw',
+      e instanceof Error ? e.message : 'unknown',
+    );
   }
 
   return jsonResponse(200, { ok: true, ...result });
