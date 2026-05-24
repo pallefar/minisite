@@ -53,6 +53,9 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
   const [orgId, setOrgId] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!isNew);
+  // P45-08 D-14 — per-space leaderboard toggle (admin_toggle_space_leaderboard RPC).
+  const [leaderboardEnabled, setLeaderboardEnabled] = useState<boolean>(false);
+  const [leaderboardBusy, setLeaderboardBusy] = useState(false);
 
   // Load existing space for edit mode
   useEffect(() => {
@@ -62,7 +65,7 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
       setLoading(true);
       const { data, error } = await supabase
         .from('community_spaces')
-        .select('name, description, min_tier, org_id')
+        .select('name, description, min_tier, org_id, leaderboard_enabled')
         .eq('id', spaceId)
         .single();
 
@@ -76,9 +79,38 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
       setDescription(data.description ?? '');
       setMinTier((data.min_tier as MinTier) ?? 'free');
       setOrgId(data.org_id ?? '');
+      setLeaderboardEnabled(Boolean(data.leaderboard_enabled));
       setLoading(false);
     })();
   }, [spaceId, toast]);
+
+  // P45-08 — leaderboard toggle handler. Independent of form Save: writes
+  // through admin_toggle_space_leaderboard SECDEF RPC (is_staff() guard
+  // inside — supabase/migrations/20270727000003_p45_secdef_rpcs.sql). Optimistic
+  // local update; revert on RPC error. Only meaningful in edit mode (we need
+  // an existing space id); in create mode the toggle is hidden.
+  const handleLeaderboardToggle = async () => {
+    if (!spaceId || leaderboardBusy) return;
+    const next = !leaderboardEnabled;
+    setLeaderboardBusy(true);
+    setLeaderboardEnabled(next);
+
+    const { error } = await supabase.rpc('admin_toggle_space_leaderboard', {
+      p_space_id: spaceId,
+      p_enabled: next,
+    });
+
+    if (error) {
+      setLeaderboardEnabled(!next);
+      toast(`Failed to update leaderboard: ${error.message}`, 'error');
+    } else {
+      toast(
+        next ? 'Leaderboard enabled for this space.' : 'Leaderboard disabled.',
+        'success',
+      );
+    }
+    setLeaderboardBusy(false);
+  };
 
   // ── Validation ────────────────────────────────────────────────────────────
 
@@ -224,6 +256,40 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
           Clinic-private spaces are hidden entirely for non-org-members (RLS D-09).
         </p>
       </div>
+
+      {/* Leaderboard toggle (edit mode only; P45-08 D-14) */}
+      {!isNew && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-2">
+          <div>
+            <p className="text-sm font-medium">Enable leaderboard for this space</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+              When enabled, members who opted in to the leaderboard see ranks +
+              points within this space. Toggle persists via{' '}
+              <code className="font-mono text-[10px]">admin_toggle_space_leaderboard</code>.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleLeaderboardToggle()}
+            disabled={leaderboardBusy}
+            aria-pressed={leaderboardEnabled}
+            aria-busy={leaderboardBusy}
+            aria-label={
+              leaderboardEnabled
+                ? 'Disable leaderboard for this space'
+                : 'Enable leaderboard for this space'
+            }
+            className={
+              'inline-flex h-7 items-center rounded-full px-4 text-xs font-medium transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ' +
+              (leaderboardEnabled
+                ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
+                : 'border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]')
+            }
+          >
+            {leaderboardBusy ? '…' : leaderboardEnabled ? 'On' : 'Off'}
+          </button>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center gap-3 pt-2 border-t border-[var(--color-border)]">
