@@ -85,6 +85,13 @@ export default defineConfig({
       // REQUIRES: 44-10 supabase db push --linked + supabase functions deploy first.
       'tests/integration/community-mention-notification.test.ts',
       'tests/integration/mux-tier-gate.test.ts',
+      // Phase 45 plan 45-01 — Community directory / DM / reports RLS cross-tenant proofs
+      // (COMMUNITY-07/08/09 — project Rule 2: every RLS surface gets a live cross-tenant proof).
+      // Live-DB; auto-skip when SUPABASE env vars are missing.
+      // REQUIRES: 45-09 supabase db push --linked first.
+      'tests/rls/community-directory-rls.test.ts',
+      'tests/rls/community-dm-rls.test.ts',
+      'tests/rls/community-reports-rls.test.ts',
     ],
     testTimeout: 30000,
   },
