@@ -153,6 +153,30 @@ export const PROPERTY_CONFIGS: Partial<Record<BlockType, BlockPropertyConfig>> =
       { key: 'hideTitle', label: 'Hide form title', kind: 'boolean' },
     ],
   },
+  // ─── 41-05 custom_iframe block — UI-SPEC §Surface C three-field schema. ───
+  // D-15 hostname allowlist + D-16 FIXED sandbox (admin-cannot-override).
+  custom_iframe: {
+    contentFields: [
+      {
+        key: 'embedUrl',
+        label: 'Embed URL',
+        kind: 'text',
+        placeholder: 'https://meet.example.com/page',
+        hint:
+          'Full URL of the page to embed. Hostname must be on the per-deployment ' +
+          'allowlist — contact a superadmin if you need a new host added.',
+      },
+      {
+        key: 'iframeTitle',
+        label: 'Accessible title',
+        kind: 'text',
+        hint:
+          'Required for screen readers. Describes what the embed contains, e.g. ' +
+          '"Patient intake form".',
+      },
+      { key: 'widthMode', label: 'Full-width', kind: 'boolean' },
+    ],
+  },
   // ─── 15-07 native lead-form (D-12) — token-bounded, NO color/hex/typography. ───
   'lead-form': {
     contentFields: [
