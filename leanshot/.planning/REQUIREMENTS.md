@@ -288,10 +288,10 @@
 
 ### WS24 — M4: Search + Email Digests (DIGEST, 4 REQ-IDs)
 
-- [ ] **DIGEST-01**: Postgres full-text search on community posts + courses + events (`tsvector` + GIN); shared infra with HELP-11 KB search (English + Spanish dictionaries)
-- [ ] **DIGEST-02**: Daily email digest (top posts in your spaces + new comments on your posts + tagged-you mentions) via Resend, `pg_cron` 09:00 user-timezone
-- [ ] **DIGEST-03**: Weekly email digest (course progress recap + upcoming events you RSVP'd + community top-3 of the week); respects user notification preferences
-- [ ] **DIGEST-04**: Per-user digest opt-out + frequency control in notification settings (POLISH-06 extension); 1-click unsubscribe link in every digest
+- [x] **DIGEST-01**: Postgres full-text search on community posts + courses + events (`tsvector` + GIN); shared infra with HELP-11 KB search (English + Spanish dictionaries)
+- [x] **DIGEST-02**: Daily email digest (top posts in your spaces + new comments on your posts + tagged-you mentions) via Resend, `pg_cron` 09:00 user-timezone
+- [x] **DIGEST-03**: Weekly email digest (course progress recap + upcoming events you RSVP'd + community top-3 of the week); respects user notification preferences
+- [x] **DIGEST-04**: Per-user digest opt-out + frequency control in notification settings (POLISH-06 extension); 1-click unsubscribe link in every digest
 
 ### WS25 — A Revenue: Multi-channel Traffic + Conversion Tracking (TRAFFIC, 12 REQ-IDs)
 
@@ -613,10 +613,10 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | MOD-03 | Phase 48 | Complete |
 | MOD-04 | Phase 48 | Complete |
 | MOD-05 | Phase 48 | Complete |
-| DIGEST-01 | Phase 49 | Pending |
-| DIGEST-02 | Phase 49 | Pending |
-| DIGEST-03 | Phase 49 | Pending |
-| DIGEST-04 | Phase 49 | Pending |
+| DIGEST-01 | Phase 49 | Complete |
+| DIGEST-02 | Phase 49 | Complete |
+| DIGEST-03 | Phase 49 | Complete |
+| DIGEST-04 | Phase 49 | Complete |
 
 **Coverage check:** 204/204 REQ-IDs mapped. 0 orphans. 0 duplicates. 26 phases (24-49).
 

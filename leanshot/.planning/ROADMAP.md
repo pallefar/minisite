@@ -65,7 +65,7 @@
 - [x] **Phase 46: M4 Courses / Classroom** — Modules + lessons + Mux adaptive video + completion certificates (jsPDF) + landing-page A/B + Pro-gated resources
 - [x] **Phase 47: M4 Events Calendar + Zoom + Reminders + Recording** — RSVPs with capacity/waitlist + Zoom OAuth + timezone-aware reminders + post-event lesson conversion
 - [x] **Phase 48: M4 Moderation** — Reports queue + mute/ban/suspend + banned-words + Claude auto-flagging + immutable audit log
-- [ ] **Phase 49: M4 Search + Email Digests** — Postgres FTS (English + Spanish dictionaries shared with HELP-11) + daily/weekly Resend digests + opt-out + 1-click unsubscribe
+- [x] **Phase 49: M4 Search + Email Digests** — Postgres FTS (English + Spanish dictionaries shared with HELP-11) + daily/weekly Resend digests + opt-out + 1-click unsubscribe
 
 ## Phase Details
 
