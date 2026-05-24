@@ -112,6 +112,14 @@ const CommunityTabShell = lazy(() => import('@/components/community/CommunityTab
 // src/components/course/ so vite.config.ts routes them into the 'course-player'
 // chunk (≤30 kB gz ceiling). DO NOT add a Route — consumer surface stays Zustand.
 const ClassroomTabShell = lazy(() => import('@/components/course/ClassroomTabShell'));
+// Phase 47 Plan 10 — Events tab shell (Zustand-driven; new TabId 'events').
+// EXCEPTION to the no-new-TabId rule per CONTEXT D-13 — events warrant a
+// distinct top-level surface (mirrors classroom). Two-level Zustand navigation
+// (activeEventId) handled INSIDE EventsTab. NO <Route> — consumer surface
+// stays router-free per memory reference_react_router_consumer_admin_split.
+// The /src/components/events/ tree is routed into the 'events' manualChunks
+// rule in vite.config.ts (target ≤25 kB gz per D-14 list-only no-Mux-player).
+const EventsTab = lazy(() => import('@/components/events/EventsTab'));
 
 const Onboarding = lazy(() =>
   import('@/components/onboarding/OnboardingFlow').then((m) => ({ default: m.OnboardingFlow })),
@@ -1973,6 +1981,13 @@ export function App() {
                 navigation (activeCourseId / activeLessonId) handled INSIDE
                 ClassroomTabShell. NO new <Route>; consumer stays router-free. */}
             {currentTab === 'classroom' && <ClassroomTabShell />}
+            {/* Phase 47 Plan 10 — Events surface. List-vs-detail Zustand
+                navigation (activeEventId) handled INSIDE EventsTab. NO new
+                <Route>; consumer stays router-free. EVENT-01 / 02 / 03.
+                Equivalent to a `case 'events':` arm in the App-tab switch
+                idiom; expressed as a ternary-render guard to match the
+                surrounding pattern. */}
+            {currentTab === 'events' && <EventsTab />}
           </TabSwitcher>
         </Suspense>
       </AppShell>

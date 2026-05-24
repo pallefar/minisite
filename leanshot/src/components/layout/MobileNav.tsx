@@ -11,6 +11,7 @@ import {
   Trophy,
   Users,
   BookOpen,
+  CalendarDays,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/helpers';
@@ -35,6 +36,10 @@ const TABS: { id: TabId; Icon: typeof Home }[] = [
   // strip remains usable without dropping Insights or other tabs.
   // Nav button below calls setTab('classroom') via the TABS.map iteration.
   { id: 'classroom', Icon: BookOpen },
+  // Phase 47 Plan 10 — Events (consumer-side calendar / RSVP / Join Meeting surface).
+  // 12th entry — overflow-x scroll keeps the strip usable. Positioned per D-13
+  // AFTER classroom. Nav button below calls setTab('events').
+  { id: 'events', Icon: CalendarDays },
 ];
 
 /**

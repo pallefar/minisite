@@ -249,7 +249,14 @@ export type TabId =
   // a Community sub-view. Sidebar + MobileNav iterate `TABS`, so adding
   // 'classroom' here is enough to surface a new entry; nav-labels.ts is
   // extended with matching exhaustive switch arms.
-  | 'classroom';
+  | 'classroom'
+  // Phase 47 Plan 10 — Events (consumer-side calendar / RSVP / Join Meeting surface).
+  // EXCEPTION to the no-new-TabId rule per CONTEXT D-13 — events warrant a
+  // dedicated top-level tab (mirrors classroom). Positioned per D-13 between
+  // 'classroom' and 'community' in nav ORDER (the TabId union order is
+  // type-only and does not drive UI ordering — Sidebar/MobileNav TABS arrays
+  // own that ordering).
+  | 'events';
 
 export type Theme = 'light' | 'dark';
 
