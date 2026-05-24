@@ -29,6 +29,13 @@ import {
   renderPage,
   renderSeoHead,
   type BlockNode,
+  // Phase 39 Plan 39-09 — variant-aware page-render extensions.
+  VARIANT_VARY_HEADER_VALUE,
+  VARIANT_COOKIE_PREFIX,
+  buildVariantCacheKey,
+  variantCookieName,
+  resolveVariantBlocks,
+  type VariantBlockResolver,
 } from './render.ts';
 
 // ─── escapeHtml ────────────────────────────────────────────────────────────────
@@ -876,4 +883,237 @@ Deno.test('renderBlock 15-05 branches: backgroundTone=brand emits hero-bg token 
     const html = renderBlock(factories[t]());
     assert(html.includes('var(--color-hero-bg)'), `${t} did not emit hero-bg token`);
   }
+});
+
+// ─── 39-09: variant-aware page-render extensions ──────────────────────────────
+//
+// Plan 39-09 (Wave 5 admin slice C) — PAGEAB-01/02/04/06.
+//
+// The pure-function seam tested here:
+//   • VARIANT_VARY_HEADER_VALUE — string constant the dispatcher emits as the
+//     `Vary: ...` response header so the edge cache partitions on the
+//     lt_variant_{page_id} cookie (PAGEAB-04).
+//   • buildVariantCacheKey(pageId, variantId) — pure cache-key function so
+//     control + variant do NOT cross-poison (PAGEAB-04).
+//   • variantCookieName(pageId) — returns `lt_variant_{page_id}` so callers
+//     don't string-concat ad-hoc.
+//   • renderPage with `canonicalSlug` → emits <link rel="canonical"
+//     href="/{control-slug}"> for variant renders (PAGEAB-02).
+//   • renderPage with non-null `variantId` → still emits `<link
+//     rel="canonical">` resolved from canonicalSlug (regression-test).
+//   • resolveVariantBlocks(blocks, resolver) — async tree walk that calls the
+//     resolver only for blocks with non-null `variant_set_id` (PAGEAB-06 /
+//     D-13 / per-block A/B). On resolver throw OR null return → keeps the
+//     canonical block content (graceful 401 fallback per `<interfaces>`).
+
+Deno.test('39-09 PAGEAB-04: VARIANT_VARY_HEADER_VALUE includes "Cookie"', () => {
+  // The dispatcher composes its own Vary header. This constant guarantees a
+  // single source of truth so both render.ts and index.ts agree on the
+  // partitioning cookie boundary.
+  assertStringIncludes(VARIANT_VARY_HEADER_VALUE, 'Cookie');
+});
+
+Deno.test('39-09 PAGEAB-04: VARIANT_COOKIE_PREFIX matches the documented lt_variant_ contract', () => {
+  assertEquals(VARIANT_COOKIE_PREFIX, 'lt_variant_');
+});
+
+Deno.test('39-09 PAGEAB-04: variantCookieName(pageId) returns lt_variant_{pageId}', () => {
+  assertEquals(variantCookieName('abc123'), 'lt_variant_abc123');
+});
+
+Deno.test('39-09 PAGEAB-04: buildVariantCacheKey includes both page_id AND variant_id', () => {
+  // Control + variant must not collide. The format `${page_id}:${variant_id}`
+  // is documented in <interfaces>. Control is represented by the string
+  // 'control' when no variant is active.
+  assertEquals(buildVariantCacheKey('abc', 'control'), 'abc:control');
+  assertEquals(buildVariantCacheKey('abc', 'variant_x'), 'abc:variant_x');
+  // Distinct keys for control vs variant of the same page — the regression we
+  // are guarding against.
+  const ctrl = buildVariantCacheKey('p1', 'control');
+  const vrnt = buildVariantCacheKey('p1', 'variant_a');
+  assert(ctrl !== vrnt, `expected distinct cache keys, got both ${ctrl}`);
+});
+
+Deno.test('39-09 PAGEAB-04: buildVariantCacheKey defaults variantId to "control" when blank', () => {
+  // Defensive contract: an empty / undefined variantId arrives whenever no
+  // cookie is set AND variant-resolver returned no row. Treat as control.
+  assertEquals(buildVariantCacheKey('abc', undefined), 'abc:control');
+  assertEquals(buildVariantCacheKey('abc', ''), 'abc:control');
+  assertEquals(buildVariantCacheKey('abc', null as unknown as string), 'abc:control');
+});
+
+Deno.test('39-09 PAGEAB-02: renderPage emits <link rel="canonical"> pointing at canonicalSlug for variant render', () => {
+  // When canonicalSlug differs from the rendered slug (i.e. we are serving a
+  // variant), the emitted canonical link MUST point at the CONTROL slug, not
+  // at the variant slug. This is the SEO contract that prevents the variant
+  // page from out-ranking the control page in Google's index (V13-4).
+  const html = renderPage({
+    slug: 'variant-launch',
+    canonicalSlug: 'launch',
+    seo: {},
+    blocks: [heroBlock()],
+  });
+  assertStringIncludes(html, '<link rel="canonical" href="/launch">');
+  // Sanity: the variant slug DOES appear elsewhere (e.g. inside JSON-LD url
+  // fields if seo.canonical is unset) but the canonical TAG itself points at
+  // the control slug.
+  assert(
+    !html.includes('<link rel="canonical" href="/variant-launch">'),
+    'canonical link MUST point at canonicalSlug, not the variant slug',
+  );
+});
+
+Deno.test('39-09 PAGEAB-02 regression: renderPage without canonicalSlug emits canonical = "/{slug}" (existing 15-08 behavior)', () => {
+  // Regression-test: the existing canonical emission for non-variant pages
+  // continues to work. Plan 39-09 must NOT silently break the 15-08 contract.
+  const html = renderPage({
+    slug: 'launch',
+    seo: {},
+    blocks: [heroBlock()],
+  });
+  assertStringIncludes(html, '<link rel="canonical" href="/launch">');
+});
+
+Deno.test('39-09 PAGEAB-02: seo.canonical (explicit override) wins over canonicalSlug', () => {
+  // If a staff user has hand-set seo.canonical via the SEO panel, that value
+  // wins over the auto-computed canonicalSlug. The 15-08 cascade rule stays
+  // intact: per-page seo.canonical → variant canonicalSlug → safe fallback.
+  const html = renderPage({
+    slug: 'variant-launch',
+    canonicalSlug: 'launch',
+    seo: { canonical: 'https://leanshot.app/preferred-canonical' },
+    blocks: [heroBlock()],
+  });
+  assertStringIncludes(html, '<link rel="canonical" href="https://leanshot.app/preferred-canonical">');
+});
+
+// ─── 39-09 PAGEAB-06 / D-13: resolveVariantBlocks per-block resolver ──────────
+
+Deno.test('39-09 PAGEAB-06: resolveVariantBlocks does NOT call the resolver for blocks without variant_set_id', async () => {
+  let callCount = 0;
+  const resolver: VariantBlockResolver = (_block) => {
+    callCount += 1;
+    return Promise.resolve(null);
+  };
+  const blocks: BlockNode[] = [heroBlock({ id: 'h1' })];
+  const out = await resolveVariantBlocks(blocks, resolver);
+  assertEquals(callCount, 0, 'resolver MUST NOT fire for blocks without variant_set_id');
+  // Output is the same tree, structurally
+  assertEquals(out.length, 1);
+  assertEquals(out[0]?.id, 'h1');
+});
+
+Deno.test('39-09 PAGEAB-06: resolveVariantBlocks calls the resolver for each block with variant_set_id', async () => {
+  const calls: string[] = [];
+  const resolver: VariantBlockResolver = (block) => {
+    calls.push(block.id);
+    return Promise.resolve(null);
+  };
+  const blocks: BlockNode[] = [
+    heroBlock({ id: 'h1', variant_set_id: 'vs-1' }),
+    heroBlock({ id: 'h2' }),
+    heroBlock({ id: 'h3', variant_set_id: 'vs-2' }),
+  ];
+  await resolveVariantBlocks(blocks, resolver);
+  assertEquals(calls, ['h1', 'h3'], 'resolver MUST fire exactly for blocks with variant_set_id');
+});
+
+Deno.test('39-09 PAGEAB-06: resolver-returned variant block REPLACES the canonical block content in the rendered HTML', async () => {
+  // The per-block A/B contract: the resolver returns a BlockNode whose
+  // `content` is the variant's admin-edited payload. The renderer must emit
+  // THAT content, not the canonical content the editor saved.
+  const blocks: BlockNode[] = [
+    heroBlock({
+      id: 'h1',
+      variant_set_id: 'vs-1',
+      content: {
+        heading: 'CANONICAL_HEADING',
+        subheading: '',
+        ctaLabel: 'Go',
+        ctaHref: '/x',
+      },
+    }),
+  ];
+  const resolver: VariantBlockResolver = (block) =>
+    Promise.resolve({
+      ...block,
+      content: {
+        heading: 'VARIANT_HEADING',
+        subheading: '',
+        ctaLabel: 'Go',
+        ctaHref: '/x',
+      },
+    });
+  const resolved = await resolveVariantBlocks(blocks, resolver);
+  const html = renderPage({ slug: 's', seo: {}, blocks: resolved });
+  assertStringIncludes(html, 'VARIANT_HEADING');
+  assert(
+    !html.includes('CANONICAL_HEADING'),
+    'canonical block content leaked into rendered HTML when variant was resolved',
+  );
+});
+
+Deno.test('39-09 PAGEAB-06 fallback: resolver throws → canonical block content is emitted (graceful 401 path)', async () => {
+  // Per `<interfaces>`: if variant-resolver returns 401 (anonymous path not
+  // yet supported in Plan 39-03's first cut) OR otherwise rejects, the
+  // renderer falls back to the canonical block content. The visitor MUST
+  // still see a page — no 500 surfaced.
+  const blocks: BlockNode[] = [
+    heroBlock({
+      id: 'h1',
+      variant_set_id: 'vs-1',
+      content: {
+        heading: 'FALLBACK_HEADING',
+        subheading: '',
+        ctaLabel: 'Go',
+        ctaHref: '/x',
+      },
+    }),
+  ];
+  const resolver: VariantBlockResolver = (_block) =>
+    Promise.reject(new Error('401 unauthenticated'));
+  const resolved = await resolveVariantBlocks(blocks, resolver);
+  const html = renderPage({ slug: 's', seo: {}, blocks: resolved });
+  assertStringIncludes(html, 'FALLBACK_HEADING');
+});
+
+Deno.test('39-09 PAGEAB-06 fallback: resolver returns null → canonical block content is emitted', async () => {
+  // Null return is the "no variant assigned for this user" path — the
+  // resolver completed successfully but had nothing to swap. Same effect as
+  // the throw path: keep the canonical block.
+  const blocks: BlockNode[] = [
+    heroBlock({
+      id: 'h1',
+      variant_set_id: 'vs-1',
+      content: {
+        heading: 'CANONICAL_KEEP',
+        subheading: '',
+        ctaLabel: 'Go',
+        ctaHref: '/x',
+      },
+    }),
+  ];
+  const resolver: VariantBlockResolver = (_block) => Promise.resolve(null);
+  const resolved = await resolveVariantBlocks(blocks, resolver);
+  const html = renderPage({ slug: 's', seo: {}, blocks: resolved });
+  assertStringIncludes(html, 'CANONICAL_KEEP');
+});
+
+Deno.test('39-09 PAGEAB-06 regression: resolveVariantBlocks preserves block order + parent_id when swapping', async () => {
+  // The variant payload only replaces `content`; structure (id, type, order,
+  // parent_id) must remain untouched so the existing root/child filter in
+  // renderPage keeps working.
+  const blocks: BlockNode[] = [
+    heroBlock({ id: 'h1', order: 2, variant_set_id: 'vs-1' }),
+    heroBlock({ id: 'h2', order: 0 }),
+    heroBlock({ id: 'h3', order: 1 }),
+  ];
+  const resolver: VariantBlockResolver = (block) =>
+    Promise.resolve({ ...block, content: { heading: 'V', subheading: '', ctaLabel: 'Go', ctaHref: '/x' } });
+  const out = await resolveVariantBlocks(blocks, resolver);
+  assertEquals(out.length, 3);
+  assertEquals(out[0]?.id, 'h1');
+  assertEquals(out[0]?.order, 2);
+  assertEquals(out[1]?.id, 'h2');
+  assertEquals(out[2]?.id, 'h3');
 });
