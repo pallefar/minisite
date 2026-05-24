@@ -25,6 +25,19 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
+// Phase 39 Plan 39-06 — ExperimentDashboardPage (lazy-loaded by T6) calls
+// supabase.rpc on mount. Mock so the lazy chunk hydrates without a network
+// stub. Other admin modules use their own per-test mocks; this is a default
+// safety net for shell-level tests that resolve lazy chunks.
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    rpc: () => Promise.resolve({ data: [], error: null }),
+    from: () => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+    }),
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Setup: enable flags for users + audit-log, disable ai flag.
 // ---------------------------------------------------------------------------
@@ -121,14 +134,18 @@ describe('AdminShell', () => {
       <AdminShell adminRole="admin" currentPath="/admin/growth/experiments" />,
     );
 
-    // Confirm the lazy chunk resolves — ExperimentDashboardPage's testid
-    // appears once the Suspense boundary settles. We do NOT assert the
+    // Confirm the lazy chunk resolves — once the Suspense boundary settles,
+    // ExperimentDashboardPage renders its 3-Pill tab nav. The `experiment-tab-content`
+    // section is the stable contract for Plans 39-07/08. We do NOT assert the
     // module-not-found placeholder ("Admin module not found.") which would
     // fire if the manifest entry were missing or the URL-prefix branch
     // failed to match.
-    await waitFor(() => {
-      expect(screen.getByTestId('experiment-dashboard-shell')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('experiment-tab-content')).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
   });
 
   // Phase 39 Plan 39-06 — verify the manifest entry itself has all 7
