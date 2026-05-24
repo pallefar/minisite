@@ -106,6 +106,7 @@ interface MuxEventData {
   id: string;
   playback_ids?: Array<{ id: string; policy: string }>;
   passthrough?: string;
+  duration?: number; // seconds (may be fractional); event-recording branch uses Math.round
 }
 
 interface MuxEvent {
@@ -143,7 +144,8 @@ export async function handler(req: Request): Promise<Response> {
     return new Response('ok', { status: 200 });
   }
 
-  // Parse passthrough JSON — extended in Plan 46-05 with `kind` discriminator.
+  // Parse passthrough JSON — extended in Plan 46-05 with `kind` discriminator,
+  // further extended in Plan 47-09 with kind:'event-recording' + event_id.
   // (T-44-02b: passthrough was server-minted by mux-create-upload — implicitly
   //  signed by Mux's HMAC. Trust to route the UPDATE.)
   let passthrough: {
@@ -152,6 +154,7 @@ export async function handler(req: Request): Promise<Response> {
     kind?: string;
     lesson_id?: string;
     course_id?: string;
+    event_id?: string;
   } | null = null;
   try {
     passthrough = event.data?.passthrough ? JSON.parse(event.data.passthrough) : null;
@@ -205,7 +208,86 @@ export async function handler(req: Request): Promise<Response> {
     }
     return new Response('ok', { status: 200 });
   }
-  // End course-lesson branch — existing community-post path continues below.
+  // End course-lesson branch.
+
+  // ==========================================================================
+  // Plan 47-09: event-recording branch (EVENT-05) — admin uploads
+  // post-event recording via mux-create-upload kind:'event-recording'.
+  //
+  // Only video.asset.ready is handled here per RESEARCH Example 6. Other
+  // event types (errored, upload.asset_created, etc.) fall through to 200 ok
+  // without DB writes — there is no per-segment / per-view Mux webhook.
+  //
+  // Branching on events.attach_to_module_id (set at admin event-create time,
+  // already RLS-gated):
+  //   - non-null → INSERT course_lessons row (is_required=false so does not
+  //       break completion math) with computed next order_index.
+  //   - null     → UPDATE events SET recording_mux_asset_id, recording_playback_id
+  //       (inline recording on event card).
+  //
+  // T-47-36 mitigation: webhook just reads the admin-pre-configured target;
+  //   no privilege escalation possible from the webhook caller.
+  // T-47-38 mitigation: missing event_id OR event_not_found → 200 (Mux won't
+  //   retry on 2xx; no retry loop).
+  // ==========================================================================
+  if (
+    event.type === 'video.asset.ready' &&
+    passthrough?.kind === 'event-recording' &&
+    passthrough.event_id
+  ) {
+    const playbackId = event.data.playback_ids?.[0]?.id ?? null;
+    const durationSec = Math.round(event.data.duration ?? 0);
+
+    const { data: ev } = await (admin as SupabaseClient)
+      .from('events')
+      .select('id, title, attach_to_module_id')
+      .eq('id', passthrough.event_id)
+      .maybeSingle();
+
+    if (!ev) {
+      console.log('[mux-webhook] event-recording: event_not_found', {
+        event_id: passthrough.event_id,
+      });
+      return new Response('ok', { status: 200 });
+    }
+
+    const evRow = ev as { id: string; title: string; attach_to_module_id: string | null };
+
+    if (evRow.attach_to_module_id) {
+      // Phase 46 schema: course_lessons (module_id, title, mux_asset_id,
+      // mux_playback_id, duration_seconds, is_required, order_index, …)
+      const { data: maxOrder } = await (admin as SupabaseClient)
+        .from('course_lessons')
+        .select('order_index')
+        .eq('module_id', evRow.attach_to_module_id)
+        .order('order_index', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const nextOrder = ((maxOrder as { order_index?: number } | null)?.order_index ?? 0) + 1;
+
+      await (admin as SupabaseClient).from('course_lessons').insert({
+        module_id: evRow.attach_to_module_id,
+        title: `${evRow.title} recording`,
+        mux_asset_id: event.data.id,
+        mux_playback_id: playbackId,
+        duration_seconds: durationSec,
+        is_required: false,       // D-15: don't break completion math
+        is_free_preview: false,
+        order_index: nextOrder,
+      });
+    } else {
+      // Inline recording on the event card (no lesson attachment).
+      await (admin as SupabaseClient)
+        .from('events')
+        .update({
+          recording_mux_asset_id: event.data.id,
+          recording_playback_id: playbackId,
+        })
+        .eq('id', passthrough.event_id);
+    }
+    return new Response('ok', { status: 200 });
+  }
+  // End event-recording branch — community-post path continues below.
 
   const postId = passthrough?.post_id ?? null;
   if (!postId) {
