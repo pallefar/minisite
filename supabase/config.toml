@@ -550,6 +550,34 @@ verify_jwt = true
 [functions.account-delete]
 verify_jwt = true
 
+# Phase 41 Plan 41-04 EMBED-08 — calendly-oauth-start is the popup-OAuth entry
+# point opened via `window.open('/api/calendly/oauth-start', ...)` from the
+# PageEditor inline-preview surface. The popup-window navigation is a top-level
+# browser request — Supabase's browser SDK stores the session in localStorage
+# (not as a cookie), so NO Authorization header / cookie is auto-attached to
+# the cross-origin popup. verify_jwt MUST be false here or the Supabase gateway
+# 401s every popup before handleStart() runs (CR-02 in 41-REVIEW.md).
+#
+# KNOWN ISSUE: the current handleStart() implementation expects an explicit
+# `Authorization: Bearer <jwt>` header (jwtFromReq) which a popup navigation
+# cannot provide. The user-identity flow needs to migrate to a signed-handoff
+# token (minted by an in-app fetch BEFORE window.open, validated by handleStart)
+# OR a separate cookie-set step. Tracked for a follow-up phase — until then the
+# popup flow is non-functional even with verify_jwt = false, but the toml entry
+# is a prerequisite for any subsequent fix.
+[functions.calendly-oauth-start]
+verify_jwt = false
+
+# Phase 41 Plan 41-04 EMBED-08 — calendly-oauth-callback receives Calendly's
+# redirect at the end of the OAuth flow. Calendly redirects the popup directly
+# from `auth.calendly.com` to the redirect_uri; the request carries Calendly's
+# `?code=&state=` but NO LeanShot JWT. verify_jwt MUST be false or the gateway
+# 401s every redirect before handleCallback() runs (CR-02 in 41-REVIEW.md).
+# CSRF defense is the in-Fn HMAC verifyState() check (T-41-04-05) + 10-min
+# expiry — NOT the JWT.
+[functions.calendly-oauth-callback]
+verify_jwt = false
+
 # Phase 42 Plan 42-01 — spike-web-push is a DISPOSABLE spike Edge Fn that proves
 # VAPID ECDSA P-256 + Web Push works inside Deno. Invoked via curl from a developer
 # shell with no Supabase user JWT, so verify_jwt = false. WILL BE DELETED in Wave 4
