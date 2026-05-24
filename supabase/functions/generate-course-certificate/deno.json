@@ -1,0 +1,8 @@
+{
+  "tasks": { "test": "deno test --no-check --allow-env --allow-net ." },
+  "imports": {
+    "npm:@supabase/supabase-js@2": "npm:@supabase/supabase-js@2"
+  },
+  "lint": { "rules": { "tags": ["recommended"] } },
+  "fmt": { "useTabs": false, "lineWidth": 100 }
+}

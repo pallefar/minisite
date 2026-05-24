@@ -82,3 +82,35 @@ describe('verifyCertToken', () => {
     expect(garbageOk).toBe(false);
   });
 });
+
+// ─── Cross-runtime test vector (browser ⇄ Deno parity gate) ─────────────────
+//
+// MIRROR of supabase/functions/generate-course-certificate/cert-hmac.test.ts
+// "cross-runtime test vector" — both suites assert the same literal so any
+// future divergence in payload format / HMAC algo / base64url replace-chain
+// trips CI before any cert ever ships.
+//
+// DO NOT EDIT WITHOUT UPDATING THE DENO COUNTERPART (and vice versa).
+//
+// Vector inputs:
+//   certId   = 'cert-vec-001'
+//   userId   = 'user-vec-001'
+//   courseId = 'course-vec-001'
+//   issuedAt = '2026-01-01T00:00:00.000Z'
+//   secret   = 'CROSS_RUNTIME_TEST_SECRET_46'
+describe('cross-runtime parity vector (browser ⇄ Deno)', () => {
+  it('mintCertToken produces the locked literal that the Deno side also produces', async () => {
+    const token = await mintCertToken(
+      'cert-vec-001',
+      'user-vec-001',
+      'course-vec-001',
+      '2026-01-01T00:00:00.000Z',
+      'CROSS_RUNTIME_TEST_SECRET_46',
+    );
+    // If this assertion fails: either
+    //   (a) the browser-side payload format / replace-chain drifted, or
+    //   (b) the Deno-side mirror in cert-hmac.test.ts changed without updating here.
+    // Both sides MUST be updated atomically.
+    expect(token).toBe('VkvWn-pOnuE3pmNb1Y2LyBFhcZmO9gehMViOvszVwsw');
+  });
+});
