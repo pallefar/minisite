@@ -63,7 +63,7 @@
 - [x] **Phase 44: M4 Community Feed Foundation** — Posts + threaded comments + reactions + @mentions + image/Mux video embeds + Realtime [COMPLETE — approved automated-verify-only; Signals A-D deferred to v1.3-uat-deferred.md]
 - [x] **Phase 45: M4 Community Spaces + Member Directory + Opt-in DMs + Leaderboard** — Per-space tier visibility + DM rate-limiting + cohort-scoped leaderboard
 - [x] **Phase 46: M4 Courses / Classroom** — Modules + lessons + Mux adaptive video + completion certificates (jsPDF) + landing-page A/B + Pro-gated resources
-- [ ] **Phase 47: M4 Events Calendar + Zoom + Reminders + Recording** — RSVPs with capacity/waitlist + Zoom OAuth + timezone-aware reminders + post-event lesson conversion
+- [x] **Phase 47: M4 Events Calendar + Zoom + Reminders + Recording** — RSVPs with capacity/waitlist + Zoom OAuth + timezone-aware reminders + post-event lesson conversion
 - [x] **Phase 48: M4 Moderation** — Reports queue + mute/ban/suspend + banned-words + Claude auto-flagging + immutable audit log
 - [ ] **Phase 49: M4 Search + Email Digests** — Postgres FTS (English + Spanish dictionaries shared with HELP-11) + daily/weekly Resend digests + opt-out + 1-click unsubscribe
 
@@ -689,18 +689,18 @@ Plans:
 **Plans**: 12 plans
 
 Plans:
-- [ ] 47-01-PLAN.md — events schema + RLS (Wave 0)
-- [ ] 47-02-PLAN.md — event_rsvps schema + RLS + UNIQUE (Wave 0)
-- [ ] 47-03-PLAN.md — SECDEF RPCs (event_rsvp_create, event_get_join_url) + waitlist promotion trigger + reminder_sent + promotion_queue tables (Wave 0)
-- [ ] 47-04-PLAN.md — event-covers Storage bucket + notification_settings VALID_CATEGORIES widening (Wave 0)
-- [ ] 47-05-PLAN.md — pg_cron + 14 Wave 0 test scaffolds + bundle-budget extend (Wave 0)
-- [ ] 47-06-PLAN.md — zoom-create-meeting Edge Fn (S2S OAuth + retry-on-401) (Wave 1)
-- [ ] 47-07-PLAN.md — event-join-url Edge Fn (RSVP gate + 15-min pre-window) (Wave 1)
-- [ ] 47-08-PLAN.md — event-reminders-fanout Edge Fn + select_event_reminder_targets RPC + _shared/event-phi.ts helper (Wave 1)
-- [ ] 47-09-PLAN.md — mux-create-upload + mux-webhook EXTEND (kind=event-recording) (Wave 1)
-- [ ] 47-10-PLAN.md — Consumer events tab (EventsTab + EventCard + EventDetailSheet + RsvpPills + JoinMeetingButton + types + RPC client + TabId/store/App/Sidebar/MobileNav widening + vite chunk) (Wave 2)
-- [ ] 47-11-PLAN.md — Admin events module (pathname-based; EventEditPage + Zoom radio + attach-to-module picker + cover upload + recording uploader + manifest registration) (Wave 2)
-- [ ] 47-12-PLAN.md — Phase close-out: db push + 5 Fn deploys + Deno sweep + bundle gate + 6-signal HUMAN-UAT + ROADMAP/STATE/REQUIREMENTS flips (Wave 3)
+- [x] 47-01-PLAN.md — events schema + RLS (Wave 0)
+- [x] 47-02-PLAN.md — event_rsvps schema + RLS + UNIQUE (Wave 0)
+- [x] 47-03-PLAN.md — SECDEF RPCs (event_rsvp_create, event_get_join_url) + waitlist promotion trigger + reminder_sent + promotion_queue tables (Wave 0)
+- [x] 47-04-PLAN.md — event-covers Storage bucket + notification_settings VALID_CATEGORIES widening (Wave 0)
+- [x] 47-05-PLAN.md — pg_cron + 14 Wave 0 test scaffolds + bundle-budget extend (Wave 0)
+- [x] 47-06-PLAN.md — zoom-create-meeting Edge Fn (S2S OAuth + retry-on-401) (Wave 1)
+- [x] 47-07-PLAN.md — event-join-url Edge Fn (RSVP gate + 15-min pre-window) (Wave 1)
+- [x] 47-08-PLAN.md — event-reminders-fanout Edge Fn + select_event_reminder_targets RPC + _shared/event-phi.ts helper (Wave 1)
+- [x] 47-09-PLAN.md — mux-create-upload + mux-webhook EXTEND (kind=event-recording) (Wave 1)
+- [x] 47-10-PLAN.md — Consumer events tab (EventsTab + EventCard + EventDetailSheet + RsvpPills + JoinMeetingButton + types + RPC client + TabId/store/App/Sidebar/MobileNav widening + vite chunk) (Wave 2)
+- [x] 47-11-PLAN.md — Admin events module (pathname-based; EventEditPage + Zoom radio + attach-to-module picker + cover upload + recording uploader + manifest registration) (Wave 2)
+- [x] 47-12-PLAN.md — Phase close-out: db push + 5 Fn deploys + Deno sweep + bundle gate + 6-signal HUMAN-UAT + ROADMAP/STATE/REQUIREMENTS flips (Wave 3)
 
 ### Phase 48: M4 Moderation
 

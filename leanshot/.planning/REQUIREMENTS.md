@@ -272,9 +272,9 @@
 
 ### WS22 — M4: Events / Calendar (EVENT, 5 REQ-IDs)
 
-- [ ] **EVENT-01**: Events schema + calendar UI (admin creates event with title + description + start + end + capacity + space + RSVP settings + visibility per tier)
-- [ ] **EVENT-02**: User RSVPs (Going / Maybe / Not Going); capacity limits enforced; waitlist when capacity hit
-- [ ] **EVENT-03**: Zoom / Google Meet integration (admin pastes meeting link OR auto-generates via Zoom OAuth; deep-link revealed to attendees only)
+- [x] **EVENT-01**: Events schema + calendar UI (admin creates event with title + description + start + end + capacity + space + RSVP settings + visibility per tier)
+- [x] **EVENT-02**: User RSVPs (Going / Maybe / Not Going); capacity limits enforced; waitlist when capacity hit
+- [x] **EVENT-03**: Zoom / Google Meet integration (admin pastes meeting link OR auto-generates via Zoom OAuth; deep-link revealed to attendees only)
 - [ ] **EVENT-04**: Automatic reminder emails (1 day before + 1 hour before) via Resend (or SES for PHI-touching clinic events); per-user-timezone-aware
 - [ ] **EVENT-05**: Post-event recording uploaded to Mux → attached as new lesson in adjacent course (optional, admin-toggled)
 
@@ -603,9 +603,9 @@ REQ-ID → Phase mapping (created 2026-05-17 by `gsd-roadmapper`). 204 REQ-IDs m
 | COURSE-04 | Phase 46 | Complete |
 | COURSE-05 | Phase 46 | Complete |
 | COURSE-06 | Phase 46 | Complete |
-| EVENT-01 | Phase 47 | Pending |
-| EVENT-02 | Phase 47 | Pending |
-| EVENT-03 | Phase 47 | Pending |
+| EVENT-01 | Phase 47 | Complete |
+| EVENT-02 | Phase 47 | Complete |
+| EVENT-03 | Phase 47 | Complete |
 | EVENT-04 | Phase 47 | Pending |
 | EVENT-05 | Phase 47 | Pending |
 | MOD-01 | Phase 48 | Complete |

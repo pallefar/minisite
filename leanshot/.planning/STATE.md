@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Platform Expansion
 status: verifying
-stopped_at: Phase 47 context gathered
-last_updated: "2026-05-24T07:45:00.000Z"
-last_activity: 2026-05-24 -- Phase 46 (M4 Courses / Classroom) complete 10/11 plans shipped + 46-11 close-out (automated-verify-only, 6 HUMAN-UAT signals + 5 Fn deploys + 6 migrations + 3 NEW Mux/cert secrets deferred to v1.3 milestone UAT)
+stopped_at: Phase 47 complete (automated-verify-only)
+last_updated: "2026-05-24T09:00:00.000Z"
+last_activity: 2026-05-24 -- Phase 47 (M4 Events Calendar + Zoom + Reminders + Recording) complete 11/12 plans shipped + 47-12 close-out (automated-verify-only, 6 HUMAN-UAT + 5 Fn deploys + 10 migrations + 3 NEW Zoom S2S secrets deferred to v1.3 milestone UAT; mux pair-deploy hazard captured per memory)
 progress:
   total_phases: 28
-  completed_phases: 20
-  total_plans: 241
-  completed_plans: 190
-  percent: 70
+  completed_phases: 21
+  total_plans: 253
+  completed_plans: 202
+  percent: 73
 ---
 
 # Background dispatch note (2026-05-19) — Phase 40
