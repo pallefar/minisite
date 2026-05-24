@@ -126,9 +126,13 @@ export function AllowlistPage() {
       const rows = await listHostnames(supabase);
       const mapped: AllowlistTableRow[] = rows.map((r: AllowlistRow) => ({
         ...r,
-        // Reference count proxy: until v1.4 JSONB scan, last_used_at signals
-        // recent activity. Unused == null.
-        reference_count: r.last_used_at === null ? 0 : 1,
+        // WR-04 fix (41-REVIEW.md): no synthesized count. Until v1.4 ships a
+        // real reference scan over landing_page_revisions.blocks, the table
+        // shows a binary "In use" / "Unused" derived from last_used_at —
+        // matching ReferencesSheet's honesty ("Reference scanning ships in
+        // v1.4"). Previously the table rendered "1 page" for any used
+        // hostname even when 50 pages embedded it.
+        in_use: r.last_used_at !== null,
         added_by_email: null,
       }));
       setFetch({ status: 'ready', rows: mapped });
@@ -195,7 +199,7 @@ export function AllowlistPage() {
           open
           hostname={removeTarget.hostname}
           hostnameId={removeTarget.id}
-          referenceCount={removeTarget.reference_count ?? 0}
+          inUse={removeTarget.in_use ?? false}
           onClose={() => setRemoveTarget(null)}
           onRemoved={() => void refetch()}
         />

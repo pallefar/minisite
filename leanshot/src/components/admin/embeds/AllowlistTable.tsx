@@ -27,8 +27,14 @@ type SortDir = 'asc' | 'desc';
 export interface AllowlistTableRow extends AllowlistRow {
   /** Email of the adder, joined client-side from a separate profiles query if available. */
   added_by_email?: string | null;
-  /** Reference count derived from `last_used_at IS NULL` until v1.4 full scan. */
-  reference_count?: number;
+  /**
+   * Binary in-use proxy until v1.4 ships a full JSONB scan over
+   * `landing_page_revisions.blocks`. Derived from `last_used_at IS NOT NULL`.
+   * Previously a fake numeric `reference_count` was synthesized, but the
+   * table column always read 0 or 1 and rendered "1 page" even when 50
+   * pages embedded the hostname (WR-04 in 41-REVIEW.md).
+   */
+  in_use?: boolean;
 }
 
 export interface AllowlistTableProps {
@@ -93,11 +99,24 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
 
   function sortIcon(key: SortKey): React.ReactNode {
     if (key !== sortKey) return null;
+    // WR-06 + IN-04 fix: drop align-text-bottom — the parent button is
+    // inline-flex items-center, so the chevron baseline matches the label
+    // automatically and the announce contract aligns with WCAG aria-sort.
     return sortDir === 'asc' ? (
-      <ChevronUp size={14} aria-hidden className="inline-block align-text-bottom ms-1 text-[var(--color-text-tertiary)]" />
+      <ChevronUp size={14} aria-hidden className="ms-1 text-[var(--color-text-tertiary)]" />
     ) : (
-      <ChevronDown size={14} aria-hidden className="inline-block align-text-bottom ms-1 text-[var(--color-text-tertiary)]" />
+      <ChevronDown size={14} aria-hidden className="ms-1 text-[var(--color-text-tertiary)]" />
     );
+  }
+
+  // WR-06 helpers — aria-sort value + button aria-label per column.
+  function ariaSortFor(key: SortKey): 'ascending' | 'descending' | 'none' {
+    if (sortKey !== key) return 'none';
+    return sortDir === 'asc' ? 'ascending' : 'descending';
+  }
+  function sortButtonLabel(label: string, key: SortKey): string {
+    const dir = sortKey === key ? sortDir : 'unsorted';
+    return `Sort by ${label}, currently ${dir}`;
   }
 
   async function copyHostname(hostname: string): Promise<void> {
@@ -113,10 +132,15 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
       <table className="w-full text-left text-[14px]">
         <thead className="bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]">
           <tr>
-            <th scope="col" className="px-4 py-3 font-semibold">
+            <th
+              scope="col"
+              aria-sort={ariaSortFor('hostname')}
+              className="px-4 py-3 font-semibold"
+            >
               <button
                 type="button"
                 onClick={() => toggleSort('hostname')}
+                aria-label={sortButtonLabel('hostname', 'hostname')}
                 className="inline-flex items-center hover:text-[var(--color-text)]"
               >
                 Hostname
@@ -126,20 +150,30 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
             <th scope="col" className="px-4 py-3 font-semibold w-[160px]">
               Added by
             </th>
-            <th scope="col" className="px-4 py-3 font-semibold w-[140px]">
+            <th
+              scope="col"
+              aria-sort={ariaSortFor('added_at')}
+              className="px-4 py-3 font-semibold w-[140px]"
+            >
               <button
                 type="button"
                 onClick={() => toggleSort('added_at')}
+                aria-label={sortButtonLabel('added date', 'added_at')}
                 className="inline-flex items-center hover:text-[var(--color-text)]"
               >
                 Added
                 {sortIcon('added_at')}
               </button>
             </th>
-            <th scope="col" className="px-4 py-3 font-semibold w-[140px]">
+            <th
+              scope="col"
+              aria-sort={ariaSortFor('last_used_at')}
+              className="px-4 py-3 font-semibold w-[140px]"
+            >
               <button
                 type="button"
                 onClick={() => toggleSort('last_used_at')}
+                aria-label={sortButtonLabel('last used', 'last_used_at')}
                 className="inline-flex items-center hover:text-[var(--color-text)]"
               >
                 Last used
@@ -156,8 +190,11 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
         </thead>
         <tbody className="divide-y divide-[var(--color-border)]">
           {sorted.map((row) => {
-            const refCount = row.reference_count ?? (row.last_used_at === null ? 0 : 1);
-            const unused = refCount === 0;
+            // WR-04 fix: binary "in use" derived from last_used_at — no fake
+            // numeric count. ReferencesSheet acknowledges the v1.4 deferral
+            // ("Reference scanning ships in v1.4"); the table now matches.
+            const inUse = row.in_use ?? row.last_used_at !== null;
+            const unused = !inUse;
             return (
               <tr key={row.id} className="bg-[var(--color-surface)]">
                 <th scope="row" className="px-4 py-3 font-mono text-[13px] font-normal text-[var(--color-text)]">
@@ -195,10 +232,11 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
                   <button
                     type="button"
                     onClick={() => onOpenReferences(row.hostname)}
+                    aria-label={`View references for ${row.hostname}, currently ${unused ? 'unused' : 'in use'}`}
                     className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-pill"
                   >
                     <Badge tone={unused ? 'success' : 'warning'}>
-                      {unused ? 'Unused' : `${refCount} ${refCount === 1 ? 'page' : 'pages'}`}
+                      {unused ? 'Unused' : 'In use'}
                     </Badge>
                   </button>
                 </td>

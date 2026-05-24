@@ -21,7 +21,14 @@ export interface RemoveHostnameConfirmProps {
   open: boolean;
   hostname: string;
   hostnameId: string;
-  referenceCount: number;
+  /**
+   * Binary in-use signal. WR-04 fix (41-REVIEW.md): the previous
+   * `referenceCount: number` prop always received 0 or 1 because the
+   * upstream synthesized it from `last_used_at IS NULL` — making the
+   * "{N} pages currently embed this hostname" copy lie about cardinality.
+   * Until v1.4 ships a full JSONB scan, we surface only the boolean.
+   */
+  inUse: boolean;
   onClose: () => void;
   onRemoved: () => void;
 }
@@ -30,7 +37,7 @@ export function RemoveHostnameConfirm({
   open,
   hostname,
   hostnameId,
-  referenceCount,
+  inUse,
   onClose,
   onRemoved,
 }: RemoveHostnameConfirmProps) {
@@ -38,8 +45,7 @@ export function RemoveHostnameConfirm({
   const toast = useToast();
 
   const title = `Remove ${hostname} from allowlist?`;
-  const unused = referenceCount === 0;
-  const pluralPage = referenceCount === 1 ? 'page' : 'pages';
+  const unused = !inUse;
 
   async function handleConfirm(): Promise<void> {
     setSubmitting(true);
@@ -71,10 +77,10 @@ export function RemoveHostnameConfirm({
             color: 'var(--color-text)',
           }}
         >
-          {referenceCount} {pluralPage} currently embed this hostname. Removing it
+          This hostname is currently in use on at least one page. Removing it
           will break those embeds — visitors will see a &lsquo;Hostname not on
           allowlist&rsquo; error on those pages. Confirm only if you have already
-          updated those pages.
+          updated those pages. (Exact reference count ships in v1.4.)
         </div>
       )}
       <div className="mt-5 flex justify-end gap-2">

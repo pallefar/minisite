@@ -2,10 +2,13 @@
  * Phase 41 Plan 41-06 — RemoveHostnameConfirm RTL tests.
  *
  * 4 behaviors per PLAN.md §Task 1 <behavior>:
- *   T1 (0 refs): title + body variant + confirm CTA "Remove hostname"
- *   T2 (>=1 refs): plural body variant + --color-danger-soft banner
- *   T3 (cancel): Cancel button label "Keep on allowlist"
- *   T4 (confirm): removeHostname called + Toast success + onRemoved fires
+ *   T1 (unused):   title + body variant + confirm CTA "Remove hostname"
+ *   T2 (in use):   in-use body variant + --color-danger-soft banner
+ *   T3 (cancel):   Cancel button label "Keep on allowlist"
+ *   T4 (confirm):  removeHostname called + Toast success + onRemoved fires
+ *
+ * NOTE: prop API was `referenceCount: number` until 41-REVIEW WR-04 — fake
+ * cardinality removed; now `inUse: boolean` until v1.4 ships the real scan.
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -39,7 +42,7 @@ describe('RemoveHostnameConfirm', () => {
     mockDismissToast.mockReset();
   });
 
-  async function renderConfirm(overrides: { referenceCount?: number; onClose?: () => void; onRemoved?: () => void } = {}) {
+  async function renderConfirm(overrides: { inUse?: boolean; onClose?: () => void; onRemoved?: () => void } = {}) {
     const { RemoveHostnameConfirm } = await import('../RemoveHostnameConfirm');
     const onClose = overrides.onClose ?? vi.fn();
     const onRemoved = overrides.onRemoved ?? vi.fn();
@@ -48,7 +51,7 @@ describe('RemoveHostnameConfirm', () => {
         open
         hostname="meet.example.com"
         hostnameId="row-abc"
-        referenceCount={overrides.referenceCount ?? 0}
+        inUse={overrides.inUse ?? false}
         onClose={onClose}
         onRemoved={onRemoved}
       />,
@@ -56,8 +59,8 @@ describe('RemoveHostnameConfirm', () => {
     return { onClose, onRemoved };
   }
 
-  it('T1: 0 refs renders title + unused body + confirm CTA "Remove hostname"', async () => {
-    await renderConfirm({ referenceCount: 0 });
+  it('T1: unused renders title + unused body + confirm CTA "Remove hostname"', async () => {
+    await renderConfirm({ inUse: false });
     // Modal title may render twice (header + aria-label); use getAllByText
     expect(
       screen.getAllByText(/Remove meet\.example\.com from allowlist\?/i).length,
@@ -68,16 +71,18 @@ describe('RemoveHostnameConfirm', () => {
     expect(screen.getByRole('button', { name: 'Remove hostname' })).toBeTruthy();
   });
 
-  it('T2: >=1 refs renders plural in-use body variant', async () => {
-    await renderConfirm({ referenceCount: 3 });
+  it('T2: in-use renders in-use body variant (no fake cardinality)', async () => {
+    await renderConfirm({ inUse: true });
     expect(
-      screen.getByText(/3 pages currently embed this hostname/i),
+      screen.getByText(/This hostname is currently in use on at least one page/i),
     ).toBeTruthy();
+    // WR-04 contract: no synthesized count rendered.
+    expect(screen.queryByText(/\d+ pages currently embed/i)).toBeNull();
   });
 
   it('T3: cancel button label is "Keep on allowlist"', async () => {
     const onClose = vi.fn();
-    await renderConfirm({ referenceCount: 0, onClose });
+    await renderConfirm({ inUse: false, onClose });
     const cancel = screen.getByRole('button', { name: 'Keep on allowlist' });
     fireEvent.click(cancel);
     expect(onClose).toHaveBeenCalled();
@@ -87,7 +92,7 @@ describe('RemoveHostnameConfirm', () => {
     mockRemoveHostname.mockResolvedValue(undefined);
     const onClose = vi.fn();
     const onRemoved = vi.fn();
-    await renderConfirm({ referenceCount: 0, onClose, onRemoved });
+    await renderConfirm({ inUse: false, onClose, onRemoved });
     fireEvent.click(screen.getByRole('button', { name: 'Remove hostname' }));
     await waitFor(() => {
       expect(mockRemoveHostname).toHaveBeenCalledWith(expect.anything(), 'row-abc');
