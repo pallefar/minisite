@@ -78,6 +78,17 @@ function jwtFromReq(req: Request): string | null {
   return m ? (m[1] ?? null) : null;
 }
 
+/**
+ * Phase 51 Plan 51-02 — parse a single cookie value from the request's
+ * `Cookie` header. Returns null when the header is absent or the named
+ * cookie is missing. Decodes percent-encoded values.
+ */
+function parseCookie(cookieHeader: string | null, name: string): string | null {
+  if (!cookieHeader) return null;
+  const m = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
+  return m ? decodeURIComponent(m[1] ?? '') : null;
+}
+
 // ============================================================================
 // Lazy admin singleton + test seams
 // ============================================================================
@@ -297,6 +308,56 @@ async function handleMergeAnonSession(req: Request): Promise<Response> {
     //    supplied its posthog distinct_id (Pattern A). Idempotent server-side.
     if (anon_distinct_id) {
       doAlias(userId, anon_distinct_id);
+    }
+
+    // 7. Phase 51 Plan 51-02 (TRAFFIC-03) — Stitch the pre-signup traffic
+    //    attribution row keyed by `lt_anon_id` cookie to this user.
+    //
+    //    Cookie-only (NOT body): preserves backwards compatibility for
+    //    existing browser callers that don't know about lt_anon_id, per
+    //    Plan 51-02 PATTERNS invariant. Cookie was minted server-side by
+    //    leanshot/middleware.ts before the SPA bundle loaded, so the value
+    //    arrives in the inbound `Cookie` header on this authenticated request.
+    //
+    //    Best-effort: failures log + continue (the merge has already
+    //    succeeded; an unstitched traffic row is a degraded analytics
+    //    signal, not a user-data integrity issue). Idempotent at the
+    //    RPC layer — claim_traffic_attribution only sets user_id when
+    //    previously null, so re-calls on already-stitched rows are no-ops.
+    const ltAnonId = parseCookie(req.headers.get('cookie'), 'lt_anon_id');
+    if (ltAnonId) {
+      // PostHog alias against the lt_anon_id is independent of the
+      // anon_distinct_id alias above (different identity systems —
+      // anon_distinct_id is posthog-js's local distinct id; lt_anon_id is
+      // our server-issued traffic-attribution key). Both can/should alias
+      // to the same user_id when present.
+      try {
+        doAlias(userId, ltAnonId);
+      } catch (err) {
+        console.warn(
+          '[merge-anon-session] lt_anon_id alias failed (non-fatal):',
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+      try {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        const { error: claimErr } = (await (admin() as any).rpc('claim_traffic_attribution', {
+          p_anon_id: ltAnonId,
+          p_user_id: userId,
+        })) as { error: { message?: string } | null };
+        /* eslint-enable @typescript-eslint/no-explicit-any */
+        if (claimErr) {
+          console.warn(
+            '[merge-anon-session] claim_traffic_attribution failed (non-fatal):',
+            claimErr.message ?? 'unknown',
+          );
+        }
+      } catch (err) {
+        console.warn(
+          '[merge-anon-session] claim_traffic_attribution threw (non-fatal):',
+          err instanceof Error ? err.message : String(err),
+        );
+      }
     }
 
     return jsonResponse(200, {

@@ -15,6 +15,10 @@ import { detectPlatform } from './lib/native/platform';
 import { beforeSend } from './lib/sentry';
 import { initSentryNative } from './lib/sentry-native';
 import { hydrate, useStore } from './lib/store';
+// Phase 51 Plan 51-02 (TRAFFIC-01) — SPA fires one traffic touch on first
+// mount so a row lands in user_traffic_attribution even when the Vercel
+// Edge Middleware can't post the recorder itself (RESEARCH Q1 fallback).
+import { fireTouchOnce } from './lib/traffic/fire-touch';
 // Phase 28 Plan 28-05 ORG-06: supabase singleton for wireAuthInvalidation.
 import { supabase } from './lib/supabase';
 import { scheduleSyncInit } from './lib/sync-defer';
@@ -239,6 +243,12 @@ void hydrate().then(async () => {
       </Suspense>
     </StrictMode>,
   );
+
+  // Phase 51 Plan 51-02 (TRAFFIC-01) — fire ONE server-side traffic touch
+  // after first paint kicks off. Fire-and-forget; idempotent via module-
+  // scoped _sent flag (StrictMode-safe — re-mounts don't re-import the
+  // module). NOT awaited: must not delay any deferred initialization below.
+  void fireTouchOnce();
 
   // 3) Analytics AFTER first render, scheduled at idle so the posthog-js
   //    bundle never blocks the cold-load critical path. `initAnalytics()`
