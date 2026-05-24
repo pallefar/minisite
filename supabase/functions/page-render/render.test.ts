@@ -476,6 +476,7 @@ Deno.test('renderPage: emits a complete HTML document with one <head> and one <b
     slug: 'demo',
     seo: { title: 'Demo Page' },
     blocks: [heroBlock()],
+    allowlistHostnames: [],
   });
   // Doctype is case-insensitive in HTML
   assert(/^<!doctype html/i.test(html.trim()), `missing doctype: ${html.slice(0, 50)}`);
@@ -500,7 +501,7 @@ Deno.test('renderPage: child blocks (parent_id !== null) NOT rendered at root le
     content: { heading: 'CHILD-HEADING', subheading: '', ctaLabel: '', ctaHref: '/' },
     style: {},
   };
-  const html = renderPage({ slug: 's', seo: {}, blocks: [root, child] });
+  const html = renderPage({ slug: 's', seo: {}, blocks: [root, child], allowlistHostnames: [] });
   assertStringIncludes(html, 'ROOT');
   // CHILD-HEADING must not appear at the document body root — this plan's
   // renderPage only walks parent_id === null roots at the top level. Nested
@@ -513,7 +514,7 @@ Deno.test('renderPage: roots are sorted by `order` ascending', () => {
   const a: BlockNode = { ...heroBlock({ id: 'A', content: { heading: 'AAA', subheading: '', ctaLabel: '', ctaHref: '/' } }), order: 2 };
   const b: BlockNode = { ...heroBlock({ id: 'B', content: { heading: 'BBB', subheading: '', ctaLabel: '', ctaHref: '/' } }), order: 0 };
   const c: BlockNode = { ...heroBlock({ id: 'C', content: { heading: 'CCC', subheading: '', ctaLabel: '', ctaHref: '/' } }), order: 1 };
-  const html = renderPage({ slug: 's', seo: {}, blocks: [a, b, c] });
+  const html = renderPage({ slug: 's', seo: {}, blocks: [a, b, c], allowlistHostnames: [] });
   const bIdx = html.indexOf('BBB');
   const cIdx = html.indexOf('CCC');
   const aIdx = html.indexOf('AAA');
@@ -952,6 +953,7 @@ Deno.test('39-09 PAGEAB-02: renderPage emits <link rel="canonical"> pointing at 
     canonicalSlug: 'launch',
     seo: {},
     blocks: [heroBlock()],
+    allowlistHostnames: [],
   });
   assertStringIncludes(html, '<link rel="canonical" href="/launch">');
   // Sanity: the variant slug DOES appear elsewhere (e.g. inside JSON-LD url
@@ -970,6 +972,7 @@ Deno.test('39-09 PAGEAB-02 regression: renderPage without canonicalSlug emits ca
     slug: 'launch',
     seo: {},
     blocks: [heroBlock()],
+    allowlistHostnames: [],
   });
   assertStringIncludes(html, '<link rel="canonical" href="/launch">');
 });
@@ -983,6 +986,7 @@ Deno.test('39-09 PAGEAB-02: seo.canonical (explicit override) wins over canonica
     canonicalSlug: 'launch',
     seo: { canonical: 'https://leanshot.app/preferred-canonical' },
     blocks: [heroBlock()],
+    allowlistHostnames: [],
   });
   assertStringIncludes(html, '<link rel="canonical" href="https://leanshot.app/preferred-canonical">');
 });
@@ -1045,7 +1049,7 @@ Deno.test('39-09 PAGEAB-06: resolver-returned variant block REPLACES the canonic
       },
     });
   const resolved = await resolveVariantBlocks(blocks, resolver);
-  const html = renderPage({ slug: 's', seo: {}, blocks: resolved });
+  const html = renderPage({ slug: 's', seo: {}, blocks: resolved, allowlistHostnames: [] });
   assertStringIncludes(html, 'VARIANT_HEADING');
   assert(
     !html.includes('CANONICAL_HEADING'),
@@ -1073,7 +1077,7 @@ Deno.test('39-09 PAGEAB-06 fallback: resolver throws → canonical block content
   const resolver: VariantBlockResolver = (_block) =>
     Promise.reject(new Error('401 unauthenticated'));
   const resolved = await resolveVariantBlocks(blocks, resolver);
-  const html = renderPage({ slug: 's', seo: {}, blocks: resolved });
+  const html = renderPage({ slug: 's', seo: {}, blocks: resolved, allowlistHostnames: [] });
   assertStringIncludes(html, 'FALLBACK_HEADING');
 });
 
@@ -1095,7 +1099,7 @@ Deno.test('39-09 PAGEAB-06 fallback: resolver returns null → canonical block c
   ];
   const resolver: VariantBlockResolver = (_block) => Promise.resolve(null);
   const resolved = await resolveVariantBlocks(blocks, resolver);
-  const html = renderPage({ slug: 's', seo: {}, blocks: resolved });
+  const html = renderPage({ slug: 's', seo: {}, blocks: resolved, allowlistHostnames: [] });
   assertStringIncludes(html, 'CANONICAL_KEEP');
 });
 

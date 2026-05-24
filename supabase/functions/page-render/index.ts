@@ -98,6 +98,18 @@ interface SiteSettingsQuery {
   limit(n: number): Promise<{ data: SiteSettingsRow[] | null; error: { message: string } | null }>;
 }
 
+// Phase 41 Plan 41-03 (B3) — iframe_allowlist query shape. The orchestrator
+// blocking-fetches every hostname in public.iframe_allowlist BEFORE invoking
+// renderPage; on DB error it throws a 500 rather than silently rendering
+// custom_iframe blocks as inert placeholders (D-15 forbids the silent
+// failure mode).
+interface IframeAllowlistQuery {
+  then<TResult1 = { data: Array<{ hostname: string }> | null; error: { message: string } | null }, TResult2 = never>(
+    onfulfilled?: (value: { data: Array<{ hostname: string }> | null; error: { message: string } | null }) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: unknown) => TResult2 | PromiseLike<TResult2>,
+  ): Promise<TResult1 | TResult2>;
+}
+
 // ─── Admin abstraction (for testability) ─────────────────────────────────────
 
 /**
@@ -227,12 +239,53 @@ export async function handleRender(
     );
   }
 
+  // Phase 41 Plan 41-03 (B3 + D-14/D-15) — BLOCKING fetch of the per-deployment
+  // iframe_allowlist BEFORE invoking renderPage. Custom-iframe blocks MUST be
+  // validated against this list; an empty array on DB error would silently
+  // render every custom_iframe as an inert placeholder (the silent EMBED-07
+  // failure mode forbidden by D-15). On error we surface a generic 500 — the
+  // public visitor sees an error page rather than a half-broken landing page.
+  let allowlistHostnames: string[];
+  try {
+    const allowlistRes = await (client
+      .from('iframe_allowlist')
+      .select('hostname') as unknown as IframeAllowlistQuery);
+    if (allowlistRes.error) {
+      console.error('[page-render] iframe_allowlist fetch failed', allowlistRes.error.message);
+      return new Response('Internal error', {
+        status: 500,
+        headers: {
+          ...BASE_RESPONSE_HEADERS,
+          ...corsHeaders,
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+      });
+    }
+    allowlistHostnames = (allowlistRes.data ?? [])
+      .map((r) => (typeof r.hostname === 'string' ? r.hostname : ''))
+      .filter((h) => h.length > 0);
+  } catch (err) {
+    console.error(
+      '[page-render] iframe_allowlist fetch threw',
+      err instanceof Error ? err.message : 'unknown',
+    );
+    return new Response('Internal error', {
+      status: 500,
+      headers: {
+        ...BASE_RESPONSE_HEADERS,
+        ...corsHeaders,
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
+  }
+
   const html = renderPage({
     slug: row.slug,
     title: row.title ?? undefined,
     seo: seoInput,
     blocks,
     siteSettings,
+    allowlistHostnames,
   });
 
   return new Response(html, { status: 200, headers });

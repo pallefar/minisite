@@ -4,9 +4,11 @@
 // The iframe-HTML factoring is MANDATORY here — no <iframe> template literal
 // stays in render.ts (BLOCKER 2 fix from 15-06-PLAN.md).
 import {
-  buildCalendlyIframeHtml,
-  buildTallyIframeHtml,
-  buildYouTubeIframeHtml,
+  buildCalendlySrc,
+  buildTallySrc,
+  buildYouTubeSrc,
+  EMBED_IFRAME_TITLES,
+  validateCustomIframeUrl,
 } from '../../../leanshot/src/lib/page-builder/embed-src.ts';
 
 // 15-08: import the SHARED HTML / attribute escapers + JSON-LD generator.
@@ -62,6 +64,7 @@ export type BlockType =
   | 'calendly'
   | 'youtube'
   | 'tally'
+  | 'custom_iframe'
   | 'lead-form';
 
 export interface BlockStyle {
@@ -116,6 +119,20 @@ export interface RenderPageInput {
   slug: string;
   seo?: PageSeo;
   blocks: BlockNode[];
+  /**
+   * Phase 41 Plan 41-03 (D-14/D-15/B3) — per-deployment Custom-iframe
+   * hostname allowlist. The page-render orchestrator (index.ts) BLOCKING-
+   * fetches this from `public.iframe_allowlist` BEFORE invoking renderPage
+   * and throws a 500 on DB error rather than silently passing an empty
+   * array (which would render every custom_iframe block as an inert
+   * placeholder — silent EMBED-07 failure mode forbidden by D-15).
+   *
+   * REQUIRED at the type level (B3 fix — the previous hedge "pass empty
+   * array on missing" is REMOVED). Production caller is index.ts; tests
+   * MUST pass `allowlistHostnames: []` explicitly when no custom_iframe
+   * blocks are involved.
+   */
+  allowlistHostnames: ReadonlyArray<string>;
   // 15-08: optional site_settings row threaded through to renderSeoHead.
   // Optional so render.test.ts's existing fixtures (which don't pass it)
   // continue to type-check; the index.ts dispatcher fetches the singleton
@@ -776,6 +793,12 @@ export function renderBlock(block: BlockNode): string {
     case 'tally':
       // embed-tally
       return renderEmbedTally(block);
+    // 41-03 EMBED-07: per-deployment-allowlisted Custom-iframe block.
+    // allowlistHostnames is threaded from renderPage → renderBlock here;
+    // since renderBlock is called by renderPage.map(renderBlock) we need
+    // a closure binding — see renderBlocksWithAllowlist below.
+    case 'custom_iframe':
+      return renderEmbedCustomIframe(block, []);
     // 15-07: native lead-form block (D-12) — emits a semantic <form> with a
     // hidden honeypot field + small inline submit script that POSTs to the
     // `lead-capture` Edge Function. Markup contract documented in
@@ -785,6 +808,22 @@ export function renderBlock(block: BlockNode): string {
     default:
       return '';
   }
+}
+
+/**
+ * Phase 41 Plan 41-03 — Threading variant: same as renderBlock but knows
+ * about the per-page allowlistHostnames so custom_iframe blocks can validate
+ * against it. Used by renderPage; renderBlock (the public exported function)
+ * preserves the legacy zero-arg signature for back-compat.
+ */
+function renderBlockWithAllowlist(
+  block: BlockNode,
+  allowlistHostnames: ReadonlyArray<string>,
+): string {
+  if (block.type === 'custom_iframe') {
+    return renderEmbedCustomIframe(block, allowlistHostnames);
+  }
+  return renderBlock(block);
 }
 
 // ─── 15-06 embed renderers — thin wrappers around embed-src helpers ───────────
@@ -804,39 +843,214 @@ export function renderBlock(block: BlockNode): string {
 // the validated builder output; no raw content values are string-concatenated
 // into HTML here.
 
+// Phase 41 Plan 41-03 (D-07) — Per-provider cookie-consent category CSV.
+// Hardcoded mapping from 41-CONTEXT D-07; the inline consent-gating script
+// uses these to decide whether to hydrate an iframe immediately or wait for
+// the 'leanshot:consent-change' event. Custom-iframe defaults to 'marketing'
+// (cannot be re-categorized in v1.3 — superadmin allowlist is the real gate).
+const EMBED_CATEGORIES: Record<'calendly' | 'youtube' | 'tally' | 'custom_iframe', string> = {
+  calendly: 'functional,analytics',
+  youtube: 'analytics,marketing',
+  tally: 'functional',
+  custom_iframe: 'marketing',
+};
+
+// Per-provider locked sandbox attributes — mirror buildXIframeHtml from
+// embed-src.ts. The inline hydration script applies these literally to the
+// iframe element. NEVER admin-overridable in v1.3 (D-16).
+const EMBED_SANDBOX: Record<'calendly' | 'youtube' | 'tally' | 'custom_iframe', string> = {
+  calendly: 'allow-scripts allow-same-origin allow-popups allow-forms',
+  youtube: 'allow-scripts allow-same-origin allow-presentation',
+  tally: 'allow-scripts allow-same-origin allow-forms',
+  custom_iframe: 'allow-scripts allow-same-origin',
+};
+
+// Per-provider min-height — gives the placeholder a stable bounding box that
+// matches the eventual iframe size so layout doesn't shift on hydration.
+const EMBED_MIN_HEIGHT: Record<'calendly' | 'youtube' | 'tally' | 'custom_iframe', number> = {
+  calendly: 700,
+  youtube: 0, // YouTube uses aspect-ratio 16:9 — height auto-computed from width
+  tally: 500,
+  custom_iframe: 400,
+};
+
+/**
+ * Phase 41 Plan 41-03 (D-08) — Branded placeholder + data attrs that the
+ * inline consent-gating script reads to hydrate an iframe on consent grant.
+ *
+ * When `src` is null (validation failed), emits an inert placeholder with
+ * NO `data-embed-src` — the hydration script will not produce an iframe.
+ * This is the EMBED-07 graceful-failure path: the visitor sees the
+ * placeholder copy, NEVER an unvalidated iframe.
+ */
+function renderEmbedPlaceholder(
+  provider: 'calendly' | 'youtube' | 'tally' | 'custom_iframe',
+  src: string | null,
+  title: string,
+): string {
+  const category = EMBED_CATEGORIES[provider];
+  const sandbox = EMBED_SANDBOX[provider];
+  const minHeight = EMBED_MIN_HEIGHT[provider];
+  const safeTitle = escapeAttr(title);
+  const providerLabel = escapeHtml(
+    provider === 'youtube'
+      ? 'YouTube video'
+      : provider === 'calendly'
+      ? 'Calendly meeting'
+      : provider === 'tally'
+      ? 'Tally form'
+      : 'embedded content',
+  );
+  // State 1 (per RESEARCH §Pattern 2 + UI-SPEC §Surface B State 1): static
+  // headline + manage-preferences hint. The hydration script swaps the inner
+  // HTML for an <iframe> once consent is granted; if src is null the
+  // placeholder is permanent.
+  const stateHtml =
+    `<div class="block-embed-pending__inner" style="display:flex;align-items:center;justify-content:center;min-height:${minHeight || 240}px;padding:32px 16px;border:1px dashed var(--color-border,#d4d4d8);border-radius:12px;text-align:center;font-size:14px;color:var(--color-text-muted,#52525b);">` +
+    `<div>` +
+    `<p style="margin:0 0 8px 0;font-weight:600;">${providerLabel}</p>` +
+    (src
+      ? `<p style="margin:0 0 12px 0;">Enable ${escapeHtml(category.replace(/,/g, ' + '))} cookies to view this ${providerLabel.toLowerCase()}.</p>` +
+        `<button type="button" data-embed-manage-prefs="1" style="background:transparent;border:0;color:var(--color-primary,#1e293b);text-decoration:underline;cursor:pointer;font-size:14px;">Manage cookie preferences</button>`
+      : `<p style="margin:0;">This ${providerLabel.toLowerCase()} cannot be displayed.</p>`) +
+    `</div>` +
+    `</div>`;
+
+  // data-embed-src is OMITTED entirely when src is null — the hydration
+  // script keys on attribute presence to decide whether to ever hydrate.
+  const srcAttr = src ? ` data-embed-src="${escapeAttr(src)}"` : '';
+
+  return (
+    `<div class="block-embed-pending"` +
+    ` data-embed-pending="true"` +
+    ` data-embed-provider="${provider}"` +
+    ` data-embed-category="${category}"` +
+    ` data-embed-sandbox="${sandbox}"` +
+    ` data-embed-title="${safeTitle}"` +
+    ` data-embed-min-height="${minHeight}"` +
+    srcAttr +
+    `>${stateHtml}</div>`
+  );
+}
+
 function renderEmbedYouTube(block: BlockNode): string {
+  // YouTube — emits a `data-embed-pending` consent-gating placeholder per D-07/D-09.
   const c = block.content;
-  const html = buildYouTubeIframeHtml({
+  const src = buildYouTubeSrc({
     videoId: typeof c.videoId === 'string' ? c.videoId : '',
     startSeconds:
       typeof c.startSeconds === 'number' && Number.isFinite(c.startSeconds) ? c.startSeconds : 0,
     autoplay: c.autoplay === true,
   });
+  const placeholder = renderEmbedPlaceholder('youtube', src, EMBED_IFRAME_TITLES.youtube);
   const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
   const wrapClass = `block block-yt-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
-  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-yt-wrap__inner">${html}</div></section>`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-yt-wrap__inner">${placeholder}</div></section>`;
 }
 
 function renderEmbedCalendly(block: BlockNode): string {
+  // Calendly — emits a `data-embed-pending` consent-gating placeholder per D-07/D-09.
   const c = block.content;
-  const html = buildCalendlyIframeHtml({
+  const src = buildCalendlySrc({
     calendlyUrl: typeof c.calendlyUrl === 'string' ? c.calendlyUrl : '',
     prefillEmail: c.prefillEmail === true,
   });
+  const placeholder = renderEmbedPlaceholder('calendly', src, EMBED_IFRAME_TITLES.calendly);
   const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
   const wrapClass = `block block-cal-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
-  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-cal-wrap__inner">${html}</div></section>`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-cal-wrap__inner">${placeholder}</div></section>`;
 }
 
 function renderEmbedTally(block: BlockNode): string {
+  // Tally — emits a `data-embed-pending` consent-gating placeholder per D-07/D-09.
   const c = block.content;
-  const html = buildTallyIframeHtml({
+  const src = buildTallySrc({
     tallyFormUrl: typeof c.tallyFormUrl === 'string' ? c.tallyFormUrl : '',
     hideTitle: c.hideTitle === true,
   });
+  const placeholder = renderEmbedPlaceholder('tally', src, EMBED_IFRAME_TITLES.tally);
   const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
   const wrapClass = `block block-tally-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
-  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-tally-wrap__inner">${html}</div></section>`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-tally-wrap__inner">${placeholder}</div></section>`;
+}
+
+/**
+ * Phase 41 Plan 41-03 (EMBED-07) — Custom-iframe block. Validates the URL
+ * against the per-deployment allowlist (D-15 exact-hostname match). Emits
+ * the consent-gating placeholder; on allowlist miss the placeholder has no
+ * `data-embed-src` so the hydration script never injects an iframe.
+ *
+ * Sandbox is FIXED `allow-scripts allow-same-origin` per D-16 — admin
+ * cannot override in v1.3.
+ */
+function renderEmbedCustomIframe(
+  block: BlockNode,
+  allowlistHostnames: ReadonlyArray<string>,
+): string {
+  // Custom-iframe — emits a `data-embed-pending` consent-gating placeholder per D-07/D-09.
+  const c = block.content;
+  const embedUrl = typeof c.embedUrl === 'string' ? c.embedUrl : '';
+  const rawTitle = typeof c.iframeTitle === 'string' ? c.iframeTitle : '';
+  const src = validateCustomIframeUrl(embedUrl, allowlistHostnames);
+  const title =
+    rawTitle.length >= 3 ? rawTitle : EMBED_IFRAME_TITLES.custom_iframe;
+  const placeholder = renderEmbedPlaceholder('custom_iframe', src, title);
+  const wrapStyle = blockWrapperStyle(block.style, 'default', 'center');
+  const wrapClass = `block block-embed-custom-iframe-wrap${hideOnMobileClass(block.style.hideOnMobile)}`;
+  return `<section class="${wrapClass}" style="${wrapStyle}"><div class="block-embed-custom-iframe-wrap__inner">${placeholder}</div></section>`;
+}
+
+// Phase 41 Plan 41-03 (RESEARCH §Pattern 2) — single inline consent-gating
+// script emitted ONCE per page. Subscribes to 'leanshot:consent-change',
+// hydrates pending embed placeholders into iframes when the consent grant
+// matches the placeholder's required category. Reads consent state from
+// either localStorage.cc_cookie (Plan 41-01 contract) or the
+// window.CookieConsent global (vanilla-cookieconsent). Respects
+// prefers-reduced-motion for the opacity transition.
+//
+// Emitted as a raw template literal — no module imports. The literal
+// `'leanshot:consent-change'` matches Plan 41-01's emitter contract.
+function renderConsentGatingScript(): string {
+  return (
+    `<script>(function(){` +
+    `var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;` +
+    `function readCC(){try{var raw=localStorage.getItem('cc_cookie');if(raw){var p=JSON.parse(raw);return Array.isArray(p.categories)?p.categories:(p.level||[]);}}catch(e){}return[];}` +
+    `function granted(cats){` +
+    `if(window.CookieConsent&&typeof window.CookieConsent.acceptedCategory==='function'){` +
+    `return cats.every(function(c){return window.CookieConsent.acceptedCategory(c);});` +
+    `}` +
+    `var have=readCC();return cats.every(function(c){return have.indexOf(c)!==-1;});` +
+    `}` +
+    `function hydrate(el){` +
+    `var src=el.getAttribute('data-embed-src');if(!src)return;` +
+    `if(el.getAttribute('data-embed-hydrated')==='1')return;` +
+    `var title=el.getAttribute('data-embed-title')||'Embedded content';` +
+    `var sandbox=el.getAttribute('data-embed-sandbox')||'allow-scripts allow-same-origin';` +
+    `var minH=parseInt(el.getAttribute('data-embed-min-height')||'0',10);` +
+    `var iframe=document.createElement('iframe');` +
+    `iframe.src=src;iframe.title=title;iframe.loading='lazy';iframe.referrerPolicy='no-referrer';` +
+    `iframe.setAttribute('sandbox',sandbox);` +
+    `iframe.style.width='100%';iframe.style.border='0';` +
+    `if(minH>0){iframe.style.minHeight=minH+'px';iframe.style.height=minH+'px';}else{iframe.style.height='100%';}` +
+    `if(!REDUCED){iframe.style.opacity='0';iframe.style.transition='opacity 200ms ease-in';}` +
+    `el.innerHTML='';el.appendChild(iframe);el.setAttribute('data-embed-hydrated','1');` +
+    `if(!REDUCED){requestAnimationFrame(function(){iframe.style.opacity='1';});}` +
+    `}` +
+    `function tryAll(){` +
+    `var pending=document.querySelectorAll('[data-embed-pending="true"]');` +
+    `for(var i=0;i<pending.length;i++){` +
+    `var el=pending[i];var cats=(el.getAttribute('data-embed-category')||'').split(',').filter(Boolean);` +
+    `if(cats.length===0||granted(cats))hydrate(el);` +
+    `}` +
+    `}` +
+    `if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tryAll);}else{tryAll();}` +
+    `window.addEventListener('leanshot:consent-change',tryAll);` +
+    `document.addEventListener('click',function(e){` +
+    `var t=e.target;if(t&&t.getAttribute&&t.getAttribute('data-embed-manage-prefs')==='1'){` +
+    `window.dispatchEvent(new CustomEvent('leanshot:open-consent-prefs'));` +
+    `}});` +
+    `})();</script>`
+  );
 }
 
 // ─── 15-07 native lead-form renderer ──────────────────────────────────────────
@@ -1105,11 +1319,26 @@ export function renderPage(page: RenderPageInput): string {
     .filter((b) => b.parent_id === null)
     .slice()
     .sort((a, b) => a.order - b.order);
-  const bodyHtml = roots.map(renderBlock).join('');
+  // Phase 41 Plan 41-03 — thread allowlistHostnames into custom_iframe
+  // renders via renderBlockWithAllowlist (legacy renderBlock kept for
+  // back-compat with renderBlocks consumers that don't have an allowlist).
+  const allowlist: ReadonlyArray<string> = page.allowlistHostnames ?? [];
+  const bodyHtml = roots
+    .map((b) => renderBlockWithAllowlist(b, allowlist))
+    .join('');
+  // Phase 41 Plan 41-03 (D-09 + RESEARCH §Pattern 2) — emit ONE inline
+  // consent-gating script per page that hydrates all `[data-embed-pending]`
+  // placeholders when the visitor's consent state grants the required
+  // category. The literal `'leanshot:consent-change'` matches the Plan
+  // 41-01 emitter contract.
+  const hasEmbedBlocks = roots.some(
+    (b) => b.type === 'calendly' || b.type === 'youtube' || b.type === 'tally' || b.type === 'custom_iframe',
+  );
+  const consentScript = hasEmbedBlocks ? renderConsentGatingScript() : '';
   // Minimal hide-on-mobile rule + reset, inlined to avoid an external stylesheet.
   const inlineStyle =
     '<style>html,body{margin:0;padding:0;font-family:Geist,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--color-text,#1b2724);background:var(--color-bg,#f2ede0);}@media (max-width:767px){.hide-on-mobile{display:none !important;}}</style>';
-  return `<!doctype html><html lang="en"><head>${head}${inlineStyle}</head><body>${bodyHtml}</body></html>`;
+  return `<!doctype html><html lang="en"><head>${head}${inlineStyle}</head><body>${bodyHtml}${consentScript}</body></html>`;
 }
 
 // ─── renderNotFound ────────────────────────────────────────────────────────────
