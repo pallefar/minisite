@@ -110,6 +110,14 @@ export const TrafficLandingPagesTab: React.FC = () => {
   const fetchLanding = useCallback(async () => {
     setLoading(true);
     setError(null);
+    // REVIEW CR-04 fix: fetch the server cap (500 — see SECDEF accessor
+    // migration ..0012 line 195) so the client-side `Filter by path…` substring
+    // search runs over the FULL set, then we slice to the chosen topN after
+    // filter + sort. Previously we passed `p_top_n: topN` and filtered the
+    // visible N rows — paths matching the filter but ranked below position N
+    // by visits were silently invisible (filter found "0" matches for data
+    // that exists). The order-by-visits-desc + slice in `tableRows` preserves
+    // the same default presentation.
     const { data, error: rpcErr } = await supabase.rpc(
       'get_traffic_landing_page_rollup',
       {
@@ -117,7 +125,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
         p_start_date: startDate,
         p_end_date: endDate,
         p_audience: audience === 'all' ? null : audience,
-        p_top_n: topN,
+        p_top_n: 500,
       },
     );
     if (rpcErr) {
@@ -131,7 +139,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
       setRows((data as Row[]) ?? []);
     }
     setLoading(false);
-  }, [orgFilter, audience, topN, startDate, endDate]);
+  }, [orgFilter, audience, startDate, endDate]);
 
   useEffect(() => {
     void fetchLanding();

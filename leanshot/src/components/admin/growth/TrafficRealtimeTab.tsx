@@ -54,12 +54,18 @@ export const TrafficRealtimeTab: React.FC = () => {
       (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ??
       null,
   );
-  // Admin reads all orgs (p_org_id=null). Clinic-owner has no plumbed org_id
-  // on this codebase yet (app_metadata exposes org_name only, not the UUID),
-  // so we pass null and let the RPC's admin gate reject — surfacing a
-  // friendly Permission-denied error string. Wiring per-org_id is a 51-10
-  // close-out concern (cross-tenant RLS UAT signal).
-  const orgFilter: string | null = null;
+  // REVIEW CR-03 fix: forward the clinic_owner's org_id so the SECDEF RPC's
+  // `(p_org_id is not null and _is_org_clinician(p_org_id))` branch can
+  // authorize. Previously hardcoded null, which made every clinic_owner
+  // hit the 42501 forbidden branch (admin-only data). Matches
+  // TrafficChannelsTab / TrafficFunnelsTab pattern (app_metadata.org_id).
+  // Admin sees all orgs (p_org_id = null).
+  const orgFilter = useStore((s) => {
+    const meta = s.signedIn?.user?.app_metadata as
+      | { role?: string; org_id?: string }
+      | undefined;
+    return meta?.role === 'clinic_owner' ? (meta?.org_id ?? null) : null;
+  });
 
   const fetchRealtime = useCallback(async () => {
     setLoading(true);
