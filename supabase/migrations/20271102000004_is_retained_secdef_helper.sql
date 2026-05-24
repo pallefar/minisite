@@ -48,15 +48,45 @@ begin
     return false;
   end if;
 
+  -- REVIEW WR-08 defense-in-depth: the EXECUTE grant is already revoked from
+  -- public/anon/authenticated (see end of file), so user JWTs cannot reach
+  -- here directly today. This check guards the future case where a
+  -- migration accidentally grants matview SELECT directly to authenticated
+  -- (which would expose this helper as a user-existence enumeration oracle).
+  -- Service-role runs (matview refresh, cron) and admin-role JWTs (manual
+  -- diagnostics) are allowed; everything else returns false.
+  if current_setting('role', true) is distinct from 'service_role'
+     and not coalesce(public.is_admin_at_least('admin'::public.admin_role), false) then
+    return false;
+  end if;
+
   if p_audience = 'consumer' then
-    -- Any tracked activity event within the window. We match on either
-    -- user_id (post-stitch) or distinct_id (pre-stitch) since events_mirror
-    -- carries both.
+    -- REVIEW WR-02: enumerate the user's COMPLETE anon_id set via
+    -- user_traffic_attribution so pre-stitch events captured under a
+    -- different anon_id (multi-device returning user, new incognito visit,
+    -- etc.) still count as activity. The previous `em.distinct_id =
+    -- p_user_id::text` branch only matched post-stitch events; a user who
+    -- installed on D0, signed in on D5, then re-engaged from a phone with
+    -- a new anon_id on D7 was incorrectly reported as not D7-retained.
+    --
+    -- The join is bound to user_traffic_attribution.user_id = p_user_id
+    -- (preserves WR-01 invariant — never cross-user aggregation), and the
+    -- IN-list also covers the original two branches as a fallback so
+    -- pre-recorder backfill events (which may have no utat row) still
+    -- match by their post-stitch user_id.
     return exists (
       select 1
       from public.events_mirror em
       where em.created_at >= v_threshold
-        and (em.user_id = p_user_id or em.distinct_id = p_user_id::text)
+        and (
+          em.user_id = p_user_id
+          or em.distinct_id = p_user_id::text
+          or em.distinct_id in (
+            select utat.anon_id
+            from public.user_traffic_attribution utat
+            where utat.user_id = p_user_id
+          )
+        )
     );
 
   elsif p_audience = 'clinic-org' then
@@ -101,4 +131,19 @@ grant execute on function public.is_retained(uuid, text, int)
   to service_role;
 
 comment on function public.is_retained(uuid, text, int) is
-  'Phase 51 / D-16 — Per-audience retention probe. consumer: events_mirror activity within window. clinic-org: any active org subscription whose period_end >= threshold. affiliate: paid/confirmed affiliate_conversions within window. Used by matview refresh only (SECDEF; service-role only).';
+  'Phase 51 / D-16 — Per-audience retention probe. consumer: events_mirror activity within window. clinic-org: any active org subscription whose period_end >= threshold. affiliate: paid/confirmed affiliate_conversions within window. Used by matview refresh only (SECDEF; service-role only).
+
+DESIGN — INDIRECT CROSS-RLS READ (REVIEW WR-01):
+This helper crosses RLS boundaries on purpose: it reads events_mirror
+(admin-only) and subscriptions (org-scoped) and surfaces a single boolean
+into the matview. Each branch is keyed on the user_id passed in, so the
+returned value is a function of THAT user only — never aggregated across
+orgs. A future contributor MUST preserve this invariant:
+  - consumer: predicate ties to em.user_id = p_user_id (or distinct_id::text)
+  - clinic-org: org_members join binds to om.user_id = p_user_id; the
+    subscriptions join keys on om.org_id, so only the caller user''s orgs
+    are considered.
+  - affiliate: affiliates.user_id = p_user_id binds the conversions JOIN.
+Adding a SELECT that does NOT bind every joined table to p_user_id would
+turn this helper into a cross-org data-leak channel via matview reads.
+Test coverage lives in 51-10 RLS-traffic-attribution fixture.';

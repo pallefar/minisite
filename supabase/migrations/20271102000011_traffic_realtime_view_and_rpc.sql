@@ -27,8 +27,17 @@
 
 -- ---------------------------------------------------------------------------
 -- 1. Regular VIEW — evaluated at each call. Last 60min of attribution rows.
+--
+-- REVIEW WR-14: Postgres 15 introduced a per-view `security_invoker` option
+-- (default false). We pin it explicitly to false so the view's inner SELECTs
+-- run with the SECDEF RPC owner's rights when called from
+-- get_realtime_traffic_summary — independent of the Postgres point-release
+-- behind Supabase. Direct SELECT on the view is still gated by the REVOKE
+-- below; this option only affects the row-source rights when the SECDEF
+-- accessor reads it.
 -- ---------------------------------------------------------------------------
-create or replace view public.traffic_realtime_v as
+create or replace view public.traffic_realtime_v
+with (security_invoker = false) as
 select
   utat.last_touch_channel_group as channel_group,
   utat.last_touch_landing_path  as landing_path,

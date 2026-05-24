@@ -49,6 +49,15 @@ begin
      or p_attribution_window_days > 90 then
     raise exception 'attribution_window_days_out_of_range' using errcode = '22023';
   end if;
+  -- REVIEW WR-09: validate match_rule_jsonb is a JSON OBJECT. The client-side
+  -- TrafficTaxonomyPage already enforces this, but a direct supabase.rpc()
+  -- call bypassing the editor could land an array or primitive — which then
+  -- breaks classify_channel_group's jsonb_each(cg.match_rule_jsonb) call at
+  -- matview refresh time, taking down the entire refresh chain. Defend at
+  -- the RPC boundary.
+  if jsonb_typeof(coalesce(p_match_rule_jsonb, '{}'::jsonb)) <> 'object' then
+    raise exception 'match_rule_must_be_object' using errcode = '22023';
+  end if;
 
   if p_id is null then
     insert into public.channel_groups (

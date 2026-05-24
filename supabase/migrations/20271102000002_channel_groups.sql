@@ -36,6 +36,48 @@ create unique index channel_groups_default_fallback_uq
   on public.channel_groups (is_default_fallback)
   where is_default_fallback;
 
+-- REVIEW WR-10: the partial unique index above enforces "at most one
+-- fallback" but nothing enforces "AT LEAST one fallback". An operator (or a
+-- future bug in upsert_channel_group / admin UI) could UPDATE the Direct
+-- row's `is_default_fallback` to false, which would then make the
+-- `delete_channel_group` "cannot delete fallback" guard meaningless (no
+-- row is the fallback anymore — any can be deleted). Block transitions
+-- that would leave ZERO fallback rows.
+create or replace function public.guard_channel_groups_fallback()
+returns trigger
+language plpgsql
+as $guard$
+begin
+  -- Only run on writes that touch is_default_fallback in a way that could
+  -- reduce the count of fallback rows.
+  if tg_op = 'UPDATE'
+     and old.is_default_fallback = true
+     and new.is_default_fallback = false then
+    if not exists (
+      select 1 from public.channel_groups
+      where is_default_fallback = true
+        and id <> old.id
+    ) then
+      raise exception 'cannot_remove_last_default_fallback' using errcode = '23514';
+    end if;
+  elsif tg_op = 'DELETE' and old.is_default_fallback = true then
+    if not exists (
+      select 1 from public.channel_groups
+      where is_default_fallback = true
+        and id <> old.id
+    ) then
+      raise exception 'cannot_delete_last_default_fallback' using errcode = '23514';
+    end if;
+  end if;
+  return case when tg_op = 'DELETE' then old else new end;
+end;
+$guard$;
+
+drop trigger if exists channel_groups_fallback_guard on public.channel_groups;
+create trigger channel_groups_fallback_guard
+  before update or delete on public.channel_groups
+  for each row execute function public.guard_channel_groups_fallback();
+
 -- Seed the 8 default channel groups (D-01, RESEARCH §Pattern 3 lines 348-398).
 -- Priority ordering: lower number = higher priority. Paid Search beats Paid
 -- Social (both have utm_medium=cpc but Paid Search has utm_source=google);
