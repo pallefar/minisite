@@ -365,6 +365,30 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.hitl_queue.enabled',
     minRole: 'superadmin' as AdminRole,
   },
+  // Phase 48 Plan 48-10 (MOD-01/02/03/05) — Moderation admin workspace.
+  // Pathname-based ModerationLayout (resolveView regex) maps /admin/moderation,
+  // /admin/moderation/auto-flags, /admin/moderation/banned-words,
+  // /admin/moderation/bans, /admin/moderation/bans/:userId, /admin/moderation/audit-log
+  // to 5 sub-views (ReportsQueue, BannedWordsEditor, UserBansRoster,
+  // ApplyModerationForm, AuditLogViewer). AdminShell.tsx prefix routing
+  // (pathname.startsWith('/admin/moderation/')) resolves all sub-routes here
+  // without needing a hardcoded switch branch (per
+  // feedback_admin_module_manifest_vs_router_branch_drift).
+  // minRole 'staff' so on-duty moderators see the module; admin triage RPCs
+  // re-check public.is_staff() OR public.can_moderate_report_org() at the
+  // SECDEF layer (Pattern S1 dual-layer).
+  {
+    key: 'moderation',
+    label: 'Moderation',
+    route: 'moderation',
+    icon: ShieldIcon,
+    lazy: () =>
+      import('@/admin/modules/moderation/ModerationLayout').then((m) => ({
+        default: m.default,
+      })),
+    flagKey: 'admin.moderation.enabled',
+    minRole: 'staff' as AdminRole,
+  },
   // Phase 25 Plan 25-09 HIPAA-12/13 — BAA chain + subprocessor diff compliance module.
   // Superadmin-only: vendor BAA status updates are security-sensitive; superadmin gate
   // at RPC layer (vendor_baa_chain_update SECDEF) + minRole here (Pattern S1 dual-layer).
