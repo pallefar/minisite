@@ -860,7 +860,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [ ] 51-02-PLAN.md — Vercel Edge Middleware (lt_anon_id cookie) + traffic-attribution-recorder Edge Fn + recordTouch helper + merge-anon-session extension (PostHog alias + claim_traffic_attribution)
-- [ ] 51-03-PLAN.md — 3 matviews (channel/funnel/landing rollups) + realtime VIEW + SECDEF accessors + sequenced pg_cron refresh extending P33
+- [x] 51-03-PLAN.md — 3 matviews (channel/funnel/landing rollups) + realtime VIEW + SECDEF accessors + sequenced pg_cron refresh extending P33
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
