@@ -225,6 +225,13 @@ export default defineConfig(({ mode }) => {
             ) return 'community-dm';
             if (id.includes('/src/components/community/')) return 'community-feed';
             if (id.includes('/src/components/course/')) return 'course-player';
+            // Phase 47 Plan 10 — events chunk (EVENT-01 / 02 / 03).
+            // Target ≤25 kB gz per D-14 (list-only, no Mux Player; past-event
+            // recordings link out to the classroom chunk per D-17). Catches
+            // EventsTab + EventCard + EventDetailSheet + RsvpPills +
+            // JoinMeetingButton; the rsvp-client lib is co-located by
+            // import-graph because EventsTab is the sole consumer.
+            if (id.includes('/src/components/events/')) return 'events';
 
             // Phase 48 Plan 10 — admin-moderation chunk (≤30 kB gz per CONTEXT).
             // Owns ModerationLayout + 5 sub-views + api.ts + shared types.

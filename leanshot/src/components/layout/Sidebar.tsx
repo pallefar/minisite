@@ -24,6 +24,7 @@ import {
   Trophy,
   Users,
   BookOpen,
+  CalendarDays,
   Bot,
   Moon,
   Sun,
@@ -54,6 +55,10 @@ const TABS: { id: TabId; Icon: typeof Home }[] = [
   // EXCEPTION to the no-new-TabId rule per CONTEXT (see TabId in src/types/index.ts).
   // Nav button below calls setTab('classroom') via the TABS.map iteration.
   { id: 'classroom', Icon: BookOpen },
+  // Phase 47 Plan 10 — Events (consumer-side calendar / RSVP / Join Meeting surface).
+  // Positioned per D-13 AFTER classroom in the desktop sidebar. EXCEPTION to the
+  // no-new-TabId rule per CONTEXT D-13. Nav button below calls setTab('events').
+  { id: 'events', Icon: CalendarDays },
 ];
 
 interface SidebarProps {

@@ -98,6 +98,20 @@ interface UIState {
   activeCourseId: string | null;
   activeLessonId: string | null;
   /**
+   * Phase 47 Plan 10 — active event ID for the Events tab list-vs-detail switch.
+   * Mirrors `activeCommunitySpaceId` treatment per CLAUDE.md no-router rule
+   * (consumer surface uses Zustand TabId + ephemeral UI keys, not pathname routing).
+   *
+   * Semantics:
+   *   - null         → EventsTab renders EventList (chronological upcoming events)
+   *   - string (id)  → EventsTab renders EventDetailSheet for that event
+   *
+   * NOT persisted (ephemeral UI state — excluded from partialize per memory
+   * reference_zustand_persisted_user_blocks_marketing_uat; a persisted value
+   * would re-open the detail sheet on every reload).
+   */
+  activeEventId: string | null;
+  /**
    * Phase 45 Plan 07a — active community sub-view for directory/DM dispatch.
    * 3-variant union (NOT a new TabId per memory reference_react_router_consumer_admin_split).
    * NOT persisted (ephemeral UI state — excluded from partialize per
@@ -182,6 +196,13 @@ interface Actions {
    * Transient UI state: NOT persisted (excluded from partialize).
    */
   setActiveCourse: (courseId: string | null, lessonId?: string | null) => void;
+  /**
+   * Phase 47 Plan 10 — set or clear the active event ID for the Events tab.
+   * Transient UI state: NOT persisted (excluded from partialize). Pass `null`
+   * to return to the chronological list; pass an event id to render
+   * EventDetailSheet.
+   */
+  setActiveEvent: (id: string | null) => void;
   /** Phase 45 Plan 07a — set the active community sub-view (directory / dm / null). */
   setActiveCommunityView: (v: 'directory' | 'dm' | null) => void;
   /** Phase 45 Plan 07a — set the active DM thread id within the 'dm' sub-view. */
@@ -673,6 +694,9 @@ export const useStore = create<Store>()(
       // Both NOT persisted (excluded from partialize — ephemeral UI state).
       activeCourseId: null,
       activeLessonId: null,
+      // Phase 47 Plan 10 — Events tab list-vs-detail UI key. NOT persisted
+      // (excluded from partialize — ephemeral UI state).
+      activeEventId: null,
       // Phase 45 Plan 07a — community sub-view dispatch. Both ephemeral; excluded
       // from partialize (server is source of truth for any thread state — these
       // are pure UI-routing flags).
@@ -815,6 +839,8 @@ export const useStore = create<Store>()(
       // `setActiveCourse(null)` returns to the course list.
       setActiveCourse: (courseId, lessonId = null) =>
         set({ activeCourseId: courseId, activeLessonId: lessonId }),
+      // Phase 47 Plan 10 — Events tab list-vs-detail (Zustand-driven, no router).
+      setActiveEvent: (id) => set({ activeEventId: id }),
       // Phase 45 Plan 07a — community sub-view dispatch (directory / dm / null).
       setActiveCommunityView: (v) => set({ activeCommunityView: v }),
       setActiveDmThread: (id) => set({ activeDmThreadId: id }),
