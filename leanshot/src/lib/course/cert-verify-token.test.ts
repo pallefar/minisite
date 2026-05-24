@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import { mintCertToken, verifyCertToken } from '@/lib/course/cert-verify-token';
+import { compareCertToken, mintCertToken, verifyCertToken } from '@/lib/course/cert-verify-token';
 
 const TEST_SECRET = 'TEST_SECRET_DO_NOT_USE_IN_PROD_46_03';
 const CERT_ID = 'cert-1';
@@ -112,5 +112,47 @@ describe('cross-runtime parity vector (browser ⇄ Deno)', () => {
     //   (b) the Deno-side mirror in cert-hmac.test.ts changed without updating here.
     // Both sides MUST be updated atomically.
     expect(token).toBe('VkvWn-pOnuE3pmNb1Y2LyBFhcZmO9gehMViOvszVwsw');
+  });
+});
+
+// ─── compareCertToken (Plan 46-10) ──────────────────────────────────────────
+//
+// Constant-time string compare used by the public /verify/<cert_id> SPA route.
+// Unlike verifyCertToken, this helper does NOT require CERT_VERIFICATION_SECRET
+// (which must never reach the browser). The browser fetches
+// certificates.verification_token from the DB (RLS allows anon SELECT when
+// non-null per Plan 46-01) and compares it byte-for-byte against the URL `?t=`
+// param. The HMAC was minted server-side by the Edge Fn (Plan 46-07); the DB
+// row holds the canonical value; the browser is purely a comparator.
+//
+// T-46-03 mitigation: XOR-accumulator timing-safe compare (same primitive as
+// verifyCertToken's internal constantTimeEqual).
+describe('compareCertToken', () => {
+  it("returns true for two identical short strings ('abc', 'abc')", () => {
+    expect(compareCertToken('abc', 'abc')).toBe(true);
+  });
+
+  it("returns false when one character differs ('abc', 'abd')", () => {
+    expect(compareCertToken('abc', 'abd')).toBe(false);
+  });
+
+  it("returns false when urlToken is empty ('', 'abc')", () => {
+    expect(compareCertToken('', 'abc')).toBe(false);
+  });
+
+  it("returns false when dbToken is empty ('abc', '')", () => {
+    expect(compareCertToken('abc', '')).toBe(false);
+  });
+
+  it("returns false on length mismatch ('abc', 'abcd')", () => {
+    expect(compareCertToken('abc', 'abcd')).toBe(false);
+  });
+
+  it('returns true when both inputs are a canonical token produced by mintCertToken', async () => {
+    const token = await mintCertToken(CERT_ID, USER_ID, COURSE_ID, ISSUED_AT, TEST_SECRET);
+    // Round-trip parity: the comparison-only path accepts exactly what
+    // the Edge Fn writes into certificates.verification_token (the same
+    // base64url string that mintCertToken produces).
+    expect(compareCertToken(token, token)).toBe(true);
   });
 });
