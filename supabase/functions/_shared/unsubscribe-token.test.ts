@@ -118,8 +118,14 @@ Deno.test('missing payload field → null', async () => {
 });
 
 Deno.test('readSigningKey throws when UNSUBSCRIBE_SECRET unset', () => {
-  // No key override -> must read env. In test runtime UNSUBSCRIBE_SECRET is
-  // not set, so verify (which reads on the way to the HMAC computation)
-  // throws via readSigningKey.
-  assertThrows(() => verifyUnsubscribeToken('any.thing'));
+  // Snapshot + unset so this test is independent of any sibling test file
+  // that may have called Deno.env.set('UNSUBSCRIBE_SECRET', ...). Restore
+  // after the assertion so we don't poison later tests in this same file.
+  const prev = Deno.env.get('UNSUBSCRIBE_SECRET');
+  Deno.env.delete('UNSUBSCRIBE_SECRET');
+  try {
+    assertThrows(() => verifyUnsubscribeToken('any.thing'));
+  } finally {
+    if (prev !== undefined) Deno.env.set('UNSUBSCRIBE_SECRET', prev);
+  }
 });
