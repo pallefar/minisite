@@ -1036,27 +1036,19 @@ function App() {
 
 **A1-A5 are deferred-resolution:** Phase 49 cannot ship until Phase 46 + 47 land (per CONTEXT canonical_refs). Plan-checker iter-1 runs live schema audit AFTER 46/47 migrate.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Synthetic title for community_posts FTS — first-N-chars or no title at all?**
-   - What we know: community_posts has no title column.
-   - What's unclear: Should `search_en` apply weight A to `left(body, 80)` and weight B to the rest, or just `setweight('A', body)` over the whole thing?
-   - Recommendation: Plan locks `setweight('A', body)` over whole body — simpler; no title concept exists in community semantics. Title in search results = `left(body, 60)` (client-side render, NOT stored).
+   - **RESOLVED:** Plan locks `setweight('A', body)` over whole body — simpler; no title concept exists in community semantics. Title in search results = `left(body, 60)` (client-side render, NOT stored). Locked in 49-01 SQL skeleton + D-17.
 
 2. **Phase 46 + 47 + 48 ship ordering — should Phase 49 be split?**
-   - What we know: Phase 49 hard-depends on 46 + 47 + 48 migrations.
-   - What's unclear: If Phase 46/47/48 slip, does Phase 49 ship search-only (community_posts) first and digests later?
-   - Recommendation: Roadmap-side; surface to user. Pre-emptive recommendation: keep Phase 49 atomic to preserve `search_content` RPC contract (all 3 types in one signature).
+   - **RESOLVED:** Keep Phase 49 atomic. EXECUTE blocks on Phase 46+47+48 EXECUTE merging (D-24 hard gate). Documented in 49-10 close-out CARRY-OVER.md.
 
 3. **Course progress delta — counting per lesson or per percentage point?**
-   - What we know: D-claude-discretion says `(this_week_completed - last_week_completed) / total_lessons_in_course * 100`.
-   - What's unclear: If user has 0 completions ever and finishes 3 this week of a 10-lesson course → delta = 30%. Is "30% delta WoW" what we want, or "completed 3 lessons" (absolute count)?
-   - Recommendation: Plan locks both — show `"You finished 3 lessons in 'Intro to GLP-1s' (now 30% complete)"`. Delta = absolute count, complete% = current state.
+   - **RESOLVED:** Plan locks BOTH — show "You finished 3 lessons in 'Intro to GLP-1s' (now 30% complete)". Delta = absolute count; complete% = current state. Implemented in 49-03 `course_progress_delta_7d` SECDEF helper RPC.
 
 4. **Token URL path — `/api/unsubscribe` or `/functions/v1/unsubscribe-handler`?**
-   - What we know: D-13 says `https://leanshot.app/api/unsubscribe?...` — `leanshot.app` is the Vercel marketing domain, not Supabase functions.
-   - What's unclear: Does Vercel rewrite `/api/unsubscribe` → `<supabase>/functions/v1/unsubscribe-handler`?
-   - Recommendation: Use direct Supabase functions URL in the email link OR add Vercel rewrite. Direct URL is simpler; `https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/unsubscribe-handler?t=...` works without infra changes. Document choice in plan.
+   - **RESOLVED:** Direct Supabase functions URL — `https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/unsubscribe-handler?t=...`. No Vercel rewrite needed. Documented in 49-06/07 email templates + 49-10 CARRY-OVER.md.
 
 ## Environment Availability
 
