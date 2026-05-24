@@ -543,7 +543,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 41-05-PLAN.md — ConsentGatedEmbed HOC + EmbedPlaceholderCard + CustomIframeBlock + 3-block retrofit + PROPERTY_CONFIGS + KB-article render (EMBED-01..07) [Wave 3]
-- [ ] 41-06-PLAN.md — Superadmin allowlist admin module + BLOCKING supabase db push + Edge Fn deploys + Better Stack HUMAN-UAT close-out (POLISH-10, EMBED-04/07) [Wave 3]
+- [x] 41-06-PLAN.md — Superadmin allowlist admin module + BLOCKING supabase db push + Edge Fn deploys + Better Stack HUMAN-UAT close-out (POLISH-10, EMBED-04/07) [Wave 3]
 
 ### Phase 42: v1.3 Polish Closeout — WCAG 2.2 AA + Smart Notifications + PWA Offline + Dark Mode + What's New + NPS
 
