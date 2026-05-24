@@ -97,6 +97,17 @@ begin
   from public.iframe_allowlist
   where id = p_id;
 
+  -- WR-03 fix (41-REVIEW.md): raise on no-op delete so the audit-log row only
+  -- lands when the row actually existed. Previously: a delete that matched
+  -- zero rows (e.g. a stale UI sending a phantom UUID) wrote a successful
+  -- audit row pointing at a row that never existed — making forensics on
+  -- hostile-superadmin scenarios harder. errcode P0002 ('no_data_found')
+  -- matches the canonical PostgreSQL 'not found' semantics; UI maps this to
+  -- a clean 'Hostname not found' toast.
+  if v_hostname is null then
+    raise exception 'hostname not found' using errcode = 'P0002';
+  end if;
+
   delete from public.iframe_allowlist
   where id = p_id;
 
