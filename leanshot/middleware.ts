@@ -1,9 +1,9 @@
 /**
- * Phase 41 Plan 41-03 — Vercel Edge Middleware (D-11 + D-14).
+ * Phase 41 Plan 41-03 + Phase 51 Plan 51-02 — Vercel Edge Middleware.
  *
- * Two augmentations applied to every HTML response that flows through Vercel:
+ * THREE augmentations applied to every HTML response that flows through Vercel:
  *
- *   (A) D-14 dynamic Custom-iframe frame-src injection
+ *   (A) D-14 dynamic Custom-iframe frame-src injection   [Phase 41-03]
  *       Fetches the public `iframe_allowlist` hostnames (Plan 41-02 schema)
  *       from Supabase REST every 60s (in-memory cache) and appends them as
  *       `https://<hostname>` entries to the existing `frame-src` directive
@@ -12,7 +12,7 @@
  *       the degraded fallback for Custom-iframe blocks — Calendly/YouTube/
  *       Tally remain functional via the static allowlist).
  *
- *   (B) D-11/D-13 CSP-violation reporting endpoint assembly
+ *   (B) D-11/D-13 CSP-violation reporting endpoint assembly   [Phase 41-03]
  *       Reads `process.env.VITE_SENTRY_CSP_REPORT_URI` at request time
  *       (vercel.json CANNOT interpolate VITE_* env literals — see memory
  *       `reference_vercel_json_no_env_interpolation`). When set, appends
@@ -20,12 +20,27 @@
  *       sets the JSON `Report-To` response header. When unset, both are
  *       omitted (preview branches without Sentry env work cleanly).
  *
+ *   (C) TRAFFIC-02 lt_anon_id cookie mint   [Phase 51-02]
+ *       Mints (or refreshes) a `lt_anon_id` HttpOnly+Secure+SameSite=Lax
+ *       cookie before the SPA HTML response leaves the edge. The SPA reads
+ *       this cookie at first React mount (`leanshot/src/lib/traffic/
+ *       fire-touch.ts`) and POSTs to `traffic-attribution-recorder` so a
+ *       row lands in `user_traffic_attribution`. Refreshing on every visit
+ *       maintains a 90d sliding window (D-04). For `/share/clinic-<slug>`
+ *       landings, also sets a transient `lt_clinic_slug_seen` cookie
+ *       (5 min) so the recorder Fn can resolve slug → org_id (D-12).
+ *
+ *       NO `Domain=` attribute (scoping to request host avoids hash-route
+ *       SPA cookie-domain interaction). NO `npm:uuid` — uses Edge runtime
+ *       built-in `crypto.randomUUID()`.
+ *
  * The matcher EXCLUDES `/api`, `/_next/static`, `/assets`, and `/favicon` —
  * the Vercel rewrites for `/api/calendly/oauth-*` (Plan 41-04) bypass this
  * middleware as intended.
  *
  * Behavior contract: see `leanshot/tests/integration/csp-middleware.test.ts`
- * — 7 test cases lock the augmentation, cache, env-gate, and fail-safe paths.
+ * (Phase 41-03, 7 cases) and Plan 51-10's `middleware-cookie.test.ts`
+ * (Phase 51-02 — cookie-set behavior).
  */
 import { next } from '@vercel/edge';
 
@@ -77,12 +92,95 @@ function appendFrameSrcHosts(csp: string, hosts: string[]): string {
   });
 }
 
+// =====================================================================
+// Phase 51 Plan 51-02 — lt_anon_id cookie helpers (TRAFFIC-02)
+// =====================================================================
+
+const LT_ANON_COOKIE = 'lt_anon_id';
+const LT_CLINIC_SLUG_COOKIE = 'lt_clinic_slug_seen';
+/** 90 days — D-04 sliding window; longest plausible attribution window fits within cookie life. */
+const LT_ANON_MAX_AGE_S = 60 * 60 * 24 * 90;
+/** 5 minutes — recorder Fn resolves slug→org_id on the next request (D-12). */
+const LT_CLINIC_SLUG_MAX_AGE_S = 60 * 5;
+/** Matches `/share/clinic-<slug>` with optional trailing slash. Slug is lowercase alnum + dash. */
+const CLINIC_SHARE_PATH_RE = /^\/share\/clinic-([a-z0-9-]+)\/?$/;
+
+/**
+ * Parse the inbound `Cookie` request header to read an existing
+ * `lt_anon_id`. Returns null when not present or malformed.
+ */
+function readRequestCookie(req: Request, name: string): string | null {
+  const raw = req.headers.get('cookie');
+  if (!raw) return null;
+  const m = raw.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
+  return m ? decodeURIComponent(m[1] ?? '') : null;
+}
+
+/**
+ * Build a `Set-Cookie` header value with HttpOnly+Secure+SameSite=Lax.
+ * NO `Domain=` attribute per project memory `reference_supabase_auth_traps`
+ * (hash-route SPA cookie-domain interaction).
+ */
+function buildSetCookie(name: string, value: string, maxAgeSeconds: number): string {
+  return (
+    `${name}=${encodeURIComponent(value)}; ` +
+    `Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`
+  );
+}
+
 export default async function middleware(request: Request): Promise<Response> {
   const response = await next();
 
+  // =====================================================================
+  // (C) TRAFFIC-02 — lt_anon_id cookie mint (Phase 51 Plan 51-02)
+  //
+  // Run BEFORE the CSP early-return so the cookie ALSO lands on responses
+  // that have no CSP header (rare static-asset edge case). Cookie mint is
+  // independent of CSP augmentation.
+  // =====================================================================
+  try {
+    const existingAnon = readRequestCookie(request, LT_ANON_COOKIE);
+    // Edge runtime built-in — no `npm:uuid` per RESEARCH anti-patterns.
+    const anonId = existingAnon ?? crypto.randomUUID();
+    // ALWAYS (re)set on every visit to refresh the 90d sliding window.
+    response.headers.append(
+      'Set-Cookie',
+      buildSetCookie(LT_ANON_COOKIE, anonId, LT_ANON_MAX_AGE_S),
+    );
+
+    // D-12 — /share/clinic-<slug> landing also gets a transient slug-seen
+    // cookie so the recorder Fn can resolve slug → org_id on the next
+    // POST. 5-min TTL (one mount cycle is plenty).
+    try {
+      const url = new URL(request.url);
+      if (CLINIC_SHARE_PATH_RE.test(url.pathname)) {
+        const m = url.pathname.match(CLINIC_SHARE_PATH_RE);
+        const slug = m ? m[1] : null;
+        if (slug) {
+          response.headers.append(
+            'Set-Cookie',
+            buildSetCookie(LT_CLINIC_SLUG_COOKIE, slug, LT_CLINIC_SLUG_MAX_AGE_S),
+          );
+        }
+      }
+    } catch {
+      // Malformed request URL — bail on the slug cookie but keep lt_anon_id.
+    }
+  } catch (err) {
+    // NEVER let cookie mint break the page response. Log and continue.
+    console.warn(
+      'middleware: lt_anon_id cookie mint failed (Phase 51-02)',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+
+  // =====================================================================
+  // (A) + (B) CSP augmentation (Phase 41 Plan 41-03) — unchanged
+  // =====================================================================
+
   let csp = response.headers.get('content-security-policy') ?? '';
   // No CSP on this response (e.g. static asset slipped through the matcher)
-  // → return as-is, nothing to augment.
+  // → return as-is (the lt_anon_id cookie above is already attached).
   if (csp === '') return response;
 
   // (A) Allowlist augmentation (env-gated per W11).
