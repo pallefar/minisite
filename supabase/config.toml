@@ -589,6 +589,14 @@ verify_jwt = false
 [functions.spike-web-push]
 verify_jwt = false
 
+# Phase 51 Plan 51-02 — traffic-attribution-recorder is a PUBLIC endpoint for
+# anon traffic-touch ingestion (TRAFFIC-01). Browsers POST unauthenticated;
+# auth is enforced via the in-handler origin allowlist (T-51-09). Without
+# verify_jwt = false the gateway 401s every POST before the function runs
+# (project memory reference_supabase_config_toml_verify_jwt).
+[functions.traffic-attribution-recorder]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
