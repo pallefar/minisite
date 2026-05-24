@@ -869,7 +869,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 51-05-PLAN.md — growth/traffic admin module manifest + TrafficDashboardPage shell + Pill PillGroup tab strip + 5 sub-tab stubs
-- [ ] 51-06-PLAN.md — Channels tab (table + retention sparkline drill-in + first/last touch toggle + CAC deep-link to growth/cac)
+- [x] 51-06-PLAN.md — Channels tab (table + retention sparkline drill-in + first/last touch toggle + CAC deep-link to growth/cac)
 - [ ] 51-07-PLAN.md — Funnels tab (3-audience switcher + BaseChart funnel-stage bars + anomaly badge + per-stage channel-origin drill-in)
 - [ ] 51-08-PLAN.md — Landing Pages tab (top-N selector + filter + sortable columns + PAGEAB variant join)
 - [ ] 51-09-PLAN.md — Real-time tab (5-min visibility-aware poll + stale pip) + Taxonomy admin sub-page (CRUD via SECDEF RPCs) + taxonomy_admin_rpcs migration
