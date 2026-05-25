@@ -18,11 +18,15 @@ import {
   Globe,
   Eye,
   Trophy,
+  Heart,
 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
 import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
+// Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
+// Section enum widening lives with first writer per memory:admin_module_manifest_vs_router_branch_drift.
+import { HealthKitSettingsSection } from '@/components/healthkit/HealthKitSettingsSection';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -49,8 +53,8 @@ import { ActiveSharesSection } from './ActiveSharesSection';
 import { DeleteAccountModal } from './DeleteAccountModal';
 import { NotificationsSubtab } from './NotificationsSubtab';
 import { PatientMfaCard } from './PatientMfaCard';
-import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 import { PhiAccessLogTab } from './PhiAccessLogTab';
+import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 
 // Phase 35 Plan 35-08 (GAME-04): Leaderboards subtab — lazy-loaded so the
 // gamification + supabase client code is not pulled into the settings chunk
@@ -87,6 +91,9 @@ type Section =
   | 'phi-access-log'
   // Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient MFA card.
   | 'security'
+  // Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
+  // Section enum widening lives with first writer (memory:admin_module_manifest_vs_router_branch_drift).
+  | 'healthkit'
   | 'dev';
 
 /**
@@ -126,6 +133,9 @@ const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
   // Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient TOTP enrollment.
   // NOT a gate — patients may ignore this card. Sits with privacy/security entries.
   { id: 'security', label: 'Security (2FA)', Icon: Shield },
+  // Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
+  // iOS-only surface; shown to all users (informational on non-iOS via platform guard in component).
+  { id: 'healthkit', label: 'HealthKit', Icon: Heart },
   // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
   // entry — click navigates to /settings/privacy/dsar instead of swapping the
   // modal section. Surfaces immediately under Privacy so the related items
@@ -696,6 +706,16 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               body="Manage your two-factor authentication settings."
             >
               <PatientMfaCard />
+            </Section>
+          )}
+
+          {/* Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge. */}
+          {section === 'healthkit' && (
+            <Section
+              title="HealthKit"
+              body="Manage Apple Health data import, sync, and privacy controls."
+            >
+              <HealthKitSettingsSection />
             </Section>
           )}
 

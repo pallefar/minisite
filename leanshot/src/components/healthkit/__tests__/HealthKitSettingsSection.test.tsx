@@ -13,9 +13,14 @@
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as useConfirmMod from '@/hooks/useConfirm';
+import * as useToastMod from '@/hooks/useToast';
+import * as healthMod from '@/lib/native/health';
+import * as platformMod from '@/lib/native/platform';
+import { HealthKitSettingsSection } from '../HealthKitSettingsSection';
 
 // ---------------------------------------------------------------------------
-// Mocks
+// Mocks (hoisted via vi.mock — runs before imports)
 // ---------------------------------------------------------------------------
 
 vi.mock('@/lib/native/health', () => ({
@@ -51,38 +56,14 @@ vi.mock('@/hooks/useConfirm', () => ({
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   motion: {
-    div: ({
-      children,
-      onClick,
-      className,
-      role,
-      'aria-modal': ariaModal,
-      'aria-label': ariaLabel,
-      ...rest
-    }: React.HTMLAttributes<HTMLDivElement>) => (
-      <div
-        onClick={onClick}
-        className={className}
-        role={role}
-        aria-modal={ariaModal}
-        aria-label={ariaLabel}
-        {...rest}
-      >
+    div: ({ children, onClick, className, role, 'aria-modal': ariaModal, 'aria-label': ariaLabel, ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- test-only framer-motion mock
+      <div onClick={onClick} onKeyDown={undefined} className={className} role={role} aria-modal={ariaModal} aria-label={ariaLabel} {...rest}>
         {children}
       </div>
     ),
   },
 }));
-
-// ---------------------------------------------------------------------------
-// SUT
-// ---------------------------------------------------------------------------
-
-import * as healthMod from '@/lib/native/health';
-import * as platformMod from '@/lib/native/platform';
-import * as useToastMod from '@/hooks/useToast';
-import * as useConfirmMod from '@/hooks/useConfirm';
-import { HealthKitSettingsSection } from '../HealthKitSettingsSection';
 
 // ---------------------------------------------------------------------------
 // Helpers
