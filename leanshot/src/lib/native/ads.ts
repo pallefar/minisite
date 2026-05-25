@@ -23,7 +23,6 @@ export async function initAdNetwork(): Promise<void> {
   assertNoHealthData({}, 'initAdNetwork');
 
   await AdMob.initialize({
-    requestTrackingAuthorization: true,
     testingDevices: [],
     initializeForTesting: true,
   });
