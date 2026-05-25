@@ -196,7 +196,7 @@ describe('HealthKitConsentModal', () => {
       fireEvent.click(cta);
       await waitFor(() => {
         expect(toastFn).toHaveBeenCalledWith(
-          'Apple Health connected. Syncing your data...',
+          'Apple Health connected. Starting initial sync…',
           'success',
         );
         expect(onConnected).toHaveBeenCalledTimes(1);

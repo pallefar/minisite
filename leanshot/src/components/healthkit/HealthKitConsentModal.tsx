@@ -67,7 +67,7 @@ export function HealthKitConsentModal({
     try {
       const granted = await requestHealthKitAuthorization();
       if (granted) {
-        toast('Apple Health connected. Syncing your data...', 'success');
+        toast('Apple Health connected. Starting initial sync…', 'success');
         onConnected?.();
       } else {
         toast(

@@ -135,6 +135,9 @@ export function HealthKitSettingsSection() {
   const handleConnected = (): void => {
     setConsentOpen(false);
     setHkState('connected');
+    // CR-04: trigger initial sync immediately after authorization granted so the
+    // "Starting initial sync…" toast in HealthKitConsentModal is truthful.
+    void handleSyncNow();
   };
 
   // ---------------------------------------------------------------------------
