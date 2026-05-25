@@ -216,141 +216,161 @@ export async function syncNow(start: Date, end: Date): Promise<SyncSummary> {
   if (!user) return summary;
   const userId = user.id;
 
-  // -- Weight (bodyMass → public.weights) --
-  const weightSamples = await readHealthSamples('weight', start, end);
-  for (const s of weightSamples) {
-    const date = toDateStr(s.startDate);
-    const sourceId = s.sourceId ?? s.sourceName ?? 'apple_health';
-    const weightId = healthSampleId(userId, date, 'weight', sourceId);
-    await supabase.from('weights').upsert(
-      {
-        weight_id: weightId,
-        user_id: userId,
-        date,
-        weight: s.value,
-        body_fat: null,
-        ts: new Date(s.startDate).getTime(),
-        hk_source: 'apple_health',
-      },
-      { onConflict: 'weight_id' },
-    );
-    summary.weight++;
-  }
+  try {
+    // -- Weight (bodyMass → public.weights) --
+    const weightSamples = await readHealthSamples('weight', start, end);
+    for (const s of weightSamples) {
+      const date = toDateStr(s.startDate);
+      const sourceId = s.sourceId ?? s.sourceName ?? 'apple_health';
+      const weightId = healthSampleId(userId, date, 'weight', sourceId);
+      const { error: weightErr } = await supabase.from('weights').upsert(
+        {
+          weight_id: weightId,
+          user_id: userId,
+          date,
+          weight: s.value,
+          body_fat: null,
+          ts: new Date(s.startDate).getTime(),
+          hk_source: 'apple_health',
+        },
+        { onConflict: 'weight_id' },
+      );
+      if (weightErr) console.error('[health] weight upsert failed', weightErr);
+      else summary.weight++;
+    }
 
-  // -- Steps (stepCount → Zustand bulkSetSteps; NO DB table) --
-  const stepSamples = await readHealthSamples('steps', start, end);
-  const stepsByDate: Record<string, number> = {};
-  for (const s of stepSamples) {
-    const date = toDateStr(s.startDate);
-    stepsByDate[date] = (stepsByDate[date] ?? 0) + Math.round(s.value);
-    summary.steps++;
-  }
-  if (Object.keys(stepsByDate).length > 0) {
-    useStore.getState().bulkSetSteps(stepsByDate);
-  }
+    // -- Steps (stepCount → Zustand bulkSetSteps; NO DB table) --
+    const stepSamples = await readHealthSamples('steps', start, end);
+    const stepsByDate: Record<string, number> = {};
+    for (const s of stepSamples) {
+      const date = toDateStr(s.startDate);
+      stepsByDate[date] = (stepsByDate[date] ?? 0) + Math.round(s.value);
+      summary.steps++;
+    }
+    if (Object.keys(stepsByDate).length > 0) {
+      useStore.getState().bulkSetSteps(stepsByDate);
+    }
 
-  // -- Sleep (sleepAnalysis → public.sleep) --
-  const sleepSamples = await readHealthSamples('sleep', start, end);
-  for (const s of sleepSamples) {
-    const date = toDateStr(s.startDate);
-    const sourceId = s.sourceId ?? s.sourceName ?? 'apple_health';
-    const sleepId = healthSampleId(userId, date, 'sleep', sourceId);
-    await supabase.from('sleep').upsert(
-      {
-        sleep_id: sleepId,
-        user_id: userId,
-        date,
-        hours: s.value,
-        quality: null,
-        wakings: 0,
-        notes: '',
-        hk_source: 'apple_health',
-      },
-      { onConflict: 'sleep_id' },
-    );
-    summary.sleep++;
-  }
+    // -- Sleep (sleepAnalysis → public.sleep) --
+    const sleepSamples = await readHealthSamples('sleep', start, end);
+    for (const s of sleepSamples) {
+      const date = toDateStr(s.startDate);
+      const sourceId = s.sourceId ?? s.sourceName ?? 'apple_health';
+      const sleepId = healthSampleId(userId, date, 'sleep', sourceId);
+      const { error: sleepErr } = await supabase.from('sleep').upsert(
+        {
+          sleep_id: sleepId,
+          user_id: userId,
+          date,
+          hours: s.value,
+          quality: null,
+          wakings: 0,
+          notes: '',
+          hk_source: 'apple_health',
+        },
+        { onConflict: 'sleep_id' },
+      );
+      if (sleepErr) console.error('[health] sleep upsert failed', sleepErr);
+      else summary.sleep++;
+    }
 
-  // -- Heart Rate (synthetic daily cardio workout → public.workouts) --
-  const hrSamples = await readHealthSamples('heartRate', start, end);
-  const hrByDate: Record<string, number[]> = {};
-  for (const s of hrSamples) {
-    const date = toDateStr(s.startDate);
-    if (!hrByDate[date]) hrByDate[date] = [];
-    hrByDate[date].push(s.value);
-  }
-  for (const [date, readings] of Object.entries(hrByDate)) {
-    const firstHrSample = hrSamples.find((s) => toDateStr(s.startDate) === date);
-    const sourceId = firstHrSample?.sourceId ?? firstHrSample?.sourceName ?? 'apple_health';
-    const workoutId = healthSampleId(userId, date, 'heartRate', sourceId);
-    const avgHr = Math.round(readings.reduce((a, b) => a + b, 0) / readings.length);
-    await supabase.from('workouts').upsert(
-      {
-        workout_id: workoutId,
-        user_id: userId,
-        date,
-        type: 'cardio',
-        name: 'Apple Health – Heart Rate',
-        minutes: 1,
-        rpe: avgHr,
-        notes: '',
-        hk_source: 'apple_health',
-      },
-      { onConflict: 'workout_id' },
-    );
-    summary.heartRate++;
-  }
+    // -- Heart Rate (synthetic daily cardio workout → public.workouts) --
+    const hrSamples = await readHealthSamples('heartRate', start, end);
+    const hrByDate: Record<string, number[]> = {};
+    for (const s of hrSamples) {
+      const date = toDateStr(s.startDate);
+      if (!hrByDate[date]) hrByDate[date] = [];
+      hrByDate[date].push(s.value);
+    }
+    for (const [date, readings] of Object.entries(hrByDate)) {
+      const firstHrSample = hrSamples.find((s) => toDateStr(s.startDate) === date);
+      const sourceId = firstHrSample?.sourceId ?? firstHrSample?.sourceName ?? 'apple_health';
+      const workoutId = healthSampleId(userId, date, 'heartRate', sourceId);
+      const avgHr = Math.round(readings.reduce((a, b) => a + b, 0) / readings.length);
+      const { error: hrErr } = await supabase.from('workouts').upsert(
+        {
+          workout_id: workoutId,
+          user_id: userId,
+          date,
+          type: 'cardio',
+          name: 'Apple Health – Heart Rate',
+          minutes: 1,
+          rpe: avgHr,
+          notes: '',
+          hk_source: 'apple_health',
+        },
+        { onConflict: 'workout_id' },
+      );
+      if (hrErr) console.error('[health] heartRate upsert failed', hrErr);
+      else summary.heartRate++;
+    }
 
-  // -- Calories (activeEnergyBurned → public.workouts type=cardio) --
-  const calSamples = await readHealthSamples('calories', start, end);
-  const calByDate: Record<string, number[]> = {};
-  for (const s of calSamples) {
-    const date = toDateStr(s.startDate);
-    if (!calByDate[date]) calByDate[date] = [];
-    calByDate[date].push(s.value);
-  }
-  for (const [date, cals] of Object.entries(calByDate)) {
-    const firstCalSample = calSamples.find((s) => toDateStr(s.startDate) === date);
-    const sourceId = firstCalSample?.sourceId ?? firstCalSample?.sourceName ?? 'apple_health';
-    const workoutId = healthSampleId(userId, date, 'calories', sourceId);
-    const totalCal = Math.round(cals.reduce((a, b) => a + b, 0));
-    await supabase.from('workouts').upsert(
-      {
-        workout_id: workoutId,
-        user_id: userId,
-        date,
-        type: 'cardio',
-        name: 'Apple Health Activity',
-        minutes: Math.max(1, Math.round(totalCal / 5)),
-        rpe: null,
-        notes: `${totalCal} kcal`,
-        hk_source: 'apple_health',
-      },
-      { onConflict: 'workout_id' },
-    );
-    summary.calories++;
-  }
+    // -- Calories (activeEnergyBurned → public.workouts type=cardio) --
+    const calSamples = await readHealthSamples('calories', start, end);
+    const calByDate: Record<string, number[]> = {};
+    for (const s of calSamples) {
+      const date = toDateStr(s.startDate);
+      if (!calByDate[date]) calByDate[date] = [];
+      calByDate[date].push(s.value);
+    }
+    for (const [date, cals] of Object.entries(calByDate)) {
+      const firstCalSample = calSamples.find((s) => toDateStr(s.startDate) === date);
+      const sourceId = firstCalSample?.sourceId ?? firstCalSample?.sourceName ?? 'apple_health';
+      const workoutId = healthSampleId(userId, date, 'calories', sourceId);
+      const totalCal = Math.round(cals.reduce((a, b) => a + b, 0));
+      const { error: calErr } = await supabase.from('workouts').upsert(
+        {
+          workout_id: workoutId,
+          user_id: userId,
+          date,
+          type: 'cardio',
+          name: 'Apple Health Activity',
+          minutes: Math.max(1, Math.round(totalCal / 5)),
+          rpe: null,
+          notes: `${totalCal} kcal`,
+          hk_source: 'apple_health',
+        },
+        { onConflict: 'workout_id' },
+      );
+      if (calErr) console.error('[health] calories upsert failed', calErr);
+      else summary.calories++;
+    }
 
-  // -- Height (one-time profile upsert → profiles.height) --
-  // CR-03: also set healthkit_height_source=true so purge_healthkit_imports can
-  // distinguish HK-imported height from user-entered height and clear it selectively.
-  const heightSamples = await readHealthSamples('height', start, end);
-  if (heightSamples.length > 0) {
-    const latestHeight = heightSamples[heightSamples.length - 1];
-    const { error: heightErr } = await supabase
-      .from('profiles')
-      .update({ height: latestHeight.value, healthkit_height_source: true })
-      .eq('id', userId);
-    if (heightErr) console.error('[health] height upsert failed', heightErr);
-    else summary.height++;
+    // -- Height (one-time profile upsert → profiles.height) --
+    // CR-03: also set healthkit_height_source=true so purge_healthkit_imports can
+    // distinguish HK-imported height from user-entered height and clear it selectively.
+    const heightSamples = await readHealthSamples('height', start, end);
+    if (heightSamples.length > 0) {
+      const latestHeight = heightSamples[heightSamples.length - 1];
+      const { error: heightErr } = await supabase
+        .from('profiles')
+        .update({ height: latestHeight.value, healthkit_height_source: true })
+        .eq('id', userId);
+      if (heightErr) console.error('[health] height upsert failed', heightErr);
+      else summary.height++;
+    }
+  } finally {
+    // CR-07: HIPAA audit trail — log_phi_access ALWAYS runs even if upserts partially fail.
+    // PHI was read from HealthKit; the access must be logged regardless of write outcome.
+    // WR-01: include workouts.rpe (heart rate BPM) and workouts.notes (caloric expenditure).
+    try {
+      await supabase.rpc('log_phi_access', {
+        p_accessed_user_id: userId,
+        p_accessed_fields: [
+          'weights.weight',
+          'sleep.hours',
+          'workouts.name',
+          'workouts.rpe',
+          'workouts.notes',
+          'profiles.height',
+        ],
+        p_reason: 'healthkit_sync',
+      });
+    } catch (e) {
+      // Audit-log failures must not crash the sync — log and continue.
+      console.error('[health] log_phi_access failed', e);
+    }
   }
-
-  // Log PHI access for audit trail (existing log_phi_access SECDEF RPC).
-  await supabase.rpc('log_phi_access', {
-    p_accessed_user_id: userId,
-    p_accessed_fields: ['weights.weight', 'sleep.hours', 'workouts.name', 'profiles.height'],
-    p_reason: 'healthkit_sync',
-  });
 
   // Update last_synced_at via SECDEF RPC (55-02).
   await supabase.rpc('upsert_healthkit_state', {
