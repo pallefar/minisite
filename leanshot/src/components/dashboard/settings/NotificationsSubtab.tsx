@@ -15,13 +15,15 @@
  * removing the guard cannot accidentally happen at distance.
  */
 
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, Clock } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import { capture } from '@/lib/analytics/capture';
+import { detectPlatform } from '@/lib/native/platform';
+import { registerForPush } from '@/lib/native/push';
 import { requestPushPermission } from '@/lib/notifications/permission';
 import {
   keyOf,
@@ -58,6 +60,8 @@ const CATEGORY_LABEL: Partial<Record<Category, string>> = {
   'clinic-alerts': 'Clinic alerts',
   billing: 'Billing',
   marketing: 'Marketing',
+  // Phase 54 Plan 05 — helpdesk-reply surfaced in channel matrix (PUSH-06).
+  'helpdesk-reply': 'Helpdesk replies',
   // Phase 49 Plan 09 — community email digests (D-15 opt-IN).
   daily_community_digest: 'Daily community digest',
   weekly_community_digest: 'Weekly community digest',
@@ -72,10 +76,26 @@ const DIGEST_CATEGORIES: ReadonlyArray<Extract<Category, `${string}_digest`>> = 
   'weekly_community_digest',
 ];
 
-// Matrix-visible categories — every Category EXCEPT digests. Matrix iteration
-// uses this list so the 5×3 grid stays at 15 cells even after the underlying
-// CATEGORIES const is widened by Plan 49-09.
+// Matrix-visible categories — the original 5 user-facing categories plus
+// helpdesk-reply (Phase 54 Plan 05, PUSH-06). Excludes digest categories which
+// have their own dedicated section below. Matrix iterates this list to build
+// the 6×3 = 18 toggle grid.
 const MATRIX_CATEGORIES: ReadonlyArray<Exclude<Category, `${string}_digest`>> = [
+  'dose-reminders',
+  'ai-insights',
+  'clinic-alerts',
+  'billing',
+  'marketing',
+  // Phase 54 Plan 05 — appended last to preserve existing snapshot ordering.
+  'helpdesk-reply',
+];
+
+// Snooze-eligible categories — pinned to the original 5 per the analytics event
+// schema (notification_snoozed in src/lib/analytics/events.ts). helpdesk-reply
+// is excluded from snooze controls intentionally; the snooze fn on the server
+// side also only accepts these 5. Frequency caps also scope to these 5 since the
+// admin daily_cap rows in category_config seed only cover the original 5.
+const SNOOZEABLE_MATRIX_CATEGORIES: ReadonlyArray<SnoozeableCategory> = [
   'dose-reminders',
   'ai-insights',
   'clinic-alerts',
@@ -99,6 +119,8 @@ const DEFAULT_ENABLED: Partial<Record<Category, Record<Channel, boolean>>> = {
   'clinic-alerts': { email: true, 'web-push': true, 'in-app': true },
   billing: { email: true, 'web-push': false, 'in-app': false },
   marketing: { email: true, 'web-push': false, 'in-app': false },
+  // Phase 54 Plan 05 — helpdesk-reply defaults matching the 54-01 config seed.
+  'helpdesk-reply': { email: true, 'web-push': true, 'in-app': true },
   // Phase 49 Plan 09 — D-15 opt-IN for community digests. Push:false because
   // digests are an email-only feature (no web-push fan-out per RESEARCH §D-15).
   daily_community_digest: { email: true, 'web-push': false, 'in-app': true },
@@ -129,6 +151,15 @@ export function NotificationsSubtab() {
     typeof Notification !== 'undefined' ? Notification.permission : 'unknown',
   );
   const [permBusy, setPermBusy] = useState(false);
+  // Phase 54 Plan 05 — Quiet-hours timezone display (PUSH-07).
+  // Read from profiles.timezone; fallback to Intl resolved tz then 'UTC'.
+  const [userTimezone, setUserTimezone] = useState<string>(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  });
 
   // Load category configs + dismissal states for the user.
   useEffect(() => {
@@ -148,6 +179,27 @@ export function NotificationsSubtab() {
           .eq('user_id', userId);
         if (!cancelled && dRes.data) setDismissals(dRes.data as DismissalState[]);
       }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Phase 54 Plan 05 — fetch profiles.timezone for quiet-hours display.
+  // Supabase client already imported; fetches once per userId change.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('timezone')
+        .eq('id', userId)
+        .maybeSingle();
+      if (cancelled) return;
+      const tz =
+        (data as { timezone?: string | null } | null)?.timezone?.trim() || null;
+      if (tz) setUserTimezone(tz);
     })();
     return () => {
       cancelled = true;
@@ -181,21 +233,45 @@ export function NotificationsSubtab() {
   const handleEnablePush = useCallback(async () => {
     setPermBusy(true);
     try {
-      // Pitfall 3 invariant — flag passed inline; this is the ONLY call site.
-      const res = await requestPushPermission({ fromUserGesture: true });
-      if (res.state === 'granted') {
-        setPermission('granted');
-        capture('notification_permission_granted', { had_prior_subscription: false });
-        toast('Push notifications enabled', 'success');
-      } else if (res.state === 'denied') {
-        setPermission('denied');
-        toast('Browser-level permission denied; enable in browser settings', 'error');
-      } else if (res.state === 'unsupported') {
-        toast(`Push not supported: ${res.reason}`, 'error');
-      } else if (res.state === 'subscribe-failed') {
-        toast(`Could not register push: ${res.error}`, 'error');
+      const platform = detectPlatform();
+
+      if (platform === 'ios' || platform === 'android') {
+        // Phase 54 Plan 05 — native soft-prompt path (PUSH-05).
+        // Gesture gate is preserved: this callback only runs from the user click.
+        // registerForPush does soft-prompt (checkPermissions → requestPermissions
+        // only if 'prompt') — see src/lib/native/push.ts.
+        const { data: sess } = await supabase.auth.getSession();
+        const accessToken = sess.session?.access_token ?? '';
+        const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? '';
+        const res = await registerForPush(accessToken, supabaseUrl);
+        if (res.ok) {
+          setPermission('granted');
+          capture('notification_permission_granted', { had_prior_subscription: false });
+          toast('Push notifications enabled', 'success');
+        } else if (res.error?.startsWith('permission-denied')) {
+          toast('System-level permission denied; enable in device settings', 'error');
+        } else if (res.error?.startsWith('permission-')) {
+          toast('Push permission not granted', 'info');
+        } else {
+          toast(`Could not register push: ${res.error ?? 'unknown'}`, 'error');
+        }
       } else {
-        toast('Permission not granted', 'info');
+        // Web path — Pitfall 3 invariant: flag passed inline; this is the ONLY call site.
+        const res = await requestPushPermission({ fromUserGesture: true });
+        if (res.state === 'granted') {
+          setPermission('granted');
+          capture('notification_permission_granted', { had_prior_subscription: false });
+          toast('Push notifications enabled', 'success');
+        } else if (res.state === 'denied') {
+          setPermission('denied');
+          toast('Browser-level permission denied; enable in browser settings', 'error');
+        } else if (res.state === 'unsupported') {
+          toast(`Push not supported: ${res.reason}`, 'error');
+        } else if (res.state === 'subscribe-failed') {
+          toast(`Could not register push: ${res.error}`, 'error');
+        } else {
+          toast('Permission not granted', 'info');
+        }
       }
     } finally {
       setPermBusy(false);
@@ -337,12 +413,31 @@ export function NotificationsSubtab() {
         </Card>
       )}
 
-      {/* 5×3 matrix per RESEARCH §Pattern 1 */}
+      {/* Phase 54 Plan 05 — Quiet hours section (PUSH-07, informational only).
+          Window is fixed 22:00-08:00 server-side (push-dispatch). UI is
+          read-only — no toggle implies disabling server enforcement (no backing
+          column; enforcement is unconditional). */}
+      <Card variant="flat" data-testid="quiet-hours-section">
+        <div className="flex items-start gap-3">
+          <Clock className="size-4 mt-[2px] shrink-0 text-[var(--color-text-secondary)]" aria-hidden />
+          <div>
+            <h3 className="text-[14px] font-semibold">Quiet hours</h3>
+            <p className="text-[12px] text-[var(--color-text-secondary)] mt-1">
+              Non-urgent push is paused{' '}
+              <strong>22:00–08:00</strong> in your timezone ({userTimezone}). Urgent
+              clinic alerts always deliver.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* 6×3 matrix per RESEARCH §Pattern 1 + Phase 54 helpdesk-reply row */}
       <Card>
         <div className="overflow-x-auto">
           <table
             aria-label="Notification preferences"
             className="w-full text-[13px] border-collapse"
+            data-testid="notification-matrix"
           >
             <thead>
               <tr>
@@ -411,7 +506,7 @@ export function NotificationsSubtab() {
               onChange={(e) => setSnoozeCategory(e.target.value as SnoozeableCategory)}
               className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[13px]"
             >
-              {MATRIX_CATEGORIES.map((c) => (
+              {SNOOZEABLE_MATRIX_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {CATEGORY_LABEL[c]}
                 </option>
@@ -442,7 +537,7 @@ export function NotificationsSubtab() {
           exceed the admin default.
         </p>
         <div className="space-y-2">
-          {MATRIX_CATEGORIES.map((cat) => {
+          {SNOOZEABLE_MATRIX_CATEGORIES.map((cat) => {
             const cfg = cfgByCat.get(cat);
             const adminCap = cfg?.daily_cap;
             if (adminCap === null || adminCap === undefined) {

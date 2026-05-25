@@ -1,13 +1,16 @@
 /**
  * Phase 42 Plan 42-08 — NotificationsSubtab tests.
+ * Phase 54 Plan 54-05 — Quiet-hours section + helpdesk-reply + native push branch.
  *
  * Covers:
- *   1. 5×3 matrix renders 15 switch cells with proper aria.
+ *   1. 6×3 matrix renders 18 switch cells + 2 digest = 20 total.
  *   2. Clicking a toggle calls update() optimistically.
- *   3. Snooze controls offer 1d/7d/30d.
- *   4. Cap input clamps to admin daily_cap.
+ *   3. Snooze controls offer 1d/7d/30d (original 5 categories only).
+ *   4. Cap input clamps to admin daily_cap (original 5 categories).
  *   5. Suppression banner appears when throttle_until > now() and restores.
  *   6. "Enable push notifications" button only when permission !== 'granted'.
+ *   7. Quiet-hours section visible with timezone display.
+ *   8. Helpdesk-replies row in the matrix.
  */
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -28,6 +31,8 @@ const {
   trackMock,
   toastMock,
   requestPushPermissionMock,
+  registerForPushMock,
+  detectPlatformMock,
   storeState,
 } = vi.hoisted(() => {
   return {
@@ -45,6 +50,8 @@ const {
     trackMock: vi.fn(),
     toastMock: vi.fn(),
     requestPushPermissionMock: vi.fn().mockResolvedValue({ state: 'granted' }),
+    registerForPushMock: vi.fn().mockResolvedValue({ ok: true }),
+    detectPlatformMock: vi.fn().mockReturnValue('web'),
     storeState: { current: { signedIn: { user: { id: 'u1' } } } },
   };
 });
@@ -74,6 +81,14 @@ vi.mock('@/lib/notifications/permission', () => ({
   requestPushPermission: (...args: unknown[]) => requestPushPermissionMock(...args),
 }));
 
+vi.mock('@/lib/native/push', () => ({
+  registerForPush: (...args: unknown[]) => registerForPushMock(...args),
+}));
+
+vi.mock('@/lib/native/platform', () => ({
+  detectPlatform: () => detectPlatformMock(),
+}));
+
 // --- helpers -----------------------------------------------------------------
 function setSettingsRows(rows: unknown[]) {
   settingsResponse.current = { data: rows, error: null };
@@ -94,6 +109,7 @@ function getResponse(table: string) {
   if (table === 'notification_settings') return settingsResponse.current;
   if (table === 'notification_category_config') return configResponse.current;
   if (table === 'notification_dismissal_state') return dismissalResponse.current;
+  if (table === 'profiles') return { data: { timezone: 'Europe/Oslo' }, error: null };
   return { data: [], error: null };
 }
 
@@ -121,6 +137,16 @@ function makeQBPromiseLike(table: string) {
         }),
     };
     return chain;
+  }
+  // Phase 54 Plan 05 — profiles is queried with .select().eq(id).maybeSingle()
+  if (table === 'profiles') {
+    const profileChain: Record<string, unknown> = {
+      select: () => profileChain,
+      eq: () => profileChain,
+      maybeSingle: () =>
+        Promise.resolve({ data: { timezone: 'Europe/Oslo' }, error: null }),
+    };
+    return profileChain;
   }
   const selectResult = {
     eq: () => Promise.resolve(getResponse(table)),
@@ -195,6 +221,8 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
       .mockReturnValue({ eq: () => ({ eq: () => Promise.resolve({ error: null }) }) });
     fromMock.mockReset().mockImplementation((t: string) => makeQBPromiseLike(t));
     requestPushPermissionMock.mockClear().mockResolvedValue({ state: 'granted' });
+    registerForPushMock.mockClear().mockResolvedValue({ ok: true });
+    detectPlatformMock.mockClear().mockReturnValue('web');
     trackMock.mockClear();
     toastMock.mockClear();
     fetchMock.mockClear();
@@ -209,16 +237,19 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
     });
   });
 
-  it('renders 5×3 matrix = 15 matrix toggles + 2 digest toggles = 17 switch cells total', async () => {
+  it('renders 6×3 matrix = 18 matrix toggles + 2 digest toggles = 20 switch cells total', async () => {
     render(<NotificationsSubtab />);
-    // 15 role=switch in the matrix + 2 in the Email digests section (Plan 49-09).
+    // 18 role=switch in the 6-row matrix + 2 in the Email digests section (Plan 49-09).
+    // Phase 54 Plan 05: helpdesk-reply added as 6th row.
     // Permission button uses role=button so it's not counted.
     const switches = await screen.findAllByRole('switch');
-    expect(switches.length).toBe(17);
+    expect(switches.length).toBe(20);
 
-    // Spot-check a known label:
+    // Spot-check known labels:
     expect(screen.getByRole('switch', { name: 'AI insights In-app' })).toBeInTheDocument();
     expect(screen.getByRole('switch', { name: 'Marketing Email' })).toBeInTheDocument();
+    // Phase 54 Plan 05 — helpdesk-reply row:
+    expect(screen.getByRole('switch', { name: 'Helpdesk replies Email' })).toBeInTheDocument();
   });
 
   it('clicking a toggle calls supabase upsert with onConflict user_id,category,channel', async () => {
@@ -312,9 +343,9 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
   it('matrix table has aria-label="Notification preferences" and th[scope=row] for accessibility', async () => {
     render(<NotificationsSubtab />);
     const table = await screen.findByLabelText('Notification preferences');
-    // Five th[scope=row] (one per category):
+    // Six th[scope=row] — one per category (5 original + helpdesk-reply, Phase 54 Plan 05):
     const rowHeaders = within(table).getAllByRole('rowheader');
-    expect(rowHeaders.length).toBe(5);
+    expect(rowHeaders.length).toBe(6);
   });
 
   // ---------------------------------------------------------------------------
@@ -364,5 +395,51 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
     // Both rows show "Never sent" when no log rows exist.
     const neverSentMatches = await within(section).findAllByText(/Never sent/i);
     expect(neverSentMatches.length).toBe(2);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 54 Plan 05 — Quiet hours section + helpdesk-reply + native push branch.
+  // ---------------------------------------------------------------------------
+  it('renders a Quiet hours section with the correct window and timezone', async () => {
+    render(<NotificationsSubtab />);
+    const section = await screen.findByTestId('quiet-hours-section');
+    // Section heading:
+    expect(within(section).getByText(/Quiet hours/i)).toBeInTheDocument();
+    // Fixed window text:
+    expect(within(section).getByText(/22:00/)).toBeInTheDocument();
+    expect(within(section).getByText(/08:00/)).toBeInTheDocument();
+    // Accurate copy — mentions urgent clinic alerts always deliver:
+    expect(within(section).getByText(/Urgent\s+clinic alerts always deliver/i)).toBeInTheDocument();
+    // Timezone from mocked profiles response:
+    expect(within(section).getByText(/Europe\/Oslo/)).toBeInTheDocument();
+  });
+
+  it('Helpdesk replies row appears in the notification matrix', async () => {
+    render(<NotificationsSubtab />);
+    await screen.findByLabelText('Notification preferences');
+    // All 3 channel switches for helpdesk-reply should be present:
+    expect(screen.getByRole('switch', { name: 'Helpdesk replies Email' })).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'Helpdesk replies Push' })).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'Helpdesk replies In-app' })).toBeInTheDocument();
+  });
+
+  it('Enable push uses registerForPush on native (ios) platform', async () => {
+    detectPlatformMock.mockReturnValue('ios');
+    render(<NotificationsSubtab />);
+    const user = userEvent.setup();
+    const btn = await screen.findByRole('button', { name: /Enable push notifications/i });
+    await user.click(btn);
+    expect(registerForPushMock).toHaveBeenCalledWith('t', expect.any(String));
+    expect(requestPushPermissionMock).not.toHaveBeenCalled();
+  });
+
+  it('Enable push uses web VAPID path on web platform', async () => {
+    detectPlatformMock.mockReturnValue('web');
+    render(<NotificationsSubtab />);
+    const user = userEvent.setup();
+    const btn = await screen.findByRole('button', { name: /Enable push notifications/i });
+    await user.click(btn);
+    expect(requestPushPermissionMock).toHaveBeenCalledWith({ fromUserGesture: true });
+    expect(registerForPushMock).not.toHaveBeenCalled();
   });
 });
