@@ -22,9 +22,8 @@ on:
       - 'leanshot/fastlane/**'
       - '.github/workflows/mobile-ios.yml'
 
-concurrency:
-  group: mobile-ios-${{ github.ref }}
-  cancel-in-progress: true
+  # WR-02: global concurrency block removed — upload jobs must not be cancelled.
+  # Job-level concurrency is applied to build-ios only (see below).
 
 defaults:
   run:
@@ -35,6 +34,9 @@ jobs:
     name: Build iOS (unsigned, always green)
     runs-on: macos-latest
     timeout-minutes: 30
+    concurrency:
+      group: mobile-ios-build-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
 
@@ -77,9 +79,33 @@ jobs:
       FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
       MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      # WR-01: FASTLANE_USER + FASTLANE_TEAM_ID required by match() and pilot()
+      FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+      FASTLANE_TEAM_ID: ${{ secrets.FASTLANE_TEAM_ID }}
     if: env.APPLE_CERTIFICATE_BASE64 != '' && env.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD != ''
     steps:
       - uses: actions/checkout@v4
+
+      # CR-01: web-asset pipeline must run on this runner before gym() can build.
+      # The build-ios job runs on a separate runner whose artifacts are not
+      # transferred here — this job must be self-contained.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install dependencies
+        working-directory: leanshot
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web assets
+        working-directory: leanshot
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        working-directory: leanshot
+        run: npx cap sync ios
 
       - uses: ruby/setup-ruby@v1
         with:
