@@ -43,6 +43,14 @@ const P27_OPT_IN = process.env.PLAYWRIGHT_RUN_P27 === '1';
 // `npx playwright test` does not flake on missing creds.
 const P32_I18N_OPT_IN = process.env.PLAYWRIGHT_RUN_P32_I18N === '1';
 
+// Phase 58 Plan 58-01: opt-in ES smoke spec via PLAYWRIGHT_RUN_ES_SMOKE=1.
+// Owns the I18N-15 critical patient flow smoke (onboarding → dose-log → AI
+// chat → cancellation → KB search) in Spanish locale. Wave-4 plan 58-08
+// fills in the real assertions; the scaffold ships RED/fixme until then.
+// Excluded from the default chromium project via testIgnore so a bare
+// `npx playwright test` never executes the stub assertions.
+const ES_SMOKE_OPT_IN = process.env.PLAYWRIGHT_RUN_ES_SMOKE === '1';
+
 // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
 // Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
 // pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
@@ -119,6 +127,10 @@ export default defineConfig({
         // Phase 44 Plan 44-10: community feed e2e requires live Supabase + seeded
         // test user sessions + dev server. Gated by PLAYWRIGHT_RUN_COMMUNITY=1.
         /e2e\/community\/.*\.spec\.ts$/,
+        // Phase 58 Plan 58-01: ES smoke is a RED scaffold until 58-08 wires
+        // real assertions. Always excluded from the default chromium run;
+        // opt in via PLAYWRIGHT_RUN_ES_SMOKE=1 --project=p58-es-smoke.
+        /e2e\/i18n\/es-smoke\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -247,6 +259,19 @@ export default defineConfig({
           {
             name: 'community',
             testMatch: [/e2e\/community\/.*\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 58 Plan 58-01 — opt-in ES smoke spec (I18N-15 critical patient flow).
+    // Invoke via `PLAYWRIGHT_RUN_ES_SMOKE=1 npx playwright test --project=p58-es-smoke`.
+    // RED scaffold until Wave-4 plan 58-08 wires real ES string assertions.
+    // Consumer surface has no router — spec uses ?lang=es + Zustand tab clicks.
+    ...(ES_SMOKE_OPT_IN
+      ? [
+          {
+            name: 'p58-es-smoke',
+            testMatch: [/e2e\/i18n\/es-smoke\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
