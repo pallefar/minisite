@@ -1,30 +1,20 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.4
-milestone_name: Launch Readiness
-status: in_progress
-authored: "2026-05-25"
-archived: false
-last_updated: "2026-05-25T10:30:00.000Z"
-last_activity: "2026-05-25 -- Phase 56 (Ad Network) COMPLETE: 6 plans/3 waves (canShowAds guard+freqcap; ad_revenue_facts ETL+admob; ads.ts serving 3-mode; CSP blocklist; admin revenue dashboard; surface-exclusion gate+firewall regression). VERIFICATION passed. Code review caught 4 CRITICAL (EmbedAdSlot allow-same-origin PHI leak, exclusion gate missed src/components/share, admin-only RLS broke ad_placements/csp reads) — all fixed. Real fill/on-device→P70. Autonomous run 52->69 in progress (5/18 done)."
+milestone_name: Launch Gate
+status: executing
+last_updated: "2026-05-25T18:43:02.972Z"
 progress:
   total_phases: 19
   completed_phases: 5
-  total_plans: 27
-  completed_plans: 27
+  total_plans: 23
+  completed_plans: 23
   percent: 26
-phase_range: "52-70"
-v1_3_archive:
-  roadmap: .planning/milestones/v1.3-ROADMAP.md
-  requirements: .planning/milestones/v1.3-REQUIREMENTS.md
-  audit: .planning/milestones/v1.3-MILESTONE-AUDIT.md
-  uat_runbook: .planning/milestones/v1.3-uat-deferred.md
-  git_tag: v1.3
 ---
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 52
+**Status:** Ready to execute
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
