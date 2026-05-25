@@ -497,11 +497,14 @@ async function handleSend(req: Request): Promise<Response> {
 // ============================================================================
 // Deno.serve entrypoint
 // ============================================================================
+//
+// Per reference_deno_test_top_level_serve_trap: guard with `import.meta.main`
+// (true only when this file is the direct entry point, NOT when imported by a
+// test). The legacy `denoGlobal?.serve` guard is insufficient — Deno.serve
+// exists in test context.
 
-// deno-lint-ignore no-explicit-any
-const denoGlobal: any = (globalThis as any).Deno;
-if (denoGlobal?.serve) {
-  denoGlobal.serve(handleSend);
+if (import.meta.main) {
+  Deno.serve(handleSend);
 }
 
 // ============================================================================

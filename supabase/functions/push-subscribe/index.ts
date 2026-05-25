@@ -226,11 +226,16 @@ async function handleSubscribe(req: Request): Promise<Response> {
 }
 
 // ─── Deno.serve entrypoint ────────────────────────────────────────────────────
-
-// deno-lint-ignore no-explicit-any
-const denoGlobal: any = (globalThis as any).Deno;
-if (denoGlobal?.serve) {
-  denoGlobal.serve(handleSubscribe);
+//
+// Per reference_deno_test_top_level_serve_trap: `Deno.serve()` at module
+// top-level fires during `deno test`, binding a real port and aborting all
+// tests. Guard with `import.meta.main` (true only when this file is the
+// direct entry point, NOT when imported by a test file).
+// The legacy `denoGlobal?.serve` guard is insufficient — Deno.serve exists
+// in test context. `import.meta.main` is the reliable discriminator.
+// push-dispatch (54-02) uses the same pattern.
+if (import.meta.main) {
+  Deno.serve(handleSubscribe);
 }
 
 export const __internal = {
