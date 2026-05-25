@@ -125,17 +125,22 @@ ANTHROPIC_CLINICAL_BAA_ACTIVE
 MUX_TOKEN_ID
 MUX_TOKEN_SECRET
 MUX_WEBHOOK_SIGNING_SECRET
-POSTHOG_PROJECT_KEY
+POSTHOG_PERSONAL_API_KEY
+POSTHOG_PROJECT_ID
 ```
 
 `SENTRY_DSN` is specifically watched per VENDOR-07 — a missing or renamed `SENTRY_DSN` means Edge Fn error reporting is silently broken.
+
+Note: `POSTHOG_PERSONAL_API_KEY` and `POSTHOG_PROJECT_ID` are the PostHog API auth credentials read by
+the vendor-smoke `posthogHandler`. `POSTHOG_PROJECT_KEY` is a separate Vite/frontend public key used by
+the variant-resolver Fn; it is registered in the table above but is NOT part of the drift guard's
+Required set.
 
 ### Deferred-to-Phase-70 (pending-provisioning) allowlist
 
 These secrets have values deferred to the Phase 70 HUMAN-UAT gate. A missing entry WARNS (exit 0) during the defer window so CI does not break:
 
 ```
-FCM_SERVER_KEY
 CALENDLY_OAUTH_CLIENT_ID
 CALENDLY_OAUTH_CLIENT_SECRET
 CALENDLY_WEBHOOK_SIGNING_KEY
@@ -143,8 +148,6 @@ CALENDLY_API_KEY
 BETTER_STACK_API_KEY
 BETTER_STACK_PAGE_ID
 ANTHROPIC_CLINICAL_API_KEY
-POSTHOG_PERSONAL_API_KEY
-POSTHOG_PROJECT_ID
 SLACK_WEBHOOK_EXPERIMENTS_URL
 SHARE_TOKEN_SECRET
 QUARTERLY_NPS_SIGNING_KEY
@@ -158,6 +161,10 @@ PLAY_PACKAGE_NAME
 PLAY_SERVICE_ACCOUNT_JSON
 VAPID_PRIVATE_KEY
 ```
+
+Note: `FCM_SERVER_KEY` (legacy FCM HTTP v1 server key) has been removed from the allowlist.
+FCM authentication uses `PLAY_SERVICE_ACCOUNT_JSON` (OAuth2 service account) — the legacy server key
+is not read by any Edge Fn.
 
 Each entry above is deferred to Phase 70 — the guard WARNs (exit 0) for these.
 

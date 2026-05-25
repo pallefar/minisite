@@ -48,13 +48,18 @@ REQUIRED_SECRETS=(
   MUX_TOKEN_ID
   MUX_TOKEN_SECRET
   MUX_WEBHOOK_SIGNING_SECRET
-  POSTHOG_PROJECT_KEY
+  # PostHog API auth credentials — used by vendor-smoke posthogHandler (index.ts:313-314).
+  # Note: POSTHOG_PROJECT_KEY is a separate Vite/frontend public key used by variant-resolver Fn;
+  # it is NOT the API auth credential and is NOT watched here.
+  POSTHOG_PERSONAL_API_KEY
+  POSTHOG_PROJECT_ID
 )
 
 # Deferred-to-Phase-70 allowlist — WARN (exit 0) if missing.
 # Source: vendor-secrets.md § "Deferred-to-Phase-70 (pending-provisioning) allowlist"
 DEFERRED_ALLOWLIST=(
-  FCM_SERVER_KEY
+  # FCM auth uses PLAY_SERVICE_ACCOUNT_JSON (OAuth2 service account) — not a legacy server key.
+  # FCM_SERVER_KEY (legacy HTTP v1 key) is NOT read by any Edge Fn; removed from allowlist.
   CALENDLY_OAUTH_CLIENT_ID
   CALENDLY_OAUTH_CLIENT_SECRET
   CALENDLY_WEBHOOK_SIGNING_KEY
@@ -62,8 +67,6 @@ DEFERRED_ALLOWLIST=(
   BETTER_STACK_API_KEY
   BETTER_STACK_PAGE_ID
   ANTHROPIC_CLINICAL_API_KEY
-  POSTHOG_PERSONAL_API_KEY
-  POSTHOG_PROJECT_ID
   SLACK_WEBHOOK_EXPERIMENTS_URL
   SHARE_TOKEN_SECRET
   QUARTERLY_NPS_SIGNING_KEY
