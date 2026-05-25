@@ -85,7 +85,12 @@
   4. `push-dispatch` Edge Fn fans out across all user's registered tokens; cross-platform delivery telemetry visible in PostHog
   5. Quiet-hours window (22:00-08:00 user-tz) blocks non-urgent notifications; urgent (clinician alerts) override
   6. Failing tokens auto-prune after 3 consecutive failures
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 54-01-PLAN.md — migrations (platform/device_token/failure_count + helpdesk-reply widening) + Category type sync + Wave-0 RED scaffolds
+- [ ] 54-02-PLAN.md — push-dispatch Edge Fn (cross-platform fan-out, quiet-hours, prune, telemetry)
+- [ ] 54-03-PLAN.md — @capacitor/push-notifications + native registerForPush + push-subscribe native body
+- [ ] 54-04-PLAN.md — notification-send web-only push filter + helpdesk-reply category
+- [ ] 54-05-PLAN.md — NotificationsSubtab quiet-hours UI + helpdesk-reply matrix + native enable branch
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
