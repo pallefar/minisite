@@ -65,10 +65,10 @@
   5. In-app account deletion screen reachable from mobile Settings (Apple §5.1.1(v) + Play §13.7)
   6. App Store + Play Store metadata package complete (screenshots + descriptions + privacy nutrition labels)
 **Plans**: 4 plans
-- [ ] 53-01-PLAN.md — fastlane toolchain (build/upload lanes, gated signing) + store metadata + privacy nutrition labels
-- [ ] 53-02-PLAN.md — RevenueCat client-SDK env stubs + deep-link association validity + mobile account-deletion reachability + cap config validity
-- [ ] 53-03-PLAN.md — iOS + Android CI workflows (unsigned-green + gated upload) + AndroidManifest App Links
-- [ ] 53-04-revenuecat-webhook-mirror-PLAN.md — MOBILE-06 ownership: verify RC webhook → canonical public.subscriptions mirror + REVENUECAT_WEBHOOK_SECRET runbook
+- [x] 53-01-PLAN.md — fastlane toolchain (build/upload lanes, gated signing) + store metadata + privacy nutrition labels
+- [x] 53-02-PLAN.md — RevenueCat client-SDK env stubs + deep-link association validity + mobile account-deletion reachability + cap config validity
+- [x] 53-03-PLAN.md — iOS + Android CI workflows (unsigned-green + gated upload) + AndroidManifest App Links
+- [x] 53-04-revenuecat-webhook-mirror-PLAN.md — MOBILE-06 ownership: verify RC webhook → canonical public.subscriptions mirror + REVENUECAT_WEBHOOK_SECRET runbook
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -448,7 +448,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 52. Vendor Setup Foundation | 4/4 | Complete   | 2026-05-25 |
-| 53. Capacitor Mobile Shells | 0/0 | Not started | - |
+| 53. Capacitor Mobile Shells | 4/4 | Complete   | 2026-05-25 |
 | 54. Push Notifications | 0/0 | Not started | - |
 | 55. HealthKit + Two-Tunnel Firewall | 0/0 | Not started | - |
 | 56. Ad Network | 0/0 | Not started | - |
