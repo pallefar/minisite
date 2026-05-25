@@ -348,7 +348,9 @@ const defaultApnsTransport: ApnsTransportFn = async (deviceToken, payload, optio
   const keyId = Deno.env.get('APNS_KEY_ID') ?? '';
   const teamId = Deno.env.get('APNS_TEAM_ID') ?? '';
   const bundleId = Deno.env.get('APNS_BUNDLE_ID') ?? '';
-  const sandbox = Deno.env.get('APNS_SANDBOX') !== 'false';
+  // Default to PRODUCTION. Set APNS_SANDBOX=true only in dev/test environments.
+  // Absent env var = production; sandbox mode is explicit opt-in (CR-03).
+  const sandbox = Deno.env.get('APNS_SANDBOX') === 'true';
 
   const jwt = await getApnsJwt(teamId, keyId, p8Pem);
   const host = sandbox ? 'api.sandbox.push.apple.com' : 'api.push.apple.com';
