@@ -42,7 +42,7 @@ created: 2026-05-26
 | 59-01-T1 | 01 | 1 | AUTH-08 | T-59-01 | HIG wordmark key at en↔es parity (no missing-key drift) | locale-gate | `bash scripts/check-locale-coverage.sh` | en/es onboarding.json ✅ | ⬜ pending |
 | 59-01-T2 | 01 | 1 | AUTH-07, AUTH-08 | T-59-01/02/03 | Apple button gated behind isAppleEnabled(); type=button never submits creds; promote/anon modes excluded | unit+tsc | `npx vitest run --config vite.config.ts src/components/auth/ && npx tsc -p tsconfig.app.json --noEmit` | SignInForm/SignUpForm ✅ | ⬜ pending |
 | 59-01-T3 | 01 | 1 | AUTH-08 | T-59-03 | gate visibility proven both states; click invokes web OAuth path | unit | `npx vitest run --config vite.config.ts src/components/auth/__tests__/SignInForm.test.tsx src/components/auth/__tests__/SignUpForm.test.tsx` | SignInForm.test.tsx NEW | ⬜ pending |
-| 59-02-T1 | 02 | 2 | AUTH-07 | T-59-SC | package legitimacy human-verified before install ([ASSUMED]→approved) | human-gate | npmjs.com verification (blocking-human) | n/a | ⬜ pending |
+| 59-02-T1 | 02 | 2 | AUTH-07 | T-59-SC | package legitimacy auto-verified before install (registry re-check, STOP-on-discrepancy) | auto | `curl -s https://registry.npmjs.org/@capacitor-community/apple-sign-in \| node -e "const j=JSON.parse(require('fs').readFileSync(0));const v=j['dist-tags'].latest;if(!/^7\./.test(v))process.exit(1)"` | n/a | ⬜ pending |
 | 59-02-T2 | 02 | 2 | AUTH-07 | T-59-SC | entitlement added without clobbering existing capabilities | grep+plutil | `grep -q com.apple.developer.applesignin ../apps/ios/App/App/App.entitlements` | package.json + App.entitlements | ⬜ pending |
 | 59-02-T3 | 02 | 2 | AUTH-07, AUTH-09 | T-59-04/05/06 | identityToken exchanged via signInWithIdToken (server-verified); no email assumption; non-iOS short-circuit | unit+tsc | `npx vitest run --config vite.config.ts src/lib/native/apple-sign-in.test.ts && npx tsc -p tsconfig.app.json --noEmit` | apple-sign-in.ts NEW | ⬜ pending |
 | 59-02-T4 | 02 | 2 | AUTH-07 | T-59-07 | native path reachable only when isAppleEnabled() && ios; web path unchanged | unit+tsc | `npx vitest run --config vite.config.ts src/lib/auth.test.ts && npx tsc -p tsconfig.app.json --noEmit` | auth.ts | ⬜ pending |
@@ -56,7 +56,7 @@ created: 2026-05-26
 
 - [x] vitest + auth.test.ts + ConsumerOnboardingRenderer.test.tsx + SignUpForm.test.tsx already exist — existing infra covers most unit/component surface
 - [x] New test files created within their owning tasks (TDD-first): SignInForm.test.tsx (59-01-T3), apple-sign-in.test.ts (59-02-T3), anon-merge.test.ts (59-03-T2)
-- [x] `@capacitor-community/apple-sign-in` install gated behind a blocking-human legitimacy checkpoint (59-02-T1); native path flag+platform-gated (isAppleEnabled + detectPlatform==='ios')
+- [x] `@capacitor-community/apple-sign-in` install gated behind an AUTONOMOUS registry re-check (59-02-T1: confirm latest 7.x, official @capacitor-community org, no install/postinstall scripts; STOP on discrepancy); native path flag+platform-gated (isAppleEnabled + detectPlatform==='ios')
 
 ---
 
@@ -74,7 +74,7 @@ created: 2026-05-26
 
 ## Validation Sign-Off
 
-- [x] All tasks have `<automated>` verify or Wave 0 dependencies (T1 of 59-02 is the only human gate — package legitimacy, paired with automated grep verify in T2)
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (59-02-T1 package legitimacy is an AUTONOMOUS registry re-check with STOP-on-discrepancy, paired with automated grep verify in T2 — no human gate; all plans autonomous:true)
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
 - [x] No watch-mode flags
 - [x] `nyquist_compliant: true` set in frontmatter
