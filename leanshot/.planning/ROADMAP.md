@@ -44,10 +44,10 @@
   5. `.planning/runbooks/vendor-secrets.md` documents every secret with rotation cadence + blast-radius
   6. `vendor_baa_chain` row exists for each new vendor (Mux confirmed BAA scope; Apple Dev + Google Play n/a noted)
 **Plans**: 4 plans
-- [ ] 52-01-vendor-smoke-edge-fn-PLAN.md — vendor-smoke Edge Fn (dual-auth, fail-soft per-vendor registry, vendor_smoke_log upsert, deno tests)
-- [ ] 52-02-vendor-smoke-log-migration-PLAN.md — vendor_smoke_log table + staff RLS + daily 08:00 UTC vault-bearer cron
-- [ ] 52-03-admin-vendor-smoke-dashboard-PLAN.md — AdminVendorSmokeDashboard module + ADMIN_MODULES registration
-- [ ] 52-04-baa-seed-and-secrets-runbook-PLAN.md — vendor_baa_chain seed rows + runbooks/vendor-secrets.md
+- [x] 52-01-vendor-smoke-edge-fn-PLAN.md — vendor-smoke Edge Fn (dual-auth, fail-soft per-vendor registry, vendor_smoke_log upsert, deno tests)
+- [x] 52-02-vendor-smoke-log-migration-PLAN.md — vendor_smoke_log table + staff RLS + daily 08:00 UTC vault-bearer cron
+- [x] 52-03-admin-vendor-smoke-dashboard-PLAN.md — AdminVendorSmokeDashboard module + ADMIN_MODULES registration
+- [x] 52-04-baa-seed-and-secrets-runbook-PLAN.md — vendor_baa_chain seed rows + runbooks/vendor-secrets.md
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -443,7 +443,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 52. Vendor Setup Foundation | 0/0 | Not started | - |
+| 52. Vendor Setup Foundation | 4/4 | Complete   | 2026-05-25 |
 | 53. Capacitor Mobile Shells | 0/0 | Not started | - |
 | 54. Push Notifications | 0/0 | Not started | - |
 | 55. HealthKit + Two-Tunnel Firewall | 0/0 | Not started | - |
