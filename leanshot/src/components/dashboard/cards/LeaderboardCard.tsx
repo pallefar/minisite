@@ -11,6 +11,7 @@
  * Props sourced by Plan 35-08 (Settings → Leaderboards subtab owns the toggle + cohortId).
  * cohortId / hasOptedIn / nudgeDismissed are stubbed in GamificationCard for now.
  */
+import { useTranslation } from 'react-i18next';
 import { Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -37,6 +38,7 @@ export function LeaderboardCard({
   onOpenLeaderboardSettings,
   onDismissNudge,
 }: LeaderboardCardProps) {
+  const { t } = useTranslation('patient');
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,10 +63,9 @@ export function LeaderboardCard({
   if (showNudge) {
     return (
       <Card span={8} variant="interactive">
-        <CardHeader title="Join the leaderboard" icon={<Users className="size-4" aria-hidden />} />
+        <CardHeader title={t('patient:card.leaderboard.nudge_title')} icon={<Users className="size-4" aria-hidden />} />
         <p className="text-sm text-[var(--color-text-secondary)]">
-          You&apos;ve reached level {data.level}. Want to compete (anonymously) with others in your
-          cohort?
+          {t('patient:card.leaderboard.nudge_body', { level: data.level })}
         </p>
         <div className="mt-3 flex gap-2">
           <button
@@ -72,14 +73,14 @@ export function LeaderboardCard({
             className="px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
             onClick={onOpenLeaderboardSettings}
           >
-            Pick a handle
+            {t('patient:card.leaderboard.nudge_cta_accept')}
           </button>
           <button
             type="button"
             className="px-4 py-2 rounded-xl text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text)] focus-visible:outline-none focus-visible:underline"
             onClick={onDismissNudge}
           >
-            Not now
+            {t('patient:card.leaderboard.nudge_cta_dismiss')}
           </button>
         </div>
       </Card>
@@ -90,15 +91,15 @@ export function LeaderboardCard({
 
   return (
     <Card span={8} variant="elevated">
-      <CardHeader title="Leaderboard" icon={<Trophy className="size-4" aria-hidden />} />
+      <CardHeader title={t('patient:card.leaderboard.title')} icon={<Trophy className="size-4" aria-hidden />} />
       {loading && (
-        <div className="text-sm text-[var(--color-text-secondary)]">Loading…</div>
+        <div className="text-sm text-[var(--color-text-secondary)]">{t('patient:card.leaderboard.loading')}</div>
       )}
       {error && (
-        <div className="text-sm text-[var(--color-error)]">Could not load leaderboard</div>
+        <div className="text-sm text-[var(--color-error)]">{t('patient:card.leaderboard.error')}</div>
       )}
       {!loading && !error && rows.length === 0 && (
-        <div className="text-sm text-[var(--color-text-secondary)]">No entries yet</div>
+        <div className="text-sm text-[var(--color-text-secondary)]">{t('patient:card.leaderboard.empty')}</div>
       )}
       {rows.length > 0 && (
         <ol className="mt-2 space-y-1">

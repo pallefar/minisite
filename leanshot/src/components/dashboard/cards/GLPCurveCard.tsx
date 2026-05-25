@@ -7,7 +7,6 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { formatDuration, hoursSince } from '@/lib/helpers';
 import { HALF_LIVES, calcMedLevel } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
-import type { TFunction } from 'i18next';
 
 /**
  * GLP-1 level card.
@@ -34,11 +33,11 @@ export function GLPCurveCard() {
     const W = 320;
     const H = 110;
     const totalHours = 7 * 24;
-    const points: { x: number; y: number; level: number; t: number }[] = [];
+    const points: { x: number; y: number; level: number; tMs: number }[] = [];
     for (let h = 0; h <= totalHours; h += 2) {
       const tMs = Date.now() - (totalHours - h) * 3_600_000;
       const lvl = lastInj ? calcMedLevel(tMs, halfLife, injections) : 0;
-      points.push({ x: (h / totalHours) * W, y: 0, level: lvl, t: tMs });
+      points.push({ x: (h / totalHours) * W, y: 0, level: lvl, tMs });
     }
     const max = Math.max(0.01, ...points.map((p) => p.level));
     points.forEach((p) => (p.y = H - (p.level / max) * (H - 6) - 2));
@@ -69,17 +68,16 @@ export function GLPCurveCard() {
       path,
       area,
       dotMarkers: dots,
-      axisLabels: ['now', 'day3', 'day6'] as const,
     };
   }, [u, injections]);
 
   if (!u || !curve) return null;
 
-  const { halfLife, path, area, dotMarkers, axisLabels } = curve;
+  const { halfLife, path, area, dotMarkers } = curve;
   const lastInj = injections[0];
   const hSince = lastInj ? hoursSince(lastInj.datetime) : null;
 
-  // Use static keys so i18next-parser can extract them
+  // Static key selects for i18next-parser extraction
   const peakOrTroughKey: 'peak_now' | 'mid_cycle' | 'trough' | 'no_data' =
     hSince === null
       ? 'no_data'
@@ -89,20 +87,23 @@ export function GLPCurveCard() {
           ? 'mid_cycle'
           : 'trough';
 
-  function getPeakLabel(key: typeof peakOrTroughKey, tFn: TFunction): string {
-    switch (key) {
-      case 'peak_now':
-        return tFn('patient:card.glp_curve.peak_now');
-      case 'mid_cycle':
-        return tFn('patient:card.glp_curve.mid_cycle');
-      case 'trough':
-        return tFn('patient:card.glp_curve.trough');
-      case 'no_data':
-        return tFn('patient:card.glp_curve.no_data');
-    }
+  // Exhaustive switch — all cases are static literals that i18next-parser extracts
+  let peakLabel: string;
+  switch (peakOrTroughKey) {
+    case 'peak_now':
+      peakLabel = t('patient:card.glp_curve.peak_now');
+      break;
+    case 'mid_cycle':
+      peakLabel = t('patient:card.glp_curve.mid_cycle');
+      break;
+    case 'trough':
+      peakLabel = t('patient:card.glp_curve.trough');
+      break;
+    case 'no_data':
+      peakLabel = t('patient:card.glp_curve.no_data');
+      break;
   }
 
-  const peakLabel = getPeakLabel(peakOrTroughKey, t);
   const peakTone =
     peakOrTroughKey === 'peak_now' ? 'success' : peakOrTroughKey === 'trough' ? 'warning' : 'info';
 
@@ -115,16 +116,12 @@ export function GLPCurveCard() {
     : 0;
   const nextHours = Math.max(0, nextShotMs / 3_600_000);
 
-  function getAxisLabel(key: 'now' | 'day3' | 'day6', tFn: TFunction): string {
-    switch (key) {
-      case 'now':
-        return tFn('patient:card.glp_curve.axis_now');
-      case 'day3':
-        return tFn('patient:card.glp_curve.axis_day3');
-      case 'day6':
-        return tFn('patient:card.glp_curve.axis_day6');
-    }
-  }
+  // Axis labels — static keys
+  const axisLabels = [
+    t('patient:card.glp_curve.axis_now'),
+    t('patient:card.glp_curve.axis_day3'),
+    t('patient:card.glp_curve.axis_day6'),
+  ] as const;
 
   return (
     <Card span={5} variant="default" className="min-h-[360px] flex flex-col" data-tour="glp">
@@ -161,7 +158,7 @@ export function GLPCurveCard() {
 
       <div className="flex justify-between text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mt-4 mb-1">
         {axisLabels.map((l) => (
-          <span key={l}>{getAxisLabel(l, t)}</span>
+          <span key={l}>{l}</span>
         ))}
       </div>
 
