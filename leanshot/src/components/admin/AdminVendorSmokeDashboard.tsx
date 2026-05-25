@@ -263,7 +263,7 @@ export function AdminVendorSmokeDashboard() {
                     tabIndex={0}
                     role="row"
                   >
-                    <td className="px-4 py-3 font-medium text-[var(--color-text)]">
+                    <td className="px-4 py-3 font-semibold text-[var(--color-text)]">
                       {row.vendor_name}
                     </td>
                     <td className="px-4 py-3">
