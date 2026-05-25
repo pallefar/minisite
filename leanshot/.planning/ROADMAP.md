@@ -131,8 +131,8 @@ Plans:
   5. Advertiser block-list excludes competing GLP-1 brands by default; CSP allowlist generated from this
   6. HealthKit data structurally cannot reach ad-targeting (3-layer test green)
 **Plans**: 6 plans in 3 waves
-- [ ] 56-01-PLAN.md — Ad guard core: canShowAds(surface,tier) + freq-cap + placement registry contract (AD-03/08/10)
-- [ ] 56-02-PLAN.md — Revenue ETL backend: ad_placements + GLP-1 blocklist + ad_revenue_facts + cron/RPC + ad-revenue-etl Edge Fn (AD-05/09/12)
+- [x] 56-01-PLAN.md — Ad guard core: canShowAds(surface,tier) + freq-cap + placement registry contract (AD-03/08/10)
+- [x] 56-02-PLAN.md — Revenue ETL backend: ad_placements + GLP-1 blocklist + ad_revenue_facts + cron/RPC + ad-revenue-etl Edge Fn (AD-05/09/12)
 - [ ] 56-03-PLAN.md — Ad serving: @capacitor-community/admob + real ads.ts + AdSense injector + AdRenderer 3-mode dispatch (AD-01/02/04/07)
 - [ ] 56-04-PLAN.md — CSP allowlist generated from GLP-1 block-list, wired into Edge Middleware (AD-09)
 - [ ] 56-05-PLAN.md — Admin revenue dashboard (eCPM/RPM/fill/CTR) reusing AdminMetrics + manifest entry (AD-06)
@@ -468,7 +468,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 53. Capacitor Mobile Shells | 4/4 | Complete   | 2026-05-25 |
 | 54. Push Notifications | 5/5 | Complete   | 2026-05-25 |
 | 55. HealthKit + Two-Tunnel Firewall | 4/4 | Complete   | 2026-05-25 |
-| 56. Ad Network | 0/0 | Not started | - |
+| 56. Ad Network | 2/6 | In Progress|  |
 | 57. Watch Apps | 0/0 | Not started | - |
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
 | 59. Apple OAuth + Onboarding Completion | 0/0 | Not started | - |
