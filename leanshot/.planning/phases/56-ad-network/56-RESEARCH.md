@@ -725,7 +725,9 @@ function injectAdSenseScript(publisherId: string): void {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All three resolved at plan time per the recommendations below and pinned into the 56-02/56-03 plan tasks.
 
 1. **AdMob reporting API field names for revenue**
    - What we know: AdMob has a Reporting API; estimated_earnings, impressions, clicks, match_rate are common fields
