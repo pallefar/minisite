@@ -12,6 +12,7 @@ import {
   PauseCircle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/helpers';
 import type { DecideOfferResponse, OfferConfig, OfferType } from '@/types/cancellation';
@@ -114,6 +115,7 @@ export function OfferCard({
   onDecline,
   isPending,
 }: OfferCardProps) {
+  const { t } = useTranslation('settings');
   const reducedMotion = useReducedMotion();
   const defaultPause = offerConfig.type === 'pause' ? offerConfig.pause_months : 2;
   const [pauseMonths, setPauseMonths] = useState<1 | 2 | 3>(defaultPause as 1 | 2 | 3);
@@ -171,8 +173,10 @@ export function OfferCard({
         <div className="flex items-start gap-2 bg-[var(--color-warning-soft)] rounded-md px-3 py-3 mb-4">
           <Info className="size-4 shrink-0 text-[var(--color-text-secondary)] mt-0.5" aria-hidden />
           <p className="text-[13px] text-[var(--color-text-secondary)]">
-            Your existing {stacking.existing_pct}% referral discount caps this save-offer at{' '}
-            {stacking.capped_pct}% effective.
+            {t('settings:cancellation.offer.stacking_notice', {
+              existing_pct: stacking.existing_pct,
+              capped_pct: stacking.capped_pct,
+            })}
           </p>
         </div>
       )}
@@ -189,7 +193,7 @@ export function OfferCard({
             isPending ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90',
           )}
         >
-          {isPending ? 'Saving…' : getAcceptCopy(offerConfig)}
+          {isPending ? t('settings:cancellation.offer.saving') : getAcceptCopy(offerConfig)}
         </button>
         <button
           type="button"
@@ -197,7 +201,7 @@ export function OfferCard({
           disabled={isPending}
           className="w-full px-4 py-2 text-[13px] text-[var(--color-text-secondary)] underline-offset-2 hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
-          No thanks, continue cancellation
+          {t('settings:cancellation.offer.decline')}
         </button>
       </div>
     </div>

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { sectionLabel } from '@/lib/i18n/settings-labels';
 import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
 import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
@@ -107,48 +108,51 @@ const LINK_OUT_NAV: Partial<Record<Section, string>> = {
 // (non-anonymous) users — surfaces email + change-password CTA. The runtime
 // rendering filters it out when `signedIn.user` is anonymous (see Account
 // section guard below).
-const NAV: { id: Section; label: string; Icon: typeof UserIcon }[] = [
-  { id: 'account', label: 'Account', Icon: UserIcon },
-  { id: 'profile', label: 'Profile', Icon: UserIcon },
-  { id: 'goals', label: 'Goals', Icon: Target },
+// Phase 58 Plan 58-04 (I18N-11): labels removed from the static NAV array;
+// resolved at render-time via sectionLabel(t, id) so the i18next parser sees
+// static literal keys (template-literal approach would emit zero keys).
+const NAV: { id: Section; Icon: typeof UserIcon }[] = [
+  { id: 'account', Icon: UserIcon },
+  { id: 'profile', Icon: UserIcon },
+  { id: 'goals', Icon: Target },
   // Phase 32 Plan 32-03 (I18N-02): Language picker sits between Goals and
   // Notifications. Single LanguageSwitcher (en/es) writes profiles.locale +
   // calls i18n.changeLanguage atomically.
-  { id: 'language', label: 'Language', Icon: Globe },
-  { id: 'notifications', label: 'Notifications', Icon: Bell },
+  { id: 'language', Icon: Globe },
+  { id: 'notifications', Icon: Bell },
   // Phase 35 Plan 35-08 (GAME-04): leaderboard opt-in settings.
-  { id: 'leaderboards', label: 'Leaderboards', Icon: Trophy },
-  { id: 'privacy', label: 'Privacy', Icon: Shield },
+  { id: 'leaderboards', Icon: Trophy },
+  { id: 'privacy', Icon: Shield },
   // Phase 25 Plan 02-02 (HIPAA-14 / D-08): patient-side "Who has viewed my data"
   // access log. Sits directly after Privacy so the HIPAA transparency surface
   // clusters with privacy-related entries visually.
-  { id: 'phi-access-log', label: 'Who has viewed my data', Icon: Eye },
+  { id: 'phi-access-log', Icon: Eye },
   // Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient TOTP enrollment.
   // NOT a gate — patients may ignore this card. Sits with privacy/security entries.
-  { id: 'security', label: 'Security (2FA)', Icon: Shield },
+  { id: 'security', Icon: Shield },
   // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
   // entry — click navigates to /settings/privacy/dsar instead of swapping the
   // modal section. Surfaces immediately under Privacy so the related items
   // cluster visually.
-  { id: 'privacy-dsar', label: 'Privacy & DSAR', Icon: Shield },
+  { id: 'privacy-dsar', Icon: Shield },
   // Phase 22 plan 22-11 (ON-03): self-serve email preference center. Link-out
   // entry — click navigates to /settings/email-preferences.
-  { id: 'email-preferences', label: 'Email preferences', Icon: Mail },
+  { id: 'email-preferences', Icon: Mail },
   // Phase 8 Plan 08-03 (D-04): Active shares sits between Privacy and Recovery
   // per 08-UI-SPEC §"Component Inventory" (SettingsPage NAV extension). Surfaces
   // the patient's create-share + revoke + audit-log aggregate UI.
-  { id: 'shares', label: 'Active shares', Icon: Link2 },
+  { id: 'shares', Icon: Link2 },
   // Phase 9 Plan 09-01 (D-15): Active organizations sits between 'shares' and
   // 'recovery'. Surfaces the patient's clinic memberships + per-org
   // consent_scope edit + revoke. Plan 09-05 overwrites the stub component.
-  { id: 'organizations', label: 'Active organizations', Icon: Building2 },
+  { id: 'organizations', Icon: Building2 },
   // Phase 7 Plan 07-10 (D-05): Recovery sits between Privacy and Subscription per
   // 07-RESEARCH §6 ordering. Surfaces the Phase 6 D-03 90-day local backup so the
   // user can roll back a bad cloud-sync overwrite.
-  { id: 'recovery', label: 'Recovery', Icon: RotateCcw },
-  { id: 'subscription', label: 'Subscription', Icon: CreditCard },
-  { id: 'data', label: 'Data', Icon: Database },
-  ...(import.meta.env.DEV ? [{ id: 'dev' as Section, label: 'Dev Tools', Icon: Terminal }] : []),
+  { id: 'recovery', Icon: RotateCcw },
+  { id: 'subscription', Icon: CreditCard },
+  { id: 'data', Icon: Database },
+  ...(import.meta.env.DEV ? [{ id: 'dev' as Section, Icon: Terminal }] : []),
 ];
 
 export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -170,7 +174,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   const toast = useToast();
   // Phase 32 Plan 32-03 (I18N-02): i18n instance for the Language picker's
   // changeLanguage call. Namespaces match those bootstrapped in Plan 32-01.
-  const { i18n } = useTranslation(['common', 'nav']);
+  // Phase 58 Plan 58-04 (I18N-11): settings namespace added for NAV labels +
+  // section titles / body copy.
+  const { t, i18n } = useTranslation(['settings', 'common', 'nav']);
 
   // Phase 5 D-04: account section visible only for permanent (non-anon) users.
   const isPermanent = Boolean(signedIn?.user && !signedIn.user.is_anonymous);
@@ -266,7 +272,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
       fiberTarget: Number(draft.fiberTarget) || u.fiberTarget,
       waterTarget: Number(draft.waterTarget) || u.waterTarget,
     });
-    toast('Settings saved');
+    toast(t('settings:saved'));
   };
 
   // Phase 7 Plan 07-06 (COMPL-06): pick only the 22 partialize keys from the
@@ -375,9 +381,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   };
 
   const reset = async (): Promise<void> => {
-    const ok = await confirm('Erase ALL your LeanShot data? This cannot be undone.', {
-      title: 'Reset everything',
-      confirmLabel: 'Erase everything',
+    const ok = await confirm(t('settings:section.data.reset_confirm_body'), {
+      title: t('settings:section.data.reset_confirm_title'),
+      confirmLabel: t('settings:section.data.reset_confirm_btn'),
       destructive: true,
     });
     if (!ok) return;
@@ -386,11 +392,11 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Settings" size="lg" mobileFullscreen>
+    <Modal open={open} onClose={onClose} title={t('settings:title')} size="lg" mobileFullscreen>
       <div className="flex flex-col md:flex-row gap-5 -mt-2 md:-mx-2">
         <nav className="md:w-48 shrink-0" aria-label="Settings sections">
           <ul className="flex md:flex-col gap-1 overflow-x-auto scrollbar-none -mx-2 md:mx-0 px-2">
-            {NAV.map(({ id, label, Icon }) => {
+            {NAV.map(({ id, Icon }) => {
               const active = section === id;
               const linkOutHref = LINK_OUT_NAV[id];
               return (
@@ -416,7 +422,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                     )}
                   >
                     <Icon className="size-4" strokeWidth={active ? 2.2 : 1.8} />
-                    {label}
+                    {sectionLabel(t, id)}
                   </button>
                 </li>
               );
@@ -426,11 +432,11 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
         <div className="flex-1 min-w-0 space-y-3">
           {section === 'account' && (
-            <Section title="Account" body="Email and password for cross-device sync.">
+            <Section title={t('settings:section.account.title')} body={t('settings:section.account.body')}>
               {!isPermanent ? (
                 <div className="space-y-3">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
-                    You&apos;re using LeanShot locally. Sign up to sync across devices.
+                    {t('settings:section.account.local_body')}
                   </p>
                   <Button
                     leadingIcon={<Mail className="size-4" />}
@@ -439,18 +445,18 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                       onClose();
                     }}
                   >
-                    Sign up
+                    {t('settings:section.account.sign_up')}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-[13px]">
                     <Mail className="size-4 text-[var(--color-text-tertiary)]" aria-hidden />
-                    <span className="text-[var(--color-text-secondary)]">Email:</span>
+                    <span className="text-[var(--color-text-secondary)]">{t('settings:section.account.email_label')}</span>
                     <span className="font-semibold">{signedIn?.user?.email ?? '—'}</span>
                     {!signedIn?.verified && (
                       <span className="text-[11px] text-[var(--color-warning,#a36a00)] font-semibold uppercase tracking-wider">
-                        Unverified
+                        {t('settings:section.account.unverified')}
                       </span>
                     )}
                   </div>
@@ -461,39 +467,40 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                     onClick={async () => {
                       const email = signedIn?.user?.email;
                       if (!email) {
-                        toast('No email on file', 'error');
+                        toast(t('settings:section.account.no_email_error'), 'error');
                         return;
                       }
                       const { error } = await requestPasswordReset(email);
                       if (error) toast(error.message, 'error');
-                      else toast('Password reset email sent.', 'success');
+                      else toast(t('settings:section.account.password_reset_sent'), 'success');
                     }}
                   >
-                    Change password
+                    {t('settings:section.account.change_password')}
                   </Button>
                 </div>
               )}
             </Section>
           )}
           {section === 'profile' && (
-            <Section title="Profile" body="Your basic account info.">
+            <Section title={t('settings:section.profile.title')} body={t('settings:section.profile.body')}>
               <Input
-                label="Name"
+                label={t('settings:section.profile.name_label')}
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
               />
               <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                Units: <strong>{u.units === 'metric' ? 'Metric' : 'Imperial'}</strong> · Set during
-                onboarding.
+                {t('settings:section.profile.units_hint', {
+                  units: u.units === 'metric' ? t('settings:section.profile.units_metric') : t('settings:section.profile.units_imperial'),
+                })}
               </p>
-              <Button onClick={save}>Save profile</Button>
+              <Button onClick={save}>{t('settings:section.profile.save')}</Button>
             </Section>
           )}
 
           {section === 'goals' && (
-            <Section title="Goals & targets" body="Tweak the numbers we measure progress against.">
+            <Section title={t('settings:section.goals.title')} body={t('settings:section.goals.body')}>
               <Input
-                label={`Weight goal (${u.units === 'metric' ? 'kg' : 'lb'})`}
+                label={t('settings:section.goals.weight_goal', { unit: u.units === 'metric' ? 'kg' : 'lb' })}
                 type="number"
                 step="0.1"
                 inputMode="decimal"
@@ -503,7 +510,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 }
               />
               <Input
-                label="Protein (g)"
+                label={t('settings:section.goals.protein')}
                 type="number"
                 inputMode="numeric"
                 value={String(draft.proteinTarget)}
@@ -512,7 +519,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 }
               />
               <Input
-                label="Calorie target"
+                label={t('settings:section.goals.calorie_target')}
                 type="number"
                 inputMode="numeric"
                 value={String(draft.calorieTarget)}
@@ -522,7 +529,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="Fiber (g)"
+                  label={t('settings:section.goals.fiber')}
                   type="number"
                   inputMode="numeric"
                   value={String(draft.fiberTarget)}
@@ -531,7 +538,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   }
                 />
                 <Input
-                  label="Water (cups)"
+                  label={t('settings:section.goals.water')}
                   type="number"
                   inputMode="numeric"
                   value={String(draft.waterTarget)}
@@ -540,14 +547,14 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   }
                 />
               </div>
-              <Button onClick={save}>Save goals</Button>
+              <Button onClick={save}>{t('settings:section.goals.save')}</Button>
             </Section>
           )}
 
           {section === 'language' && (
             <Section
-              title="Language"
-              body="Choose the language used across the app and email reminders."
+              title={t('settings:section.language.title')}
+              body={t('settings:section.language.body')}
             >
               {/*
                 Phase 32 Plan 32-03 (I18N-02): atomic locale write.
@@ -588,7 +595,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                     await i18n.changeLanguage(prev);
                     setUserLocale(prev);
                     toast(
-                      'Could not save language preference. Please try again.',
+                      t('settings:section.language.save_error'),
                       'error',
                     );
                   }
@@ -599,8 +606,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
           {section === 'notifications' && (
             <Section
-              title="Notifications"
-              body="Choose when LeanShot taps you on the shoulder."
+              title={t('settings:section.notifications.title')}
+              body={t('settings:section.notifications.body')}
             >
               {/* Phase 42 Plan 42-08 (POLISH-05/06): 5×3 matrix + push permission +
                   snooze + caps + suppression banner. Replaces the v1.1 stub. */}
@@ -611,27 +618,23 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {/* Phase 35 Plan 35-08 (GAME-04): leaderboard opt-in + handle picker per cohort. */}
           {section === 'leaderboards' && (
             <Section
-              title="Leaderboards"
-              body="Opt in to cohort leaderboards. Your real name is never shown — just your chosen handle."
+              title={t('settings:section.leaderboards.title')}
+              body={t('settings:section.leaderboards.body')}
             >
-              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">Loading…</div>}>
+              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
                 <LeaderboardsSubtab />
               </Suspense>
             </Section>
           )}
 
           {section === 'privacy' && (
-            <Section title="Privacy" body="Your data lives on this device.">
+            <Section title={t('settings:section.privacy.title')} body={t('settings:section.privacy.body')}>
               <Card variant="flat">
                 <ul className="space-y-2 text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
-                  <li>Local storage only — never sent to a server.</li>
-                  <li>
-                    The AI coach is the only exception. It sends just your prompt plus relevant
-                    context through our secure server using your account — you never share an API
-                    key.
-                  </li>
-                  <li>No analytics. No telemetry. No third-party trackers.</li>
-                  <li>Clearing site data deletes everything LeanShot knows about you.</li>
+                  <li>{t('settings:section.privacy.local_only')}</li>
+                  <li>{t('settings:section.privacy.ai_exception')}</li>
+                  <li>{t('settings:section.privacy.no_analytics')}</li>
+                  <li>{t('settings:section.privacy.clear_site_data')}</li>
                 </ul>
               </Card>
 
@@ -640,10 +643,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                * non-anon auth.users.last_sign_in_at timestamp. */}
               {isPermanent && (
                 <div className="pt-3 border-t border-[var(--color-border)]">
-                  <h3 className="text-[14px] font-semibold mb-1">Delete account</h3>
+                  <h3 className="text-[14px] font-semibold mb-1">{t('settings:section.privacy.delete_account_title')}</h3>
                   <p className="text-[12px] text-[var(--color-text-secondary)] mb-2">
-                    7-day soft-delete. Cancel from the email we&apos;ll send you (or from the
-                    in-app banner) within the window; after that, irreversible.
+                    {t('settings:section.privacy.delete_account_body')}
                   </p>
                   {/* Phase 25 Plan 25-08 (HIPAA-15 / D-11): requireStepUp before delete. */}
                   <Button
@@ -657,7 +659,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                         try {
                           const { ok } = await requireStepUp();
                           if (!ok) {
-                            toast('Step-up verification required to delete your account.', 'error');
+                            toast(t('settings:section.privacy.step_up_required'), 'error');
                             return;
                           }
                           // ok=true: caller (this component) opens DeleteAccountModal.
@@ -672,7 +674,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                       })();
                     }}
                   >
-                    Delete account
+                    {t('settings:section.privacy.delete_account_btn')}
                   </Button>
                 </div>
               )}
@@ -682,8 +684,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {/* Phase 25 Plan 02-02 (HIPAA-14 / D-08): PHI access log viewer. */}
           {section === 'phi-access-log' && (
             <Section
-              title="Who has viewed my data"
-              body="Every time a member of your care team accessed your personal health information."
+              title={t('settings:section.phi_access_log.title')}
+              body={t('settings:section.phi_access_log.body')}
             >
               <PhiAccessLogTab />
             </Section>
@@ -692,8 +694,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {/* Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient TOTP enrollment. */}
           {section === 'security' && (
             <Section
-              title="Security"
-              body="Manage your two-factor authentication settings."
+              title={t('settings:section.security.title')}
+              body={t('settings:section.security.body')}
             >
               <PatientMfaCard />
             </Section>
@@ -704,44 +706,42 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {section === 'organizations' && <ActiveOrganizationsSection />}
 
           {section === 'recovery' && (
-            <Section title="Recovery" body="Restore a local backup taken before cloud migration.">
+            <Section title={t('settings:section.recovery.title')} body={t('settings:section.recovery.body')}>
               {backupCorrupted ? (
                 <Card variant="flat">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
-                    Backup file is corrupted. Contact support if you need help recovering your data.
+                    {t('settings:section.recovery.corrupted')}
                   </p>
                 </Card>
               ) : !backup ? (
                 <Card variant="flat">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
-                    No local backup found. Backups are created automatically before cloud migration
-                    and retained for 90 days.
+                    {t('settings:section.recovery.no_backup')}
                   </p>
                 </Card>
               ) : (
                 <div className="space-y-3">
                   <Card variant="flat">
                     <p className="text-[13px] text-[var(--color-text-secondary)]">
-                      Snapshot taken:{' '}
+                      {t('settings:section.recovery.snapshot_taken')}{' '}
                       <strong className="text-[var(--color-text)]">
                         {new Date(backup.snapshotAt).toLocaleString()}
                       </strong>
                     </p>
                     <p className="text-[12px] text-[var(--color-text-tertiary)] mt-2">
-                      Restoring will overwrite your current data and sign you out so the cloud
-                      re-syncs cleanly.
+                      {t('settings:section.recovery.restore_warning')}
                     </p>
                   </Card>
                   <Button
                     variant="destructive"
                     leadingIcon={<RotateCcw className="size-4" />}
-                    aria-label="Restore from local backup — this will overwrite your current data"
+                    aria-label={t('settings:section.recovery.restore_aria')}
                     onClick={() => {
                       setTyped('');
                       setRestoreOpen(true);
                     }}
                   >
-                    Restore from this backup
+                    {t('settings:section.recovery.restore_btn')}
                   </Button>
                 </div>
               )}
@@ -758,13 +758,13 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               paid states until we wire the trial countdown (NOT a locked decision). */}
           {section === 'subscription' && (
             <Section
-              title="Subscription"
+              title={t('settings:section.subscription.title')}
               body={
                 tier === 'free'
-                  ? 'Upgrade to Plus to unlock forecast + advanced AI coach.'
+                  ? t('settings:section.subscription.body_free')
                   : tier === 'past_due'
-                    ? 'Your payment failed. Update your card to keep Plus active.'
-                    : 'You’re on LeanShot Plus.'
+                    ? t('settings:section.subscription.body_past_due')
+                    : t('settings:section.subscription.body_paid')
               }
             >
               {/* Status pill */}
@@ -781,9 +781,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   role="status"
                   aria-live="polite"
                 >
-                  {tier === 'free' && 'Free'}
-                  {tier === 'paid' && 'Active'}
-                  {tier === 'past_due' && 'Past due — update card'}
+                  {tier === 'free' && t('settings:section.subscription.tier_free')}
+                  {tier === 'paid' && t('settings:section.subscription.tier_paid')}
+                  {tier === 'past_due' && t('settings:section.subscription.tier_past_due')}
                 </span>
               </div>
 
@@ -802,14 +802,14 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   }}
                   className="text-[var(--color-danger)] hover:bg-[var(--color-danger-soft,rgba(207,84,84,0.1))]"
                 >
-                  Cancel subscription
+                  {t('settings:section.subscription.cancel_btn')}
                 </Button>
               )}
             </Section>
           )}
 
           {section === 'data' && (
-            <Section title="Data" body="Export, import, or wipe your record.">
+            <Section title={t('settings:section.data.title')} body={t('settings:section.data.body')}>
               <Button
                 variant="ghost"
                 leadingIcon={<Download className="size-4" />}
@@ -817,7 +817,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   void handleExportJson();
                 }}
               >
-                Export JSON
+                {t('settings:section.data.export_json')}
               </Button>
               <Button
                 variant="ghost"
@@ -826,7 +826,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   void handleExportPdf();
                 }}
               >
-                Export PDF rollup
+                {t('settings:section.data.export_pdf')}
               </Button>
               <Button
                 variant="ghost"
@@ -841,22 +841,22 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   );
                 }}
               >
-                Replay guided tour
+                {t('settings:section.data.replay_tour')}
               </Button>
               <Button
                 variant="destructive"
                 leadingIcon={<Trash2 className="size-4" />}
                 onClick={reset}
               >
-                Reset everything
+                {t('settings:section.data.reset_everything')}
               </Button>
             </Section>
           )}
 
           {section === 'dev' && import.meta.env.DEV && (
             <Section
-              title="Dev Tools"
-              body="Development-only diagnostic actions. Not compiled into production builds."
+              title={t('settings:section.dev.title')}
+              body={t('settings:section.dev.body')}
             >
               <Button
                 variant="destructive"
@@ -893,19 +893,19 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           if (restoreBusy) return;
           setRestoreOpen(false);
         }}
-        title="Restore from backup?"
+        title={t('settings:section.recovery.modal_title')}
         size="md"
       >
         <div className="space-y-4">
           <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-            This will overwrite your current cloud-synced data with the backup from{' '}
+            {t('settings:section.recovery.modal_body')}{' '}
             <strong className="text-[var(--color-text)]">
               {backup ? new Date(backup.snapshotAt).toLocaleString() : ''}
             </strong>
-            . You will be signed out after restoring; sign back in to re-sync with the cloud.
+            {t('settings:section.recovery.modal_body_suffix')}
           </p>
           <Input
-            label='Type "RESTORE" to confirm'
+            label={t('settings:section.recovery.modal_input_label')}
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
             autoComplete="off"
@@ -914,13 +914,13 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           />
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" onClick={() => setRestoreOpen(false)} disabled={restoreBusy}>
-              Cancel
+              {t('common:action.cancel')}
             </Button>
             <Button
               variant="destructive"
               disabled={typed !== 'RESTORE' || !backup || restoreBusy}
               loading={restoreBusy}
-              aria-label="Confirm restore — overwrites current data"
+              aria-label={t('settings:section.recovery.modal_confirm_aria')}
               onClick={async () => {
                 if (!backup || typed !== 'RESTORE') return;
                 setRestoreBusy(true);
@@ -937,19 +937,19 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   // Supabase session re-sync on next sign-in. See RESEARCH §6.
                   await signOut();
                   toast(
-                    'Backup restored. You have been signed out — sign back in to re-sync.',
+                    t('settings:section.recovery.restored_toast'),
                     'success',
                   );
                   setRestoreOpen(false);
                   onClose();
                 } catch {
-                  toast('Restore failed. Your data was not changed.', 'error');
+                  toast(t('settings:section.recovery.restore_failed_toast'), 'error');
                 } finally {
                   setRestoreBusy(false);
                 }
               }}
             >
-              Restore and overwrite
+              {t('settings:section.recovery.modal_confirm_btn')}
             </Button>
           </div>
         </div>

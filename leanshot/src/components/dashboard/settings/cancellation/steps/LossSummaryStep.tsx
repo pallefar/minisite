@@ -6,6 +6,7 @@
  */
 import { Database, Flame, MessageSquare } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { track } from '@/lib/analytics';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useStreaks } from '@/hooks/useStreaks';
@@ -23,6 +24,7 @@ interface LossSummaryStepProps {
 }
 
 export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProps) {
+  const { t } = useTranslation('settings');
   const reducedMotion = useReducedMotion();
   const streaks = useStreaks();
   const aiCount = useStore((s) => s.aiHistory.length);
@@ -73,7 +75,7 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
       });
     }, 6000);
 
-    toast('Cancellation scheduled. Undo within 6 seconds.', 'info');
+    toast(t('settings:cancellation.step3.cancel_scheduled_toast'), 'info');
   };
 
   const bestStreak = Math.max(streaks.weight, streaks.protein, streaks.movement, streaks.supps);
@@ -87,10 +89,10 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
           className="text-[18px] font-semibold text-[var(--color-text)]"
           tabIndex={-1}
         >
-          We&apos;d love to keep you
+          {t('settings:cancellation.step3.title')}
         </h2>
         <p id="cancel-step-body" className="text-[13px] text-[var(--color-text-secondary)] mt-1">
-          Here&apos;s what you&apos;ve built with LeanShot.
+          {t('settings:cancellation.step3.body')}
         </p>
       </div>
 
@@ -105,14 +107,14 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col items-center gap-2">
           <Flame className="size-5 text-[var(--color-warning)]" aria-hidden />
           <span className="text-[22px] font-semibold text-[var(--color-text)]">{bestStreak}</span>
-          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">Current streak</span>
+          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">{t('settings:cancellation.step3.streak_label')}</span>
         </div>
 
         {/* Med-level chart preview */}
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-2 overflow-hidden">
           <div
             className="h-[120px] w-full"
-            aria-label="Your projected drug-level curve for the next 7 days"
+            aria-label={t('settings:cancellation.step3.chart_aria')}
           >
             <MedLevelChart height={120} />
           </div>
@@ -122,15 +124,15 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col items-center gap-2">
           <MessageSquare className="size-5 text-[var(--color-primary)]" aria-hidden />
           <span className="text-[22px] font-semibold text-[var(--color-text)]">{aiCount}</span>
-          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">Coach conversations</span>
+          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">{t('settings:cancellation.step3.coach_label')}</span>
         </div>
 
         {/* Data export reminder tile */}
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col items-start gap-2">
           <Database className="size-5 text-[var(--color-text-tertiary)]" aria-hidden />
-          <span className="text-[13px] font-semibold text-[var(--color-text)]">Your data stays with you</span>
+          <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('settings:cancellation.step3.data_title')}</span>
           <span className="text-[12px] text-[var(--color-text-secondary)]">
-            Export to CSV anytime — even after cancellation.
+            {t('settings:cancellation.step3.data_body')}
           </span>
         </div>
       </div>
@@ -142,14 +144,14 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
           onClick={handleCancelAnyway}
           className="px-4 py-2.5 text-[14px] font-semibold text-[var(--color-danger)] rounded-xl hover:bg-[var(--color-danger-soft,rgba(207,84,84,0.1))] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-danger)]"
         >
-          Cancel anyway
+          {t('settings:cancellation.step3.cancel_anyway')}
         </button>
         <button
           type="button"
           onClick={handleKeep}
           className="px-5 py-2.5 rounded-xl text-[14px] font-semibold bg-[var(--color-primary)] text-[var(--color-bg)] hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
-          Keep my account
+          {t('settings:cancellation.keep_account')}
         </button>
       </div>
     </div>

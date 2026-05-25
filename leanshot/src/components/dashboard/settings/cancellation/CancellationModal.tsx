@@ -13,6 +13,7 @@
  * Per 40-PATTERNS §9 + RESEARCH §Pitfall 8: NO react-router, NO nested routes.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { track } from '@/lib/analytics';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Modal } from '@/components/ui/Modal';
@@ -63,6 +64,7 @@ function StepIndicator({ step }: { step: Step }) {
 }
 
 export function CancellationModal({ onClose }: CancellationModalProps) {
+  const { t } = useTranslation('settings');
   const reducedMotion = useReducedMotion();
   const [step, setStep] = useState<Step>(1);
   const [reason, setReason] = useState<CancellationReason | null>(null);
@@ -132,7 +134,7 @@ export function CancellationModal({ onClose }: CancellationModalProps) {
           <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-surface)] rounded-xl z-10 p-6">
             <div className="space-y-4 text-center max-w-xs">
               <p className="text-[16px] font-semibold text-[var(--color-text)]">
-                You&apos;ll lose the personalized offer. Continue?
+                {t('settings:cancellation.close_confirm_body')}
               </p>
               <div className="flex gap-3 justify-center">
                 <button
@@ -144,14 +146,14 @@ export function CancellationModal({ onClose }: CancellationModalProps) {
                   }}
                   className="px-4 py-2 rounded-xl text-[14px] font-semibold bg-[var(--color-primary)] text-[var(--color-bg)] hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                 >
-                  Yes, close
+                  {t('settings:cancellation.close_confirm_yes')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep2CloseConfirm(false)}
                   className="px-4 py-2 rounded-xl text-[14px] font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                 >
-                  Stay
+                  {t('settings:cancellation.close_confirm_stay')}
                 </button>
               </div>
             </div>
