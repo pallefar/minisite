@@ -332,14 +332,17 @@ export async function syncNow(start: Date, end: Date): Promise<SyncSummary> {
   }
 
   // -- Height (one-time profile upsert → profiles.height) --
+  // CR-03: also set healthkit_height_source=true so purge_healthkit_imports can
+  // distinguish HK-imported height from user-entered height and clear it selectively.
   const heightSamples = await readHealthSamples('height', start, end);
   if (heightSamples.length > 0) {
     const latestHeight = heightSamples[heightSamples.length - 1];
-    await supabase
+    const { error: heightErr } = await supabase
       .from('profiles')
-      .update({ height: latestHeight.value })
+      .update({ height: latestHeight.value, healthkit_height_source: true })
       .eq('id', userId);
-    summary.height++;
+    if (heightErr) console.error('[health] height upsert failed', heightErr);
+    else summary.height++;
   }
 
   // Log PHI access for audit trail (existing log_phi_access SECDEF RPC).
