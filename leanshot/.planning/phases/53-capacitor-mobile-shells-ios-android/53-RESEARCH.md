@@ -809,27 +809,15 @@ jobs:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **TEAMID for AASA**
-   - What we know: `TEAMID` placeholder is in `public/.well-known/apple-app-site-association`. The real Team ID comes from VENDOR-01 (Phase 52 Apple Developer enrollment).
-   - What's unclear: Whether Phase 52 captured the Team ID in a runbook artifact that Phase 53 executor can read.
-   - Recommendation: Planner should add a task to read Team ID from Phase 52 runbook + document P70 swap procedure. Do NOT hardcode TEAMID in Phase 53 — leave placeholder and document.
+1. **TEAMID for AASA** — **RESOLVED:** leave the `TEAMID` placeholder in `apple-app-site-association`; do NOT hardcode. Real value comes from Phase 52 Apple Developer enrollment (still `pending-provisioning`). Substitution + on-device verification deferred to Phase 70. 53-02/53-01 runbooks document the swap.
 
-2. **DeleteAccountModal mobile viewport gap**
-   - What we know: `DeleteAccountModal` is wired in `SettingsPage` at line 885. The button is inside a settings section at line 668. SettingsPage is a scrollable panel.
-   - What's unclear: Whether the "Delete account" button is reachable via scroll on a 375px viewport with the native keyboard/status bars. An iOS bottom-safe-area might obscure it.
-   - Recommendation: Add a specific mobile viewport render test (jsdom at 375px) for SettingsPage that asserts the delete button renders and is not display:none. Visual confirm at P70.
+2. **DeleteAccountModal mobile viewport gap** — **RESOLVED:** 53-02 Task 3 ships a jsdom 375px render test asserting the delete button renders (not display:none) + ≥44px tap target. Visual/safe-area confirmation deferred to Phase 70 device UAT.
 
-3. **fastlane match repo access**
-   - What we know: REQUIREMENTS MOBILE-02 specifies `pallefar/leanshot-fastlane-match` repo + `MATCH_GIT_BASIC_AUTHORIZATION` secret.
-   - What's unclear: Whether this repo was created in Phase 52 VENDOR-01 or is pending.
-   - Recommendation: Planner should gate the `Matchfile` scaffold on whether the repo exists; if not, scaffold placeholder Matchfile with TODO comment.
+3. **fastlane match repo access** — **RESOLVED:** 53-01 scaffolds the Matchfile with a TODO gated on `pallefar/leanshot-fastlane-match` existence; signing is conditional on `MATCH_GIT_BASIC_AUTHORIZATION` secret presence (unsigned-green when absent). Repo provisioning deferred to Phase 70.
 
-4. **`@revenuecat/purchases-capacitor` version drift**
-   - What we know: `package.json` has `^13.1.1` but npm shows 13.1.2 as latest.
-   - What's unclear: Whether the minor version bump introduces breaking changes.
-   - Recommendation: Keep existing pinned version; do not upgrade as part of Phase 53.
+4. **`@revenuecat/purchases-capacitor` version drift** — **RESOLVED:** keep the pinned `^13.1.1`; do NOT upgrade in Phase 53. No code change required (RC bridge `src/lib/native/iap.ts` already wired from Phase 16).
 
 ---
 
