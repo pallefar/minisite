@@ -1,5 +1,6 @@
 import { Activity, Footprints, Upload, ListChecks, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, StatTile } from '@/components/ui/Card';
@@ -15,6 +16,7 @@ import type { Workout } from '@/types';
 type WorkoutType = Workout['type'];
 
 export function ActivityTab() {
+  const { t } = useTranslation('patient');
   const workouts = useStore((s) => s.workouts);
   const steps = useStore((s) => s.steps);
   const addWorkout = useStore((s) => s.addWorkout);
@@ -40,7 +42,7 @@ export function ActivityTab() {
   const [stepVal, setStepVal] = useState('');
 
   const submitWorkout = (): void => {
-    if (!wo.date) return toast('Date required', 'error');
+    if (!wo.date) return toast(t('patient:tab.activity.toast_date_required'), 'error');
     addWorkout({
       date: wo.date,
       type: wo.type,
@@ -49,15 +51,15 @@ export function ActivityTab() {
       rpe: parseInt(wo.rpe) || null,
       notes: wo.notes,
     });
-    toast('Workout logged');
+    toast(t('patient:tab.activity.toast_workout_logged'));
     setWo({ date: today, type: 'resistance', name: '', minutes: '', rpe: '', notes: '' });
   };
 
   const submitSteps = (): void => {
     const v = parseInt(stepVal);
-    if (!stepDate || !v) return toast('Date and steps required', 'error');
+    if (!stepDate || !v) return toast(t('patient:tab.activity.toast_steps_date_required'), 'error');
     setSteps(stepDate, v);
-    toast('Steps saved');
+    toast(t('patient:tab.activity.toast_steps_saved'));
     setStepVal('');
   };
 
@@ -110,7 +112,7 @@ export function ActivityTab() {
       }
       bulkSetSteps(stepEntries);
       if (weights.length) bulkAddWeights(weights);
-      toast(`Imported ${stepsAdded} steps, ${weightsAdded} weights`);
+      toast(t('patient:tab.activity.toast_imported', { steps: stepsAdded, weights: weightsAdded }));
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -118,49 +120,49 @@ export function ActivityTab() {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
-      <StatTile label="Workouts/wk" value={weekly.length} />
-      <StatTile label="Steps today" value={(steps[today] ?? 0).toLocaleString()} />
-      <StatTile label="Volume (min)" value={weekly.reduce((s, w) => s + (w.minutes || 0), 0)} />
-      <StatTile label="Total sessions" value={workouts.length} />
+      <StatTile label={t('patient:tab.activity.stat_workouts_wk')} value={weekly.length} />
+      <StatTile label={t('patient:tab.activity.stat_steps_today')} value={(steps[today] ?? 0).toLocaleString()} />
+      <StatTile label={t('patient:tab.activity.stat_volume_min')} value={weekly.reduce((s, w) => s + (w.minutes || 0), 0)} />
+      <StatTile label={t('patient:tab.activity.stat_total_sessions')} value={workouts.length} />
 
       <Card span={7}>
-        <CardHeader title="Log workout" icon={<Activity className="size-4" />} />
+        <CardHeader title={t('patient:tab.activity.log_title')} icon={<Activity className="size-4" />} />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Date"
+              label={t('patient:tab.activity.label_date')}
               type="date"
               value={wo.date}
               onChange={(e) => setWo({ ...wo, date: e.target.value })}
             />
             <Select
-              label="Type"
+              label={t('patient:tab.activity.label_type')}
               value={wo.type}
               onChange={(e) => setWo({ ...wo, type: e.target.value as WorkoutType })}
             >
-              <option value="resistance">Resistance</option>
-              <option value="cardio">Cardio</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="walk">Walk</option>
-              <option value="yoga">Yoga / Mobility</option>
+              <option value="resistance">{t('patient:tab.activity.type_resistance')}</option>
+              <option value="cardio">{t('patient:tab.activity.type_cardio')}</option>
+              <option value="hybrid">{t('patient:tab.activity.type_hybrid')}</option>
+              <option value="walk">{t('patient:tab.activity.type_walk')}</option>
+              <option value="yoga">{t('patient:tab.activity.type_yoga')}</option>
             </Select>
           </div>
           <Input
-            label="Name / focus"
+            label={t('patient:tab.activity.label_name')}
             placeholder="e.g. Push day"
             value={wo.name}
             onChange={(e) => setWo({ ...wo, name: e.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Duration (min)"
+              label={t('patient:tab.activity.label_duration')}
               type="number"
               inputMode="numeric"
               value={wo.minutes}
               onChange={(e) => setWo({ ...wo, minutes: e.target.value })}
             />
             <Input
-              label="RPE (1–10)"
+              label={t('patient:tab.activity.label_rpe')}
               type="number"
               min={1}
               max={10}
@@ -170,43 +172,43 @@ export function ActivityTab() {
             />
           </div>
           <Textarea
-            label="Notes"
+            label={t('patient:tab.activity.label_notes')}
             rows={2}
             value={wo.notes}
             onChange={(e) => setWo({ ...wo, notes: e.target.value })}
           />
           <Button block onClick={submitWorkout}>
-            Log workout
+            {t('patient:tab.activity.action_log_workout')}
           </Button>
         </div>
       </Card>
 
       <Card span={5}>
-        <CardHeader title="Steps & health" icon={<Footprints className="size-4" />} />
+        <CardHeader title={t('patient:tab.activity.steps_title')} icon={<Footprints className="size-4" />} />
         <div className="space-y-3">
           <div className="flex items-center gap-4 rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-3">
             <ActivityRings className="w-20 shrink-0" staticOnly />
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[var(--color-text-tertiary)]">
-                Today
+                {t('patient:tab.activity.steps_today_label')}
               </p>
               <p className="text-[20px] font-bold tracking-tight numerals-tabular leading-none">
                 {(steps[today] ?? 0).toLocaleString()}
                 <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ms-1">
-                  steps
+                  {t('patient:tab.activity.steps_unit')}
                 </span>
               </p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Date"
+              label={t('patient:tab.activity.label_date')}
               type="date"
               value={stepDate}
               onChange={(e) => setStepDate(e.target.value)}
             />
             <Input
-              label="Steps"
+              label={t('patient:tab.activity.label_steps')}
               type="number"
               inputMode="numeric"
               value={stepVal}
@@ -214,15 +216,15 @@ export function ActivityTab() {
             />
           </div>
           <Button block onClick={submitSteps}>
-            Save steps
+            {t('patient:tab.activity.action_save_steps')}
           </Button>
           <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 mt-2">
             <div className="flex items-start gap-3 mb-3">
               <ConnectData className="w-24 shrink-0" />
               <div>
-                <p className="text-[13px] font-bold">Apple Health import</p>
+                <p className="text-[13px] font-bold">{t('patient:tab.activity.health_import_title')}</p>
                 <p className="text-[11px] text-[var(--color-text-secondary)] leading-snug">
-                  Upload XML / CSV from Health export.
+                  {t('patient:tab.activity.health_import_body')}
                 </p>
               </div>
             </div>
@@ -239,30 +241,30 @@ export function ActivityTab() {
               leadingIcon={<Upload className="size-4" />}
               onClick={() => document.getElementById('health-up')?.click()}
             >
-              Import file
+              {t('patient:tab.activity.action_import_file')}
             </Button>
           </div>
         </div>
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Workout history" icon={<ListChecks className="size-4" />} />
+        <CardHeader title={t('patient:tab.activity.history_title')} icon={<ListChecks className="size-4" />} />
         {workouts.length === 0 ? (
           <EmptyState
             inline
-            title="No workouts logged"
-            body="Resistance training preserves muscle on GLP-1. Even two sessions a week meaningfully changes the lean-vs-fat split."
+            title={t('patient:tab.activity.history_empty_title')}
+            body={t('patient:tab.activity.history_empty_body')}
           />
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">Date</th>
-                  <th className="text-start font-semibold py-2 px-1">Type</th>
-                  <th className="text-start font-semibold py-2 px-1">Name</th>
-                  <th className="text-start font-semibold py-2 px-1">Min</th>
-                  <th className="text-start font-semibold py-2 px-1">RPE</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_date')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_type')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_name')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_min')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_rpe')}</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -281,7 +283,7 @@ export function ActivityTab() {
                       <td className="py-2 px-1 text-end">
                         <button
                           onClick={() => removeWorkout(realIdx)}
-                          aria-label="Delete"
+                          aria-label={t('patient:tab.activity.aria_delete')}
                           className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
                         >
                           <X className="size-4" />

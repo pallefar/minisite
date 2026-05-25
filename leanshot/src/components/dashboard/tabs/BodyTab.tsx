@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { VirtuosoGrid } from 'react-virtuoso';
 
 // Phase 23 Plan 23-04 (DEBT-03) — lazy-load PhotoTrashView so it splits
@@ -50,6 +51,7 @@ import { useStore } from '@/lib/store';
 import type { Measurement, Photo } from '@/types';
 
 export function BodyTab() {
+  const { t } = useTranslation('patient');
   // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
   const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
@@ -110,9 +112,9 @@ export function BodyTab() {
   const submitWeight = (): void => {
     const w = parseFloat(wForm.value);
     const bf = parseFloat(wForm.bf) || null;
-    if (!wForm.date || !w) return toast('Date and weight required', 'error');
+    if (!wForm.date || !w) return toast(t('patient:tab.body.toast_date_weight_required'), 'error');
     upsertWeight({ date: wForm.date, weight: w, bodyFat: bf, ts: Date.now() });
-    toast('Weight saved');
+    toast(t('patient:tab.body.toast_weight_saved'));
     setWForm({ date: todayStr(), value: '', bf: '' });
   };
 
@@ -126,9 +128,9 @@ export function BodyTab() {
         any = true;
       }
     });
-    if (!any) return toast('Enter at least one measurement', 'error');
+    if (!any) return toast(t('patient:tab.body.toast_one_measurement_required'), 'error');
     addMeasurement(entry);
-    toast('Measurements saved');
+    toast(t('patient:tab.body.toast_measurements_saved'));
     setMeas({ waist: '', hips: '', chest: '', neck: '', arms: '', thighs: '' });
   };
 
@@ -143,7 +145,7 @@ export function BodyTab() {
     void (async () => {
       try {
         await softDeletePhoto(photo.photo_id);
-        toast('Photo moved to Trash');
+        toast(t('patient:tab.body.toast_photo_trashed'));
       } catch (err) {
         // Undo optimistic hide on failure
         setLocallyTrashed((prev) => {
@@ -152,7 +154,7 @@ export function BodyTab() {
           return next;
         });
         console.error('[leanshot] softDeletePhoto failed', err);
-        toast('Move to Trash failed', 'error');
+        toast(t('patient:tab.body.toast_photo_trash_failed'), 'error');
       }
     })();
   };
@@ -165,10 +167,10 @@ export function BodyTab() {
     void (async () => {
       try {
         await addPhoto(file, { date: todayStr(), weight: latest?.weight ?? null });
-        toast('Photo saved');
+        toast(t('patient:tab.body.toast_photo_saved'));
       } catch (err) {
         console.error('[leanshot] addPhoto failed', err);
-        toast('Photo failed', 'error');
+        toast(t('patient:tab.body.toast_photo_failed'), 'error');
       }
     })();
     e.target.value = '';
@@ -176,22 +178,22 @@ export function BodyTab() {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
-      <StatTile label="Current weight" value={latest ? latest.weight.toFixed(1) : '—'} unit={wU} />
-      <StatTile label="Total lost" value={lost.toFixed(1)} unit={wU} />
-      <StatTile label="Goal progress" value={`${Math.round(goalPct)}%`} />
+      <StatTile label={t('patient:tab.body.stat_current_weight')} value={latest ? latest.weight.toFixed(1) : '—'} unit={wU} />
+      <StatTile label={t('patient:tab.body.stat_total_lost')} value={lost.toFixed(1)} unit={wU} />
+      <StatTile label={t('patient:tab.body.stat_goal_progress')} value={`${Math.round(goalPct)}%`} />
       <StatTile
-        label="Est. lean mass"
-        value={lean ? lean.toFixed(1) : 'Log BF%'}
+        label={t('patient:tab.body.stat_lean_mass')}
+        value={lean ? lean.toFixed(1) : t('patient:tab.body.stat_lean_mass_log_hint')}
         unit={lean ? wU : ''}
       />
 
       {trial && weeks > 2 && (
         <Card span={12}>
-          <CardHeader title="vs. clinical trial average" icon={<Target className="size-4" />} />
+          <CardHeader title={t('patient:tab.body.trial_title')} icon={<Target className="size-4" />} />
           <div className="grid grid-cols-2 gap-4 items-center">
             <div>
               <p className="text-[12px] text-[var(--color-text-secondary)]">
-                Your loss at week {weeks}
+                {t('patient:tab.body.trial_your_loss', { week: weeks })}
               </p>
               <p
                 className={`text-[28px] font-extrabold tracking-tight ${ahead ? 'text-[var(--color-success)]' : ''}`}
@@ -200,31 +202,31 @@ export function BodyTab() {
               </p>
             </div>
             <div>
-              <p className="text-[12px] text-[var(--color-text-secondary)]">Trial average</p>
+              <p className="text-[12px] text-[var(--color-text-secondary)]">{t('patient:tab.body.trial_average')}</p>
               <p className="text-[28px] font-extrabold tracking-tight">{trialPct.toFixed(1)}%</p>
             </div>
           </div>
           <p className="text-[12px] text-[var(--color-text-secondary)] mt-3">
             {ahead
-              ? 'Ahead of trial average — keep your protein up.'
-              : "Trial averages don't reflect everyone — your pace is your own."}{' '}
-            <em>STEP/SURMOUNT data.</em>
+              ? t('patient:tab.body.trial_ahead')
+              : t('patient:tab.body.trial_behind')}{' '}
+            <em>{t('patient:tab.body.trial_source')}</em>
           </p>
         </Card>
       )}
 
       <Card span={6}>
-        <CardHeader title="Log weight" icon={<Scale className="size-4" />} />
+        <CardHeader title={t('patient:tab.body.log_weight_title')} icon={<Scale className="size-4" />} />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Date"
+              label={t('patient:tab.body.label_date')}
               type="date"
               value={wForm.date}
               onChange={(e) => setWForm({ ...wForm, date: e.target.value })}
             />
             <Input
-              label={`Weight (${wU})`}
+              label={t('patient:tab.body.label_weight', { unit: wU })}
               type="number"
               step="0.1"
               inputMode="decimal"
@@ -233,7 +235,7 @@ export function BodyTab() {
             />
           </div>
           <Input
-            label="Body fat % (optional)"
+            label={t('patient:tab.body.label_body_fat')}
             type="number"
             step="0.1"
             inputMode="decimal"
@@ -241,13 +243,13 @@ export function BodyTab() {
             onChange={(e) => setWForm({ ...wForm, bf: e.target.value })}
           />
           <Button block onClick={submitWeight}>
-            Save weight
+            {t('patient:tab.body.action_save_weight')}
           </Button>
         </div>
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Body measurements" icon={<Ruler className="size-4" />} />
+        <CardHeader title={t('patient:tab.body.measurements_title')} icon={<Ruler className="size-4" />} />
         <div className="grid grid-cols-2 gap-3">
           {(['waist', 'hips', 'chest', 'neck', 'arms', 'thighs'] as const).map((k) => (
             <Input
@@ -262,18 +264,18 @@ export function BodyTab() {
           ))}
         </div>
         <Button block onClick={submitMeasurements} className="mt-3">
-          Save measurements
+          {t('patient:tab.body.action_save_measurements')}
         </Button>
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Weight trajectory" icon={<ChartLine className="size-4" />} />
+        <CardHeader title={t('patient:tab.body.trajectory_title')} icon={<ChartLine className="size-4" />} />
         <WeightChart />
       </Card>
 
       <Card span={6}>
         <CardHeader
-          title="Journey photos"
+          title={t('patient:tab.body.photos_title')}
           icon={<Camera className="size-4" />}
           action={
             <div className="flex items-center gap-2">
@@ -281,10 +283,10 @@ export function BodyTab() {
               <button
                 className="text-[12px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-1"
                 onClick={() => setTrashOpen(true)}
-                aria-label="View photo trash"
+                aria-label={t('patient:tab.body.aria_view_trash')}
               >
                 <Trash2 className="size-3" aria-hidden />
-                Trash
+                {t('patient:tab.body.action_trash')}
               </button>
               {photos.length >= 2 && (
                 <Button
@@ -293,7 +295,7 @@ export function BodyTab() {
                   onClick={() => setCompareOpen(true)}
                   leadingIcon={<ArrowLeftRight className="size-3.5" />}
                 >
-                  Compare
+                  {t('patient:tab.body.action_compare')}
                 </Button>
               )}
             </div>
@@ -306,14 +308,14 @@ export function BodyTab() {
           leadingIcon={<Plus className="size-4" />}
           onClick={() => document.getElementById('photo-up')?.click()}
         >
-          Add photo
+          {t('patient:tab.body.action_add_photo')}
         </Button>
         {photos.filter((p) => !locallyTrashed.has(p.photo_id)).length === 0 ? (
           <EmptyState
             inline
             illustration={<EmptyPhotos className="w-32" />}
-            title="No photos yet"
-            body="Take a photo every 2 weeks. The mirror lies; the receipts don't."
+            title={t('patient:tab.body.photos_empty_title')}
+            body={t('patient:tab.body.photos_empty_body')}
           />
         ) : (
           // Phase 16 Plan 16-01 Task 4 (BL-2 fix MOBILE-08) — wrap photo
@@ -372,21 +374,21 @@ export function BodyTab() {
                             setOpenMenuId(null);
                             // Open the photo in a new tab if storage_path exists
                           }}
-                          aria-label="Open photo"
+                          aria-label={t('patient:tab.body.aria_open_photo')}
                         >
-                          Open
+                          {t('patient:tab.body.action_open_photo')}
                         </button>
                         <button
                           className="w-full text-start px-3 py-2 text-[13px] text-[var(--color-danger)] hover:bg-[var(--color-surface-elevated)] flex items-center gap-2"
                           onClick={() => handleSoftDelete(p)}
-                          aria-label="Move photo to trash"
+                          aria-label={t('patient:tab.body.aria_move_to_trash')}
                         >
                           <Trash2 className="size-3.5" aria-hidden />
-                          Move to Trash
+                          {t('patient:tab.body.action_move_to_trash')}
                         </button>
                       </div>
                     )}
-                    <span className="sr-only">Swipe left to delete on mobile</span>
+                    <span className="sr-only">{t('patient:tab.body.sr_swipe_delete')}</span>
                   </SwipeToDelete>
                 );
               }}
@@ -396,25 +398,25 @@ export function BodyTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Lean vs fat" icon={<ChartLine className="size-4" />} />
+        <CardHeader title={t('patient:tab.body.lean_vs_fat_title')} icon={<ChartLine className="size-4" />} />
         <CompositionChart />
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Weight history" icon={<ListChecks className="size-4" />} />
+        <CardHeader title={t('patient:tab.body.history_title')} icon={<ListChecks className="size-4" />} />
         {weights.length === 0 ? (
           <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">
-            Log your first weight above.
+            {t('patient:tab.body.history_empty')}
           </p>
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">Date</th>
-                  <th className="text-start font-semibold py-2 px-1">Weight</th>
-                  <th className="text-start font-semibold py-2 px-1">BF%</th>
-                  <th className="text-start font-semibold py-2 px-1">Δ</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_date')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_weight')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_bf')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_delta')}</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -449,7 +451,7 @@ export function BodyTab() {
                       <td className="py-2 px-1 text-end">
                         <button
                           onClick={() => removeWeight(realIdx)}
-                          aria-label="Delete"
+                          aria-label={t('patient:tab.body.aria_delete')}
                           className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
                         >
                           <X className="size-4" />
@@ -468,7 +470,7 @@ export function BodyTab() {
             className="mt-4"
             color="var(--color-success)"
             thickness="thick"
-            label="Goal progress"
+            label={t('patient:tab.body.stat_goal_progress')}
           />
         )}
       </Card>

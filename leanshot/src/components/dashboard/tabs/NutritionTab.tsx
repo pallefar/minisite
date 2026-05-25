@@ -1,5 +1,6 @@
 import { Target, Sparkles, Droplet, ListChecks, ChartLine, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ProteinChart, NoiseChart } from '@/components/dashboard/charts/SimpleCharts';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +16,7 @@ import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 export function NutritionTab() {
+  const { t } = useTranslation('patient');
   // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
   const u = useStore((s) => s.user);
   const meals = useStore((s) => s.meals);
@@ -39,7 +41,7 @@ export function NutritionTab() {
   if (!u) return null;
 
   const submit = (): void => {
-    if (!meal.name.trim()) return toast('Enter what you ate', 'error');
+    if (!meal.name.trim()) return toast(t('patient:tab.nutrition.toast_enter_meal'), 'error');
     addMeal({
       date: today,
       name: meal.name.trim(),
@@ -50,12 +52,12 @@ export function NutritionTab() {
       satisfaction: parseInt(meal.sat) || null,
       ts: Date.now(),
     });
-    toast('Meal logged');
+    toast(t('patient:tab.nutrition.toast_meal_logged'));
     setMeal({ name: '', cal: '', pro: '', fib: '', hunger: '', sat: '' });
   };
 
   const aiEstimate = async (): Promise<void> => {
-    if (!meal.name.trim()) return toast('Type what you ate first', 'error');
+    if (!meal.name.trim()) return toast(t('patient:tab.nutrition.toast_type_meal_first'), 'error');
     setAIBusy(true);
     try {
       let buffer = '';
@@ -79,13 +81,13 @@ export function NutritionTab() {
         pro: String(Math.round(parsed.protein ?? 0)),
         fib: String(Math.round(parsed.fiber ?? 0)),
       }));
-      toast('AI estimated');
+      toast(t('patient:tab.nutrition.toast_ai_estimated'));
     } catch (e) {
       if (e instanceof RateLimitedError)
-        toast('Hit the AI rate limit — try again in a minute', 'error');
+        toast(t('patient:tab.nutrition.toast_ai_rate_limit'), 'error');
       else if (e instanceof AIUnavailableError)
-        toast('AI is unavailable right now — enter manually', 'error');
-      else toast('AI failed — enter manually', 'error');
+        toast(t('patient:tab.nutrition.toast_ai_unavailable'), 'error');
+      else toast(t('patient:tab.nutrition.toast_ai_failed'), 'error');
     } finally {
       setAIBusy(false);
     }
@@ -94,34 +96,34 @@ export function NutritionTab() {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <Card span={12}>
-        <CardHeader title="Today's targets" icon={<Target className="size-4" />} />
+        <CardHeader title={t('patient:tab.nutrition.targets_title')} icon={<Target className="size-4" />} />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Macro
-            label="Protein"
+            label={t('patient:tab.nutrition.macro_protein')}
             value={protein}
             target={u.proteinTarget}
             unit="g"
             color="var(--color-success)"
           />
           <Macro
-            label="Calories"
+            label={t('patient:tab.nutrition.macro_calories')}
             value={calories}
             target={u.calorieTarget}
             unit="kcal"
             color="var(--color-primary)"
           />
           <Macro
-            label="Fiber"
+            label={t('patient:tab.nutrition.macro_fiber')}
             value={fiber}
             target={u.fiberTarget}
             unit="g"
             color="var(--color-amber)"
           />
           <Macro
-            label="Water"
+            label={t('patient:tab.nutrition.macro_water')}
             value={waterToday}
             target={u.waterTarget}
-            unit="cups"
+            unit={t('patient:tab.nutrition.macro_water_unit')}
             color="#5AB7C7"
           />
         </div>
@@ -129,13 +131,13 @@ export function NutritionTab() {
 
       <Card span={7}>
         <CardHeader
-          title="Quick log meal"
+          title={t('patient:tab.nutrition.log_title')}
           icon={<Sparkles className="size-4" />}
           action={<Badge tone="info">AI</Badge>}
         />
         <div className="space-y-3">
           <Input
-            label="What did you eat?"
+            label={t('patient:tab.nutrition.label_what_ate')}
             placeholder="e.g. Greek yogurt with berries"
             value={meal.name}
             onChange={(e) => setMeal({ ...meal, name: e.target.value })}
@@ -147,18 +149,18 @@ export function NutritionTab() {
             loading={aiBusy}
             onClick={aiEstimate}
           >
-            {aiBusy ? 'Estimating…' : 'Estimate macros with AI'}
+            {aiBusy ? t('patient:tab.nutrition.ai_estimating') : t('patient:tab.nutrition.action_ai_estimate')}
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Calories"
+              label={t('patient:tab.nutrition.macro_calories')}
               type="number"
               inputMode="numeric"
               value={meal.cal}
               onChange={(e) => setMeal({ ...meal, cal: e.target.value })}
             />
             <Input
-              label="Protein (g)"
+              label={t('patient:tab.nutrition.label_protein_g')}
               type="number"
               inputMode="numeric"
               value={meal.pro}
@@ -167,14 +169,14 @@ export function NutritionTab() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Fiber (g)"
+              label={t('patient:tab.nutrition.label_fiber_g')}
               type="number"
               inputMode="numeric"
               value={meal.fib}
               onChange={(e) => setMeal({ ...meal, fib: e.target.value })}
             />
             <Input
-              label="Hunger (1–10)"
+              label={t('patient:tab.nutrition.label_hunger')}
               type="number"
               min={1}
               max={10}
@@ -184,7 +186,7 @@ export function NutritionTab() {
             />
           </div>
           <Input
-            label="Satisfaction after"
+            label={t('patient:tab.nutrition.label_satisfaction')}
             type="number"
             min={1}
             max={10}
@@ -193,22 +195,22 @@ export function NutritionTab() {
             onChange={(e) => setMeal({ ...meal, sat: e.target.value })}
           />
           <Button block onClick={submit}>
-            Log meal
+            {t('patient:tab.nutrition.action_log_meal')}
           </Button>
         </div>
       </Card>
 
       <Card span={5}>
-        <CardHeader title="Water & food noise" icon={<Droplet className="size-4" />} />
+        <CardHeader title={t('patient:tab.nutrition.water_noise_title')} icon={<Droplet className="size-4" />} />
         <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-          Water (cups, 8oz)
+          {t('patient:tab.nutrition.water_label')}
         </p>
         <div className="flex flex-wrap gap-1.5 mb-4">
           {Array.from({ length: Math.max(u.waterTarget, waterToday) + 2 }, (_, i) => i + 1).map(
             (n) => (
               <button
                 key={n}
-                aria-label={`Set water to ${n}`}
+                aria-label={t('patient:tab.nutrition.aria_set_water', { n })}
                 onClick={() => setWater(today, n)}
                 className={cn(
                   'size-9 rounded-xl border text-[16px] inline-flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
@@ -223,7 +225,7 @@ export function NutritionTab() {
           )}
         </div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-          Food noise (1=silent, 10=loud)
+          {t('patient:tab.nutrition.food_noise_label')}
         </p>
         <div className="flex gap-1 flex-wrap">
           {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
@@ -231,7 +233,7 @@ export function NutritionTab() {
             return (
               <button
                 key={n}
-                aria-label={`Food noise ${n}`}
+                aria-label={t('patient:tab.nutrition.aria_food_noise', { n })}
                 onClick={() => setNoise(today, n)}
                 className={cn(
                   'size-9 rounded-xl text-[13px] font-bold inline-flex items-center justify-center border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
@@ -246,29 +248,29 @@ export function NutritionTab() {
           })}
         </div>
         <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
-          Lower = the medication is working.
+          {t('patient:tab.nutrition.food_noise_hint')}
         </p>
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Today's meals" icon={<ListChecks className="size-4" />} />
+        <CardHeader title={t('patient:tab.nutrition.meals_title')} icon={<ListChecks className="size-4" />} />
         {todayMeals.length === 0 ? (
           <EmptyState
             inline
             illustration={<EmptyPlate className="w-32" />}
-            title="No meals logged yet"
-            body="Start logging meals above to track your protein, calories, and food noise on your GLP-1 journey."
+            title={t('patient:tab.nutrition.meals_empty_title')}
+            body={t('patient:tab.nutrition.meals_empty_body')}
           />
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">Meal</th>
-                  <th className="text-start font-semibold py-2 px-1">Cal</th>
-                  <th className="text-start font-semibold py-2 px-1">Pro</th>
-                  <th className="text-start font-semibold py-2 px-1">Fib</th>
-                  <th className="text-start font-semibold py-2 px-1">H→S</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_meal')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_cal')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_pro')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_fib')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_hunger_sat')}</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -287,7 +289,7 @@ export function NutritionTab() {
                       <td className="py-2 px-1 text-end">
                         <button
                           onClick={() => removeMeal(realIdx)}
-                          aria-label="Delete meal"
+                          aria-label={t('patient:tab.nutrition.aria_delete_meal')}
                           className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
                         >
                           <X className="size-4" />
@@ -303,11 +305,11 @@ export function NutritionTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Protein · 14 days" icon={<ChartLine className="size-4" />} />
+        <CardHeader title={t('patient:tab.nutrition.protein_chart_title')} icon={<ChartLine className="size-4" />} />
         <ProteinChart />
       </Card>
       <Card span={6}>
-        <CardHeader title="Food noise · 14 days" icon={<ChartLine className="size-4" />} />
+        <CardHeader title={t('patient:tab.nutrition.noise_chart_title')} icon={<ChartLine className="size-4" />} />
         <NoiseChart />
       </Card>
     </div>

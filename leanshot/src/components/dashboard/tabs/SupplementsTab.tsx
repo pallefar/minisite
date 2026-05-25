@@ -1,4 +1,5 @@
 import { Flame, RotateCcw, ChartLine, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { SuppChart } from '@/components/dashboard/charts/SimpleCharts';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +9,7 @@ import { todayStr, cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 
 export function SupplementsTab() {
+  const { t } = useTranslation('patient');
   const today = todayStr();
   const supplements = useStore((s) => s.supplements);
   const toggle = useStore((s) => s.toggleSupp);
@@ -19,7 +21,7 @@ export function SupplementsTab() {
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <Card span={12}>
         <CardHeader
-          title="Today's stack"
+          title={t('patient:tab.supplements.stack_title')}
           icon={<Flame className="size-4" />}
           action={
             <div className="flex items-center gap-2">
@@ -32,7 +34,7 @@ export function SupplementsTab() {
                 onClick={() => reset(today)}
                 leadingIcon={<RotateCcw className="size-3.5" />}
               >
-                Reset
+                {t('patient:tab.supplements.action_reset')}
               </Button>
             </div>
           }
@@ -75,7 +77,7 @@ export function SupplementsTab() {
                     size="sm"
                     onClick={() => toggle(today, s.id)}
                   >
-                    {isTaken ? 'Undo' : 'Logged'}
+                    {isTaken ? t('patient:tab.supplements.action_undo') : t('patient:tab.supplements.action_logged')}
                   </Button>
                   <a
                     href={`https://www.amazon.com/s?k=${s.search}`}
@@ -83,7 +85,7 @@ export function SupplementsTab() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center h-8 px-3 rounded-pill bg-transparent border border-[var(--color-border-strong)] text-[13px] font-semibold hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                   >
-                    Reorder
+                    {t('patient:tab.supplements.action_reorder')}
                   </a>
                 </div>
               </div>
@@ -93,7 +95,7 @@ export function SupplementsTab() {
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Adherence · 14 days" icon={<ChartLine className="size-4" />} />
+        <CardHeader title={t('patient:tab.supplements.adherence_title')} icon={<ChartLine className="size-4" />} />
         <SuppChart />
       </Card>
     </div>

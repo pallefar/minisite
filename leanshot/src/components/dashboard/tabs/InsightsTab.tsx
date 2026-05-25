@@ -1,5 +1,6 @@
 import { FileText, Sparkles, Trophy, Star, Lightbulb, ChartLine, X, BookOpen } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShareCardModal } from '@/components/dashboard/share/ShareCardModal';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -18,6 +19,7 @@ interface InsightsTabProps {
 }
 
 export function InsightsTab({ onOpenReport }: InsightsTabProps) {
+  const { t } = useTranslation('patient');
   // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
   const u = useStore((s) => s.user);
   const nsvs = useStore((s) => s.nsvs);
@@ -75,31 +77,29 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <Card span={6}>
-        <CardHeader title="Doctor-ready report" icon={<FileText className="size-4" />} />
+        <CardHeader title={t('patient:tab.insights.report_title')} icon={<FileText className="size-4" />} />
         <p className="text-[13px] text-[var(--color-text-secondary)] mb-4">
-          A clean printable summary — injections, weight, side effects, trends. Bring this to every
-          visit.
+          {t('patient:tab.insights.report_body')}
         </p>
         <Button block onClick={() => onOpenReport?.()}>
-          Generate report
+          {t('patient:tab.insights.action_generate_report')}
         </Button>
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Shareable progress card" icon={<Sparkles className="size-4" />} />
+        <CardHeader title={t('patient:tab.insights.share_title')} icon={<Sparkles className="size-4" />} />
         <p className="text-[13px] text-[var(--color-text-secondary)] mb-4">
-          A beautiful 9:16 image with three templates. For Instagram stories, your community, or
-          your fridge.
+          {t('patient:tab.insights.share_body')}
         </p>
         <Button block onClick={() => setShareOpen(true)}>
-          Create progress card
+          {t('patient:tab.insights.action_create_card')}
         </Button>
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Add a non-scale victory" icon={<Trophy className="size-4" />} />
+        <CardHeader title={t('patient:tab.insights.nsv_title')} icon={<Trophy className="size-4" />} />
         <p className="text-[12px] text-[var(--color-text-secondary)] mb-3">
-          Rings fit. Energy up. Old jeans button. These are wins.
+          {t('patient:tab.insights.nsv_body')}
         </p>
         <div className="flex gap-2">
           <Input
@@ -110,25 +110,25 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
           />
           <Button
             onClick={() => {
-              const t = nsv.trim();
-              if (!t) return toast('Type a win', 'error');
-              addNSV(t, todayStr());
+              const trimmed = nsv.trim();
+              if (!trimmed) return toast(t('patient:tab.insights.nsv_toast_type'), 'error');
+              addNSV(trimmed, todayStr());
               setNsv('');
-              toast('Win added');
+              toast(t('patient:tab.insights.nsv_toast_added'));
             }}
           >
-            Save
+            {t('patient:tab.insights.action_save_nsv')}
           </Button>
         </div>
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Your wins" icon={<Star className="size-4" />} />
+        <CardHeader title={t('patient:tab.insights.wins_title')} icon={<Star className="size-4" />} />
         {nsvs.length === 0 ? (
           <EmptyStateInline
             inline
-            title="No wins yet"
-            body="Save your first non-scale victory above. They compound."
+            title={t('patient:tab.insights.wins_empty_title')}
+            body={t('patient:tab.insights.wins_empty_body')}
           />
         ) : (
           <ul className="space-y-2">
@@ -148,7 +148,7 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
                 </div>
                 <button
                   onClick={() => removeNSV(i)}
-                  aria-label="Delete win"
+                  aria-label={t('patient:tab.insights.aria_delete_win')}
                   className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface)] inline-flex items-center justify-center"
                 >
                   <X className="size-4" />
@@ -161,7 +161,7 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
 
       <Card span={12}>
         <CardHeader
-          title="Smart insights"
+          title={t('patient:tab.insights.smart_title')}
           icon={<Lightbulb className="size-4" />}
           action={<HeartPulse className="w-16 h-12 shrink-0" staticOnly />}
         />
@@ -169,7 +169,7 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
           <div className="flex flex-col items-center text-center py-2">
             <EmptyInsights className="w-32 mx-auto mb-3" />
             <p className="text-[13px] text-[var(--color-text-tertiary)]">
-              Insights appear as you log more data.
+              {t('patient:tab.insights.smart_empty')}
             </p>
           </div>
         ) : (
@@ -209,18 +209,18 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       </Card>
 
       <Card span={12}>
-        <CardHeader title="Weekly summary" icon={<ChartLine className="size-4" />} />
+        <CardHeader title={t('patient:tab.insights.weekly_title')} icon={<ChartLine className="size-4" />} />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           <Tile
-            label="Weight"
+            label={t('patient:tab.insights.weekly_weight')}
             value={`${wDelta < 0 ? '↓' : ''}${Math.abs(wDelta).toFixed(1)} ${wU}`}
           />
-          <Tile label="Avg protein" value={`${proteinAvg}g`} />
-          <Tile label="Workouts" value={recentWorkouts.length} />
-          <Tile label="Injections" value={recentInj.length} />
-          <Tile label="Meals" value={recentMeals.length} />
+          <Tile label={t('patient:tab.insights.weekly_avg_protein')} value={`${proteinAvg}g`} />
+          <Tile label={t('patient:tab.insights.weekly_workouts')} value={recentWorkouts.length} />
+          <Tile label={t('patient:tab.insights.weekly_injections')} value={recentInj.length} />
+          <Tile label={t('patient:tab.insights.weekly_meals')} value={recentMeals.length} />
           <Tile
-            label="Wins"
+            label={t('patient:tab.insights.weekly_wins')}
             value={nsvs.filter((n) => new Date(n.date).getTime() > weekAgo).length}
           />
         </div>
@@ -235,10 +235,9 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
             <BookOpen className="size-7" strokeWidth={1.6} />
           </span>
           <div className="flex-1 min-w-[220px]">
-            <h3 className="text-[18px] font-bold tracking-tight mb-1">The GLP-1 Survival Guide</h3>
+            <h3 className="text-[18px] font-bold tracking-tight mb-1">{t('patient:tab.insights.guide_title')}</h3>
             <p className="text-[13px] opacity-85 leading-snug">
-              90 pages. Side-effect playbook, muscle-preservation protocol, plateau breakers, 28-day
-              high-protein meal plan.
+              {t('patient:tab.insights.guide_body')}
             </p>
           </div>
         </div>
