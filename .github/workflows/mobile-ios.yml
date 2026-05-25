@@ -1,0 +1,95 @@
+name: Mobile iOS Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leanshot/apps/ios/**'
+      - 'leanshot/src/**'
+      - 'leanshot/package.json'
+      - 'leanshot/package-lock.json'
+      - 'leanshot/capacitor.config.ts'
+      - 'leanshot/fastlane/**'
+      - '.github/workflows/mobile-ios.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'leanshot/apps/ios/**'
+      - 'leanshot/src/**'
+      - 'leanshot/package.json'
+      - 'leanshot/package-lock.json'
+      - 'leanshot/capacitor.config.ts'
+      - 'leanshot/fastlane/**'
+      - '.github/workflows/mobile-ios.yml'
+
+concurrency:
+  group: mobile-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  build-ios:
+    name: Build iOS (unsigned, always green)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Build unsigned iOS archive (xcodebuild)
+        run: |
+          xcodebuild \
+            -workspace apps/ios/App/App.xcodeproj/project.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath derived_data \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  sign-and-upload-ios:
+    name: Sign and upload to TestFlight (gated)
+    needs: build-ios
+    runs-on: macos-latest
+    # Gate: only run when Apple signing secrets are present.
+    # GitHub forbids secrets.* in `if:` — map secrets to env first, then gate on env.
+    env:
+      APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+    if: env.APPLE_CERTIFICATE_BASE64 != '' && env.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: leanshot
+
+      - name: Set up Fastlane CI environment
+        working-directory: leanshot
+        run: bundle exec fastlane run setup_ci
+
+      - name: Upload to TestFlight
+        working-directory: leanshot
+        run: bundle exec fastlane upload_testflight
