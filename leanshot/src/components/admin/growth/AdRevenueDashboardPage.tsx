@@ -159,7 +159,11 @@ export function AdRevenueDashboardPage() {
     };
   }, [startDate, endDate]);
 
-  // Aggregate KPIs across all rows
+  // Aggregate KPIs across all rows.
+  // eCPM and RPM are ratio metrics — they must be impressions-weighted
+  // (total_revenue / total_impressions * 1000) to be meaningful. A simple
+  // average of per-row ratios gives equal weight to a day with 10 impressions
+  // and a day with 100,000, producing misleading KPIs for ad decisions.
   const kpis = useMemo(() => {
     if (!rows || rows.length === 0) {
       return { ecpm: 0, rpm: 0, fillRate: 0, ctr: 0 };
@@ -167,13 +171,15 @@ export function AdRevenueDashboardPage() {
 
     const totalImpressions = rows.reduce((sum, r) => sum + r.impressions, 0);
     const totalClicks = rows.reduce((sum, r) => sum + r.clicks, 0);
-    const avgEcpm = rows.reduce((sum, r) => sum + r.ecpm_usd, 0) / rows.length;
-    const avgRpm = rows.reduce((sum, r) => sum + r.rpm_usd, 0) / rows.length;
+    const totalRevenue = rows.reduce((sum, r) => sum + r.estimated_revenue_usd, 0);
     const avgFillRate = rows.reduce((sum, r) => sum + r.fill_rate, 0) / rows.length;
-    // CTR = total clicks / total impressions (divide-by-zero guard)
+
+    // Impressions-weighted eCPM/RPM (correct aggregate for ratio metrics)
+    const ecpm = totalImpressions > 0 ? (totalRevenue / totalImpressions) * 1000 : 0;
+    const rpm = ecpm; // RPM === eCPM at row level; page-view denominator not yet available
     const ctr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
 
-    return { ecpm: avgEcpm, rpm: avgRpm, fillRate: avgFillRate, ctr };
+    return { ecpm, rpm, fillRate: avgFillRate, ctr };
   }, [rows]);
 
   // Group rows by network for the breakdown table
@@ -187,8 +193,6 @@ export function AdRevenueDashboardPage() {
         impressions: number;
         clicks: number;
         revenue: number;
-        ecpm: number;
-        rpm: number;
         fillRate: number;
         rowCount: number;
       }
@@ -200,8 +204,6 @@ export function AdRevenueDashboardPage() {
         existing.impressions += row.impressions;
         existing.clicks += row.clicks;
         existing.revenue += row.estimated_revenue_usd;
-        existing.ecpm += row.ecpm_usd;
-        existing.rpm += row.rpm_usd;
         existing.fillRate += row.fill_rate;
         existing.rowCount += 1;
       } else {
@@ -210,18 +212,18 @@ export function AdRevenueDashboardPage() {
           impressions: row.impressions,
           clicks: row.clicks,
           revenue: row.estimated_revenue_usd,
-          ecpm: row.ecpm_usd,
-          rpm: row.rpm_usd,
           fillRate: row.fill_rate,
           rowCount: 1,
         });
       }
     }
 
+    // Compute eCPM/RPM as impressions-weighted aggregates (total_revenue /
+    // total_impressions * 1000) so that high-volume days dominate correctly.
     return Array.from(byNetwork.values()).map((g) => ({
       ...g,
-      ecpm: g.ecpm / g.rowCount,
-      rpm: g.rpm / g.rowCount,
+      ecpm: g.impressions > 0 ? (g.revenue / g.impressions) * 1000 : 0,
+      rpm: g.impressions > 0 ? (g.revenue / g.impressions) * 1000 : 0,
       fillRate: g.fillRate / g.rowCount,
       ctr: g.impressions > 0 ? g.clicks / g.impressions : 0,
     }));
