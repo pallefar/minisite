@@ -153,7 +153,11 @@ Plans:
   4. Offline log on watch queues + syncs on next-connect without data loss
   5. Site-rotation next-recommended-site visible on watch mini-card
   6. HealthKit / Health Services reads (heart rate, activity) route via same firewall as Phase 55 — no ad-surface cross-import
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1 — all parallel, no file overlap)
+Plans:
+- [ ] 57-01-PLAN.md — iOS watchOS SwiftUI app + WidgetKit complication scaffolds (file-existence + xcodebuild -list)
+- [ ] 57-02-PLAN.md — Wear OS :wear Compose module + Tile + Data-Layer scaffold (static Gradle validation)
+- [ ] 57-03-PLAN.md — TS sync-contract + complication-data (vitest) + Phase 55 firewall extension to src/lib/watch/
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
