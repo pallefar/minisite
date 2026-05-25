@@ -13,7 +13,7 @@
 - [x] **Phase 53: Capacitor Mobile Shells** — iOS + Android wrappers; CI per-platform builds; signing certs; RevenueCat SDK; store submission package
 - [x] **Phase 54: Push Notifications** — Web Push (VAPID) + native iOS APNs + Android FCM; permission UX; frequency-cap + quiet-hours; per-platform delivery telemetry
 - [x] **Phase 55: HealthKit + Two-Tunnel Firewall** — Apple Health PHI ingestion; iOS-only; OPT-IN per HIPAA; 3-layer firewall enforcement (no ad-surface cross-import)
-- [ ] **Phase 56: Ad Network** — AdMob iOS+Android + AdSense web; 3 modes (embed/platform/house); clinic-zero-ads enforced; per-network revenue ETL
+- [x] **Phase 56: Ad Network** — AdMob iOS+Android + AdSense web; 3 modes (embed/platform/house); clinic-zero-ads enforced; per-network revenue ETL
 - [ ] **Phase 57: Watch Apps** — Apple Watch SwiftUI + Wear OS Compose companion; quick dose log + complication; offline-tolerant
 - [ ] **Phase 58: Spanish i18n Wiring** — Contractor TMX import + glossary integration + ES KB articles + ES smoke spec
 - [ ] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished

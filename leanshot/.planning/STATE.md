@@ -5,14 +5,14 @@ milestone_name: Launch Readiness
 status: in_progress
 authored: "2026-05-25"
 archived: false
-last_updated: "2026-05-25T09:45:00.000Z"
-last_activity: "2026-05-25 -- Phase 55 (HealthKit + Two-Tunnel Firewall) COMPLETE: 4 plans serialized (3-layer firewall ESLint+runtime+CI-grep; db hk_source+sync_state+RPCs+@capgo/capacitor-health; full health.ts read-only import; consent UI+revoke/purge+PrivacyInfo §5.1.3). VERIFICATION passed. Code review caught 7 CRITICAL (Layer-2 firewall inverted, dynamic-import bypass of L1/L3, purge missed profiles.height, PHI-unlogged-on-error, privacy-audit silent-pass) — all fixed; firewall hardened (assertNoHealthData boundary guard + dynamic-import detection). On-device→P70. Autonomous run 52->69 in progress (4/18 done)."
+last_updated: "2026-05-25T10:30:00.000Z"
+last_activity: "2026-05-25 -- Phase 56 (Ad Network) COMPLETE: 6 plans/3 waves (canShowAds guard+freqcap; ad_revenue_facts ETL+admob; ads.ts serving 3-mode; CSP blocklist; admin revenue dashboard; surface-exclusion gate+firewall regression). VERIFICATION passed. Code review caught 4 CRITICAL (EmbedAdSlot allow-same-origin PHI leak, exclusion gate missed src/components/share, admin-only RLS broke ad_placements/csp reads) — all fixed. Real fill/on-device→P70. Autonomous run 52->69 in progress (5/18 done)."
 progress:
   total_phases: 19
-  completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
-  percent: 21
+  completed_phases: 5
+  total_plans: 27
+  completed_plans: 27
+  percent: 26
 phase_range: "52-70"
 v1_3_archive:
   roadmap: .planning/milestones/v1.3-ROADMAP.md
@@ -37,9 +37,9 @@ v1_3_archive:
 
 ## Current Position
 
-- **Phase:** 56 (Ad Network) — NEXT (pending dispatch)
-- **Last completed:** Phase 55 (HealthKit + Two-Tunnel Firewall) — VERIFICATION passed 2026-05-25
-- **Status:** autonomous run `52→69` in progress (4/18 autonomous phases done)
+- **Phase:** 57 (Watch Apps) — NEXT (pending dispatch)
+- **Last completed:** Phase 56 (Ad Network) — VERIFICATION passed 2026-05-25
+- **Status:** autonomous run `52→69` in progress (5/18 autonomous phases done)
 
 ## Milestone Contract
 
