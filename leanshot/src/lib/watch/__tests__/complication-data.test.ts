@@ -7,9 +7,9 @@
  * Uses a frozen Date for determinism.
  */
 import { describe, expect, it } from 'vitest';
-import { watchComplicationData, watchSiteRecommendation } from '../complication-data';
 import type { PersistedState } from '@/lib/storage';
 import type { Injection, User } from '@/types';
+import { watchComplicationData, watchSiteRecommendation } from '../complication-data';
 
 // ---------------------------------------------------------------------------
 // Test fixtures
