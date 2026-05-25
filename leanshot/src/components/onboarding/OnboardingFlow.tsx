@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import i18next from 'i18next';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DisclaimerBody } from '@/components/dashboard/DisclaimerModal';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
@@ -9,6 +10,16 @@ import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useHreflangTags } from '@/hooks/useHreflangTags';
 import { useToast } from '@/hooks/useToast';
+import {
+  activityLabel,
+  doseUnitLabel,
+  goalLabel,
+  injectionDayLabel,
+  injectionDayShortLabel,
+  liftingLabel,
+  medicationLabel,
+  sexLabel,
+} from '@/lib/i18n/onboarding-labels';
 import { AIAvatar } from '@/illustrations/AIAvatar';
 import {
   OnboardWelcome,
@@ -99,6 +110,8 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   // Phase 32 Plan 32-07 (I18N-01) — hreflang tags on the onboarding entry
   // point so search engines index the EN + ES variants of `/onboarding`.
   useHreflangTags();
+
+  const { t } = useTranslation(['onboarding', 'common']);
 
   // Phase 31 Plan 06 D-10: render-branch hook — determines whether to show
   // the org's saved flow (invited patient) or the consumer DEFAULT_STEPS path.
@@ -194,9 +207,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
 
   const next = (): void => {
     if (step === 0) return; // Step 0 advances exclusively via handleAcknowledge (D-09)
-    if (step === 1 && !draft.name.trim()) return toast('Please enter your name', 'error');
-    if (step === 2 && !draft.medication) return toast('Please pick your medication', 'error');
-    if (step === 3 && !draft.weight) return toast('Please enter your weight', 'error');
+    if (step === 1 && !draft.name.trim()) return toast(t('onboarding:error.name_required'), 'error');
+    if (step === 2 && !draft.medication) return toast(t('onboarding:error.medication_required'), 'error');
+    if (step === 3 && !draft.weight) return toast(t('onboarding:error.weight_required'), 'error');
     track('onboarding_step_completed', { step });
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
   };
@@ -210,7 +223,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
 
   const complete = (): void => {
     const weight = parseFloat(draft.weight);
-    if (!weight) return toast('Weight is required', 'error');
+    if (!weight) return toast(t('onboarding:error.weight_required'), 'error');
     // Phase 32 Plan 32-03 (I18N-02 / D-12): derive signup-time locale + units
     // BEFORE the metric-dependent protein/calorie calculations so an
     // es-MX-detected signup who toggled imperial still gets kg-scaled targets.
@@ -318,9 +331,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 0 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Before you start</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.disclaimer.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        A quick note before we set things up.
+                        {t('onboarding:step.disclaimer.subtitle')}
                       </p>
                     </div>
                     <DisclaimerBody onAcknowledge={handleAcknowledge} />
@@ -331,25 +344,25 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        Welcome{' '}
+                        {t('onboarding:step.welcome.title_prefix')}{' '}
                         <span className="font-display italic font-normal text-[var(--color-primary)]">
-                          in.
+                          {t('onboarding:step.welcome.title_accent')}
                         </span>
                       </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Two minutes. Your data stays on this device — always.
+                        {t('onboarding:step.welcome.subtitle')}
                       </p>
                     </div>
                     <Input
-                      label="Your name"
-                      placeholder="First name"
+                      label={t('onboarding:step.welcome.name_label')}
+                      placeholder={t('onboarding:step.welcome.name_placeholder')}
                       autoComplete="given-name"
                       value={draft.name}
                       onChange={(e) => update({ name: e.target.value })}
                     />
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                        Units
+                        {t('onboarding:step.welcome.units_label')}
                       </p>
                       <UnitToggle value={draft.units} onChange={(u) => update({ units: u })} />
                     </div>
@@ -359,48 +372,58 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 2 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your medication</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.medication.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        We&apos;ll tailor everything to your med.
+                        {t('onboarding:step.medication.subtitle')}
                       </p>
                     </div>
                     <Select
-                      label="GLP-1 medication"
+                      label={t('onboarding:step.medication.select_label')}
                       value={draft.medication}
                       onChange={(e) => update({ medication: e.target.value as MedicationId })}
                     >
-                      <option value="">Select…</option>
-                      <option value="ozempic">Ozempic (semaglutide)</option>
-                      <option value="wegovy">Wegovy (semaglutide)</option>
-                      <option value="mounjaro">Mounjaro (tirzepatide)</option>
-                      <option value="zepbound">Zepbound (tirzepatide)</option>
-                      <option value="rybelsus">Rybelsus (oral semaglutide)</option>
-                      <option value="saxenda">Saxenda (liraglutide)</option>
-                      <option value="trulicity">Trulicity (dulaglutide)</option>
-                      <option value="retatrutide">Retatrutide</option>
-                      <option value="compound-sema">Compounded semaglutide</option>
-                      <option value="compound-tirz">Compounded tirzepatide</option>
+                      <option value="">{t('onboarding:step.medication.select_placeholder')}</option>
+                      {(
+                        [
+                          'ozempic',
+                          'wegovy',
+                          'mounjaro',
+                          'zepbound',
+                          'rybelsus',
+                          'saxenda',
+                          'trulicity',
+                          'retatrutide',
+                          'compound-sema',
+                          'compound-tirz',
+                        ] as MedicationId[]
+                      ).map((id) => (
+                        <option key={id} value={id}>
+                          {medicationLabel(t, id)}
+                        </option>
+                      ))}
                     </Select>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label="Current dose"
+                        label={t('onboarding:step.medication.dose_label')}
                         inputMode="decimal"
                         placeholder="0.5"
                         value={draft.dose}
                         onChange={(e) => update({ dose: e.target.value })}
                       />
                       <Select
-                        label="Unit"
+                        label={t('onboarding:step.medication.unit_label')}
                         value={draft.doseUnit}
                         onChange={(e) => update({ doseUnit: e.target.value as DoseUnit })}
                       >
-                        <option value="mg">mg</option>
-                        <option value="units">units</option>
-                        <option value="ml">ml</option>
+                        {(['mg', 'units', 'ml'] as DoseUnit[]).map((u) => (
+                          <option key={u} value={u}>
+                            {doseUnitLabel(t, u)}
+                          </option>
+                        ))}
                       </Select>
                     </div>
                     <Input
-                      label="Start date"
+                      label={t('onboarding:step.medication.start_date_label')}
                       type="date"
                       value={draft.startDate}
                       onChange={(e) => update({ startDate: e.target.value })}
@@ -411,14 +434,14 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 3 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your starting point</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.body.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        For real progress tracking.
+                        {t('onboarding:step.body.subtitle')}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label={`Weight (${wU})`}
+                        label={t('onboarding:step.body.weight_label', { unit: wU })}
                         type="number"
                         step="0.1"
                         inputMode="decimal"
@@ -426,7 +449,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                         onChange={(e) => update({ weight: e.target.value })}
                       />
                       <Input
-                        label={`Height (${hU})`}
+                        label={t('onboarding:step.body.height_label', { unit: hU })}
                         type="number"
                         step="0.1"
                         inputMode="decimal"
@@ -436,29 +459,32 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label="Age"
+                        label={t('onboarding:step.body.age_label')}
                         type="number"
                         inputMode="numeric"
                         value={draft.age}
                         onChange={(e) => update({ age: e.target.value })}
                       />
                       <Select
-                        label="Sex at birth"
+                        label={t('onboarding:step.body.sex_label')}
                         value={draft.sex}
                         onChange={(e) => update({ sex: e.target.value as Sex })}
                       >
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
+                        {(['male', 'female'] as Sex[]).map((s) => (
+                          <option key={s} value={s}>
+                            {sexLabel(t, s)}
+                          </option>
+                        ))}
                       </Select>
                     </div>
                     <Input
-                      label="Body fat % (optional)"
+                      label={t('onboarding:step.body.body_fat_label')}
                       type="number"
                       step="0.1"
                       inputMode="decimal"
                       value={draft.bodyFat}
                       onChange={(e) => update({ bodyFat: e.target.value })}
-                      hint="Skip if you don't have a recent reading. We'll estimate lean mass when you log it."
+                      hint={t('onboarding:step.body.body_fat_hint')}
                     />
                   </div>
                 )}
@@ -466,13 +492,13 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 4 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your goals</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.goals.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Where are you headed?
+                        {t('onboarding:step.goals.subtitle')}
                       </p>
                     </div>
                     <Input
-                      label={`Target weight (${wU})`}
+                      label={t('onboarding:step.goals.target_weight_label', { unit: wU })}
                       type="number"
                       step="0.1"
                       inputMode="decimal"
@@ -481,7 +507,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                     />
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                        Primary goal
+                        {t('onboarding:step.goals.primary_goal_label')}
                       </p>
                       <PillGroup>
                         {(['fat-loss', 'recomp', 'health', 'maintenance'] as const).map((g) => (
@@ -490,25 +516,19 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                             active={draft.goal === g}
                             onClick={() => update({ goal: g })}
                           >
-                            {g === 'fat-loss'
-                              ? 'Fat loss'
-                              : g === 'recomp'
-                                ? 'Recomp'
-                                : g === 'health'
-                                  ? 'Health markers'
-                                  : 'Maintenance'}
+                            {goalLabel(t, g)}
                           </Pill>
                         ))}
                       </PillGroup>
                     </div>
                     <Input
-                      label="Daily protein target"
+                      label={t('onboarding:step.goals.protein_label')}
                       type="number"
                       inputMode="numeric"
-                      placeholder="grams (auto if blank)"
+                      placeholder={t('onboarding:step.goals.protein_placeholder')}
                       value={draft.protein}
                       onChange={(e) => update({ protein: e.target.value })}
-                      hint="1.6–2.2g/kg goal weight to preserve muscle"
+                      hint={t('onboarding:step.goals.protein_hint')}
                     />
                   </div>
                 )}
@@ -516,33 +536,25 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 5 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your routine</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.routine.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        For smart nudges that actually fit.
+                        {t('onboarding:step.routine.subtitle')}
                       </p>
                     </div>
                     <Select
-                      label="Injection day"
+                      label={t('onboarding:step.routine.injection_day_label')}
                       value={draft.injectionDay}
                       onChange={(e) => update({ injectionDay: parseInt(e.target.value) })}
                     >
-                      {[
-                        'Sunday',
-                        'Monday',
-                        'Tuesday',
-                        'Wednesday',
-                        'Thursday',
-                        'Friday',
-                        'Saturday',
-                      ].map((d, i) => (
-                        <option key={d} value={i}>
-                          {d}
+                      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+                        <option key={i} value={i}>
+                          {injectionDayLabel(t, i)}
                         </option>
                       ))}
                     </Select>
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                        Activity
+                        {t('onboarding:step.routine.activity_label')}
                       </p>
                       <PillGroup>
                         {(['sedentary', 'light', 'moderate', 'very'] as const).map((a) => (
@@ -551,14 +563,14 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                             active={draft.activity === a}
                             onClick={() => update({ activity: a })}
                           >
-                            {a === 'very' ? 'Very active' : a[0]!.toUpperCase() + a.slice(1)}
+                            {activityLabel(t, a)}
                           </Pill>
                         ))}
                       </PillGroup>
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                        Lifting experience
+                        {t('onboarding:step.routine.lifting_label')}
                       </p>
                       <PillGroup>
                         {(['none', 'beginner', 'intermediate', 'advanced'] as const).map((l) => (
@@ -567,7 +579,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                             active={draft.lifting === l}
                             onClick={() => update({ lifting: l })}
                           >
-                            {l[0]!.toUpperCase() + l.slice(1)}
+                            {liftingLabel(t, l)}
                           </Pill>
                         ))}
                       </PillGroup>
@@ -579,44 +591,41 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        Your starting{' '}
+                        {t('onboarding:step.snapshot.title_prefix')}{' '}
                         <span className="font-display italic font-normal text-[var(--color-primary)]">
-                          snapshot
+                          {t('onboarding:step.snapshot.title_accent')}
                         </span>
                       </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        This is what we&apos;ll measure progress against. Looks right?
+                        {t('onboarding:step.snapshot.subtitle')}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <SnapshotTile label="Name" value={draft.name || '—'} />
+                      <SnapshotTile label={t('onboarding:step.snapshot.tile_name')} value={draft.name || '—'} />
                       <SnapshotTile
-                        label="Medication"
+                        label={t('onboarding:step.snapshot.tile_medication')}
                         value={draft.medication ? medLabel(draft.medication as MedicationId) : '—'}
                       />
                       <SnapshotTile
-                        label="Current dose"
+                        label={t('onboarding:step.snapshot.tile_dose')}
                         value={draft.dose ? `${draft.dose} ${draft.doseUnit}` : '—'}
                       />
-                      <SnapshotTile label="Started" value={draft.startDate} />
+                      <SnapshotTile label={t('onboarding:step.snapshot.tile_started')} value={draft.startDate} />
                       <SnapshotTile
-                        label="Weight"
+                        label={t('onboarding:step.snapshot.tile_weight')}
                         value={draft.weight ? `${draft.weight} ${wU}` : '—'}
                       />
                       <SnapshotTile
-                        label="Goal"
+                        label={t('onboarding:step.snapshot.tile_goal')}
                         value={draft.goalWeight ? `${draft.goalWeight} ${wU}` : '—'}
                       />
                       <SnapshotTile
-                        label="Protein/day"
-                        value={draft.protein ? `${draft.protein} g` : 'Auto'}
+                        label={t('onboarding:step.snapshot.tile_protein')}
+                        value={draft.protein ? `${draft.protein} g` : t('onboarding:step.snapshot.protein_auto')}
                       />
                       <SnapshotTile
-                        label="Injection day"
-                        value={
-                          ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][draft.injectionDay] ??
-                          ''
-                        }
+                        label={t('onboarding:step.snapshot.tile_injection_day')}
+                        value={injectionDayShortLabel(t, draft.injectionDay)}
                       />
                     </div>
                   </div>
@@ -628,37 +637,37 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                       <AIAvatar size={56} className="shrink-0" />
                       <div>
                         <h1 className="text-[26px] font-bold tracking-tight">
-                          You&apos;re{' '}
+                          {t('onboarding:step.ready.title_prefix')}{' '}
                           <span className="font-display italic font-normal text-[var(--color-primary)]">
-                            all set.
+                            {t('onboarding:step.ready.title_accent')}
                           </span>
                         </h1>
                         <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                          Your AI coach is ready. Here&apos;s what&apos;s next:
+                          {t('onboarding:step.ready.subtitle')}
                         </p>
                       </div>
                     </div>
                     <div className="space-y-2.5">
                       <NextStep
-                        title="Open your dashboard"
-                        body="Pre-filled with your data and today's focus."
+                        title={t('onboarding:step.ready.next1_title')}
+                        body={t('onboarding:step.ready.next1_body')}
                       />
                       <NextStep
-                        title="Log your first injection"
-                        body="Start your med-level curve from this dose."
+                        title={t('onboarding:step.ready.next2_title')}
+                        body={t('onboarding:step.ready.next2_body')}
                       />
                       <NextStep
-                        title="Add your current vial"
-                        body="Track supply and refill timing."
+                        title={t('onboarding:step.ready.next3_title')}
+                        body={t('onboarding:step.ready.next3_body')}
                       />
                     </div>
                     {/* Phase 5 D-03: post-onboarding contextual prompt — high-intent
                         "save your data" moment. Anonymous-by-default flow continues if
                         user dismisses; permanent users skip this entirely. */}
                     <div className="rounded-xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)] p-3.5 mt-3">
-                      <p className="text-[13px] font-semibold">Save your data across devices</p>
+                      <p className="text-[13px] font-semibold">{t('onboarding:step.ready.save_title')}</p>
                       <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5">
-                        Sign up to sync your injections to your account.
+                        {t('onboarding:step.ready.save_body')}
                       </p>
                       <Button
                         size="sm"
@@ -668,7 +677,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                           window.location.hash = '#/auth/signup';
                         }}
                       >
-                        Sign up — free
+                        {t('onboarding:step.ready.save_cta')}
                       </Button>
                     </div>
                   </div>
@@ -680,7 +689,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
               <div className="flex gap-2 mt-7">
                 {step === 1 ? (
                   <Button variant="ghost" onClick={onCancel} className="flex-1">
-                    Cancel
+                    {t('common:action.cancel')}
                   </Button>
                 ) : (
                   <Button
@@ -689,7 +698,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                     leadingIcon={<ArrowLeft className="size-4" />}
                     className="flex-1"
                   >
-                    Back
+                    {t('onboarding:nav.back')}
                   </Button>
                 )}
                 {step < TOTAL_STEPS - 1 ? (
@@ -698,7 +707,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                     trailingIcon={<ArrowRight className="size-4" />}
                     className="flex-1"
                   >
-                    Continue
+                    {t('common:action.continue')}
                   </Button>
                 ) : (
                   <Button
@@ -706,7 +715,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                     trailingIcon={<Check className="size-4" />}
                     className="flex-1"
                   >
-                    Open dashboard
+                    {t('onboarding:nav.open_dashboard')}
                   </Button>
                 )}
               </div>
@@ -747,6 +756,7 @@ function OrgOnboardingFlowRenderer({
   onCancel,
   onComplete,
 }: OrgOnboardingFlowRendererProps) {
+  const { t } = useTranslation(['onboarding', 'common']);
   const setUser = useStore((s) => s.setUser);
   const upsertWeight = useStore((s) => s.upsertWeight);
   const toast = useToast();
@@ -795,10 +805,10 @@ function OrgOnboardingFlowRenderer({
     const current = renderedSteps[step];
     if (!current) return;
     if (current.type === 'medication' && !draft.medication) {
-      return toast('Please pick your medication', 'error');
+      return toast(t('onboarding:error.medication_required'), 'error');
     }
     if (current.type === 'body_stats' && !draft.weight) {
-      return toast('Please enter your weight', 'error');
+      return toast(t('onboarding:error.weight_required'), 'error');
     }
     track('onboarding_step_completed', { step, org_flow: true });
     setStep((s) => Math.min(TOTAL - 1, s + 1));
@@ -911,22 +921,22 @@ function OrgOnboardingFlowRenderer({
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        {currentStep.custom?.title ?? `Welcome to ${orgName ?? 'your clinic'}`}
+                        {currentStep.custom?.title ?? t('onboarding:org.welcome_title', { orgName: orgName ?? t('onboarding:org.your_clinic') })}
                       </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        {currentStep.custom?.body ?? 'Your treatment journey starts here.'}
+                        {currentStep.custom?.body ?? t('onboarding:org.welcome_subtitle')}
                       </p>
                     </div>
                     <Input
-                      label="Your name"
-                      placeholder="First name"
+                      label={t('onboarding:step.welcome.name_label')}
+                      placeholder={t('onboarding:step.welcome.name_placeholder')}
                       autoComplete="given-name"
                       value={draft.name}
                       onChange={(e) => update({ name: e.target.value })}
                     />
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                        Units
+                        {t('onboarding:step.welcome.units_label')}
                       </p>
                       <UnitToggle value={draft.units} onChange={(u) => update({ units: u })} />
                     </div>
@@ -937,7 +947,7 @@ function OrgOnboardingFlowRenderer({
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        {currentStep.custom?.title ?? 'Getting started'}
+                        {currentStep.custom?.title ?? t('onboarding:org.intro_card_title')}
                       </h1>
                       {currentStep.custom?.body && (
                         <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
@@ -948,7 +958,7 @@ function OrgOnboardingFlowRenderer({
                     {currentStep.custom?.image_url && (
                       <img
                         src={currentStep.custom.image_url}
-                        alt={currentStep.custom.title ?? 'Introduction'}
+                        alt={currentStep.custom.title ?? t('onboarding:org.intro_card_img_alt')}
                         className="w-full rounded-xl object-cover max-h-48"
                       />
                     )}
@@ -958,48 +968,58 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'medication' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your medication</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.medication.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        We&apos;ll tailor everything to your med.
+                        {t('onboarding:step.medication.subtitle')}
                       </p>
                     </div>
                     <Select
-                      label="GLP-1 medication"
+                      label={t('onboarding:step.medication.select_label')}
                       value={draft.medication}
                       onChange={(e) => update({ medication: e.target.value as MedicationId })}
                     >
-                      <option value="">Select…</option>
-                      <option value="ozempic">Ozempic (semaglutide)</option>
-                      <option value="wegovy">Wegovy (semaglutide)</option>
-                      <option value="mounjaro">Mounjaro (tirzepatide)</option>
-                      <option value="zepbound">Zepbound (tirzepatide)</option>
-                      <option value="rybelsus">Rybelsus (oral semaglutide)</option>
-                      <option value="saxenda">Saxenda (liraglutide)</option>
-                      <option value="trulicity">Trulicity (dulaglutide)</option>
-                      <option value="retatrutide">Retatrutide</option>
-                      <option value="compound-sema">Compounded semaglutide</option>
-                      <option value="compound-tirz">Compounded tirzepatide</option>
+                      <option value="">{t('onboarding:step.medication.select_placeholder')}</option>
+                      {(
+                        [
+                          'ozempic',
+                          'wegovy',
+                          'mounjaro',
+                          'zepbound',
+                          'rybelsus',
+                          'saxenda',
+                          'trulicity',
+                          'retatrutide',
+                          'compound-sema',
+                          'compound-tirz',
+                        ] as MedicationId[]
+                      ).map((id) => (
+                        <option key={id} value={id}>
+                          {medicationLabel(t, id)}
+                        </option>
+                      ))}
                     </Select>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label="Current dose"
+                        label={t('onboarding:step.medication.dose_label')}
                         inputMode="decimal"
                         placeholder="0.5"
                         value={draft.dose}
                         onChange={(e) => update({ dose: e.target.value })}
                       />
                       <Select
-                        label="Unit"
+                        label={t('onboarding:step.medication.unit_label')}
                         value={draft.doseUnit}
                         onChange={(e) => update({ doseUnit: e.target.value as DoseUnit })}
                       >
-                        <option value="mg">mg</option>
-                        <option value="units">units</option>
-                        <option value="ml">ml</option>
+                        {(['mg', 'units', 'ml'] as DoseUnit[]).map((u) => (
+                          <option key={u} value={u}>
+                            {doseUnitLabel(t, u)}
+                          </option>
+                        ))}
                       </Select>
                     </div>
                     <Input
-                      label="Start date"
+                      label={t('onboarding:step.medication.start_date_label')}
                       type="date"
                       value={draft.startDate}
                       onChange={(e) => update({ startDate: e.target.value })}
@@ -1010,13 +1030,13 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'goals' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your goals</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.goals.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Where are you headed?
+                        {t('onboarding:step.goals.subtitle')}
                       </p>
                     </div>
                     <Input
-                      label={`Target weight (${wU})`}
+                      label={t('onboarding:step.goals.target_weight_label', { unit: wU })}
                       type="number"
                       step="0.1"
                       inputMode="decimal"
@@ -1025,7 +1045,7 @@ function OrgOnboardingFlowRenderer({
                     />
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                        Primary goal
+                        {t('onboarding:step.goals.primary_goal_label')}
                       </p>
                       <PillGroup>
                         {(['fat-loss', 'recomp', 'health', 'maintenance'] as const).map((g) => (
@@ -1034,13 +1054,7 @@ function OrgOnboardingFlowRenderer({
                             active={draft.goal === g}
                             onClick={() => update({ goal: g })}
                           >
-                            {g === 'fat-loss'
-                              ? 'Fat loss'
-                              : g === 'recomp'
-                                ? 'Recomp'
-                                : g === 'health'
-                                  ? 'Health markers'
-                                  : 'Maintenance'}
+                            {goalLabel(t, g)}
                           </Pill>
                         ))}
                       </PillGroup>
@@ -1051,14 +1065,14 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'body_stats' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Your starting point</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.body.title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        For real progress tracking.
+                        {t('onboarding:step.body.subtitle')}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label={`Weight (${wU})`}
+                        label={t('onboarding:step.body.weight_label', { unit: wU })}
                         type="number"
                         step="0.1"
                         inputMode="decimal"
@@ -1066,7 +1080,7 @@ function OrgOnboardingFlowRenderer({
                         onChange={(e) => update({ weight: e.target.value })}
                       />
                       <Input
-                        label={`Height (${hU})`}
+                        label={t('onboarding:step.body.height_label', { unit: hU })}
                         type="number"
                         step="0.1"
                         inputMode="decimal"
@@ -1076,19 +1090,22 @@ function OrgOnboardingFlowRenderer({
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <Input
-                        label="Age"
+                        label={t('onboarding:step.body.age_label')}
                         type="number"
                         inputMode="numeric"
                         value={draft.age}
                         onChange={(e) => update({ age: e.target.value })}
                       />
                       <Select
-                        label="Sex at birth"
+                        label={t('onboarding:step.body.sex_label')}
                         value={draft.sex}
                         onChange={(e) => update({ sex: e.target.value as Sex })}
                       >
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
+                        {(['male', 'female'] as Sex[]).map((s) => (
+                          <option key={s} value={s}>
+                            {sexLabel(t, s)}
+                          </option>
+                        ))}
                       </Select>
                     </div>
                   </div>
@@ -1097,15 +1114,15 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'consent' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Consent &amp; disclaimer</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:org.consent_title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Please review before continuing.
+                        {t('onboarding:org.consent_subtitle')}
                       </p>
                     </div>
                     <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 text-[13px] text-[var(--color-text-secondary)] space-y-2">
-                      <p>LeanShot is a health-tracking app, not a medical device or provider.</p>
-                      <p>All data is stored locally on your device unless you explicitly enable cloud sync.</p>
-                      <p>Consult your doctor before making changes to your treatment plan.</p>
+                      <p>{t('onboarding:org.consent_p1')}</p>
+                      <p>{t('onboarding:org.consent_p2')}</p>
+                      <p>{t('onboarding:org.consent_p3')}</p>
                     </div>
                   </div>
                 )}
@@ -1113,13 +1130,13 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'doctor_invite' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Connect your doctor</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:org.doctor_invite_title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Share progress with your care team.
+                        {t('onboarding:org.doctor_invite_subtitle')}
                       </p>
                     </div>
                     <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 text-[13px] text-[var(--color-text-secondary)]">
-                      <p>You can invite your doctor from the Settings page once you are set up.</p>
+                      <p>{t('onboarding:org.doctor_invite_body')}</p>
                     </div>
                   </div>
                 )}
@@ -1127,13 +1144,13 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'tour' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">Quick tour</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:org.tour_title')}</h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-                        Here is what LeanShot can do for you.
+                        {t('onboarding:org.tour_subtitle')}
                       </p>
                     </div>
                     <div className="rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 text-[13px] text-[var(--color-text-secondary)]">
-                      <p>Track injections, body metrics, nutrition, and mood — all in one place.</p>
+                      <p>{t('onboarding:org.tour_body')}</p>
                     </div>
                   </div>
                 )}
@@ -1143,7 +1160,7 @@ function OrgOnboardingFlowRenderer({
             <div className="flex gap-2 mt-7">
               {step === 0 ? (
                 <Button variant="ghost" onClick={onCancel} className="flex-1">
-                  Cancel
+                  {t('common:action.cancel')}
                 </Button>
               ) : (
                 <Button
@@ -1152,7 +1169,7 @@ function OrgOnboardingFlowRenderer({
                   leadingIcon={<ArrowLeft className="size-4" />}
                   className="flex-1"
                 >
-                  Back
+                  {t('onboarding:nav.back')}
                 </Button>
               )}
               {step < TOTAL - 1 ? (
@@ -1161,7 +1178,7 @@ function OrgOnboardingFlowRenderer({
                   trailingIcon={<ArrowRight className="size-4" />}
                   className="flex-1"
                 >
-                  Continue
+                  {t('common:action.continue')}
                 </Button>
               ) : (
                 <Button
@@ -1169,7 +1186,7 @@ function OrgOnboardingFlowRenderer({
                   trailingIcon={<Check className="size-4" />}
                   className="flex-1"
                 >
-                  Open dashboard
+                  {t('onboarding:nav.open_dashboard')}
                 </Button>
               )}
             </div>

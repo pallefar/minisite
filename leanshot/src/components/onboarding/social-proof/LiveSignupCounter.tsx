@@ -21,6 +21,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 
 export const SOCIAL_PROOF_OPTOUT_KEY = 'leanshot_social_proof_optout';
@@ -34,6 +35,7 @@ function isOptedOut(): boolean {
 }
 
 export function LiveSignupCounter() {
+  const { t } = useTranslation('onboarding');
   const [optedOut] = useState<boolean>(() => isOptedOut());
   const [count, setCount] = useState<number | null>(null);
 
@@ -79,7 +81,7 @@ export function LiveSignupCounter() {
   }
   return (
     <p aria-live="polite" className="text-sm text-[var(--color-text-muted)]">
-      {count.toLocaleString()} people joined this week
+      {t('onboarding:social.signups_this_week', { count })}
     </p>
   );
 }

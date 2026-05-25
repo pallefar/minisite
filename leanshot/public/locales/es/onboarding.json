@@ -1,1 +1,218 @@
-{}
+{
+  "consumer": {
+    "auth": {
+      "check_inbox": "Revisa tu bandeja de entrada para el enlace mágico.",
+      "continue_apple": "Continuar con Apple",
+      "continue_email": "Continuar con email",
+      "continue_google": "Continuar con Google",
+      "email_aria_label": "Correo electrónico",
+      "email_placeholder": "tu@ejemplo.com",
+      "email_required": "Ingresa tu correo primero.",
+      "subtitle": "Inicia sesión con un toque — tus respuestas te acompañan.",
+      "title": "Guarda tu progreso"
+    },
+    "goal": {
+      "aria_label": "Objetivo principal",
+      "build_habit": "Crear un hábito",
+      "build_muscle": "Ganar músculo",
+      "doctor_monitored": "Seguimiento médico",
+      "family_supporter": "Ayudar a un familiar",
+      "lose_weight": "Perder peso",
+      "manage_symptoms": "Controlar síntomas",
+      "new_prescription": "Nueva receta",
+      "subtitle": "Elige la opción que mejor te describe. Puedes cambiarla cuando quieras.",
+      "title": "¿Qué te trajo aquí?",
+      "track_with_vial_supply": "Registrar con suministro de vial"
+    },
+    "intro": {
+      "subtitle": "Algunas preguntas rápidas para personalizar tu panel.",
+      "title": "Bienvenido a LeanShot"
+    },
+    "progress": "Paso {{step}} de {{total}}",
+    "ready": {
+      "card_injection": "Registra tu primera inyección",
+      "card_weight": "Registra tu primer peso",
+      "cta": "Llévame al panel",
+      "recommended_badge": "Recomendado",
+      "recommended_fallback": "Obtén asesoramiento personalizado",
+      "subtitle": "Tres cosas para empezar hoy.",
+      "title": "Estás listo"
+    }
+  },
+  "error": {
+    "medication_required": "Por favor elige tu medicamento",
+    "name_required": "Por favor ingresa tu nombre",
+    "weight_required": "Por favor ingresa tu peso"
+  },
+  "first_action": {
+    "aria_label": "Elige tu primera acción",
+    "recommended_badge": "Recomendado para tu objetivo",
+    "recommended_prefix": "Recomendado: ",
+    "start_cta": "Empezar"
+  },
+  "nav": {
+    "back": "Atrás",
+    "open_dashboard": "Abrir panel"
+  },
+  "org": {
+    "consent_p1": "LeanShot es una aplicación de seguimiento de salud, no un dispositivo médico ni un proveedor.",
+    "consent_p2": "Todos los datos se almacenan localmente en tu dispositivo a menos que habilites la sincronización en la nube.",
+    "consent_p3": "Consulta a tu médico antes de realizar cambios en tu plan de tratamiento.",
+    "consent_subtitle": "Por favor revisa antes de continuar.",
+    "consent_title": "Consentimiento y aviso legal",
+    "doctor_invite_body": "Puedes invitar a tu médico desde la página de Configuración una vez que estés configurado.",
+    "doctor_invite_subtitle": "Comparte el progreso con tu equipo de atención.",
+    "doctor_invite_title": "Conecta a tu médico",
+    "intro_card_img_alt": "Introducción",
+    "intro_card_title": "Primeros pasos",
+    "tour_body": "Registra inyecciones, métricas corporales, nutrición y estado de ánimo — todo en un solo lugar.",
+    "tour_subtitle": "Esto es lo que LeanShot puede hacer por ti.",
+    "tour_title": "Tour rápido",
+    "welcome_subtitle": "Tu viaje de tratamiento comienza aquí.",
+    "welcome_title": "Bienvenido a {{orgName}}",
+    "your_clinic": "tu clínica"
+  },
+  "preview": {
+    "badge": "Vista previa de LeanShot",
+    "cta": "Comenzar",
+    "feature_drug_level": "Proyección del nivel del medicamento (28 días atrás + 7 días adelante)",
+    "feature_report": "Un informe médico con un toque que resume el último mes",
+    "feature_rotation": "Rastreador de rotación de sitios para que el mismo hombro nunca reciba dos inyecciones seguidas",
+    "headline": "Descubre cómo se ve tu recorrido con GLP-1 con una sola fuente de información.",
+    "no_account": "No necesitas cuenta para probar la vista previa.",
+    "subheadline": "Registra inyecciones, peso, comida, estado de ánimo y efectos secundarios — y comparte el panorama con tu médico en un toque."
+  },
+  "social": {
+    "signups_this_week_one": "{{count}} persona se unió esta semana",
+    "signups_this_week_other": "{{count}} personas se unieron esta semana",
+    "testimonial_0_author": "Jordan, con tirzepatida",
+    "testimonial_0_quote": "Por fin un lugar donde mi médico y yo vemos el mismo panorama. La gráfica del nivel del medicamento resolvió seis meses de confusión en una sola visita.",
+    "testimonial_1_author": "Priya, con semaglutida",
+    "testimonial_1_quote": "Registrar tarda diez segundos y el mapa de rotación me mantiene honesto. No me he puesto dos dosis en el mismo lugar desde que empecé.",
+    "testimonial_2_author": "Marco, paciente con GLP-1",
+    "testimonial_2_quote": "El informe médico me salvó de tener que resumir tres meses en el momento. Solo traje el enlace para compartir."
+  },
+  "step": {
+    "body": {
+      "age_label": "Edad",
+      "body_fat_hint": "Omite si no tienes una lectura reciente. Estimaremos la masa magra cuando la registres.",
+      "body_fat_label": "% de grasa corporal (opcional)",
+      "height_label": "Altura ({{unit}})",
+      "sex_female": "Femenino",
+      "sex_label": "Sexo al nacer",
+      "sex_male": "Masculino",
+      "subtitle": "Para un seguimiento real del progreso.",
+      "title": "Tu punto de partida",
+      "weight_label": "Peso ({{unit}})"
+    },
+    "disclaimer": {
+      "subtitle": "Una nota rápida antes de configurar todo.",
+      "title": "Antes de empezar"
+    },
+    "goals": {
+      "goal_fat_loss": "Pérdida de grasa",
+      "goal_health": "Marcadores de salud",
+      "goal_maintenance": "Mantenimiento",
+      "goal_recomp": "Recomposición",
+      "primary_goal_label": "Objetivo principal",
+      "protein_hint": "1.6–2.2g/kg del peso objetivo para preservar músculo",
+      "protein_label": "Objetivo diario de proteína",
+      "protein_placeholder": "gramos (automático si está vacío)",
+      "subtitle": "¿Hacia dónde te diriges?",
+      "target_weight_label": "Peso objetivo ({{unit}})",
+      "title": "Tus objetivos"
+    },
+    "medication": {
+      "compound_sema": "Semaglutida compuesta",
+      "compound_tirz": "Tirzepatida compuesta",
+      "dose_label": "Dosis actual",
+      "mounjaro": "Mounjaro (tirzepatida)",
+      "ozempic": "Ozempic (semaglutida)",
+      "retatrutide": "Retatrutida",
+      "rybelsus": "Rybelsus (semaglutida oral)",
+      "saxenda": "Saxenda (liraglutida)",
+      "select_label": "Medicamento GLP-1",
+      "select_placeholder": "Seleccionar…",
+      "start_date_label": "Fecha de inicio",
+      "subtitle": "Adaptaremos todo a tu medicamento.",
+      "title": "Tu medicamento",
+      "trulicity": "Trulicity (dulaglutida)",
+      "unit_label": "Unidad",
+      "unit_mg": "mg",
+      "unit_ml": "ml",
+      "unit_units": "unidades",
+      "wegovy": "Wegovy (semaglutida)",
+      "zepbound": "Zepbound (tirzepatida)"
+    },
+    "ready": {
+      "next1_body": "Prellenado con tus datos y el enfoque de hoy.",
+      "next1_title": "Abre tu panel",
+      "next2_body": "Comienza tu curva de nivel del medicamento desde esta dosis.",
+      "next2_title": "Registra tu primera inyección",
+      "next3_body": "Registra el suministro y los tiempos de recarga.",
+      "next3_title": "Agrega tu vial actual",
+      "save_body": "Regístrate para sincronizar tus inyecciones con tu cuenta.",
+      "save_cta": "Registrarse — gratis",
+      "save_title": "Guarda tus datos en todos tus dispositivos",
+      "subtitle": "Tu coach de IA está listo. Esto es lo que sigue:",
+      "title_accent": "listo.",
+      "title_prefix": "Estás"
+    },
+    "routine": {
+      "activity_label": "Actividad",
+      "activity_light": "Ligera",
+      "activity_moderate": "Moderada",
+      "activity_sedentary": "Sedentario",
+      "activity_very": "Muy activo",
+      "day_friday": "Viernes",
+      "day_monday": "Lunes",
+      "day_saturday": "Sábado",
+      "day_short_friday": "Vie",
+      "day_short_monday": "Lun",
+      "day_short_saturday": "Sáb",
+      "day_short_sunday": "Dom",
+      "day_short_thursday": "Jue",
+      "day_short_tuesday": "Mar",
+      "day_short_wednesday": "Mié",
+      "day_sunday": "Domingo",
+      "day_thursday": "Jueves",
+      "day_tuesday": "Martes",
+      "day_wednesday": "Miércoles",
+      "injection_day_label": "Día de inyección",
+      "lifting_advanced": "Avanzado",
+      "lifting_beginner": "Principiante",
+      "lifting_intermediate": "Intermedio",
+      "lifting_label": "Experiencia con pesas",
+      "lifting_none": "Ninguna",
+      "subtitle": "Para recordatorios inteligentes que realmente se adaptan.",
+      "title": "Tu rutina"
+    },
+    "snapshot": {
+      "protein_auto": "Automático",
+      "subtitle": "Esto es contra lo que mediremos el progreso. ¿Se ve bien?",
+      "tile_dose": "Dosis actual",
+      "tile_goal": "Objetivo",
+      "tile_injection_day": "Día de inyección",
+      "tile_medication": "Medicamento",
+      "tile_name": "Nombre",
+      "tile_protein": "Proteína/día",
+      "tile_started": "Inicio",
+      "tile_weight": "Peso",
+      "title_accent": "instantánea",
+      "title_prefix": "Tu"
+    },
+    "welcome": {
+      "name_label": "Tu nombre",
+      "name_placeholder": "Nombre",
+      "subtitle": "Dos minutos. Tus datos permanecen en este dispositivo — siempre.",
+      "title_accent": "aquí.",
+      "title_prefix": "Bienvenido",
+      "units_label": "Unidades"
+    }
+  },
+  "unit_toggle": {
+    "aria_label": "Sistema de unidades",
+    "imperial": "Imperial · lb, in",
+    "metric": "Métrico · kg, cm"
+  }
+}
