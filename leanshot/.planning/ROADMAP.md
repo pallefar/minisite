@@ -111,7 +111,7 @@
 
 Plans:
 - [x] 55-01-firewall-three-layers-PLAN.md — 3-layer two-tunnel firewall (ESLint AST + runtime guard + CI grep), each individually tested
-- [ ] 55-02-db-foundation-plugin-PLAN.md — hk_source columns + healthkit_sync_state table + purge/upsert RPCs + @capgo/capacitor-health plugin install
+- [x] 55-02-db-foundation-plugin-PLAN.md — hk_source columns + healthkit_sync_state table + purge/upsert RPCs + @capgo/capacitor-health plugin install
 - [ ] 55-03-health-impl-import-mapping-PLAN.md — full health.ts read-only import + idempotent mapping to existing tables + revoke/purge logic (mock-tested)
 - [ ] 55-04-consent-ui-settings-privacy-PLAN.md — OPT-IN consent modal + Settings revoke/purge + PrivacyInfo.xcprivacy §5.1.3 fix
 **UI hint**: yes
@@ -461,7 +461,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 52. Vendor Setup Foundation | 4/4 | Complete   | 2026-05-25 |
 | 53. Capacitor Mobile Shells | 4/4 | Complete   | 2026-05-25 |
 | 54. Push Notifications | 5/5 | Complete   | 2026-05-25 |
-| 55. HealthKit + Two-Tunnel Firewall | 1/4 | In Progress|  |
+| 55. HealthKit + Two-Tunnel Firewall | 2/4 | In Progress|  |
 | 56. Ad Network | 0/0 | Not started | - |
 | 57. Watch Apps | 0/0 | Not started | - |
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
