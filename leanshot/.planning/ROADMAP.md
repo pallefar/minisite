@@ -238,7 +238,13 @@ Plans:
   4. ONBOARD-05/06/07/10/11 verified end-to-end (activation walkthrough + admin step builder + Mobile Lighthouse ≥90 + anonymous-to-authenticated merge)
   5. PostHog Experiments traffic split + ship-winner re-verified live with VENDOR-09 Personal API key
 
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
+
+Plans:
+- [ ] 59-01-PLAN.md — HIG "Sign in with Apple" button on SignInForm + SignUpForm (+ useTranslation) + en/es wordmark (AUTH-07/08)
+- [ ] 59-02-PLAN.md — native iOS Apple Sign-In bridge (@capacitor-community/apple-sign-in + entitlement + signInWithIdToken, flag+platform gated) + private-relay (AUTH-07/09)
+- [ ] 59-03-PLAN.md — PostHog experiment-variant bug fix + AuthCallbackView anon-merge + Lighthouse runnability (AUTH-10/11, ONBOARD-05/06/07/10/11)
+
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -545,7 +551,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 56. Ad Network | 6/6 | Complete   | 2026-05-25 |
 | 57. Watch Apps | 3/3 | Complete   | 2026-05-25 |
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
-| 59. Apple OAuth + Onboarding Completion | 0/0 | Not started | - |
+| 59. Apple OAuth + Onboarding Completion | 0/3 | Planned | - |
 | 60. RAG Knowledge Base Completion | 0/0 | Not started | - |
 | 61. Admin Protocol Creator | 0/0 | Not started | - |
 | 62. Insights & Research Engine | 0/0 | Not started | - |
