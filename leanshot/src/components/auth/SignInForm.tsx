@@ -12,10 +12,11 @@
  */
 import { Mail, KeyRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { setPasswordOnPromoted, signIn, signInWithMagicLink } from '@/lib/auth';
+import { isAppleEnabled, setPasswordOnPromoted, signIn, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
 
 const PASSWORD_REGEX = /^(?=.*\d).{8,}$/;
 
@@ -25,6 +26,7 @@ function parseSearch(hash: string): URLSearchParams {
 }
 
 export function SignInForm() {
+  const { t } = useTranslation(['onboarding']);
   const [params] = useState(() => parseSearch(window.location.hash));
   const isPromote = params.get('promote') === '1';
   const [email, setEmail] = useState(() => params.get('email') ?? '');
@@ -99,6 +101,13 @@ export function SignInForm() {
     }
   };
 
+  const onApple = async (): Promise<void> => {
+    setSubmitting(true);
+    const { error } = await signInWithOAuthProvider('apple');
+    setSubmitting(false);
+    if (error) toast(error.message, 'error');
+  };
+
   return (
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
       <header>
@@ -145,6 +154,19 @@ export function SignInForm() {
       <Button type="submit" block loading={submitting}>
         {isPromote ? 'Set password' : 'Sign in'}
       </Button>
+
+      {isAppleEnabled() && !isPromote && (
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={submitting}
+          onClick={() => void onApple()}
+          className="min-h-[44px]"
+        >
+          {t('onboarding:consumer.auth.sign_in_apple')}
+        </Button>
+      )}
 
       {!isPromote && (
         <div className="flex flex-col items-center gap-2 text-[13px]">

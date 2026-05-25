@@ -14,10 +14,11 @@
  */
 import { Mail, KeyRound, Ticket } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { attachEmailToAnon, getSession, signUp } from '@/lib/auth';
+import { attachEmailToAnon, getSession, isAppleEnabled, signInWithOAuthProvider, signUp } from '@/lib/auth';
 import { useFeatureFlag } from '@/lib/feature-flags';
 
 const PASSWORD_REGEX = /^(?=.*\d).{8,}$/;
@@ -30,6 +31,7 @@ const REFERRAL_CODE_REGEX = /^[a-z0-9-]{4,80}$/;
 const AFF_MANUAL_SESSION_KEY = 'leanshot_aff_manual';
 
 export function SignUpForm() {
+  const { t } = useTranslation(['onboarding']);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errEmail, setErrEmail] = useState<string | undefined>();
@@ -135,6 +137,13 @@ export function SignUpForm() {
     }
   };
 
+  const onApple = async (): Promise<void> => {
+    setSubmitting(true);
+    const { error } = await signInWithOAuthProvider('apple');
+    setSubmitting(false);
+    if (error) toast(error.message, 'error');
+  };
+
   return (
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
       <header>
@@ -205,6 +214,19 @@ export function SignUpForm() {
       <Button type="submit" block loading={submitting}>
         {isAnon ? 'Send verification link' : 'Create account'}
       </Button>
+
+      {isAppleEnabled() && !isAnon && (
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={submitting}
+          onClick={() => void onApple()}
+          className="min-h-[44px]"
+        >
+          {t('onboarding:consumer.auth.sign_in_apple')}
+        </Button>
+      )}
 
       <p className="text-[13px] text-center text-[var(--color-text-secondary)]">
         Already have an account?{' '}
