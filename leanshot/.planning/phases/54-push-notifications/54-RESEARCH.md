@@ -686,21 +686,13 @@ Phase 54 is a new-capability phase (no rename/refactor). However, the migration 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **push-dispatch as sub-call vs standalone:**
-   - What we know: `notification-send` has `fanOutPush()` that iterates all push_subscriptions. `push-dispatch` will be the new multi-platform fan-out.
-   - What's unclear: Should `notification-send` CALL `push-dispatch` (Fn-to-Fn), or should both independently query `push_subscriptions` with different `platform` filters?
-   - Recommendation: Use the filter approach (safest, no Fn-to-Fn calls): `notification-send.fanOutPush` adds `.eq('platform', 'web')`; `push-dispatch` queries all platforms. Callers (cron) decide which Fn to invoke.
+1. **push-dispatch as sub-call vs standalone** — **RESOLVED:** filter approach (no Fn-to-Fn). `notification-send.fanOutPush` adds `.eq('platform','web')`; `push-dispatch` queries all platforms; callers choose which Fn. Encoded in 54-02 + 54-04.
 
-2. **APNs sandbox vs production:**
-   - What we know: APNs has different endpoints (`api.push.apple.com` vs `api.sandbox.push.apple.com`). Phase 70 defers real device delivery.
-   - What's unclear: Which endpoint to use during the fail-soft/no-cert phase?
-   - Recommendation: Add `APNS_SANDBOX=true` Function Secret (defaulting to true); push-dispatch checks this to pick the endpoint. When Phase 70 provisions real certs, operator sets `APNS_SANDBOX=false`.
+2. **APNs sandbox vs production** — **RESOLVED:** add `APNS_SANDBOX` Function Secret (default true); push-dispatch picks endpoint accordingly. Operator flips to false at Phase 70 when real certs land. Encoded in 54-02 pinned facts.
 
-3. **`notification-send` category list drift:**
-   - What we know: `VALID_CATEGORIES` in `notification-send/index.ts` does NOT include community categories added in Phase 44/45 (the code does enumerate them — see the `Set<Category>` at line 169). However the server-side `_shared/notification-types.ts` `Category` type is missing `community-dm`, `community-admin-report` relative to the client-side `types.ts`. 
-   - Recommendation: Phase 54 widening migration for `helpdesk-reply` should also sync the `_shared/notification-types.ts` `Category` type to include all 15 existing categories plus the new one. This is a pre-existing drift cleanup.
+3. **notification-send category drift** — **RESOLVED:** the 54-01 widening migration syncs `_shared/notification-types.ts` `Category` to all existing categories + `helpdesk-reply` (pre-existing drift cleanup). Encoded in 54-01.
 
 ---
 
