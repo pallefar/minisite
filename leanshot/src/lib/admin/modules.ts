@@ -569,6 +569,26 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.vendor_smoke.enabled',
     minRole: 'superadmin' as AdminRole,
   },
+  // Phase 56 Plan 56-05 (AD-06) — Admin revenue dashboard.
+  // Surfaces eCPM / RPM / fill rate / CTR KPI tiles by placement + network.
+  // Data read via get_ad_revenue_dashboard SECDEF RPC (T-56-14 mitigated:
+  // RPC raises 42501 for non-admins; minRole 'admin' is the Pattern S1 UX layer).
+  // Route MUST be 'growth/ad-revenue' so AdminShell's
+  // pathname.startsWith('/admin/growth/ad-revenue/') prefix match resolves it
+  // correctly — per feedback_admin_module_manifest_vs_router_branch_drift.
+  // Do NOT add a switch branch in AdminShell.tsx — URL-prefix routing handles it.
+  {
+    key: 'growth-ad-revenue',
+    label: 'Ad Revenue',
+    route: 'growth/ad-revenue',
+    icon: TrendingUpIcon,
+    lazy: () =>
+      import('@/components/admin/growth/AdRevenueDashboardPage').then((m) => ({
+        default: m.AdRevenueDashboardPage,
+      })),
+    flagKey: 'admin.growth.ad_revenue.enabled',
+    minRole: 'admin' as AdminRole,
+  },
 ] as const satisfies readonly AdminModule[];
 
 export type AdminModuleKey = (typeof ADMIN_MODULES)[number]['key'];
