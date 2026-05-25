@@ -39,6 +39,7 @@
  */
 import { Check, Clock, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -103,6 +104,7 @@ function mapLookupToPageState(r: LookupResponse): PageState {
 }
 
 export function ClinicInvitePage() {
+  const { t } = useTranslation(['clinic', 'common']);
   const [state, setState] = useState<PageState>({ kind: 'loading' });
   const tokenRef = useRef<string | null>(null);
 
@@ -235,7 +237,7 @@ export function ClinicInvitePage() {
         {state.kind === 'state_h' && <StateH onRetry={doLookup} />}
 
         <footer className="mt-10 text-center text-[12px] text-[var(--color-text-tertiary)]">
-          Powered by LeanShot — your private data tracking
+          {t('clinic:invite.footer')}
         </footer>
       </div>
     </main>
@@ -249,9 +251,10 @@ export default ClinicInvitePage;
 /* ──────────────────────────────────────────────────────────────────── */
 
 function StateA() {
+  const { t } = useTranslation('clinic');
   return (
     <Card variant="default" padding="lg" className="max-w-[640px] mx-auto">
-      <h1 className="text-[22px] font-bold tracking-tight">Opening invitation…</h1>
+      <h1 className="text-[22px] font-bold tracking-tight">{t('clinic:invite.loading')}</h1>
       <div className="mt-4 flex flex-col gap-3">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
@@ -270,23 +273,22 @@ function StateC({
   magicSent: boolean;
   onSendMagicLink: () => Promise<void>;
 }) {
+  const { t } = useTranslation('clinic');
   const [sending, setSending] = useState(false);
   return (
     <Card variant="elevated" padding="lg" className="max-w-[480px] mx-auto">
-      <h1 className="text-[24px] font-bold tracking-tight">Sign in to continue</h1>
+      <h1 className="text-[24px] font-bold tracking-tight">{t('clinic:invite.magic_link.signin_title')}</h1>
       <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
-        {invite.org.name} invited you to share your data. Sign in to your LeanShot account to
-        review the invitation.
+        {t('clinic:invite.magic_link.signin_body', { orgName: invite.org.name })}
       </p>
       {magicSent ? (
         <p className="mt-5 text-[14px] text-[var(--color-success)]" role="status">
-          Check your email for a sign-in link.
+          {t('clinic:invite.magic_link.sent')}
         </p>
       ) : (
         <div className="mt-5 flex flex-col gap-3">
           <p className="text-[13px] text-[var(--color-text-tertiary)]">
-            We&apos;ll email a sign-in link to <strong>{invite.email}</strong>. The invitation
-            will be waiting once you&apos;re back.
+            {t('clinic:invite.magic_link.hint', { email: invite.email })}
           </p>
           <Button
             variant="primary"
@@ -300,7 +302,7 @@ function StateC({
               }
             }}
           >
-            Sign in with magic link
+            {t('clinic:invite.magic_link.cta')}
           </Button>
         </div>
       )}
@@ -309,19 +311,20 @@ function StateC({
 }
 
 function StateE({ orgName }: { orgName: string | null }) {
+  const { t } = useTranslation('clinic');
   return (
     <Card variant="elevated" padding="lg" className="max-w-[480px] mx-auto text-center">
       <EmptyState
         illustration={<Clock className="size-10" aria-hidden />}
-        title="This invitation has expired"
+        title={t('clinic:invite.error.expired_title')}
         body={
           orgName
-            ? `Invitations expire 7 days after they're sent. Ask ${orgName} to send you a new one.`
-            : 'Ask the clinic to send a new invitation.'
+            ? t('clinic:invite.error.expired_body_org', { orgName })
+            : t('clinic:invite.error.expired_body_generic')
         }
         cta={
           <Button variant="ghost" onClick={() => (window.location.href = '/')}>
-            Done
+            {t('clinic:invite.action.done')}
           </Button>
         }
       />
@@ -330,15 +333,16 @@ function StateE({ orgName }: { orgName: string | null }) {
 }
 
 function StateF() {
+  const { t } = useTranslation('clinic');
   return (
     <Card variant="elevated" padding="lg" className="max-w-[480px] mx-auto text-center">
       <EmptyState
         illustration={<Check className="size-10" aria-hidden />}
-        title="This invitation has already been accepted or declined"
-        body="Open Settings → Active organizations to manage your memberships."
+        title={t('clinic:invite.error.already_used_title')}
+        body={t('clinic:invite.error.already_used_body')}
         cta={
           <Button variant="primary" onClick={() => (window.location.href = '/')}>
-            Done
+            {t('clinic:invite.action.done')}
           </Button>
         }
       />
@@ -347,19 +351,20 @@ function StateF() {
 }
 
 function StateG({ orgName }: { orgName: string | null }) {
+  const { t } = useTranslation('clinic');
   return (
     <Card variant="elevated" padding="lg" className="max-w-[480px] mx-auto text-center">
       <EmptyState
         illustration={<XCircle className="size-10 text-[var(--color-danger)]" aria-hidden />}
-        title="This invitation was canceled by the clinic"
+        title={t('clinic:invite.error.canceled_title')}
         body={
           orgName
-            ? `${orgName} canceled this invitation. Ask them to send a new one if you still want to share your data.`
-            : 'Ask the clinic to send a new invitation.'
+            ? t('clinic:invite.error.canceled_body_org', { orgName })
+            : t('clinic:invite.error.canceled_body_generic')
         }
         cta={
           <Button variant="ghost" onClick={() => (window.location.href = '/')}>
-            Done
+            {t('clinic:invite.action.done')}
           </Button>
         }
       />
@@ -368,12 +373,13 @@ function StateG({ orgName }: { orgName: string | null }) {
 }
 
 function StateH({ onRetry }: { onRetry: () => Promise<void> }) {
+  const { t } = useTranslation('clinic');
   const [retrying, setRetrying] = useState(false);
   return (
     <Card variant="elevated" padding="lg" className="max-w-[480px] mx-auto text-center">
       <EmptyState
-        title="Something went wrong loading this invitation"
-        body="Check your connection, then retry. If the problem continues, ask the clinic to send a new invitation."
+        title={t('clinic:invite.error.load_title')}
+        body={t('clinic:invite.error.load_body')}
         cta={
           <Button
             variant="primary"
@@ -387,7 +393,7 @@ function StateH({ onRetry }: { onRetry: () => Promise<void> }) {
               }
             }}
           >
-            Retry
+            {t('clinic:invite.action.retry')}
           </Button>
         }
       />

@@ -15,6 +15,7 @@
  */
 import { KeyRound, Mail } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
@@ -34,6 +35,7 @@ export function InviteSignupForm({
   onAlreadyRegistered,
   onSignupSent,
 }: InviteSignupFormProps) {
+  const { t } = useTranslation(['clinic', 'common']);
   const [password, setPassword] = useState('');
   const [errPassword, setErrPassword] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +48,7 @@ export function InviteSignupForm({
     setErrPassword(undefined);
     setErrToast(undefined);
     if (password.length < 8) {
-      setErrPassword('At least 8 characters.');
+      setErrPassword(t('clinic:invite.signup.err_password_short'));
       return;
     }
     setSubmitting(true);
@@ -77,7 +79,7 @@ export function InviteSignupForm({
       setSent(true);
       onSignupSent?.(email);
     } catch (err) {
-      setErrToast(err instanceof Error ? err.message : "Couldn't create account. Try again.");
+      setErrToast(err instanceof Error ? err.message : t('clinic:invite.signup.err_create_account'));
     } finally {
       setSubmitting(false);
     }
@@ -89,7 +91,7 @@ export function InviteSignupForm({
     try {
       await supabase.auth.resend({ type: 'signup', email });
     } catch (err) {
-      setErrToast(err instanceof Error ? err.message : "Couldn't resend confirmation email.");
+      setErrToast(err instanceof Error ? err.message : t('clinic:invite.signup.err_resend'));
     } finally {
       setResending(false);
     }
@@ -101,10 +103,9 @@ export function InviteSignupForm({
   if (sent) {
     return (
       <div className="flex flex-col gap-3">
-        <h1 className="text-[24px] font-bold tracking-tight">Check your email at {email}</h1>
+        <h1 className="text-[24px] font-bold tracking-tight">{t('clinic:invite.signup.confirm_title', { email })}</h1>
         <p className="text-[14px] text-[var(--color-text-secondary)]">
-          We sent a confirmation link to {email}. Click it to confirm your account, then come back
-          here to review your invitation.
+          {t('clinic:invite.signup.confirm_body', { email })}
         </p>
         {errToast && (
           <p className="text-[13px] text-[var(--color-danger)]" role="alert">
@@ -113,7 +114,7 @@ export function InviteSignupForm({
         )}
         <div>
           <Button variant="ghost" onClick={resend} loading={resending}>
-            Re-send confirmation
+            {t('clinic:invite.signup.resend')}
           </Button>
         </div>
       </div>
@@ -126,29 +127,29 @@ export function InviteSignupForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
       <header>
-        <h1 className="text-[26px] font-bold tracking-tight">Create your LeanShot account</h1>
+        <h1 className="text-[26px] font-bold tracking-tight">{t('clinic:invite.signup.title')}</h1>
         <p className="mt-1 text-[14px] text-[var(--color-text-secondary)]">
-          {orgName} invited you. Create your account, then choose what to share.
+          {t('clinic:invite.signup.body', { orgName })}
         </p>
       </header>
       <Input
-        label="Your email"
+        label={t('clinic:invite.signup.label_email')}
         type="email"
         value={email}
         readOnly
         leadingIcon={<Mail className="size-4" />}
-        hint="We'll send a confirmation link to verify it's you."
+        hint={t('clinic:invite.signup.hint_email')}
         aria-readonly="true"
       />
       <Input
-        label="Password"
+        label={t('clinic:invite.signup.label_password')}
         type="password"
         autoComplete="new-password"
         required
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         leadingIcon={<KeyRound className="size-4" />}
-        hint="At least 8 characters."
+        hint={t('clinic:invite.signup.hint_password')}
         error={errPassword}
       />
       {errToast && (
@@ -157,7 +158,7 @@ export function InviteSignupForm({
         </p>
       )}
       <Button type="submit" variant="primary" loading={submitting} block>
-        Create account and continue
+        {t('clinic:invite.signup.cta')}
       </Button>
     </form>
   );
