@@ -39,11 +39,20 @@ import {
 // Phase 49 Plan 09 — narrow snoozeable categories (analytics event schema
 // limits `notification_snoozed` to the original 5 categories per
 // src/lib/analytics/events.ts).
-type SnoozeableCategory = Exclude<Category, `${string}_digest`>;
+// Phase 54 — Category union widened to 16 (helpdesk-reply + community/event cats).
+// Snooze + the channel matrix only operate on the original 5 user-facing categories
+// (the analytics `notification_snoozed` schema also limits to these 5). Pin explicitly
+// so widening the Category union does not pull server-only categories into this UI.
+type SnoozeableCategory =
+  | 'dose-reminders'
+  | 'ai-insights'
+  | 'clinic-alerts'
+  | 'billing'
+  | 'marketing';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORY_LABEL: Record<Category, string> = {
+const CATEGORY_LABEL: Partial<Record<Category, string>> = {
   'dose-reminders': 'Dose reminders',
   'ai-insights': 'AI insights',
   'clinic-alerts': 'Clinic alerts',
@@ -84,7 +93,7 @@ const CHANNEL_LABEL: Record<Channel, string> = {
 // (category, channel) combo. The UI shows the smart default; the server-side
 // fire decision uses category_config.*_default for the same purpose. Keeping
 // them in sync here is a documentation-by-mirror tactic.
-const DEFAULT_ENABLED: Record<Category, Record<Channel, boolean>> = {
+const DEFAULT_ENABLED: Partial<Record<Category, Record<Channel, boolean>>> = {
   'dose-reminders': { email: true, 'web-push': true, 'in-app': true },
   'ai-insights': { email: false, 'web-push': true, 'in-app': true },
   'clinic-alerts': { email: true, 'web-push': true, 'in-app': true },
@@ -102,7 +111,7 @@ function isEnabled(
   channel: Channel,
 ): boolean {
   const row = settings.get(keyOf(category, channel));
-  if (!row) return DEFAULT_ENABLED[category][channel];
+  if (!row) return DEFAULT_ENABLED[category]?.[channel] ?? false;
   return row.enabled;
 }
 
@@ -501,7 +510,7 @@ export function NotificationsSubtab() {
             <DigestToggleRow
               key={cat}
               category={cat}
-              label={CATEGORY_LABEL[cat]}
+              label={CATEGORY_LABEL[cat] ?? cat}
               userId={userId}
               enabled={isEnabled(settings, cat, 'email')}
               isLoading={isLoading}
