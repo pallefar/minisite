@@ -101,6 +101,43 @@ module.exports = {
           });
         }
       },
+      // CR-02: also catch dynamic import() expressions — import('@/lib/native/health')
+      // These are ImportExpression nodes; their source is node.source (a Literal).
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      ImportExpression(node) {
+        const source = node.source;
+        const importPath =
+          source && source.type === 'Literal' && typeof source.value === 'string'
+            ? source.value
+            : null;
+        if (importPath && HEALTH_IMPORT.test(importPath)) {
+          context.report({
+            node,
+            messageId: 'crossImport',
+            data: { importer: filename },
+          });
+        }
+      },
+      // CR-02: also catch require() calls — require('../native/health')
+      // These appear as CallExpression nodes with callee.name === 'require'.
+      CallExpression(node) {
+        if (
+          node.callee.type === 'Identifier' &&
+          node.callee.name === 'require' &&
+          node.arguments.length > 0
+        ) {
+          const arg = node.arguments[0];
+          const importPath =
+            arg && arg.type === 'Literal' && typeof arg.value === 'string' ? arg.value : null;
+          if (importPath && HEALTH_IMPORT.test(importPath)) {
+            context.report({
+              node,
+              messageId: 'crossImport',
+              data: { importer: filename },
+            });
+          }
+        }
+      },
     };
   },
 };

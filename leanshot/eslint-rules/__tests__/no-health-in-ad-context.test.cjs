@@ -70,6 +70,32 @@ describe('no-health-in-ad-context', () => {
     });
   });
 
+  test('Fixture 5: ad-context file using dynamic import() of health → FAILS (CR-02 dynamic-import bypass fix)', () => {
+    tester.run('no-health-in-ad-context', rule, {
+      valid: [],
+      invalid: [
+        {
+          filename: 'src/lib/analytics/tracker.ts',
+          code: `const h = import('../native/health');`,
+          errors: [{ messageId: 'crossImport' }],
+        },
+      ],
+    });
+  });
+
+  test('Fixture 6: ad-context file using require() of health → FAILS (CR-02 dynamic-import bypass fix)', () => {
+    tester.run('no-health-in-ad-context', rule, {
+      valid: [],
+      invalid: [
+        {
+          filename: 'src/lib/marketing/campaign.ts',
+          code: `const h = require('@/lib/native/health');`,
+          errors: [{ messageId: 'crossImport' }],
+        },
+      ],
+    });
+  });
+
   test('Fixture 3: ad-context file importing ./platform (non-health) → PASSES', () => {
     tester.run('no-health-in-ad-context', rule, {
       valid: [

@@ -93,12 +93,14 @@ fi
 # then check whether the stripped content contains a health.ts import.
 # perl -0 slurps the whole file as one record so the regex matches across newlines.
 HITS=""
-for f in $FILES; do
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
   STRIPPED=$(perl -0pe 's{/\*.*?\*/}{}gs; s{//[^\n]*}{}g' "$f" 2>/dev/null || cat "$f")
-  if echo "$STRIPPED" | grep -qE "from ['\"].*native/health|from ['\"]@/lib/native/health"; then
+  # CR-02: pattern covers static imports, dynamic import() expressions, and require() calls.
+  if echo "$STRIPPED" | grep -qE "from ['\"].*native/health|from ['\"]@/lib/native/health|import\(['\"].*native/health|import\(['\"]@/lib/native/health|require\(['\"].*native/health|require\(['\"]@/lib/native/health"; then
     HITS="${HITS}${f}"$'\n'
   fi
-done
+done <<< "$FILES"
 
 if [ -z "$HITS" ]; then
   echo "OK: no health import in ad-context files under $SRC_ROOT (Layer 3 passes)."
