@@ -100,7 +100,7 @@ describe('AdRevenueDashboardPage', () => {
     render(<AdRevenueDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/no revenue data/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/no revenue data/i).length).toBeGreaterThan(0);
     });
   });
 
@@ -109,7 +109,7 @@ describe('AdRevenueDashboardPage', () => {
     render(<AdRevenueDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/no revenue data/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/no revenue data/i).length).toBeGreaterThan(0);
     });
   });
 

@@ -250,7 +250,7 @@ export function AdRevenueDashboardPage() {
       <div className="p-6">
         <EmptyState
           title="Error loading revenue data"
-          description={error}
+          body={error}
         />
       </div>
     );
@@ -261,7 +261,7 @@ export function AdRevenueDashboardPage() {
       <div className="p-6">
         <EmptyState
           title="No revenue data"
-          description="No revenue data available for the selected period. Revenue data arrives once ad placements are live (Phase 70)."
+          body="No revenue data available for the selected period. Revenue data arrives once ad placements are live (Phase 70)."
         />
       </div>
     );
