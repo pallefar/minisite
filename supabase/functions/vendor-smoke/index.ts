@@ -376,6 +376,13 @@ const fcmHandler: VendorHandler = {
     const privateKey = serviceAccount.private_key ?? '';
     const tokenUri = serviceAccount.token_uri ?? 'https://oauth2.googleapis.com/token';
 
+    // SSRF guard: token_uri must be the Google OAuth2 token endpoint.
+    // A supply-chain-compromised PLAY_SERVICE_ACCOUNT_JSON could otherwise redirect
+    // the OAuth2 fetch to an arbitrary internal URL reachable from the Edge runtime.
+    if (!tokenUri.startsWith('https://oauth2.googleapis.com/')) {
+      return { status: 'fail', latency_ms: null, message: 'invalid_token_uri' };
+    }
+
     if (!clientEmail || !privateKey) {
       return { status: 'fail', latency_ms: null, message: 'missing_credentials' };
     }
