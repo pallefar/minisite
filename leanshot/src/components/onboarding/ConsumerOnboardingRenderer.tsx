@@ -34,7 +34,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pill } from '@/components/ui/Pill';
 import { isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
-import { clearAnonCookie, readAnonCookie } from '@/lib/anonymous/cookie';
+import { readAnonCookie } from '@/lib/anonymous/cookie';
+import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
 import { primaryGoalLabel } from '@/lib/i18n/onboarding-labels';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
@@ -205,40 +206,23 @@ export function ConsumerOnboardingRenderer({
       } catch {
         distinctId = undefined;
       }
-      try {
-        const res = await fetch(`${getSupabaseUrl()}/functions/v1/merge-anon-session`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            apikey: getAnonKey(),
-            Authorization: access ? `Bearer ${access}` : `Bearer ${getAnonKey()}`,
-          },
-          body: JSON.stringify({
-            cookie_ids: [cookie],
-            anon_distinct_id: distinctId,
-          }),
-        });
-        const json = (await res.json()) as { merged?: boolean; draft_entries?: unknown[] };
-        if (json?.merged) {
-          // Plan 34-07 owns the store action `replayDraftEntries`. We
-          // best-effort dispatch if it exists; otherwise log for follow-up.
-          const replay = (
-            useStore.getState() as unknown as {
-              replayDraftEntries?: (entries: unknown[]) => void;
-            }
-          ).replayDraftEntries;
-          if (Array.isArray(json.draft_entries) && typeof replay === 'function') {
-            try {
-              replay(json.draft_entries);
-            } catch (err) {
-              console.warn('[ConsumerOnboardingRenderer] replayDraftEntries threw:', err);
-            }
+
+      const result = await mergeAnonSession({ accessToken: access ?? undefined, distinctId });
+      if (result.merged) {
+        // Plan 34-07 owns the store action `replayDraftEntries`. We
+        // best-effort dispatch if it exists; otherwise log for follow-up.
+        const replay = (
+          useStore.getState() as unknown as {
+            replayDraftEntries?: (entries: unknown[]) => void;
+          }
+        ).replayDraftEntries;
+        if (Array.isArray(result.draft_entries) && typeof replay === 'function') {
+          try {
+            replay(result.draft_entries);
+          } catch (err) {
+            console.warn('[ConsumerOnboardingRenderer] replayDraftEntries threw:', err);
           }
         }
-      } catch (err) {
-        console.warn('[ConsumerOnboardingRenderer] merge-anon-session failed:', err);
-      } finally {
-        clearAnonCookie();
       }
     })();
   }, [signedInUserId]);
