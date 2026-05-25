@@ -1,5 +1,6 @@
 import { Lightbulb } from 'lucide-react';
 import { Suspense, lazy, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EffectivenessCard } from '@/components/dashboard/cards/EffectivenessCard';
 import { FocusCard } from '@/components/dashboard/cards/FocusCard';
 import { GLPCurveCard } from '@/components/dashboard/cards/GLPCurveCard';
@@ -18,6 +19,7 @@ import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 
 export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
+  const { t } = useTranslation('patient');
   const setTab = useStore((s) => s.setTab);
 
   // Phase 42 Plan 04 (D-16) — track dashboard visits for the deferred install
@@ -82,7 +84,7 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
       <Suspense
         fallback={
           <Card span={6}>
-            <CardHeader title="For you" />
+            <CardHeader title={t('patient:tab.home.for_you_title')} />
             <Skeleton className="h-20" />
           </Card>
         }
@@ -91,7 +93,7 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
       </Suspense>
 
       <Card span={12}>
-        <CardHeader title="Today's insight" icon={<Lightbulb className="size-4" />} />
+        <CardHeader title={t('patient:tab.home.insight_title')} icon={<Lightbulb className="size-4" />} />
         {insight ? (
           <div className="rounded-2xl bg-[var(--color-info-soft)] border border-[var(--color-info-soft)] px-4 py-3.5 flex gap-3">
             <span className="size-9 rounded-xl bg-[var(--color-info)] text-white inline-flex items-center justify-center shrink-0">
@@ -114,7 +116,7 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
           </div>
         ) : (
           <p className="text-[13px] text-[var(--color-text-secondary)]">
-            Keep logging — insights appear once you have a few days of data.
+            {t('patient:tab.home.insight_empty')}
           </p>
         )}
       </Card>

@@ -1,5 +1,6 @@
 import { Syringe, Plus, ChartLine, Package, ListChecks, TrendingUp, X, Wallet } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MedLevelChart } from '@/components/dashboard/charts/MedLevelChart';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,7 @@ import { useStore } from '@/lib/store';
 import type { DoseUnit, Injection, InjectionSite, Vial, Cost } from '@/types';
 
 export function MedicationTab() {
+  const { t } = useTranslation('patient');
   // Phase 5 G3 (Plan 05-06) — UAT Test 7 reported a TypeError during the
   // SIGNED_OUT view transition: clearUserDataSlices sets user=null and
   // MedicationTab renders one more time before App.tsx swaps the view. The
@@ -71,9 +73,9 @@ export function MedicationTab() {
     .reduce((s, c) => s + (c.amount || 0), 0);
 
   const submitInjection = (): void => {
-    if (!injForm.datetime) return toast('Date & time required', 'error');
+    if (!injForm.datetime) return toast(t('patient:tab.medication.toast_datetime_required'), 'error');
     addInjection(injForm as Injection);
-    toast('Injection logged');
+    toast(t('patient:tab.medication.toast_injection_logged'));
     setInjForm({
       datetime: new Date().toISOString().slice(0, 16),
       dose: injForm.dose,
@@ -85,44 +87,44 @@ export function MedicationTab() {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
-      <StatTile label="Current dose" value={user.dose} unit={user.doseUnit} />
+      <StatTile label={t('patient:tab.medication.stat_current_dose')} value={user.dose} unit={user.doseUnit} />
       <StatTile
-        label="Last shot"
+        label={t('patient:tab.medication.stat_last_shot')}
         value={lastInjDays != null ? lastInjDays : '—'}
-        unit={lastInjDays != null ? 'd ago' : ''}
+        unit={lastInjDays != null ? t('patient:tab.medication.stat_last_shot_unit') : ''}
       />
-      <StatTile label="Total injections" value={injections.length} />
-      <StatTile label="Doses remaining" value={totalRemaining > 0 ? totalRemaining : '—'} />
+      <StatTile label={t('patient:tab.medication.stat_total_injections')} value={injections.length} />
+      <StatTile label={t('patient:tab.medication.stat_doses_remaining')} value={totalRemaining > 0 ? totalRemaining : '—'} />
 
       {/* Hero: full-width medication-level chart */}
       <Card span={12}>
         <CardHeader
-          title="Estimated medication levels"
+          title={t('patient:tab.medication.chart_title')}
           icon={<ChartLine className="size-4" />}
-          action={<Badge tone="info">Half-life · {halfLifeDays}d</Badge>}
+          action={<Badge tone="info">{t('patient:tab.medication.half_life_badge', { days: halfLifeDays })}</Badge>}
         />
         <MedLevelChart height={300} />
         <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
-          Solid line = past · dashed = projected from your dose pattern
+          {t('patient:tab.medication.chart_footnote')}
         </p>
       </Card>
 
       <Card span={6}>
         <CardHeader
-          title="Log new injection"
+          title={t('patient:tab.medication.log_title')}
           icon={<Syringe className="size-4" />}
           action={<PenInjector className="w-16" />}
         />
         <div className="space-y-3">
           <Input
-            label="Date & time"
+            label={t('patient:tab.medication.label_datetime')}
             type="datetime-local"
             value={injForm.datetime}
             onChange={(e) => setInjForm({ ...injForm, datetime: e.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Dose"
+              label={t('patient:tab.medication.label_dose')}
               inputMode="decimal"
               placeholder={user.dose}
               value={injForm.dose}
@@ -130,7 +132,7 @@ export function MedicationTab() {
               data-testid="injection-dose-input"
             />
             <Select
-              label="Unit"
+              label={t('patient:tab.medication.label_unit')}
               value={injForm.unit}
               onChange={(e) => setInjForm({ ...injForm, unit: e.target.value as DoseUnit })}
             >
@@ -141,7 +143,7 @@ export function MedicationTab() {
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-              Site (rotate weekly)
+              {t('patient:tab.medication.site_rotate')}
             </p>
             <div className="grid grid-cols-4 gap-1.5">
               {SITES.map((s) => (
@@ -162,20 +164,20 @@ export function MedicationTab() {
             </div>
           </div>
           <Textarea
-            label="Notes"
+            label={t('patient:tab.medication.label_notes')}
             rows={2}
             value={injForm.notes}
             onChange={(e) => setInjForm({ ...injForm, notes: e.target.value })}
           />
           <Button block onClick={submitInjection} data-testid="injection-submit">
-            Log injection
+            {t('patient:tab.medication.action_log_injection')}
           </Button>
         </div>
       </Card>
 
       <Card span={6}>
         <CardHeader
-          title="Vials & supply"
+          title={t('patient:tab.medication.vials_title')}
           icon={<Package className="size-4" />}
           action={
             <Button
@@ -184,7 +186,7 @@ export function MedicationTab() {
               onClick={() => setVialOpen(true)}
               leadingIcon={<Plus className="size-3.5" />}
             >
-              Add vial
+              {t('patient:tab.medication.action_add_vial')}
             </Button>
           }
         />
@@ -192,15 +194,15 @@ export function MedicationTab() {
           <EmptyState
             inline
             illustration={<EmptyInjections className="w-32" />}
-            title="No vials tracked yet"
-            body="Add your current vial to track refills and prevent gaps."
+            title={t('patient:tab.medication.vials_empty_title')}
+            body={t('patient:tab.medication.vials_empty_body')}
             cta={
               <Button
                 size="sm"
                 onClick={() => setVialOpen(true)}
                 leadingIcon={<Plus className="size-3.5" />}
               >
-                Add vial
+                {t('patient:tab.medication.action_add_vial')}
               </Button>
             }
           />
@@ -228,8 +230,8 @@ export function MedicationTab() {
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-bold truncate">{v.name || `Vial ${i + 1}`}</p>
                     <p className="text-[12px] text-[var(--color-text-secondary)] numerals-tabular">
-                      {remaining}/{v.dosesPerVial} doses
-                      {expDays != null ? ` · expires ${expDays}d` : ''}
+                      {t('patient:tab.medication.vial_doses_of', { remaining, total: v.dosesPerVial })}
+                      {expDays != null ? ` · ${t('patient:tab.medication.vial_expires', { days: expDays })}` : ''}
                     </p>
                     <div className="flex gap-2 mt-2">
                       <Button
@@ -238,13 +240,13 @@ export function MedicationTab() {
                         onClick={() => consumeVialDose(i)}
                         disabled={remaining <= 0}
                       >
-                        − 1 dose
+                        {t('patient:tab.medication.action_minus_dose')}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => removeVial(i)}
-                        aria-label="Delete vial"
+                        aria-label={t('patient:tab.medication.aria_delete_vial')}
                       >
                         <X className="size-4" />
                       </Button>
@@ -258,19 +260,19 @@ export function MedicationTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Titration schedule" icon={<TrendingUp className="size-4" />} />
+        <CardHeader title={t('patient:tab.medication.titration_title')} icon={<TrendingUp className="size-4" />} />
         {titList ? (
           <div className="flex gap-4 items-start">
             <CalendarDose className="w-24 shrink-0" />
             <div className="flex-1 space-y-1.5">
-            {titList.map((t) => {
-              const wks = t.w.split('–');
+            {titList.map((step) => {
+              const wks = step.w.split('–');
               const start = parseInt(wks[0] ?? '0') || 0;
               const end = wks[1] ? parseInt(wks[1]) : 999;
               const isCurrent = weeks >= start && weeks <= end;
               return (
                 <div
-                  key={t.d + t.w}
+                  key={step.d + step.w}
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 rounded-2xl border',
                     isCurrent
@@ -278,14 +280,14 @@ export function MedicationTab() {
                       : 'bg-[var(--color-surface-elevated)] border-[var(--color-border)]',
                   )}
                 >
-                  <span className="font-bold text-[14px] min-w-[60px]">{t.d}</span>
+                  <span className="font-bold text-[14px] min-w-[60px]">{step.d}</span>
                   <span className="flex-1 text-[12px] text-[var(--color-text-secondary)]">
-                    <strong className="text-[var(--color-text)]">Wk {t.w}</strong>
-                    {t.n ? ` — ${t.n}` : ''}
+                    <strong className="text-[var(--color-text)]">{t('patient:tab.medication.titration_week', { week: step.w })}</strong>
+                    {step.n ? ` — ${step.n}` : ''}
                   </span>
                   {isCurrent && (
                     <Badge tone="info" pulse>
-                      You
+                      {t('patient:tab.medication.titration_you')}
                     </Badge>
                   )}
                 </div>
@@ -295,28 +297,28 @@ export function MedicationTab() {
           </div>
         ) : (
           <p className="text-[13px] text-[var(--color-text-tertiary)]">
-            Custom titration — follow your prescriber&apos;s plan.
+            {t('patient:tab.medication.titration_custom')}
           </p>
         )}
       </Card>
 
       <Card span={6}>
-        <CardHeader title="Recent injections" icon={<ListChecks className="size-4" />} />
+        <CardHeader title={t('patient:tab.medication.recent_title')} icon={<ListChecks className="size-4" />} />
         {injections.length === 0 ? (
           <EmptyState
             inline
             illustration={<EmptyInjections className="w-32" />}
-            title="No injections logged"
-            body="Log your first dose to start your med-level curve. The graph below builds itself from here."
+            title={t('patient:tab.medication.recent_empty_title')}
+            body={t('patient:tab.medication.recent_empty_body')}
           />
         ) : (
           <div className="overflow-x-auto -mx-1" data-testid="injection-list">
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">Date</th>
-                  <th className="text-start font-semibold py-2 px-1">Dose</th>
-                  <th className="text-start font-semibold py-2 px-1">Site</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_date')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_dose')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_site')}</th>
                   <th className="px-1" aria-hidden></th>
                 </tr>
               </thead>
@@ -333,7 +335,7 @@ export function MedicationTab() {
                     <td className="py-2 px-1 text-end">
                       <button
                         onClick={() => removeInjection(idx)}
-                        aria-label={`Delete injection on ${formatShort(i.datetime)}`}
+                        aria-label={t('patient:tab.medication.aria_delete_injection', { date: formatShort(i.datetime) })}
                         className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
                       >
                         <X className="size-4" />
@@ -349,7 +351,7 @@ export function MedicationTab() {
 
       <Card span={12}>
         <CardHeader
-          title="Cost tracker"
+          title={t('patient:tab.medication.cost_title')}
           icon={<Wallet className="size-4" />}
           action={
             <Button
@@ -358,24 +360,24 @@ export function MedicationTab() {
               onClick={() => setCostOpen(true)}
               leadingIcon={<Plus className="size-3.5" />}
             >
-              Add expense
+              {t('patient:tab.medication.action_add_expense')}
             </Button>
           }
         />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
-          <CostTile label="Total" value={`$${totalSpent.toFixed(0)}`} />
+          <CostTile label={t('patient:tab.medication.cost_total')} value={`$${totalSpent.toFixed(0)}`} />
           <CostTile
-            label="Per dose"
+            label={t('patient:tab.medication.cost_per_dose')}
             value={`$${injections.length > 0 ? (totalSpent / injections.length).toFixed(0) : '0'}`}
           />
-          <CostTile label="Last 30 days" value={`$${monthly.toFixed(0)}`} />
-          <CostTile label="Annual projected" value={`$${(monthly * 12).toFixed(0)}`} />
+          <CostTile label={t('patient:tab.medication.cost_last_30')} value={`$${monthly.toFixed(0)}`} />
+          <CostTile label={t('patient:tab.medication.cost_annual')} value={`$${(monthly * 12).toFixed(0)}`} />
         </div>
         {costs.length === 0 ? (
           <EmptyState
             inline
-            title="No expenses tracked"
-            body="Add your first to see cost-per-dose, monthly spend, and an annual projection."
+            title={t('patient:tab.medication.cost_empty_title')}
+            body={t('patient:tab.medication.cost_empty_body')}
             cta={
               <Button
                 size="sm"
@@ -383,7 +385,7 @@ export function MedicationTab() {
                 onClick={() => setCostOpen(true)}
                 leadingIcon={<Plus className="size-3.5" />}
               >
-                Add expense
+                {t('patient:tab.medication.action_add_expense')}
               </Button>
             }
           />
@@ -392,10 +394,10 @@ export function MedicationTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">Date</th>
-                  <th className="text-start font-semibold py-2 px-1">Type</th>
-                  <th className="text-start font-semibold py-2 px-1">Amount</th>
-                  <th className="text-start font-semibold py-2 px-1">Notes</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_date')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_type')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_amount')}</th>
+                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_notes')}</th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -413,7 +415,7 @@ export function MedicationTab() {
                     <td className="py-2 px-1 text-end">
                       <button
                         onClick={() => removeCost(i)}
-                        aria-label="Delete expense"
+                        aria-label={t('patient:tab.medication.aria_delete_expense')}
                         className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
                       >
                         <X className="size-4" />
@@ -433,7 +435,7 @@ export function MedicationTab() {
         onAdd={(v) => {
           addVial(v);
           setVialOpen(false);
-          toast('Vial added');
+          toast(t('patient:tab.medication.toast_vial_added'));
         }}
       />
       <CostModal
@@ -442,7 +444,7 @@ export function MedicationTab() {
         onAdd={(c) => {
           addCost(c);
           setCostOpen(false);
-          toast('Expense logged');
+          toast(t('patient:tab.medication.toast_expense_logged'));
         }}
       />
     </div>
@@ -466,6 +468,7 @@ interface VialModalProps {
   onAdd: (v: Vial) => void;
 }
 function VialModal({ open, onClose, onAdd }: VialModalProps) {
+  const { t } = useTranslation('patient');
   const [draft, setDraft] = useState<Vial>({
     name: '',
     dosesPerVial: 4,
@@ -475,24 +478,24 @@ function VialModal({ open, onClose, onAdd }: VialModalProps) {
   });
   const toast = useToast();
   return (
-    <Modal open={open} onClose={onClose} title="Add vial" mobileFullscreen>
+    <Modal open={open} onClose={onClose} title={t('patient:tab.medication.action_add_vial')} mobileFullscreen>
       <div className="space-y-3">
         <Input
-          label="Label"
+          label={t('patient:tab.medication.vial_label')}
           placeholder="e.g. Pen 1"
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
         />
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Doses per vial"
+            label={t('patient:tab.medication.vial_doses_per')}
             type="number"
             inputMode="numeric"
             value={draft.dosesPerVial || ''}
             onChange={(e) => setDraft({ ...draft, dosesPerVial: parseInt(e.target.value) || 0 })}
           />
           <Input
-            label="Already used"
+            label={t('patient:tab.medication.vial_already_used')}
             type="number"
             inputMode="numeric"
             value={draft.dosesUsed}
@@ -501,13 +504,13 @@ function VialModal({ open, onClose, onAdd }: VialModalProps) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Start date"
+            label={t('patient:tab.medication.vial_start_date')}
             type="date"
             value={draft.startDate}
             onChange={(e) => setDraft({ ...draft, startDate: e.target.value })}
           />
           <Input
-            label="Expiration"
+            label={t('patient:tab.medication.vial_expiration')}
             type="date"
             value={draft.expirationDate}
             onChange={(e) => setDraft({ ...draft, expirationDate: e.target.value })}
@@ -516,11 +519,11 @@ function VialModal({ open, onClose, onAdd }: VialModalProps) {
         <Button
           block
           onClick={() => {
-            if (!draft.dosesPerVial) return toast('Doses per vial required', 'error');
+            if (!draft.dosesPerVial) return toast(t('patient:tab.medication.vial_doses_required'), 'error');
             onAdd(draft);
           }}
         >
-          Add vial
+          {t('patient:tab.medication.action_add_vial')}
         </Button>
       </div>
     </Modal>
@@ -533,6 +536,7 @@ interface CostModalProps {
   onAdd: (c: Cost) => void;
 }
 function CostModal({ open, onClose, onAdd }: CostModalProps) {
+  const { t } = useTranslation('patient');
   const [draft, setDraft] = useState<Cost>({
     date: todayStr(),
     amount: 0,
@@ -541,17 +545,17 @@ function CostModal({ open, onClose, onAdd }: CostModalProps) {
   });
   const toast = useToast();
   return (
-    <Modal open={open} onClose={onClose} title="Add expense" mobileFullscreen>
+    <Modal open={open} onClose={onClose} title={t('patient:tab.medication.action_add_expense')} mobileFullscreen>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Date"
+            label={t('patient:tab.medication.col_date')}
             type="date"
             value={draft.date}
             onChange={(e) => setDraft({ ...draft, date: e.target.value })}
           />
           <Input
-            label="Amount ($)"
+            label={t('patient:tab.medication.cost_amount_label')}
             type="number"
             step="0.01"
             inputMode="decimal"
@@ -561,19 +565,19 @@ function CostModal({ open, onClose, onAdd }: CostModalProps) {
           />
         </div>
         <Select
-          label="Type"
+          label={t('patient:tab.medication.col_type')}
           value={draft.type}
           onChange={(e) => setDraft({ ...draft, type: e.target.value as Cost['type'] })}
         >
-          <option value="vial">Vial / pen</option>
-          <option value="copay">Copay</option>
-          <option value="compound">Compounding pharmacy</option>
-          <option value="telehealth">Telehealth visit</option>
-          <option value="lab">Lab work</option>
-          <option value="other">Other</option>
+          <option value="vial">{t('patient:tab.medication.cost_type_vial')}</option>
+          <option value="copay">{t('patient:tab.medication.cost_type_copay')}</option>
+          <option value="compound">{t('patient:tab.medication.cost_type_compound')}</option>
+          <option value="telehealth">{t('patient:tab.medication.cost_type_telehealth')}</option>
+          <option value="lab">{t('patient:tab.medication.cost_type_lab')}</option>
+          <option value="other">{t('patient:tab.medication.cost_type_other')}</option>
         </Select>
         <Input
-          label="Notes"
+          label={t('patient:tab.medication.col_notes')}
           placeholder="e.g. Pen 2 from CVS"
           value={draft.notes}
           onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
@@ -581,11 +585,11 @@ function CostModal({ open, onClose, onAdd }: CostModalProps) {
         <Button
           block
           onClick={() => {
-            if (!draft.date || !draft.amount) return toast('Date and amount required', 'error');
+            if (!draft.date || !draft.amount) return toast(t('patient:tab.medication.cost_date_amount_required'), 'error');
             onAdd(draft);
           }}
         >
-          Add expense
+          {t('patient:tab.medication.action_add_expense')}
         </Button>
       </div>
     </Modal>
