@@ -147,6 +147,18 @@ describe('MOBILE-05 — assetlinks.json', () => {
     const fps = assetlinks[0]?.target.sha256_cert_fingerprints ?? [];
     expect(fps.length).toBeGreaterThan(0);
   });
+
+  it('[0].target.sha256_cert_fingerprints[0] matches SHA-256 colon-hex format or is a known placeholder', () => {
+    // WR-03: trivially-passing assertion strengthened to format-check real values.
+    // A real fingerprint is 32 colon-separated uppercase hex byte pairs (64 chars + 31 colons).
+    // During the Phase 70 defer window the committed value is the REPLACE_WITH_* placeholder;
+    // once substituted, the same assertion validates the real SHA-256 format.
+    // At Phase 70: remove the isPlaceholder branch — value must be a real fingerprint.
+    const fp = assetlinks[0]?.target.sha256_cert_fingerprints[0] ?? '';
+    const isPlaceholder = fp.startsWith('REPLACE_WITH_');
+    const isSHA256ColonHex = /^([0-9A-Fa-f]{2}:){31}[0-9A-Fa-f]{2}$/.test(fp);
+    expect(isPlaceholder || isSHA256ColonHex).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
