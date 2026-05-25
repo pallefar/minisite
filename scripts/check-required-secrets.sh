@@ -141,11 +141,14 @@ discover_supabase_secrets() {
     return 0
   fi
 
-  local raw
+  local raw _err_tmp
+  # Use mktemp for stderr temp file to avoid collision on shared/concurrent runners.
+  _err_tmp=$(mktemp)
   # supabase secrets list may exit non-zero if not linked/authenticated — treat as soft
-  if ! raw=$(supabase secrets list --project-ref "$SUPABASE_PROJECT_REF" 2>/tmp/supabase_secrets_err); then
+  if ! raw=$(supabase secrets list --project-ref "$SUPABASE_PROJECT_REF" 2>"$_err_tmp"); then
     local err
-    err=$(cat /tmp/supabase_secrets_err 2>/dev/null || true)
+    err=$(cat "$_err_tmp" 2>/dev/null || true)
+    rm -f "$_err_tmp"
     # Not-authenticated and not-linked are expected in CI without secret access
     if echo "$err" | grep -qiE "not logged in|not authenticated|unauthorized|sign in|access token|project not found"; then
       echo "[INFO] supabase CLI not authenticated — using name-manifest self-consistency check only" >&2
@@ -154,6 +157,7 @@ discover_supabase_secrets() {
     echo "[WARN] supabase secrets list failed: $err" >&2
     return 0
   fi
+  rm -f "$_err_tmp"
 
   # Parse the NAME column — output is a table like:
   #   NAME                         DIGEST
