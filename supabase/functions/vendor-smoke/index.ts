@@ -443,21 +443,21 @@ const fcmHandler: VendorHandler = {
   },
 };
 
-// Apple/APNs (VENDOR-01): APNS_KEY_ID + APNS_TEAM_ID + APNS_P8_KEY + APPLE_TEAM_ID + APPLE_BUNDLE_ID
+// Apple/APNs (VENDOR-01): APNS_KEY_ID + APNS_TEAM_ID + APNS_P8_KEY
 // Attempt ES256 JWT mint (no APNs HTTP/2 call needed — device token required for that).
 // Mint success → ok. Any missing secret → notConfigured.
 // A1 fallback: if ES256 mint fails in Deno, presence-check-only (all set → ok).
 // See SUMMARY §A1 fallback for which path was taken.
+// Note: APPLE_TEAM_ID and APPLE_BUNDLE_ID are Vercel build-time env vars (not Supabase secrets)
+// and are not used in the JWT (which needs only APNS_TEAM_ID as iss + APNS_KEY_ID as kid).
 const apnsHandler: VendorHandler = {
   vendor_name: 'Apple/APNs',
   smoke: async (): Promise<SmokeResult> => {
     const keyId = Deno.env.get('APNS_KEY_ID') ?? '';
     const teamId = Deno.env.get('APNS_TEAM_ID') ?? '';
     const p8Key = Deno.env.get('APNS_P8_KEY') ?? '';
-    const appleTeamId = Deno.env.get('APPLE_TEAM_ID') ?? '';
-    const bundleId = Deno.env.get('APPLE_BUNDLE_ID') ?? '';
 
-    if (!keyId || !teamId || !p8Key || !appleTeamId || !bundleId) return notConfigured();
+    if (!keyId || !teamId || !p8Key) return notConfigured();
 
     const t0 = Date.now();
     try {
