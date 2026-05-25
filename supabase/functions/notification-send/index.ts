@@ -183,6 +183,9 @@ const VALID_CATEGORIES = new Set<Category>([
   // extension in _shared/notification-types.ts.
   'community-dm',
   'community-admin-report',
+  // Phase 54 Plan 54-04 — helpdesk reply category (PUSH-06).
+  // Must match 20280201000002_p54_notification_helpdesk_widening.sql.
+  'helpdesk-reply',
 ]);
 
 interface SendBody {
@@ -376,7 +379,8 @@ async function fanOutPush(
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const { data: subs, error } = (await (admin.from('push_subscriptions') as any)
     .select('endpoint, p256dh, auth')
-    .eq('user_id', userId)) as {
+    .eq('user_id', userId)
+    .eq('platform', 'web')) as {
     data: PushSubscriptionRow[] | null;
     error: { message?: string } | null;
   };
