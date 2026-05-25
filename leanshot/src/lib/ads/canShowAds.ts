@@ -73,15 +73,26 @@ export const EXCLUDED_SURFACES: ReadonlySet<AdSurface> = Object.freeze(
  * given subscription tier.
  *
  * Logic (T-56-02 tier check FIRST):
- *   1. tier === 'paid'  → false (Pro/Lifetime: zero ads on every surface)
+ *   1. tier not in AD_TIERS  → false (only free/past_due see ads; new tiers default to NO ads)
  *   2. surface in EXCLUDED_SURFACES → false (MUST-NEVER compliance surfaces)
  *   3. Otherwise → true (allowed consumer/marketing surface at free/past_due)
+ *
+ * AD_TIERS is an explicit allowlist — a future tier value (e.g. 'trial') will
+ * default to false (no ads) rather than silently showing ads.
  *
  * @param surface  The current app surface string.
  * @param tier     The user's resolved subscription tier (from Zustand store).
  * @returns        true only if ads are permitted on this surface for this tier.
  */
+
+/**
+ * Explicit set of tiers that MAY see ads.
+ * Extend this list (and add a unit test) when a new ad-eligible tier is added.
+ * Do NOT use a negation check (e.g. !== 'paid') — new tiers must default to NO ads.
+ */
+const AD_TIERS: ReadonlySet<Tier> = new Set<Tier>(['free', 'past_due']);
+
 export function canShowAds(surface: AdSurface, tier: Tier): boolean {
-  if (tier === 'paid') return false;
+  if (!AD_TIERS.has(tier)) return false;
   return !EXCLUDED_SURFACES.has(surface);
 }
