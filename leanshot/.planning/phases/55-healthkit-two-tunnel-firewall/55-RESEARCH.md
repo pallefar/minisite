@@ -621,7 +621,7 @@ grant execute on function public.purge_healthkit_imports(uuid) to authenticated;
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`dietaryProtein` support gap**
    - What we know: `@capgo/capacitor-health` does not list `dietaryProtein` in its supported data types
