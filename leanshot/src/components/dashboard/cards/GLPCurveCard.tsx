@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ChartLine, Clock } from 'lucide-react';
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/Badge';
@@ -18,6 +19,7 @@ export function GLPCurveCard() {
   // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
   // early-return. All hooks (useStore, useReducedMotion, useMemo) run
   // unconditionally above the early-return.
+  const { t } = useTranslation('patient');
   const u = useStore((s) => s.user);
   const injections = useStore((s) => s.injections);
   const reduced = useReducedMotion();
@@ -31,11 +33,11 @@ export function GLPCurveCard() {
     const W = 320;
     const H = 110;
     const totalHours = 7 * 24;
-    const points: { x: number; y: number; level: number; t: number }[] = [];
+    const points: { x: number; y: number; level: number; tMs: number }[] = [];
     for (let h = 0; h <= totalHours; h += 2) {
-      const t = Date.now() - (totalHours - h) * 3_600_000;
-      const lvl = lastInj ? calcMedLevel(t, halfLife, injections) : 0;
-      points.push({ x: (h / totalHours) * W, y: 0, level: lvl, t });
+      const tMs = Date.now() - (totalHours - h) * 3_600_000;
+      const lvl = lastInj ? calcMedLevel(tMs, halfLife, injections) : 0;
+      points.push({ x: (h / totalHours) * W, y: 0, level: lvl, tMs });
     }
     const max = Math.max(0.01, ...points.map((p) => p.level));
     points.forEach((p) => (p.y = H - (p.level / max) * (H - 6) - 2));
@@ -66,19 +68,44 @@ export function GLPCurveCard() {
       path,
       area,
       dotMarkers: dots,
-      axisLabels: ['Now', 'Day 3', 'Day 6'] as const,
     };
   }, [u, injections]);
 
   if (!u || !curve) return null;
 
-  const { halfLife, path, area, dotMarkers, axisLabels } = curve;
+  const { halfLife, path, area, dotMarkers } = curve;
   const lastInj = injections[0];
   const hSince = lastInj ? hoursSince(lastInj.datetime) : null;
-  const peakOrTrough =
-    hSince === null ? 'No data' : hSince < 48 ? 'Peak now' : hSince < 120 ? 'Mid-cycle' : 'Trough';
+
+  // Static key selects for i18next-parser extraction
+  const peakOrTroughKey: 'peak_now' | 'mid_cycle' | 'trough' | 'no_data' =
+    hSince === null
+      ? 'no_data'
+      : hSince < 48
+        ? 'peak_now'
+        : hSince < 120
+          ? 'mid_cycle'
+          : 'trough';
+
+  // Exhaustive switch — all cases are static literals that i18next-parser extracts
+  let peakLabel: string;
+  switch (peakOrTroughKey) {
+    case 'peak_now':
+      peakLabel = t('patient:card.glp_curve.peak_now');
+      break;
+    case 'mid_cycle':
+      peakLabel = t('patient:card.glp_curve.mid_cycle');
+      break;
+    case 'trough':
+      peakLabel = t('patient:card.glp_curve.trough');
+      break;
+    case 'no_data':
+      peakLabel = t('patient:card.glp_curve.no_data');
+      break;
+  }
+
   const peakTone =
-    peakOrTrough === 'Peak now' ? 'success' : peakOrTrough === 'Trough' ? 'warning' : 'info';
+    peakOrTroughKey === 'peak_now' ? 'success' : peakOrTroughKey === 'trough' ? 'warning' : 'info';
 
   const currentLevel =
     lastInj && hSince !== null ? Math.round(Math.pow(0.5, hSince / halfLife) * 100) : 0;
@@ -89,14 +116,21 @@ export function GLPCurveCard() {
     : 0;
   const nextHours = Math.max(0, nextShotMs / 3_600_000);
 
+  // Axis labels — static keys
+  const axisLabels = [
+    t('patient:card.glp_curve.axis_now'),
+    t('patient:card.glp_curve.axis_day3'),
+    t('patient:card.glp_curve.axis_day6'),
+  ] as const;
+
   return (
     <Card span={5} variant="default" className="min-h-[360px] flex flex-col" data-tour="glp">
       <CardHeader
-        title="GLP-1 level"
+        title={t('patient:card.glp_curve.title')}
         icon={<ChartLine className="size-4" />}
         action={
-          <Badge tone={peakTone} pulse={peakOrTrough === 'Peak now'}>
-            {peakOrTrough}
+          <Badge tone={peakTone} pulse={peakOrTroughKey === 'peak_now'}>
+            {peakLabel}
           </Badge>
         }
       />
@@ -107,13 +141,13 @@ export function GLPCurveCard() {
             {currentLevel}
           </span>
           <span className="text-[18px] opacity-70 font-bold">%</span>
-          <span className="ms-1 text-[12px] text-[var(--color-text-tertiary)]">est.</span>
+          <span className="ms-1 text-[12px] text-[var(--color-text-tertiary)]">{t('patient:card.glp_curve.estimated')}</span>
         </div>
         {lastInj && (
           <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-[var(--color-text-secondary)]">
             <Clock className="size-3.5" />
             <span>
-              Next shot in{' '}
+              {t('patient:card.glp_curve.next_shot_in')}{' '}
               <strong className="text-[var(--color-text)] numerals-tabular">
                 {formatDuration(nextHours)}
               </strong>
@@ -173,14 +207,24 @@ export function GLPCurveCard() {
         </svg>
         {!reduced && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-pill bg-[var(--color-warning-soft)] text-[var(--color-warning)] text-[10px] font-semibold tracking-tight">
-            Appetite may return
+            {t('patient:card.glp_curve.appetite_warning')}
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 mt-3">
-        <PeakChip tone="info" label="Peak" day="Day 1–2" body="Eat slow" />
-        <PeakChip tone="warning" label="Trough" day="Day 6–7" body="Hunger rises" />
+        <PeakChip
+          tone="info"
+          label={t('patient:card.glp_curve.chip_peak_label')}
+          day={t('patient:card.glp_curve.chip_peak_day')}
+          body={t('patient:card.glp_curve.chip_peak_body')}
+        />
+        <PeakChip
+          tone="warning"
+          label={t('patient:card.glp_curve.chip_trough_label')}
+          day={t('patient:card.glp_curve.chip_trough_day')}
+          body={t('patient:card.glp_curve.chip_trough_body')}
+        />
       </div>
     </Card>
   );

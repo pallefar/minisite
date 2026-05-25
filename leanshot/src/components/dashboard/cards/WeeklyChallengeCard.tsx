@@ -7,6 +7,7 @@
  * D-20: PostHog variant framing resolved via posthog.getFeatureFlagPayload(flag_id).
  * Renders null if no active challenges.
  */
+import { useTranslation } from 'react-i18next';
 import { Target } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,7 @@ import {
 } from '@/lib/gamification/challenges';
 
 export function WeeklyChallengeCard() {
+  const { t } = useTranslation('patient');
   const [challenges, setChallenges] = useState<WeeklyChallenge[]>([]);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export function WeeklyChallengeCard() {
 
   return (
     <Card span={12} variant="elevated">
-      <CardHeader title="This Week's Challenges" icon={<Target className="size-4" aria-hidden />} />
+      <CardHeader title={t('patient:card.weekly_challenge.title')} icon={<Target className="size-4" aria-hidden />} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {challenges.map((c) => {
           // D-20 variant resolution: posthog.getFeatureFlagPayload returns { variant_key, framing }
@@ -44,8 +46,8 @@ export function WeeklyChallengeCard() {
 
           const rewardParts = [
             c.reward_xp ? `+${c.reward_xp.toLocaleString()} XP` : null,
-            c.reward_badge_id ? 'Badge' : null,
-            c.reward_freeze_tokens ? `+${c.reward_freeze_tokens} Freeze` : null,
+            c.reward_badge_id ? t('patient:card.weekly_challenge.reward_badge') : null,
+            c.reward_freeze_tokens ? `+${c.reward_freeze_tokens} ${t('patient:card.weekly_challenge.reward_freeze')}` : null,
           ].filter(Boolean);
 
           return (
@@ -59,7 +61,7 @@ export function WeeklyChallengeCard() {
               </div>
               {rewardParts.length > 0 && (
                 <div className="text-xs text-[var(--color-text-secondary)] mt-2">
-                  Reward: {rewardParts.join(' · ')}
+                  {t('patient:card.weekly_challenge.reward_label')}: {rewardParts.join(' · ')}
                 </div>
               )}
             </div>

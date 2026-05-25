@@ -1,1 +1,127 @@
-{}
+{
+  "card": {
+    "effectiveness": {
+      "full_report": "Informe completo",
+      "open_body_tab": "Abrir pestaña corporal",
+      "row_adherence": "Adherencia (7d)",
+      "row_body_weight": "Peso corporal",
+      "row_goal_progress": "Progreso hacia el objetivo",
+      "row_protein_today": "Proteína de hoy",
+      "since_week": "Desde {{date}} · Semana {{week}}",
+      "title": "Efectividad"
+    },
+    "focus": {
+      "label": "El enfoque de hoy"
+    },
+    "for_you": {
+      "fallback_notice": "Lecturas populares mientras personalizamos tus recomendaciones.",
+      "open_rec": "Abrir recomendación: {{title}}",
+      "title": "Para ti"
+    },
+    "glp_curve": {
+      "appetite_warning": "El apetito puede volver",
+      "axis_day3": "Día 3",
+      "axis_day6": "Día 6",
+      "axis_now": "Ahora",
+      "chip_peak_body": "Come despacio",
+      "chip_peak_day": "Día 1–2",
+      "chip_peak_label": "Pico",
+      "chip_trough_body": "El hambre aumenta",
+      "chip_trough_day": "Día 6–7",
+      "chip_trough_label": "Valle",
+      "estimated": "est.",
+      "mid_cycle": "Mitad del ciclo",
+      "next_shot_in": "Próxima inyección en",
+      "no_data": "Sin datos",
+      "peak_now": "Pico ahora",
+      "title": "Nivel GLP-1",
+      "trough": "Valle"
+    },
+    "hero": {
+      "direction_gained": "Ganado",
+      "direction_lost": "Perdido",
+      "phase_maintenance": "Mantenimiento",
+      "phase_tip_maintenance": "Consolida tus hábitos.",
+      "phase_tip_titration": "Mantén el foco en la proteína.",
+      "phase_tip_tolerance": "Ve despacio.",
+      "phase_titration": "Titulación",
+      "phase_tolerance": "Tolerancia",
+      "stat_goal": "Objetivo",
+      "stat_injections": "Inyecciones",
+      "stat_protein_today": "Proteína hoy",
+      "titration_hint": "Toca un paso en la pestaña de medicación para saber más",
+      "titration_now_prefix": "Ahora · ",
+      "titration_timeline": "Cronograma de titulación",
+      "week_phase_tip": "Semana {{week}} · Fase {{phase}} · {{phaseTip}}"
+    },
+    "leaderboard": {
+      "empty": "Aún no hay participantes",
+      "error": "No se pudo cargar la clasificación",
+      "loading": "Cargando…",
+      "nudge_body": "Has alcanzado el nivel {{level}}. ¿Quieres competir (de forma anónima) con otros en tu grupo?",
+      "nudge_cta_accept": "Elige un nombre",
+      "nudge_cta_dismiss": "Ahora no",
+      "nudge_title": "Únete a la clasificación",
+      "title": "Clasificación"
+    },
+    "level_progress": {
+      "ring_label": "Nivel {{level}}{{prestige}}",
+      "title": "Nivel",
+      "xp_to_next": "{{xp}} XP para el nivel {{next}}"
+    },
+    "quick_log": {
+      "action_ask_ai": "Preguntar IA",
+      "action_injection": "Inyección",
+      "action_meal": "Comida",
+      "action_mood": "Ánimo",
+      "action_stack": "Suplementos",
+      "action_symptom": "Síntoma",
+      "action_weight": "Peso",
+      "action_workout": "Ejercicio",
+      "title": "Registro rápido"
+    },
+    "site_rotation": {
+      "legend_next": "Próximo",
+      "legend_older": "Hace 2 semanas",
+      "legend_recent": "Reciente · evitar",
+      "open_medication_tab": "Abrir pestaña de medicación",
+      "title": "Sitio de inyección"
+    },
+    "streak": {
+      "longest": "Récord: {{days}}d",
+      "ring_label_one": "Racha de {{count}} día",
+      "ring_label_many": "Racha de {{count}} días",
+      "ring_label_other": "Racha de {{count}} días",
+      "title": "Racha"
+    },
+    "streaks": {
+      "badge_keep_going": "¡Sigue así!",
+      "milestone_body": "Racha de más de 30 días lograda",
+      "milestone_title": "Hito desbloqueado",
+      "row_movement": "Días activos",
+      "row_protein": "Meta de proteína",
+      "row_supps": "Racha de suplementos",
+      "row_weight": "Registro de peso",
+      "title": "Tus rachas"
+    },
+    "symptoms": {
+      "action_log": "Registrar",
+      "empty_body": "Es buena señal — regístralo si aparece algo nuevo.",
+      "empty_title": "Sin síntomas esta semana",
+      "pattern_warning": "Patrón recurrente detectado — coméntalo con tu médico si persiste.",
+      "title": "Efectos secundarios"
+    },
+    "weekly_challenge": {
+      "reward_badge": "Insignia",
+      "reward_freeze": "Congelamiento",
+      "reward_label": "Recompensa",
+      "title": "Desafíos de esta semana"
+    }
+  },
+  "freeze_token_one": "{{count}} ficha de congelamiento",
+  "freeze_token_many": "{{count}} fichas de congelamiento",
+  "freeze_token_other": "{{count}} fichas de congelamiento",
+  "streak_day_one": "día",
+  "streak_day_many": "días",
+  "streak_day_other": "días"
+}

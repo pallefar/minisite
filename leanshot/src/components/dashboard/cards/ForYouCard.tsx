@@ -16,6 +16,7 @@
  * surface) so the delta is <2 kB gz.
  */
 
+import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -79,6 +80,7 @@ interface ForYouCardProps {
  * Phase 5 bundle posture. Named export retained for direct imports in tests.
  */
 export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
+  const { t } = useTranslation('patient');
   const userId = useStore((s) => s.signedIn?.user?.id ?? null);
   const reducedMotion = useReducedMotion();
 
@@ -168,7 +170,7 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
 
   return (
     <Card span={span} variant="elevated" data-testid="for-you-card">
-      <CardHeader title="For you" />
+      <CardHeader title={t('patient:card.for_you.title')} />
       {loading && (
         <div className="flex flex-col gap-2" aria-busy="true">
           <Skeleton className="h-12 w-full rounded-lg" />
@@ -189,7 +191,7 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
                     ? ''
                     : ' transition-[transform,border-color] hover:-translate-y-[1px]')
                 }
-                aria-label={`Open recommendation: ${rec.title ?? rec.source_id}`}
+                aria-label={t('patient:card.for_you.open_rec', { title: rec.title ?? rec.source_id })}
               >
                 <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--color-text)]">
                   {rec.title ?? rec.source_id}
@@ -213,7 +215,7 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
       )}
       {fallback && !loading && (
         <p className="mt-2 text-[11px] text-[var(--color-text-tertiary)]" data-testid="for-you-fallback-notice">
-          Popular reads while we personalize your picks.
+          {t('patient:card.for_you.fallback_notice')}
         </p>
       )}
     </Card>

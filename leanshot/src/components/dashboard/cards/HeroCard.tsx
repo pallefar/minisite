@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useCountUp } from '@/hooks/useCountUp';
@@ -20,6 +21,7 @@ export function HeroCard() {
   // run unconditionally above the `if (!u) return null;` guard. Derived
   // values default to 0 / null when u is null so the count-up hooks
   // receive stable inputs during the transient window.
+  const { t } = useTranslation('patient');
   const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const injections = useStore((s) => s.injections);
@@ -45,17 +47,20 @@ export function HeroCard() {
   if (!u) return null;
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
-  const direction = lost >= 0 ? 'Lost' : 'Gained';
+  const direction = lost >= 0 ? t('patient:card.hero.direction_lost') : t('patient:card.hero.direction_gained');
   const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
 
-  let phase = 'Maintenance';
-  let phaseTip = 'Lock in habits.';
+  let phase: string;
+  let phaseTip: string;
   if (weeks < 4) {
-    phase = 'Tolerance';
-    phaseTip = 'Take it slow.';
+    phase = t('patient:card.hero.phase_tolerance');
+    phaseTip = t('patient:card.hero.phase_tip_tolerance');
   } else if (weeks < 16) {
-    phase = 'Titration';
-    phaseTip = 'Stay protein-focused.';
+    phase = t('patient:card.hero.phase_titration');
+    phaseTip = t('patient:card.hero.phase_tip_titration');
+  } else {
+    phase = t('patient:card.hero.phase_maintenance');
+    phaseTip = t('patient:card.hero.phase_tip_maintenance');
   }
 
   const titList = TITRATION[u.medication];
@@ -95,18 +100,18 @@ export function HeroCard() {
           <span className="ms-2 text-[0.42em] font-medium opacity-70">{wU}</span>
         </p>
         <p className="mt-2 text-[13px] opacity-80">
-          Week {weeks} · {phase} phase · {phaseTip}
+          {t('patient:card.hero.week_phase_tip', { week: weeks, phase, phaseTip })}
         </p>
       </div>
 
       {/* Stats row */}
       <div className="relative z-10 px-6 md:px-7 mt-5 flex flex-wrap gap-x-6 gap-y-3">
-        <Stat label="Goal" value={`${Math.round(countGoal)}%`} />
+        <Stat label={t('patient:card.hero.stat_goal')} value={`${Math.round(countGoal)}%`} />
         <Divider />
-        <Stat label="Injections" value={Math.round(countShots).toString()} />
+        <Stat label={t('patient:card.hero.stat_injections')} value={Math.round(countShots).toString()} />
         <Divider />
         <Stat
-          label="Protein today"
+          label={t('patient:card.hero.stat_protein_today')}
           value={
             <>
               {Math.round(countProtein)}
@@ -121,11 +126,11 @@ export function HeroCard() {
         <div className="relative z-10 mx-6 md:mx-7 mb-6 mt-6 rounded-2xl bg-white/8 border border-white/15 backdrop-blur-md px-4 md:px-5 py-3">
           <div className="flex items-center justify-between gap-3 mb-2">
             <p className="text-[10px] font-semibold uppercase tracking-[0.1em] opacity-70">
-              Titration timeline
+              {t('patient:card.hero.titration_timeline')}
             </p>
-            <p className="text-[11px] opacity-60">Tap a step in the medication tab to learn more</p>
+            <p className="text-[11px] opacity-60">{t('patient:card.hero.titration_hint')}</p>
           </div>
-          <TitrationTrack steps={titList} currentWeek={weeks} />
+          <TitrationTrack steps={titList} currentWeek={weeks} t={t} />
         </div>
       )}
     </Card>
@@ -150,8 +155,9 @@ function Divider() {
 interface TitrationTrackProps {
   steps: Array<{ d: string; w: string; n: string }>;
   currentWeek: number;
+  t: (key: string) => string;
 }
-function TitrationTrack({ steps, currentWeek }: TitrationTrackProps) {
+function TitrationTrack({ steps, currentWeek, t }: TitrationTrackProps) {
   return (
     <div className="flex items-center gap-1 overflow-x-auto scrollbar-none -mx-1 px-1 pb-1">
       {steps.map((s, i) => {
@@ -195,7 +201,7 @@ function TitrationTrack({ steps, currentWeek }: TitrationTrackProps) {
                 {s.d}
               </span>
               <span className="text-[10px] opacity-65 whitespace-nowrap">
-                {isCurrent ? 'Now · ' : ''}Wk {s.w}
+                {isCurrent ? t('patient:card.hero.titration_now_prefix') : ''}Wk {s.w}
               </span>
             </button>
             {i < steps.length - 1 && <div className="h-px w-4 bg-white/20 hidden md:block" />}

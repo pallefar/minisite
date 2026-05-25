@@ -1,18 +1,41 @@
+import { useTranslation } from 'react-i18next';
 import { Flame } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useStreaks } from '@/hooks/useStreaks';
 import { AchievementShield } from '@/illustrations/AchievementShield';
 import { StreakBadge, type StreakTier } from '@/illustrations/StreakBadge';
+import type { TFunction } from 'i18next';
 
-const ROWS: { key: keyof ReturnType<typeof useStreaks>; label: string }[] = [
-  { key: 'weight', label: 'Weight log' },
-  { key: 'protein', label: 'Protein hit' },
-  { key: 'supps', label: 'Stack run' },
-  { key: 'movement', label: 'Active days' },
+type StreakKey = 'weight' | 'protein' | 'supps' | 'movement';
+
+const ROWS: { key: StreakKey }[] = [
+  { key: 'weight' },
+  { key: 'protein' },
+  { key: 'supps' },
+  { key: 'movement' },
 ];
 
+// Exhaustive switch helper — static keys so i18next-parser can extract them.
+function getStreakRowLabel(t: TFunction, key: StreakKey): string {
+  switch (key) {
+    case 'weight':
+      return t('patient:card.streaks.row_weight');
+    case 'protein':
+      return t('patient:card.streaks.row_protein');
+    case 'supps':
+      return t('patient:card.streaks.row_supps');
+    case 'movement':
+      return t('patient:card.streaks.row_movement');
+    default: {
+      const _exhaustive: never = key;
+      return _exhaustive;
+    }
+  }
+}
+
 export function StreaksCard() {
+  const { t } = useTranslation('patient');
   const streaks = useStreaks();
   const hasMilestone =
     streaks.weight >= 30 ||
@@ -22,9 +45,9 @@ export function StreaksCard() {
   return (
     <Card span={12}>
       <CardHeader
-        title="Your streaks"
+        title={t('patient:card.streaks.title')}
         icon={<Flame className="size-4" />}
-        action={<Badge tone="info">Keep it going</Badge>}
+        action={<Badge tone="info">{t('patient:card.streaks.badge_keep_going')}</Badge>}
       />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {ROWS.map((r) => {
@@ -37,9 +60,10 @@ export function StreaksCard() {
                 : count >= 30
                   ? 'silver'
                   : 'bronze';
+          const label = getStreakRowLabel(t, r.key);
           return (
             <div
-              key={r.label}
+              key={r.key}
               className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 flex items-center gap-3"
             >
               <StreakBadge tier={tier} className="size-12 shrink-0" />
@@ -47,11 +71,11 @@ export function StreaksCard() {
                 <p className="text-[20px] font-bold leading-none numerals-tabular">
                   {count}
                   <span className="text-[12px] text-[var(--color-text-secondary)] font-medium ms-1">
-                    {count === 1 ? 'day' : 'days'}
+                    {t('patient:streak_day', { count })}
                   </span>
                 </p>
                 <p className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mt-0.5 font-semibold">
-                  {r.label}
+                  {label}
                 </p>
               </div>
             </div>
@@ -62,9 +86,9 @@ export function StreaksCard() {
         <div className="mt-4 p-4 rounded-2xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)] flex items-center gap-3">
           <AchievementShield className="w-12 h-12 shrink-0" />
           <div>
-            <p className="text-[13px] font-bold">Milestone unlocked</p>
+            <p className="text-[13px] font-bold">{t('patient:card.streaks.milestone_title')}</p>
             <p className="text-[11px] text-[var(--color-text-secondary)]">
-              30+ day streak achieved
+              {t('patient:card.streaks.milestone_body')}
             </p>
           </div>
         </div>

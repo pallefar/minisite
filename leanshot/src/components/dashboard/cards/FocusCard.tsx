@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Beef, Syringe, Scale, PackageOpen, PillBottle } from 'lucide-react';
 import { useMemo } from 'react';
@@ -22,6 +23,7 @@ const ICON_MAP = {
  * given the user's data. One tap takes you there.
  */
 export function FocusCard() {
+  const { t } = useTranslation('patient');
   const setTab = useStore((s) => s.setTab);
   // pickFocus returns a fresh object each call, so calling it inside the selector
   // makes Zustand's useSyncExternalStore snapshot unstable (infinite render loop).
@@ -56,7 +58,7 @@ export function FocusCard() {
         </motion.span>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--color-primary)]">
-            Today&apos;s focus
+            {t('patient:card.focus.label')}
           </p>
           <h2 className="text-[18px] md:text-[20px] font-bold leading-tight tracking-tight mt-0.5">
             {focus.title}

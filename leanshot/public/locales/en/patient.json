@@ -1,1 +1,127 @@
-{}
+{
+  "card": {
+    "effectiveness": {
+      "full_report": "Full report",
+      "open_body_tab": "Open body tab",
+      "row_adherence": "Adherence (7d)",
+      "row_body_weight": "Body weight",
+      "row_goal_progress": "Goal progress",
+      "row_protein_today": "Protein today",
+      "since_week": "Since {{date}} · Week {{week}}",
+      "title": "Effectiveness"
+    },
+    "focus": {
+      "label": "Today's focus"
+    },
+    "for_you": {
+      "fallback_notice": "Popular reads while we personalize your picks.",
+      "open_rec": "Open recommendation: {{title}}",
+      "title": "For you"
+    },
+    "glp_curve": {
+      "appetite_warning": "Appetite may return",
+      "axis_day3": "Day 3",
+      "axis_day6": "Day 6",
+      "axis_now": "Now",
+      "chip_peak_body": "Eat slow",
+      "chip_peak_day": "Day 1–2",
+      "chip_peak_label": "Peak",
+      "chip_trough_body": "Hunger rises",
+      "chip_trough_day": "Day 6–7",
+      "chip_trough_label": "Trough",
+      "estimated": "est.",
+      "mid_cycle": "Mid-cycle",
+      "next_shot_in": "Next shot in",
+      "no_data": "No data",
+      "peak_now": "Peak now",
+      "title": "GLP-1 level",
+      "trough": "Trough"
+    },
+    "hero": {
+      "direction_gained": "Gained",
+      "direction_lost": "Lost",
+      "phase_maintenance": "Maintenance",
+      "phase_tip_maintenance": "Lock in habits.",
+      "phase_tip_titration": "Stay protein-focused.",
+      "phase_tip_tolerance": "Take it slow.",
+      "phase_titration": "Titration",
+      "phase_tolerance": "Tolerance",
+      "stat_goal": "Goal",
+      "stat_injections": "Injections",
+      "stat_protein_today": "Protein today",
+      "titration_hint": "Tap a step in the medication tab to learn more",
+      "titration_now_prefix": "Now · ",
+      "titration_timeline": "Titration timeline",
+      "week_phase_tip": "Week {{week}} · {{phase}} phase · {{phaseTip}}"
+    },
+    "leaderboard": {
+      "empty": "No entries yet",
+      "error": "Could not load leaderboard",
+      "loading": "Loading…",
+      "nudge_body": "You've reached level {{level}}. Want to compete (anonymously) with others in your cohort?",
+      "nudge_cta_accept": "Pick a handle",
+      "nudge_cta_dismiss": "Not now",
+      "nudge_title": "Join the leaderboard",
+      "title": "Leaderboard"
+    },
+    "level_progress": {
+      "ring_label": "Level {{level}}{{prestige}}",
+      "title": "Level",
+      "xp_to_next": "{{xp}} XP to level {{next}}"
+    },
+    "quick_log": {
+      "action_ask_ai": "Ask AI",
+      "action_injection": "Injection",
+      "action_meal": "Meal",
+      "action_mood": "Mood",
+      "action_stack": "Stack",
+      "action_symptom": "Symptom",
+      "action_weight": "Weight",
+      "action_workout": "Workout",
+      "title": "Quick log"
+    },
+    "site_rotation": {
+      "legend_next": "Next",
+      "legend_older": "2 weeks ago",
+      "legend_recent": "Recent · avoid",
+      "open_medication_tab": "Open medication tab",
+      "title": "Injection site"
+    },
+    "streak": {
+      "longest": "Longest: {{days}}d",
+      "ring_label_one": "{{count}}-day streak",
+      "ring_label_many": "{{count}}-day streak",
+      "ring_label_other": "{{count}}-day streak",
+      "title": "Streak"
+    },
+    "streaks": {
+      "badge_keep_going": "Keep it going",
+      "milestone_body": "30+ day streak achieved",
+      "milestone_title": "Milestone unlocked",
+      "row_movement": "Active days",
+      "row_protein": "Protein hit",
+      "row_supps": "Stack run",
+      "row_weight": "Weight log",
+      "title": "Your streaks"
+    },
+    "symptoms": {
+      "action_log": "Log",
+      "empty_body": "That's a good sign — track if anything new shows up.",
+      "empty_title": "No symptoms this week",
+      "pattern_warning": "Recurring pattern detected — bring this to your prescriber if it persists.",
+      "title": "Side effects"
+    },
+    "weekly_challenge": {
+      "reward_badge": "Badge",
+      "reward_freeze": "Freeze",
+      "reward_label": "Reward",
+      "title": "This Week's Challenges"
+    }
+  },
+  "freeze_token_one": "{{count}} freeze token",
+  "freeze_token_many": "{{count}} freeze tokens",
+  "freeze_token_other": "{{count}} freeze tokens",
+  "streak_day_one": "day",
+  "streak_day_many": "days",
+  "streak_day_other": "days"
+}
