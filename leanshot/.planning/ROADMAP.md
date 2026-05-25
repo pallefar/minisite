@@ -14,7 +14,7 @@
 - [x] **Phase 54: Push Notifications** — Web Push (VAPID) + native iOS APNs + Android FCM; permission UX; frequency-cap + quiet-hours; per-platform delivery telemetry
 - [x] **Phase 55: HealthKit + Two-Tunnel Firewall** — Apple Health PHI ingestion; iOS-only; OPT-IN per HIPAA; 3-layer firewall enforcement (no ad-surface cross-import)
 - [x] **Phase 56: Ad Network** — AdMob iOS+Android + AdSense web; 3 modes (embed/platform/house); clinic-zero-ads enforced; per-network revenue ETL
-- [ ] **Phase 57: Watch Apps** — Apple Watch SwiftUI + Wear OS Compose companion; quick dose log + complication; offline-tolerant
+- [x] **Phase 57: Watch Apps** — Apple Watch SwiftUI + Wear OS Compose companion; quick dose log + complication; offline-tolerant
 - [ ] **Phase 58: Spanish i18n Wiring** — Contractor TMX import + glossary integration + ES KB articles + ES smoke spec
 - [ ] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished
 - [ ] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
