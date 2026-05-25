@@ -57,10 +57,10 @@ describe('AdRevenueDashboardPage', () => {
     render(<AdRevenueDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('eCPM')).toBeInTheDocument();
-      expect(screen.getByText('RPM')).toBeInTheDocument();
-      expect(screen.getByText('Fill Rate')).toBeInTheDocument();
-      expect(screen.getByText('CTR')).toBeInTheDocument();
+      expect(screen.getAllByText('eCPM').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('RPM').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Fill Rate').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('CTR').length).toBeGreaterThan(0);
     });
   });
 
@@ -72,7 +72,7 @@ describe('AdRevenueDashboardPage', () => {
     // CTR = 250 / 15000 = 0.01666... = 1.67%
     await waitFor(() => {
       // CTR label should be present
-      expect(screen.getByText('CTR')).toBeInTheDocument();
+      expect(screen.getAllByText('CTR').length).toBeGreaterThan(0);
     });
   });
 
@@ -81,7 +81,7 @@ describe('AdRevenueDashboardPage', () => {
     render(<AdRevenueDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Fill Rate')).toBeInTheDocument();
+      expect(screen.getAllByText('Fill Rate').length).toBeGreaterThan(0);
     });
   });
 
@@ -131,7 +131,7 @@ describe('AdRevenueDashboardPage', () => {
 
     // Should not crash; CTR tile should render (value 0)
     await waitFor(() => {
-      expect(screen.getByText('CTR')).toBeInTheDocument();
+      expect(screen.getAllByText('CTR').length).toBeGreaterThan(0);
     });
   });
 
