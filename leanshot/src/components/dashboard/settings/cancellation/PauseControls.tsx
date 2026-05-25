@@ -4,6 +4,8 @@
  * "Resumes {date}" strip updates live when user picks a different preset.
  * Single-chunk: non-lazy import; lives in the cancellation chunk via CancellationModal.tsx.
  */
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { cn } from '@/lib/helpers';
 
 interface PauseControlsProps {
@@ -12,22 +14,34 @@ interface PauseControlsProps {
   resumesAt: string;
 }
 
-const PRESETS: { months: 1 | 2 | 3; label: string }[] = [
-  { months: 1, label: '1 month' },
-  { months: 2, label: '2 months' },
-  { months: 3, label: '3 months' },
-];
+const PRESET_MONTHS: (1 | 2 | 3)[] = [1, 2, 3];
+
+function pauseMonthLabel(t: TFunction, months: 1 | 2 | 3): string {
+  switch (months) {
+    case 1:
+      return t('settings:cancellation.pause.month_one');
+    case 2:
+      return t('settings:cancellation.pause.month_two');
+    case 3:
+      return t('settings:cancellation.pause.month_three');
+    default: {
+      const _exhaustive: never = months;
+      return _exhaustive;
+    }
+  }
+}
 
 export function PauseControls({ value, onChange, resumesAt }: PauseControlsProps) {
+  const { t } = useTranslation('settings');
   return (
     <div className="space-y-2">
-      <p className="text-[13px] font-semibold text-[var(--color-text)]">Pause duration</p>
+      <p className="text-[13px] font-semibold text-[var(--color-text)]">{t('settings:cancellation.pause.duration_label')}</p>
       <div
         role="group"
-        aria-label="Pause duration"
+        aria-label={t('settings:cancellation.pause.duration_label')}
         className="flex gap-2"
       >
-        {PRESETS.map(({ months, label }) => {
+        {PRESET_MONTHS.map((months) => {
           const selected = value === months;
           return (
             <button
@@ -43,13 +57,13 @@ export function PauseControls({ value, onChange, resumesAt }: PauseControlsProps
                   : 'bg-transparent border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)]',
               )}
             >
-              {label}
+              {pauseMonthLabel(t, months)}
             </button>
           );
         })}
       </div>
       <div className="bg-[var(--color-surface-soft)] rounded-md px-3 py-2 text-[13px] text-[var(--color-text-secondary)] font-mono">
-        Resumes {resumesAt}
+        {t('settings:cancellation.pause.resumes', { date: resumesAt })}
       </div>
     </div>
   );

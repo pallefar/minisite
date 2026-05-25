@@ -5,6 +5,7 @@
  */
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { track } from '@/lib/analytics';
 import { callAcceptOffer } from '@/lib/cancellation/accept-offer-client';
 import { callDecideOffer } from '@/lib/cancellation/decide-offer-client';
@@ -47,6 +48,7 @@ function getStepTitle(offer: DecideOfferResponse): string {
 }
 
 export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepProps) {
+  const { t } = useTranslation('settings');
   const [fetchState, setFetchState] = useState<FetchState>({ status: 'loading' });
   const [isPending, setIsPending] = useState(false);
   const mounted = useRef(true);
@@ -89,20 +91,20 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
       // Show accepted toast then advance to Step 3
       const offerType = fetchState.data.offer_type;
       if (offerType === 'pause') {
-        toast('Account paused. Welcome back on your return date.', 'success');
+        toast(t('settings:cancellation.offer.toast.paused'), 'success');
       } else if (offerType === 'discount') {
         const pct = (fetchState.data.offer_config as { percent_off?: number })?.percent_off ?? 0;
-        toast(`Discount applied. Your next invoice reflects ${pct}% off.`, 'success');
+        toast(t('settings:cancellation.offer.toast.discount', { pct }), 'success');
       } else if (offerType === 'extended_trial') {
-        toast('Trial extended. Your new billing date is set.', 'success');
+        toast(t('settings:cancellation.offer.toast.extended_trial'), 'success');
       } else if (offerType === 'downgrade') {
-        toast('Switched to monthly billing.', 'success');
+        toast(t('settings:cancellation.offer.toast.downgrade'), 'success');
       } else if (offerType === 'contact_csm') {
-        toast('A CSM will reach out within 24 hours. Thanks for your patience.', 'success');
+        toast(t('settings:cancellation.offer.toast.contact_csm'), 'success');
       }
       onAdvance();
     } catch {
-      toast('Something went wrong. Please try again or contact support.', 'error');
+      toast(t('settings:cancellation.offer.error_generic'), 'error');
     } finally {
       if (mounted.current) setIsPending(false);
     }
@@ -117,7 +119,7 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
 
   if (fetchState.status === 'loading') {
     return (
-      <div aria-busy="true" aria-label="Loading offer…" className="space-y-4">
+      <div aria-busy="true" aria-label={t('settings:cancellation.offer.loading_label')} className="space-y-4">
         <div className="h-6 w-3/4 bg-[var(--color-surface-elevated)] rounded-md animate-pulse" />
         <div className="h-4 w-full bg-[var(--color-surface-elevated)] rounded-md animate-pulse" />
         <div className="h-48 w-full bg-[var(--color-surface-elevated)] rounded-xl animate-pulse" />
@@ -129,14 +131,14 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
     return (
       <div className="space-y-4">
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          Something went wrong. Please try again or contact support.
+          {t('settings:cancellation.offer.error_generic')}
         </p>
         <button
           type="button"
           onClick={handleDecline}
           className="px-5 py-2.5 rounded-xl text-[14px] font-semibold bg-[var(--color-primary)] text-[var(--color-bg)] hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
-          Continue
+          {t('common:action.continue')}
         </button>
       </div>
     );
@@ -151,13 +153,13 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
             className="text-[18px] font-semibold text-[var(--color-text)]"
             tabIndex={-1}
           >
-            No more save offers available
+            {t('settings:cancellation.offer.ineligible_title')}
           </h2>
         </div>
         <div className="flex flex-col items-center gap-4 py-8">
           <ShieldCheck className="size-12 text-[var(--color-text-tertiary)]" aria-hidden />
           <p className="text-[13px] text-[var(--color-text-secondary)] text-center">
-            You&apos;ve used your save offers this year. Continuing with cancellation.
+            {t('settings:cancellation.offer.ineligible_body')}
           </p>
         </div>
         <div className="pt-4 border-t border-[var(--color-border)]">
@@ -166,7 +168,7 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
             onClick={handleDecline}
             className="w-full px-5 py-2.5 rounded-xl text-[14px] font-semibold bg-[var(--color-primary)] text-[var(--color-bg)] hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
           >
-            Continue
+            {t('common:action.continue')}
           </button>
         </div>
       </div>
@@ -180,14 +182,14 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
     return (
       <div className="space-y-4">
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          No offer available for your profile. Continuing with cancellation.
+          {t('settings:cancellation.offer.no_offer')}
         </p>
         <button
           type="button"
           onClick={handleDecline}
           className="px-5 py-2.5 rounded-xl text-[14px] font-semibold bg-[var(--color-primary)] text-[var(--color-bg)] hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
-          Continue
+          {t('common:action.continue')}
         </button>
       </div>
     );

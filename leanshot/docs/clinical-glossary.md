@@ -16,7 +16,7 @@ When machine-translating `public/locales/en/*.json` keys that contain clinical t
 
 ---
 
-## Term Table
+## Term Table (UI strings — Plans 58-02/03/04/05)
 
 | EN term | ES term | Category | Signoff status |
 |---------|---------|----------|----------------|
@@ -53,6 +53,25 @@ When machine-translating `public/locales/en/*.json` keys that contain clinical t
 
 ---
 
+## KB Article Terms (Plan 58-04 — KB ES content seed)
+
+> Sourced from the KB ES content seed migration (`20270708000001_p58_kb_articles_es_seed.sql`). Where a term also appears in the UI table above, the UI-table ES form is canonical (e.g. semaglutida/tirzepatida, náuseas).
+
+| EN Term | ES Term | KB Context | Flag | Sign-off |
+|---------|---------|------------|------|----------|
+| injection site | sitio de inyección | injection-site-rotation | T-58-02 | signoff-pending |
+| lipohypertrophy | lipohipertrofia | injection-site-rotation | T-58-02 | signoff-pending |
+| drug absorption | absorción del medicamento | injection-site-rotation | T-58-02 | signoff-pending |
+| GLP-1 | GLP-1 | reading-your-med-level-curve | T-58-02 | signoff-pending |
+| pharmacokinetics | farmacocinética | reading-your-med-level-curve | T-58-02 | signoff-pending |
+| half-life | vida media | reading-your-med-level-curve | T-58-02 | signoff-pending |
+| therapeutic window | ventana terapéutica | reading-your-med-level-curve | T-58-02 | signoff-pending |
+| titration phase | fase de titulación | what-to-do-about-nausea | T-58-02 | signoff-pending |
+| prescriber | prescriptor | what-to-do-about-nausea | T-58-02 | signoff-pending |
+| dose escalation | escalada de dosis | what-to-do-about-nausea | T-58-02 | signoff-pending |
+
+---
+
 ## Phase 70 Clinical Advisor Signoff Requirements
 
 All rows in this glossary are marked `signoff-pending`. Before Phase 70 HUMAN-UAT, a qualified clinical advisor must verify:
@@ -62,5 +81,8 @@ All rows in this glossary are marked `signoff-pending`. Before Phase 70 HUMAN-UA
 3. **Symptom terms** — náuseas, vómitos, diarrea, estreñimiento, fatiga are standard Latin-American neutral Spanish medical terms. Advisor must confirm suitability for a lay patient audience.
 4. **Anatomical sites** — abdomen (unchanged), muslo (thigh), brazo (arm) are anatomical terms; advisor must confirm clarity for self-injection instruction context.
 5. **Safety copy** — peso, estatura, grasa corporal, caloría/s, proteína, fibra, agua must be consistent with the app's safe-harbor disclaimer wording.
+6. **KB clinical terms** — lipohipertrofia, farmacocinética, vida media, ventana terapéutica, fase de titulación, escalada de dosis must be confirmed for clinical accuracy in patient-education KB articles.
 
-**Escalation path:** Any term requiring change must be updated in both this glossary AND the corresponding `public/locales/es/*.json` entry, followed by re-running `npm run i18n:check` and CI push.
+**Escalation path:** Any term requiring change must be updated in both this glossary AND the corresponding `public/locales/es/*.json` entry (or KB article ES content), followed by re-running `npm run i18n:check` and CI push.
+
+**Register note:** Settings strings (Plan 58-04) currently use formal *usted*; onboarding/clinic/cards (Plans 58-02/03/05) use neutral *tú*. Phase 70 native-speaker review must harmonize the address register across all consumer surfaces.

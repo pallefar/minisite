@@ -1,1 +1,192 @@
-{}
+{
+  "cancellation": {
+    "close_confirm_body": "You'll lose the personalized offer. Continue?",
+    "close_confirm_stay": "Stay",
+    "close_confirm_yes": "Yes, close",
+    "keep_account": "Keep my account",
+    "offer": {
+      "decline": "No thanks, continue cancellation",
+      "error_generic": "Something went wrong. Please try again or contact support.",
+      "ineligible_body": "You've used your save offers this year. Continuing with cancellation.",
+      "ineligible_title": "No more save offers available",
+      "loading_label": "Loading offer…",
+      "no_offer": "No offer available for your profile. Continuing with cancellation.",
+      "saving": "Saving…",
+      "stacking_notice": "Your existing {{existing_pct}}% referral discount caps this save-offer at {{capped_pct}}% effective.",
+      "toast": {
+        "contact_csm": "A CSM will reach out within 24 hours. Thanks for your patience.",
+        "discount": "Discount applied. Your next invoice reflects {{pct}}% off.",
+        "downgrade": "Switched to monthly billing.",
+        "extended_trial": "Trial extended. Your new billing date is set.",
+        "paused": "Account paused. Welcome back on your return date."
+      }
+    },
+    "pause": {
+      "duration_label": "Pause duration",
+      "month_one": "1 month",
+      "month_three": "3 months",
+      "month_two": "2 months",
+      "resumes": "Resumes {{date}}"
+    },
+    "reason": {
+      "found_alternative": "Found an alternative",
+      "health_goals_changed": "Health goals changed",
+      "not_using": "Not using it enough",
+      "other": "Other",
+      "service_quality_issue": "Service quality issue",
+      "temporary_break": "Temporary break needed",
+      "too_expensive": "Too expensive"
+    },
+    "step1": {
+      "body": "Help us understand — your answer shapes what we offer next.",
+      "other_aria_label": "Additional feedback",
+      "other_min_length_hint": "Add at least a few words so we can act on this.",
+      "other_placeholder": "Tell us what we could do better.",
+      "other_read_note": "We read every response.",
+      "radiogroup_label": "Cancellation reason",
+      "title": "Why are you cancelling?"
+    },
+    "step3": {
+      "body": "Here's what you've built with LeanShot.",
+      "cancel_anyway": "Cancel anyway",
+      "cancel_scheduled_toast": "Cancellation scheduled. Undo within 6 seconds.",
+      "chart_aria": "Your projected drug-level curve for the next 7 days",
+      "coach_label": "Coach conversations",
+      "data_body": "Export to CSV anytime — even after cancellation.",
+      "data_title": "Your data stays with you",
+      "streak_label": "Current streak",
+      "title": "We'd love to keep you"
+    }
+  },
+  "loading": "Loading…",
+  "nav": {
+    "account": "Account",
+    "data": "Data",
+    "dev": "Dev Tools",
+    "email_preferences": "Email preferences",
+    "goals": "Goals",
+    "healthkit": "HealthKit",
+    "language": "Language",
+    "leaderboards": "Leaderboards",
+    "notifications": "Notifications",
+    "organizations": "Active organizations",
+    "phi_access_log": "Who has viewed my data",
+    "privacy": "Privacy",
+    "privacy_dsar": "Privacy & DSAR",
+    "profile": "Profile",
+    "recovery": "Recovery",
+    "security": "Security (2FA)",
+    "shares": "Active shares",
+    "subscription": "Subscription"
+  },
+  "saved": "Settings saved",
+  "section": {
+    "account": {
+      "body": "Email and password for cross-device sync.",
+      "change_password": "Change password",
+      "email_label": "Email:",
+      "local_body": "You're using LeanShot locally. Sign up to sync across devices.",
+      "no_email_error": "No email on file",
+      "password_reset_sent": "Password reset email sent.",
+      "sign_up": "Sign up",
+      "title": "Account",
+      "unverified": "Unverified"
+    },
+    "data": {
+      "body": "Export, import, or wipe your record.",
+      "export_json": "Export JSON",
+      "export_pdf": "Export PDF rollup",
+      "replay_tour": "Replay guided tour",
+      "reset_confirm_body": "Erase ALL your LeanShot data? This cannot be undone.",
+      "reset_confirm_btn": "Erase everything",
+      "reset_confirm_title": "Reset everything",
+      "reset_everything": "Reset everything",
+      "title": "Data"
+    },
+    "dev": {
+      "body": "Development-only diagnostic actions. Not compiled into production builds.",
+      "title": "Dev Tools"
+    },
+    "goals": {
+      "body": "Tweak the numbers we measure progress against.",
+      "calorie_target": "Calorie target",
+      "fiber": "Fiber (g)",
+      "protein": "Protein (g)",
+      "save": "Save goals",
+      "title": "Goals & targets",
+      "water": "Water (cups)",
+      "weight_goal": "Weight goal ({{unit}})"
+    },
+    "language": {
+      "body": "Choose the language used across the app and email reminders.",
+      "save_error": "Could not save language preference. Please try again.",
+      "title": "Language"
+    },
+    "leaderboards": {
+      "body": "Opt in to cohort leaderboards. Your real name is never shown — just your chosen handle.",
+      "title": "Leaderboards"
+    },
+    "notifications": {
+      "body": "Choose when LeanShot taps you on the shoulder.",
+      "title": "Notifications"
+    },
+    "phi_access_log": {
+      "body": "Every time a member of your care team accessed your personal health information.",
+      "title": "Who has viewed my data"
+    },
+    "privacy": {
+      "ai_exception": "The AI coach is the only exception. It sends just your prompt plus relevant context through our secure server using your account — you never share an API key.",
+      "body": "Your data lives on this device.",
+      "clear_site_data": "Clearing site data deletes everything LeanShot knows about you.",
+      "delete_account_body": "7-day soft-delete. Cancel from the email we'll send you (or from the in-app banner) within the window; after that, irreversible.",
+      "delete_account_btn": "Delete account",
+      "delete_account_title": "Delete account",
+      "local_only": "Local storage only — never sent to a server.",
+      "no_analytics": "No analytics. No telemetry. No third-party trackers.",
+      "step_up_required": "Step-up verification required to delete your account.",
+      "title": "Privacy"
+    },
+    "profile": {
+      "body": "Your basic account info.",
+      "name_label": "Name",
+      "save": "Save profile",
+      "title": "Profile",
+      "units_hint": "Units: {{units}} · Set during onboarding.",
+      "units_imperial": "Imperial",
+      "units_metric": "Metric"
+    },
+    "recovery": {
+      "body": "Restore a local backup taken before cloud migration.",
+      "corrupted": "Backup file is corrupted. Contact support if you need help recovering your data.",
+      "modal_body": "This will overwrite your current cloud-synced data with the backup from",
+      "modal_body_suffix": ". You will be signed out after restoring; sign back in to re-sync with the cloud.",
+      "modal_confirm_aria": "Confirm restore — overwrites current data",
+      "modal_confirm_btn": "Restore and overwrite",
+      "modal_input_label": "Type \"RESTORE\" to confirm",
+      "modal_title": "Restore from backup?",
+      "no_backup": "No local backup found. Backups are created automatically before cloud migration and retained for 90 days.",
+      "restore_aria": "Restore from local backup — this will overwrite your current data",
+      "restore_btn": "Restore from this backup",
+      "restore_failed_toast": "Restore failed. Your data was not changed.",
+      "restore_warning": "Restoring will overwrite your current data and sign you out so the cloud re-syncs cleanly.",
+      "restored_toast": "Backup restored. You have been signed out — sign back in to re-sync.",
+      "snapshot_taken": "Snapshot taken:",
+      "title": "Recovery"
+    },
+    "security": {
+      "body": "Manage your two-factor authentication settings.",
+      "title": "Security"
+    },
+    "subscription": {
+      "body_free": "Upgrade to Plus to unlock forecast + advanced AI coach.",
+      "body_paid": "You're on LeanShot Plus.",
+      "body_past_due": "Your payment failed. Update your card to keep Plus active.",
+      "cancel_btn": "Cancel subscription",
+      "tier_free": "Free",
+      "tier_paid": "Active",
+      "tier_past_due": "Past due — update card",
+      "title": "Subscription"
+    }
+  },
+  "title": "Settings"
+}

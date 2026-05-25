@@ -16,6 +16,7 @@
  */
 
 import { type ReactElement, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useStore } from '@/lib/store';
@@ -39,6 +40,7 @@ interface RelatedArticlesFooterProps {
 export function RelatedArticlesFooter({
   currentKbId,
 }: RelatedArticlesFooterProps): ReactElement | null {
+  const { t } = useTranslation('kb');
   const userId = useStore((s) => s.signedIn?.user?.id ?? null);
   const reducedMotion = useReducedMotion();
   const [recs, setRecs] = useState<RelatedArticle[] | null>(null);
@@ -119,7 +121,7 @@ export function RelatedArticlesFooter({
 
   return (
     <Card span={12} variant="footer" data-testid="related-articles-footer">
-      <CardHeader title="Related articles" />
+      <CardHeader title={t('kb:related_articles.title')} />
       <ul className="grid grid-cols-1 gap-2 md:grid-cols-3">
         {recs.map((rec) => (
           <li key={rec.recommendation_id}>

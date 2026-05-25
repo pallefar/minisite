@@ -5,6 +5,8 @@
  */
 import { Check } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { track } from '@/lib/analytics';
 import { cn } from '@/lib/helpers';
 import type { CancellationReason } from '@/types/cancellation';
@@ -14,21 +16,45 @@ interface ReasonPicklistStepProps {
   onKeep: () => void;
 }
 
-const REASONS: { value: CancellationReason; label: string }[] = [
-  { value: 'too_expensive', label: 'Too expensive' },
-  { value: 'not_using', label: 'Not using it enough' },
-  { value: 'found_alternative', label: 'Found an alternative' },
-  { value: 'health_goals_changed', label: 'Health goals changed' },
-  { value: 'temporary_break', label: 'Temporary break needed' },
-  { value: 'service_quality_issue', label: 'Service quality issue' },
-  { value: 'other', label: 'Other' },
+const REASON_VALUES: CancellationReason[] = [
+  'too_expensive',
+  'not_using',
+  'found_alternative',
+  'health_goals_changed',
+  'temporary_break',
+  'service_quality_issue',
+  'other',
 ];
+
+function reasonLabel(t: TFunction, value: CancellationReason): string {
+  switch (value) {
+    case 'too_expensive':
+      return t('settings:cancellation.reason.too_expensive');
+    case 'not_using':
+      return t('settings:cancellation.reason.not_using');
+    case 'found_alternative':
+      return t('settings:cancellation.reason.found_alternative');
+    case 'health_goals_changed':
+      return t('settings:cancellation.reason.health_goals_changed');
+    case 'temporary_break':
+      return t('settings:cancellation.reason.temporary_break');
+    case 'service_quality_issue':
+      return t('settings:cancellation.reason.service_quality_issue');
+    case 'other':
+      return t('settings:cancellation.reason.other');
+    default: {
+      const _exhaustive: never = value;
+      return _exhaustive;
+    }
+  }
+}
 
 const MIN_OTHER_LENGTH = 4;
 const MAX_OTHER_LENGTH = 280;
 const COUNTER_THRESHOLD = 240;
 
 export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps) {
+  const { t } = useTranslation('settings');
   const [selected, setSelected] = useState<CancellationReason | null>(null);
   const [otherText, setOtherText] = useState('');
 
@@ -53,38 +79,38 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
           className="text-[18px] font-semibold text-[var(--color-text)]"
           tabIndex={-1}
         >
-          Why are you cancelling?
+          {t('settings:cancellation.step1.title')}
         </h2>
         <p
           id="cancel-step-body"
           className="text-[13px] text-[var(--color-text-secondary)] mt-1"
         >
-          Help us understand — your answer shapes what we offer next.
+          {t('settings:cancellation.step1.body')}
         </p>
       </div>
 
       {/* Reason pills */}
-      <div role="radiogroup" aria-label="Cancellation reason" className="space-y-2">
-        {REASONS.map((reason, index) => {
-          const isSelected = selected === reason.value;
+      <div role="radiogroup" aria-label={t('settings:cancellation.step1.radiogroup_label')} className="space-y-2">
+        {REASON_VALUES.map((value, index) => {
+          const isSelected = selected === value;
           const isFirst = index === 0;
           const tabIndex = isSelected || (!selected && isFirst) ? 0 : -1;
 
           return (
-            <div key={reason.value}>
+            <div key={value}>
               <button
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
                 tabIndex={tabIndex}
-                onClick={() => setSelected(reason.value)}
+                onClick={() => setSelected(value)}
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowDown') {
-                    const next = REASONS[index + 1];
-                    if (next) setSelected(next.value);
+                    const next = REASON_VALUES[index + 1];
+                    if (next) setSelected(next);
                   } else if (e.key === 'ArrowUp') {
-                    const prev = REASONS[index - 1];
-                    if (prev) setSelected(prev.value);
+                    const prev = REASON_VALUES[index - 1];
+                    if (prev) setSelected(prev);
                   }
                 }}
                 className={cn(
@@ -99,29 +125,29 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
                 ) : (
                   <span className="size-4 shrink-0" aria-hidden />
                 )}
-                <span className="font-semibold text-[var(--color-text)]">{reason.label}</span>
+                <span className="font-semibold text-[var(--color-text)]">{reasonLabel(t, value)}</span>
               </button>
 
               {/* "Other" textarea expansion */}
-              {reason.value === 'other' && isOtherSelected && (
+              {value === 'other' && isOtherSelected && (
                 <div className="mt-2 space-y-1">
                   <textarea
                     value={otherText}
                     onChange={(e) => setOtherText(e.target.value.slice(0, MAX_OTHER_LENGTH))}
-                    placeholder="Tell us what we could do better."
-                    aria-label="Additional feedback"
+                    placeholder={t('settings:cancellation.step1.other_placeholder')}
+                    aria-label={t('settings:cancellation.step1.other_aria_label')}
                     aria-required="true"
                     className="w-full border border-[var(--color-border)] rounded-xl px-3 py-2.5 text-[13px] text-[var(--color-text)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
                     rows={3}
                   />
                   <div className="flex items-center justify-between px-1">
                     <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                      We read every response.
+                      {t('settings:cancellation.step1.other_read_note')}
                     </p>
                     <div className="flex items-center gap-2">
                       {otherText.trim().length < MIN_OTHER_LENGTH && otherText.length > 0 && (
                         <span className="text-[12px] text-[var(--color-danger)]">
-                          Add at least a few words so we can act on this.
+                          {t('settings:cancellation.step1.other_min_length_hint')}
                         </span>
                       )}
                       {otherText.length >= COUNTER_THRESHOLD && (
@@ -145,7 +171,7 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
           onClick={onKeep}
           className="px-4 py-2.5 text-[14px] font-semibold text-[var(--color-text-secondary)] rounded-xl hover:bg-[var(--color-surface-elevated)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
-          Keep my account
+          {t('settings:cancellation.keep_account')}
         </button>
         <button
           type="button"
@@ -157,7 +183,7 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
             !canContinue ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90',
           )}
         >
-          Continue
+          {t('common:action.continue')}
         </button>
       </div>
     </div>

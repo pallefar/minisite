@@ -1,1 +1,192 @@
-{}
+{
+  "cancellation": {
+    "close_confirm_body": "Perderá la oferta personalizada. ¿Continuar?",
+    "close_confirm_stay": "Permanecer",
+    "close_confirm_yes": "Sí, cerrar",
+    "keep_account": "Mantener mi cuenta",
+    "offer": {
+      "decline": "No, gracias, continuar con la cancelación",
+      "error_generic": "Algo salió mal. Inténtelo de nuevo o contacte con soporte.",
+      "ineligible_body": "Ha usado sus ofertas de retención este año. Continuando con la cancelación.",
+      "ineligible_title": "No hay más ofertas disponibles",
+      "loading_label": "Cargando oferta…",
+      "no_offer": "No hay oferta disponible para su perfil. Continuando con la cancelación.",
+      "saving": "Guardando…",
+      "stacking_notice": "Su descuento de referido existente del {{existing_pct}}% limita esta oferta al {{capped_pct}}% efectivo.",
+      "toast": {
+        "contact_csm": "Un agente de éxito del cliente se pondrá en contacto en 24 horas. Gracias por su paciencia.",
+        "discount": "Descuento aplicado. Su próxima factura refleja un {{pct}}% de descuento.",
+        "downgrade": "Cambiado a facturación mensual.",
+        "extended_trial": "Prueba extendida. Su nueva fecha de facturación está establecida.",
+        "paused": "Cuenta pausada. Bienvenido de vuelta en su fecha de regreso."
+      }
+    },
+    "pause": {
+      "duration_label": "Duración de la pausa",
+      "month_one": "1 mes",
+      "month_three": "3 meses",
+      "month_two": "2 meses",
+      "resumes": "Se reanuda el {{date}}"
+    },
+    "reason": {
+      "found_alternative": "Encontré una alternativa",
+      "health_goals_changed": "Mis objetivos de salud cambiaron",
+      "not_using": "No lo uso lo suficiente",
+      "other": "Otro",
+      "service_quality_issue": "Problema con la calidad del servicio",
+      "temporary_break": "Necesito un descanso temporal",
+      "too_expensive": "Es demasiado caro"
+    },
+    "step1": {
+      "body": "Ayúdenos a entender — su respuesta determina lo que le ofrecemos a continuación.",
+      "other_aria_label": "Comentarios adicionales",
+      "other_min_length_hint": "Añada al menos unas palabras para que podamos actuar.",
+      "other_placeholder": "Cuéntenos cómo podríamos mejorar.",
+      "other_read_note": "Leemos cada respuesta.",
+      "radiogroup_label": "Motivo de cancelación",
+      "title": "¿Por qué cancela?"
+    },
+    "step3": {
+      "body": "Esto es lo que ha construido con LeanShot.",
+      "cancel_anyway": "Cancelar de todas formas",
+      "cancel_scheduled_toast": "Cancelación programada. Puede deshacer en 6 segundos.",
+      "chart_aria": "Su curva proyectada de nivel de medicamento para los próximos 7 días",
+      "coach_label": "Conversaciones con el entrenador",
+      "data_body": "Exporte en CSV en cualquier momento, incluso después de cancelar.",
+      "data_title": "Sus datos permanecen con usted",
+      "streak_label": "Racha actual",
+      "title": "Nos encantaría que se quedara"
+    }
+  },
+  "loading": "Cargando…",
+  "nav": {
+    "account": "Cuenta",
+    "data": "Datos",
+    "dev": "Herramientas de desarrollo",
+    "email_preferences": "Preferencias de correo",
+    "goals": "Objetivos",
+    "healthkit": "HealthKit",
+    "language": "Idioma",
+    "leaderboards": "Clasificaciones",
+    "notifications": "Notificaciones",
+    "organizations": "Organizaciones activas",
+    "phi_access_log": "Quién ha visto mis datos",
+    "privacy": "Privacidad",
+    "privacy_dsar": "Privacidad y DSAR",
+    "profile": "Perfil",
+    "recovery": "Recuperación",
+    "security": "Seguridad (2FA)",
+    "shares": "Compartidos activos",
+    "subscription": "Suscripción"
+  },
+  "saved": "Configuración guardada",
+  "section": {
+    "account": {
+      "body": "Correo electrónico y contraseña para sincronización entre dispositivos.",
+      "change_password": "Cambiar contraseña",
+      "email_label": "Correo:",
+      "local_body": "Está usando LeanShot localmente. Regístrese para sincronizar entre dispositivos.",
+      "no_email_error": "No hay correo registrado",
+      "password_reset_sent": "Correo de restablecimiento de contraseña enviado.",
+      "sign_up": "Registrarse",
+      "title": "Cuenta",
+      "unverified": "Sin verificar"
+    },
+    "data": {
+      "body": "Exporte, importe o elimine sus datos.",
+      "export_json": "Exportar JSON",
+      "export_pdf": "Exportar resumen PDF",
+      "replay_tour": "Repetir tour guiado",
+      "reset_confirm_body": "¿Borrar TODOS sus datos de LeanShot? Esto no se puede deshacer.",
+      "reset_confirm_btn": "Borrar todo",
+      "reset_confirm_title": "Restablecer todo",
+      "reset_everything": "Restablecer todo",
+      "title": "Datos"
+    },
+    "dev": {
+      "body": "Acciones de diagnóstico solo para desarrollo. No se compila en versiones de producción.",
+      "title": "Herramientas de desarrollo"
+    },
+    "goals": {
+      "body": "Ajuste los números contra los que medimos el progreso.",
+      "calorie_target": "Objetivo de calorías",
+      "fiber": "Fibra (g)",
+      "protein": "Proteína (g)",
+      "save": "Guardar objetivos",
+      "title": "Objetivos y metas",
+      "water": "Agua (vasos)",
+      "weight_goal": "Objetivo de peso ({{unit}})"
+    },
+    "language": {
+      "body": "Elija el idioma usado en la aplicación y los recordatorios de correo.",
+      "save_error": "No se pudo guardar la preferencia de idioma. Inténtelo de nuevo.",
+      "title": "Idioma"
+    },
+    "leaderboards": {
+      "body": "Únase a las clasificaciones de cohorte. Su nombre real nunca se muestra — solo su apodo elegido.",
+      "title": "Clasificaciones"
+    },
+    "notifications": {
+      "body": "Elija cuándo LeanShot le avisa.",
+      "title": "Notificaciones"
+    },
+    "phi_access_log": {
+      "body": "Cada vez que un miembro de su equipo de atención accedió a su información de salud personal.",
+      "title": "Quién ha visto mis datos"
+    },
+    "privacy": {
+      "ai_exception": "El entrenador de IA es la única excepción. Envía solo su pregunta más contexto relevante a través de nuestro servidor seguro — nunca comparte una clave API.",
+      "body": "Sus datos viven en este dispositivo.",
+      "clear_site_data": "Borrar los datos del sitio elimina todo lo que LeanShot sabe sobre usted.",
+      "delete_account_body": "Eliminación suave de 7 días. Cancele desde el correo que le enviaremos (o desde el banner en la aplicación) dentro del plazo; después de eso, es irreversible.",
+      "delete_account_btn": "Eliminar cuenta",
+      "delete_account_title": "Eliminar cuenta",
+      "local_only": "Solo almacenamiento local — nunca se envía a un servidor.",
+      "no_analytics": "Sin análisis. Sin telemetría. Sin rastreadores de terceros.",
+      "step_up_required": "Se requiere verificación adicional para eliminar su cuenta.",
+      "title": "Privacidad"
+    },
+    "profile": {
+      "body": "Su información básica de cuenta.",
+      "name_label": "Nombre",
+      "save": "Guardar perfil",
+      "title": "Perfil",
+      "units_hint": "Unidades: {{units}} · Establecido durante el registro.",
+      "units_imperial": "Imperial",
+      "units_metric": "Métrico"
+    },
+    "recovery": {
+      "body": "Restaure una copia de seguridad local tomada antes de la migración a la nube.",
+      "corrupted": "El archivo de copia de seguridad está dañado. Contacte con soporte si necesita ayuda para recuperar sus datos.",
+      "modal_body": "Esto sobrescribirá sus datos actuales en la nube con la copia de seguridad del",
+      "modal_body_suffix": ". Será desconectado tras la restauración; vuelva a iniciar sesión para sincronizar con la nube.",
+      "modal_confirm_aria": "Confirmar restauración — sobrescribe los datos actuales",
+      "modal_confirm_btn": "Restaurar y sobrescribir",
+      "modal_input_label": "Escriba \"RESTORE\" para confirmar",
+      "modal_title": "¿Restaurar desde copia de seguridad?",
+      "no_backup": "No se encontró copia de seguridad local. Las copias se crean automáticamente antes de la migración a la nube y se conservan 90 días.",
+      "restore_aria": "Restaurar desde copia de seguridad local — esto sobrescribirá sus datos actuales",
+      "restore_btn": "Restaurar desde esta copia",
+      "restore_failed_toast": "Error al restaurar. Sus datos no fueron modificados.",
+      "restore_warning": "La restauración sobrescribirá sus datos actuales y cerrará su sesión para que la nube se sincronice limpiamente.",
+      "restored_toast": "Copia restaurada. Ha cerrado sesión — vuelva a iniciar sesión para sincronizar.",
+      "snapshot_taken": "Instantánea tomada:",
+      "title": "Recuperación"
+    },
+    "security": {
+      "body": "Administre su configuración de autenticación de dos factores.",
+      "title": "Seguridad"
+    },
+    "subscription": {
+      "body_free": "Actualice a Plus para desbloquear el pronóstico y el entrenador de IA avanzado.",
+      "body_paid": "Está en LeanShot Plus.",
+      "body_past_due": "Su pago falló. Actualice su tarjeta para mantener Plus activo.",
+      "cancel_btn": "Cancelar suscripción",
+      "tier_free": "Gratuito",
+      "tier_paid": "Activo",
+      "tier_past_due": "Pago vencido — actualice su tarjeta",
+      "title": "Suscripción"
+    }
+  },
+  "title": "Configuración"
+}
