@@ -1,0 +1,3 @@
+Initial release.
+
+Drug-level projection curve, injection-site rotation, body metrics, food logging, activity tracking, mood and symptom logs, rule-based coach, optional AI coach, and doctor-ready PDF report — all local-first.
