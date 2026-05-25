@@ -315,9 +315,14 @@ export function NotificationsSubtab() {
   const handleRestore = useCallback(
     async (category: Category) => {
       if (!userId) return;
+      // WR-04: clear throttle_until by setting to null, not to now().
+      // Setting to now() leaves a non-null value in the DB (breaks IS NULL
+      // checks), and the optimistic update below would race with the write
+      // (freshly computed new Date() is a few ms later, briefly re-showing
+      // the suppression banner).
       const { error } = await supabase
         .from('notification_dismissal_state')
-        .update({ throttle_until: new Date().toISOString() })
+        .update({ throttle_until: null })
         .eq('user_id', userId)
         .eq('category', category);
       if (error) {
@@ -327,7 +332,7 @@ export function NotificationsSubtab() {
       setDismissals((rows) =>
         rows.map((r) =>
           r.user_id === userId && r.category === category
-            ? { ...r, throttle_until: new Date().toISOString() }
+            ? { ...r, throttle_until: null }
             : r,
         ),
       );
