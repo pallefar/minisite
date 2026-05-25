@@ -49,7 +49,7 @@
  * The pattern covers both absolute paths (linting real src/) and the
  * virtual filenames supplied in RuleTester fixtures.
  */
-const FORBIDDEN_IMPORTERS = /\/(ads?|marketing|analytics|affiliate)\/|\.ad-eligible\.ts$/;
+const FORBIDDEN_IMPORTERS = /\/(ads?|marketing|analytics|affiliate|lib\/watch)\/|\.ad-eligible\.ts$/;
 
 /**
  * HEALTH_IMPORT: the health.ts module path patterns that must not be

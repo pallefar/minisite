@@ -72,6 +72,7 @@ FILES=$(find "$SRC_ROOT" \
     -o -path "*/marketing/*" \
     -o -path "*/analytics/*" \
     -o -path "*/affiliate/*" \
+    -o -path "*/lib/watch/*" \
     -o -name "*.ad-eligible.ts" \
   \) \
   \( -name "*.ts" -o -name "*.tsx" \) \
@@ -97,7 +98,9 @@ while IFS= read -r f; do
   [ -z "$f" ] && continue
   STRIPPED=$(perl -0pe 's{/\*.*?\*/}{}gs; s{//[^\n]*}{}g' "$f" 2>/dev/null || cat "$f")
   # CR-02: pattern covers static imports, dynamic import() expressions, and require() calls.
-  if echo "$STRIPPED" | grep -qE "from ['\"].*native/health|from ['\"]@/lib/native/health|import\(['\"].*native/health|import\(['\"]@/lib/native/health|require\(['\"].*native/health|require\(['\"]@/lib/native/health"; then
+  # Pattern is scoped to native/health.ts only (not native/healthAssert — that is the Layer 2
+  # firewall enforcer and is legitimately imported by watch files per WATCH-08).
+  if echo "$STRIPPED" | grep -qE "from ['\"].*native/health(\.ts)?['\"]|from ['\"]@/lib/native/health(\.ts)?['\"]|import\(['\"].*native/health(\.ts)?['\"]|import\(['\"]@/lib/native/health(\.ts)?['\"]|require\(['\"].*native/health(\.ts)?['\"]|require\(['\"]@/lib/native/health(\.ts)?['\"]"; then
     HITS="${HITS}${f}"$'\n'
   fi
 done <<< "$FILES"
