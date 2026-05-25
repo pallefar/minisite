@@ -1041,27 +1041,15 @@ const BADGE_TONE: Record<SmokeStatus, 'success' | 'danger' | 'neutral'> = {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Calendly env var naming discrepancy**
-   - What we know: REQUIREMENTS.md VENDOR-05 says `CALENDLY_CLIENT_ID`; `calendly-oauth-callback/index.ts` uses `CALENDLY_OAUTH_CLIENT_ID`; REQUIREMENTS.md VENDOR-09 mentions `CALENDLY_API_KEY`
-   - What's unclear: Are both `CALENDLY_CLIENT_ID` (REQUIREMENTS) and `CALENDLY_OAUTH_CLIENT_ID` (code) distinct, or is the REQUIREMENTS.md using a shortened alias?
-   - Recommendation: Planner should grep for all `CALENDLY_*` env.get calls and canonicalize in the runbook. If only `CALENDLY_OAUTH_CLIENT_ID` appears in code, use that name throughout.
+1. **Calendly env var naming discrepancy** — **RESOLVED:** code is authoritative → canonical name is `CALENDLY_OAUTH_CLIENT_ID` (+ `CALENDLY_OAUTH_CLIENT_SECRET`). Verified via `grep -rhoE "CALENDLY_[A-Z_]+" supabase/functions/` (no bare `CALENDLY_CLIENT_ID` exists in code). Plans 01/04 pin this name.
 
-2. **Anthropic env var naming discrepancy**
-   - What we know: `ai-chat/index.ts` line 45 reads `ANTHROPIC_CLINICAL_API_KEY`; REQUIREMENTS.md VENDOR-08 says `ANTHROPIC_API_KEY_CLINICAL`
-   - What's unclear: Which name is actually set in Supabase secrets? VENDOR-08's `supabase secrets list` check will confirm.
-   - Recommendation: Planner pins to the name in `ai-chat/index.ts` (`ANTHROPIC_CLINICAL_API_KEY`) since that's what the consuming code reads.
+2. **Anthropic env var naming discrepancy** — **RESOLVED:** canonical name is `ANTHROPIC_CLINICAL_API_KEY` (read by `ai-chat/index.ts:45`). REQUIREMENTS.md's `ANTHROPIC_API_KEY_CLINICAL` is a doc typo. Plans pin to the code name.
 
-3. **Mux credentials already set?**
-   - What we know: Phase 44 shipped mux-create-upload and mux-webhook which use `MUX_TOKEN_ID` and `MUX_TOKEN_SECRET`. These may already be set in Supabase secrets.
-   - What's unclear: Were they actually set during Phase 44 execution or deferred?
-   - Recommendation: Planner should run `supabase secrets list` as part of Wave 0 to determine which secrets are already set vs. need Phase 70 provisioning.
+3. **Mux credentials already set?** — **RESOLVED:** smoke is fail-soft regardless — `MUX_TOKEN_ID`/`MUX_TOKEN_SECRET` record `ok` if present, `not_configured` if absent. Whether Phase 44 set them is irrelevant to this phase; the live dashboard is the source of truth. Actual value-setting defers to Phase 70.
 
-4. **vendor-smoke dual-auth: does supabase.functions.invoke pass JWT or anon key?**
-   - What we know: `supabase.functions.invoke` from an authenticated browser session passes the user's JWT as the Authorization bearer.
-   - What's unclear: Does the current project wiring ensure the authenticated user JWT is forwarded (not the anon key)?
-   - Recommendation: Check how other staff-invoked Fns work (e.g., `baa-expiry-check` is cron-only; look at `admin-impersonate` or `admin-stripe-action` for the pattern). The `isAuthorized()` dual-path above handles both cases.
+4. **vendor-smoke dual-auth: does supabase.functions.invoke pass JWT or anon key?** — **RESOLVED:** the `isAuthorized()` dual-path handles both: service-role bearer (cron) AND staff user JWT (UI "run now"). Plan 01 implements both branches, so the answer to which token the browser forwards does not gate correctness.
 
 ---
 
