@@ -164,7 +164,10 @@ async function upsertRevenueRows(
 // Edge Fn handler
 // =============================================================================
 
-Deno.serve(async (req: Request): Promise<Response> => {
+// Guard with import.meta.main so `deno test` can import pure helpers
+// (normalizeReportRow, computeEcpmRpm) without binding a real HTTP port.
+// Reference: reference_deno_test_top_level_serve_trap.
+if (import.meta.main) Deno.serve(async (req: Request): Promise<Response> => {
   // T-56-04: Reject non-service-role callers.
   if (!checkServiceRoleBearer(req)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
