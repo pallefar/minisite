@@ -275,17 +275,33 @@ for (const [cat, reasons] of declaredCategoryToReasons.entries()) {
   }
 }
 
-// 3. NSPrivacyCollectedDataTypeHealth (if present) MUST have Linked=false per D-18.
+// 3. NSPrivacyCollectedDataTypeHealth checks (Phase 55 Plan 55-04 HEALTH-05 §5.1.3 update):
+//    a. Linked=true — imported health data IS linked to the user account (changed from D-18 false).
+//    b. NSPrivacyCollectedDataTypePurposeAnalytics MUST NOT be present (Apple §5.1.3 prohibition).
+//    c. NSPrivacyCollectedDataTypePurposeAppFunctionality MUST be present.
 const collectedDicts = extractDictBlocksUnderKey(manifestText, 'NSPrivacyCollectedDataTypes');
 for (const block of collectedDicts) {
   const type = getString(block, 'NSPrivacyCollectedDataType');
   if (type === 'NSPrivacyCollectedDataTypeHealth') {
     const linked = getBoolean(block, 'NSPrivacyCollectedDataTypeLinked');
-    if (linked !== 'false') {
+    // 3a. Linked must be true (Phase 55 HEALTH-05 — health data IS linked to user account)
+    if (linked !== 'true') {
       errors.push(
-        `NSPrivacyCollectedDataTypeHealth must have NSPrivacyCollectedDataTypeLinked=<false/> per D-18; found: ${
+        `NSPrivacyCollectedDataTypeHealth must have NSPrivacyCollectedDataTypeLinked=<true/> per Phase 55 HEALTH-05; found: ${
           linked ?? '<missing>'
         }`,
+      );
+    }
+    // 3b. Analytics purpose is banned for HealthKit data (Apple §5.1.3)
+    if (block.includes('NSPrivacyCollectedDataTypePurposeAnalytics')) {
+      errors.push(
+        'NSPrivacyCollectedDataTypeHealth MUST NOT include NSPrivacyCollectedDataTypePurposeAnalytics — Apple §5.1.3 bans HealthKit data for analytics',
+      );
+    }
+    // 3c. AppFunctionality purpose must be present
+    if (!block.includes('NSPrivacyCollectedDataTypePurposeAppFunctionality')) {
+      errors.push(
+        'NSPrivacyCollectedDataTypeHealth must include NSPrivacyCollectedDataTypePurposeAppFunctionality',
       );
     }
   }
