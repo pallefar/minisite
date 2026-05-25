@@ -74,6 +74,5 @@ export function assertHealthTunnel(callerContext: string): void {
     throw new Error(msg);
   }
   // Production: error-log only — never crash a real user session.
-  // eslint-disable-next-line no-console
   console.error(msg);
 }
