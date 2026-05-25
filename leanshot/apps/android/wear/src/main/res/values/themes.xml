@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Minimal Wear OS theme for LeanShot watch companion -->
+    <style name="Theme.Leanshot.Wear" parent="@android:style/Theme.DeviceDefault.Light">
+        <!-- Phase 70: extend with brand color tokens and watch-face display overrides -->
+    </style>
+</resources>
