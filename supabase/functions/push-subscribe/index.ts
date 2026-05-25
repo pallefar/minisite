@@ -1,24 +1,28 @@
 /**
  * Phase 42 Plan 42-05 (POLISH-05/06) — push-subscribe Edge Function.
+ * Phase 54 Plan 54-03 — Extended to accept native { platform, device_token } body.
  *
  * POST /functions/v1/push-subscribe
  *
  * Auth: Authorization: Bearer <user-jwt>.
- * Body: { endpoint: string, p256dh: string, auth: string, user_agent?: string }.
+ *
+ * Body shape A — web VAPID (existing):
+ *   { endpoint: string, p256dh: string, auth: string, user_agent?: string }
+ *   UPSERT onConflict (user_id, endpoint); platform='web'.
+ *
+ * Body shape B — native APNs/FCM (new in 54-03):
+ *   { platform: 'ios'|'android', device_token: string }
+ *   UPSERT onConflict (user_id, device_token) [partial unique index from 54-01].
  *
  * Behavior:
  *   1. Verify JWT → auth.uid().
- *   2. Validate body (non-empty strings; endpoint must be https URL).
- *   3. UPSERT push_subscriptions:
- *      INSERT (user_id, endpoint, p256dh, auth, user_agent)
- *      ON CONFLICT (user_id, endpoint) DO UPDATE SET
- *        p256dh = EXCLUDED.p256dh,
- *        auth = EXCLUDED.auth,
- *        user_agent = EXCLUDED.user_agent;
+ *   2. Validate body (discriminate A vs B; reject neither with 400).
+ *   3. UPSERT push_subscriptions per shape.
  *   4. Respond 200 { subscribed: true }.
  *
- * T-42-05-02 mitigation: the body's user_id is NOT trusted — only the verified
- * JWT subject is used.
+ * T-42-05-02 / T-54-03-01 mitigation: the body's user_id is NOT trusted — only
+ * the verified JWT subject is used.
+ * T-54-03-02 mitigation: platform validated as 'ios'|'android' enum in validateBody.
  */
 
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
@@ -80,18 +84,50 @@ const admin = new Proxy({} as Record<string | symbol, unknown>, {
   },
 }) as unknown as SupabaseClient;
 
-// ─── Body validation ──────────────────────────────────────────────────────────
+// ─── Body types ───────────────────────────────────────────────────────────────
 
-interface SubscribeBody {
+interface WebSubscribeBody {
+  kind: 'web';
   endpoint: string;
   p256dh: string;
   auth: string;
   user_agent?: string;
 }
 
-function validateBody(raw: unknown): { ok: true; body: SubscribeBody } | { ok: false; reason: string } {
+interface NativeSubscribeBody {
+  kind: 'native';
+  platform: 'ios' | 'android';
+  device_token: string;
+}
+
+type ValidatedBody = WebSubscribeBody | NativeSubscribeBody;
+
+// ─── Body validation ──────────────────────────────────────────────────────────
+
+function validateBody(raw: unknown): { ok: true; body: ValidatedBody } | { ok: false; reason: string } {
   if (!raw || typeof raw !== 'object') return { ok: false, reason: 'body_not_object' };
   const obj = raw as Record<string, unknown>;
+
+  // ── Native body: { platform: 'ios'|'android', device_token: string } ────────
+  // Discriminated by presence of 'device_token' or 'platform' field.
+  if ('device_token' in obj || ('platform' in obj && obj.platform !== undefined)) {
+    if (obj.platform !== 'ios' && obj.platform !== 'android') {
+      return { ok: false, reason: 'platform_must_be_ios_or_android' };
+    }
+    if (typeof obj.device_token !== 'string' || obj.device_token.length === 0) {
+      return { ok: false, reason: 'device_token_required' };
+    }
+    return {
+      ok: true,
+      body: {
+        kind: 'native',
+        platform: obj.platform as 'ios' | 'android',
+        device_token: obj.device_token,
+      },
+    };
+  }
+
+  // ── Web body: { endpoint, p256dh, auth, user_agent? } ───────────────────────
   if (typeof obj.endpoint !== 'string' || !/^https:\/\//.test(obj.endpoint)) {
     return { ok: false, reason: 'endpoint_must_be_https_url' };
   }
@@ -107,6 +143,7 @@ function validateBody(raw: unknown): { ok: true; body: SubscribeBody } | { ok: f
   return {
     ok: true,
     body: {
+      kind: 'web',
       endpoint: obj.endpoint,
       p256dh: obj.p256dh,
       auth: obj.auth,
@@ -141,21 +178,42 @@ async function handleSubscribe(req: Request): Promise<Response> {
   }
   const valid = validateBody(raw);
   if (!valid.ok) return jsonError(400, valid.reason);
-  const { endpoint, p256dh, auth, user_agent } = valid.body;
+  const body = valid.body;
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const upsertRes = (await ((admin.from('push_subscriptions') as any).upsert(
-    {
-      user_id: userId,
-      endpoint,
-      p256dh,
-      auth,
-      user_agent: user_agent ?? null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,endpoint' },
-  ))) as { error: { message?: string } | null };
-  /* eslint-enable @typescript-eslint/no-explicit-any */
+  let upsertRes: { error: { message?: string } | null };
+
+  if (body.kind === 'native') {
+    // ── Native APNs/FCM token UPSERT ──────────────────────────────────────────
+    // Conflict key: (user_id, device_token) — partial unique index from 54-01.
+    // Updates platform + updated_at on re-registration (e.g. token refresh).
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    upsertRes = (await ((admin.from('push_subscriptions') as any).upsert(
+      {
+        user_id: userId,
+        platform: body.platform,
+        device_token: body.device_token,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,device_token' },
+    ))) as { error: { message?: string } | null };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  } else {
+    // ── Web VAPID subscription UPSERT (existing path, unchanged) ─────────────
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    upsertRes = (await ((admin.from('push_subscriptions') as any).upsert(
+      {
+        user_id: userId,
+        platform: 'web',
+        endpoint: body.endpoint,
+        p256dh: body.p256dh,
+        auth: body.auth,
+        user_agent: body.user_agent ?? null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,endpoint' },
+    ))) as { error: { message?: string } | null };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  }
 
   if (upsertRes.error) {
     console.error('[push-subscribe] upsert failed', upsertRes.error.message);
