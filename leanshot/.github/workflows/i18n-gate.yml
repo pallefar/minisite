@@ -66,26 +66,22 @@ jobs:
           echo "i18n catalogs are clean — no parser drift."
 
       # Gate 3 — P58 ICU interpolation integrity guard.
-      # Fails CI if any ES catalog value contains an interpolation marker whose
-      # variable name starts with a lowercase or accented letter — the signature
-      # of a TRANSLATED {{var}} name (e.g. {{conteo}}, {{recuento}}, {{fecha}}).
-      # i18next variable names are always ASCII-lowercase ({{count}}, {{name}},
-      # {{date}}) so a legitimate ES catalog NEVER matches this pattern. Only a
-      # mistranslated variable name matches — which silently renders as literal
-      # `{{recuento}}` in the UI, masking a dose/unit/count value (T-58-01).
-      # Path is relative to working-directory: leanshot — do NOT prefix with leanshot/.
+      # i18next variable names are shared verbatim across locales, so the SET of
+      # {{var}} tokens used in the ES catalogs must be a SUBSET of the EN set.
+      # A translated variable name (e.g. {{conteo}}, {{recuento}}, {{fecha}}) has no
+      # EN counterpart and would render literally in the UI, masking a dose/unit/count
+      # value (T-58-01). A character-class grep cannot distinguish a translated name
+      # ({{fecha}}) from an English one ({{date}}) — both are ASCII-lowercase — so we
+      # compare token sets instead. Path is relative to working-directory: leanshot.
       - name: i18n ICU interpolation guard (Gate 3 — P58 no translated variable names)
         run: |
-          OFFENDERS=$(grep -rEn '\{\{[a-záéíóúñüÁÉÍÓÚÑÜ]' public/locales/es/ 2>/dev/null || true)
+          EN_VARS=$(grep -rohE '\{\{[^}]+\}\}' public/locales/en/ 2>/dev/null | tr -d ' ' | sort -u)
+          ES_VARS=$(grep -rohE '\{\{[^}]+\}\}' public/locales/es/ 2>/dev/null | tr -d ' ' | sort -u)
+          OFFENDERS=$(comm -13 <(printf '%s\n' "$EN_VARS") <(printf '%s\n' "$ES_VARS"))
           if [ -n "$OFFENDERS" ]; then
-            echo "::error::Gate 3 FAILED — ES catalog contains translated interpolation variable name(s)."
-            echo "  Preserve {{count}}, {{name}}, {{date}}, etc. verbatim — only translate surrounding text."
-            echo "  Offending lines:"
-            echo "$OFFENDERS" | while IFS= read -r line; do
-              echo "  $line"
-              FILE=$(echo "$line" | cut -d: -f1)
-              echo "::error file=$FILE::Translated {{var}} name detected — restore original ASCII variable name (e.g. {{count}}, not {{conteo}}). Remediation: preserve {{count}} verbatim, only translate surrounding text."
-            done
+            echo "::error::Gate 3 FAILED — ES catalogs use interpolation var(s) absent from EN (translated {{var}} name):"
+            printf '%s\n' "$OFFENDERS" | sed 's/^/  /'
+            echo "  Restore the EN variable name verbatim (e.g. {{count}}, not {{conteo}}); only translate surrounding text."
             exit 1
           fi
-          echo "Gate 3 OK — no translated interpolation variable names in public/locales/es/."
+          echo "Gate 3 OK — every ES {{var}} token has an EN counterpart."
