@@ -139,7 +139,6 @@ const NAV: { id: Section; Icon: typeof UserIcon }[] = [
   { id: 'security', Icon: Shield },
   // Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
   // iOS-only surface; shown to all users (informational on non-iOS via platform guard in component).
-  // Label resolved via sectionLabel() helper (Phase 58 i18n keying).
   { id: 'healthkit', Icon: Heart },
   // Phase 22 plan 22-11 (GDPR-03): patient-only DSAR portal (D-06). Link-out
   // entry — click navigates to /settings/privacy/dsar instead of swapping the
@@ -715,8 +714,8 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {/* Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge. */}
           {section === 'healthkit' && (
             <Section
-              title="HealthKit"
-              body="Manage Apple Health data import, sync, and privacy controls."
+              title={t('settings:section.healthkit.title')}
+              body={t('settings:section.healthkit.body')}
             >
               <HealthKitSettingsSection />
             </Section>

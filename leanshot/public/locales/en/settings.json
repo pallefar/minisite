@@ -173,6 +173,10 @@
       "snapshot_taken": "Snapshot taken:",
       "title": "Recovery"
     },
+    "healthkit": {
+      "body": "Manage Apple Health data import, sync, and privacy controls.",
+      "title": "HealthKit"
+    },
     "security": {
       "body": "Manage your two-factor authentication settings.",
       "title": "Security"

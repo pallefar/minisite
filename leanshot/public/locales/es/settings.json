@@ -173,6 +173,10 @@
       "snapshot_taken": "Instantánea tomada:",
       "title": "Recuperación"
     },
+    "healthkit": {
+      "body": "Administre la importación de datos de Apple Health, sincronización y controles de privacidad.",
+      "title": "HealthKit"
+    },
     "security": {
       "body": "Administre su configuración de autenticación de dos factores.",
       "title": "Seguridad"
