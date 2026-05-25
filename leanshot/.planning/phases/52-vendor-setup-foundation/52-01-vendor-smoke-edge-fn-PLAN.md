@@ -92,7 +92,7 @@ Target table contract (created by plan 52-02; reference by string only — no co
   <name>Task 1: deno.json + Fn skeleton (dual-auth gate, types, registry scaffold)</name>
   <files>supabase/functions/vendor-smoke/deno.json, supabase/functions/vendor-smoke/index.ts</files>
   <action>
-Create `supabase/functions/vendor-smoke/deno.json` mirroring `mux-create-upload/deno.json`: a `tasks.test` of `deno test --no-check .`, an `imports` block declaring `npm:@supabase/supabase-js@2` and `npm:@mux/mux-node@14` (both self-mapped), the `lint` recommended rules block, and `fmt` (useTabs false, lineWidth 100). Do NOT rely on `../import_map.json` — CLI v2.101.0 ignores it.
+Create `supabase/functions/vendor-smoke/deno.json` mirroring `mux-create-upload/deno.json`, with one deliberate divergence: set `tasks.test` to `deno test --no-check index.test.ts` (target the FILE `index.test.ts`, NOT the directory `.`). RATIONALE: the project's `Deno.serve()` is not guarded by `import.meta.main`, so `deno test <dir>` would import every file in the dir, launch a real HTTP server on import, and hang the CI sweep (RESEARCH Pitfall 2 / [deno test top-level serve trap]). Targeting the single test file avoids importing nothing it doesn't already import explicitly. Also declare an `imports` block with `npm:@supabase/supabase-js@2` and `npm:@mux/mux-node@14` (both self-mapped), the `lint` recommended rules block, and `fmt` (useTabs false, lineWidth 100). Do NOT rely on `../import_map.json` — CLI v2.101.0 ignores it.
 
 Create `supabase/functions/vendor-smoke/index.ts` as the structural copy of `baa-expiry-check/index.ts`. Import `checkServiceRoleBearer, bearerFromReq, corsHeaders, jsonError, jsonResponse, makeLazyAdmin` from `'../_shared/lifecycle-utils.ts'` (relative path, NOT alias). Instantiate `const { admin, setAdminForTest, resetAdminForTest } = makeLazyAdmin();`.
 
@@ -105,9 +105,9 @@ Stub an empty `const VENDOR_REGISTRY: VendorHandler[] = []` (handlers land in Ta
 Wire `Deno.serve`: OPTIONS → CORS 200; non-POST → `jsonError(405,'method_not_allowed')`; `!isAuthorized` → `jsonError(401,'unauthorized')`; wrap `handleRun` in try/catch logging only `e.name` (NEVER `e.message` — may leak Authorization header fragments per RESEARCH Pitfall 6) and returning `jsonError(500,'internal')`. Export `export const __internal = { handleRun, setAdminForTest, resetAdminForTest, VENDOR_REGISTRY }` for tests.
   </action>
   <verify>
-    <automated>cd /Users/karstenhaldan/minisite && $HOME/.deno/bin/deno check --no-lock supabase/functions/vendor-smoke/index.ts 2>&1 | tail -5; grep -q "from '../_shared/lifecycle-utils.ts'" supabase/functions/vendor-smoke/index.ts && grep -q "onConflict: 'vendor_name'" supabase/functions/vendor-smoke/index.ts && echo GATES_OK</automated>
+    <automated>cd /Users/karstenhaldan/minisite && $HOME/.deno/bin/deno check --no-lock supabase/functions/vendor-smoke/index.ts 2>&1 | tail -5; grep -q "from '../_shared/lifecycle-utils.ts'" supabase/functions/vendor-smoke/index.ts && grep -q "onConflict: 'vendor_name'" supabase/functions/vendor-smoke/index.ts && grep -q 'deno test --no-check index.test.ts' supabase/functions/vendor-smoke/deno.json && ! grep -q 'deno test --no-check \.' supabase/functions/vendor-smoke/deno.json && echo GATES_OK</automated>
   </verify>
-  <done>deno.json + index.ts exist; isAuthorized dual-path present; handleRun upserts to vendor_smoke_log; error handler logs e.name only; __internal exported; deno check passes.</done>
+  <done>deno.json (test task targets index.test.ts, NOT the dir) + index.ts exist; isAuthorized dual-path present; handleRun upserts to vendor_smoke_log; error handler logs e.name only; __internal exported; deno check passes.</done>
 </task>
 
 <task type="auto">
@@ -159,7 +159,7 @@ Create `supabase/functions/vendor-smoke/index.test.ts` using `Deno.test`. Import
 
 Cover the six behaviors above. For probe-status tests, stub `globalThis.fetch` (save/restore in try/finally) to return crafted `Response` objects, then assert the resulting SmokeResult status + latency type. For the all-unset case, ensure `Deno.env` has no vendor secrets (do not set them) and assert no result is `'fail'`.
 
-CRITICAL: run tests against the FILE, never the directory — `deno test --no-check index.test.ts`. The project's `Deno.serve()` is not `import.meta.main`-guarded, so `deno test <dir>` would start a real server and hang (RESEARCH Pitfall 2). The deno.json `test` task already uses `--no-check .`; for the verify command target the single file explicitly.
+CRITICAL: run tests against the FILE, never the directory — `deno test --no-check index.test.ts`. The project's `Deno.serve()` is not `import.meta.main`-guarded, so `deno test <dir>` would start a real server and hang (RESEARCH Pitfall 2). The deno.json `test` task is set in Task 1 to `deno test --no-check index.test.ts` (file-targeted, NOT `.`); the verify command below targets that same single file explicitly.
   </action>
   <verify>
     <automated>cd /Users/karstenhaldan/minisite && $HOME/.deno/bin/deno test --no-check supabase/functions/vendor-smoke/index.test.ts 2>&1 | tail -15</automated>
@@ -193,15 +193,16 @@ CRITICAL: run tests against the FILE, never the directory — `deno test --no-ch
 
 <verification>
 - `$HOME/.deno/bin/deno check --no-lock supabase/functions/vendor-smoke/index.ts` passes.
-- `$HOME/.deno/bin/deno test --no-check supabase/functions/vendor-smoke/index.test.ts` passes.
+- `$HOME/.deno/bin/deno test --no-check supabase/functions/vendor-smoke/index.test.ts` passes (file-targeted; no HTTP server hang).
+- `deno.json` `tasks.test` = `deno test --no-check index.test.ts` (file, not `.`) — confirmed by Task 1 grep gate.
 - Registry covers all VENDOR-01..09 + VENDOR-11; canonical env names used; fail-soft on absent secrets.
 - DEPLOY ORDERING (close-out, not this plan): the `vendor-smoke` Fn MUST be deployed BEFORE plan 52-02's cron migration is `db push`ed (cron fires within 15 min of push to a non-existent endpoint otherwise). Surface this in the SUMMARY for the close-out sequence.
 </verification>
 
 <success_criteria>
-vendor-smoke Fn exists with dual-auth, a fail-soft per-vendor registry, and vendor_smoke_log upsert; unit tests green; no new packages; no secret-leaking logs.
+vendor-smoke Fn exists with dual-auth, a fail-soft per-vendor registry, and vendor_smoke_log upsert; unit tests green; deno.json test task targets the file (no CI hang); no new packages; no secret-leaking logs.
 </success_criteria>
 
 <output>
-Create `.planning/phases/52-vendor-setup-foundation/52-01-SUMMARY.md` when done. Record: any A1 (APNs) fallback taken; whether Resend handler reused the shared health-check util; the Fn-deploy-before-db-push ordering note for close-out.
+Create `.planning/phases/52-vendor-setup-foundation/52-01-SUMMARY.md` when done. Record: any A1 (APNs) fallback taken; whether Resend handler reused the shared health-check util; the deno.json file-targeted test task (vs dir) fix; the Fn-deploy-before-db-push ordering note for close-out.
 </output>

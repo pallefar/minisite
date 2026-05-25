@@ -48,6 +48,17 @@ Purpose: The dashboard is the live missing-secret tracker — it separates `not_
 Output: `AdminVendorSmokeDashboard.tsx` + a `vendor-smoke` manifest entry in `modules.ts`.
 </objective>
 
+<planner_annotation severity="resolved-warning" topic="ClinicianMfaGuard">
+DO NOT wire `ClinicianMfaGuard` in this module. The plan-checker flagged a CONTEXT/UI-SPEC mention of `ClinicianMfaGuard` for this dashboard — that mention is a copy-paste artifact and is OVERRIDDEN here.
+
+Facts (verified):
+- `ClinicianMfaGuard` is a CLINIC-surface AAL2 (MFA step-up) guard. It is NOT used by ANY existing admin module.
+- Every admin module — including the exact analog `AdminCompliancePage` — gates on `public.is_staff()` RLS (server) + a `minRole` manifest gate (client). None of them use `ClinicianMfaGuard`.
+- This vendor-smoke dashboard is NON-PHI (Fn 52-01 records only fixed error codes, never secrets/PHI).
+
+Therefore this dashboard is gated EXACTLY like every other admin module: `vendor_smoke_log` RLS via `public.is_staff()` (server-enforced, from migration 52-02) + `minRole: 'superadmin'` manifest gate (client). Keep that approach. Do NOT add, import, or wrap with `ClinicianMfaGuard`. There is no AAL2/MFA-step-up requirement for this surface.
+</planner_annotation>
+
 <execution_context>
 @$HOME/.claude/get-shit-done/workflows/execute-plan.md
 @$HOME/.claude/get-shit-done/templates/summary.md
@@ -59,6 +70,7 @@ Output: `AdminVendorSmokeDashboard.tsx` + a `vendor-smoke` manifest entry in `mo
 @.planning/STATE.md
 @.planning/phases/52-vendor-setup-foundation/52-CONTEXT.md
 # AUTHORITATIVE visual + interaction contract — implement EXACTLY (copy, copywriting, states, a11y)
+# NOTE: any 52-UI-SPEC / 52-CONTEXT mention of ClinicianMfaGuard is a copy-paste artifact — see <planner_annotation>; do NOT wire it.
 @.planning/phases/52-vendor-setup-foundation/52-UI-SPEC.md
 
 # Reuse table structure, fetch+loading+error+role="alert" pattern, supabase client usage VERBATIM
@@ -66,7 +78,7 @@ Output: `AdminVendorSmokeDashboard.tsx` + a `vendor-smoke` manifest entry in `mo
 @leanshot/src/components/admin/AdminAffiliatesReviewQueue.tsx
 # Manifest registration precedent (compliance entry is the exact analog: superadmin, ShieldIcon)
 @leanshot/src/lib/admin/modules.ts
-# Page wrap precedent (AdminLayout, manifest-gated, no explicit guard in page body)
+# Page wrap precedent (AdminLayout, manifest-gated, no explicit guard in page body — and NOTE: AdminCompliancePage does NOT use ClinicianMfaGuard; mirror that)
 @leanshot/src/components/admin/pages/AdminCompliancePage.tsx
 
 <interfaces>
@@ -99,7 +111,7 @@ vendor_smoke_log row shape (from migration 52-02):
   <name>Task 1: AdminVendorSmokeDashboard component (table + states + run-now)</name>
   <files>leanshot/src/components/admin/AdminVendorSmokeDashboard.tsx</files>
   <action>
-Create `leanshot/src/components/admin/AdminVendorSmokeDashboard.tsx` exporting `AdminVendorSmokeDashboard` (named export). Implement EXACTLY the 52-UI-SPEC contract — do not invent additional screens or columns.
+Create `leanshot/src/components/admin/AdminVendorSmokeDashboard.tsx` exporting `AdminVendorSmokeDashboard` (named export). Implement EXACTLY the 52-UI-SPEC contract — do not invent additional screens or columns. Do NOT import or wrap with `ClinicianMfaGuard` (see <planner_annotation>): this surface is gated by `is_staff()` RLS + `minRole: 'superadmin'` manifest entry only, identical to `AdminCompliancePage`.
 
 Model the data layer on `BaaChainTable.tsx`: `useState` for `rows`/`loading`/`fetchError`; a `fetchRows` async that does `supabase.from('vendor_smoke_log').select('vendor_name,status,latency_ms,message,checked_at').order('vendor_name')`; call it in a `useEffect` on mount. Type rows with the shape from the interfaces block.
 
@@ -114,9 +126,9 @@ States: Loading → `<p className="text-sm text-[var(--color-text-secondary)]">L
 All colors via `var(--color-*)` tokens only — no hard-coded hex (project anti-pattern + UI-SPEC). Icons from lucide-react (`ShieldCheck`, `Play`).
   </action>
   <verify>
-    <automated>cd /Users/karstenhaldan/minisite/leanshot && npx tsc -p tsconfig.app.json --noEmit 2>&1 | grep -i "AdminVendorSmoke" | head -5; echo "---grep gates---"; F=src/components/admin/AdminVendorSmokeDashboard.tsx; grep -q "from('vendor_smoke_log')" "$F" && grep -q "functions.invoke('vendor-smoke'" "$F" && grep -q "export function AdminVendorSmokeDashboard\|export const AdminVendorSmokeDashboard" "$F" && grep -q "tone=" "$F" && ! grep -qE "#[0-9a-fA-F]{6}" "$F" && echo DASH_OK</automated>
+    <automated>cd /Users/karstenhaldan/minisite/leanshot && npx tsc -p tsconfig.app.json --noEmit 2>&1 | grep -i "AdminVendorSmoke" | head -5; echo "---grep gates---"; F=src/components/admin/AdminVendorSmokeDashboard.tsx; grep -q "from('vendor_smoke_log')" "$F" && grep -q "functions.invoke('vendor-smoke'" "$F" && grep -q "export function AdminVendorSmokeDashboard\|export const AdminVendorSmokeDashboard" "$F" && grep -q "tone=" "$F" && ! grep -q "ClinicianMfaGuard" "$F" && ! grep -qE "#[0-9a-fA-F]{6}" "$F" && echo DASH_OK</automated>
   </verify>
-  <done>Component compiles under tsc; renders table + loading/empty/error states + Run-smoke-now wired to functions.invoke + refetch; Badge tones mapped; no hard-coded hex; named export present.</done>
+  <done>Component compiles under tsc; renders table + loading/empty/error states + Run-smoke-now wired to functions.invoke + refetch; Badge tones mapped; no ClinicianMfaGuard usage; no hard-coded hex; named export present.</done>
 </task>
 
 <task type="auto">
@@ -125,6 +137,8 @@ All colors via `var(--color-*)` tokens only — no hard-coded hex (project anti-
   <action>
 Add a new entry to the `ADMIN_MODULES` array in `leanshot/src/lib/admin/modules.ts`, mirroring the `compliance` entry exactly (per CONTEXT D-02: register in manifest AND rely on the catch-all router branch — avoids the Phase 42 manifest↔router drift). Entry fields: `key: 'vendor-smoke'`, `label: 'Vendor health'`, `route: 'vendor-smoke'`, `icon: ShieldCheckIcon` (REUSE the existing `ShieldCheck as ShieldCheckIcon` import already present at line ~45 — do NOT add a duplicate `ShieldCheck` import, it causes a TS duplicate-identifier error per RESEARCH Pitfall 3), `lazy: () => import('@/components/admin/AdminVendorSmokeDashboard').then((m) => ({ default: m.AdminVendorSmokeDashboard }))`, `flagKey: 'admin.vendor_smoke.enabled'`, `minRole: 'superadmin' as AdminRole` (staff-only highest-restriction gate, matching the compliance precedent).
 
+The `minRole: 'superadmin'` manifest gate + the `vendor_smoke_log` `is_staff()` RLS (from 52-02) are the COMPLETE access-control story for this module — exactly as for `compliance`. Do NOT introduce an MFA/AAL2 guard (`ClinicianMfaGuard`) anywhere in the manifest entry or the module; it is a clinic-surface construct unused by admin modules (see <planner_annotation>).
+
 Do NOT edit AdminShell routing — `AdminShell.tsx:116-120` already matches `/admin/${m.route}` for any manifest entry. The manifest entry alone makes `/admin/vendor-smoke` reachable.
 
 Verify the array still satisfies `readonly AdminModule[]` (the file ends with `satisfies readonly AdminModule[]`) — the new entry must match the `AdminModule` shape (key/label/route/icon/lazy/flagKey/minRole).
@@ -132,7 +146,7 @@ Verify the array still satisfies `readonly AdminModule[]` (the file ends with `s
   <verify>
     <automated>cd /Users/karstenhaldan/minisite/leanshot && npx tsc -p tsconfig.app.json --noEmit 2>&1 | grep -iE "modules\.ts|duplicate" | head -5; F=src/lib/admin/modules.ts; node -e "const s=require('fs').readFileSync('$F','utf8'); const dup=(s.match(/import \{ ShieldCheck /g)||[]).length; if(dup>1){console.error('duplicate ShieldCheck import');process.exit(1)} if(!s.includes(\"route: 'vendor-smoke'\")){console.error('no vendor-smoke route');process.exit(1)} if(!s.includes('AdminVendorSmokeDashboard')){console.error('no lazy import');process.exit(1)} console.log('MANIFEST_OK')"</automated>
   </verify>
-  <done>ADMIN_MODULES has a vendor-smoke entry (route 'vendor-smoke', minRole superadmin, lazy → AdminVendorSmokeDashboard); reuses existing ShieldCheckIcon import; full app tsc passes; no router edits.</done>
+  <done>ADMIN_MODULES has a vendor-smoke entry (route 'vendor-smoke', minRole superadmin, lazy → AdminVendorSmokeDashboard); reuses existing ShieldCheckIcon import; full app tsc passes; no router edits; no MFA/AAL2 guard added.</done>
 </task>
 
 </tasks>
@@ -150,7 +164,7 @@ Verify the array still satisfies `readonly AdminModule[]` (the file ends with `s
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-52-09 | Elevation of Privilege | dashboard route | mitigate | Dual-layer: manifest `minRole: 'superadmin'` client gate (Pattern S1) + `vendor_smoke_log` RLS `is_staff()` server gate (52-02) — client gate alone is not trusted |
+| T-52-09 | Elevation of Privilege | dashboard route | mitigate | Dual-layer: manifest `minRole: 'superadmin'` client gate (Pattern S1) + `vendor_smoke_log` RLS `is_staff()` server gate (52-02) — client gate alone is not trusted. NO AAL2/ClinicianMfaGuard: not used by any admin module; non-PHI surface; consistent with AdminCompliancePage. |
 | T-52-10 | Information Disclosure | smoke message column rendered in UI | accept | Fn (52-01) records only fixed error codes, never secrets; UI truncates to 40ch; no PHI involved |
 | T-52-11 | Spoofing | run-now invoke | mitigate | Fn (52-01) `isAuthorized` re-validates the forwarded JWT's `is_staff`; UI button is not the security boundary |
 | T-52-SC | Tampering | npm installs | accept | No new packages; lucide-react + existing UI primitives only |
@@ -158,14 +172,14 @@ Verify the array still satisfies `readonly AdminModule[]` (the file ends with `s
 
 <verification>
 - `npx tsc -p tsconfig.app.json --noEmit` passes for the whole app (no errors in the new file or modules.ts).
-- Grep gates: select from vendor_smoke_log, functions.invoke('vendor-smoke'), named export, badge tones, no hard-coded hex, single ShieldCheck import, vendor-smoke route present.
+- Grep gates: select from vendor_smoke_log, functions.invoke('vendor-smoke'), named export, badge tones, no hard-coded hex, single ShieldCheck import, vendor-smoke route present, NO ClinicianMfaGuard usage.
 - Manual/close-out: navigate to /admin/vendor-smoke as a superadmin → table renders (rolls up to Phase 70 HUMAN-UAT per milestone contract; no per-phase UAT signal here).
 </verification>
 
 <success_criteria>
-AdminVendorSmokeDashboard implements the UI-SPEC contract (table, 4 status/empty/error states, run-now), is registered in ADMIN_MODULES (superadmin), reachable via the catch-all router, and the full app type-checks.
+AdminVendorSmokeDashboard implements the UI-SPEC contract (table, 4 status/empty/error states, run-now), is gated by is_staff RLS + superadmin minRole (no ClinicianMfaGuard), is registered in ADMIN_MODULES, reachable via the catch-all router, and the full app type-checks.
 </success_criteria>
 
 <output>
-Create `.planning/phases/52-vendor-setup-foundation/52-03-SUMMARY.md` when done. Record: the 06:00→08:00 UTC copy correction, that no AdminShell router edit was needed, and the superadmin minRole choice.
+Create `.planning/phases/52-vendor-setup-foundation/52-03-SUMMARY.md` when done. Record: the 06:00→08:00 UTC copy correction, that no AdminShell router edit was needed, that ClinicianMfaGuard was intentionally NOT wired (is_staff RLS + superadmin minRole used instead, per planner annotation), and the superadmin minRole choice.
 </output>
