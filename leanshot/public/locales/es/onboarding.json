@@ -3,6 +3,7 @@
     "auth": {
       "check_inbox": "Revisa tu bandeja de entrada para el enlace mágico.",
       "continue_apple": "Continuar con Apple",
+      "sign_in_apple": "Iniciar sesión con Apple",
       "continue_email": "Continuar con email",
       "continue_google": "Continuar con Google",
       "email_aria_label": "Correo electrónico",

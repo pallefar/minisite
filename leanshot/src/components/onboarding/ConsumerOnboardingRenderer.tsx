@@ -330,7 +330,7 @@ export function ConsumerOnboardingRenderer({
                   disabled={submitting}
                   className="min-h-[44px] w-full"
                 >
-                  {t('onboarding:consumer.auth.continue_apple')}
+                  {t('onboarding:consumer.auth.sign_in_apple')}
                 </Button>
               )}
               {authMessage && (

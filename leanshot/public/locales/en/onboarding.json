@@ -3,6 +3,7 @@
     "auth": {
       "check_inbox": "Check your inbox for the magic link.",
       "continue_apple": "Continue with Apple",
+      "sign_in_apple": "Sign in with Apple",
       "continue_email": "Continue with email",
       "continue_google": "Continue with Google",
       "email_aria_label": "Email address",
