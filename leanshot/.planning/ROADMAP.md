@@ -43,7 +43,11 @@
   4. Per-vendor smoke Edge Fn pings each live API successfully; failures surface in admin `vendor_smoke_log` dashboard
   5. `.planning/runbooks/vendor-secrets.md` documents every secret with rotation cadence + blast-radius
   6. `vendor_baa_chain` row exists for each new vendor (Mux confirmed BAA scope; Apple Dev + Google Play n/a noted)
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 52-01-vendor-smoke-edge-fn-PLAN.md — vendor-smoke Edge Fn (dual-auth, fail-soft per-vendor registry, vendor_smoke_log upsert, deno tests)
+- [ ] 52-02-vendor-smoke-log-migration-PLAN.md — vendor_smoke_log table + staff RLS + daily 08:00 UTC vault-bearer cron
+- [ ] 52-03-admin-vendor-smoke-dashboard-PLAN.md — AdminVendorSmokeDashboard module + ADMIN_MODULES registration
+- [ ] 52-04-baa-seed-and-secrets-runbook-PLAN.md — vendor_baa_chain seed rows + runbooks/vendor-secrets.md
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
