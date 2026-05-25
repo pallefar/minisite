@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-25T20:45:45.768Z"
+last_updated: "2026-05-25T20:46:04.217Z"
 progress:
   total_phases: 19
-  completed_phases: 6
-  total_plans: 26
-  completed_plans: 26
-  percent: 32
+  completed_phases: 7
+  total_plans: 34
+  completed_plans: 34
+  percent: 37
 ---
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Ready to execute
+**Status:** Executing Phase 59 (Phase 58 complete)
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,9 +27,9 @@ progress:
 
 ## Current Position
 
-- **Phase:** 58 (Spanish i18n Wiring) — NEXT (pending dispatch)
-- **Last completed:** Phase 57 (Watch Apps) — VERIFICATION passed 2026-05-25 (3 plans; 34 watch tests green; firewall extended; code review CR-01/WR-01/IN-01/WR-02 resolved); device render/sync/push deferred to Phase 70
-- **Status:** autonomous run `57→69` in progress (6/18 autonomous phases done)
+- **Phase:** 59 (Apple OAuth + Onboarding Completion) — NEXT (pending dispatch)
+- **Last completed:** Phase 58 (Spanish i18n) — VERIFICATION passed 2026-05-26 (8 plans; FULL i18n keying per user override of D-04; es-smoke 5/5 GREEN; all namespaces en↔es parity; Gate-3 fixed; SettingsPage re-keyed after 58-04 stale-base merge dropped it; code review WR-01/02/03 fixed). DEFERRED to P70: clinical-advisor signoff, native-speaker ES review, KB live-RPC push + verify, usted/tú register harmonization, KBSearchTypeahead aria-label.
+- **Status:** autonomous run `57→69` in progress (7/18 autonomous phases done)
 
 ## Milestone Contract
 
