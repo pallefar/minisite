@@ -164,7 +164,7 @@ Plans:
 
 ### Phase 58: Spanish i18n Wiring (Contractor-Delivered)
 
-**Goal**: Engineering integration of contractor-delivered Spanish translation memory + clinical glossary + KB articles + smoke test. The contractor is already engaged; this phase is wiring + verification only.
+**Goal**: Full i18n keying of the patient-facing surfaces (onboarding, dashboard, settings, KB, clinic-invite) into the existing i18next namespaces + machine/Claude-generated ES translations at en↔es parity, CI ICU/parity gates, clinical glossary (flagged for Phase 70 advisor signoff), and a Spanish smoke test across the critical flow. NOTE (2026-05-25): the ROADMAP "wiring + verification only" framing (D-04) was OVERRIDDEN by the user after a reality check found the patient namespaces empty and no contractor TMX delivered — see 58-CONTEXT.md.
 **Depends on**: v1.3 Phase 32 (i18n infrastructure shipped); contractor delivery (external; surfaces in this phase)
 **Requirements**: I18N-11, I18N-12, I18N-13, I18N-14, I18N-15
 **Success Criteria** (what must be TRUE):
@@ -173,7 +173,16 @@ Plans:
   3. TRANSLATOR-WORKFLOW.md runbook documents contractor handoff loop
   4. ES KB articles rendered; locale picker visible; tsvector ES dictionary returns results
   5. Playwright `es-smoke.spec.ts` passes across signup → onboarding → first dose log → AI chat → cancellation → KB search
-**Plans**: TBD
+**Plans**: 8 plans in 4 waves
+Plans:
+- [ ] 58-01-PLAN.md — Wave-0 infra: Gate 3 ICU guard, p58-es-smoke project + RED scaffold, clinical-glossary.md, TRANSLATOR-WORKFLOW.md
+- [ ] 58-02-PLAN.md — onboarding namespace keying + ES (owns onboarding.json)
+- [ ] 58-03-PLAN.md — clinic-invite (patient-side) namespace keying + ES (owns clinic.json)
+- [ ] 58-04-PLAN.md — settings + KB keying + ES + KB ES content seed migration (owns settings.json, kb.json)
+- [ ] 58-05-PLAN.md — dashboard cards → patient:card.* (establishes patient.json)
+- [ ] 58-06-PLAN.md — dashboard tabs → patient:tab.* (depends_on 58-05; serialized patient.json)
+- [ ] 58-07-PLAN.md — AI/modals/charts → patient:ai./modal./chart. (depends_on 58-06; finalizes patient.json)
+- [ ] 58-08-PLAN.md — ES smoke GREEN across the full I18N-15 flow (depends_on 58-01/02/03/04/07)
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
