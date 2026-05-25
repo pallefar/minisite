@@ -16,11 +16,30 @@ export type Category =
   | 'clinic-alerts'
   | 'billing'
   | 'marketing'
+  // Phase 44 — community notification categories.
+  // Must match CHECK widened in 20270720000004_p44_notification_community.sql.
+  | 'community-mentions'
+  | 'community-replies'
+  // Phase 45 — DM + admin report categories.
+  // Must match CHECK widened in 20270727000004_p45_notification_widening.sql.
+  | 'community-dm'
+  | 'community-admin-report'
+  // Phase 47 — event reminder + promotion categories.
+  // Must match CHECK widened in 20270801000006_p47_notification_event_widening.sql.
+  | 'event_reminders_1d'
+  | 'event_reminders_1h'
+  | 'event_promotion'
+  // Phase 48 — content moderation escalation category.
+  // Must match CHECK widened in 20270901000012_p48_notification_banned_word.sql.
+  | 'banned_word_escalate'
   // Phase 49 Plan 09 — community email digests. Default opt-IN per
   // 49-CONTEXT D-15; widens the CHECK constraint (see
   // supabase/migrations/20271001000005).
   | 'daily_community_digest'
-  | 'weekly_community_digest';
+  | 'weekly_community_digest'
+  // Phase 54 Plan 54-01 — helpdesk reply notifications (PUSH-06).
+  // Must match CHECK widened in 20280201000002_p54_notification_helpdesk_widening.sql.
+  | 'helpdesk-reply';
 
 export type Channel = 'email' | 'web-push' | 'in-app';
 
@@ -97,15 +116,29 @@ export interface WebPushPayload {
 }
 
 export const CATEGORIES: readonly Category[] = [
+  // First 5 unchanged — preserve existing snapshot/matrix ordering.
   'dose-reminders',
   'ai-insights',
   'clinic-alerts',
   'billing',
   'marketing',
-  // Phase 49 Plan 09 — digest categories appended last so the matrix order
-  // is unchanged for the original 5 (preserves existing snapshot tests).
+  // Phase 44 community categories.
+  'community-mentions',
+  'community-replies',
+  // Phase 45 DM + admin report.
+  'community-dm',
+  'community-admin-report',
+  // Phase 47 event categories.
+  'event_reminders_1d',
+  'event_reminders_1h',
+  'event_promotion',
+  // Phase 48 moderation escalation.
+  'banned_word_escalate',
+  // Phase 49 digest categories appended so original-5 matrix order is unchanged.
   'daily_community_digest',
   'weekly_community_digest',
+  // Phase 54 helpdesk reply (PUSH-06).
+  'helpdesk-reply',
 ] as const;
 
 export const CHANNELS: readonly Channel[] = ['email', 'web-push', 'in-app'] as const;
