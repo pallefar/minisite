@@ -43,6 +43,11 @@
  * (Phase 51-02 — cookie-set behavior).
  */
 import { next } from '@vercel/edge';
+import {
+  filterBlocklisted,
+  appendAdNetworkHosts,
+  type CspAllowRow,
+} from './src/lib/ads/cspGenerator';
 
 // `Config` is the Vercel convention shape — defining locally because
 // @vercel/edge v1.3.1 does not re-export a public `Config` type.
@@ -54,6 +59,16 @@ export const config: Config = {
 
 const CACHE_TTL_MS = 60_000;
 let cache: { hosts: string[]; expiresAt: number } | null = null;
+
+// =====================================================================
+// Phase 56 Plan 04 — Ad-network CSP cache (AD-09)
+// SEPARATE module-level cache — does not share state with iframe cache.
+// =====================================================================
+let adCspCache: {
+  scriptHosts: string[];
+  connectHosts: string[];
+  expiresAt: number;
+} | null = null;
 
 async function fetchAllowlistHosts(
   supabaseUrl: string,
@@ -90,6 +105,75 @@ function appendFrameSrcHosts(csp: string, hosts: string[]): string {
   return csp.replace(/frame-src ([^;]+);/, (_match, dirs: string) => {
     return `frame-src ${dirs.trim()} ${formatted};`;
   });
+}
+
+// =====================================================================
+// Phase 56 Plan 04 — Ad-network CSP fetch (AD-09)
+// Fetches ad_csp_allowlist (enabled rows) + ad_advertiser_blocklist,
+// applies filterBlocklisted, and splits by directive.
+// T-56-12: any fetch error returns empty host sets (fail-safe — no ad
+// hosts enter the CSP rather than a permissive fallback).
+// T-56-13: reads only hostname/directive columns via anon key (same
+// surface exposure as existing iframe_allowlist fetch).
+// =====================================================================
+async function fetchAdCspHosts(
+  supabaseUrl: string,
+  anonKey: string,
+): Promise<{ scriptHosts: string[]; connectHosts: string[] }> {
+  const headers = {
+    apikey: anonKey,
+    Authorization: `Bearer ${anonKey}`,
+  };
+
+  const [allowRes, blockRes] = await Promise.all([
+    fetch(
+      `${supabaseUrl}/rest/v1/ad_csp_allowlist?select=hostname,directive&enabled=eq.true`,
+      { headers },
+    ),
+    fetch(`${supabaseUrl}/rest/v1/ad_advertiser_blocklist?select=hostname`, {
+      headers,
+    }),
+  ]);
+
+  if (!allowRes.ok) {
+    throw new Error(`ad_csp_allowlist fetch ${allowRes.status}`);
+  }
+  if (!blockRes.ok) {
+    throw new Error(`ad_advertiser_blocklist fetch ${blockRes.status}`);
+  }
+
+  const allowRows = (await allowRes.json()) as Array<{
+    hostname?: unknown;
+    directive?: unknown;
+  }>;
+  const blockRows = (await blockRes.json()) as Array<{ hostname?: unknown }>;
+
+  const allowParsed: CspAllowRow[] = allowRows.flatMap((r) => {
+    if (
+      typeof r.hostname !== 'string' ||
+      !r.hostname ||
+      (r.directive !== 'script-src' && r.directive !== 'connect-src')
+    ) {
+      return [];
+    }
+    return [{ hostname: r.hostname, directive: r.directive }];
+  });
+
+  const blockList = blockRows
+    .map((r) => (typeof r.hostname === 'string' ? r.hostname : null))
+    .filter((h): h is string => !!h && h.length > 0);
+
+  // T-56-11: GLP-1 competitor hosts structurally excluded BEFORE append.
+  const filtered = filterBlocklisted(allowParsed, blockList);
+
+  const scriptHosts = filtered
+    .filter((r) => r.directive === 'script-src')
+    .map((r) => r.hostname);
+  const connectHosts = filtered
+    .filter((r) => r.directive === 'connect-src')
+    .map((r) => r.hostname);
+
+  return { scriptHosts, connectHosts };
 }
 
 // =====================================================================
@@ -200,6 +284,31 @@ export default async function middleware(request: Request): Promise<Response> {
       // Fail-safe: surface the error in logs, return UNAUGMENTED CSP.
       console.warn(
         'CSP middleware: iframe_allowlist fetch failed; serving unaugmented CSP',
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+
+    // (A2) Ad-network allowlist augmentation — script-src + connect-src (Phase 56-04 AD-09)
+    // Parallel to the iframe_allowlist fetch above; uses a SEPARATE cache.
+    // T-56-12 fail-safe: any fetch error → serve CSP WITHOUT ad-network hosts.
+    try {
+      const now = Date.now();
+      if (!adCspCache || adCspCache.expiresAt <= now) {
+        const { scriptHosts, connectHosts } = await fetchAdCspHosts(
+          supabaseUrl,
+          anonKey,
+        );
+        adCspCache = { scriptHosts, connectHosts, expiresAt: now + CACHE_TTL_MS };
+      }
+      csp = appendAdNetworkHosts(
+        csp,
+        adCspCache.scriptHosts,
+        adCspCache.connectHosts,
+      );
+    } catch (err) {
+      // Fail-safe: surface in logs, serve CSP without ad-network hosts.
+      console.warn(
+        'CSP middleware: ad_csp_allowlist fetch failed; serving CSP without ad-network hosts',
         err instanceof Error ? err.message : String(err),
       );
     }
