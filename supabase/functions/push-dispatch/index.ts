@@ -63,9 +63,14 @@ function bearerFromReq(req: Request): string | null {
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
+  // Always iterate the full expected-value length to avoid leaking key-length
+  // via timing side-channel. Length difference is folded into the result (WR-03).
+  const len = b.length; // b is the authoritative expected value
   let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  for (let i = 0; i < len; i++) {
+    diff |= (a.charCodeAt(i) ?? 0) ^ b.charCodeAt(i);
+  }
+  diff |= a.length ^ b.length; // fold in length difference
   return diff === 0;
 }
 
