@@ -29,13 +29,46 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 
 ## Current State
 
-**Shipped:** v1.2 (2026-05-17). 7 active phases (12, 13, 14, 15, 19, 22, 23) / 59 plans / 487 commits since v1.1 / +150,341 LOC. Production live at `https://leanshot.app` (custom domain, marketing) + `https://app.leanshot.app` (SPA). Supabase `ytnsipxxmzgaebkqmokp`: 21 v1.2 migrations + 8 Edge Fns + 51 RLS deny policies + 14 cron jobs live. Onboarding summary: see archived ROADMAP/REQUIREMENTS at `.planning/milestones/v1.2-*.md`; audit at `.planning/milestones/v1.2-MILESTONE-AUDIT.md`.
+**Shipped:** v1.3 Platform Expansion (2026-05-25). 28 phases (24-51) / 242 plans / 1,430 commits since v1.2 / 329,583 LOC across `leanshot/src/` + `supabase/`. Triple-bet megamilestone landed: paying-clinic HIPAA infra (Phase 25 + 28-31), revenue/A-B engine (Phase 26 + 33 + 39 + 40 + 43), consumer depth (Phase 34-38 + 42), and full M4 Membership/Community Platform (Phase 43-49 in-house on Supabase + Mux). Production live at `https://leanshot.app` + `https://app.leanshot.app`. Supabase `ytnsipxxmzgaebkqmokp`: v1.3 added ~200 migrations + 50+ Edge Fns + extensive RLS policies + ~25 pg_cron jobs across HIPAA / multi-tenant org-scope / community / courses / events / moderation / RAG / traffic.
 
-**Audit:** `tech_debt` — 60/60 active v1.2 REQ-IDs satisfied; 44 REQs descoped to v1.4 milestone (Phases 16/17/18/20/21 + ON-01). Per user direction 2026-05-17: v1.3 = next milestone new-features-only; v1.4 = absorbs deferred + tech debt + new features.
+**Audit:** `tech_debt` — 206/206 v1.3 REQ-IDs functionally satisfied (3-source cross-reference + 7/7 integration flows pass). Deferred to v1.4: Phase 32-06 ES contractor (4 I18N REQs partial), Phase 34 Apple OAuth + 34-08/10 checkpoints (6 ONBOARD REQs partial), Phase 50 Waves 2-4 (RAG MVP + STRETCH), Phase 42 5 device-UAT signals, 33 consolidated HUMAN-UAT operator runbook signals, 7 vendor secrets (Better Stack, Calendly OAuth, Sentry CSP, traffic-recorder env, SHARE_TOKEN, NPS signing key, PostHog Personal API key, Slack webhook). See `.planning/milestones/v1.3-MILESTONE-AUDIT.md` + `v1.3-uat-deferred.md`.
 
-**Previously shipped:** v1.1 (2026-05-13). 11 phases / 76 plans. Multi-audience SaaS — B2C patient cloud sync + doctor read-share + clinic B2B operator surface. Archived ROADMAP/REQUIREMENTS in `.planning/milestones/v1.1-*.md`.
+**Previously shipped:** v1.2 (2026-05-17). 7 active phases (12, 13, 14, 15, 19, 22, 23) / 59 plans / 487 commits. Polished launch + full monetization. Archive: `.planning/milestones/v1.2-*.md`. Phases 16/17/18/20/21 + ON-01 (44 REQs) descoped to v1.4.
 
-## Current Milestone: v1.3 Platform Expansion — Revenue + Depth + B2B + HIPAA
+**v1.1 (2026-05-13):** 11 phases / 76 plans. Multi-audience SaaS — B2C patient cloud sync + doctor read-share + clinic B2B operator surface. Archive: `.planning/milestones/v1.1-*.md`.
+
+
+## v1.4 Goals
+
+**v1.4 Launch Readiness** — authored 2026-05-25 via `/gsd-new-milestone v1.4`. 19 phases (52-70), 200 REQ-IDs. Single consolidated launch-readiness milestone.
+
+- **Close every carry-over** — v1.2 mobile suite (Capacitor + push + HealthKit + ad network + watch) + v1.3 deferred (Spanish i18n contractor wiring + Apple OAuth + RAG Waves 2-4 + Phase 42 device-UAT + 7 vendor secrets) all land in Phases 52-63.
+- **Ship 2 new product features** — Admin Protocol Creator (Phase 61: evidence-cited dosing protocols flowing into clinician dashboard + patient dose-log + KB) and Insights & Research Engine (Phase 62: k-anonymity + differential privacy aggregate research compilation + white-paper publishing + RAG feedback loop).
+- **Close 4 launch BLOCKERs + 16 hard-debt items** — surfaced by `research/v1.4-launch-readiness-gaps.md`, folded into Phases 64-68: state-privacy disclosures (CCPA + 4 others), Stripe Tax + payment resilience, consumer MFA + sign-in lockout, operational runbooks + observability, audience landing pages + demo sandbox.
+- **Design-system harmonization (Phase 69)** — DS audit across all v1.1/v1.2/v1.3/v1.4 surfaces using established LeanShot DS (Tailwind v4 `@theme` tokens, 4-size typography ceiling 11/13/18/28 px, 2 weights, accent reserved-list, DS primitives `Card`/`Modal`/`Sheet`/`Pill`/`EmptyState`/etc., aria-* baseline, `useReducedMotion` gating).
+- **Consolidated UAT launch gate (Phase 70)** — `autonomous: false`. Multi-signal HUMAN-UAT rolls up 33 v1.3 carry + 5 Phase 42 device + new v1.4 per-phase UAT + design polish + full regression sweep across 4 milestones. Per `feedback_milestone_uat_deferral_consolidation` forward-looking variant: every prior v1.4 phase is `autonomous: true` with HUMAN-UAT signals empty in own frontmatter — they all roll up here.
+
+**Vendor-setup-first rationale (Phase 52):** Per user direction 2026-05-25, all vendor onboarding (Apple Dev + Play + APNs + FCM + HealthKit entitlement + Mux + Calendly + Better Stack + Sentry CSP + 7 v1.3 carry-over secrets) consolidates into the first phase. Eliminates the per-phase secret-deferral pattern that bit v1.3 (7 unset secrets at milestone close).
+
+**Out of v1.4:** HIPAA covered-entity-tier conversion, direct EHR integration, HIPAA HITRUST certification, subdomain white-label, HealthKit write-back, standalone watch mode, M5b full AI Personalization, App Store / Play in-app review SDK (M3 native rating), Core Web Vitals re-baseline, RTL CSS prep — all deferred to v1.5+ candidates.
+
+## Next Milestone Goals
+
+**v1.4 (deferred + tech-debt absorber):**
+- v1.2 carry-over: Phase 16 Capacitor Mobile Shells + Phase 17 Push + Phase 18 HealthKit + Phase 20 Ad Network + Phase 21 Watch Apps (44 REQs)
+- v1.3 carry-over: Phase 32-06 ES contractor (I18N-04/05/06/09), Phase 34 Apple OAuth + 34-08/10 checkpoints, Phase 50 Waves 2-4 (RAG MVP + STRETCH), Phase 42 5 device-UAT signals
+- 33 HUMAN-UAT operator runbook signals (run at staging before clinic deal close)
+- 7 vendor secret provisioning gates
+- v1.2/v1.3 tech debt: REQUIREMENTS.md / ROADMAP.md checkbox drift (phase-close hook), VALIDATION.md flag flip post-merge, SUMMARY frontmatter `requirements:` tagging consistency, Phase 41 CR-02 Calendly OAuth signed-handoff redesign
+
+**v1.5 candidates (post-v1.4):**
+- M5b full AI Personalization (anomaly detection + churn model + automated win-back) — needs event-data maturity
+- M7 continuous items not yet shipped (deeper localization beyond Spanish, advanced cancellation save-offers)
+- HIPAA HITRUST certification (only if large clinics demand)
+- Hourly ad-revenue ETL (currently daily; revisit at $1k/mo revenue)
+
+<details>
+<summary>Archived: v1.3 Platform Expansion — Revenue + Depth + B2B + HIPAA (SHIPPED 2026-05-25)</summary>
 
 **Started:** 2026-05-17 (via `/gsd-new-milestone v1.3`).
 
@@ -62,24 +95,15 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 
 **Estimated scope:** ~25-27 phases starting at Phase 24, ~9-12 months (revised 2026-05-17 after M4 in-house added). v2.0-scale release under v1.3 label.
 
-## Next Milestone Goals
+**Original v1.4 scoping notes (now superseded by `## Next Milestone Goals` section above):**
+- Phase 16 Mobile Shells (MOBILE-01..10 + MONEY-06; 9/11 plans shipped on disk in v1.2)
+- Phase 17 Push Notifications + Phase 18 HealthKit + Phase 20 Ad Network + Phase 21 Watch Apps
+- v1.3-era tech debt + Vault `service_role_key` Vendor pass + unused-check baseline drift
 
-**v1.4 (deferred + tech-debt absorber) — 44 carry-over REQs + tech debt + Mx items NOT in v1.3:**
-- Phase 16 Mobile Shells (MOBILE-01..10 + MONEY-06, 11 REQs; 9/11 plans shipped + on disk, 16-03/09/10 + vendor closeout outstanding)
-- Phase 17 Push Notifications (4 REQs)
-- Phase 18 HealthKit + Two-tunnel Firewall (8 REQs)
-- Phase 20 Ad Network (12 REQs)
-- Phase 21 Watch Apps (8 REQs)
-- P22b Onboarding revamp ON-01 (1 REQ) — *NOTE: now subsumed into v1.3 M2 if v1.3 ships first; revisit at v1.4 scoping*
-- M6 App Store / Play review-ingestion hub (depends on mobile shells)
-- All v1.3-era tech debt + Vault `service_role_key` Vendor pass + unused-check baseline drift
+</details>
 
-**v1.5 candidates (post-v1.4):**
-- M4 Membership / Community (Skool-style: posts + comments + courses + events + moderation + Mux video)
-- M5b full AI personalization (anomaly detection + churn model + win-back automation)
-- M7 continuous items not in v1.3 (deeper localization beyond Spanish, advanced cancellation save-offers)
-
-## Archived: v1.2 Milestone (shipped 2026-05-17)
+<details>
+<summary>Archived: v1.2 Milestone (shipped 2026-05-17)</summary>
 
 **Goal:** Take LeanShot from "shipped multi-audience SaaS" to "launch-ready cross-platform product with full monetization, growth loops, and ad-network revenue." Web, mobile, watch — all on the new design system, with Stripe-powered subs/seats/affiliate plus a multi-mode advertising network as primary revenue stream.
 
@@ -111,6 +135,8 @@ vercel env pull --environment production /tmp/env-check && grep '^STRIPE_SECRET_
 - EU GDPR: cookie consent + DSAR portal required for EU launch
 
 **New paid prerequisites the user will provision:** Apple Developer Program ($99/yr), Google Play Console ($25 one-time), AdMob account (free), Stripe Connect activation, ad-network publisher accounts (AdSense, optionally Meta Audience Network), Resend domain verification (carry-over from v1.1).
+
+</details>
 
 ---
 
@@ -228,7 +254,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 — v1.3 megamilestone OPENED (Path 1: Revenue + Depth + B2B + HIPAA + foundation + onboarding/gamification/helpdesk/AI-personalization-partial). ~16-20 phases at Phase 24+, 5-8 month estimate. v1.4 mobile slips a quarter per user direction.*
+*Last updated: 2026-05-25 — v1.3 Platform Expansion SHIPPED (28 phases / 242 plans / 206 REQ-IDs functionally satisfied; audit `tech_debt`). v1.4 absorbs v1.2 mobile carry-over + v1.3 deferred (ES contractor + Apple OAuth + RAG Waves 2-4 + 5 device-UAT signals) + v1.2/v1.3 tech debt.*
 
 ## Vendor Accounts (Phase 16 Wave 0)
 
