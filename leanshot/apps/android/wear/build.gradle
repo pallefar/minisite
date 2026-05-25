@@ -1,0 +1,55 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    namespace = "app.leanshot.wear"
+    // Override: Tiles M3 (protolayout-material3) requires compileSdk >= 35.
+    // Main app stays at rootProject.ext.compileSdkVersion (36) — unaffected.
+    compileSdk = 35
+    defaultConfig {
+        applicationId "app.leanshot.wear"
+        // Override: androidx.wear.tiles minSdk requirement is 25.
+        // Main app stays at rootProject.ext.minSdkVersion (24) — unaffected.
+        minSdkVersion 25
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.14'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    // Wear OS Compose UI (stable; verified Maven Central 2026-05-25: 1.6.2 > assumed 1.6.0)
+    implementation "androidx.wear.compose:compose-material3:1.6.2"
+    // Wear OS Tile service (stable; verified Maven Central 2026-05-25: 1.6.0 = assumed)
+    implementation "androidx.wear.tiles:tiles:1.6.0"
+    // ProtoLayout layout elements (stable; verified Maven Central 2026-05-25: 1.4.0 = assumed)
+    implementation "androidx.wear.protolayout:protolayout:1.4.0"
+    // ProtoLayout Material components in tiles (verified 2026-05-25: 1.4.0 = assumed)
+    implementation "androidx.wear.protolayout:protolayout-material:1.4.0"
+    // Wear Data Layer API / DataClient (verified 2026-05-25: 20.0.1; assumed 18.x — version diverged)
+    implementation "com.google.android.gms:play-services-wearable:20.0.1"
+    // Compose activity for WearMainActivity
+    implementation "androidx.activity:activity-compose:1.9.3"
+    // Kotlin stdlib
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24"
+}
