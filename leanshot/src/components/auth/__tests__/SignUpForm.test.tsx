@@ -29,11 +29,16 @@ vi.mock('@/lib/feature-flags', () => ({
 const signUpMock = vi.fn();
 const attachEmailToAnonMock = vi.fn();
 const getSessionMock = vi.fn();
+const signInWithOAuthProviderMock = vi.fn(async () => ({ error: null }));
+
+let isAppleEnabledFlag = false;
 
 vi.mock('@/lib/auth', () => ({
   signUp: (...args: unknown[]) => signUpMock(...args),
   attachEmailToAnon: (...args: unknown[]) => attachEmailToAnonMock(...args),
   getSession: (...args: unknown[]) => getSessionMock(...args),
+  signInWithOAuthProvider: (...args: unknown[]) => signInWithOAuthProviderMock(...args),
+  isAppleEnabled: () => isAppleEnabledFlag,
 }));
 
 vi.mock('@/hooks/useToast', () => ({
@@ -50,6 +55,8 @@ beforeEach(() => {
   signUpMock.mockReset();
   attachEmailToAnonMock.mockReset();
   getSessionMock.mockReset().mockResolvedValue({ session: null });
+  signInWithOAuthProviderMock.mockReset().mockResolvedValue({ error: null });
+  isAppleEnabledFlag = false;
   vi.mocked(useFeatureFlag).mockReturnValue(false);
   sessionStorage.clear();
   // Prevent hashchange side-effect from leaking between tests.
@@ -124,5 +131,38 @@ describe('SignUpForm — aff_manual_entry referral-code field (Plan 19-04 BL-1)'
 
     expect(signUpMock).toHaveBeenCalledTimes(1);
     expect(sessionStorage.getItem('leanshot_aff_manual')).toBeNull();
+  });
+});
+
+describe('SignUpForm — Apple-button gate (Plan 59-01 AUTH-08)', () => {
+  it('T1: Apple button hidden when isAppleEnabled()===false', () => {
+    isAppleEnabledFlag = false;
+    render(<SignUpForm />);
+    expect(screen.queryByRole('button', { name: /sign in with apple/i })).toBeNull();
+  });
+
+  it('T2: Apple button shown when isAppleEnabled()===true (non-anon)', () => {
+    isAppleEnabledFlag = true;
+    render(<SignUpForm />);
+    expect(screen.getByRole('button', { name: /sign in with apple/i })).toBeInTheDocument();
+  });
+
+  it('T3: clicking Apple button calls signInWithOAuthProvider with "apple"', async () => {
+    isAppleEnabledFlag = true;
+    const user = userEvent.setup();
+    render(<SignUpForm />);
+    await user.click(screen.getByRole('button', { name: /sign in with apple/i }));
+    expect(signInWithOAuthProviderMock).toHaveBeenCalledTimes(1);
+    expect(signInWithOAuthProviderMock).toHaveBeenCalledWith('apple');
+  });
+
+  it('T4: Apple button NOT shown in anon mode even when isAppleEnabled()===true', async () => {
+    isAppleEnabledFlag = true;
+    // Simulate anon session
+    getSessionMock.mockResolvedValue({ session: { user: { is_anonymous: true } } });
+    render(<SignUpForm />);
+    // Wait for the getSession effect to resolve
+    await screen.findByText(/save your data/i);
+    expect(screen.queryByRole('button', { name: /sign in with apple/i })).toBeNull();
   });
 });
