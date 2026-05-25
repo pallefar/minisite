@@ -129,8 +129,10 @@ export function AdminVendorSmokeDashboard() {
   };
 
   useEffect(() => {
-    void fetchRows();
-  }, []);
+    if (isStaff === true) {
+      void fetchRows();
+    }
+  }, [isStaff]);
 
   // ── Run smoke now ──────────────────────────────────────────────────────────
   const handleRunSmoke = async (): Promise<void> => {
