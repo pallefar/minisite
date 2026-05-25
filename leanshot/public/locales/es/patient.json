@@ -1,4 +1,21 @@
 {
+  "ai": {
+    "aria_clear": "Borrar conversación",
+    "aria_send": "Enviar",
+    "badge_personalized": "Personalizado",
+    "confirm_clear": "¿Borrar el historial de conversación?",
+    "confirm_clear_btn": "Borrar",
+    "confirm_clear_title": "Borrar historial",
+    "disclaimer": "Orientación de IA — no es consejo médico. Consulta a tu prescriptor.",
+    "error_rate_limit": "Se alcanzó el límite de la IA — inténtalo en un minuto.",
+    "error_unavailable": "La IA no está disponible ahora. Inténtalo de nuevo en breve.",
+    "panel_aria_label": "Coach IA de LeanShot",
+    "panel_title": "LeanShot IA",
+    "placeholder": "Pregunta lo que quieras sobre tu viaje con GLP-1…",
+    "subtitle_journey": "Conoce tu recorrido de {{weeks}} semanas con {{medication}}.",
+    "thinking": "Pensando…",
+    "welcome": "Hola {{name}}. Soy tu coach — tengo contexto sobre tu medicación, dosis y progreso. Pregúntame cualquier cosa sobre efectos secundarios, nutrición, dosificación, preservación muscular o cómo leer tus datos."
+  },
   "card": {
     "effectiveness": {
       "full_report": "Informe completo",
@@ -118,9 +135,81 @@
       "title": "Desafíos de esta semana"
     }
   },
+  "chart": {
+    "composition": {
+      "empty_label": "Registra % de grasa para ver",
+      "fat_mass": "Masa grasa",
+      "lean_mass": "Masa magra"
+    },
+    "med_level": {
+      "legend_past": "Pasado",
+      "legend_projected": "Proyectado"
+    },
+    "mood": {
+      "legend_energy": "Energía (1–10)",
+      "legend_mood": "Ánimo (1–5)"
+    },
+    "sleep": {
+      "legend_hours": "Horas",
+      "legend_quality": "Calidad"
+    },
+    "symptom": {
+      "no_data": "Sin datos"
+    },
+    "weight": {
+      "legend": "Peso",
+      "start_label": "Inicio"
+    }
+  },
   "freeze_token_one": "{{count}} ficha de congelamiento",
   "freeze_token_many": "{{count}} fichas de congelamiento",
   "freeze_token_other": "{{count}} fichas de congelamiento",
+  "modal": {
+    "doctor_report": {
+      "action_print": "Imprimir / guardar PDF",
+      "col_bf": "% grasa",
+      "col_date": "Fecha",
+      "col_dose": "Dosis",
+      "col_notes": "Notas",
+      "col_severity": "Gravedad",
+      "col_site": "Sitio",
+      "col_symptom": "Síntoma",
+      "col_weight": "Peso",
+      "dose_weekly": "(semanal)",
+      "footer": "Generado por LeanShot. Este es un resumen de seguimiento, no documentación médica. Consulta siempre a tu proveedor de salud.",
+      "generated": "Generado el {{date}} · LeanShot",
+      "heading_suffix": " — Informe de viaje GLP-1",
+      "lifetime_freq": "Frecuencia acumulada",
+      "no_entries": "Sin entradas.",
+      "no_side_effects": "Sin efectos secundarios registrados.",
+      "none_logged": "Nada registrado.",
+      "pk_label": "Estimación farmacocinética:",
+      "row_current_dose": "Dosis actual",
+      "row_current_weight": "Peso actual",
+      "row_medication": "Medicación",
+      "row_started": "Inicio",
+      "row_starting_weight": "Peso inicial",
+      "row_total_change": "Cambio total",
+      "row_total_injections": "Inyecciones totales",
+      "section_injections": "Inyecciones recientes",
+      "section_side_effects": "Efectos secundarios",
+      "section_summary": "Resumen",
+      "section_weight_log": "Registro de peso reciente",
+      "started_week": "(semana {{week}})",
+      "title": "Informe listo para el médico"
+    },
+    "photo_compare": {
+      "body_weight_pct": "Peso corporal",
+      "choose_label": "Elige fotos para comparar",
+      "days_apart": "Días de diferencia",
+      "side_after": "Después",
+      "side_before": "Antes",
+      "subtitle": "Toca dos fotos para compararlas una al lado de la otra.",
+      "tap_prompt": "Toca una foto abajo",
+      "title": "Comparar fotos",
+      "weight_delta": "Δ Peso"
+    }
+  },
   "streak_day_one": "día",
   "streak_day_many": "días",
   "streak_day_other": "días",
