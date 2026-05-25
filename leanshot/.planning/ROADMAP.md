@@ -133,10 +133,10 @@ Plans:
 **Plans**: 6 plans in 3 waves
 - [x] 56-01-PLAN.md — Ad guard core: canShowAds(surface,tier) + freq-cap + placement registry contract (AD-03/08/10)
 - [x] 56-02-PLAN.md — Revenue ETL backend: ad_placements + GLP-1 blocklist + ad_revenue_facts + cron/RPC + ad-revenue-etl Edge Fn (AD-05/09/12)
-- [ ] 56-03-PLAN.md — Ad serving: @capacitor-community/admob + real ads.ts + AdSense injector + AdRenderer 3-mode dispatch (AD-01/02/04/07)
-- [ ] 56-04-PLAN.md — CSP allowlist generated from GLP-1 block-list, wired into Edge Middleware (AD-09)
-- [ ] 56-05-PLAN.md — Admin revenue dashboard (eCPM/RPM/fill/CTR) reusing AdminMetrics + manifest entry (AD-06)
-- [ ] 56-06-PLAN.md — Surface-exclusion CI grep gate + HealthKit firewall regression test + ci.yml wiring (AD-03/11)
+- [x] 56-03-PLAN.md — Ad serving: @capacitor-community/admob + real ads.ts + AdSense injector + AdRenderer 3-mode dispatch (AD-01/02/04/07)
+- [x] 56-04-PLAN.md — CSP allowlist generated from GLP-1 block-list, wired into Edge Middleware (AD-09)
+- [x] 56-05-PLAN.md — Admin revenue dashboard (eCPM/RPM/fill/CTR) reusing AdminMetrics + manifest entry (AD-06)
+- [x] 56-06-PLAN.md — Surface-exclusion CI grep gate + HealthKit firewall regression test + ci.yml wiring (AD-03/11)
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -468,7 +468,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 53. Capacitor Mobile Shells | 4/4 | Complete   | 2026-05-25 |
 | 54. Push Notifications | 5/5 | Complete   | 2026-05-25 |
 | 55. HealthKit + Two-Tunnel Firewall | 4/4 | Complete   | 2026-05-25 |
-| 56. Ad Network | 2/6 | In Progress|  |
+| 56. Ad Network | 6/6 | Complete   | 2026-05-25 |
 | 57. Watch Apps | 0/0 | Not started | - |
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
 | 59. Apple OAuth + Onboarding Completion | 0/0 | Not started | - |
