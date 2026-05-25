@@ -29,11 +29,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import posthog from 'posthog-js';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pill } from '@/components/ui/Pill';
 import { isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
 import { clearAnonCookie, readAnonCookie } from '@/lib/anonymous/cookie';
+import { primaryGoalLabel } from '@/lib/i18n/onboarding-labels';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import type { ConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
@@ -121,6 +123,7 @@ export function ConsumerOnboardingRenderer({
   flow,
   onComplete,
 }: ConsumerOnboardingRendererProps) {
+  const { t } = useTranslation(['onboarding', 'common']);
   const signedInUserId = useStore((s) => s.signedIn?.user?.id ?? null);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ConsumerDraft>({ primary_goal: null, email: '' });
@@ -154,14 +157,14 @@ export function ConsumerOnboardingRenderer({
 
   const onMagicLink = async (): Promise<void> => {
     if (!draft.email) {
-      setAuthMessage('Enter your email first.');
+      setAuthMessage(t('onboarding:consumer.auth.email_required'));
       return;
     }
     setSubmitting(true);
     setAuthMessage(null);
     const { error } = await signInWithMagicLink(draft.email);
     setSubmitting(false);
-    setAuthMessage(error ? error.message : 'Check your inbox for the magic link.');
+    setAuthMessage(error ? error.message : t('onboarding:consumer.auth.check_inbox'));
   };
 
   const onOAuth = async (provider: 'google' | 'apple'): Promise<void> => {
@@ -239,20 +242,20 @@ export function ConsumerOnboardingRenderer({
         <div className="bg-[var(--color-surface)] rounded-[28px] border border-[var(--color-border)] shadow-lg overflow-hidden p-6 md:p-8 space-y-6">
           {/* Progress hint */}
           <p className="text-[12px] uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            Step {step + 1} of {steps.length}
+            {t('onboarding:consumer.progress', { step: step + 1, total: steps.length })}
           </p>
 
           {stepId === 'intro' && (
             <div className="space-y-4">
               <h1 className="text-2xl font-semibold text-[var(--color-text)]">
-                Welcome to LeanShot
+                {t('onboarding:consumer.intro.title')}
               </h1>
               <p className="text-[var(--color-text-muted)]">
-                A few quick questions to tailor your dashboard.
+                {t('onboarding:consumer.intro.subtitle')}
               </p>
               <LiveSignupCounter />
               <Button onClick={next} className="min-h-[44px] w-full">
-                Continue
+                {t('common:action.continue')}
               </Button>
             </div>
           )}
@@ -260,12 +263,12 @@ export function ConsumerOnboardingRenderer({
           {stepId === 'goal' && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-[var(--color-text)]">
-                What brought you here?
+                {t('onboarding:consumer.goal.title')}
               </h2>
               <p className="text-[var(--color-text-muted)] text-sm">
-                Pick the option that fits you best. You can change it any time.
+                {t('onboarding:consumer.goal.subtitle')}
               </p>
-              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Primary goal">
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('onboarding:consumer.goal.aria_label')}>
                 {GOAL_OPTIONS.map((g) => (
                   <Pill
                     key={g.id}
@@ -275,7 +278,7 @@ export function ConsumerOnboardingRenderer({
                     onClick={() => selectGoal(g.id)}
                     className="min-h-[44px] justify-center"
                   >
-                    {g.label}
+                    {primaryGoalLabel(t, g.id)}
                   </Pill>
                 ))}
               </div>
@@ -284,7 +287,7 @@ export function ConsumerOnboardingRenderer({
                 disabled={!draft.primary_goal}
                 className="min-h-[44px] w-full"
               >
-                Continue
+                {t('common:action.continue')}
               </Button>
             </div>
           )}
@@ -292,25 +295,25 @@ export function ConsumerOnboardingRenderer({
           {stepId === 'auth' && (
             <div className="space-y-3">
               <h2 className="text-xl font-semibold text-[var(--color-text)]">
-                Save your progress
+                {t('onboarding:consumer.auth.title')}
               </h2>
               <p className="text-[var(--color-text-muted)] text-sm">
-                One-tap sign in — your answers come with you.
+                {t('onboarding:consumer.auth.subtitle')}
               </p>
               <Input
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t('onboarding:consumer.auth.email_placeholder')}
                 value={draft.email}
                 onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
                 className="min-h-[44px]"
-                aria-label="Email address"
+                aria-label={t('onboarding:consumer.auth.email_aria_label')}
               />
               <Button
                 onClick={() => void onMagicLink()}
                 disabled={submitting}
                 className="min-h-[44px] w-full"
               >
-                Continue with email
+                {t('onboarding:consumer.auth.continue_email')}
               </Button>
               <Button
                 variant="ghost"
@@ -318,7 +321,7 @@ export function ConsumerOnboardingRenderer({
                 disabled={submitting}
                 className="min-h-[44px] w-full"
               >
-                Continue with Google
+                {t('onboarding:consumer.auth.continue_google')}
               </Button>
               {isAppleEnabled() && (
                 <Button
@@ -327,7 +330,7 @@ export function ConsumerOnboardingRenderer({
                   disabled={submitting}
                   className="min-h-[44px] w-full"
                 >
-                  Continue with Apple
+                  {t('onboarding:consumer.auth.continue_apple')}
                 </Button>
               )}
               {authMessage && (
@@ -345,36 +348,36 @@ export function ConsumerOnboardingRenderer({
           {stepId === 'ready' && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-[var(--color-text)]">
-                You're ready
+                {t('onboarding:consumer.ready.title')}
               </h2>
               <p className="text-[var(--color-text-muted)] text-sm">
-                Three things to get you started today.
+                {t('onboarding:consumer.ready.subtitle')}
               </p>
               {/* D-12 hybrid 3-card UI — emphasised primary + 2 universal fallbacks */}
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div className="rounded-2xl border-2 border-[var(--color-primary)] bg-[var(--color-primary-soft)] p-4 md:col-span-1">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-                    Recommended
+                    {t('onboarding:consumer.ready.recommended_badge')}
                   </p>
                   <p className="mt-2 text-sm font-medium text-[var(--color-text)]">
                     {draft.primary_goal
-                      ? GOAL_OPTIONS.find((g) => g.id === draft.primary_goal)?.label
-                      : 'Get tailored coaching'}
+                      ? primaryGoalLabel(t, draft.primary_goal)
+                      : t('onboarding:consumer.ready.recommended_fallback')}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[var(--color-border)] p-4">
                   <p className="text-sm font-medium text-[var(--color-text)]">
-                    Log your first weight
+                    {t('onboarding:consumer.ready.card_weight')}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-[var(--color-border)] p-4">
                   <p className="text-sm font-medium text-[var(--color-text)]">
-                    Log your first injection
+                    {t('onboarding:consumer.ready.card_injection')}
                   </p>
                 </div>
               </div>
               <Button onClick={() => onComplete?.()} className="min-h-[44px] w-full">
-                Take me to the dashboard
+                {t('onboarding:consumer.ready.cta')}
               </Button>
             </div>
           )}
