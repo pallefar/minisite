@@ -1,5 +1,5 @@
 /**
- * Phase 55 Plan 55-01 — assertHealthTunnel runtime helper (HEALTH-04/HEALTH-08 — Layer 2 of 3).
+ * Phase 55 Plan 55-01 — Two-tunnel firewall runtime helpers (HEALTH-04/HEALTH-08 — Layer 2 of 3).
  *
  * Two-tunnel firewall: prevents HealthKit / PHI data from ever reaching ad-targeting
  * surfaces at runtime, complementing the build-time ESLint rule (layer 1) and the
@@ -8,71 +8,107 @@
  *
  * HEALTH-08 mandates THREE independent enforcement layers:
  *   1. Build-time AST rule        leanshot/eslint-rules/no-health-in-ad-context.cjs
- *   2. Runtime assertion          (this file) — assertHealthTunnel()
+ *   2. Runtime assertion          (this file) — assertNoHealthData() boundary guard
  *   3. CI grep gate               leanshot/scripts/check-no-health-in-ad-context.sh
  *
- * Behaviour of assertHealthTunnel():
- *   - Called from any public export of health.ts that accesses PHI data, as a
- *     belt-AND-suspenders check at the function call site.
- *   - In DEV / test environments the function THROWS so the violation is loud
- *     during development. The thrown error names the caller context and §5.1.3.
- *   - In production the function only `console.error`s — production renders must
- *     never crash for the end-user. Layers 1 and 3 are the primary preventive
- *     gates; assertHealthTunnel is defense-in-depth for dynamic-import scenarios.
+ * Layer 2 design (CR-01 fix):
+ *   assertHealthTunnel() — lightweight module-load marker called by health.ts public
+ *   exports. In a bundled SPA the call stack at runtime does not carry module paths,
+ *   so this function does NOT throw for normal health-data reads. It is a no-op that
+ *   serves as a documentation and tracing hook. Layers 1 and 3 are the primary
+ *   preventive gates.
  *
- * Environment detection: `import.meta.env.DEV` (Vite injects this at build),
- * `import.meta.env.MODE === 'test'` (Vitest sets MODE=test).
- * Fallback: loud-by-default (true) when import.meta.env is unavailable (Node test
- * runner importing this file directly without Vite).
+ *   assertNoHealthData(value, ctx?) — the REAL boundary guard. This is what ad-surface
+ *   code MUST call on any data value before using it for targeting/ad-params. It throws
+ *   in BOTH dev AND prod (never silently no-ops on a real violation) if value contains
+ *   health-shaped field names (bodyMass/weight/steps/sleep/heartRate/health keys).
+ *   Normal health reads do NOT call this — it is the AD boundary, not the health boundary.
  *
  * NOTE: This file intentionally does NOT import from any ad-targeting surface.
  * Caller: health.ts (Plan 55-03) imports assertHealthTunnel from here.
+ *         ads.ts (and any future ad-surface) MUST call assertNoHealthData before
+ *         using any data in targeting/ad-parameter paths.
  */
 
 /**
- * Module-level dev/test detection. Evaluated once at import time so the
- * runtime cost on every assertHealthTunnel call is a single boolean read.
- *
- * Mirrors the isLoudEnvironment() pattern from src/lib/pharma/phaCheck.ts
- * (Phase 39 PHARMA-02 precedent).
+ * Health-shaped field name detector.
+ * These field names are canonical indicators that a value originated from HealthKit / PHI.
  */
-function isLoudEnvironment(): boolean {
-  try {
-    const env = import.meta.env as { DEV?: boolean; MODE?: string } | undefined;
-    if (env) {
-      if (env.DEV === true) return true;
-      if (typeof env.MODE === 'string' && env.MODE === 'test') return true;
-      if (env.DEV === false && env.MODE !== 'test') return false;
-    }
-  } catch {
-    // import.meta.env may be undefined when imported from a non-Vite runtime.
-    // Fall through to the safe default below.
-  }
-  // Safe default — loud unless we positively detected production.
-  return true;
+const HEALTH_FIELD_NAMES = new Set([
+  'bodyMass',
+  'weight',
+  'steps',
+  'stepCount',
+  'sleep',
+  'sleepAnalysis',
+  'heartRate',
+  'restingHeartRate',
+  'health',
+  'healthkit',
+  'hkSource',
+  'hk_source',
+  'activeEnergyBurned',
+  'calories',
+  'height',
+  'bloodGlucose',
+  'bloodPressure',
+  'oxygenSaturation',
+]);
+
+/**
+ * assertHealthTunnel — lightweight module-load marker (HEALTH-04/HEALTH-08 Layer 2 of 3).
+ *
+ * Called from every public export of health.ts that accesses PHI data.
+ * This is a no-op in normal flow — runtime call-stack ad-context detection is not
+ * feasible in a bundled SPA. Layers 1 (ESLint) and 3 (CI grep) are the primary
+ * enforcement gates for preventing health.ts imports in ad files.
+ *
+ * The REAL boundary enforcement at the data level is assertNoHealthData(), which
+ * ad-surface code MUST call before using any data for targeting.
+ *
+ * @param _callerContext - A short string naming the call site (e.g. 'readHealthSamples').
+ *   Present for tracing and documentation; not used for enforcement here.
+ */
+export function assertHealthTunnel(_callerContext: string): void {
+  // Layer 1 (ESLint) and Layer 3 (CI grep) are the primary enforcement gates.
+  // Runtime call-stack ad-context detection is not feasible in a bundled SPA.
+  // The REAL data-boundary guard is assertNoHealthData() — call that at ad surfaces.
+  // This function intentionally does nothing; see HEALTH-08 design (CR-01 fix).
 }
 
-const LOUD = isLoudEnvironment();
-
 /**
- * Two-tunnel firewall runtime guard (HEALTH-04/HEALTH-08 Layer 2 of 3).
+ * assertNoHealthData — the real ad-boundary firewall guard (HEALTH-04/HEALTH-08 Layer 2).
  *
- * Call from any health.ts public export that accesses PHI data. If the guard
- * detects it is running in a dev or test environment it throws so that any
- * ad-context caller is caught loudly. In production it console.error-logs only —
- * the ESLint rule (layer 1) and CI grep gate (layer 3) are the primary gates.
+ * Ad-targeting code MUST call this on any data value before using it for ad targeting,
+ * ad-parameter construction, or analytics ingestion. Throws in BOTH dev AND production
+ * (never silently no-ops) if value contains health-shaped field names.
  *
- * @param callerContext - A short string naming the call site (e.g. 'readHealthSamples').
- *   Included in the error/log message so CI logs are actionable.
+ * Normal health reads (health.ts public exports) do NOT call this — those are the
+ * legitimate health-data path. This guard is placed at the AD boundary.
+ *
+ * @param value - The data value to inspect. Objects with health-shaped keys trigger
+ *   the firewall. Primitives, null, undefined, and objects without health keys pass.
+ * @param ctx - Optional caller context string for error messages.
+ *
+ * @throws Error if value contains health-shaped field names, in both dev AND prod.
+ *
+ * @example
+ * // In ads.ts or any ad-targeting path:
+ * assertNoHealthData(userProfile, 'buildAdParams');
+ * // If userProfile has { weight: 80, ... } → throws Two-tunnel firewall violation
  */
-export function assertHealthTunnel(callerContext: string): void {
-  const msg =
-    `Two-tunnel firewall: health data accessed in ad context [${callerContext}]. ` +
-    `Apple §5.1.3 violation. ` +
-    `(HEALTH-04/HEALTH-08 Phase 55 Layer 2 — assertHealthTunnel)`;
-  if (LOUD) {
-    throw new Error(msg);
+export function assertNoHealthData(value: unknown, ctx?: string): void {
+  if (value === null || value === undefined) return;
+  if (typeof value !== 'object') return;
+
+  const keys = Object.keys(value as Record<string, unknown>);
+  const found = keys.find((k) => HEALTH_FIELD_NAMES.has(k));
+  if (found !== undefined) {
+    const location = ctx ? ` [${ctx}]` : '';
+    throw new Error(
+      `Two-tunnel firewall violation${location}: data with health-shaped field "${found}" reached an ad-targeting surface. ` +
+        `Apple §5.1.3 prohibits HealthKit / PHI data from being used for advertising. ` +
+        `(HEALTH-04/HEALTH-08 Phase 55 Layer 2 — assertNoHealthData)`,
+    );
   }
-  // Production: error-log only — never crash a real user session.
-  console.error(msg);
 }
