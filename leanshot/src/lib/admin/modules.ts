@@ -549,6 +549,26 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.compliance.enabled',
     minRole: 'superadmin' as AdminRole,
   },
+  // Phase 52 Plan 52-03 — Vendor smoke dashboard.
+  // Surfaces per-vendor health from vendor_smoke_log at /admin/vendor-smoke.
+  // AdminShell.tsx catch-all (pathname.startsWith('/admin/vendor-smoke/')) routes
+  // this automatically — no hardcoded switch branch required per
+  // feedback_admin_module_manifest_vs_router_branch_drift.
+  // Dual-layer gate: minRole 'superadmin' (client UX) + is_staff() RLS on
+  // vendor_smoke_log (server, 52-02 migration). Pattern S1.
+  // Reuses existing ShieldCheckIcon import (line ~45) — no duplicate import.
+  {
+    key: 'vendor-smoke',
+    label: 'Vendor health',
+    route: 'vendor-smoke',
+    icon: ShieldCheckIcon,
+    lazy: () =>
+      import('@/components/admin/AdminVendorSmokeDashboard').then((m) => ({
+        default: m.AdminVendorSmokeDashboard,
+      })),
+    flagKey: 'admin.vendor_smoke.enabled',
+    minRole: 'superadmin' as AdminRole,
+  },
 ] as const satisfies readonly AdminModule[];
 
 export type AdminModuleKey = (typeof ADMIN_MODULES)[number]['key'];
