@@ -1,0 +1,94 @@
+# Fastfile — LeanShot build/signing/upload lane definitions
+#
+# Lane contract consumed by CI workflows in .github/workflows/mobile-ios.yml
+# and .github/workflows/mobile-android.yml (plan 53-03).
+# DO NOT rename lane names — they are a stable CI contract.
+#
+# Unsigned lanes run unconditionally (no secrets required).
+# Upload lanes assume the CI caller has already gated on secret presence.
+#
+# Working directory convention: fastlane is invoked with --project-root set to
+# leanshot/ (the directory containing capacitor.config.ts). All relative paths
+# inside lanes are relative to leanshot/.
+#
+# This project uses Swift Package Manager (apps/ios/App/CapApp-SPM/Package.swift).
+# Dependency management is handled entirely via SPM. Do NOT add native package
+# manager install steps of any kind — cap sync handles plugin linking.
+
+default_platform(:ios)
+
+# ---------------------------------------------------------------------------
+# iOS lanes
+# ---------------------------------------------------------------------------
+
+platform :ios do
+  desc "Build an unsigned IPA for CI smoke testing (always-runnable, no secrets required)"
+  lane :build_ios_unsigned do
+    gym(
+      workspace: "apps/ios/App/App.xcodeproj/project.xcworkspace",
+      scheme: "App",
+      configuration: "Release",
+      skip_codesigning: true,
+      export_method: "development",
+      output_directory: "build/ios",
+      output_name: "LeanShot-unsigned.ipa"
+    )
+  end
+
+  desc "Build signed IPA and upload to TestFlight (GATED — only invoked by CI when Apple secrets are present)"
+  lane :upload_testflight do
+    # CI must set the following GitHub Secrets before invoking this lane:
+    #   APPLE_CERTIFICATE_BASE64, MATCH_GIT_BASIC_AUTHORIZATION, MATCH_PASSWORD,
+    #   FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD, FASTLANE_USER, FASTLANE_TEAM_ID
+    #
+    # TODO(Phase 70): provisioning profiles live in pallefar/leanshot-fastlane-match.
+    # Repo may not be initialised yet — this lane is inert until match repo is set up.
+    match(
+      type: "appstore",
+      readonly: true
+    )
+    gym(
+      workspace: "apps/ios/App/App.xcodeproj/project.xcworkspace",
+      scheme: "App",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build/ios",
+      output_name: "LeanShot.ipa"
+    )
+    pilot(
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Android lanes
+# ---------------------------------------------------------------------------
+
+platform :android do
+  desc "Build an unsigned AAB for CI smoke testing (always-runnable, no secrets required)"
+  lane :build_android_unsigned do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "apps/android/",
+      properties: {
+        "android.injected.signing.store.file" => "",
+        "android.injected.signing.store.password" => "",
+        "android.injected.signing.key.alias" => "",
+        "android.injected.signing.key.password" => ""
+      }
+    )
+  end
+
+  desc "Upload AAB to Play Store internal track (GATED — only invoked by CI when Play secrets are present)"
+  lane :upload_play do
+    # CI must set the following GitHub Secrets before invoking this lane:
+    #   KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD,
+    #   PLAY_SERVICE_ACCOUNT_JSON
+    supply(
+      track: "internal",
+      json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"]
+    )
+  end
+end

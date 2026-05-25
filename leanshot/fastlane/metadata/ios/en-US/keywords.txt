@@ -1,0 +1,1 @@
+GLP-1,semaglutide,Ozempic,Wegovy,tirzepatide,Mounjaro,Zepbound,liraglutide,injection tracker,dose tracker,weight loss,drug level,pharmacology,injection site rotation,GLP-1 tracker,peptide tracker

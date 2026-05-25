@@ -1,0 +1,20 @@
+# Appfile — LeanShot fastlane configuration
+# Bundle identifiers verified from project.pbxproj (iOS) + build.gradle (Android).
+
+# iOS bundle identifier (project.pbxproj PRODUCT_BUNDLE_IDENTIFIER)
+app_identifier("app.leanshot.ios")
+
+# Android package name (apps/android/app/build.gradle applicationId)
+package_name("app.leanshot.android")
+
+# Apple ID and Team ID are read from environment variables to avoid committing
+# real values to the repo. These values are provisioned at Phase 70 and must
+# be set as GitHub Secrets (FASTLANE_USER, FASTLANE_TEAM_ID) before the
+# upload_testflight lane can run.
+#
+# apple_id reads from ENV["FASTLANE_USER"] by convention when not set here.
+# team_id reads from ENV["FASTLANE_TEAM_ID"] when not set here.
+#
+# TODO(Phase 70): Set FASTLANE_USER and FASTLANE_TEAM_ID in GitHub repository
+# secrets once Apple Developer enrollment is complete and the real Apple Team
+# ID is known.

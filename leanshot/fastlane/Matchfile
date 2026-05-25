@@ -1,0 +1,19 @@
+# Matchfile — fastlane match configuration
+# Manages code signing certificates and provisioning profiles via a private Git repo.
+#
+# TODO(Phase 70): match repo may not be provisioned yet — upload_testflight is
+# gated on MATCH_* secrets so this file is inert until then. Before running
+# upload_testflight, ensure:
+#   1. pallefar/leanshot-fastlane-match repo exists and is accessible
+#   2. MATCH_GIT_BASIC_AUTHORIZATION secret is set in GitHub (base64 of user:PAT)
+#   3. MATCH_PASSWORD secret is set in GitHub (encryption passphrase for the cert repo)
+
+git_url("https://github.com/pallefar/leanshot-fastlane-match")
+
+storage_mode("git")
+
+type("appstore")
+
+# readonly: true prevents match from ever modifying the cert repo from CI.
+# New profiles/certs must be created locally by a developer with write access.
+readonly(true)
