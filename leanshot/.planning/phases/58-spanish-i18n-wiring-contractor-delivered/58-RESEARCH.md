@@ -588,7 +588,9 @@ Phase 37 shipped a complete ES KB stack. The I18N-14 requirement maps to these s
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> RESOLVED in planning: Q1 (clinic boundary) — plan 58-03 scopes ONLY clinic-invite/ patient-side components with a `git diff` scope-guard excluding clinic/ workspace. Q2 (KB seed) — plan 58-04 Task 3 handles both existing-articles (UPDATE) and no-articles (INSERT seed) cases.
 
 1. **Clinic namespace exact boundary**
    - What we know: CONTEXT says "clinic user-facing strings" — ClinicInvitePage is clearly in-scope (patient accepts invite). ClinicWorkspace is likely out-of-scope (clinician-only).
