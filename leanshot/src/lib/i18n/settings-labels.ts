@@ -10,7 +10,7 @@
 
 import type { TFunction } from 'i18next';
 
-type Section =
+export type Section =
   | 'account'
   | 'profile'
   | 'goals'

@@ -101,7 +101,12 @@
       "reset_confirm_btn": "Borrar todo",
       "reset_confirm_title": "Restablecer todo",
       "reset_everything": "Restablecer todo",
-      "title": "Datos"
+      "title": "Datos",
+      "toast_fetching_cloud": "Obteniendo datos de la nube...",
+      "toast_generating_pdf": "Generando PDF...",
+      "toast_json_exported": "JSON exportado",
+      "toast_pdf_exported": "PDF exportado",
+      "toast_pdf_failed": "Error al exportar PDF"
     },
     "dev": {
       "body": "Acciones de diagnóstico solo para desarrollo. No se compila en versiones de producción.",

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { sectionLabel } from '@/lib/i18n/settings-labels';
+import { sectionLabel, type Section } from '@/lib/i18n/settings-labels';
 import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
 import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
 // Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
@@ -63,39 +63,6 @@ import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSectio
 const LeaderboardsSubtab = lazy(() =>
   import('./LeaderboardsSubtab').then((m) => ({ default: m.LeaderboardsSubtab })),
 );
-
-type Section =
-  | 'account'
-  | 'profile'
-  | 'goals'
-  | 'language'
-  | 'notifications'
-  // Phase 35 Plan 35-08 (GAME-04 / D-12): leaderboard opt-in + handle picker.
-  // Section enum widening lives with first writer (memory: admin_module_manifest_vs_router_branch_drift).
-  | 'leaderboards'
-  | 'privacy'
-  // Phase 22 plan 22-11 (ON-03 + GDPR-03): two link-out entries that navigate
-  // to dedicated `/settings/*` sub-pages (full pages, not modal sections).
-  // The runtime click handler intercepts these IDs and calls
-  // `window.location.assign` + onClose instead of `setSection`.
-  | 'email-preferences'
-  | 'privacy-dsar'
-  | 'shares'
-  // Phase 9 Plan 09-01 — Active organizations sits between 'shares' and
-  // 'recovery'. Plan 09-05 overwrites the stub component.
-  | 'organizations'
-  | 'recovery'
-  | 'subscription'
-  | 'data'
-  // Phase 25 Plan 02-02 (HIPAA-14): patient-side PHI access log viewer.
-  // Satisfies HIPAA right-of-accounting-of-disclosures (D-08).
-  | 'phi-access-log'
-  // Phase 25 Plan 25-08 (HIPAA-15 / D-11): optional patient MFA card.
-  | 'security'
-  // Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
-  // Section enum widening lives with first writer (memory:admin_module_manifest_vs_router_branch_drift).
-  | 'healthkit'
-  | 'dev';
 
 /**
  * Phase 22 plan 22-11: link-out NAV IDs. Clicking these navigates to a
@@ -334,7 +301,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     let cloud: CloudExtras | null = null;
     let audit: AuditSummary | null = null;
     if (userId) {
-      toast('Fetching cloud data...', 'info');
+      toast(t('settings:section.data.toast_fetching_cloud'), 'info');
       const [c, a] = await Promise.all([
         fetchCloudExtras(supabase, userId).catch(() => null),
         fetchAuditSummary(supabase, userId).catch(() => null),
@@ -350,12 +317,12 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
     a.download = `leanshot-export-${todayStr()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast('JSON exported', 'success');
+    toast(t('settings:section.data.toast_json_exported'), 'success');
   };
 
   const handleExportPdf = async (): Promise<void> => {
     const userId = signedIn?.user?.id;
-    toast('Generating PDF...', 'info');
+    toast(t('settings:section.data.toast_generating_pdf'), 'info');
     try {
       // CRITICAL: dynamic imports — these MUST stay inside the click handler.
       // Static imports would land jsPDF in the index entry chunk and break
@@ -383,10 +350,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
       const doc = buildPdfDoc(jsPDF, autoTable, payload);
       doc.save(`leanshot-export-${todayStr()}.pdf`);
-      toast('PDF exported', 'success');
+      toast(t('settings:section.data.toast_pdf_exported'), 'success');
     } catch (e) {
       console.error('[leanshot] PDF export failed', e);
-      toast('PDF export failed', 'error');
+      toast(t('settings:section.data.toast_pdf_failed'), 'error');
     }
   };
 

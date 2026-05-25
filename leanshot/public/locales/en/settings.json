@@ -101,7 +101,12 @@
       "reset_confirm_btn": "Erase everything",
       "reset_confirm_title": "Reset everything",
       "reset_everything": "Reset everything",
-      "title": "Data"
+      "title": "Data",
+      "toast_fetching_cloud": "Fetching cloud data...",
+      "toast_generating_pdf": "Generating PDF...",
+      "toast_json_exported": "JSON exported",
+      "toast_pdf_exported": "PDF exported",
+      "toast_pdf_failed": "PDF export failed"
     },
     "dev": {
       "body": "Development-only diagnostic actions. Not compiled into production builds.",
