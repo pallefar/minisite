@@ -1,0 +1,94 @@
+name: Mobile Android Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leanshot/apps/android/**'
+      - 'leanshot/src/**'
+      - 'leanshot/package.json'
+      - 'leanshot/package-lock.json'
+      - 'leanshot/capacitor.config.ts'
+      - 'leanshot/fastlane/**'
+      - '.github/workflows/mobile-android.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'leanshot/apps/android/**'
+      - 'leanshot/src/**'
+      - 'leanshot/package.json'
+      - 'leanshot/package-lock.json'
+      - 'leanshot/capacitor.config.ts'
+      - 'leanshot/fastlane/**'
+      - '.github/workflows/mobile-android.yml'
+
+concurrency:
+  group: mobile-android-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: leanshot
+
+jobs:
+  build-android:
+    name: Build Android AAB (unsigned, always green)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        # MUST run before gradlew so that apps/android/app/src/main/assets exists
+        run: npx cap sync android
+
+      - name: Build unsigned AAB (bundleRelease)
+        working-directory: leanshot/apps/android
+        run: |
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file="" \
+            -Pandroid.injected.signing.store.password="" \
+            -Pandroid.injected.signing.key.alias="" \
+            -Pandroid.injected.signing.key.password=""
+
+  sign-and-upload-android:
+    name: Sign and upload to Play Store (gated)
+    needs: build-android
+    runs-on: ubuntu-latest
+    # Gate: only run when Android signing + Play secrets are present.
+    # GitHub forbids secrets.* in `if:` — map secrets to env first, then gate on env.
+    env:
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+    if: env.KEYSTORE_BASE64 != '' && env.PLAY_SERVICE_ACCOUNT_JSON != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: leanshot
+
+      - name: Upload to Play Store
+        working-directory: leanshot
+        run: bundle exec fastlane upload_play
