@@ -77,6 +77,9 @@ const PLUGIN_TO_REQUIRED_CATEGORIES = {
   '@capacitor/clipboard': [],
   '@capgo/capacitor-native-biometric': [],
   '@capacitor/local-notifications': [],
+  // @capgo/capacitor-health — HealthKit framework does not itself use required-reason APIs.
+  // Verified against @capgo/capacitor-health v8.5.2 source. Re-check on plugin upgrade.
+  '@capgo/capacitor-health': [],
 };
 
 // ============================================================
@@ -305,6 +308,21 @@ for (const block of collectedDicts) {
       );
     }
   }
+}
+
+// CR-05: When @capgo/capacitor-health is installed, the manifest MUST declare
+// NSPrivacyCollectedDataTypeHealth. If the entire block is absent the for-loop
+// above found no matching block and silently exited 0 — this gate closes that gap.
+const installedHealthPlugin = installedDeps.has('@capgo/capacitor-health');
+const healthTypeDeclared = Array.from(collectedDicts).some(
+  (block) => getString(block, 'NSPrivacyCollectedDataType') === 'NSPrivacyCollectedDataTypeHealth',
+);
+if (installedHealthPlugin && !healthTypeDeclared) {
+  errors.push(
+    'Privacy manifest missing NSPrivacyCollectedDataTypeHealth declaration — required because ' +
+      '@capgo/capacitor-health is installed and collects health data. ' +
+      'Apple requires all collected data types to be declared in PrivacyInfo.xcprivacy.',
+  );
 }
 
 // ============================================================
