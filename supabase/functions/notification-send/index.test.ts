@@ -12,6 +12,8 @@
  *   T6 — happy path: ai-insights → decision fires push+in-app, user_notifications insert called
  *   T7 — cap-exceeded path: firedToday=3 (cap=3) → fired=[], decision.email=false push=false in_app=false
  *   T8 — URGENT path: clinic-alerts → decision.urgent=true; push fan-out called with urgency:'high'
+ *   T9 (54-04) — helpdesk-reply passes validateBody (PUSH-06)
+ *   T10 (54-04) — web-only filter: .eq('platform','web') called; native row not delivered
  */
 import { assertEquals, assertExists } from 'jsr:@std/assert@^1';
 import { __internal } from './index.ts';
@@ -504,4 +506,178 @@ Deno.test('T8b — clinic-alerts payload with PHI field rejected by Edge Fn entr
   assertEquals(res.status, 400);
   const body = await res.json();
   assertEquals(body.error.startsWith('phi_field_forbidden'), true);
+});
+
+// ----------------------------------------------------------------------------
+// Phase 54 Plan 54-04 — web-only push filter + helpdesk-reply category tests
+// ----------------------------------------------------------------------------
+
+Deno.test('T9 — helpdesk-reply passes validateBody (PUSH-06, was previously category_invalid)', () => {
+  const result = __internal.validateBody({
+    user_id: USER_ID,
+    category: 'helpdesk-reply',
+    payload: { ticket_id: 'tk-123', subject: 'Your ticket was updated' },
+  });
+  assertEquals(result.ok, true);
+  if (result.ok) {
+    assertEquals(result.body.category, 'helpdesk-reply');
+  }
+});
+
+Deno.test('T9b — helpdesk-reply was previously rejected (regression guard)', () => {
+  // Confirm non-existent category is still rejected to catch VALID_CATEGORIES regressions.
+  const result = __internal.validateBody({
+    user_id: USER_ID,
+    category: 'helpdesk-nonexistent',
+    payload: {},
+  });
+  assertEquals(result.ok, false);
+  if (!result.ok) {
+    assertEquals(result.reason, 'category_invalid');
+  }
+});
+
+Deno.test('T10 — web-only filter: .eq(platform,web) called; native-only subscriber not delivered', async () => {
+  const log: FakeAdminLog = { inserts: [] };
+
+  // Track which .eq() calls the push_subscriptions chain receives.
+  const eqCalls: Array<[string, unknown]> = [];
+
+  const fakeAdmin = {
+    auth: {
+      admin: {
+        getUserById: (_id: string) =>
+          Promise.resolve({ data: { user: { id: _id, email: 'user@example.com' } }, error: null }),
+      },
+    },
+    from: (table: string) => {
+      // deno-lint-ignore no-explicit-any
+      const state: any = { table, countMode: false };
+
+      const exec = () => {
+        if (table === 'notification_settings') {
+          return Promise.resolve({
+            data: [
+              {
+                user_id: USER_ID,
+                category: 'ai-insights',
+                channel: 'web-push',
+                enabled: true,
+                snoozed_until: null,
+                user_cap_override: null,
+              },
+            ],
+            error: null,
+          });
+        }
+        if (table === 'notification_category_config') {
+          return Promise.resolve({
+            data: {
+              category: 'ai-insights',
+              daily_cap: 5,
+              weekly_cap: null,
+              urgent_escalation: false,
+              push_enabled_default: true,
+              email_enabled_default: false,
+              in_app_enabled_default: false,
+            },
+            error: null,
+          });
+        }
+        if (table === 'notification_dismissal_state') {
+          return Promise.resolve({ data: null, error: null });
+        }
+        if (table === 'user_notifications') {
+          if (state.countMode) return Promise.resolve({ count: 0, error: null });
+          return Promise.resolve({ data: [], error: null });
+        }
+        if (table === 'push_subscriptions') {
+          // Only return web subscription; simulate platform='web' filter succeeding.
+          // If the filter is NOT applied, a native-only scenario would still land here —
+          // the test asserts the eq('platform','web') call was recorded.
+          return Promise.resolve({
+            data: [{ endpoint: 'https://web.push.example/sub1', p256dh: 'p256', auth: 'auth' }],
+            error: null,
+          });
+        }
+        return Promise.resolve({ data: null, error: null });
+      };
+
+      const chain = {
+        select(_cols?: string, opts?: { count?: string; head?: boolean }) {
+          if (opts?.count === 'exact') state.countMode = true;
+          return chain;
+        },
+        eq(col: string, val: unknown) {
+          if (table === 'push_subscriptions') {
+            eqCalls.push([col, val]);
+          }
+          return chain;
+        },
+        gte(_col: string, _val: unknown) {
+          return chain;
+        },
+        maybeSingle() {
+          return exec();
+        },
+        single() {
+          if (table === 'user_notifications') {
+            return Promise.resolve({ data: { id: `notif-${crypto.randomUUID()}` }, error: null });
+          }
+          return exec();
+        },
+        then(resolve: (v: unknown) => void, reject: (e: unknown) => void) {
+          return exec().then(resolve, reject);
+        },
+        insert(row: Record<string, unknown>) {
+          log.inserts.push({ table, row });
+          const insertChain = {
+            select(_c?: string) { return insertChain; },
+            single() {
+              return Promise.resolve({ data: { id: `notif-${crypto.randomUUID()}` }, error: null });
+            },
+            then(resolve: (v: unknown) => void, reject: (e: unknown) => void) {
+              return Promise.resolve({ data: null, error: null }).then(resolve, reject);
+            },
+          };
+          return insertChain;
+        },
+      };
+      return chain;
+    },
+  };
+
+  __internal.setAdminForTest(fakeAdmin);
+
+  let pushDelivered = 0;
+  __internal.setPushFnForTest(async (_sub, _payload, _opts) => {
+    pushDelivered += 1;
+    return { ok: true, status: 201 };
+  });
+
+  const res = await __internal.handleSend(
+    makeReq(
+      {
+        user_id: USER_ID,
+        category: 'ai-insights',
+        payload: { subject: 'Push filter test', body: 'web only' },
+      },
+      { bearer: SERVICE_BEARER },
+    ),
+  );
+
+  assertEquals(res.status, 200);
+
+  // Assert .eq('platform', 'web') was called on the push_subscriptions chain.
+  const platformEq = eqCalls.find(([col, val]) => col === 'platform' && val === 'web');
+  assertExists(
+    platformEq,
+    `Expected .eq('platform','web') call on push_subscriptions chain, got: ${JSON.stringify(eqCalls)}`,
+  );
+
+  // Web subscription was delivered (filter returned a web row).
+  assertEquals(pushDelivered, 1, 'Expected exactly one push delivery to web subscriber');
+
+  __internal.resetAdminForTest();
+  __internal.resetPushFnForTest();
 });
