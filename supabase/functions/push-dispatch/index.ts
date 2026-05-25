@@ -506,19 +506,15 @@ async function dispatch(input: DispatchInput): Promise<DispatchResult> {
 
   // Parallel context load: subscriptions + category config + profile timezone.
   //
-  // Query shapes MUST match the fake admin mock in index.test.ts:
+  // Query shapes:
   //   push_subscriptions: .from(table).select(cols).eq('user_id', val)
-  //       → mock returns cfg.subscriptions
-  //   notification_category_config: .from(table).select(cols).eq('category',val).single()
-  //       → mock's .select().eq() returns { data: [] } (non-subscriptions table)
-  //         and .single() is NOT available on that result — so use select().single()
-  //         which the mock DOES support, returning cfg.categoryConfig.
-  //   profiles: similar — use select().single() which returns cfg.profile.
-  //
-  // The test mock's .select() returns { eq(), single() }. For non-push_subscriptions
-  // tables, .eq() returns { data: [], error: null } (leaf), not chainable with .single().
-  // Use .select().eq().single() for subscriptions-style lookups only if mock supports
-  // the full chain — for cfgResult and profileResult use .select().single() directly.
+  //       → returns array of subscription rows for this user.
+  //   notification_category_config: .from(table).select(cols).eq('category', category).single()
+  //       → returns the single config row for this category (16+ rows in prod;
+  //         the .eq filter is REQUIRED to avoid PGRST116 multi-row error).
+  //   profiles: .from(table).select(cols).eq('id', user_id).single()
+  //       → returns the single profile row for this user (required for correct
+  //         timezone; unfiltered .single() returns wrong row in multi-tenant DB).
   // deno-lint-ignore no-explicit-any
   const [subsResult, cfgResult, profileResult] = await Promise.all([
     (admin.from('push_subscriptions') as any)
@@ -526,9 +522,11 @@ async function dispatch(input: DispatchInput): Promise<DispatchResult> {
       .eq('user_id', user_id),
     (admin.from('notification_category_config') as any)
       .select('category, urgent_escalation, daily_cap, weekly_cap')
+      .eq('category', category)
       .single(),
     (admin.from('profiles') as any)
       .select('timezone')
+      .eq('id', user_id)
       .single(),
   ]);
 

@@ -77,11 +77,23 @@ function makeFakeAdmin(cfg: FakeAdminConfig): FakeAdmin {
   return {
     from: (table: string) => ({
       select: (_cols: string) => ({
-        eq: (_col: string, _val: unknown) => ({
-          data: table === 'push_subscriptions' ? cfg.subscriptions : [],
-          error: null,
-        }),
+        eq: (_col: string, _val: unknown) => {
+          // push_subscriptions: .select().eq('user_id', val) → leaf result (array)
+          if (table === 'push_subscriptions') {
+            return { data: cfg.subscriptions, error: null };
+          }
+          // notification_category_config / profiles: .select().eq(col, val).single()
+          // → chainable, resolves via .single() below
+          const rowForTable =
+            table === 'notification_category_config' ? cfg.categoryConfig : cfg.profile;
+          return {
+            data: null,
+            error: null,
+            single: () => ({ data: rowForTable, error: null }),
+          };
+        },
         single: () => ({
+          // Fallback for any .select().single() call without an intermediate .eq()
           data: table === 'notification_category_config' ? cfg.categoryConfig : cfg.profile,
           error: null,
         }),
