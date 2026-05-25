@@ -1,7 +1,8 @@
 ---
 phase: 55
 slug: healthkit-two-tunnel-firewall
-status: draft
+status: approved
+reviewed_at: 2026-05-25T00:00:00Z
 shadcn_initialized: false
 preset: none
 created: 2026-05-25
@@ -180,7 +181,7 @@ checkbox is checked. This is the HIPAA-required explicit opt-in gate.
 | Destructive action | Confirmation copy |
 |-------------------|-------------------|
 | Revoke HealthKit access | Title: "Revoke Apple Health access?" Body: "Future syncs will stop. Data already imported remains in your logs unless you choose to delete it below." Confirm: "Revoke access" Cancel: "Keep connected" |
-| Purge historical data | Title: "Delete imported Apple Health data?" Body: "This will permanently delete all data imported from Apple Health. Your manually logged data will not be affected. This cannot be undone." Confirm: "Delete imported data" Cancel: "Cancel" |
+| Purge historical data | Title: "Delete imported Apple Health data?" Body: "This will permanently delete all data imported from Apple Health. Your manually logged data will not be affected. This cannot be undone." Confirm: "Delete imported data" Cancel: "Keep my data" |
 
 **Purge uses `Confirm` modal (`useConfirm` hook pattern) — same as
 `DeleteAccountModal`. No typed-confirmation required (data is per-source, not
