@@ -107,7 +107,13 @@
   4. User can revoke HealthKit access from Settings; future syncs blocked; historical imported data optionally purgeable
   5. `PrivacyInfo.xcprivacy` lists every read type; App Store reviewer can verify
   6. Battery-aware background sync skips on low-battery state
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 55-01-firewall-three-layers-PLAN.md — 3-layer two-tunnel firewall (ESLint AST + runtime guard + CI grep), each individually tested
+- [ ] 55-02-db-foundation-plugin-PLAN.md — hk_source columns + healthkit_sync_state table + purge/upsert RPCs + @capgo/capacitor-health plugin install
+- [ ] 55-03-health-impl-import-mapping-PLAN.md — full health.ts read-only import + idempotent mapping to existing tables + revoke/purge logic (mock-tested)
+- [ ] 55-04-consent-ui-settings-privacy-PLAN.md — OPT-IN consent modal + Settings revoke/purge + PrivacyInfo.xcprivacy §5.1.3 fix
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
