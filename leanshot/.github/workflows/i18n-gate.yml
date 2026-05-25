@@ -64,3 +64,28 @@ jobs:
             exit 1
           fi
           echo "i18n catalogs are clean — no parser drift."
+
+      # Gate 3 — P58 ICU interpolation integrity guard.
+      # Fails CI if any ES catalog value contains an interpolation marker whose
+      # variable name starts with a lowercase or accented letter — the signature
+      # of a TRANSLATED {{var}} name (e.g. {{conteo}}, {{recuento}}, {{fecha}}).
+      # i18next variable names are always ASCII-lowercase ({{count}}, {{name}},
+      # {{date}}) so a legitimate ES catalog NEVER matches this pattern. Only a
+      # mistranslated variable name matches — which silently renders as literal
+      # `{{recuento}}` in the UI, masking a dose/unit/count value (T-58-01).
+      # Path is relative to working-directory: leanshot — do NOT prefix with leanshot/.
+      - name: i18n ICU interpolation guard (Gate 3 — P58 no translated variable names)
+        run: |
+          OFFENDERS=$(grep -rEn '\{\{[a-záéíóúñüÁÉÍÓÚÑÜ]' public/locales/es/ 2>/dev/null || true)
+          if [ -n "$OFFENDERS" ]; then
+            echo "::error::Gate 3 FAILED — ES catalog contains translated interpolation variable name(s)."
+            echo "  Preserve {{count}}, {{name}}, {{date}}, etc. verbatim — only translate surrounding text."
+            echo "  Offending lines:"
+            echo "$OFFENDERS" | while IFS= read -r line; do
+              echo "  $line"
+              FILE=$(echo "$line" | cut -d: -f1)
+              echo "::error file=$FILE::Translated {{var}} name detected — restore original ASCII variable name (e.g. {{count}}, not {{conteo}}). Remediation: preserve {{count}} verbatim, only translate surrounding text."
+            done
+            exit 1
+          fi
+          echo "Gate 3 OK — no translated interpolation variable names in public/locales/es/."
