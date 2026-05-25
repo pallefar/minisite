@@ -13,6 +13,8 @@
  */
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { detectPlatform } from '@/lib/native/platform';
+import { signInWithAppleNative } from '@/lib/native/apple-sign-in';
 
 export interface AuthResult {
   user: User | null;
@@ -106,9 +108,24 @@ export function isAppleEnabled(): boolean {
 export async function signInWithOAuthProvider(
   provider: 'google' | 'apple',
 ): Promise<{ error: { message: string } | null }> {
+  // Gate 1: Apple feature flag (env > localStorage > false by default).
+  // Short-circuits BEFORE the platform check — an unconfigured Apple provider
+  // must never reach GoTrue (T-59-07 spoofing mitigation).
   if (provider === 'apple' && !isAppleEnabled()) {
     return { error: { message: 'apple_disabled' } };
   }
+
+  // Gate 2 (Phase 59-02 AUTH-07): Native iOS path — delegate to the
+  // ASAuthorization dialog. App Store requires native dialog for iOS apps;
+  // a webview OAuth flow would be rejected (59-RESEARCH Focus Q1).
+  // Google always falls through to the web PKCE path below.
+  if (provider === 'apple' && detectPlatform() === 'ios') {
+    return signInWithAppleNative();
+  }
+
+  // Web PKCE path (google + non-iOS apple).
+  // PKCE is the supabase-js v2 default flow; redirectTo MUST be PATH-based
+  // (`/auth/callback`) — OAuth providers cannot redirect to `#` fragments.
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {

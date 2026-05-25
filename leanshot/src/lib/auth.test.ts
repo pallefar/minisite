@@ -255,3 +255,80 @@ describe('isAppleEnabled (Phase 34-04 ONBOARD-02 — exported for Plan 34-06)', 
     expect(isAppleEnabled()).toBe(true);
   });
 });
+
+// ─── Phase 59 Plan 59-02 Task 3 — platform-aware Apple entry point ─────────────
+// signInWithOAuthProvider('apple') now forks on detectPlatform()==='ios':
+//   - apple disabled → apple_disabled (short-circuits before platform check)
+//   - apple enabled + iOS → delegates to signInWithAppleNative()
+//   - apple enabled + non-iOS → web signInWithOAuth (unchanged)
+//   - google → always web signInWithOAuth
+
+const mockSignInWithAppleNative = vi.fn();
+const mockDetectPlatform = vi.fn(() => 'web');
+
+vi.mock('@/lib/native/platform', () => ({
+  detectPlatform: mockDetectPlatform,
+}));
+
+vi.mock('@/lib/native/apple-sign-in', () => ({
+  signInWithAppleNative: mockSignInWithAppleNative,
+}));
+
+describe('signInWithOAuthProvider — platform fork (Phase 59-02 AUTH-07)', () => {
+  beforeEach(() => {
+    mockSignInWithAppleNative.mockReset();
+    mockDetectPlatform.mockReset();
+    mockDetectPlatform.mockReturnValue('web');
+    try {
+      localStorage.removeItem('leanshot_auth_apple_enabled');
+    } catch {
+      /* noop */
+    }
+  });
+
+  it("apple disabled → returns { error: { message: 'apple_disabled' } } without platform check", async () => {
+    // apple disabled by default (no localStorage override)
+    mockDetectPlatform.mockReturnValue('ios');
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('apple');
+    expect(res).toEqual({ error: { message: 'apple_disabled' } });
+    expect(mockSignInWithAppleNative).not.toHaveBeenCalled();
+    expect(mockSignInWithOAuth).not.toHaveBeenCalled();
+  });
+
+  it('apple enabled + iOS → delegates to signInWithAppleNative(); does NOT call signInWithOAuth', async () => {
+    localStorage.setItem('leanshot_auth_apple_enabled', 'true');
+    mockDetectPlatform.mockReturnValue('ios');
+    mockSignInWithAppleNative.mockResolvedValue({ error: null });
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('apple');
+    expect(mockSignInWithAppleNative).toHaveBeenCalledTimes(1);
+    expect(mockSignInWithOAuth).not.toHaveBeenCalled();
+    expect(res).toEqual({ error: null });
+  });
+
+  it('apple enabled + non-iOS (web) → calls signInWithOAuth (web PKCE path, unchanged)', async () => {
+    localStorage.setItem('leanshot_auth_apple_enabled', 'true');
+    mockDetectPlatform.mockReturnValue('web');
+    mockSignInWithOAuth.mockResolvedValueOnce({ data: {}, error: null });
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('apple');
+    expect(mockSignInWithAppleNative).not.toHaveBeenCalled();
+    expect(mockSignInWithOAuth).toHaveBeenCalledTimes(1);
+    const call = mockSignInWithOAuth.mock.calls[0]![0];
+    expect(call.provider).toBe('apple');
+    expect(res.error).toBeNull();
+  });
+
+  it('google → always web signInWithOAuth; signInWithAppleNative never called', async () => {
+    mockDetectPlatform.mockReturnValue('ios');
+    mockSignInWithOAuth.mockResolvedValueOnce({ data: {}, error: null });
+    const { signInWithOAuthProvider } = await import('./auth');
+    const res = await signInWithOAuthProvider('google');
+    expect(mockSignInWithAppleNative).not.toHaveBeenCalled();
+    expect(mockSignInWithOAuth).toHaveBeenCalledTimes(1);
+    const call = mockSignInWithOAuth.mock.calls[0]![0];
+    expect(call.provider).toBe('google');
+    expect(res.error).toBeNull();
+  });
+});
