@@ -53,7 +53,7 @@ else
   fail "Gate unexpectedly exits non-zero on clean src tree — investigate violations"
 fi
 
-# ─── Assertion B: planted violation exits 1 ──────────────────────────────────
+# ─── Assertion B: planted violation exits 1 (clinic surface) ─────────────────
 # Create a throwaway dir that looks like clinic/ and plant a file importing
 # an ad-serving component. The gate must catch it and exit 1.
 
@@ -80,6 +80,32 @@ if [ "$GATE_EXIT" -eq 1 ]; then
 else
   fail "Gate returned exit $GATE_EXIT instead of 1 on planted violation (gate may be broken)"
 fi
+
+# ─── Assertion B2: planted violation exits 1 (doctor-share surface) ──────────
+# Verifies CR-01 fix: src/components/share/ is now covered by the gate.
+
+TMPDIR_SHARE="$(mktemp -d)"
+FAKE_SHARE="$TMPDIR_SHARE/components/share"
+mkdir -p "$FAKE_SHARE"
+
+cat > "$FAKE_SHARE/FakeSharePage.tsx" <<'TSEOF'
+import { AdRenderer } from '@/components/ads';
+
+export function FakeSharePage() {
+  return null;
+}
+TSEOF
+
+GATE_SHARE_EXIT=0
+bash "$GATE" "$TMPDIR_SHARE" >/dev/null 2>&1 || GATE_SHARE_EXIT=$?
+
+if [ "$GATE_SHARE_EXIT" -eq 1 ]; then
+  ok "Gate exits 1 when a doctor-share (components/share) file imports an ad-serving component (CR-01 fix verified)"
+else
+  fail "Gate returned exit $GATE_SHARE_EXIT instead of 1 on doctor-share violation — CR-01 fix may be missing"
+fi
+
+rm -rf "$TMPDIR_SHARE"
 
 # ─── Assertion C: commented-out import does NOT trip the gate ────────────────
 # Verifies comment-stripping works (prevents negation-grep evasion).

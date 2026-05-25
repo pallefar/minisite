@@ -69,7 +69,8 @@ fi
 # Excluded surfaces (from canShowAds.ts EXCLUDED_SURFACES + RESEARCH §7):
 #   - clinic: src/components/clinic/
 #   - admin: src/components/admin/
-#   - share: src/components/dashboard/share/
+#   - share (dashboard): src/components/dashboard/share/
+#   - share (doctor-share): src/components/share/  (SharePage, CodeEntryScreen, ShareRevokedScreen)
 #   - MedicationTab (dose-log equivalent PHI context): src/components/dashboard/tabs/MedicationTab.tsx
 #   Plus any file matching *patient* or *dose-log* patterns under src/
 #
@@ -79,6 +80,7 @@ FILES=$(find "$SRC_ROOT" \
     -path "*/components/clinic/*" \
     -o -path "*/components/admin/*" \
     -o -path "*/components/dashboard/share/*" \
+    -o -path "*/components/share/*" \
     -o -name "MedicationTab.tsx" \
     -o -name "*dose-log*" \
     -o -name "*patient*" \
