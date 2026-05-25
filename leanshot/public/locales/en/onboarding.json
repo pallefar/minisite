@@ -1,1 +1,218 @@
-{}
+{
+  "consumer": {
+    "auth": {
+      "check_inbox": "Check your inbox for the magic link.",
+      "continue_apple": "Continue with Apple",
+      "continue_email": "Continue with email",
+      "continue_google": "Continue with Google",
+      "email_aria_label": "Email address",
+      "email_placeholder": "you@example.com",
+      "email_required": "Enter your email first.",
+      "subtitle": "One-tap sign in — your answers come with you.",
+      "title": "Save your progress"
+    },
+    "goal": {
+      "aria_label": "Primary goal",
+      "build_habit": "Build a habit",
+      "build_muscle": "Build muscle",
+      "doctor_monitored": "Doctor-monitored",
+      "family_supporter": "Help a family member",
+      "lose_weight": "Lose weight",
+      "manage_symptoms": "Manage symptoms",
+      "new_prescription": "New prescription",
+      "subtitle": "Pick the option that fits you best. You can change it any time.",
+      "title": "What brought you here?",
+      "track_with_vial_supply": "Track with vial supply"
+    },
+    "intro": {
+      "subtitle": "A few quick questions to tailor your dashboard.",
+      "title": "Welcome to LeanShot"
+    },
+    "progress": "Step {{step}} of {{total}}",
+    "ready": {
+      "card_injection": "Log your first injection",
+      "card_weight": "Log your first weight",
+      "cta": "Take me to the dashboard",
+      "recommended_badge": "Recommended",
+      "recommended_fallback": "Get tailored coaching",
+      "subtitle": "Three things to get you started today.",
+      "title": "You're ready"
+    }
+  },
+  "error": {
+    "medication_required": "Please pick your medication",
+    "name_required": "Please enter your name",
+    "weight_required": "Please enter your weight"
+  },
+  "first_action": {
+    "aria_label": "Choose your first action",
+    "recommended_badge": "Recommended for your goal",
+    "recommended_prefix": "Recommended: ",
+    "start_cta": "Start"
+  },
+  "nav": {
+    "back": "Back",
+    "open_dashboard": "Open dashboard"
+  },
+  "org": {
+    "consent_p1": "LeanShot is a health-tracking app, not a medical device or provider.",
+    "consent_p2": "All data is stored locally on your device unless you explicitly enable cloud sync.",
+    "consent_p3": "Consult your doctor before making changes to your treatment plan.",
+    "consent_subtitle": "Please review before continuing.",
+    "consent_title": "Consent & disclaimer",
+    "doctor_invite_body": "You can invite your doctor from the Settings page once you are set up.",
+    "doctor_invite_subtitle": "Share progress with your care team.",
+    "doctor_invite_title": "Connect your doctor",
+    "intro_card_img_alt": "Introduction",
+    "intro_card_title": "Getting started",
+    "tour_body": "Track injections, body metrics, nutrition, and mood — all in one place.",
+    "tour_subtitle": "Here is what LeanShot can do for you.",
+    "tour_title": "Quick tour",
+    "welcome_subtitle": "Your treatment journey starts here.",
+    "welcome_title": "Welcome to {{orgName}}",
+    "your_clinic": "your clinic"
+  },
+  "preview": {
+    "badge": "LeanShot preview",
+    "cta": "Get started",
+    "feature_drug_level": "Drug-level projection (28 days back + 7 days ahead)",
+    "feature_report": "A one-tap doctor report that summarises the past month",
+    "feature_rotation": "Site-rotation tracker so the same shoulder never gets two in a row",
+    "headline": "See how your GLP-1 journey looks with one source of truth.",
+    "no_account": "No account needed to try the preview.",
+    "subheadline": "Track injections, weight, food, mood, and side-effects — and share the picture with your doctor in one tap."
+  },
+  "social": {
+    "signups_this_week_one": "{{count}} person joined this week",
+    "signups_this_week_other": "{{count}} people joined this week",
+    "testimonial_0_author": "Jordan, on tirzepatide",
+    "testimonial_0_quote": "Finally a place where my doctor and I look at the same picture. The drug-level chart settled six months of confusion in one visit.",
+    "testimonial_1_author": "Priya, on semaglutide",
+    "testimonial_1_quote": "Logging takes ten seconds and the rotation map keeps me honest. I haven't given myself two doses in the same spot since I started.",
+    "testimonial_2_author": "Marco, GLP-1 patient",
+    "testimonial_2_quote": "The doctor report saved me from having to summarise three months on the spot. I just brought the share link."
+  },
+  "step": {
+    "body": {
+      "age_label": "Age",
+      "body_fat_hint": "Skip if you don't have a recent reading. We'll estimate lean mass when you log it.",
+      "body_fat_label": "Body fat % (optional)",
+      "height_label": "Height ({{unit}})",
+      "sex_female": "Female",
+      "sex_label": "Sex at birth",
+      "sex_male": "Male",
+      "subtitle": "For real progress tracking.",
+      "title": "Your starting point",
+      "weight_label": "Weight ({{unit}})"
+    },
+    "disclaimer": {
+      "subtitle": "A quick note before we set things up.",
+      "title": "Before you start"
+    },
+    "goals": {
+      "goal_fat_loss": "Fat loss",
+      "goal_health": "Health markers",
+      "goal_maintenance": "Maintenance",
+      "goal_recomp": "Recomp",
+      "primary_goal_label": "Primary goal",
+      "protein_hint": "1.6–2.2g/kg goal weight to preserve muscle",
+      "protein_label": "Daily protein target",
+      "protein_placeholder": "grams (auto if blank)",
+      "subtitle": "Where are you headed?",
+      "target_weight_label": "Target weight ({{unit}})",
+      "title": "Your goals"
+    },
+    "medication": {
+      "compound_sema": "Compounded semaglutide",
+      "compound_tirz": "Compounded tirzepatide",
+      "dose_label": "Current dose",
+      "mounjaro": "Mounjaro (tirzepatide)",
+      "ozempic": "Ozempic (semaglutide)",
+      "retatrutide": "Retatrutide",
+      "rybelsus": "Rybelsus (oral semaglutide)",
+      "saxenda": "Saxenda (liraglutide)",
+      "select_label": "GLP-1 medication",
+      "select_placeholder": "Select…",
+      "start_date_label": "Start date",
+      "subtitle": "We'll tailor everything to your med.",
+      "title": "Your medication",
+      "trulicity": "Trulicity (dulaglutide)",
+      "unit_label": "Unit",
+      "unit_mg": "mg",
+      "unit_ml": "ml",
+      "unit_units": "units",
+      "wegovy": "Wegovy (semaglutide)",
+      "zepbound": "Zepbound (tirzepatide)"
+    },
+    "ready": {
+      "next1_body": "Pre-filled with your data and today's focus.",
+      "next1_title": "Open your dashboard",
+      "next2_body": "Start your med-level curve from this dose.",
+      "next2_title": "Log your first injection",
+      "next3_body": "Track supply and refill timing.",
+      "next3_title": "Add your current vial",
+      "save_body": "Sign up to sync your injections to your account.",
+      "save_cta": "Sign up — free",
+      "save_title": "Save your data across devices",
+      "subtitle": "Your AI coach is ready. Here's what's next:",
+      "title_accent": "all set.",
+      "title_prefix": "You're"
+    },
+    "routine": {
+      "activity_label": "Activity",
+      "activity_light": "Light",
+      "activity_moderate": "Moderate",
+      "activity_sedentary": "Sedentary",
+      "activity_very": "Very active",
+      "day_friday": "Friday",
+      "day_monday": "Monday",
+      "day_saturday": "Saturday",
+      "day_short_friday": "Fri",
+      "day_short_monday": "Mon",
+      "day_short_saturday": "Sat",
+      "day_short_sunday": "Sun",
+      "day_short_thursday": "Thu",
+      "day_short_tuesday": "Tue",
+      "day_short_wednesday": "Wed",
+      "day_sunday": "Sunday",
+      "day_thursday": "Thursday",
+      "day_tuesday": "Tuesday",
+      "day_wednesday": "Wednesday",
+      "injection_day_label": "Injection day",
+      "lifting_advanced": "Advanced",
+      "lifting_beginner": "Beginner",
+      "lifting_intermediate": "Intermediate",
+      "lifting_label": "Lifting experience",
+      "lifting_none": "None",
+      "subtitle": "For smart nudges that actually fit.",
+      "title": "Your routine"
+    },
+    "snapshot": {
+      "protein_auto": "Auto",
+      "subtitle": "This is what we'll measure progress against. Looks right?",
+      "tile_dose": "Current dose",
+      "tile_goal": "Goal",
+      "tile_injection_day": "Injection day",
+      "tile_medication": "Medication",
+      "tile_name": "Name",
+      "tile_protein": "Protein/day",
+      "tile_started": "Started",
+      "tile_weight": "Weight",
+      "title_accent": "snapshot",
+      "title_prefix": "Your starting"
+    },
+    "welcome": {
+      "name_label": "Your name",
+      "name_placeholder": "First name",
+      "subtitle": "Two minutes. Your data stays on this device — always.",
+      "title_accent": "in.",
+      "title_prefix": "Welcome",
+      "units_label": "Units"
+    }
+  },
+  "unit_toggle": {
+    "aria_label": "Unit system",
+    "imperial": "Imperial · lb, in",
+    "metric": "Metric · kg, cm"
+  }
+}

@@ -15,25 +15,14 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { SOCIAL_PROOF_OPTOUT_KEY } from './LiveSignupCounter';
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "Finally a place where my doctor and I look at the same picture. The drug-level chart settled six months of confusion in one visit.",
-    author: 'Jordan, on tirzepatide',
-  },
-  {
-    quote:
-      "Logging takes ten seconds and the rotation map keeps me honest. I haven't given myself two doses in the same spot since I started.",
-    author: 'Priya, on semaglutide',
-  },
-  {
-    quote:
-      "The doctor report saved me from having to summarise three months on the spot. I just brought the share link.",
-    author: 'Marco, GLP-1 patient',
-  },
+const TESTIMONIAL_KEYS = [
+  { quoteKey: 'onboarding:social.testimonial_0_quote', authorKey: 'onboarding:social.testimonial_0_author' },
+  { quoteKey: 'onboarding:social.testimonial_1_quote', authorKey: 'onboarding:social.testimonial_1_author' },
+  { quoteKey: 'onboarding:social.testimonial_2_quote', authorKey: 'onboarding:social.testimonial_2_author' },
 ] as const;
 
 function isOptedOut(): boolean {
@@ -45,6 +34,7 @@ function isOptedOut(): boolean {
 }
 
 export function TestimonialRotator() {
+  const { t } = useTranslation('onboarding');
   const [optedOut] = useState<boolean>(() => isOptedOut());
   const reducedMotion = useReducedMotion();
   const [idx, setIdx] = useState(0);
@@ -52,17 +42,17 @@ export function TestimonialRotator() {
   useEffect(() => {
     if (optedOut || reducedMotion) return;
     const interval = window.setInterval(() => {
-      setIdx((i) => (i + 1) % TESTIMONIALS.length);
+      setIdx((i) => (i + 1) % TESTIMONIAL_KEYS.length);
     }, 30_000);
     return () => window.clearInterval(interval);
   }, [optedOut, reducedMotion]);
 
   if (optedOut) return null;
-  const t = TESTIMONIALS[idx];
+  const keys = TESTIMONIAL_KEYS[idx];
   return (
     <figure className="text-sm">
-      <blockquote className="text-[var(--color-text)]">&ldquo;{t.quote}&rdquo;</blockquote>
-      <figcaption className="text-[var(--color-text-muted)] mt-1">— {t.author}</figcaption>
+      <blockquote className="text-[var(--color-text)]">&ldquo;{t(keys.quoteKey)}&rdquo;</blockquote>
+      <figcaption className="text-[var(--color-text-muted)] mt-1">— {t(keys.authorKey)}</figcaption>
     </figure>
   );
 }

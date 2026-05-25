@@ -27,6 +27,7 @@
  */
 
 import { useState, type JSX } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -57,6 +58,7 @@ export interface FirstActionSurfaceProps {
 }
 
 export default function FirstActionSurface({ goal }: FirstActionSurfaceProps): JSX.Element {
+  const { t } = useTranslation('onboarding');
   const [busy, setBusy] = useState<ActionType | null>(null);
   const cards = getCardsForGoal(goal);
 
@@ -78,7 +80,7 @@ export default function FirstActionSurface({ goal }: FirstActionSurfaceProps): J
   return (
     <div
       role="region"
-      aria-label="Choose your first action"
+      aria-label={t('onboarding:first_action.aria_label')}
       className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-3"
     >
       {cards.map((c) => {
@@ -97,7 +99,7 @@ export default function FirstActionSurface({ goal }: FirstActionSurfaceProps): J
           >
             {isRecommended && (
               <Badge tone="info" className="mb-2 self-start">
-                Recommended for your goal
+                {t('onboarding:first_action.recommended_badge')}
               </Badge>
             )}
             <div
@@ -119,9 +121,9 @@ export default function FirstActionSurface({ goal }: FirstActionSurfaceProps): J
               className="mt-4 min-h-[44px] w-full"
               loading={busy === c.action_type}
               onClick={() => void handleTap(c.action_type)}
-              aria-label={`${isRecommended ? 'Recommended: ' : ''}${meta.label}`}
+              aria-label={`${isRecommended ? t('onboarding:first_action.recommended_prefix') : ''}${meta.label}`}
             >
-              {isRecommended ? 'Start' : meta.label}
+              {isRecommended ? t('onboarding:first_action.start_cta') : meta.label}
             </Button>
           </Card>
         );
