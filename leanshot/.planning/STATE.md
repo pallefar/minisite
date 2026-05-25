@@ -5,14 +5,14 @@ milestone_name: Launch Readiness
 status: in_progress
 authored: "2026-05-25"
 archived: false
-last_updated: "2026-05-25T08:30:00.000Z"
-last_activity: "2026-05-25 -- Phase 53 (Capacitor Mobile Shells) COMPLETE: 4 plans (fastlane toolchain+metadata, RC-env+deeplink+deletion tests, iOS+Android CI workflows+App Links, RC-webhook verify). Most native pre-existed from v1.2 P16 (apps/ios SPM + apps/android + RC webhook). VERIFICATION passed (automated-verify-only). Code review 6 findings fixed (CI build pipelines, allowBackup=false PHI fix). Live device/store→P70. Autonomous run 52->69 in progress (2/18 done)."
+last_updated: "2026-05-25T09:00:00.000Z"
+last_activity: "2026-05-25 -- Phase 54 (Push Notifications) COMPLETE: 5 plans/3 waves (foundation migrations+type-sync+RED-scaffolds; push-dispatch fan-out Fn web/APNs/FCM; native @capacitor/push-notifications registration; notification-send web-filter; NotificationsSubtab quiet-hours UI). Heavy push infra pre-existed. VERIFICATION passed. Code review caught 4 CRITICAL bugs masked by test mocks (urgent-alert quiet-hours block, UTC tz, APNS sandbox default, FCM PHI leak) — all fixed. Live device delivery→P70. Autonomous run 52->69 in progress (3/18 done)."
 progress:
   total_phases: 19
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 11
+  completed_phases: 3
+  total_plans: 17
+  completed_plans: 17
+  percent: 16
 phase_range: "52-70"
 v1_3_archive:
   roadmap: .planning/milestones/v1.3-ROADMAP.md
@@ -37,9 +37,9 @@ v1_3_archive:
 
 ## Current Position
 
-- **Phase:** 54 (Push Notifications) — NEXT (pending dispatch)
-- **Last completed:** Phase 53 (Capacitor Mobile Shells) — VERIFICATION passed 2026-05-25
-- **Status:** autonomous run `52→69` in progress (2/18 autonomous phases done)
+- **Phase:** 55 (HealthKit + Two-Tunnel Firewall) — NEXT (pending dispatch)
+- **Last completed:** Phase 54 (Push Notifications) — VERIFICATION passed 2026-05-25
+- **Status:** autonomous run `52→69` in progress (3/18 autonomous phases done)
 
 ## Milestone Contract
 
