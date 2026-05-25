@@ -47,17 +47,26 @@ export interface SyncSummary {
 // ---------------------------------------------------------------------------
 
 /**
- * Deterministic UUID-v5 from (userId, date, metric, sourceId).
- * Calling twice with the same inputs returns the same UUID — natural dedupe
- * via ON CONFLICT in the DB upsert path (T-55-03-02 mitigation).
+ * Deterministic 16-byte identifier formatted as a UUID-shaped string, from
+ * (userId, date, metric, sourceId). Calling twice with identical inputs
+ * returns the same ID — natural dedupe via ON CONFLICT in the DB upsert path
+ * (T-55-03-02 mitigation).
  *
- * Implements RFC 4122 §4.3 UUID v5 (SHA-1 namespace + name) using Web Crypto
- * SubtleCrypto. This avoids the `uuid` package which ships without type
- * declarations in v8.3.2.
+ * NOTE: This is NOT RFC 4122 UUID v5 (WR-03 fix). The implementation uses a
+ * custom XOR+rotate mixing function seeded with a DNS-namespace prefix —
+ * synchronous and dependency-free. No SHA-1, no SubtleCrypto. The function
+ * applies v5 version/variant bits (0x50, 0x80) to the output bytes so the
+ * string looks like a UUID v5, but the mixing algorithm does not match
+ * RFC 4122 §4.3 and MUST NOT be relied upon for UUID v5 interoperability
+ * with external systems. Do NOT use where RFC 4122 v5 compliance is required.
  *
- * Synchronous implementation: uses a deterministic hash of the input string
- * via a simple but collision-resistant approach. For the test environment
- * we provide a mock-friendly synchronous version.
+ * Collision profile: suitable for dedupe via ON CONFLICT on the compound key
+ * (userId, date, metric, sourceId). XOR-cyclical mixing on short sourceId
+ * values (e.g. 'apple_health') over long inputs reduces theoretical isolation
+ * from SHA-1 — acceptable for this dedupe use-case but not for general IDs.
+ *
+ * Phase 70: if UUID v5 interop is ever required, replace with an async
+ * SubtleCrypto SHA-1 implementation (rename to healthSampleIdAsync).
  */
 export function healthSampleId(
   userId: string,
