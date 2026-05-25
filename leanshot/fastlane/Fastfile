@@ -86,6 +86,21 @@ platform :android do
     # CI must set the following GitHub Secrets before invoking this lane:
     #   KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD,
     #   PLAY_SERVICE_ACCOUNT_JSON
+    #
+    # CR-02: keystore is decoded by the CI workflow step before fastlane runs
+    # (echo "$KEYSTORE_BASE64" | base64 --decode > apps/android/app/leanshot-release.jks).
+    # The gradle() call here builds + signs the release AAB. supply() then uploads it.
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "apps/android/",
+      properties: {
+        "android.injected.signing.store.file"     => File.expand_path("app/leanshot-release.jks", "apps/android"),
+        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias"      => ENV["KEY_ALIAS"],
+        "android.injected.signing.key.password"   => ENV["KEY_PASSWORD"]
+      }
+    )
     supply(
       track: "internal",
       json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"]

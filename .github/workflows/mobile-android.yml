@@ -22,9 +22,8 @@ on:
       - 'leanshot/fastlane/**'
       - '.github/workflows/mobile-android.yml'
 
-concurrency:
-  group: mobile-android-${{ github.ref }}
-  cancel-in-progress: true
+  # WR-02: global concurrency block removed — upload jobs must not be cancelled.
+  # Job-level concurrency is applied to build-android only (see below).
 
 defaults:
   run:
@@ -35,6 +34,9 @@ jobs:
     name: Build Android AAB (unsigned, always green)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    concurrency:
+      group: mobile-android-build-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
 
@@ -83,6 +85,37 @@ jobs:
     if: env.KEYSTORE_BASE64 != '' && env.PLAY_SERVICE_ACCOUNT_JSON != ''
     steps:
       - uses: actions/checkout@v4
+
+      # CR-02: web-asset pipeline must run on this runner before gradle can build.
+      # The build-android job runs on a separate runner whose artifacts are not
+      # transferred here — this job must be self-contained.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        working-directory: leanshot
+        run: npm ci --legacy-peer-deps
+
+      - name: Build web assets
+        working-directory: leanshot
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        working-directory: leanshot
+        run: npx cap sync android
+
+      - name: Decode keystore
+        working-directory: leanshot
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > apps/android/app/leanshot-release.jks
 
       - uses: ruby/setup-ruby@v1
         with:
