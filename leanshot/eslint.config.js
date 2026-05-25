@@ -21,6 +21,10 @@ const noConditionalNativeReviewRule = _require('./eslint-rules/no-conditional-na
 // Phase 39 Plan 39-02 — no-paywall-on-safety-category (D-06 layer 1 of 3).
 // D-05 enumerates 5 safety-info categories that must never sit behind a paywall.
 const noPaywallOnSafetyCategoryRule = _require('./eslint-rules/no-paywall-on-safety-category.cjs');
+// Phase 55 Plan 55-01 — no-health-in-ad-context (HEALTH-04/HEALTH-08 — Layer 1 of 3).
+// Apple §5.1.3: ad/marketing/analytics/affiliate files must never import health.ts.
+// Additive rule — Phase 12 import-x zones remain unchanged; this adds a NAMED, individually testable layer.
+const noHealthInAdContextRule = _require('./eslint-rules/no-health-in-ad-context.cjs');
 
 export default defineConfig([
   // Global ignores
@@ -327,6 +331,31 @@ export default defineConfig([
     },
     rules: {
       'leanshot-pharma/no-paywall-on-safety-category': 'error',
+    },
+  },
+
+  // Phase 55 Plan 55-01 — HEALTH-04/HEALTH-08 Layer 1 of 3: no-health-in-ad-context enforcement.
+  // Detects any ImportDeclaration in an ad/marketing/analytics/affiliate file (or *.ad-eligible.ts)
+  // whose source matches native/health. Reports crossImport so ESLint CI fails on the violation.
+  // This is ADDITIVE to the existing Phase 12 import-x/no-restricted-paths zones (Blocks A–C above).
+  // The Phase 12 zones block at directory level; this named custom rule adds an INDIVIDUALLY
+  // IDENTIFIABLE, per-file enforcement layer required for HEALTH-08 provability.
+  // Test files exempt — fixtures legitimately exercise both sides of the gate.
+  {
+    files: [
+      'src/lib/ads/**/*.{ts,tsx}',
+      'src/lib/analytics/**/*.{ts,tsx}',
+      'src/lib/marketing/**/*.{ts,tsx}',
+      'src/lib/affiliate/**/*.{ts,tsx}',
+      'src/lib/native/ads*.ts',
+      'src/**/*.ad-eligible.ts',
+    ],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/test-setup.ts'],
+    plugins: {
+      'leanshot-health': { rules: { 'no-health-in-ad-context': noHealthInAdContextRule } },
+    },
+    rules: {
+      'leanshot-health/no-health-in-ad-context': 'error',
     },
   },
 
