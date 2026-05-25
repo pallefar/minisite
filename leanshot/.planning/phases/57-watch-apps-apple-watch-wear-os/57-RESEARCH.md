@@ -707,22 +707,25 @@ describe('dedupeAndMerge', () => {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does the iOS `App.xcodeproj` require manual Xcode GUI to add the watchOS target, or can it be done by editing `project.pbxproj` directly?**
    - What we know: `project.pbxproj` is the source of truth for targets; Xcode reads it.
    - What's unclear: Direct `.pbxproj` editing is error-prone. Apple's tooling (Xcode + `xcodebuild`) does not expose a CLI for adding targets.
    - Recommendation: The plan should use a minimally-valid `.pbxproj` diff or provide the scaffold as a set of new Swift files plus explicit `.pbxproj` additions. The plan-checker should verify via `xcodebuild -list` that the new target appears.
+   - **RESOLVED:** Plan 57-01 Task 3 edits `project.pbxproj` directly with explicit target additions and gates on `xcodebuild -list` showing both targets — no Xcode GUI needed.
 
 2. **Does `cap sync` need to be re-run after adding the watch target, and does it interfere?**
    - What we know: `cap sync` copies web assets and updates iOS/Android native config files.
    - What's unclear: Whether `cap sync` would clobber the watch target's `Info.plist` or entitlements.
    - Recommendation: Watch target files should live outside the Capacitor-managed `App/App/` directory (use `App/LeanShotWatch/`). `cap sync` only manages the main app target.
+   - **RESOLVED:** Plan 57-01 places all watch files under `App/LeanShotWatch/` + `App/LeanShotWatchWidget/` (outside Capacitor-managed `App/App/`); `cap sync` only touches the main app target, so no clobber.
 
 3. **Does the Android `:wear` module need to be connected to the phone module's build variants?**
    - What we know: Multi-module Android projects share `variables.gradle` from the root.
    - What's unclear: Whether Wear OS module needs `wearApp(project(':wear'))` in the phone app's `build.gradle` for pairing to work.
    - Recommendation: For scaffold-only (no device build), the `:wear` module can be standalone. The `wearApp` link is needed for production bundling — defer to Phase 70.
+   - **RESOLVED:** Plan 57-02 ships `:wear` as a standalone module registered in `settings.gradle`; the `wearApp` production-bundling link is explicitly deferred to Phase 70.
 
 ---
 
