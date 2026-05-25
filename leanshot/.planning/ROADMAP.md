@@ -86,11 +86,11 @@
   5. Quiet-hours window (22:00-08:00 user-tz) blocks non-urgent notifications; urgent (clinician alerts) override
   6. Failing tokens auto-prune after 3 consecutive failures
 **Plans**: 5 plans
-- [ ] 54-01-PLAN.md — migrations (platform/device_token/failure_count + helpdesk-reply widening) + Category type sync + Wave-0 RED scaffolds
-- [ ] 54-02-PLAN.md — push-dispatch Edge Fn (cross-platform fan-out, quiet-hours, prune, telemetry)
-- [ ] 54-03-PLAN.md — @capacitor/push-notifications + native registerForPush + push-subscribe native body
-- [ ] 54-04-PLAN.md — notification-send web-only push filter + helpdesk-reply category
-- [ ] 54-05-PLAN.md — NotificationsSubtab quiet-hours UI + helpdesk-reply matrix + native enable branch
+- [x] 54-01-PLAN.md — migrations (platform/device_token/failure_count + helpdesk-reply widening) + Category type sync + Wave-0 RED scaffolds
+- [x] 54-02-PLAN.md — push-dispatch Edge Fn (cross-platform fan-out, quiet-hours, prune, telemetry)
+- [x] 54-03-PLAN.md — @capacitor/push-notifications + native registerForPush + push-subscribe native body
+- [x] 54-04-PLAN.md — notification-send web-only push filter + helpdesk-reply category
+- [x] 54-05-PLAN.md — NotificationsSubtab quiet-hours UI + helpdesk-reply matrix + native enable branch
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -454,7 +454,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 |-------|----------------|--------|-----------|
 | 52. Vendor Setup Foundation | 4/4 | Complete   | 2026-05-25 |
 | 53. Capacitor Mobile Shells | 4/4 | Complete   | 2026-05-25 |
-| 54. Push Notifications | 0/0 | Not started | - |
+| 54. Push Notifications | 5/5 | Complete   | 2026-05-25 |
 | 55. HealthKit + Two-Tunnel Firewall | 0/0 | Not started | - |
 | 56. Ad Network | 0/0 | Not started | - |
 | 57. Watch Apps | 0/0 | Not started | - |
