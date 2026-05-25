@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] **Phase 52: Vendor Setup Foundation** — All vendor onboarding upfront so downstream phases have live integrations (Apple Dev + Play + APNs + FCM + HealthKit entitlement + Mux + Calendly + Better Stack + Sentry CSP + 7 v1.3 carry-over secrets)
+- [x] **Phase 52: Vendor Setup Foundation** — All vendor onboarding upfront so downstream phases have live integrations (Apple Dev + Play + APNs + FCM + HealthKit entitlement + Mux + Calendly + Better Stack + Sentry CSP + 7 v1.3 carry-over secrets)
 - [ ] **Phase 53: Capacitor Mobile Shells** — iOS + Android wrappers; CI per-platform builds; signing certs; RevenueCat SDK; store submission package
 - [ ] **Phase 54: Push Notifications** — Web Push (VAPID) + native iOS APNs + Android FCM; permission UX; frequency-cap + quiet-hours; per-platform delivery telemetry
 - [ ] **Phase 55: HealthKit + Two-Tunnel Firewall** — Apple Health PHI ingestion; iOS-only; OPT-IN per HIPAA; 3-layer firewall enforcement (no ad-surface cross-import)

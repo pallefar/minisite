@@ -2,14 +2,24 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Readiness
-status: executing
-last_updated: "2026-05-25T08:06:55.291Z"
+status: in_progress
+authored: "2026-05-25"
+archived: false
+last_updated: "2026-05-25T08:10:00.000Z"
+last_activity: "2026-05-25 -- Phase 52 (Vendor Setup Foundation) COMPLETE: 4 plans shipped (vendor-smoke Fn + vendor_smoke_log table/cron + admin dashboard + BAA seed/runbook/CI-guard). VERIFICATION passed (automated-verify-only; live provisioning deferred to P70). Code review 6 findings fixed. UI review 22/24. Autonomous run 52->69 in progress."
 progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 19
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
+  percent: 5
+phase_range: "52-70"
+v1_3_archive:
+  roadmap: .planning/milestones/v1.3-ROADMAP.md
+  requirements: .planning/milestones/v1.3-REQUIREMENTS.md
+  audit: .planning/milestones/v1.3-MILESTONE-AUDIT.md
+  uat_runbook: .planning/milestones/v1.3-uat-deferred.md
+  git_tag: v1.3
 ---
 
 # Milestone v1.4: Launch Readiness
@@ -27,12 +37,9 @@ progress:
 
 ## Current Position
 
-Phase: 52 (Vendor Setup Foundation) — EXECUTING
-Plan: 1 of 4
-
-- **Phase:** 52 (Vendor Setup Foundation) — pending dispatch
-- **Plan:** none yet (planning not started)
-- **Status:** ready for `/gsd-plan-phase 52`
+- **Phase:** 53 (Capacitor Mobile Shells) — NEXT (pending dispatch)
+- **Last completed:** Phase 52 (Vendor Setup Foundation) — VERIFICATION passed 2026-05-25
+- **Status:** autonomous run `52→69` in progress (1/18 autonomous phases done)
 
 ## Milestone Contract
 
@@ -78,7 +85,7 @@ P70 (Consolidated UAT) waits for EVERYTHING (last phase)
 
 ### Todos
 
-- [ ] Dispatch `/gsd-plan-phase 52` to plan Vendor Setup Foundation
+- [x] Phase 52 (Vendor Setup Foundation) shipped — VERIFICATION passed, review fixed, UI 22/24
 - [ ] After Phase 52 ships: dispatch carry-over phases (53-63) in dependency order
 - [ ] Then launch-gap phases (64-68) — mostly parallel
 - [ ] Then design polish (69) after all surfaces ship
