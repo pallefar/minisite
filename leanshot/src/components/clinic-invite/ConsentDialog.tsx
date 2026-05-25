@@ -30,6 +30,7 @@
  *   4. **No `s.user!` non-null assertions** (project anti-pattern).
  */
 import { useState, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Confirm';
@@ -90,6 +91,7 @@ export function ConsentDialog({
   onAccepted,
   onDeclined,
 }: ConsentDialogProps) {
+  const { t } = useTranslation(['clinic', 'common']);
   const [scope, setScope] = useState<ConsentScope>(() => initScopeFromRequested(invite.requested_scope));
   const [state, setState] = useState<ViewState>({ kind: 'editing' });
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
@@ -108,12 +110,12 @@ export function ConsentDialog({
         setState({ kind: 'accepted' });
         onAccepted?.();
       } else {
-        setState({ kind: 'error', message: result.error || "Couldn't join. Check your connection and try again." });
+        setState({ kind: 'error', message: result.error || t('clinic:invite.consent.error_join') });
       }
     } catch {
       setState({
         kind: 'error',
-        message: "Couldn't join. Check your connection and try again.",
+        message: t('clinic:invite.consent.error_join'),
       });
     }
   };
@@ -128,12 +130,12 @@ export function ConsentDialog({
         setState({ kind: 'declined' });
         onDeclined?.();
       } else {
-        setState({ kind: 'error', message: result.error || "Couldn't decline. Check your connection and try again." });
+        setState({ kind: 'error', message: result.error || t('clinic:invite.consent.error_decline') });
       }
     } catch {
       setState({
         kind: 'error',
-        message: "Couldn't decline. Check your connection and try again.",
+        message: t('clinic:invite.consent.error_decline'),
       });
     }
   };
@@ -144,18 +146,17 @@ export function ConsentDialog({
   if (state.kind === 'accepted') {
     return (
       <Card variant="elevated" padding="lg" className="max-w-[640px] mx-auto">
-        <h1 className="text-[24px] font-bold tracking-tight">You&apos;re connected</h1>
+        <h1 className="text-[24px] font-bold tracking-tight">{t('clinic:invite.consent.accepted_title')}</h1>
         <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
-          {invite.org.name} can now see the data you chose. Manage this in Settings → Active
-          organizations.
+          {t('clinic:invite.consent.accepted_body', { orgName: invite.org.name })}
         </p>
         <div className="mt-5 flex gap-2">
-          <Button variant="primary" onClick={() => (window.location.href = '/')}>Go to my account</Button>
+          <Button variant="primary" onClick={() => (window.location.href = '/')}>{t('clinic:invite.action.go_to_account')}</Button>
           <Button
             variant="ghost"
             onClick={() => (window.location.href = '/#/settings/organizations')}
           >
-            Manage this membership
+            {t('clinic:invite.action.manage_membership')}
           </Button>
         </div>
       </Card>
@@ -169,13 +170,13 @@ export function ConsentDialog({
     return (
       <Card variant="elevated" padding="lg" className="max-w-[640px] mx-auto">
         <h1 className="text-[24px] font-bold tracking-tight">
-          This invitation has already been accepted or declined
+          {t('clinic:invite.error.already_used_title')}
         </h1>
         <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
-          Invitation declined.
+          {t('clinic:invite.consent.declined_body')}
         </p>
         <div className="mt-5">
-          <Button variant="primary" onClick={() => (window.location.href = '/')}>Done</Button>
+          <Button variant="primary" onClick={() => (window.location.href = '/')}>{t('clinic:invite.action.done')}</Button>
         </div>
       </Card>
     );
@@ -189,22 +190,20 @@ export function ConsentDialog({
   return (
     <Card variant="elevated" padding="lg" className="max-w-[640px] mx-auto">
       <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-        Invitation from {invite.org.name}
+        {t('clinic:invite.consent.from_label', { orgName: invite.org.name })}
       </p>
-      <h1 className="mt-1 text-[26px] font-bold tracking-tight">Choose what to share</h1>
+      <h1 className="mt-1 text-[26px] font-bold tracking-tight">{t('clinic:invite.consent.title')}</h1>
       <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
-        {invite.operator_first_name} from {invite.org.name} invited you to share your data. Pick
-        what they can see. You can change this any time from Settings.
+        {t('clinic:invite.consent.body', { operatorName: invite.operator_first_name, orgName: invite.org.name })}
       </p>
 
       {/* What you're sharing */}
       <section className="mt-6">
-        <h2 className="text-[15px] font-semibold">What you&apos;re sharing</h2>
+        <h2 className="text-[15px] font-semibold">{t('clinic:invite.consent.sharing_title')}</h2>
         <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-          These data types are pre-checked based on what {invite.org.name} requested. Uncheck
-          anything you don&apos;t want to share before accepting.
+          {t('clinic:invite.consent.sharing_hint', { orgName: invite.org.name })}
         </p>
-        <ul className="mt-4 flex flex-col gap-2" role="group" aria-label="Data type consent checkboxes">
+        <ul className="mt-4 flex flex-col gap-2" role="group" aria-label={t('clinic:invite.consent.checkboxes_label')}>
           {DATA_TYPE_KEYS.map((k) => {
             const meta = DATA_TYPE_LABELS[k];
             return (
@@ -234,17 +233,15 @@ export function ConsentDialog({
           })}
         </ul>
         <p className="mt-3 text-[12px] text-[var(--color-text-secondary)]">
-          AI coach conversations, account settings, and anything you delete are never shared. This
-          is a LeanShot privacy guarantee.
+          {t('clinic:invite.consent.privacy_guarantee')}
         </p>
       </section>
 
       {/* What the org can do */}
       <section className="mt-6">
-        <h2 className="text-[15px] font-semibold">What {invite.org.name} can do</h2>
+        <h2 className="text-[15px] font-semibold">{t('clinic:invite.consent.org_can_title', { orgName: invite.org.name })}</h2>
         <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-          View your selected data in their workspace. They cannot edit, delete, or download your
-          data. Every access is logged.
+          {t('clinic:invite.consent.org_can_body')}
         </p>
       </section>
 
@@ -257,11 +254,10 @@ export function ConsentDialog({
       */}
       <div
         role="note"
-        aria-label="Legal review pending"
+        aria-label={t('clinic:invite.consent.legal_banner_label')}
         className="mt-6 rounded-lg border border-[var(--color-warning)]/40 bg-[var(--color-warning-soft,rgba(255,200,0,0.08))] p-4 text-[13px] text-[var(--color-text)]"
       >
-        Legal copy describing data-protection terms appears here before public launch. Internal
-        review required.
+        {t('clinic:invite.consent.legal_banner')}
       </div>
 
       {state.kind === 'error' && (
@@ -276,19 +272,19 @@ export function ConsentDialog({
           onClick={() => setShowDeclineConfirm(true)}
           disabled={submitting}
         >
-          Decline
+          {t('clinic:invite.consent.decline')}
         </Button>
         <Button variant="primary" onClick={submitAccept} loading={submitting}>
-          Accept and join
+          {t('clinic:invite.consent.accept')}
         </Button>
       </div>
 
       <ConfirmModal
         open={showDeclineConfirm}
-        title="Decline this invitation?"
-        message={`You can ask ${invite.org.name} for a new invitation later if you change your mind.`}
-        confirmLabel="Decline invitation"
-        cancelLabel="Keep reviewing"
+        title={t('clinic:invite.consent.confirm_decline_title')}
+        message={t('clinic:invite.consent.confirm_decline_body', { orgName: invite.org.name })}
+        confirmLabel={t('clinic:invite.consent.confirm_decline_cta')}
+        cancelLabel={t('clinic:invite.consent.confirm_decline_cancel')}
         destructive
         onConfirm={submitDecline}
         onCancel={() => setShowDeclineConfirm(false)}

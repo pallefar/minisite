@@ -1,1 +1,70 @@
-{}
+{
+  "invite": {
+    "action": {
+      "done": "Listo",
+      "go_to_account": "Ir a mi cuenta",
+      "manage_membership": "Gestionar esta membresía",
+      "retry": "Reintentar"
+    },
+    "consent": {
+      "accept": "Aceptar y unirse",
+      "accepted_body": "{{orgName}} ahora puede ver los datos que elegiste. Gestiona esto en Ajustes → Organizaciones activas.",
+      "accepted_title": "Estás conectado",
+      "body": "{{operatorName}} de {{orgName}} te invitó a compartir tus datos. Elige qué pueden ver. Puedes cambiar esto en cualquier momento desde Ajustes.",
+      "checkboxes_label": "Casillas de consentimiento por tipo de dato",
+      "confirm_decline_body": "Puedes pedirle a {{orgName}} una nueva invitación más adelante si cambias de opinión.",
+      "confirm_decline_cancel": "Seguir revisando",
+      "confirm_decline_cta": "Rechazar invitación",
+      "confirm_decline_title": "¿Rechazar esta invitación?",
+      "decline": "Rechazar",
+      "declined_body": "Invitación rechazada.",
+      "error_decline": "No se pudo rechazar. Verifica tu conexión e intenta de nuevo.",
+      "error_join": "No se pudo unir. Verifica tu conexión e intenta de nuevo.",
+      "from_label": "Invitación de {{orgName}}",
+      "legal_banner": "El texto legal sobre las condiciones de protección de datos aparecerá aquí antes del lanzamiento público. Revisión interna requerida.",
+      "legal_banner_label": "Revisión legal pendiente",
+      "org_can_body": "Ver tus datos seleccionados en su espacio de trabajo. No pueden editar, eliminar ni descargar tus datos. Cada acceso queda registrado.",
+      "org_can_title": "Qué puede hacer {{orgName}}",
+      "privacy_guarantee": "Las conversaciones con el coach de IA, la configuración de la cuenta y cualquier cosa que elimines nunca se comparten. Esta es la garantía de privacidad de LeanShot.",
+      "sharing_hint": "Estos tipos de datos están preseleccionados según lo que solicitó {{orgName}}. Desmarca lo que no quieras compartir antes de aceptar.",
+      "sharing_title": "Qué estás compartiendo",
+      "title": "Elige qué compartir"
+    },
+    "error": {
+      "already_used_body": "Abre Ajustes → Organizaciones activas para gestionar tus membresías.",
+      "already_used_title": "Esta invitación ya fue aceptada o rechazada",
+      "canceled_body_generic": "Pide a la clínica que te envíe una nueva invitación.",
+      "canceled_body_org": "{{orgName}} canceló esta invitación. Pídeles una nueva si aún quieres compartir tus datos.",
+      "canceled_title": "Esta invitación fue cancelada por la clínica",
+      "expired_body_generic": "Pide a la clínica que te envíe una nueva invitación.",
+      "expired_body_org": "Las invitaciones vencen 7 días después de enviarse. Pide a {{orgName}} que te envíe una nueva.",
+      "expired_title": "Esta invitación ha vencido",
+      "load_body": "Verifica tu conexión e intenta de nuevo. Si el problema continúa, pide a la clínica que te envíe una nueva invitación.",
+      "load_title": "Algo salió mal al abrir esta invitación"
+    },
+    "footer": "Con tecnología de LeanShot — tu seguimiento de datos privados",
+    "loading": "Abriendo invitación…",
+    "magic_link": {
+      "cta": "Iniciar sesión con enlace mágico",
+      "hint": "Te enviaremos un enlace de inicio de sesión a {{email}}. La invitación te estará esperando cuando vuelvas.",
+      "sent": "Revisa tu correo para encontrar el enlace de inicio de sesión.",
+      "signin_body": "{{orgName}} te invitó a compartir tus datos. Inicia sesión en tu cuenta de LeanShot para revisar la invitación.",
+      "signin_title": "Inicia sesión para continuar"
+    },
+    "signup": {
+      "body": "{{orgName}} te invitó. Crea tu cuenta y luego elige qué compartir.",
+      "confirm_body": "Enviamos un enlace de confirmación a {{email}}. Haz clic en él para confirmar tu cuenta y luego vuelve aquí para revisar tu invitación.",
+      "confirm_title": "Revisa tu correo en {{email}}",
+      "cta": "Crear cuenta y continuar",
+      "err_create_account": "No se pudo crear la cuenta. Intenta de nuevo.",
+      "err_password_short": "Al menos 8 caracteres.",
+      "err_resend": "No se pudo reenviar el correo de confirmación.",
+      "hint_email": "Te enviaremos un enlace de confirmación para verificar que eres tú.",
+      "hint_password": "Al menos 8 caracteres.",
+      "label_email": "Tu correo electrónico",
+      "label_password": "Contraseña",
+      "resend": "Reenviar confirmación",
+      "title": "Crea tu cuenta de LeanShot"
+    }
+  }
+}
