@@ -46,6 +46,14 @@ jobs:
       # This gate cannot be silenced by eslint-disable comments (comment-stripped).
       - name: Two-tunnel firewall health gate (HEALTH-08 Layer 3)
         run: bash scripts/check-no-health-in-ad-context.sh src
+      # Phase 56 Plan 56-06 AD-03/T-56-16 — Surface-exclusion CI grep gate (AD-03).
+      # Comment-stripped CI grep: fails if any clinic/admin/share/dose-log/patient
+      # surface file imports an ad-serving component (@/components/ads or @/lib/ads/).
+      # Complements the HEALTH-08 health gate above (AD-11 regression also enforced
+      # by check-no-health-in-ad-context.sh preserved above).
+      # Both gates run on every push per AD-03 + AD-11 requirements.
+      - name: Ad surface-exclusion gate (AD-03)
+        run: bash scripts/check-no-ads-on-excluded-surfaces.sh src
 
   format-check:
     name: Format check
