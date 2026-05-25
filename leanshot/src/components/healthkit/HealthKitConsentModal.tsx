@@ -9,7 +9,7 @@
 // DO NOT import from any *.ad-eligible.ts, src/lib/analytics/*, src/lib/affiliate/*,
 // src/lib/ads/*, src/lib/marketing/*, or src/lib/native/ads*.ts file.
 
-import { Heart, Shield, Scale, Footprints, Moon, HeartPulse, Flame, Beef, Ruler } from 'lucide-react';
+import { Heart, Shield, Scale, Footprints, Moon, HeartPulse, Flame, Ruler } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -35,13 +35,16 @@ export interface HealthKitConsentModalProps {
 // Data-type disclosure rows (UI-SPEC §Copywriting Contract Screen 1)
 // ---------------------------------------------------------------------------
 
+// WR-05: 'Dietary protein' removed — readDietaryProtein() always returns [] and
+// dietaryProtein is NOT in the requestHealthKitAuthorization read list.
+// Disclosing data you don't collect is a HIPAA consent accuracy violation and
+// an App Store §5.1.3 risk. Re-add when Phase 70 implements the real read path.
 const DATA_TYPES = [
   { Icon: Scale, label: 'Body weight — imported to your weight log' },
   { Icon: Footprints, label: 'Daily steps — imported to your activity log' },
   { Icon: Moon, label: 'Sleep duration — imported to your sleep log' },
   { Icon: HeartPulse, label: 'Resting heart rate — imported to your health dashboard' },
   { Icon: Flame, label: 'Active calories burned — imported to your activity log' },
-  { Icon: Beef, label: 'Dietary protein — imported to your nutrition log' },
   { Icon: Ruler, label: 'Height — used to calculate BMI in your weight log' },
 ] as const;
 

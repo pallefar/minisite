@@ -108,15 +108,18 @@ describe('HealthKitConsentModal', () => {
       expect(matches.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders all 7 data-type disclosure rows', () => {
+    // WR-05: dietary protein removed from DATA_TYPES (not collected; disclosure was inaccurate).
+    // Only 6 data types are disclosed now. Re-add when Phase 70 ships the real read path.
+    it('renders all 6 data-type disclosure rows (dietary protein removed — WR-05)', () => {
       renderModal();
       expect(screen.getByText('Body weight — imported to your weight log')).toBeDefined();
       expect(screen.getByText('Daily steps — imported to your activity log')).toBeDefined();
       expect(screen.getByText('Sleep duration — imported to your sleep log')).toBeDefined();
       expect(screen.getByText('Resting heart rate — imported to your health dashboard')).toBeDefined();
       expect(screen.getByText('Active calories burned — imported to your activity log')).toBeDefined();
-      expect(screen.getByText('Dietary protein — imported to your nutrition log')).toBeDefined();
       expect(screen.getByText('Height — used to calculate BMI in your weight log')).toBeDefined();
+      // Dietary protein MUST NOT be disclosed (not collected — HIPAA consent accuracy)
+      expect(screen.queryByText('Dietary protein — imported to your nutrition log')).toBeNull();
     });
 
     it('renders the retention disclosure', () => {
