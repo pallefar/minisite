@@ -155,9 +155,9 @@ Plans:
   6. HealthKit / Health Services reads (heart rate, activity) route via same firewall as Phase 55 — no ad-surface cross-import
 **Plans**: 3 plans (Wave 1 — all parallel, no file overlap)
 Plans:
-- [ ] 57-01-PLAN.md — iOS watchOS SwiftUI app + WidgetKit complication scaffolds (file-existence + xcodebuild -list)
-- [ ] 57-02-PLAN.md — Wear OS :wear Compose module + Tile + Data-Layer scaffold (static Gradle validation)
-- [ ] 57-03-PLAN.md — TS sync-contract + complication-data (vitest) + Phase 55 firewall extension to src/lib/watch/
+- [x] 57-01-PLAN.md — iOS watchOS SwiftUI app + WidgetKit complication scaffolds (file-existence + xcodebuild -list)
+- [x] 57-02-PLAN.md — Wear OS :wear Compose module + Tile + Data-Layer scaffold (static Gradle validation)
+- [x] 57-03-PLAN.md — TS sync-contract + complication-data (vitest) + Phase 55 firewall extension to src/lib/watch/
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -473,7 +473,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 54. Push Notifications | 5/5 | Complete   | 2026-05-25 |
 | 55. HealthKit + Two-Tunnel Firewall | 4/4 | Complete   | 2026-05-25 |
 | 56. Ad Network | 6/6 | Complete   | 2026-05-25 |
-| 57. Watch Apps | 0/0 | Not started | - |
+| 57. Watch Apps | 3/3 | Complete   | 2026-05-25 |
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
 | 59. Apple OAuth + Onboarding Completion | 0/0 | Not started | - |
 | 60. RAG Knowledge Base Completion | 0/0 | Not started | - |
