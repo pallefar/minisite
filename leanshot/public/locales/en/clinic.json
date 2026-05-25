@@ -1,1 +1,70 @@
-{}
+{
+  "invite": {
+    "action": {
+      "done": "Done",
+      "go_to_account": "Go to my account",
+      "manage_membership": "Manage this membership",
+      "retry": "Retry"
+    },
+    "consent": {
+      "accept": "Accept and join",
+      "accepted_body": "{{orgName}} can now see the data you chose. Manage this in Settings → Active organizations.",
+      "accepted_title": "You're connected",
+      "body": "{{operatorName}} from {{orgName}} invited you to share your data. Pick what they can see. You can change this any time from Settings.",
+      "checkboxes_label": "Data type consent checkboxes",
+      "confirm_decline_body": "You can ask {{orgName}} for a new invitation later if you change your mind.",
+      "confirm_decline_cancel": "Keep reviewing",
+      "confirm_decline_cta": "Decline invitation",
+      "confirm_decline_title": "Decline this invitation?",
+      "decline": "Decline",
+      "declined_body": "Invitation declined.",
+      "error_decline": "Couldn't decline. Check your connection and try again.",
+      "error_join": "Couldn't join. Check your connection and try again.",
+      "from_label": "Invitation from {{orgName}}",
+      "legal_banner": "Legal copy describing data-protection terms appears here before public launch. Internal review required.",
+      "legal_banner_label": "Legal review pending",
+      "org_can_body": "View your selected data in their workspace. They cannot edit, delete, or download your data. Every access is logged.",
+      "org_can_title": "What {{orgName}} can do",
+      "privacy_guarantee": "AI coach conversations, account settings, and anything you delete are never shared. This is a LeanShot privacy guarantee.",
+      "sharing_hint": "These data types are pre-checked based on what {{orgName}} requested. Uncheck anything you don't want to share before accepting.",
+      "sharing_title": "What you're sharing",
+      "title": "Choose what to share"
+    },
+    "error": {
+      "already_used_body": "Open Settings → Active organizations to manage your memberships.",
+      "already_used_title": "This invitation has already been accepted or declined",
+      "canceled_body_generic": "Ask the clinic to send a new invitation.",
+      "canceled_body_org": "{{orgName}} canceled this invitation. Ask them to send a new one if you still want to share your data.",
+      "canceled_title": "This invitation was canceled by the clinic",
+      "expired_body_generic": "Ask the clinic to send a new invitation.",
+      "expired_body_org": "Invitations expire 7 days after they're sent. Ask {{orgName}} to send you a new one.",
+      "expired_title": "This invitation has expired",
+      "load_body": "Check your connection, then retry. If the problem continues, ask the clinic to send a new invitation.",
+      "load_title": "Something went wrong loading this invitation"
+    },
+    "footer": "Powered by LeanShot — your private data tracking",
+    "loading": "Opening invitation…",
+    "magic_link": {
+      "cta": "Sign in with magic link",
+      "hint": "We'll email a sign-in link to {{email}}. The invitation will be waiting once you're back.",
+      "sent": "Check your email for a sign-in link.",
+      "signin_body": "{{orgName}} invited you to share your data. Sign in to your LeanShot account to review the invitation.",
+      "signin_title": "Sign in to continue"
+    },
+    "signup": {
+      "body": "{{orgName}} invited you. Create your account, then choose what to share.",
+      "confirm_body": "We sent a confirmation link to {{email}}. Click it to confirm your account, then come back here to review your invitation.",
+      "confirm_title": "Check your email at {{email}}",
+      "cta": "Create account and continue",
+      "err_create_account": "Couldn't create account. Try again.",
+      "err_password_short": "At least 8 characters.",
+      "err_resend": "Couldn't resend confirmation email.",
+      "hint_email": "We'll send a confirmation link to verify it's you.",
+      "hint_password": "At least 8 characters.",
+      "label_email": "Your email",
+      "label_password": "Password",
+      "resend": "Re-send confirmation",
+      "title": "Create your LeanShot account"
+    }
+  }
+}
