@@ -130,7 +130,13 @@ Plans:
   4. Admin revenue dashboard shows eCPM / RPM / fill rate / CTR by placement + network
   5. Advertiser block-list excludes competing GLP-1 brands by default; CSP allowlist generated from this
   6. HealthKit data structurally cannot reach ad-targeting (3-layer test green)
-**Plans**: TBD
+**Plans**: 6 plans in 3 waves
+- [ ] 56-01-PLAN.md — Ad guard core: canShowAds(surface,tier) + freq-cap + placement registry contract (AD-03/08/10)
+- [ ] 56-02-PLAN.md — Revenue ETL backend: ad_placements + GLP-1 blocklist + ad_revenue_facts + cron/RPC + ad-revenue-etl Edge Fn (AD-05/09/12)
+- [ ] 56-03-PLAN.md — Ad serving: @capacitor-community/admob + real ads.ts + AdSense injector + AdRenderer 3-mode dispatch (AD-01/02/04/07)
+- [ ] 56-04-PLAN.md — CSP allowlist generated from GLP-1 block-list, wired into Edge Middleware (AD-09)
+- [ ] 56-05-PLAN.md — Admin revenue dashboard (eCPM/RPM/fill/CTR) reusing AdminMetrics + manifest entry (AD-06)
+- [ ] 56-06-PLAN.md — Surface-exclusion CI grep gate + HealthKit firewall regression test + ci.yml wiring (AD-03/11)
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
