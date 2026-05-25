@@ -192,6 +192,7 @@ async function handleSubscribe(req: Request): Promise<Response> {
         user_id: userId,
         platform: body.platform,
         device_token: body.device_token,
+        failure_count: 0,          // reset on re-registration — actively registering device is healthy (WR-01)
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id,device_token' },
@@ -208,6 +209,7 @@ async function handleSubscribe(req: Request): Promise<Response> {
         p256dh: body.p256dh,
         auth: body.auth,
         user_agent: body.user_agent ?? null,
+        failure_count: 0,          // reset on re-registration — actively registering device is healthy (WR-01)
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id,endpoint' },
