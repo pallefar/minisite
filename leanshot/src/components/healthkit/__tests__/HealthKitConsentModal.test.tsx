@@ -104,7 +104,9 @@ describe('HealthKitConsentModal', () => {
   describe('Screen 1: Consent modal (iOS)', () => {
     it('renders the modal title', () => {
       renderModal();
-      expect(screen.getByText('Connect Apple Health')).toBeDefined();
+      // "Connect Apple Health" appears in modal header and CTA button — getAllByText confirms both
+      const matches = screen.getAllByText('Connect Apple Health');
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders the lead paragraph', () => {
@@ -118,11 +120,11 @@ describe('HealthKitConsentModal', () => {
 
     it('renders the firewall guarantee with bold "never"', () => {
       renderModal();
-      expect(
-        screen.getByText((_, el) =>
-          !!el?.textContent?.includes('never shared with ad networks'),
-        ),
-      ).toBeDefined();
+      // The guarantee spans multiple inline elements (bold "never"); match the paragraph
+      const matches = screen.getAllByText((_, el) =>
+        el?.tagName === 'P' && !!el?.textContent?.includes('never shared with ad networks'),
+      );
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
 
     it('renders all 7 data-type disclosure rows', () => {
