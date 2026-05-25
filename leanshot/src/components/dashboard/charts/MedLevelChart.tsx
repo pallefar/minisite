@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TierGate } from '@/components/billing/TierGate';
 import { useTheme } from '@/hooks/useTheme';
 import { getChartTokens } from '@/lib/chart-theme';
@@ -74,6 +75,7 @@ export function MedLevelChart(props: MedLevelChartProps) {
   // data via props. The store reads still run (Rules of Hooks) but we
   // prefer the props when present so the share lazy chunk never sees
   // Zustand state.
+  const { t } = useTranslation('patient');
   const storeUser = useStore((s) => s.user);
   const storeInjections = useStore((s) => s.injections);
   const storeWeights = useStore((s) => s.weights);
@@ -104,7 +106,7 @@ export function MedLevelChart(props: MedLevelChartProps) {
     // dashboard call site; reference it so unused-locals does not fire.
     void weights;
 
-    const t = getChartTokens(theme);
+    const tok = getChartTokens(theme);
     const halfLife = HALF_LIVES[medication] ?? 168;
     const labels: string[] = [];
     const past: (number | null)[] = [];
@@ -149,10 +151,10 @@ export function MedLevelChart(props: MedLevelChartProps) {
         // so upper-bound (idx N) → lower-bound (idx N+1) still works.
         datasets: [
           {
-            label: 'Past',
+            label: t('patient:chart.med_level.legend_past'),
             data: past,
-            borderColor: t.primary,
-            backgroundColor: t.primary + '20',
+            borderColor: tok.primary,
+            backgroundColor: tok.primary + '20',
             fill: true,
             tension: 0.3,
             pointRadius: 0,
@@ -165,10 +167,10 @@ export function MedLevelChart(props: MedLevelChartProps) {
           ...(userTier === 'paid'
             ? [
                 {
-                  label: 'Projected',
+                  label: t('patient:chart.med_level.legend_projected'),
                   data: future,
-                  borderColor: t.rose,
-                  backgroundColor: t.rose + '20',
+                  borderColor: tok.rose,
+                  backgroundColor: tok.rose + '20',
                   fill: true,
                   tension: 0.3,
                   pointRadius: 0,
@@ -182,7 +184,7 @@ export function MedLevelChart(props: MedLevelChartProps) {
                         label: 'Upper bound (Past)',
                         data: upperPast,
                         borderColor: 'transparent',
-                        backgroundColor: t.primary + '20',
+                        backgroundColor: tok.primary + '20',
                         fill: '+1',
                         tension: 0.3,
                         pointRadius: 0,
@@ -202,7 +204,7 @@ export function MedLevelChart(props: MedLevelChartProps) {
                         label: 'Upper bound (Projected)',
                         data: upperFuture,
                         borderColor: 'transparent',
-                        backgroundColor: t.rose + '20',
+                        backgroundColor: tok.rose + '20',
                         fill: '+1',
                         tension: 0.3,
                         pointRadius: 0,
@@ -231,8 +233,8 @@ export function MedLevelChart(props: MedLevelChartProps) {
         plugins: {
           legend: {
             labels: {
-              color: t.tick,
-              filter: (item: { text: string }) => item.text === 'Past' || item.text === 'Projected',
+              color: tok.tick,
+              filter: (item: { text: string }) => item.text === t('patient:chart.med_level.legend_past') || item.text === t('patient:chart.med_level.legend_projected'),
             },
           },
           tooltip: {
@@ -248,12 +250,12 @@ export function MedLevelChart(props: MedLevelChartProps) {
         },
         scales: {
           y: {
-            ticks: { color: t.tick, callback: (v: string | number) => Number(v).toFixed(1) },
-            grid: { color: t.grid },
+            ticks: { color: tok.tick, callback: (v: string | number) => Number(v).toFixed(1) },
+            grid: { color: tok.grid },
             // Phase 3 SC#1: Y-axis carries NO measurement-grade unit.
-            title: { display: true, text: PK_DISCLAIMER_Y_AXIS, color: t.tick },
+            title: { display: true, text: PK_DISCLAIMER_Y_AXIS, color: tok.tick },
           },
-          x: { ticks: { color: t.tick, maxTicksLimit: 10 }, grid: { color: t.grid } },
+          x: { ticks: { color: tok.tick, maxTicksLimit: 10 }, grid: { color: tok.grid } },
         },
       },
       // D-15: per-instance plugin registration. NEVER Chart.register() — that would
@@ -269,6 +271,7 @@ export function MedLevelChart(props: MedLevelChartProps) {
     propMedication,
     theme,
     userTier,
+    t,
   ]);
 
   // Phase 6 Plan 06-01 (D-12 #3): early-return AFTER hooks so the Rules of

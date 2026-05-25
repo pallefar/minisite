@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TierGate } from '@/components/billing/TierGate';
 import { Button, IconButton } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/Confirm';
@@ -41,6 +42,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
   // early-return. ALL hooks (useStore×7, useConfirm, useState×2, useRef,
   // useEffect) run unconditionally above the `if (!u) return null;` guard.
+  const { t } = useTranslation(['patient', 'common']);
   const u = useStore((s) => s.user);
   const history = useStore((s) => s.aiHistory);
   const append = useStore((s) => s.appendAI);
@@ -130,11 +132,11 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
       }
     } catch (e) {
       if (e instanceof RateLimitedError) {
-        updateLastAssistant('Hit the AI rate limit — try again in a minute.');
+        updateLastAssistant(t('patient:ai.error_rate_limit'));
       } else if (e instanceof AIUnavailableError) {
-        updateLastAssistant('AI is unavailable right now. Please try again shortly.');
+        updateLastAssistant(t('patient:ai.error_unavailable'));
       } else {
-        updateLastAssistant('AI is unavailable right now. Please try again shortly.');
+        updateLastAssistant(t('patient:ai.error_unavailable'));
       }
     } finally {
       setBusy(false);
@@ -153,7 +155,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
             onClick={onClose}
             role="dialog"
             aria-modal="true"
-            aria-label="LeanShot AI coach"
+            aria-label={t('patient:ai.panel_aria_label')}
           >
             <motion.div
               initial={{ x: 40, opacity: 0 }}
@@ -167,9 +169,9 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
               <div className="flex items-center gap-3 p-4 md:p-5 border-b border-[var(--color-border)]">
                 <AIAvatar size={42} thinking={busy} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-bold tracking-tight">LeanShot AI</p>
+                  <p className="text-[15px] font-bold tracking-tight">{t('patient:ai.panel_title')}</p>
                   <p className="text-[12px] text-[var(--color-text-secondary)] truncate">
-                    {busy ? 'Thinking…' : `Knows your ${weeks}-week journey on ${u.medication}.`}
+                    {busy ? t('patient:ai.thinking') : t('patient:ai.subtitle_journey', { weeks, medication: u.medication })}
                   </p>
                 </div>
                 {/* Phase 14 Plan 14-05 — CONTEXT D-07: model selector gated
@@ -188,14 +190,14 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                   </select>
                 </TierGate>
                 <IconButton
-                  aria-label="Clear conversation"
+                  aria-label={t('patient:ai.aria_clear')}
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     void (async () => {
-                      const ok = await confirm('Clear conversation history?', {
-                        title: 'Clear history',
-                        confirmLabel: 'Clear',
+                      const ok = await confirm(t('patient:ai.confirm_clear'), {
+                        title: t('patient:ai.confirm_clear_title'),
+                        confirmLabel: t('patient:ai.confirm_clear_btn'),
                         destructive: true,
                       });
                       if (!ok) return;
@@ -205,7 +207,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                 >
                   <Trash2 className="size-4" />
                 </IconButton>
-                <IconButton aria-label="Close" variant="ghost" size="sm" onClick={onClose}>
+                <IconButton aria-label={t('common:action.close')} variant="ghost" size="sm" onClick={onClose}>
                   <X className="size-5" />
                 </IconButton>
               </div>
@@ -215,9 +217,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                 {history.length === 0 && (
                   <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-4 py-3.5">
                     <p className="text-[13px] leading-relaxed text-[var(--color-text)]">
-                      Hi <strong>{u.name}</strong>. I&apos;m your coach — I have context on your
-                      medication, dose, and progress. Ask me anything about side effects, nutrition,
-                      dosing, muscle preservation, or how to read your data.
+                      {t('patient:ai.welcome', { name: u.name })}
                     </p>
                   </div>
                 )}
@@ -249,7 +249,7 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                 <div className="flex items-end gap-2">
                   <Textarea
                     rows={1}
-                    placeholder="Ask anything about your GLP-1 journey…"
+                    placeholder={t('patient:ai.placeholder')}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -264,13 +264,13 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                     onClick={() => send(input)}
                     disabled={!input.trim()}
                     loading={busy}
-                    aria-label="Send"
+                    aria-label={t('patient:ai.aria_send')}
                   >
                     <Send className="size-4" />
                   </Button>
                 </div>
                 <p className="text-[10px] text-[var(--color-text-tertiary)] text-center mt-2">
-                  AI guidance — not medical advice. Consult your prescriber.
+                  {t('patient:ai.disclaimer')}
                 </p>
               </div>
             </motion.div>
@@ -300,6 +300,7 @@ function Bubble({
   content: string;
   hasRef?: boolean;
 }) {
+  const { t } = useTranslation('patient');
   return (
     <div className={cn('flex', role === 'user' && 'justify-end')}>
       <div
@@ -312,7 +313,7 @@ function Bubble({
       >
         {hasRef && role === 'assistant' && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 rounded-pill bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[10px] font-bold uppercase tracking-[0.06em]">
-            <Sparkles className="size-3" /> Personalized
+            <Sparkles className="size-3" /> {t('patient:ai.badge_personalized')}
           </span>
         )}
         {hasRef && <br />}

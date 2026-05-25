@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { formatShort } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
@@ -14,6 +15,7 @@ import type { Photo } from '@/types';
 
 export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const { t } = useTranslation('patient');
   const photos = useStore((s) => s.photos);
   const u = useStore((s) => s.user);
   const [sel, setSel] = useState<number[]>([photos.length - 1, 0].filter((n) => n >= 0));
@@ -46,32 +48,32 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
   const wDelta = left?.weight != null && right?.weight != null ? right.weight - left.weight : null;
 
   return (
-    <Modal open={open} onClose={onClose} title="Compare photos" size="lg" mobileFullscreen>
+    <Modal open={open} onClose={onClose} title={t('patient:modal.photo_compare.title')} size="lg" mobileFullscreen>
       <p className="text-[13px] text-[var(--color-text-secondary)] mb-3">
-        Tap two photos to compare side-by-side.
+        {t('patient:modal.photo_compare.subtitle')}
       </p>
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <Side photo={left ?? null} side="Before" units={wU} />
-        <Side photo={right ?? null} side="After" units={wU} />
+        <Side photo={left ?? null} side={t('patient:modal.photo_compare.side_before')} units={wU} tapPrompt={t('patient:modal.photo_compare.tap_prompt')} />
+        <Side photo={right ?? null} side={t('patient:modal.photo_compare.side_after')} units={wU} tapPrompt={t('patient:modal.photo_compare.tap_prompt')} />
       </div>
       {left && right && (
         <div className="rounded-2xl bg-[var(--color-primary-soft)] border border-[var(--color-primary-soft)] p-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center mb-4">
-          <DeltaStat label="Days apart" value={Math.abs(days ?? 0).toString()} />
+          <DeltaStat label={t('patient:modal.photo_compare.days_apart')} value={Math.abs(days ?? 0).toString()} />
           {wDelta != null && (
             <DeltaStat
-              label={`Weight Δ`}
+              label={t('patient:modal.photo_compare.weight_delta')}
               value={`${wDelta < 0 ? '−' : '+'}${Math.abs(wDelta).toFixed(1)} ${wU}`}
             />
           )}
           {left.weight && wDelta != null && (
             <DeltaStat
-              label="Body weight"
+              label={t('patient:modal.photo_compare.body_weight_pct')}
               value={`${((wDelta / left.weight) * 100).toFixed(1)}%`}
             />
           )}
         </div>
       )}
-      <p className="text-[13px] font-semibold mb-2">Choose photos to compare</p>
+      <p className="text-[13px] font-semibold mb-2">{t('patient:modal.photo_compare.choose_label')}</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
         {photos.map((p, i) => {
           const selected = sel.includes(i);
@@ -104,14 +106,14 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
   );
 }
 
-function Side({ photo, side, units }: { photo: Photo | null; side: string; units: string }) {
+function Side({ photo, side, units, tapPrompt }: { photo: Photo | null; side: string; units: string; tapPrompt: string }) {
   return (
     <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] overflow-hidden">
       {photo ? (
         <PhotoImg photo={photo} className="aspect-[3/4] w-full object-cover" />
       ) : (
         <div className="aspect-[3/4] flex items-center justify-center text-[12px] text-[var(--color-text-tertiary)]">
-          Tap a photo below
+          {tapPrompt}
         </div>
       )}
       <div className="p-3">

@@ -1,4 +1,5 @@
 import { Printer } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -74,6 +75,7 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
   // Phase 8 Plan 08-04 (HI-5): the share route passes snapshot data via props;
   // store reads still run (Rules of Hooks) but are ignored when snapshot
   // is present. The dashboard path (no props) continues to read from store.
+  const { t } = useTranslation('patient');
   const storeUser = useStore((s) => s.user);
   const storeWeights = useStore((s) => s.weights);
   const storeInjections = useStore((s) => s.injections);
@@ -118,7 +120,7 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
     <Modal
       open={open}
       onClose={onClose}
-      title="Doctor-ready report"
+      title={t('patient:modal.doctor_report.title')}
       size="lg"
       headerAction={
         <Button
@@ -127,7 +129,7 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
           leadingIcon={<Printer className="size-4" />}
           onClick={() => window.print()}
         >
-          Print / save PDF
+          {t('patient:modal.doctor_report.action_print')}
         </Button>
       }
     >
@@ -136,10 +138,10 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
           <DoctorClipboard className="w-14 h-16 shrink-0" />
           <div className="min-w-0">
             <h2 className="text-[22px] font-bold tracking-tight">
-              {patientName} — GLP-1 Journey Report
+              {patientName}{t('patient:modal.doctor_report.heading_suffix')}
             </h2>
             <p className="text-[13px] text-[var(--color-text-secondary)]">
-              Generated {new Date().toLocaleDateString()} · LeanShot
+              {t('patient:modal.doctor_report.generated', { date: new Date().toLocaleDateString() })}
             </p>
           </div>
         </header>
@@ -149,33 +151,33 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
           role="note"
           className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 text-[12px] italic text-[var(--color-text-secondary)] print:border-black"
         >
-          <strong className="not-italic font-semibold">Pharmacokinetic estimate:</strong>{' '}
+          <strong className="not-italic font-semibold">{t('patient:modal.doctor_report.pk_label')}</strong>{' '}
           {PK_DISCLAIMER_DOCTOR_REPORT}
         </aside>
 
         {summaryAvailable && (
           <section className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4">
-            <h3 className="text-[14px] font-bold mb-2">Summary</h3>
+            <h3 className="text-[14px] font-bold mb-2">{t('patient:modal.doctor_report.section_summary')}</h3>
             <table className="w-full text-[13px]">
               <tbody>
-                <Row label="Medication" value={medLabel(storeUser!.medication)} bold />
+                <Row label={t('patient:modal.doctor_report.row_medication')} value={medLabel(storeUser!.medication)} bold />
                 <Row
-                  label="Current dose"
-                  value={`${storeUser!.dose} ${storeUser!.doseUnit} (weekly)`}
+                  label={t('patient:modal.doctor_report.row_current_dose')}
+                  value={`${storeUser!.dose} ${storeUser!.doseUnit} ${t('patient:modal.doctor_report.dose_weekly')}`}
                   bold
                 />
                 <Row
-                  label="Started"
-                  value={`${formatShort(storeUser!.startDate)} (week ${weeks})`}
+                  label={t('patient:modal.doctor_report.row_started')}
+                  value={`${formatShort(storeUser!.startDate)} ${t('patient:modal.doctor_report.started_week', { week: weeks })}`}
                 />
-                <Row label="Starting weight" value={`${storeUser!.startWeight} ${wU}`} />
+                <Row label={t('patient:modal.doctor_report.row_starting_weight')} value={`${storeUser!.startWeight} ${wU}`} />
                 <Row
-                  label="Current weight"
+                  label={t('patient:modal.doctor_report.row_current_weight')}
                   value={latest ? `${latest.weight.toFixed(1)} ${wU}` : '—'}
                   bold
                 />
                 <Row
-                  label="Total change"
+                  label={t('patient:modal.doctor_report.row_total_change')}
                   value={
                     <span
                       className={
@@ -193,24 +195,24 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
                     </span>
                   }
                 />
-                <Row label="Total injections" value={String(injections.length)} />
+                <Row label={t('patient:modal.doctor_report.row_total_injections')} value={String(injections.length)} />
               </tbody>
             </table>
           </section>
         )}
 
         <section>
-          <h3 className="text-[15px] font-bold mb-3">Recent injections</h3>
+          <h3 className="text-[15px] font-bold mb-3">{t('patient:modal.doctor_report.section_injections')}</h3>
           {recentInj.length === 0 ? (
-            <p className="text-[13px] text-[var(--color-text-tertiary)]">None logged.</p>
+            <p className="text-[13px] text-[var(--color-text-tertiary)]">{t('patient:modal.doctor_report.none_logged')}</p>
           ) : (
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2">Date</th>
-                  <th className="text-start font-semibold py-2">Dose</th>
-                  <th className="text-start font-semibold py-2">Site</th>
-                  <th className="text-start font-semibold py-2">Notes</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_date')}</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_dose')}</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_site')}</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_notes')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,14 +232,14 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
         </section>
 
         <section>
-          <h3 className="text-[15px] font-bold mb-3">Side effects</h3>
+          <h3 className="text-[15px] font-bold mb-3">{t('patient:modal.doctor_report.section_side_effects')}</h3>
           {Object.keys(sxCounts).length === 0 ? (
-            <p className="text-[13px] text-[var(--color-text-tertiary)]">No side effects logged.</p>
+            <p className="text-[13px] text-[var(--color-text-tertiary)]">{t('patient:modal.doctor_report.no_side_effects')}</p>
           ) : (
             <>
               <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-4 mb-3">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
-                  Lifetime frequency
+                  {t('patient:modal.doctor_report.lifetime_freq')}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(sxCounts)
@@ -255,10 +257,10 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                    <th className="text-start font-semibold py-2">Date</th>
-                    <th className="text-start font-semibold py-2">SymptomLog</th>
-                    <th className="text-start font-semibold py-2">Severity</th>
-                    <th className="text-start font-semibold py-2">Notes</th>
+                    <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_date')}</th>
+                    <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_symptom')}</th>
+                    <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_severity')}</th>
+                    <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_notes')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -282,16 +284,16 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
         </section>
 
         <section>
-          <h3 className="text-[15px] font-bold mb-3">Recent weight log</h3>
+          <h3 className="text-[15px] font-bold mb-3">{t('patient:modal.doctor_report.section_weight_log')}</h3>
           {weights.length === 0 ? (
-            <p className="text-[13px] text-[var(--color-text-tertiary)]">No entries.</p>
+            <p className="text-[13px] text-[var(--color-text-tertiary)]">{t('patient:modal.doctor_report.no_entries')}</p>
           ) : (
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2">Date</th>
-                  <th className="text-start font-semibold py-2">Weight</th>
-                  <th className="text-start font-semibold py-2">BF%</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_date')}</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_weight')}</th>
+                  <th className="text-start font-semibold py-2">{t('patient:modal.doctor_report.col_bf')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -313,8 +315,7 @@ export function DoctorReport({ open, onClose, snapshot, readOnly }: DoctorReport
         </section>
 
         <p className="text-[11px] text-[var(--color-text-tertiary)] italic pt-4 border-t border-[var(--color-border)]">
-          Generated by LeanShot. This is a tracking summary, not medical documentation. Always defer
-          to your healthcare provider.
+          {t('patient:modal.doctor_report.footer')}
         </p>
       </div>
     </Modal>

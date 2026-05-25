@@ -3,6 +3,7 @@
  * colors track theme changes correctly.
  */
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/hooks/useTheme';
 import { getChartTokens } from '@/lib/chart-theme';
 import { SUPPS_DEFAULT, SYMPTOMS_LIST } from '@/lib/constants';
@@ -13,28 +14,29 @@ import { BaseChart } from './BaseChart';
 export function WeightChart({ days = 365, height = 280 }: { days?: number; height?: number }) {
   // Phase 7 Plan 07-09 (D-06): nullable selector + Rules-of-Hooks-safe
   // early-return. See MedLevelChart.tsx for the canonical pattern.
+  const { t } = useTranslation('patient');
   const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const { theme } = useTheme();
   const config = useMemo(() => {
     if (!u) return null;
-    const t = getChartTokens(theme);
+    const tok = getChartTokens(theme);
     const cutoff = Date.now() - days * 86_400_000;
     const data = weights.filter((w) => new Date(w.date).getTime() > cutoff);
     return {
       type: 'line' as const,
       data: {
-        labels: data.length ? data.map((w) => shortLabel(w.date)) : ['Start'],
+        labels: data.length ? data.map((w) => shortLabel(w.date)) : [t('patient:chart.weight.start_label')],
         datasets: [
           {
-            label: 'Weight',
+            label: t('patient:chart.weight.legend'),
             data: data.length ? data.map((w) => w.weight) : [u.startWeight],
-            borderColor: t.primary,
-            backgroundColor: t.primary + '1A',
+            borderColor: tok.primary,
+            backgroundColor: tok.primary + '1A',
             fill: true,
             tension: 0.3,
             pointRadius: 3,
-            pointBackgroundColor: t.primary,
+            pointBackgroundColor: tok.primary,
             borderWidth: 2.4,
           },
         ],
@@ -44,12 +46,12 @@ export function WeightChart({ days = 365, height = 280 }: { days?: number; heigh
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          y: { ticks: { color: t.tick }, grid: { color: t.grid } },
-          x: { ticks: { color: t.tick, maxTicksLimit: 8 }, grid: { color: t.grid } },
+          y: { ticks: { color: tok.tick }, grid: { color: tok.grid } },
+          x: { ticks: { color: tok.tick, maxTicksLimit: 8 }, grid: { color: tok.grid } },
         },
       },
     };
-  }, [u, weights, days, theme]);
+  }, [u, weights, days, theme, t]);
   if (!u || !config) return null;
   return <BaseChart config={config} height={height} ariaLabel="Weight trajectory" />;
 }
@@ -95,10 +97,11 @@ export function ProteinChart({ days = 14, height = 220 }: { days?: number; heigh
 }
 
 export function SymptomChart({ height = 240 }: { height?: number }) {
+  const { t } = useTranslation('patient');
   const symptoms = useStore((s) => s.symptoms);
   const { theme } = useTheme();
   const config = useMemo(() => {
-    const t = getChartTokens(theme);
+    const tok = getChartTokens(theme);
     const counts: Record<string, number> = {};
     SYMPTOMS_LIST.forEach((s) => (counts[s.id] = 0));
     const cutoff = Date.now() - 30 * 86_400_000;
@@ -112,11 +115,11 @@ export function SymptomChart({ height = 240 }: { height?: number }) {
     return {
       type: 'bar' as const,
       data: {
-        labels: data.length ? data.map((d) => d.name) : ['No data'],
+        labels: data.length ? data.map((d) => d.name) : [t('patient:chart.symptom.no_data')],
         datasets: [
           {
             data: data.length ? data.map((d) => d.count) : [0],
-            backgroundColor: t.rose,
+            backgroundColor: tok.rose,
             borderRadius: 6,
           },
         ],
@@ -126,12 +129,12 @@ export function SymptomChart({ height = 240 }: { height?: number }) {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          y: { ticks: { color: t.tick }, grid: { color: t.grid } },
-          x: { ticks: { color: t.tick }, grid: { color: t.grid } },
+          y: { ticks: { color: tok.tick }, grid: { color: tok.grid } },
+          x: { ticks: { color: tok.tick }, grid: { color: tok.grid } },
         },
       },
     };
-  }, [symptoms, theme]);
+  }, [symptoms, theme, t]);
   return <BaseChart config={config} height={height} ariaLabel="Symptom frequency" />;
 }
 
@@ -163,10 +166,11 @@ export function SuppChart({ height = 220 }: { height?: number }) {
 }
 
 export function MoodChart({ height = 220 }: { height?: number }) {
+  const { t } = useTranslation('patient');
   const mood = useStore((s) => s.mood);
   const { theme } = useTheme();
   const config = useMemo(() => {
-    const t = getChartTokens(theme);
+    const tok = getChartTokens(theme);
     const days = lastNDays(14);
     const m = days.map((d) => mood.find((x) => x.date === d)?.mood ?? null);
     const e = days.map((d) => mood.find((x) => x.date === d)?.energy ?? null);
@@ -177,10 +181,10 @@ export function MoodChart({ height = 220 }: { height?: number }) {
         datasets: [
           {
             type: 'line' as const,
-            label: 'Mood (1–5)',
+            label: t('patient:chart.mood.legend_mood'),
             data: m,
-            borderColor: t.primary,
-            backgroundColor: t.primary + '1F',
+            borderColor: tok.primary,
+            backgroundColor: tok.primary + '1F',
             tension: 0.3,
             fill: true,
             spanGaps: true,
@@ -188,9 +192,9 @@ export function MoodChart({ height = 220 }: { height?: number }) {
           },
           {
             type: 'line' as const,
-            label: 'Energy (1–10)',
+            label: t('patient:chart.mood.legend_energy'),
             data: e,
-            borderColor: t.rose,
+            borderColor: tok.rose,
             backgroundColor: 'transparent',
             tension: 0.3,
             yAxisID: 'y2',
@@ -202,29 +206,30 @@ export function MoodChart({ height = 220 }: { height?: number }) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: t.tick } } },
+        plugins: { legend: { labels: { color: tok.tick } } },
         scales: {
-          y: { min: 0, max: 5, ticks: { color: t.tick }, grid: { color: t.grid } },
+          y: { min: 0, max: 5, ticks: { color: tok.tick }, grid: { color: tok.grid } },
           y2: {
             min: 0,
             max: 10,
             position: 'right' as const,
-            ticks: { color: t.tick },
+            ticks: { color: tok.tick },
             grid: { display: false },
           },
-          x: { ticks: { color: t.tick }, grid: { color: t.grid } },
+          x: { ticks: { color: tok.tick }, grid: { color: tok.grid } },
         },
       },
     };
-  }, [mood, theme]);
+  }, [mood, theme, t]);
   return <BaseChart config={config} height={height} ariaLabel="Mood and energy trend" />;
 }
 
 export function SleepChart({ height = 220 }: { height?: number }) {
+  const { t } = useTranslation('patient');
   const sleep = useStore((s) => s.sleep);
   const { theme } = useTheme();
   const config = useMemo(() => {
-    const t = getChartTokens(theme);
+    const tok = getChartTokens(theme);
     const days = lastNDays(14);
     const hours = days.map((d) => sleep.find((s) => s.date === d)?.hours ?? null);
     const qual = days.map((d) => sleep.find((s) => s.date === d)?.quality ?? null);
@@ -235,16 +240,16 @@ export function SleepChart({ height = 220 }: { height?: number }) {
         datasets: [
           {
             type: 'bar' as const,
-            label: 'Hours',
+            label: t('patient:chart.sleep.legend_hours'),
             data: hours,
-            backgroundColor: t.primary + '88',
+            backgroundColor: tok.primary + '88',
             borderRadius: 6,
           },
           {
             type: 'line' as const,
-            label: 'Quality',
+            label: t('patient:chart.sleep.legend_quality'),
             data: qual,
-            borderColor: t.sage,
+            borderColor: tok.sage,
             backgroundColor: 'transparent',
             tension: 0.3,
             yAxisID: 'y2',
@@ -256,21 +261,21 @@ export function SleepChart({ height = 220 }: { height?: number }) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: t.tick } } },
+        plugins: { legend: { labels: { color: tok.tick } } },
         scales: {
-          y: { min: 0, max: 12, ticks: { color: t.tick }, grid: { color: t.grid } },
+          y: { min: 0, max: 12, ticks: { color: tok.tick }, grid: { color: tok.grid } },
           y2: {
             min: 0,
             max: 10,
             position: 'right' as const,
-            ticks: { color: t.tick },
+            ticks: { color: tok.tick },
             grid: { display: false },
           },
-          x: { ticks: { color: t.tick }, grid: { color: t.grid } },
+          x: { ticks: { color: tok.tick }, grid: { color: tok.grid } },
         },
       },
     };
-  }, [sleep, theme]);
+  }, [sleep, theme, t]);
   return <BaseChart config={config} height={height} ariaLabel="Sleep trend" />;
 }
 
@@ -313,17 +318,18 @@ export function NoiseChart({ height = 220 }: { height?: number }) {
 }
 
 export function CompositionChart({ height = 240 }: { height?: number }) {
+  const { t } = useTranslation('patient');
   const weights = useStore((s) => s.weights);
   const { theme } = useTheme();
   const config = useMemo(() => {
-    const t = getChartTokens(theme);
+    const tok = getChartTokens(theme);
     const data = weights.filter((w) => w.bodyFat);
     if (data.length < 1) {
       return {
         type: 'doughnut' as const,
         data: {
-          labels: ['Log body fat % to see'],
-          datasets: [{ data: [1], backgroundColor: [t.surface] }],
+          labels: [t('patient:chart.composition.empty_label')],
+          datasets: [{ data: [1], backgroundColor: [tok.surface] }],
         },
         options: {
           responsive: true,
@@ -338,11 +344,11 @@ export function CompositionChart({ height = 240 }: { height?: number }) {
     return {
       type: 'doughnut' as const,
       data: {
-        labels: ['Lean mass', 'Fat mass'],
+        labels: [t('patient:chart.composition.lean_mass'), t('patient:chart.composition.fat_mass')],
         datasets: [
           {
             data: [Number(lean.toFixed(1)), Number(fat.toFixed(1))],
-            backgroundColor: [t.sage, t.rose],
+            backgroundColor: [tok.sage, tok.rose],
             borderWidth: 0,
           },
         ],
@@ -350,9 +356,9 @@ export function CompositionChart({ height = 240 }: { height?: number }) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' as const, labels: { color: t.tick } } },
+        plugins: { legend: { position: 'bottom' as const, labels: { color: tok.tick } } },
       },
     };
-  }, [weights, theme]);
+  }, [weights, theme, t]);
   return <BaseChart config={config} height={height} ariaLabel="Body composition" />;
 }
