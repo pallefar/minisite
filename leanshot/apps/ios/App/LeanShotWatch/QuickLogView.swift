@@ -53,6 +53,12 @@ struct QuickLogView: View {
     }
 
     // Minimal stub dedupe ID for the scaffold — full algorithm lives in TS sync-contract.ts.
+    // WARNING: this stub OMITS the carry-mix step of the canonical UUID-v5 algorithm, so its
+    // output deliberately does NOT match `makeDedupedId` in sync-contract.ts.
+    // TODO Phase 70: replace with an exact port of the TS algorithm (incl. the carry-mix
+    // `bytes[(i+2)%16] = (carry<<3 | carry>>5) ^ bytes[i%16]` step) BEFORE wiring real
+    // phone↔watch sync — otherwise scaffold-era IDs will not dedupe and will create
+    // duplicate `injections` rows.
     private func makeStubDedupedId(source: String, datetime: String) -> String {
         return "\(source):\(datetime)".data(using: .utf8)
             .flatMap { data -> String? in

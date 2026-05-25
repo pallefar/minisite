@@ -60,7 +60,7 @@ export function watchComplicationData(
   state: PersistedState,
   today: Date = new Date(),
 ): WatchComplicationData {
-  if (!state.user) return EMPTY_DEFAULT;
+  if (!state.user) return { ...EMPTY_DEFAULT };
 
   const { user, injections } = state;
 
@@ -83,16 +83,17 @@ export function watchComplicationData(
   );
 
   // --- nextSite ---
-  // Extract the recency logic from SiteRotationCard.tsx lines 23-30 verbatim.
-  // Build a set of sites used in the last 7 days (< 7 days === recent).
-  // Use only the most recent 8 injections (same as SiteRotationCard).
-  const recentSites = new Set<InjectionSite>();
+  // Match SiteRotationCard.tsx (lines 13-30): a site is the 'next' recommendation
+  // only when it has NOT been used in the last 14 days (canonical 'empty' status).
+  // Sites used <7d are 'recent', 7-14d are 'older' — neither is eligible as 'next'.
+  // Use only the most recent 8 injections (same slice as SiteRotationCard).
+  const sitesUsedWithin14d = new Set<InjectionSite>();
   injections.slice(0, 8).forEach((inj) => {
     if (!inj.site) return;
     const days = (today.getTime() - new Date(inj.datetime).getTime()) / 86_400_000;
-    if (days < 7) recentSites.add(inj.site);
+    if (days < 14) sitesUsedWithin14d.add(inj.site);
   });
-  const nextSite = (SITES.find((s) => !recentSites.has(s)) ?? null) as InjectionSite | null;
+  const nextSite = (SITES.find((s) => !sitesUsedWithin14d.has(s)) ?? null) as InjectionSite | null;
 
   // --- medication ---
   const medication = user.medication as string;

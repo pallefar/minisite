@@ -348,6 +348,7 @@ export default defineConfig([
       'src/lib/marketing/**/*.{ts,tsx}',
       'src/lib/affiliate/**/*.{ts,tsx}',
       'src/lib/native/ads*.ts',
+      'src/lib/watch/**/*.{ts,tsx}',
       'src/**/*.ad-eligible.ts',
     ],
     ignores: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/test-setup.ts'],
