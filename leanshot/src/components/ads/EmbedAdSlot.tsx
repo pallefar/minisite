@@ -2,7 +2,10 @@
  * Phase 56 Plan 03 — EmbedAdSlot: sandboxed iframe for embed-code placements (T-56-09).
  *
  * Renders advertiser-supplied HTML inside a sandboxed iframe to prevent XSS.
- * Sandbox attribute denies scripts by default; allow-scripts is NOT set.
+ * Sandbox is empty string (no tokens) so the iframe runs with a null origin —
+ * it cannot access parent cookies, localStorage, or sessionStorage.
+ * allow-same-origin MUST NOT be set: combining it with srcDoc gives the
+ * embedded document the parent's origin, enabling PHI/key exfiltration.
  * FIREWALL: MUST NOT import native/health.
  */
 
@@ -20,7 +23,7 @@ export function EmbedAdSlot({ embedHtml, placementId }: EmbedAdSlotProps) {
     <iframe
       title={`ad-embed-${placementId}`}
       srcDoc={srcDoc}
-      sandbox="allow-same-origin"
+      sandbox=""
       style={{ border: 'none', width: '100%', height: '90px' }}
       aria-label="Advertisement"
     />

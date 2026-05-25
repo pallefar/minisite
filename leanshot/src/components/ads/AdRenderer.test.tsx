@@ -126,6 +126,16 @@ describe('AdRenderer — 3-mode dispatch', () => {
     expect(screen.getByTitle('ad-embed-test-banner')).toBeDefined();
   });
 
+  it('EmbedAdSlot sandbox MUST NOT contain allow-same-origin (CR-03 PHI firewall)', () => {
+    // allow-same-origin + srcDoc grants the embedded document the parent origin,
+    // enabling exfiltration of cookies/localStorage (Anthropic key, Supabase session, PHI).
+    const placement = makePlacement({ mode: 'embed-code', embed_html: '<b>Embed</b>' });
+    render(<AdRenderer surface={'home' as AdSurface} placement={placement} />);
+    const iframe = screen.getByTitle('ad-embed-test-banner') as HTMLIFrameElement;
+    const sandbox = iframe.getAttribute('sandbox') ?? '';
+    expect(sandbox).not.toContain('allow-same-origin');
+  });
+
   it('renders PlatformAdSlot (ad-platform mode) — placeholder on web with no env var', () => {
     const placement = makePlacement({ mode: 'ad-platform', network: 'adsense' });
     render(<AdRenderer surface={'home' as AdSurface} placement={placement} />);
