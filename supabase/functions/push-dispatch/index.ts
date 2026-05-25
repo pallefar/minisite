@@ -551,7 +551,30 @@ async function dispatch(input: DispatchInput): Promise<DispatchResult> {
   // payloads that verify the urgent-override path (T2 clinic-alerts test). The
   // HTTP handler is the trust boundary; dispatch() is internal logic.
 
-  const payloadJson = JSON.stringify(payload);
+  // CR-04 / T-54-02-04 PHI data-minimization: for PHI categories (clinic-alerts),
+  // the raw `subject` field contains clinic-generated health context and must NOT
+  // be forwarded to third-party push vendors (Google FCM, Apple APNs, web-push).
+  // Vendor payload gets a generic body + deeplink only; the real content loads
+  // in-app after auth. Non-PHI categories pass the full payload as-is.
+  //
+  // PHI categories (defined per D-13 / HIPAA data-minimization stance):
+  //   - clinic-alerts: clinic-generated alert subject may contain lab values, etc.
+  // All other categories (dose-reminders, community-*, marketing, etc.) are non-PHI
+  // and may include their full payload in the vendor push message.
+  const PHI_CATEGORIES = new Set<Category>(['clinic-alerts']);
+  const isPhiCategory = PHI_CATEGORIES.has(category);
+
+  const vendorPayload: Record<string, unknown> = isPhiCategory
+    ? {
+        // Generic visible body — real content loads in-app after auth
+        title: String(payload.title ?? 'New clinic alert'),
+        body: 'You have a new clinic alert. Open the app to view.',
+        // Deeplink is safe to forward (it is a URL path, not health content)
+        ...(payload.deeplink !== undefined ? { deeplink: payload.deeplink } : {}),
+      }
+    : payload;
+
+  const payloadJson = JSON.stringify(vendorPayload);
 
   let sent = 0;
   let failed = 0;
