@@ -64,10 +64,11 @@
   4. Universal Links + App Links resolve `https://app.leanshot.app/*` deep-link to in-app route (not browser)
   5. In-app account deletion screen reachable from mobile Settings (Apple §5.1.1(v) + Play §13.7)
   6. App Store + Play Store metadata package complete (screenshots + descriptions + privacy nutrition labels)
-**Plans**: 3 plans
+**Plans**: 4 plans
 - [ ] 53-01-PLAN.md — fastlane toolchain (build/upload lanes, gated signing) + store metadata + privacy nutrition labels
-- [ ] 53-02-PLAN.md — RevenueCat env stubs + deep-link association validity + mobile account-deletion reachability + cap config validity
+- [ ] 53-02-PLAN.md — RevenueCat client-SDK env stubs + deep-link association validity + mobile account-deletion reachability + cap config validity
 - [ ] 53-03-PLAN.md — iOS + Android CI workflows (unsigned-green + gated upload) + AndroidManifest App Links
+- [ ] 53-04-revenuecat-webhook-mirror-PLAN.md — MOBILE-06 ownership: verify RC webhook → canonical public.subscriptions mirror + REVENUECAT_WEBHOOK_SECRET runbook
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
