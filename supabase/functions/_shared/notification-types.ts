@@ -28,7 +28,22 @@ export type Category =
   // 20270727000004_p45_notification_widening.sql and the VALID_CATEGORIES
   // Set in notification-send/index.ts.
   | 'community-dm'
-  | 'community-admin-report';
+  | 'community-admin-report'
+  // Phase 47 — event reminder + promotion categories.
+  // Must match 20270801000006_p47_notification_event_widening.sql.
+  | 'event_reminders_1d'
+  | 'event_reminders_1h'
+  | 'event_promotion'
+  // Phase 48 — content moderation escalation category.
+  // Must match 20270901000012_p48_notification_banned_word.sql.
+  | 'banned_word_escalate'
+  // Phase 49 Plan 49-04 — community digest categories (opt-IN email+in-app).
+  // Must match 20271001000005_p49_notification_digest_widening.sql.
+  | 'daily_community_digest'
+  | 'weekly_community_digest'
+  // Phase 54 Plan 54-01 — helpdesk reply notifications (PUSH-06).
+  // Must match 20280201000002_p54_notification_helpdesk_widening.sql.
+  | 'helpdesk-reply';
 
 export type Channel = 'email' | 'web-push' | 'in-app';
 
