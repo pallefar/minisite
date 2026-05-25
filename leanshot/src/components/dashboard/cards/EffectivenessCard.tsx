@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowUpRight, TrendingDown } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressRing';
@@ -7,6 +8,7 @@ import { useStore } from '@/lib/store';
 
 export function EffectivenessCard() {
   // Phase 7 Plan 07-09 (D-06): nullable selector + early-return after hooks.
+  const { t } = useTranslation('patient');
   const u = useStore((s) => s.user);
   const weights = useStore((s) => s.weights);
   const meals = useStore((s) => s.meals);
@@ -44,12 +46,12 @@ export function EffectivenessCard() {
   return (
     <Card span={4} variant="default">
       <CardHeader
-        title="Effectiveness"
+        title={t('patient:card.effectiveness.title')}
         icon={<TrendingDown className="size-4" />}
         action={
           <button
             onClick={() => setTab('body')}
-            aria-label="Open body tab"
+            aria-label={t('patient:card.effectiveness.open_body_tab')}
             className="size-8 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text)] inline-flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
           >
             <ArrowUpRight className="size-4" />
@@ -58,7 +60,7 @@ export function EffectivenessCard() {
       />
       <div className="space-y-3.5">
         <Row
-          name="Body weight"
+          name={t('patient:card.effectiveness.row_body_weight')}
           value={
             <>
               <span
@@ -75,19 +77,19 @@ export function EffectivenessCard() {
           color="var(--color-primary)"
         />
         <Row
-          name="Goal progress"
+          name={t('patient:card.effectiveness.row_goal_progress')}
           value={`${Math.round(goalPct)}%`}
           pct={goalPct}
           color="var(--color-success)"
         />
         <Row
-          name="Protein today"
+          name={t('patient:card.effectiveness.row_protein_today')}
           value={`${todayProtein}/${u.proteinTarget}g`}
           pct={proteinPct}
           color={proteinPct >= 100 ? 'var(--color-success)' : 'var(--color-rose)'}
         />
         <Row
-          name="Adherence (7d)"
+          name={t('patient:card.effectiveness.row_adherence')}
           value={`${adherence}%`}
           pct={adherence}
           color="var(--color-primary)"
@@ -95,13 +97,13 @@ export function EffectivenessCard() {
       </div>
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--color-border)] text-[12px] text-[var(--color-text-tertiary)]">
         <span>
-          Since {formatShort(u.startDate)} · Week {weeks}
+          {t('patient:card.effectiveness.since_week', { date: formatShort(u.startDate), week: weeks })}
         </span>
         <button
           onClick={() => setTab('insights')}
           className="text-[var(--color-primary)] font-semibold hover:underline focus-visible:outline-none focus-visible:underline"
         >
-          Full report
+          {t('patient:card.effectiveness.full_report')}
         </button>
       </div>
     </Card>
