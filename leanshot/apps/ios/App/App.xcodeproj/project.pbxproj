@@ -15,6 +15,13 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		A157B0010000000000000001 /* LeanShotWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A157B0000000000000000001 /* LeanShotWatchApp.swift */; };
+		A157B0020000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A157B0030000000000000001 /* ContentView.swift */; };
+		A157B0040000000000000001 /* QuickLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A157B0050000000000000001 /* QuickLogView.swift */; };
+		A157B0060000000000000001 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A157B0070000000000000001 /* WatchConnectivityManager.swift */; };
+		A257B0010000000000000001 /* LeanShotWatchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A257B0000000000000000001 /* LeanShotWatchWidget.swift */; };
+		A257B0020000000000000001 /* ComplicationEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A257B0030000000000000001 /* ComplicationEntry.swift */; };
+		A257B0040000000000000001 /* ComplicationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A257B0050000000000000001 /* ComplicationViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +35,15 @@
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		A157B0000000000000000001 /* LeanShotWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanShotWatchApp.swift; sourceTree = "<group>"; };
+		A157B0030000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A157B0050000000000000001 /* QuickLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogView.swift; sourceTree = "<group>"; };
+		A157B0070000000000000001 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
+		A157B0080000000000000001 /* LeanShotWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LeanShotWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A257B0000000000000000001 /* LeanShotWatchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeanShotWatchWidget.swift; sourceTree = "<group>"; };
+		A257B0030000000000000001 /* ComplicationEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationEntry.swift; sourceTree = "<group>"; };
+		A257B0050000000000000001 /* ComplicationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationViews.swift; sourceTree = "<group>"; };
+		A257B0060000000000000001 /* LeanShotWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LeanShotWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,6 +55,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A157B0090000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A257B0070000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -47,6 +77,8 @@
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
+				A157B00A0000000000000001 /* LeanShotWatch */,
+				A257B0080000000000000001 /* LeanShotWatchWidget */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -55,6 +87,8 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				A157B0080000000000000001 /* LeanShotWatch.app */,
+				A257B0060000000000000001 /* LeanShotWatchWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,6 +106,27 @@
 				50B271D01FEDC1A000F3C39B /* public */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		A157B00A0000000000000001 /* LeanShotWatch */ = {
+			isa = PBXGroup;
+			children = (
+				A157B0000000000000000001 /* LeanShotWatchApp.swift */,
+				A157B0030000000000000001 /* ContentView.swift */,
+				A157B0050000000000000001 /* QuickLogView.swift */,
+				A157B0070000000000000001 /* WatchConnectivityManager.swift */,
+			);
+			path = LeanShotWatch;
+			sourceTree = "<group>";
+		};
+		A257B0080000000000000001 /* LeanShotWatchWidget */ = {
+			isa = PBXGroup;
+			children = (
+				A257B0000000000000000001 /* LeanShotWatchWidget.swift */,
+				A257B0030000000000000001 /* ComplicationEntry.swift */,
+				A257B0050000000000000001 /* ComplicationViews.swift */,
+			);
+			path = LeanShotWatchWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -97,6 +152,38 @@
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A157B00B0000000000000001 /* LeanShotWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A157B00C0000000000000001 /* Build configuration list for PBXNativeTarget "LeanShotWatch" */;
+			buildPhases = (
+				A157B00D0000000000000001 /* Sources */,
+				A157B0090000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LeanShotWatch;
+			productName = LeanShotWatch;
+			productReference = A157B0080000000000000001 /* LeanShotWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A257B0090000000000000001 /* LeanShotWatchWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A257B00A0000000000000001 /* Build configuration list for PBXNativeTarget "LeanShotWatchWidget" */;
+			buildPhases = (
+				A257B00B0000000000000001 /* Sources */,
+				A257B0070000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LeanShotWatchWidget;
+			productName = LeanShotWatchWidget;
+			productReference = A257B0060000000000000001 /* LeanShotWatchWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -109,6 +196,14 @@
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+					A157B00B0000000000000001 = {
+						CreatedOnToolsVersion = 1600;
+						ProvisioningStyle = Automatic;
+					};
+					A257B0090000000000000001 = {
+						CreatedOnToolsVersion = 1600;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -130,6 +225,8 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				A157B00B0000000000000001 /* LeanShotWatch */,
+				A257B0090000000000000001 /* LeanShotWatchWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -156,6 +253,27 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A157B00D0000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A157B0010000000000000001 /* LeanShotWatchApp.swift in Sources */,
+				A157B0020000000000000001 /* ContentView.swift in Sources */,
+				A157B0040000000000000001 /* QuickLogView.swift in Sources */,
+				A157B0060000000000000001 /* WatchConnectivityManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A257B00B0000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A257B0010000000000000001 /* LeanShotWatchWidget.swift in Sources */,
+				A257B0020000000000000001 /* ComplicationEntry.swift in Sources */,
+				A257B0040000000000000001 /* ComplicationViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,6 +454,74 @@
 			};
 			name = Release;
 		};
+		A157B00E0000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.leanshot.ios.watchkitapp;
+				PRODUCT_NAME = LeanShotWatch;
+				SDKROOT = watchos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		A157B00F0000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.leanshot.ios.watchkitapp;
+				PRODUCT_NAME = LeanShotWatch;
+				SDKROOT = watchos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		A257B00C0000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.leanshot.ios.watchkitapp.widget;
+				PRODUCT_NAME = LeanShotWatchWidget;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		A257B00D0000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.leanshot.ios.watchkitapp.widget;
+				PRODUCT_NAME = LeanShotWatchWidget;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -353,6 +539,24 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A157B00C0000000000000001 /* Build configuration list for PBXNativeTarget "LeanShotWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A157B00E0000000000000001 /* Debug */,
+				A157B00F0000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A257B00A0000000000000001 /* Build configuration list for PBXNativeTarget "LeanShotWatchWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A257B00C0000000000000001 /* Debug */,
+				A257B00D0000000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
