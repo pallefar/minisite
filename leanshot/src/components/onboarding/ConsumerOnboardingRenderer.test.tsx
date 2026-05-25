@@ -49,12 +49,15 @@ vi.mock('@/lib/supabase', () => ({
     auth: {
       getSession: () => supabaseGetSessionMock(),
     },
+    rpc: vi.fn(async () => ({ data: null, error: null })),
   },
 }));
 
+const getFeatureFlagMock = vi.fn(() => undefined as string | boolean | undefined);
 vi.mock('posthog-js', () => ({
   default: {
     get_distinct_id: vi.fn(() => 'anon-distinct-1'),
+    getFeatureFlag: (...args: unknown[]) => getFeatureFlagMock(...args),
   },
 }));
 
@@ -70,6 +73,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   isAppleEnabledFlag = false;
   storeState = { signedIn: null };
+  getFeatureFlagMock.mockReturnValue(undefined);
   readAnonCookieMock.mockReturnValue('COOKIE');
   fetchMock = vi.fn(async () =>
     new Response(JSON.stringify({ merged: true, draft_entries: [] }), {
@@ -218,5 +222,37 @@ describe('ConsumerOnboardingRenderer', () => {
     expect(() =>
       render(<ConsumerOnboardingRenderer flow={flow as unknown as never} />),
     ).not.toThrow();
+  });
+
+  // ── PostHog experiment variant behavior (AUTH-11) ─────────────────────────
+
+  it('T11: getFeatureFlag returns treatment_a → social step rendered (variant path)', () => {
+    getFeatureFlagMock.mockReturnValue('treatment_a');
+    render(<ConsumerOnboardingRenderer flow={null} />);
+    // The social step is injected at position 1 in treatment ordering.
+    // Advance to it by clicking Continue on the intro step.
+    fireEvent.click(screen.getAllByRole('button', { name: /continue/i })[0]);
+    // The social step should be visible — it shows a unique heading and LiveSignupCounter.
+    expect(screen.getByText(/Join thousands on their journey/i)).toBeTruthy();
+    expect(screen.getByTestId('live-signup-counter')).toBeTruthy();
+    // Goal (radiogroup) should NOT be visible yet in treatment_a path.
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(getFeatureFlagMock).toHaveBeenCalledWith('onboarding_flow_variant');
+  });
+
+  it('T12: getFeatureFlag returns undefined → DEFAULT_STEPS used (control path)', () => {
+    getFeatureFlagMock.mockReturnValue(undefined);
+    render(<ConsumerOnboardingRenderer flow={null} />);
+    // In control path advancing from intro goes straight to goal, not social.
+    fireEvent.click(screen.getAllByRole('button', { name: /continue/i })[0]);
+    expect(screen.getByRole('radiogroup')).toBeTruthy();
+    expect(getFeatureFlagMock).toHaveBeenCalledWith('onboarding_flow_variant');
+  });
+
+  it('T13: getFeatureFlag throws → DEFAULT_STEPS used (safe fallback, no crash)', () => {
+    getFeatureFlagMock.mockImplementation(() => { throw new Error('posthog not ready'); });
+    expect(() => render(<ConsumerOnboardingRenderer flow={null} />)).not.toThrow();
+    // Should still show intro step (first DEFAULT_STEP).
+    expect(screen.getByText(/Welcome to LeanShot/i)).toBeTruthy();
   });
 });

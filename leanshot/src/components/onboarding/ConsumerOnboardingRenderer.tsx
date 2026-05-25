@@ -62,8 +62,10 @@ export type PrimaryGoal = (typeof GOAL_OPTIONS)[number]['id'];
 // Default step library (used when flow=null OR flow.config is empty)
 // ──────────────────────────────────────────────────────────────────────────
 
-type StepId = 'intro' | 'goal' | 'auth' | 'ready';
+type StepId = 'intro' | 'goal' | 'auth' | 'ready' | 'social';
 const DEFAULT_STEPS: StepId[] = ['intro', 'goal', 'auth', 'ready'];
+/** Treatment-A ordering — injects a social-proof step after intro. */
+const TREATMENT_A_STEPS: StepId[] = ['intro', 'social', 'goal', 'auth', 'ready'];
 
 // ──────────────────────────────────────────────────────────────────────────
 // Consumer draft shape (narrow — only consumer-renderer concerns)
@@ -130,13 +132,22 @@ export function ConsumerOnboardingRenderer({
   const [submitting, setSubmitting] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
-  // Step ids drive rendering; we read flow.config length only to expose a
-  // progress hint, but the consumer surface always uses DEFAULT_STEPS to
-  // keep the goal+auth+merge sequence stable across A/B variants.
+  // Step ids drive rendering. When flow.config is present it overrides the
+  // local step logic (D-16 admin config). Otherwise we read the PostHog
+  // experiment flag to pick between control (DEFAULT_STEPS) and treatment_a
+  // (TREATMENT_A_STEPS). The flag is read once on mount via useMemo; undefined
+  // (flag not yet loaded or not enrolled) falls safely through to DEFAULT_STEPS.
   const steps: StepId[] = useMemo(() => {
     if (flow?.config && flow.config.length > 0) return DEFAULT_STEPS;
+    try {
+      const variant = posthog.getFeatureFlag('onboarding_flow_variant');
+      if (variant === 'treatment_a') return TREATMENT_A_STEPS;
+    } catch {
+      // PostHog not ready or initialisation threw — safe control fallback.
+    }
     return DEFAULT_STEPS;
-  }, [flow]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const next = (): void => setStep((s) => Math.min(steps.length - 1, s + 1));
 
@@ -252,6 +263,22 @@ export function ConsumerOnboardingRenderer({
               </h1>
               <p className="text-[var(--color-text-muted)]">
                 {t('onboarding:consumer.intro.subtitle')}
+              </p>
+              <LiveSignupCounter />
+              <Button onClick={next} className="min-h-[44px] w-full">
+                {t('common:action.continue')}
+              </Button>
+            </div>
+          )}
+
+          {/* treatment_a social-proof step */}
+          {stepId === 'social' && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-[var(--color-text)]">
+                {t('onboarding:consumer.social.title', { defaultValue: 'Join thousands on their journey' })}
+              </h2>
+              <p className="text-[var(--color-text-muted)] text-sm">
+                {t('onboarding:consumer.social.subtitle', { defaultValue: 'See how LeanShot helps people like you stay on track.' })}
               </p>
               <LiveSignupCounter />
               <Button onClick={next} className="min-h-[44px] w-full">

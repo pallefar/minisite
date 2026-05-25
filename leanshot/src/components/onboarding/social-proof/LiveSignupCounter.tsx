@@ -74,13 +74,14 @@ export function LiveSignupCounter() {
   if (count === null) {
     return (
       <div
+        data-testid="live-signup-counter"
         aria-hidden
         className="h-5 w-32 rounded bg-[var(--color-surface-elevated)] animate-pulse"
       />
     );
   }
   return (
-    <p aria-live="polite" className="text-sm text-[var(--color-text-muted)]">
+    <p data-testid="live-signup-counter" aria-live="polite" className="text-sm text-[var(--color-text-muted)]">
       {t('onboarding:social.signups_this_week', { count })}
     </p>
   );
