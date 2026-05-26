@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-26T05:35:00.000Z"
+last_updated: "2026-05-26T05:58:17.807Z"
 progress:
   total_phases: 19
   completed_phases: 8
@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 60 — Plan 60-02 COMPLETE (2026-05-26)
+**Status:** Executing Phase 60 — Plans 60-01 + 60-02 + 60-03 COMPLETE (2026-05-26)
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,7 +27,7 @@ progress:
 
 ## Current Position
 
-- **Phase:** 60 (RAG Knowledge Base Completion) — Plans 60-01 + 60-02 COMPLETE
+- **Phase:** 60 (RAG Knowledge Base Completion) — Plans 60-01 + 60-02 + 60-03 COMPLETE
 - **Last completed:** Phase 59 (Apple OAuth + Onboarding) — VERIFICATION passed 2026-05-26 (3 plans; web+native SIWA flag-gated, HIG wordmark; signInWithIdToken+nonce; shared uid-scoped anon-merge in AuthCallbackView; PostHog experiment-variant bug FIXED; code review CR-01 OAuth-nonce-replay + 5 more fixed). DEFERRED to P70: live Apple provider config + flag-flip + on-device, private-relay live E2E, Lighthouse≥90, PostHog live ship-winner (VENDOR-09), superadmin-fixture HITL, D-16 admin-flow UUID→StepId mapping.
 - **Status:** autonomous run `57→69` PAUSED at Phase 60 boundary (8/18 done: 52-59 ✅). Resume: `/gsd-autonomous --from 60 --to 69` in a fresh session.
 
@@ -88,6 +88,9 @@ P70 (Consolidated UAT) waits for EVERYTHING (last phase)
 - **D-06:** Two new product features added (P61 Protocol Creator + P62 Insights & Research Engine) per user 2026-05-25 direction.
 - **D-07:** Phase numbering continues from 51 (v1.3's last) — no `--reset-phase-numbers`.
 - **D-08:** All per-phase HUMAN-UAT rolls up to Phase 70 per consolidated-UAT contract. No per-phase UAT during execution.
+- **D-60-03-01:** EVAL_SUITE env var (not --suite CLI flag) for suite selection — Vitest 4.x workers don't inherit CLI args before --; env var is reliable cross-platform invocation.
+- **D-60-03-02:** 41 deferred adversarial examples (fda-equivalence/kanon/drug-stack/stale-drift-extension) are not scope reduction — owner plans (60-04/06/07/13) fill inline during execution with regulatory/clinical expert review required.
+- **D-60-03-03:** PLACEHOLDER-<bucket>-<NN> UUID convention in gold-set; Wave 1 (60-06) backfills with real chunk_ids after first chunker run via backfill-placeholder-uuids.ts script.
 
 ### Todos
 
