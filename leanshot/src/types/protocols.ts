@@ -39,6 +39,7 @@ export interface Protocol {
   published_at: string | null;  // ISO timestamptz
   reviewed_at: string | null;
   created_at: string;
+  updated_at: string;           // ISO timestamptz; set by tg_set_updated_at trigger
 }
 
 /**
