@@ -85,6 +85,13 @@ export async function mergeAnonSession(opts: {
         anon_distinct_id: distinctId,
       }),
     });
+    // WR-02: check HTTP status before parsing JSON. Non-ok responses (401, 429,
+    // 500, etc.) have error-envelope bodies — not the expected success shape.
+    // Log the status so the failure is distinguishable from "no anon session".
+    if (!res.ok) {
+      console.warn(`[mergeAnonSession] merge-anon-session HTTP ${res.status} — treating as no-op`);
+      return { merged: false };
+    }
     const json = (await res.json()) as { merged?: boolean; draft_entries?: unknown[] };
     return {
       merged: json?.merged === true,

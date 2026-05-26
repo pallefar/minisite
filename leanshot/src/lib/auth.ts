@@ -126,10 +126,12 @@ export async function signInWithOAuthProvider(
   // Web PKCE path (google + non-iOS apple).
   // PKCE is the supabase-js v2 default flow; redirectTo MUST be PATH-based
   // (`/auth/callback`) — OAuth providers cannot redirect to `#` fragments.
+  // WR-04: guard window.location.origin (undefined in SSR/build context) via
+  // the same authRedirectTo() helper used elsewhere in this module.
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: authRedirectTo('/auth/callback'),
     },
   });
   return { error: error ? { message: error.message } : null };

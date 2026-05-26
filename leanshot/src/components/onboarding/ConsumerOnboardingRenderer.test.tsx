@@ -13,11 +13,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const signInWithMagicLinkMock = vi.fn(async () => ({ error: null }));
 const signInWithOAuthProviderMock = vi.fn(async () => ({ error: null }));
+const getSessionMock = vi.fn(async () => ({ session: { access_token: 'access-token' }, error: null }));
 let isAppleEnabledFlag = false;
 vi.mock('@/lib/auth', () => ({
   signInWithMagicLink: (email: string) => signInWithMagicLinkMock(email),
   signInWithOAuthProvider: (provider: 'google' | 'apple') => signInWithOAuthProviderMock(provider),
   isAppleEnabled: () => isAppleEnabledFlag,
+  // WR-03: ConsumerOnboardingRenderer now calls getSession() from @/lib/auth
+  // instead of supabase.auth.getSession() directly (CLAUDE.md auth-wrapper rule).
+  getSession: () => getSessionMock(),
 }));
 
 const readAnonCookieMock = vi.fn(() => 'COOKIE' as string | null);
@@ -41,17 +45,6 @@ vi.mock('@/lib/store', () => ({
   ),
 }));
 
-const supabaseGetSessionMock = vi.fn(async () => ({
-  data: { session: { access_token: 'access-token' } },
-}));
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getSession: () => supabaseGetSessionMock(),
-    },
-    rpc: vi.fn(async () => ({ data: null, error: null })),
-  },
-}));
 
 const getFeatureFlagMock = vi.fn(() => undefined as string | boolean | undefined);
 vi.mock('posthog-js', () => ({

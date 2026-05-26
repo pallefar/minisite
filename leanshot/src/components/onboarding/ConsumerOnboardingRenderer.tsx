@@ -33,12 +33,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pill } from '@/components/ui/Pill';
-import { isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
+import { getSession, isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
 import { readAnonCookie } from '@/lib/anonymous/cookie';
 import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
 import { primaryGoalLabel } from '@/lib/i18n/onboarding-labels';
 import { useStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
 import type { ConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
 import LiveSignupCounter from './social-proof/LiveSignupCounter';
 
@@ -133,13 +132,25 @@ export function ConsumerOnboardingRenderer({
   const [submitting, setSubmitting] = useState(false);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
 
-  // Step ids drive rendering. When flow.config is present it overrides the
-  // local step logic (D-16 admin config). Otherwise we read the PostHog
-  // experiment flag to pick between control (DEFAULT_STEPS) and treatment_a
-  // (TREATMENT_A_STEPS). The flag is read once on mount via useMemo; undefined
-  // (flag not yet loaded or not enrolled) falls safely through to DEFAULT_STEPS.
+  // Step ids drive rendering. When flow.config is present it SHOULD override
+  // the local step logic (D-16 admin config); however, D-16 config-driven step
+  // rendering is not yet wired (the node `type` values from the admin builder
+  // are ConsumerStepType UUIDs, not the internal StepId union used here).
+  // TODO(D-16): map flow.config nodes to StepIds and return them here once the
+  // consumer step renderer supports dynamic config-driven steps.
+  //
+  // For now, fall through to the PostHog A/B variant check for ALL callers.
+  // The inverted branch (returning DEFAULT_STEPS when config IS present) has
+  // been removed — it was blocking the PostHog experiment from running on
+  // admin-configured flows (WR-01 fix).
+  //
+  // The flag is read once on mount via useMemo; undefined (flag not yet loaded
+  // or not enrolled) falls safely through to DEFAULT_STEPS.
   const steps: StepId[] = useMemo(() => {
-    if (flow?.config && flow.config.length > 0) return DEFAULT_STEPS;
+    // TODO(D-16): when config-driven rendering is wired, map flow.config nodes
+    // to StepIds here. Until then, flow is intentionally unused — kept in scope
+    // so the D-16 implementation site is obvious.
+    void flow;
     try {
       const variant = posthog.getFeatureFlag('onboarding_flow_variant');
       if (variant === 'treatment_a') return TREATMENT_A_STEPS;
@@ -199,7 +210,9 @@ export function ConsumerOnboardingRenderer({
     mergeFiredRef.current = true;
 
     void (async () => {
-      const access = (await supabase.auth.getSession()).data.session?.access_token;
+      // WR-03: use the @/lib/auth wrapper instead of supabase.auth.* directly (CLAUDE.md).
+      const { session } = await getSession();
+      const access = session?.access_token;
       let distinctId: string | undefined;
       try {
         distinctId = posthog.get_distinct_id();

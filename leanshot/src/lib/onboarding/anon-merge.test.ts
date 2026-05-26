@@ -100,4 +100,25 @@ describe('mergeAnonSession', () => {
     // clearAnonCookie must be called (finally block).
     expect(clearAnonCookieMock).toHaveBeenCalledTimes(1);
   });
+
+  it('B5 (WR-02): non-ok HTTP response → returns { merged: false } and does not attempt res.json()', async () => {
+    readAnonCookieMock.mockReturnValue('cookie-uuid-err');
+    // Simulate a 401 response (e.g. expired token between session mint and merge call).
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = await mergeAnonSession({ accessToken: 'expired-tok' });
+
+    expect(result).toEqual({ merged: false });
+    // Cookie must still be cleared in finally even on HTTP error.
+    expect(clearAnonCookieMock).toHaveBeenCalledTimes(1);
+    // Warning must be emitted distinguishing HTTP failure from clean no-op.
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('HTTP 401'));
+    warnSpy.mockRestore();
+  });
 });

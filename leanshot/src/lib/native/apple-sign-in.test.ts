@@ -93,7 +93,7 @@ describe('signInWithAppleNative()', () => {
     expect(mockSignInWithIdToken).not.toHaveBeenCalled();
   });
 
-  it('iOS + valid identityToken → calls signInWithIdToken({ provider:"apple", token }) and returns { error: null } on success', async () => {
+  it('iOS + valid identityToken → calls signInWithIdToken({ provider:"apple", token, nonce }) and returns { error: null } on success', async () => {
     const { Capacitor } = await import('@capacitor/core');
     Capacitor.getPlatform.mockReturnValue('ios');
     Capacitor.isNativePlatform.mockReturnValue(true);
@@ -114,10 +114,16 @@ describe('signInWithAppleNative()', () => {
     });
     const { signInWithAppleNative } = await import('./apple-sign-in');
     const res = await signInWithAppleNative();
-    expect(mockSignInWithIdToken).toHaveBeenCalledWith({
-      provider: 'apple',
-      token: 'mock-identity-token',
-    });
+    // CR-01 regression guard: signInWithIdToken MUST be called with a nonce field
+    // so GoTrue can verify the nonce claim baked into the Apple JWT. Without it,
+    // any valid Apple token for this app can be replayed (token-replay window).
+    expect(mockSignInWithIdToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'apple',
+        token: 'mock-identity-token',
+        nonce: expect.any(String), // raw nonce — GoTrue re-hashes and compares to JWT claim
+      }),
+    );
     expect(res).toEqual({ error: null });
   });
 
