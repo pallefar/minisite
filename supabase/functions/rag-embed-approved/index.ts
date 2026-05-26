@@ -51,6 +51,7 @@ function buildProdDeps(): HandlerDeps {
         userId: SYSTEM_USER_ID,
         properties: {
           model: args.model,
+          vendor: 'openai_embed',  // required by cost dashboard HogQL vendor filter
           prompt_tokens: args.inputTokens,
           usage_total_cost: args.costUsd,
           latency_ms: args.latencyMs,

@@ -180,6 +180,7 @@ export async function handler(req: Request): Promise<Response> {
       userId: SYSTEM_USER_ID,
       properties: {
         model: 'text-embedding-3-small',
+        vendor: 'openai_embed',  // required by cost dashboard HogQL vendor filter
         prompt_tokens: totalTokens,
         usage_total_cost: EMBED_COST_PER_TOKEN_USD * totalTokens,
         latency_ms: embedLatency,
@@ -278,6 +279,7 @@ export async function handler(req: Request): Promise<Response> {
         userId: SYSTEM_USER_ID,
         properties: {
           model: rerankResp.model,
+          vendor: provider === 'cohere' ? 'cohere_rerank' : 'jina_rerank',  // required by cost dashboard HogQL vendor filter
           prompt_tokens: rerankResp.tokensUsed || undefined,
           usage_total_cost: rerankResp.costUsd,
           latency_ms: rerankResp.latencyMs,
