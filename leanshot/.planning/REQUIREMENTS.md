@@ -141,12 +141,12 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 
 - [ ] **RAG-01**: Scrape pipeline (Wave 2 50-05) — admin-pasted URL → Edge Fn fetches HTML → Trafilatura-equivalent boilerplate strip → chunked → queued for embedding
 - [ ] **RAG-02**: Embedding worker (50-06) — pgvector batch insert via OpenAI `text-embedding-3-small` (reuses RECOMMEND-02 gateway); HNSW index already shipped Wave 1
-- [ ] **RAG-03**: Admin curation surface (50-07) — pending-chunks review queue → approve / reject / edit / re-chunk; 2-person review for clinical-content sources
+- [x] **RAG-03**: Admin curation surface (50-07) — pending-chunks review queue → approve / reject / edit / re-chunk; 2-person review for clinical-content sources
 - [ ] **RAG-04**: AI-coach citation integration (Wave 3 50-08) — `ai-chat` Edge Fn injects top-k retrieved RAG chunks into system prompt; response includes citation footnotes linking to source row
 - [ ] **RAG-05**: Re-ranker (50-09 MVP) — cross-encoder cohere-reranker pass on top-k=20 retrieved chunks; returns top-3 to LLM
-- [ ] **RAG-06**: Federated sources (Wave 3 STRETCH) — PubMed E-utilities + FDA OpenFDA + DailyMed API adapters; periodic sync into `external_knowledge_sources` table; admin enables per-source
-- [ ] **RAG-07**: Tip-of-day cron (Wave 4) — daily Edge Fn picks one curated chunk → sends as in-app + push notification (PUSH-06 category)
-- [ ] **RAG-08**: Newsletter integration (Wave 4) — weekly Resend digest highlights newly curated chunks; opt-in via notification_settings
+- [x] **RAG-06**: Federated sources (Wave 3 STRETCH) — PubMed E-utilities + FDA OpenFDA + DailyMed API adapters; periodic sync into `external_knowledge_sources` table; admin enables per-source
+- [x] **RAG-07**: Tip-of-day cron (Wave 4) — daily Edge Fn picks one curated chunk → sends as in-app + push notification (PUSH-06 category)
+- [x] **RAG-08**: Newsletter integration (Wave 4) — weekly Resend digest highlights newly curated chunks; opt-in via notification_settings
 - [ ] **RAG-09**: Public knowledge hub (Wave 4 STRETCH) — `/knowledge/*` SEO-indexed surface rendered via page-render Fn; rate-limited; sitemap inclusion
 
 ### WS10 — Admin Protocol Creator (PROTOCOL, 8 REQ-IDs — NEW)
@@ -410,12 +410,12 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | AUTH-11 | Phase 59 | Pending |
 | RAG-01 | Phase 60 | Pending |
 | RAG-02 | Phase 60 | Pending |
-| RAG-03 | Phase 60 | Pending |
+| RAG-03 | Phase 60 | Complete |
 | RAG-04 | Phase 60 | Pending |
 | RAG-05 | Phase 60 | Pending |
-| RAG-06 | Phase 60 | Pending |
-| RAG-07 | Phase 60 | Pending |
-| RAG-08 | Phase 60 | Pending |
+| RAG-06 | Phase 60 | Complete |
+| RAG-07 | Phase 60 | Complete |
+| RAG-08 | Phase 60 | Complete |
 | RAG-09 | Phase 60 | Pending |
 | PROTOCOL-01 | Phase 61 | Pending |
 | PROTOCOL-02 | Phase 61 | Pending |

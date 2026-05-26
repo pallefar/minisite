@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-25T23:39:36.366Z"
+last_updated: "2026-05-26T07:30:00.000Z"
 progress:
   total_phases: 19
   completed_phases: 8
@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 60 (Phase 59 complete)
+**Status:** Executing Phase 60 — Plan 60-01 COMPLETE (2026-05-26)
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -44,6 +44,7 @@ progress:
 - **Defer to P70:** live scrape/embed against prod, live federated-source syncs, newsletter live send, on-device tip-of-day push, any vendor-key-gated live verification.
 
 ### Execution lesson for remaining phases (57-59 validated)
+
 - **Use SEQUENTIAL-ON-MAIN executors, NOT worktrees.** Phase 58 worktrees hit: 217-commit stale-base fork (58-04), file-leaks (OnboardingFlow/clinic-invite), pwd-leak-to-main (58-01) — ~heavy remediation. Phases 57 (worktree, small/disjoint, OK) then 58 (worktree, painful) then 59 (sequential-on-main, CLEAN). For 60-69 default to sequential-on-main: spawn gsd-executor WITHOUT isolation, on main, one plan at a time; they edit + commit directly to main. Per-phase post-merge gate = tsc + targeted vitest + locale gate; full-suite baseline is ~106-110 failing/24-25 files (FLAKY EnvironmentTeardownError — gate by own-tests + no-net-new, not whole-suite pass). `|tail` hides vitest exit in zsh.
 
 ## Milestone Contract
