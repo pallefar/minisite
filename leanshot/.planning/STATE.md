@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-26T11:50:00.000Z"
+last_updated: "2026-05-26T12:00:00.000Z"
 progress:
   total_phases: 20
   completed_phases: 8
   total_plans: 53
-  completed_plans: 42
-  percent: 42
+  completed_plans: 43
+  percent: 43
 ---
 
 # Milestone v1.4: Launch Readiness
@@ -28,8 +28,8 @@ progress:
 ## Current Position
 
 - **Phase:** 60 (RAG Knowledge Base Completion) — Wave 0 COMPLETE (3/15 plans); Waves 1-3 PAUSED on Phase 60.5 vendor pre-flight
-- **Last completed:** Phase 60 Wave 1 — 60-05 (embed pipeline Edge Fn via OpenRouter, 3 tasks, 3 commits, ending 723c22cc). Prior: 60-04 (ending 941dfbb4), Wave 0: 60-01..03 (ending bc2b138f). Total Wave 0+1(60-04..05): 24 task-commits + 5 summary-commits = 29 commits.
-- **Status:** 60-05 COMPLETE (2026-05-26). Wave 1 continues: 60-06, 60-07, 60-08, 60-09.
+- **Last completed:** Phase 60 Wave 1 — 60-06 (retrieval + rerank Edge Fn, 9 tasks, 9 commits, ending f5b13378). Prior: 60-05 (ending 723c22cc), 60-04 (ending 941dfbb4), Wave 0: 60-01..03 (ending bc2b138f). Total Wave 0+1(60-04..06): 33 task-commits + 6 summary-commits = 39 commits.
+- **Status:** 60-06 COMPLETE (2026-05-26). Wave 1 continues: 60-07, 60-08, 60-09.
 
 ### Phase 60 PAUSE — Wave 1 vendor blockers (resume notes)
 
@@ -137,6 +137,9 @@ P70 (Consolidated UAT) waits for EVERYTHING (last phase)
 - **D-60-05-01:** handler.ts separated from index.ts in rag-embed-approved so Vitest (Node) can unit-test the handler without hitting Deno-specific npm: specifiers; HandlerDeps interface is the seam.
 - **D-60-05-02:** emitAiGeneration userId = 'rag-system' for cron embed batches (D-13 invariant: non-empty userId required for $ai_generation; rag-system is canonical system actor from Phase 50 D-34).
 - **D-60-05-03:** OpenRouter vendor route confirmed (2026-05-26 override): OPENROUTER_API_KEY for both chat + embed in Phase 60; Vercel AI Gateway eliminated for this Fn.
+- **D-60-06-01:** Cohere Rerank v3.5 via REST API (not npm SDK) for Deno-native fetch compatibility and full mock control in tests.
+- **D-60-06-02:** captureRagEvent (system-actor) used for refusal events — refusals are pipeline-level quality gates, not user-attributed telemetry; D-13 user-attribution applies to user-generated AI calls only.
+- **D-60-06-03:** eval/phase60/dimensions/ created at git root per plan spec for Deno-native CLI runner; coexists with existing Vitest harness at tests/eval/phase60/.
 
 ### Todos
 

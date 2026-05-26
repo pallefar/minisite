@@ -272,7 +272,18 @@ Plans:
   5. Tip-of-day push fires daily to opted-in users; newsletter Resend digest delivers weekly
   6. Public knowledge hub at `/knowledge/*` renders SEO-indexed pages; rate-limited; sitemap inclusion
 
-**Plans**: TBD
+**Plans**: 15 plans (Wave 0: 60-01/02/03 COMPLETE; Wave 1: 60-04/05/06 COMPLETE, 60-07/08/09 in progress; Wave 2: 60-10/11; Wave 3: 60-12/13/14; Wave 4: 60-15)
+**Progress (Wave 0 + Wave 1 through 60-06):**
+- ✅ 60-01 (kb_tables migration)
+- ✅ 60-02 (_shared posthog-rag-events + rag-retrieve client)
+- ✅ 60-03 (eval harness + gold-set)
+- ✅ 60-04 (rag-summarize-and-chunk Fn)
+- ✅ 60-05 (rag-embed-approved Fn via OpenRouter)
+- ✅ 60-06 (rag-retrieve Edge Fn + Cohere/Jina rerank + eval dimensions)
+- [ ] 60-07 (federated PubMed/FDA/DailyMed)
+- [ ] 60-08 (admin queue UI)
+- [ ] 60-09 (admin federated toggle UI)
+- [ ] 60-10 through 60-15 (Waves 2-4)
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
