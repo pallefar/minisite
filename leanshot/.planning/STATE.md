@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
-status: executing
-last_updated: "2026-05-26T14:30:00.000Z"
+status: completed
+last_updated: "2026-05-26T17:01:18.639Z"
 progress:
   total_phases: 20
   completed_phases: 9
@@ -34,39 +34,52 @@ progress:
 ### Phase 60 deliverables (this session, 2026-05-26)
 
 **Plans + execution:**
+
 - Wave 0: 60-01 (data layer migrations) + 60-02 (shared edge helpers) + 60-03 (eval harness + 120 gold-set + 13 RED dim scaffolds + CI workflow)
 - Wave 1: 60-04 (chunker via OpenRouter) + 60-05 (embed via OpenRouter) + 60-06 (retrieve + Cohere rerank + Jina fallback) + 60-07 (federated PubMed/FDA/DailyMed) + 60-08 (admin curation queue UI + 5 SECDEF RPC wiring) + 60-09 (admin federated toggle UI — Option D defers Pull-history button to Phase 67)
 - Wave 2: 60-10 (AI-coach citation marker + popover + sources footer + refusal card; AI-04 fence preserved) + 60-11 (tip-of-day Bento card + Edge Fn)
 - Wave 3: 60-12 (newsletter Fns + opt-in UI + RFC 8058 List-Unsubscribe-Post) + 60-13 (public /knowledge/* hub w/ helmet + sitemap + JSON-LD MedicalWebPage) + 60-14 (cost dashboard w/ 9 vendor/cron cards + auto-pause banner) + 60-15 BLOCKING close-out (10 Fns deployed, 7 cron jobs, schema sync of 110 backlog migrations)
 
 **Vendor consolidation (Phase 60.5 inserted + 4 secrets resolved):**
+
 - Programmatic: `POSTHOG_PROJECT_ID=140479`, `RAG_RERANKER_PROVIDER=cohere`, `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY` (openssl rand)
 - Operator-provided: `COHERE_API_KEY`, `POSTHOG_PERSONAL_API_KEY`, `OPENROUTER_API_KEY` (replaces direct Anthropic AND OpenAI per user direction), `SLACK_GUARDRAIL_WEBHOOK_URL` (env-var fast-path patched into 60-02 helper)
 - All 4 plan overrides applied (60-04, 60-05, 60-11 OpenRouter substitution + 60-13 ships react-helmet-async + react-router-dom)
 
 **Code review (gsd-code-reviewer quick depth):**
+
 - 4 Critical fixed: CR-01 DOMPurify hook silently dead → addHook(); CR-02 stripControlChars regex matched printable chars → /[\\x00-\\x1F\\x7F]/g; CR-03 vendor string drift → enum-aligned; CR-04 non-constant-time service-role compare → constantTimeEqual
 - 4 Warning fixed: WR-01 missing vendor field in $ai_generation → added; WR-02 **CAN-SPAM placeholder address** → 503 + Slack P1 guard; WR-03 wrong emitter; WR-04 admin anchor target=_blank
 - 2 Info deferred to Phase 63 tech debt
 
 **UI review (gsd-ui-auditor 6-pillar):**
+
 - BLOCKER 1 fixed: 9 undefined Tailwind v4 @theme tokens on /knowledge/* (would render invisible) → corrected: text-text-primary → text-text, bg-surface-card → bg-surface, border-border-subtle → border-border, text-accent → text-primary, bg-warning-subtle → bg-danger-soft
 - BLOCKER 2 fixed: typography ceiling — 6 files normalized to {11,13,18,28} px + {400,600} weights (Phase 69 CI gate ready)
 - 9 FLAG + 4 advisory deferred to Phase 69 (design polish — purpose-built for these)
 
 **Carry-overs to later phases (NOT shipped in this session — discovered during execution):**
+
 - **Phase 63 (Tech Debt):** Retroactive testing of P48/49/50-traffic migrations applied via `migration repair` (these landed via repair without execution); 2 Info-level code-review findings; vendor-string drift in AI-SPEC docs (`anthropic_synthesis` variant); audit Phase 50 community engagement workstream
 - **Phase 67 (Operational Runbooks):** Admin-action-token mechanism (60-09 Option D) to wire the Pull-history button; vendor-string emission audit across all upstream Fns; `slack_guardrail_webhook` vault entry (currently using env-var fast-path)
 - **Phase 69 (Design Polish):** 9 UI-review FLAGs (Approve toast missing Undo affordance, accent on non-interactive EXTRACTED QUOTE label, 6 minor copy/spacing nits) + 4 advisory items
 
 **Operator action gate (before Sun 2026-05-31 13:00 UTC newsletter cron):**
+
 ```bash
 supabase secrets set NEWSLETTER_PHYSICAL_ADDRESS="<LeanShot physical mailing address>" \
   --project-ref ytnsipxxmzgaebkqmokp
 ```
+
 Newsletter sender will return HTTP 503 + emit Slack `regulatory` P1 alert if missing or contains "placeholder" substring (WR-02 fix).
 
-### Phase 61 resume notes (NOT yet started)
+### Phase 61 IN PROGRESS — Plan 03 complete (2026-05-26)
+
+**Executed:** 61-03-protocol-ai-assist-fn (Wave 0, autonomous). Commits: `dbede1ef` (RED tests), `98169720` (GREEN handler), `44d7787e` (index.ts). All 6 Vitest tests passing. No Deno.* in handler.ts.
+
+**Decisions:** handler/index split (Vitest testability), duck-typed SupabaseLike (no npm: in handler), HandlerDeps full injection seam, OpenRouter dotted model `anthropic/claude-sonnet-4-5`.
+
+### Phase 61 resume notes
 
 - **Goal:** Admin authoring tool for versioned, RAG-evidence-cited dosing protocols. Uses Phase 60's RAG retriever (`rag-retrieve` Fn, deployed) + v1.3 clinician dashboard + patient dose-log + helpdesk KB.
 - **Depends on:** Phase 60 ✅ (RAG retriever live), v1.3 Phase 30 (clinician dashboard), Phase 35 (patient dose-log), Phase 37 (helpdesk KB)
