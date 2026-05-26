@@ -16,7 +16,7 @@
 - [x] **Phase 56: Ad Network** — AdMob iOS+Android + AdSense web; 3 modes (embed/platform/house); clinic-zero-ads enforced; per-network revenue ETL
 - [x] **Phase 57: Watch Apps** — Apple Watch SwiftUI + Wear OS Compose companion; quick dose log + complication; offline-tolerant
 - [x] **Phase 58: Spanish i18n Wiring** — Contractor TMX import + glossary integration + ES KB articles + ES smoke spec
-- [ ] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished
+- [x] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished
 - [ ] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
 - [ ] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
 - [ ] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
@@ -241,8 +241,16 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 59-01-PLAN.md — HIG "Sign in with Apple" button on SignInForm + SignUpForm (+ useTranslation) + en/es wordmark (AUTH-07/08)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 59-02-PLAN.md — native iOS Apple Sign-In bridge (@capacitor-community/apple-sign-in + entitlement + signInWithIdToken, flag+platform gated) + private-relay (AUTH-07/09)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 59-03-PLAN.md — PostHog experiment-variant bug fix + AuthCallbackView anon-merge + Lighthouse runnability (AUTH-10/11, ONBOARD-05/06/07/10/11)
 
 **UI hint**: yes

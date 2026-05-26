@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-25T20:46:04.217Z"
+last_updated: "2026-05-25T23:39:36.366Z"
 progress:
   total_phases: 19
-  completed_phases: 7
-  total_plans: 34
-  completed_plans: 34
-  percent: 37
+  completed_phases: 8
+  total_plans: 37
+  completed_plans: 37
+  percent: 42
 ---
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 59 (Phase 58 complete)
+**Status:** Executing Phase 60 (Phase 59 complete)
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,9 +27,9 @@ progress:
 
 ## Current Position
 
-- **Phase:** 59 (Apple OAuth + Onboarding Completion) — NEXT (pending dispatch)
-- **Last completed:** Phase 58 (Spanish i18n) — VERIFICATION passed 2026-05-26 (8 plans; FULL i18n keying per user override of D-04; es-smoke 5/5 GREEN; all namespaces en↔es parity; Gate-3 fixed; SettingsPage re-keyed after 58-04 stale-base merge dropped it; code review WR-01/02/03 fixed). DEFERRED to P70: clinical-advisor signoff, native-speaker ES review, KB live-RPC push + verify, usted/tú register harmonization, KBSearchTypeahead aria-label.
-- **Status:** autonomous run `57→69` in progress (7/18 autonomous phases done)
+- **Phase:** 60 (RAG Knowledge Base Completion) — NEXT (pending dispatch)
+- **Last completed:** Phase 59 (Apple OAuth + Onboarding) — VERIFICATION passed 2026-05-26 (3 plans; web+native SIWA flag-gated, HIG wordmark; signInWithIdToken+nonce; shared uid-scoped anon-merge in AuthCallbackView; PostHog experiment-variant bug FIXED; code review CR-01 OAuth-nonce-replay + 5 more fixed). DEFERRED to P70: live Apple provider config + flag-flip + on-device, private-relay live E2E, Lighthouse≥90, PostHog live ship-winner (VENDOR-09), superadmin-fixture HITL, D-16 admin-flow UUID→StepId mapping.
+- **Status:** autonomous run `57→69` in progress (8/18 autonomous phases done)
 
 ## Milestone Contract
 
