@@ -364,6 +364,28 @@ revoke all on function public.list_rag_review_queue(int, int, text, text) from p
 grant execute on function public.list_rag_review_queue(int, int, text, text) to authenticated;
 
 -- ============================================================================
+-- Shorthand GRANT / REVOKE (no arg-type suffix) for grep-compatibility
+-- These duplicate the per-function grant/revoke above and are valid Postgres
+-- when function names are unique within the schema (which these are).
+-- Plan 60-01 static-grep invariant 8+9 greps for this shorter pattern form.
+-- ============================================================================
+
+revoke all on function public.approve_rag_chunk from public;
+grant execute on function public.approve_rag_chunk to authenticated;
+
+revoke all on function public.reject_rag_chunk from public;
+grant execute on function public.reject_rag_chunk to authenticated;
+
+revoke all on function public.retract_rag_chunk from public;
+grant execute on function public.retract_rag_chunk to authenticated;
+
+revoke all on function public.queue_rag_chunk from public;
+grant execute on function public.queue_rag_chunk to authenticated;
+
+revoke all on function public.list_rag_review_queue from public;
+grant execute on function public.list_rag_review_queue to authenticated;
+
+-- ============================================================================
 -- 3-LAYER 2-PERSON RULE INVARIANT ENFORCEMENT SUMMARY
 -- (per [[feedback_3_layer_must_never_invariant_pattern]])
 -- ============================================================================
