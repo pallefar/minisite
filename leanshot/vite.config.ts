@@ -110,6 +110,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        // Phase 60 Plan 60-07 — resolve 'zod' bare specifier for Edge Fn tests.
+        // Edge Fn source files use 'zod' (resolves via deno.json in Deno, but Vite
+        // needs an explicit path when test files live outside the leanshot/ root).
+        'zod': fileURLToPath(new URL('./node_modules/zod/v3/index.js', import.meta.url)),
       },
     },
     server: {
