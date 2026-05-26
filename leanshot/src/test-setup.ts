@@ -53,7 +53,8 @@ function loadLocale(lang: string, ns: string): Record<string, unknown> {
   return JSON.parse(readFileSync(filePath, 'utf8')) as Record<string, unknown>;
 }
 
-const NAMESPACES = ['common', 'nav', 'admin', 'onboarding', 'patient', 'settings', 'kb', 'clinic'] as const;
+// Phase 60 Plan 60-10: 'rag' namespace added for RAG citation UI components.
+const NAMESPACES = ['common', 'nav', 'admin', 'onboarding', 'patient', 'settings', 'kb', 'clinic', 'rag'] as const;
 
 const enResources: Record<string, Record<string, unknown>> = {};
 const esResources: Record<string, Record<string, unknown>> = {};
