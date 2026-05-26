@@ -39,6 +39,11 @@ vi.mock('@/hooks/useToast', () => ({
   useToast: () => vi.fn(),
 }));
 
+// Mock useReducedMotion (window.matchMedia not available in jsdom)
+vi.mock('@/hooks/useReducedMotion', () => ({
+  useReducedMotion: () => false,
+}));
+
 describe('CohortBuilderPage', () => {
   it('renders empty state when result is null', () => {
     render(<CohortBuilderPage />);
