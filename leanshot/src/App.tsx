@@ -208,6 +208,13 @@ const AdminShellRoot = lazy(() =>
 // public no-auth leaf, same isolation model as /verify/ and /share/.
 const KnowledgeRoute = lazy(() => import('@/components/knowledge/KnowledgeRoute'));
 
+// Phase 62 Plan 62-06 — Public /research/* scholarly article hub (INSIGHTS-08).
+// Consumer-phase widening per reference_react_router_consumer_admin_split.
+// Own lazy chunk — targets ≤30 kB gz (CLAUDE.md bundle ceiling).
+// No globalOverlays — public no-auth leaf surface, same isolation as /knowledge/*.
+// robots=index (NOT noindex) — research papers are SEO-discoverable (inverts Phase 60-13).
+const ResearchRoute = lazy(() => import('@/components/research/ResearchRoute'));
+
 // Phase 61 Plan 07 — /protocols/<slug> auth-gated read-only protocol view (PROTOCOL-08).
 // Signed-in users only; selectView returns 'auth' when user is null (T-61-07-05).
 // Own lazy chunk; renders without Sidebar/Topbar/MobileNav (read-only leaf surface).
@@ -636,6 +643,11 @@ type View =
   // does NOT bounce to dashboard when visiting /knowledge/*.
   // Consumer-phase widening per reference_react_router_consumer_admin_split.
   | 'knowledge'
+  // Phase 62 Plan 62-06 — Public /research/* scholarly article hub (INSIGHTS-08).
+  // PATH-based routing — placed AFTER /knowledge/* and BEFORE /protocols/* + marketing.
+  // Public no-auth, robots=index (inverts Phase 60-13 noindex decision for research papers).
+  // Consumer-phase widening per reference_react_router_consumer_admin_split.
+  | 'research'
   // Phase 61 Plan 07 — /protocols/<slug> auth-gated read-only protocol view (PROTOCOL-08).
   // PATH-based routing; placed AFTER /knowledge/* (public) and BEFORE /clinic/* + admin branches.
   // Unlike /knowledge (no-auth), this branch REQUIRES auth — unauthenticated users bounce to 'auth'.
@@ -704,6 +716,12 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   // Public no-auth: never requires opts.user — always returns 'knowledge'.
   // Consumer-phase widening allowed per reference_react_router_consumer_admin_split.
   if (opts.pathname.startsWith('/knowledge')) return 'knowledge';
+  // Phase 62 Plan 62-06 — /research/* public scholarly hub (INSIGHTS-08).
+  // Public no-auth: placed AFTER /knowledge/* and BEFORE /protocols/* + marketing fallback.
+  // Never requires opts.user — always returns 'research' for any /research/* path.
+  // robots=index (NOT noindex) — research papers are SEO-discoverable per CONTEXT.md.
+  // Consumer-phase widening per reference_react_router_consumer_admin_split.
+  if (opts.pathname.startsWith('/research')) return 'research';
   // Phase 61 Plan 07 — /protocols/<slug> auth-gated public route (PROTOCOL-08).
   // Per Pitfall 7: placed AFTER /knowledge/* (public, no-auth) and BEFORE /clinic/* +
   // auth-gated admin branches. Unlike /knowledge, this branch REQUIRES auth —
@@ -1712,6 +1730,19 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <KnowledgeRoute />
+      </Suspense>
+    );
+  }
+
+  // Phase 62 Plan 62-06 — /research/* public scholarly hub (INSIGHTS-08).
+  // No globalOverlays — public no-auth leaf surface (same pattern as /knowledge/).
+  // BrowserRouter + react-router is scoped inside ResearchRoute so no router
+  // bleeds into the consumer SPA (reference_react_router_consumer_admin_split).
+  // robots=index (NOT noindex) — research papers are SEO-discoverable.
+  if (view === 'research') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <ResearchRoute />
       </Suspense>
     );
   }
