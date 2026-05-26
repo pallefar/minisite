@@ -26,7 +26,7 @@ export function ConsumerHealthData() {
   return (
     <LegalLayout title="Consumer Health Data">
       <article className="prose prose-sm max-w-none text-[var(--color-text)]">
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">Consumer Health Data</h1>
+        {/* H1 now rendered by LegalLayout per Phase 64 UI-SPEC §Surfaces in Scope */}
         <p className="text-[13px] text-[var(--color-text-tertiary)] mb-6">
           Privacy notice for <strong>Washington</strong> residents · Last updated {LAST_UPDATED_ISO}
         </p>

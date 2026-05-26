@@ -5,10 +5,12 @@
 // CHDP) and 07-04 (privacy/terms/disclaimer) fill the children slot with
 // authored content; this file should NOT change between Phase 7 plans.
 //
-// The `title` prop is currently unused in render (Phase 7 ships no router
-// and no <title> wiring) but is retained on the API surface to document the
-// contract for 07-03/07-04 and to enable future per-page <title> writes
-// without breaking signatures.
+// Renders the title prop as the page H1 per Phase 64 UI-SPEC §Surfaces in Scope.
+// All /legal/* callers that previously rendered their own internal <h1> must
+// remove that internal heading to maintain the single-H1 invariant.
+// (Plan 64-04 owns PrivacyPolicy.tsx + TermsOfService.tsx — merger/Plan 64-08
+// close-out must verify: `grep -c "<h1" src/components/legal/*.tsx` expects 1
+// per file. MedicalDisclaimer.tsx + ConsumerHealthData.tsx are patched in this plan.)
 
 import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -20,10 +22,6 @@ export interface LegalLayoutProps {
 }
 
 export function LegalLayout({ title, children }: LegalLayoutProps): ReactNode {
-  // `title` is part of the API contract (see file-header) but not currently
-  // rendered — reference it once to keep TS strict (noUnusedParameters) happy
-  // without an underscore-prefix rename that would change the public shape.
-  void title;
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
       <header className="border-b border-[var(--color-border)] py-4 px-5">
@@ -39,7 +37,12 @@ export function LegalLayout({ title, children }: LegalLayoutProps): ReactNode {
           </span>
         </div>
       </header>
-      <main className="max-w-[800px] mx-auto px-5 py-10">{children}</main>
+      <main className="max-w-[800px] mx-auto px-5 py-10">
+        <h1 className="text-heading font-display font-semibold mb-8 text-[var(--color-text)]">
+          {title}
+        </h1>
+        {children}
+      </main>
       <LegalFooter variant="marketing" />
     </div>
   );
