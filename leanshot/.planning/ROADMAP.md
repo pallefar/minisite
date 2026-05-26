@@ -285,7 +285,10 @@ Plans:
 - [x] 60-09 (admin federated toggle UI)
 - [x] 60-10 (AI-coach citation UI)
 - [x] 60-11 (tip-of-day card + Fn)
-- [x] 60-12 (newsletter) COMPLETE; [ ] 60-13 through 60-15 (Waves 3-4)
+- [x] 60-12 (newsletter) COMPLETE
+- [x] 60-13 (public /knowledge hub) COMPLETE
+- [x] 60-14 (cost dashboard) COMPLETE
+- [ ] 60-15 (BLOCKING close-out)
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
