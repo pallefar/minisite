@@ -1,0 +1,38 @@
+{
+  "attribution": "{{source_name}} · A partir de {{date}} · Nivel {{tier}}",
+  "disclaimer": "No es consejo médico — consulte a su médico.",
+  "tier": {
+    "A": {
+      "label": "Nivel A",
+      "aria": "Fuente de nivel A (mayor confianza — etiqueta de la FDA o NLM)"
+    },
+    "B": {
+      "label": "Nivel B",
+      "aria": "Fuente de nivel B (fuente de salud establecida — guía clínica)"
+    },
+    "C": {
+      "label": "Nivel C",
+      "aria": "Fuente de nivel C (comunidad o prensa popular)"
+    }
+  },
+  "popover": {
+    "open_source": "Abrir fuente ↗",
+    "read_full_chunk": "Leer fragmento completo",
+    "may_be_outdated": "Puede estar desactualizado",
+    "last_reviewed": "Última revisión {{date}}",
+    "close_aria": "Cerrar cita",
+    "leanshot_research_disclosure": "Investigación LeanShot (cohorte k≥5, ruido DP-ε aplicado)"
+  },
+  "sources_footer": {
+    "label": "Fuentes ({{count}})",
+    "aria": "Sección de fuentes — {{count}} citas"
+  },
+  "citation_marker": {
+    "aria": "Abrir cita {{n}}"
+  },
+  "refusal": {
+    "out_of_corpus": "No tengo evidencia para eso en nuestra base de conocimientos. Consulte a su médico o pregunte sobre un tema relacionado del que sí tengo información.",
+    "pharma_02": "Ese tema requiere orientación clínica — por favor consulte a su médico.",
+    "citation_validation_failed": "No tengo confianza en la evidencia de apoyo — por favor reformule su pregunta."
+  }
+}

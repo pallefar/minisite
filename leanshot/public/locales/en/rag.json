@@ -1,0 +1,38 @@
+{
+  "attribution": "{{source_name}} · As of {{date}} · Tier {{tier}}",
+  "disclaimer": "Not medical advice — consult your clinician.",
+  "tier": {
+    "A": {
+      "label": "Tier A",
+      "aria": "Tier A source (highest trust — FDA label or NLM)"
+    },
+    "B": {
+      "label": "Tier B",
+      "aria": "Tier B source (established health source — clinical guideline)"
+    },
+    "C": {
+      "label": "Tier C",
+      "aria": "Tier C source (community or lay press)"
+    }
+  },
+  "popover": {
+    "open_source": "Open source ↗",
+    "read_full_chunk": "Read full chunk",
+    "may_be_outdated": "May be outdated",
+    "last_reviewed": "Last reviewed {{date}}",
+    "close_aria": "Close citation",
+    "leanshot_research_disclosure": "LeanShot Research (k≥5 cohort, DP-ε noise applied)"
+  },
+  "sources_footer": {
+    "label": "Sources ({{count}})",
+    "aria": "Sources section — {{count}} citations"
+  },
+  "citation_marker": {
+    "aria": "Open citation {{n}}"
+  },
+  "refusal": {
+    "out_of_corpus": "I don't have evidence for that in our knowledge base. Please consult your clinician or ask about a related topic I do have information on.",
+    "pharma_02": "That topic requires clinician guidance — please ask your doctor.",
+    "citation_validation_failed": "I'm not confident in the supporting evidence — please rephrase your question."
+  }
+}
