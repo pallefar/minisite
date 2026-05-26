@@ -130,6 +130,8 @@ const VALID_CATEGORIES = new Set<Category>([
   'daily_community_digest',
   'weekly_community_digest',
   'helpdesk-reply',
+  // Phase 60 Plan 60-11 — RAG tip-of-the-day push category (RAG-07).
+  'research_tips',
 ]);
 
 interface DispatchBody {

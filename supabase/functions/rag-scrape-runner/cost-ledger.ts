@@ -22,7 +22,7 @@
 
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
-export type RagVendor = 'firecrawl' | 'openai_embed' | 'anthropic_summary' | 'resend';
+export type RagVendor = 'firecrawl' | 'openai_embed' | 'anthropic_summary' | 'resend' | 'anthropic_tip_of_day' | 'anthropic_newsletter';
 
 export type CostStatus = 'ok' | 'warn' | 'capped';
 

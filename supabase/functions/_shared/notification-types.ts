@@ -43,7 +43,10 @@ export type Category =
   | 'weekly_community_digest'
   // Phase 54 Plan 54-01 — helpdesk reply notifications (PUSH-06).
   // Must match 20280201000002_p54_notification_helpdesk_widening.sql.
-  | 'helpdesk-reply';
+  | 'helpdesk-reply'
+  // Phase 60 Plan 60-01 — RAG tip-of-the-day research tips (RAG-07).
+  // Must match 20281201000003_phase60_push_categories.sql CHECK widening.
+  | 'research_tips';
 
 export type Channel = 'email' | 'web-push' | 'in-app';
 
