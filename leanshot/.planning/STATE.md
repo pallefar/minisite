@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
-status: completed
-last_updated: "2026-05-26T20:54:55.247Z"
+status: in_progress
+last_updated: "2026-05-26T23:00:00Z"
 progress:
   total_phases: 20
-  completed_phases: 11
-  total_plans: 69
-  completed_plans: 64
-  percent: 93
+  completed_phases: 12
+  total_plans: 77
+  completed_plans: 72
+  percent: 94
 ---
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 62 COMPLETE (2026-05-26) — All 8 plans shipped; 6 migrations applied to remote (incl. matview reorder), 1 Fn (research-publish) deployed ACTIVE; 84 tests green (61 + 62 React + phase62-eval + handler + renderer). Advancing to Phase 63.
+**Status:** Phase 64 COMPLETE (2026-05-26) — All 8 plans shipped; 5 migrations applied to remote, 2 Fns deployed (privacy-optout-process + grandfathered-policy-notice), 62 tests green across legal/dsar/consent surfaces. LEGAL-01..09 + AUTH-16 all Complete. Advancing to Phase 65 (Stripe Tax).
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,9 +27,9 @@ progress:
 
 ## Current Position
 
-- **Phase:** 62 COMPLETE — Insights & Research Engine shipped: 5 matviews + 7 SECDEF RPCs (k-anonymity floor + Laplace noise + 2-person publish_research + research_consent purge) + research-publish Edge Fn + admin cohort builder + admin publications + public /research/* hub + settings consent toggle + KB shortcode plugin wired. INSIGHTS-09 RAG feedback loop delivers: `publish_research` inserts directly into rag_chunks (per iter-1 BLOCKER 2 fix). INSIGHTS-01..10 all Complete.
-- **Last completed:** Phase 62 close-out 2026-05-26. Plan 08 inline. Matview migration reorder forced (20290102000002 → 000010) because 000002 referenced p.research_consent (added in 000003).
-- **Status:** autonomous run `61→69`. **Phase 63 restructured 2026-05-26**: moved to Phase 69.5 (final pre-launch cleanup, mirrors Phase 60.5 decimal pattern) per user direction *"need this to be the final phase to clean everything before launching"*. Phase 69.5 now absorbs tech-debt items from Phases 60/61/62 CARRY-OVER.md (18 success criteria total — 5 original DEBT + 13 absorbed). Advancing to Phase 64 (Legal Refresh).
+- **Phase:** 64 COMPLETE — Legal Refresh shipped: 5 DB tables (privacy_optout_requests, policy_notice_log, ad_targeting_exclusion, email_lifecycle_exclusion, data_rights_requests) + 2 Edge Fns (privacy-optout-process + grandfathered-policy-notice) + PrivacyPolicy 5 state addendums (CA/VA/CO/CT/UT) + SubprocessorList live-fetch + ToS UGC content-license + 3 new legal pages (DoNotSell/Accessibility/DMCA) + DSAR state-residency extension + cookie banner Do-Not-Sell footer + new routes + sitemap.xml. Stub-then-replace pattern worked clean (64-07 stubs → 64-05 full implementations at merge).
+- **Last completed:** Phase 64 close-out 2026-05-26. Plan 08 inline. DSAR portal tsc cast fix post-merge (data: never → typed array).
+- **Status:** autonomous run `61→69`. Phase 63 restructured to Phase 69.5 (final pre-launch cleanup). Advancing to Phase 65 (Stripe Tax + Payment Resilience).
 
 ### Phase 60 deliverables (this session, 2026-05-26)
 

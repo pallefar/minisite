@@ -193,14 +193,14 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 > Phase 64 — state privacy + policy update + accessibility + DMCA + cookie WCAG. BLOCKER per research.
 
 - [x] **LEGAL-01**: State-privacy disclosures shipped — CCPA/CPRA (California) + CDPA (Virginia) + CPA (Colorado) + CTDPA (Connecticut) + UCPA (Utah) state addendums in `PrivacyPolicy.tsx`; legal-reviewed copy
-- [ ] **LEGAL-02**: "Do Not Sell or Share My Personal Information" footer link + dedicated `/privacy/do-not-sell` opt-out form wired to new `privacy_optout_requests` table; submission triggers PostHog opt-out + ad-network exclusion update
-- [ ] **LEGAL-03**: DSAR portal (v1.3 Phase 22) extended to handle state-rights flavors (CCPA "right to delete" / VA "right to portability" / CO "right to limit sensitive data use" with state-specific intake form variants)
+- [x] **LEGAL-02**: "Do Not Sell or Share My Personal Information" footer link + dedicated `/privacy/do-not-sell` opt-out form wired to new `privacy_optout_requests` table; submission triggers PostHog opt-out + ad-network exclusion update
+- [x] **LEGAL-03**: DSAR portal (v1.3 Phase 22) extended to handle state-rights flavors (CCPA "right to delete" / VA "right to portability" / CO "right to limit sensitive data use" with state-specific intake form variants)
 - [x] **LEGAL-04**: Privacy policy + ToS audit driven from existing Phase 25 `subprocessor-diff` cron output; covers PostHog Session Replay, Anthropic egress, Mux, Stripe Connect, pgvector recommender, traffic-attribution; record-of-changes timestamp + grandfathered-notice email to existing users via lifecycle Edge Fn
-- [ ] **LEGAL-05**: Accessibility statement page at `/legal/accessibility` matching `LegalLayout` pattern; states WCAG 2.2 AA conformance + ADA Title III posture + contact email
-- [ ] **LEGAL-06**: DMCA agent registered with U.S. Copyright Office; `/legal/dmca` page lists agent name + address + email + takedown procedure; `abuse@leanshot.app` mailbox routing configured
-- [ ] **LEGAL-07**: Cookie banner WCAG 2.2 AA re-audit via axe-core; non-conformances fixed; banner copy updated with CPRA-mandated "Do Not Sell" surfaced in same banner (not separate page)
+- [x] **LEGAL-05**: Accessibility statement page at `/legal/accessibility` matching `LegalLayout` pattern; states WCAG 2.2 AA conformance + ADA Title III posture + contact email
+- [x] **LEGAL-06**: DMCA agent registered with U.S. Copyright Office; `/legal/dmca` page lists agent name + address + email + takedown procedure; `abuse@leanshot.app` mailbox routing configured
+- [x] **LEGAL-07**: Cookie banner WCAG 2.2 AA re-audit via axe-core; non-conformances fixed; banner copy updated with CPRA-mandated "Do Not Sell" surfaced in same banner (not separate page)
 - [x] **LEGAL-08**: ToS update for community user-generated-content (Phase 44-49 surfaces); content license clause + community-rules link + takedown procedure cross-referenced from LEGAL-06
-- [ ] **LEGAL-09**: Grandfathered-notice email campaign — one-shot lifecycle send to all pre-v1.4 registered users notifying of policy update + new sharing/processing purposes; honors email-preference + unsubscribe
+- [x] **LEGAL-09**: Grandfathered-notice email campaign — one-shot lifecycle send to all pre-v1.4 registered users notifying of policy update + new sharing/processing purposes; honors email-preference + unsubscribe
 - [ ] **LEGAL-10**: Legal-page link audit + sitemap inclusion — every footer + auth + onboarding surface includes correct cross-links to privacy / ToS / cookie / DMCA / accessibility / do-not-sell
 
 ### WS14 — Stripe Tax + Payment Resilience (PAY, 11 REQ-IDs — research B3+B4+HD9+HD10+HD12)
@@ -227,7 +227,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 - [ ] **AUTH-13**: AAL2 step-up required for sensitive consumer actions (delete-account, export-all-data, change-email) when MFA is enabled; uses `supabase.auth.mfa.getAuthenticatorAssuranceLevel()` per `reference_supabase_v2_aal_api`
 - [ ] **AUTH-14**: Per-IP + per-email sign-in lockout — after 5 failed attempts in 15min, account locks for 30min; `auth_attempts_log` table + Edge Fn middleware on `auth/v1/token` path
 - [ ] **AUTH-15**: Brute-force PostHog alerting — N consecutive failed attempts on same email or N from same IP within window emits `auth_brute_force_detected` event + Slack webhook (VENDOR-09)
-- [ ] **AUTH-16**: Cookie banner mentions sign-in-rate-limiting per CPRA notice-of-security-practices clause (LEGAL-07 cross-reference)
+- [x] **AUTH-16**: Cookie banner mentions sign-in-rate-limiting per CPRA notice-of-security-practices clause (LEGAL-07 cross-reference)
 - [ ] **AUTH-17**: MFA-enabled badge surfaces in admin user-detail view; admins can require MFA per-role (clinic-org admins, affiliate-payout-tier-Gold+, research-opt-in users)
 
 ### WS16 — Operational Runbooks + Observability (OPS, 10 REQ-IDs — research HD3+HD4+HD5+HD14+HD15+HD16)
@@ -442,14 +442,14 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | DEBT-05 | Phase 69.5 | Pending |
 | DEBT-06 | Phase 69.5 | Pending |
 | LEGAL-01 | Phase 64 | Complete |
-| LEGAL-02 | Phase 64 | Pending |
-| LEGAL-03 | Phase 64 | Pending |
+| LEGAL-02 | Phase 64 | Complete |
+| LEGAL-03 | Phase 64 | Complete |
 | LEGAL-04 | Phase 64 | Complete |
-| LEGAL-05 | Phase 64 | Pending |
-| LEGAL-06 | Phase 64 | Pending |
-| LEGAL-07 | Phase 64 | Pending |
+| LEGAL-05 | Phase 64 | Complete |
+| LEGAL-06 | Phase 64 | Complete |
+| LEGAL-07 | Phase 64 | Complete |
 | LEGAL-08 | Phase 64 | Complete |
-| LEGAL-09 | Phase 64 | Pending |
+| LEGAL-09 | Phase 64 | Complete |
 | LEGAL-10 | Phase 64 | Pending |
 | PAY-01 | Phase 65 | Pending |
 | PAY-02 | Phase 65 | Pending |
@@ -466,7 +466,7 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | AUTH-13 | Phase 66 | Pending |
 | AUTH-14 | Phase 66 | Pending |
 | AUTH-15 | Phase 66 | Pending |
-| AUTH-16 | Phase 66 | Pending |
+| AUTH-16 | Phase 66 | Complete |
 | AUTH-17 | Phase 66 | Pending |
 | OPS-01 | Phase 67 | Pending |
 | OPS-02 | Phase 67 | Pending |
