@@ -19,7 +19,7 @@
  *   - Last-sync text: role="status" + aria-live="polite" per UI-SPEC §2.
  *   - Error pill: React auto-escape (no dangerouslySetInnerHTML).
  *
- * Typography: 11/13/18 only — no text-base or text-md.
+ * Typography: 11/13/18 only — no 16px classes (UI-SPEC §2 ceiling).
  */
 
 import { Badge } from '@/components/ui/Badge';
