@@ -1,0 +1,35 @@
+Do-Not-Sell Request Confirmation
+=================================
+
+Hi {{name}},
+
+We have received your Do-Not-Sell opt-out request submitted on {{submitted_at}}
+for state residency: {{state}}.
+
+WHAT HAPPENS NEXT
+-----------------
+
+Your request has been queued for propagation. Per our commitment to CCPA
+compliance, we will process your opt-out within 24 hours — significantly
+faster than the statutory 30-day window.
+
+Specifically, we will:
+
+- Stop selling or sharing your personal data to third-party ad networks
+- Remove you from all targeted advertising segments
+- Exclude you from lifecycle marketing communications
+- Record your opt-out in our compliance log
+
+This confirmation is your record of the request. Please save or print this
+email for your records.
+
+---
+
+Questions? Contact us at privacy@leanshot.app
+
+Privacy Policy: https://leanshot.app/legal/privacy
+Data Rights Portal: https://leanshot.app/account/data-rights
+
+This is a transactional confirmation email. It is not a marketing email.
+
+LeanShot

@@ -125,15 +125,20 @@ function makeQueryBuilder(client: MockSupabaseClient, table: string): MockQueryB
       return Promise.resolve({ data: null, error: null });
     },
     then(resolve) {
-      // Default async resolution for insert/upsert/update chains
-      const op = ops[ops.length - 1] ?? 'unknown';
-      if (op === 'insert' && table === 'privacy_optout_requests') {
+      // Default async resolution for insert/upsert/update chains.
+      // ops accumulates all chained operations; check if 'insert' was part of chain.
+      const hasInsert = ops.includes('insert');
+      const hasUpdate = ops.includes('update');
+      if (hasInsert && table === 'privacy_optout_requests') {
         return Promise.resolve(
           resolve({
             data: [{ id: client._insertId, submitted_at: new Date().toISOString() }],
             error: null,
           }),
         );
+      }
+      if (hasUpdate || ops.includes('upsert')) {
+        return Promise.resolve(resolve({ data: [], error: null }));
       }
       return Promise.resolve(resolve({ data: [], error: null }));
     },
