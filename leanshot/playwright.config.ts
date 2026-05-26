@@ -77,6 +77,13 @@ const P60_TIP_OF_DAY_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_TIP_OF_DAY === '1';
 // Gate: PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN=1 env var only.
 const P60_NEWSLETTER_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN === '1';
 
+// Phase 60 Plan 60-13: opt-in Public Knowledge Hub E2E via PLAYWRIGHT_RUN_P60_KNOWLEDGE_HUB=1.
+// Covers: /knowledge root + topic index + article detail navigation, SEO meta assertions,
+// noindex for private chunks, sitemap.xml, robots.txt, rate-limit evidence, axe-core a11y.
+// Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY for DB seeding.
+// Gate: PLAYWRIGHT_RUN_P60_KNOWLEDGE_HUB=1 env var only.
+const P60_KNOWLEDGE_HUB_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_KNOWLEDGE_HUB === '1';
+
 // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
 // Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
 // pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
@@ -169,6 +176,9 @@ export default defineConfig({
         // Phase 60 Plan 60-12: newsletter opt-in e2e. Requires SUPABASE_SERVICE_ROLE_KEY.
         // Gated by PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN=1.
         /e2e\/newsletter-opt-in\.spec\.ts$/,
+        // Phase 60 Plan 60-13: public knowledge hub e2e. Requires SUPABASE_SERVICE_ROLE_KEY.
+        // Gated by PLAYWRIGHT_RUN_P60_KNOWLEDGE_HUB=1.
+        /e2e\/60-knowledge-hub\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
