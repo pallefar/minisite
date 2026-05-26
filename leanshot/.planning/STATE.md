@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-26T12:21:29.960Z"
+last_updated: "2026-05-26T12:49:41.786Z"
 progress:
   total_phases: 20
   completed_phases: 8
   total_plans: 53
-  completed_plans: 46
-  percent: 47
+  completed_plans: 47
+  percent: 49
 ---
 
 # Milestone v1.4: Launch Readiness
@@ -28,8 +28,8 @@ progress:
 ## Current Position
 
 - **Phase:** 60 (RAG Knowledge Base Completion) — Wave 0 COMPLETE (3/15 plans); Waves 1-3 PAUSED on Phase 60.5 vendor pre-flight
-- **Last completed:** Phase 60 Wave 2 — 60-11 (tip-of-day card + Fn, 6 tasks, 27 deno + 5 vitest, OpenRouter Haiku, ending d5ed6c89). Prior: 60-10 (AI-coach citation UI), 60-09 (admin federated toggle UI, ending 36d6c728), 60-08 (admin queue UI, ending d7d50153).
-- **Status:** 60-11 COMPLETE (2026-05-26). Wave 2 complete (60-10 + 60-11).
+- **Last completed:** Phase 60 Wave 3 — 60-12 (newsletter Fns + opt-in UI, 9 tasks, 33 deno + 23 vitest + 8 E2E gated, ending 70e4adc2). Prior: 60-11 (tip-of-day card + Fn, 6 tasks, 27 deno + 5 vitest, OpenRouter Haiku, ending d5ed6c89).
+- **Status:** 60-12 COMPLETE (2026-05-26). Wave 3 in progress (60-12 done; 60-13, 60-14, 60-15 remain).
 
 ### Phase 60 PAUSE — Wave 1 vendor blockers (resume notes)
 
@@ -51,7 +51,7 @@ Wave 0 (3 plans) shipped CLEAN — no vendor secrets needed. **Wave 1 (6 plans) 
 
 **Wave 3 (4 plans):**
 
-- ⚠️ **60-12** (newsletter) — needs `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY` ✅ SET via openssl rand-hex-32 + RESEND_API_KEY ✅ existing — CAN ship
+- ✅ **60-12** (newsletter Fns + opt-in UI) — COMPLETE 2026-05-26 (ending 70e4adc2)
 - ⚠️ **60-13** (public /knowledge hub) — depends_on 60-06 — gates on Phase 60.5
 - ⚠️ **60-14** (cost dashboard) — needs `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_PROJECT_ID` ✅ SET — partial
 - ⚠️ **60-15 BLOCKING** (`autonomous: false`) — Phase close-out; gates on ALL above
