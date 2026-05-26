@@ -65,6 +65,18 @@ export default defineConfig({
             : ['default'],
         },
       },
+      {
+        // Edge Function unit tests (Vitest, no Deno runtime).
+        // handler.ts files use DI — no Deno.* imports — so they run cleanly here.
+        // Run: npx vitest run --project=functions-unit
+        // Phase 61 protocol-ai-assist + Phase 62 research-publish handlers.
+        test: {
+          name: 'functions-unit',
+          environment: 'node',
+          globals: true,
+          include: ['../supabase/functions/**/__tests__/*.test.ts'],
+        },
+      },
     ],
   },
 });
