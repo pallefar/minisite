@@ -11,6 +11,13 @@ import { AIAvatar } from '@/illustrations/AIAvatar';
 import { AIUnavailableError, RateLimitedError, callAIChat } from '@/lib/ai';
 import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
+// Phase 60 Plan 60-10 — RAG citation UI (additive augmentation; AI-04 fence untouched)
+import { CitationMarker } from './CitationMarker';
+import { CitationPopover } from './CitationPopover';
+import { SourcesFooter } from './SourcesFooter';
+import { RefusalCard } from './RefusalCard';
+import { parseCitations } from '@/lib/rag/remark-citations';
+import type { SourceCitationEntry } from './SourcesFooter';
 
 interface AIChatPanelProps {
   open: boolean;
@@ -65,6 +72,12 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
 
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  // Phase 60 Plan 60-10 — popover state for citation marker activation
+  const [popoverState, setPopoverState] = useState<{
+    chunkId: string;
+    anchorEl: HTMLElement;
+    siblings: string[];
+  } | null>(null);
   // Phase 14 Plan 14-05 — CONTEXT D-07: local model selector state.
   // Wiring to the actual @/lib/ai request payload is deferred to Phase 14
   // follow-up (the gate visibility is the user-observable unlock).
@@ -222,7 +235,15 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                   </div>
                 )}
                 {history.map((m, i) => (
-                  <Bubble key={i} role={m.role} content={m.content} hasRef={m.hasDataReference} />
+                  <Bubble
+                    key={i}
+                    role={m.role}
+                    content={m.content}
+                    hasRef={m.hasDataReference}
+                    onCitationClick={(chunkId, anchorEl, siblings) =>
+                      setPopoverState({ chunkId, anchorEl, siblings })
+                    }
+                  />
                 ))}
                 {busy && <ThinkingBubble />}
                 <div ref={messagesEndRef} />
@@ -273,6 +294,16 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                   {t('patient:ai.disclaimer')}
                 </p>
               </div>
+
+              {/* Phase 60 Plan 60-10 — CitationPopover (mounted at panel root) */}
+              {popoverState && (
+                <CitationPopover
+                  chunkId={popoverState.chunkId}
+                  anchorEl={popoverState.anchorEl}
+                  siblings={popoverState.siblings}
+                  onClose={() => setPopoverState(null)}
+                />
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -291,16 +322,98 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
   );
 }
 
+// Phase 60 Plan 60-10 — Refusal sentinel regex (anchored to message start)
+const REFUSAL_SENTINEL_RE = /^\[\[REFUSAL:(pharma_02|out_of_corpus|citation_validation_failed)\]\]/;
+
 function Bubble({
   role,
   content,
   hasRef,
+  onCitationClick,
 }: {
   role: 'user' | 'assistant';
   content: string;
   hasRef?: boolean;
+  onCitationClick?: (chunkId: string, anchorEl: HTMLElement, siblings: string[]) => void;
 }) {
   const { t } = useTranslation('patient');
+
+  // Phase 60 Plan 60-10 — assistant message augmentation (additive; AI-04 ctx composition unchanged)
+  if (role === 'assistant') {
+    // 1. Detect refusal sentinel (anchored to start of message per AI-SPEC §6 G5)
+    const refusalMatch = REFUSAL_SENTINEL_RE.exec(content);
+    if (refusalMatch) {
+      const kind = refusalMatch[1] as 'pharma_02' | 'out_of_corpus' | 'citation_validation_failed';
+      return (
+        <div className="flex">
+          <div className="max-w-[88%]">
+            <RefusalCard kind={kind} />
+          </div>
+        </div>
+      );
+    }
+
+    // 2. Parse citation markers (UUID [<uuid>] tokens from 60-06 synthesis Fn)
+    const { segments, citations } = parseCitations(content);
+    const hasCitations = citations.length > 0;
+
+    if (hasCitations) {
+      // Build sibling chunkIds list for ←/→ cycling in CitationPopover
+      const siblingChunkIds = citations.map((c) => c.chunkId);
+
+      // Build sources footer citation entries
+      // We need source metadata — but at parse time we only have chunkId + refIndex.
+      // SourcesFooter needs sourceName + sourceTier + canonicalUrl which require an API call.
+      // For the footer we pass minimal data; CitationPopover fetches the full chunk on open.
+      // Use a deferred approach: SourcesFooter receives the basic refs; it will display
+      // what it has (chunkId as placeholder name when details unavailable).
+      // Per plan spec, SourcesFooter takes CitationRef with sourceName etc —
+      // at render time we don't have this. We'll render a simplified footer with
+      // the citation index only. This is sufficient for the collapsible source count UX.
+      const footerCitations: SourceCitationEntry[] = citations.map((c) => ({
+        chunkId: c.chunkId,
+        refIndex: c.refIndex,
+        // These will be filled lazily when popover is opened; for the footer list
+        // we show the refIndex + a truncated chunkId as placeholder source name.
+        sourceName: `Citation ${c.refIndex}`,
+        sourceTier: 'A' as const, // placeholder — popover shows real tier
+        canonicalUrl: `#citation-${c.refIndex}`,
+      }));
+
+      return (
+        <div className="flex">
+          <div className="max-w-[88%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text)] rounded-bl-md">
+            {hasRef && (
+              <>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 rounded-pill bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[10px] font-bold uppercase tracking-[0.06em]">
+                  <Sparkles className="size-3" /> {t('patient:ai.badge_personalized')}
+                </span>
+                <br />
+              </>
+            )}
+            {segments.map((seg, idx) => {
+              if (seg.type === 'text') {
+                return <span key={idx} className="whitespace-pre-wrap">{seg.text}</span>;
+              }
+              return (
+                <CitationMarker
+                  key={idx}
+                  refIndex={seg.refIndex}
+                  chunkId={seg.chunkId}
+                  onActivate={(chunkId, el) => {
+                    onCitationClick?.(chunkId, el, siblingChunkIds);
+                  }}
+                />
+              );
+            })}
+            <SourcesFooter citations={footerCitations} />
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Existing render path — unchanged for user messages AND assistant messages without citations
   return (
     <div className={cn('flex', role === 'user' && 'justify-end')}>
       <div
