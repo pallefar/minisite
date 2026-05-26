@@ -905,6 +905,197 @@ Deno.test({
   },
 });
 
+// =============================================================================
+// Phase 65 Plan 03 — Stripe Tax + B2B tax_id_collection tests (PAY-01/02/03)
+// =============================================================================
+//
+// Per CONTEXT.md D-01/D-02/D-03:
+// - Every session: automatic_tax: { enabled: true } + customer_update: { address: 'auto', name: 'auto' }
+// - Clinic sessions ONLY: tax_id_collection: { enabled: true }
+// - Consumer (web + lifetime) sessions: NO tax_id_collection
+// - Stripe Tax must be enabled in Dashboard (operator gate via Plan 65-10) — code
+//   ships the flag unconditionally; deploy-time smoke test ratifies enablement.
+
+Deno.test({
+  name: '65-03 / Test 1: web subscription session includes automatic_tax: { enabled: true }',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-T1', email: 't1@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_t1' } },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'plus_monthly' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const autoTax = params['automatic_tax'] as Record<string, unknown>;
+    assertExists(autoTax);
+    assertEquals(autoTax['enabled'], true);
+  },
+});
+
+Deno.test({
+  name: '65-03 / Test 2: web subscription session includes customer_update: { address: auto, name: auto }',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-T2', email: 't2@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_t2' } },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'plus_monthly' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    const custUpdate = params['customer_update'] as Record<string, unknown>;
+    assertExists(custUpdate);
+    assertEquals(custUpdate['address'], 'auto');
+    assertEquals(custUpdate['name'], 'auto');
+  },
+});
+
+Deno.test({
+  name: '65-03 / Test 3: web subscription session does NOT include tax_id_collection',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeFakeAdmin({
+      user: { id: 'user-uuid-T3', email: 't3@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_t3' } },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'plus_monthly' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    assertEquals(params['tax_id_collection'], undefined);
+  },
+});
+
+Deno.test({
+  name: '65-03 / Test 4: clinic subscription session includes tax_id_collection + automatic_tax + customer_update',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeQueueAdmin({
+      user: { id: 'user-uuid-T4', email: 'owner@clinic.com' },
+      queues: {
+        memberships: [{ id: 'mbr-T4', roles: { name: 'Owner' } }],
+        clinic_stripe_customers: [{ stripe_customer_id: 'cus_clinic_T4' }],
+      },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const clinicId = '00000000-0000-0000-0000-000000000065';
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'clinic', clinic_id: clinicId }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+
+    // tax_id_collection MUST be present on clinic branch
+    const taxIdCol = params['tax_id_collection'] as Record<string, unknown>;
+    assertExists(taxIdCol);
+    assertEquals(taxIdCol['enabled'], true);
+
+    // automatic_tax MUST also be present
+    const autoTax = params['automatic_tax'] as Record<string, unknown>;
+    assertExists(autoTax);
+    assertEquals(autoTax['enabled'], true);
+
+    // customer_update MUST also be present
+    const custUpdate = params['customer_update'] as Record<string, unknown>;
+    assertExists(custUpdate);
+    assertEquals(custUpdate['address'], 'auto');
+    assertEquals(custUpdate['name'], 'auto');
+  },
+});
+
+Deno.test({
+  name: '65-03 / Test 5: lifetime payment session includes automatic_tax + customer_update (no tax_id_collection)',
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const stripeStub = makeStripeStub({});
+    __setStripeForTest(asStripeProxy(stripeStub));
+
+    const fakeAdmin = makeP43Admin({
+      user: { id: 'user-uuid-T5', email: 't5@test.com' },
+      tables: { stripe_customers: { stripe_customer_id: 'cus_t5_lt' } },
+      rpcs: { resolve_user_effective_price: 'price_LIFETIME_DEFAULT' },
+    });
+    __setAdminForTest(fakeAdmin);
+
+    const req = new Request('http://localhost/functions/v1/stripe-checkout/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer stub-jwt' },
+      body: JSON.stringify({ plan: 'lifetime' }),
+    });
+
+    const res = await handleSession(req);
+    assertEquals(res.status, 200);
+
+    const params = stripeStub.checkout.sessions.create.calls[0]![0] as Record<string, unknown>;
+    assertEquals(params['mode'], 'payment');
+
+    // automatic_tax must apply to lifetime (mode='payment') too
+    const autoTax = params['automatic_tax'] as Record<string, unknown>;
+    assertExists(autoTax);
+    assertEquals(autoTax['enabled'], true);
+
+    // customer_update applies to mode='payment' because ensureWebCustomer
+    // creates the Stripe customer BEFORE sessions.create.
+    const custUpdate = params['customer_update'] as Record<string, unknown>;
+    assertExists(custUpdate);
+    assertEquals(custUpdate['address'], 'auto');
+    assertEquals(custUpdate['name'], 'auto');
+
+    // tax_id_collection NOT on lifetime (consumer flow)
+    assertEquals(params['tax_id_collection'], undefined);
+  },
+});
+
 // --- 43-04 / Test 6: existing 'clinic' branch unchanged (regression) -------
 
 Deno.test({

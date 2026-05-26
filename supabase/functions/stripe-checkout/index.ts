@@ -523,6 +523,30 @@ export async function handleSession(req: Request): Promise<Response> {
     : { user_id: user.id, provider: 'stripe', tier_kind: 'web', aff_code: affCode ?? '' };
 
   // 8. Create Stripe Checkout session
+  //
+  // Phase 65 Plan 03 — Stripe Tax + B2B tax_id_collection (PAY-01/02/03, D-01/D-02/D-03).
+  //
+  // - `automatic_tax: { enabled: true }` — applied to EVERY session (web/lifetime/clinic).
+  //   Defers tax calculation to Stripe Tax. Requires Stripe Tax to be enabled in the
+  //   Dashboard BEFORE deploy — operator action documented in Plan 65-10 close-out
+  //   (`stripe.tax.calculations.create()` smoke test at deploy time, see 65-CONTEXT.md
+  //   "Stripe Tax + B2B tax_id Collection").
+  //
+  // - `customer_update: { address: 'auto', name: 'auto' }` — required so the
+  //   address-on-file collected at Checkout flows back to the Stripe Customer record
+  //   that subsequent invoice tax calculations read. Safe for mode='payment'
+  //   (lifetime) because ensureWebCustomer creates the customer BEFORE this call.
+  //
+  // - `tax_id_collection: { enabled: true }` — ADDED on the clinic branch ONLY
+  //   (B2B Owner purchasing an org subscription on behalf of a clinic entity).
+  //   Consumer flows (web subscription + lifetime) deliberately skip this to avoid
+  //   B2C checkout friction; `customer_update.address` is sufficient for consumer
+  //   tax calc. Mirroring the collected tax_id to org_subscriptions.tax_id is
+  //   handled in Plan 65-04 via the `checkout.session.completed` webhook event
+  //   handler — NOT this Edge Fn.
+  //
+  // Affiliate-payout flow (Stripe Connect Express payouts) is OUT OF SCOPE for
+  // this Edge Fn — those are payouts, not Checkout sessions, and Phase 26 owns them.
   try {
     // deno-lint-ignore no-explicit-any
     const sessionParams: Record<string, any> = {
@@ -531,11 +555,22 @@ export async function handleSession(req: Request): Promise<Response> {
       line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,
+      // PAY-01 / D-01: Stripe Tax on every session.
+      automatic_tax: { enabled: true },
+      // PAY-02 / D-02: address-on-file feeds future invoice tax calc.
+      customer_update: { address: 'auto', name: 'auto' },
       // Aff-code attribution at session-level (forward-compat for checkout.session.completed).
       metadata: { aff_code: affCode ?? '' },
       // client_reference_id remains the clinic_id/user_id linkage (Phase 14 contract).
       client_reference_id: clinicId ?? user.id,
     };
+
+    // PAY-03 / D-03: B2B clinic-org sessions ALSO collect tax IDs. Consumer
+    // (web + lifetime) flows must NOT set this — checked-explicitly so future
+    // additions to the plan enum don't accidentally inherit it.
+    if (plan === 'clinic') {
+      sessionParams['tax_id_collection'] = { enabled: true };
+    }
 
     if (plan === 'lifetime') {
       // Pitfall 10 (per 43-RESEARCH): lifetime MUST be mode='payment', never
