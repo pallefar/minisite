@@ -22,11 +22,19 @@ export interface LegalLink {
   hash: string;
 }
 
+// Phase 64 Plan 64-07 — Extended to 8 entries (4 existing + 4 new).
+// Note: 'Data rights (DSAR)' uses a pathname route (/settings/privacy/dsar) because
+// the DSAR portal is auth-required; Phase 22 Plan 22-11 wired it as a PATH route,
+// not a hash route. LegalFooter renders it as a normal <a href> which selectView picks up.
 export const LEGAL_LINKS: readonly LegalLink[] = [
   { label: 'Privacy policy', hash: '#/legal/privacy' },
   { label: 'Consumer health data (WA residents)', hash: '#/legal/consumer-health' },
   { label: 'Terms of service', hash: '#/legal/terms' },
   { label: 'Medical disclaimer', hash: '#/legal/disclaimer' },
+  { label: 'Accessibility', hash: '#/legal/accessibility' },
+  { label: 'DMCA', hash: '#/legal/dmca' },
+  { label: 'Do Not Sell or Share', hash: '#/privacy/do-not-sell' },
+  { label: 'Data rights (DSAR)', hash: '/settings/privacy/dsar' },
 ] as const;
 
 export interface LegalFooterProps {
