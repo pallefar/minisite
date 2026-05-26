@@ -18,6 +18,7 @@
 - [x] **Phase 58: Spanish i18n Wiring** — Contractor TMX import + glossary integration + ES KB articles + ES smoke spec
 - [x] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished
 - [ ] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
+- [ ] **Phase 60.5: Late-Phase Vendor Setup (60-69)** — `autonomous: false`. Consolidates operator-required vendor onboarding that emerged during Phase 60-69 planning: Cohere Rerank, OpenAI direct + Vercel AI Gateway, PostHog Personal API key (cost dashboard), Jina/PubMed/OpenFDA optional, Slack guardrail webhook vault entry. Mirrors Phase 52 pattern; runtime-verification of Phase 60+ gates on this.
 - [ ] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
 - [ ] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
 - [ ] **Phase 63: Device-UAT + Tech Debt Cleanup** — Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign
@@ -273,6 +274,34 @@ Plans:
 
 **Plans**: TBD
 **UI hint**: yes
+
+> Signals roll up to Phase 70 — see consolidated UAT phase.
+
+### Phase 60.5: Late-Phase Vendor Setup (60-69)
+
+**Goal**: Consolidate ALL operator-required vendor onboarding that emerged during Phase 60-69 planning into a single phase, per [[feedback_vendor_secret_preflight_surface]]. Mirrors Phase 52 vendor-setup-foundation pattern but for downstream v1.4 vendors. `autonomous: false` — operator runs CLI + dashboard signups.
+
+3 secrets already set programmatically (committed by autonomous run 2026-05-26):
+- ✅ `POSTHOG_PROJECT_ID=140479`
+- ✅ `RAG_RERANKER_PROVIDER=cohere` (env-flag default)
+- ✅ `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY` (openssl rand -hex 32)
+
+**Depends on**: Phase 52 (Vendor Setup Foundation patterns + vendor_smoke_log infra + runbooks/vendor-secrets.md)
+**Requirements**: VENDOR-13, VENDOR-14, VENDOR-15, VENDOR-16, VENDOR-17, VENDOR-18 (new — extend Phase 52 vendor registry)
+**Success Criteria** (what must be TRUE):
+
+  1. `COHERE_API_KEY` set + `vendor_smoke_log` shows green Cohere Rerank v3.5 smoke (Phase 60 60-06 rerank path)
+  2. `JINA_API_KEY` set (optional fallback — admin can swap via `RAG_RERANKER_PROVIDER=jina`)
+  3. `OPENAI_API_KEY` (or `AI_GATEWAY_API_KEY_CONSUMER` path verified) set + embedding smoke green (60-05)
+  4. `VERCEL_AI_GATEWAY_TOKEN` (or equivalent) set; cost-tracking proxy path verified (60-05, 60-06)
+  5. `POSTHOG_PERSONAL_API_KEY` set + cost dashboard HogQL query smoke green (60-14)
+  6. `PUBMED_API_KEY` + `OPENFDA_API_KEY` set (optional; relaxes federated rate-limits for 60-07)
+  7. Vault entry `slack_guardrail_webhook` populated (Slack incoming-webhook URL) for 60-02 guardrail alerts
+  8. `.planning/runbooks/vendor-secrets.md` updated with Phase 60-69 vendor registry rows (Cohere, Jina, PubMed, OpenFDA, PostHog-personal, Slack-webhook)
+  9. Runtime-verify of Phase 60 plans gated on these secrets re-run successfully after secret-set (Wave 1 retrieval/rerank/embed/federated paths)
+
+**Plans**: TBD (operator-driven; mostly CLI + dashboard signups + one runbook update)
+**UI hint**: no (admin infra only)
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
