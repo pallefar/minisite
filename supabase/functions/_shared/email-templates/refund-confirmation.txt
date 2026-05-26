@@ -1,0 +1,24 @@
+LeanShot Refund Confirmation
+============================
+
+Your refund has been processed
+
+Hi,
+
+We've processed your refund of $${amountDollars} ${currencyUpper} ${eligibilityCopy}.
+
+Please allow 5-10 business days for the funds to appear on your original payment
+method. Refund timing depends on your bank or card issuer.
+
+Your LeanShot subscription has been cancelled. You can re-subscribe anytime at
+https://leanshot.app/settings.
+
+Questions? Reply to this email or contact billing-support@leanshot.app.
+
+---
+
+This is a transactional confirmation. It is not a marketing email.
+
+Unsubscribe: ${unsubscribeUrl}
+
+LeanShot — ${physicalAddress}
