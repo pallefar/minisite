@@ -1,9 +1,11 @@
 /**
- * Phase 62 Plan 62-04 Task 1 — CohortBuilderForm unit tests (TDD RED).
+ * Phase 62 Plan 62-04 Task 1 — CohortBuilderForm unit tests (TDD GREEN).
  *
  * Tests for k_floor sentinel UX, estimate display, and Run Cohort wiring.
  * Uses @testing-library/react with vitest globals.
  */
+import React from 'react';
+import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CohortBuilderForm } from '../CohortBuilderForm';
