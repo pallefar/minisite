@@ -57,6 +57,13 @@ const ES_SMOKE_OPT_IN = process.env.PLAYWRIGHT_RUN_ES_SMOKE === '1';
 // Per [[reference_playwright_conditional_project_argv]] — env var gate only.
 const RAG_QUEUE_OPT_IN = process.env.PLAYWRIGHT_RUN_RAG_QUEUE === '1';
 
+// Phase 60 Plan 60-10: opt-in AI coach citation UI e2e via PLAYWRIGHT_RUN_P60_COACH_CITATION=1.
+// Covers: citation marker render, popover open/content, ESC close/focus-return, refusal UX
+// (PHARMA-02 + out-of-corpus), a11y role=dialog, XSS sanitization smoke (T-60-10-XSS-1).
+// Uses page.route() to mock rag-retrieve + server-rag-event-relay Edge Fn calls.
+// Gate: PLAYWRIGHT_RUN_P60_COACH_CITATION=1 env var only.
+const P60_COACH_CITATION_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_COACH_CITATION === '1';
+
 // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
 // Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
 // pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
@@ -140,6 +147,9 @@ export default defineConfig({
         // Phase 60 Plan 60-08: RAG queue admin e2e requires dev server + mocked
         // Supabase RPCs. Gated by PLAYWRIGHT_RUN_RAG_QUEUE=1.
         /e2e\/admin\/rag-queue\.spec\.ts$/,
+        // Phase 60 Plan 60-10: AI coach citation UI e2e. Uses page.route() mocks.
+        // Gated by PLAYWRIGHT_RUN_P60_COACH_CITATION=1.
+        /e2e\/60-ai-coach-citation\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -295,6 +305,20 @@ export default defineConfig({
           {
             name: 'p60-rag-queue',
             testMatch: [/e2e\/admin\/rag-queue\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 60 Plan 60-10 — opt-in AI coach citation UI e2e.
+    // Invoke via `PLAYWRIGHT_RUN_P60_COACH_CITATION=1 npx playwright test --project=p60-coach-citation`.
+    // Tests: citation marker render, popover open/ESC/focus-return, refusal UX,
+    // a11y role=dialog, XSS sanitization smoke (T-60-10-XSS-1).
+    // Uses page.route() to mock rag-retrieve + server-rag-event-relay — no live Supabase needed.
+    ...(P60_COACH_CITATION_OPT_IN
+      ? [
+          {
+            name: 'p60-coach-citation',
+            testMatch: [/e2e\/60-ai-coach-citation\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
