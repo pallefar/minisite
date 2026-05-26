@@ -64,6 +64,12 @@ const LeaderboardsSubtab = lazy(() =>
   import('./LeaderboardsSubtab').then((m) => ({ default: m.LeaderboardsSubtab })),
 );
 
+// Phase 60 Plan 60-12 (RAG-08): Research newsletter opt-in section — lazy-loaded
+// to keep the newsletter API wrapper + Supabase calls out of the main settings chunk.
+const NewsletterSettings = lazy(() =>
+  import('./NewsletterSettings').then((m) => ({ default: m.NewsletterSettings })),
+);
+
 /**
  * Phase 22 plan 22-11: link-out NAV IDs. Clicking these navigates to a
  * dedicated `/settings/*` route instead of swapping the modal section.
@@ -94,6 +100,9 @@ const NAV: { id: Section; Icon: typeof UserIcon }[] = [
   // calls i18n.changeLanguage atomically.
   { id: 'language', Icon: Globe },
   { id: 'notifications', Icon: Bell },
+  // Phase 60 Plan 60-12 (RAG-08): research newsletter opt-in. Sits after push
+  // notifications so communication-preference items cluster together visually.
+  { id: 'newsletter', Icon: Mail },
   // Phase 35 Plan 35-08 (GAME-04): leaderboard opt-in settings.
   { id: 'leaderboards', Icon: Trophy },
   { id: 'privacy', Icon: Shield },
@@ -589,6 +598,18 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               {/* Phase 42 Plan 42-08 (POLISH-05/06): 5×3 matrix + push permission +
                   snooze + caps + suppression banner. Replaces the v1.1 stub. */}
               <NotificationsSubtab />
+            </Section>
+          )}
+
+          {/* Phase 60 Plan 60-12 (RAG-08): research newsletter opt-in + topic preferences. */}
+          {section === 'newsletter' && (
+            <Section
+              title={t('settings:section.notifications.title', 'Research newsletter')}
+              body=""
+            >
+              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
+                <NewsletterSettings />
+              </Suspense>
             </Section>
           )}
 

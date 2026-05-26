@@ -28,6 +28,8 @@ export type Section =
   | 'phi-access-log'
   | 'security'
   | 'healthkit'
+  // Phase 60 Plan 60-12: research newsletter opt-in
+  | 'newsletter'
   | 'dev';
 
 export function sectionLabel(t: TFunction, id: Section): string {
@@ -66,6 +68,9 @@ export function sectionLabel(t: TFunction, id: Section): string {
       return t('settings:nav.security');
     case 'healthkit':
       return t('settings:nav.healthkit');
+    // Phase 60 Plan 60-12: research newsletter opt-in section
+    case 'newsletter':
+      return t('settings:nav.newsletter');
     case 'dev':
       return t('settings:nav.dev');
     default: {
