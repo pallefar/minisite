@@ -431,6 +431,22 @@ const LegalNotFound = lazy(() =>
   })),
 );
 
+// Phase 64 Plan 64-07 — Three new legal page lazy chunks for Plan 64-05's
+// DoNotSellPage / AccessibilityPage / DMCAPage. Each is its own lazy boundary
+// (mirrors Phase 7 pattern; preserves 50 kB index gz ceiling). Plan 64-05 stubs
+// these in the same wave; the final implementations replace the stubs at merge time.
+// Per [[reference_react_router_consumer_admin_split]] consumer surface uses hash
+// routes; do NOT add react-router-dom Route — stay Zustand+hash.
+const DoNotSellPage = lazy(() =>
+  import('@/components/legal/DoNotSellPage').then((m) => ({ default: m.DoNotSellPage })),
+);
+const AccessibilityPage = lazy(() =>
+  import('@/components/legal/AccessibilityPage').then((m) => ({ default: m.AccessibilityPage })),
+);
+const DMCAPage = lazy(() =>
+  import('@/components/legal/DMCAPage').then((m) => ({ default: m.DMCAPage })),
+);
+
 // Phase 19 Plan 19-09 (BL-4) — pre-construct lazy components ONCE per registry
 // entry. Building the lazy() wrapper inside resolveRoute() on every render
 // would defeat React.lazy's component identity caching (each render would
@@ -534,6 +550,11 @@ function selectLegalPage(hash: string): React.LazyExoticComponent<React.Componen
       return TermsOfServicePage;
     case '#/legal/disclaimer':
       return MedicalDisclaimerPage;
+    // Phase 64 Plan 64-07 — three new legal hash routes (LEGAL-07 + LEGAL-10).
+    case '#/legal/accessibility':
+      return AccessibilityPage;
+    case '#/legal/dmca':
+      return DMCAPage;
     default:
       return LegalNotFound;
   }
@@ -651,7 +672,11 @@ type View =
   // Phase 61 Plan 07 — /protocols/<slug> auth-gated read-only protocol view (PROTOCOL-08).
   // PATH-based routing; placed AFTER /knowledge/* (public) and BEFORE /clinic/* + admin branches.
   // Unlike /knowledge (no-auth), this branch REQUIRES auth — unauthenticated users bounce to 'auth'.
-  | 'protocols';
+  | 'protocols'
+  // Phase 64 Plan 64-07 — /privacy/do-not-sell standalone page (LEGAL-07 CPRA).
+  // Hash route: #/privacy/do-not-sell (NOT under #/legal/* namespace per UI-SPEC §2 + CONTEXT).
+  // Public no-auth: same as legal pages; renders DoNotSellPage lazy chunk.
+  | 'do-not-sell';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -709,6 +734,10 @@ function pushViewLog(entry: ViewLogEntry): void {
 function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; pathname: string }): View {
   if (opts.hash.startsWith('#/share/')) return 'share';
   if (opts.hash.startsWith('#/legal/')) return 'legal';
+  // Phase 64 Plan 64-07 — /privacy/do-not-sell CPRA opt-out page (LEGAL-07).
+  // Uses hash prefix #/privacy/ (NOT #/legal/) per UI-SPEC §2; public no-auth.
+  // Must be checked BEFORE any user-gated branch so anon visitors land correctly.
+  if (opts.hash.startsWith('#/privacy/do-not-sell')) return 'do-not-sell';
   // Phase 60 Plan 60-13 — /knowledge/* public hub (RAG-09). TOP-PRIORITY
   // pathname branch: runs BEFORE auth-callback, clinic-invite, admin, and
   // dashboard so a persisted Zustand user visits /knowledge/* without being
@@ -1835,6 +1864,19 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <LegalPage />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 64 Plan 64-07 — /privacy/do-not-sell CPRA opt-out page (LEGAL-07).
+  // Public no-auth; mirrors the 'legal' branch shape (globalOverlays + Suspense).
+  // DoNotSellPage stub ships here; Plan 64-05 replaces with full opt-out form.
+  if (view === 'do-not-sell') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <DoNotSellPage />
         </Suspense>
       </>
     );
