@@ -130,7 +130,7 @@ describe('ConsumerOnboardingRenderer', () => {
 
     expect(screen.getByRole('button', { name: /continue with email/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /continue with google/i })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /continue with apple/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /sign in with apple/i })).toBeNull();
   });
 
   it('T4: isAppleEnabled()===true → Apple button renders (3 buttons total)', () => {
@@ -140,7 +140,7 @@ describe('ConsumerOnboardingRenderer', () => {
     fireEvent.click(screen.getByRole('radio', { name: GOAL_OPTIONS[0].label }));
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    expect(screen.getByRole('button', { name: /continue with apple/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /sign in with apple/i })).toBeTruthy();
   });
 
   it('T5: Continue with email + valid email calls signInWithMagicLink', async () => {
