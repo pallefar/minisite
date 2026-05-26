@@ -192,14 +192,14 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 
 > Phase 64 — state privacy + policy update + accessibility + DMCA + cookie WCAG. BLOCKER per research.
 
-- [ ] **LEGAL-01**: State-privacy disclosures shipped — CCPA/CPRA (California) + CDPA (Virginia) + CPA (Colorado) + CTDPA (Connecticut) + UCPA (Utah) state addendums in `PrivacyPolicy.tsx`; legal-reviewed copy
+- [x] **LEGAL-01**: State-privacy disclosures shipped — CCPA/CPRA (California) + CDPA (Virginia) + CPA (Colorado) + CTDPA (Connecticut) + UCPA (Utah) state addendums in `PrivacyPolicy.tsx`; legal-reviewed copy
 - [ ] **LEGAL-02**: "Do Not Sell or Share My Personal Information" footer link + dedicated `/privacy/do-not-sell` opt-out form wired to new `privacy_optout_requests` table; submission triggers PostHog opt-out + ad-network exclusion update
 - [ ] **LEGAL-03**: DSAR portal (v1.3 Phase 22) extended to handle state-rights flavors (CCPA "right to delete" / VA "right to portability" / CO "right to limit sensitive data use" with state-specific intake form variants)
-- [ ] **LEGAL-04**: Privacy policy + ToS audit driven from existing Phase 25 `subprocessor-diff` cron output; covers PostHog Session Replay, Anthropic egress, Mux, Stripe Connect, pgvector recommender, traffic-attribution; record-of-changes timestamp + grandfathered-notice email to existing users via lifecycle Edge Fn
+- [x] **LEGAL-04**: Privacy policy + ToS audit driven from existing Phase 25 `subprocessor-diff` cron output; covers PostHog Session Replay, Anthropic egress, Mux, Stripe Connect, pgvector recommender, traffic-attribution; record-of-changes timestamp + grandfathered-notice email to existing users via lifecycle Edge Fn
 - [ ] **LEGAL-05**: Accessibility statement page at `/legal/accessibility` matching `LegalLayout` pattern; states WCAG 2.2 AA conformance + ADA Title III posture + contact email
 - [ ] **LEGAL-06**: DMCA agent registered with U.S. Copyright Office; `/legal/dmca` page lists agent name + address + email + takedown procedure; `abuse@leanshot.app` mailbox routing configured
 - [ ] **LEGAL-07**: Cookie banner WCAG 2.2 AA re-audit via axe-core; non-conformances fixed; banner copy updated with CPRA-mandated "Do Not Sell" surfaced in same banner (not separate page)
-- [ ] **LEGAL-08**: ToS update for community user-generated-content (Phase 44-49 surfaces); content license clause + community-rules link + takedown procedure cross-referenced from LEGAL-06
+- [x] **LEGAL-08**: ToS update for community user-generated-content (Phase 44-49 surfaces); content license clause + community-rules link + takedown procedure cross-referenced from LEGAL-06
 - [ ] **LEGAL-09**: Grandfathered-notice email campaign — one-shot lifecycle send to all pre-v1.4 registered users notifying of policy update + new sharing/processing purposes; honors email-preference + unsubscribe
 - [ ] **LEGAL-10**: Legal-page link audit + sitemap inclusion — every footer + auth + onboarding surface includes correct cross-links to privacy / ToS / cookie / DMCA / accessibility / do-not-sell
 
@@ -441,14 +441,14 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | DEBT-04 | Phase 69.5 | Pending |
 | DEBT-05 | Phase 69.5 | Pending |
 | DEBT-06 | Phase 69.5 | Pending |
-| LEGAL-01 | Phase 64 | Pending |
+| LEGAL-01 | Phase 64 | Complete |
 | LEGAL-02 | Phase 64 | Pending |
 | LEGAL-03 | Phase 64 | Pending |
-| LEGAL-04 | Phase 64 | Pending |
+| LEGAL-04 | Phase 64 | Complete |
 | LEGAL-05 | Phase 64 | Pending |
 | LEGAL-06 | Phase 64 | Pending |
 | LEGAL-07 | Phase 64 | Pending |
-| LEGAL-08 | Phase 64 | Pending |
+| LEGAL-08 | Phase 64 | Complete |
 | LEGAL-09 | Phase 64 | Pending |
 | LEGAL-10 | Phase 64 | Pending |
 | PAY-01 | Phase 65 | Pending |
