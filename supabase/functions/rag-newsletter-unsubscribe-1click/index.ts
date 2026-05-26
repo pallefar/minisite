@@ -27,8 +27,8 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { constantTimeEqual, verifyUnsubscribeToken } from '../_shared/newsletter-token.ts';
-import { emitAiGeneration } from '../_shared/posthog-rag-events.ts';
 import { shutdownPostHog } from '../_shared/posthog-rag-events.ts';
+import { captureRagEvent } from '../_shared/posthog-server.ts';
 
 // ─── Dependency injection ─────────────────────────────────────────────────────
 
@@ -204,15 +204,15 @@ export async function handleUnsubscribe(
   const wasUpdated = Array.isArray(updateResult) && updateResult.length > 0;
 
   // ── PostHog telemetry (T-60-12 per plan) ──────────────────────────────────
+  // Use captureRagEvent (custom event name) not emitAiGeneration ($ai_generation)
+  // — unsubscribe is not an AI generation event and must not pollute the cost dashboard.
   try {
-    emitAiGeneration({
-      userId,
+    captureRagEvent({
+      distinctId: userId,
+      name: 'newsletter_unsubscribed',
       properties: {
-        model: 'none',
         trace_id: `unsub-${userId}-${Date.now()}`,
-        surface: 'newsletter',
         via: req.method === 'POST' ? 'one-click' : 'manual-click',
-        event_type: 'newsletter_unsubscribed',
         was_rotation_update: wasUpdated,
       },
     });
