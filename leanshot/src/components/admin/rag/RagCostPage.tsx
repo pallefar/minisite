@@ -25,11 +25,11 @@
 import { AlertOctagon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CostBar } from '@/components/admin/rag/CostBar';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Pill } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Sparkline } from '@/components/ui/Sparkline';
-import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import {
   CostApiError,
@@ -75,13 +75,6 @@ const SECTION_3_VENDORS: VendorConfig[] = [
   { key: 'tip_of_day_per_day', label: 'Tip-of-day cron / day', isTrace: true },
   { key: 'newsletter_per_week', label: 'Newsletter cron / week', isTrace: true },
 ];
-
-// Map from trace result vendor keys to traceRollups request values
-const TRACE_ROLLUP_REQUEST_KEYS: Record<string, 'coach_synthesis' | 'tip_of_day' | 'newsletter'> = {
-  coach_synthesis_per_day: 'coach_synthesis',
-  tip_of_day_per_day: 'tip_of_day',
-  newsletter_per_week: 'newsletter',
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -448,4 +441,3 @@ export default function RagCostPage() {
   );
 }
 
-export { TRACE_ROLLUP_REQUEST_KEYS };
