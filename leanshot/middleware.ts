@@ -54,6 +54,11 @@ import {
 type Config = { matcher: string | string[] };
 
 export const config: Config = {
+  // Global catch-all minus static paths. Covers ALL HTML responses including
+  // /knowledge/* (Phase 60 Plan 60-13 T-60-DOS-1 rate-limit coverage for public hub).
+  // Note: '/knowledge/:path*' would be redundant — the existing regex already
+  // captures /knowledge/* paths because they contain no excluded prefixes.
+  // Documented additive per 60-13 threat register T-60-13-DOS-1.
   matcher: ['/((?!api|_next/static|assets|favicon).*)'],
 };
 

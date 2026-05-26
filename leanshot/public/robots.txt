@@ -1,6 +1,16 @@
 # Phase 15 Plan 08 — robots.txt. Static file per 15-RESEARCH.md Pattern 5;
 # the dynamic discovery surface is /sitemap.xml (served by the `sitemap`
 # Edge Function).
+#
+# Phase 60 Plan 60-13 — /knowledge/* is public-no-auth + indexable
+# per CONTEXT D-public-no-auth. Individual chunks with
+# public_visibility=false emit <meta name=robots content=noindex>
+# at render time; sitemap.xml excludes them.
+# The global Allow: / below already permits /knowledge/* crawling —
+# no additional Allow directive needed.
+# Build-time scripts/build-sitemap.ts emits public/sitemap.xml with
+# /knowledge + /knowledge/<topic> + /knowledge/<topic>/<slug> URLs.
 User-agent: *
 Allow: /
 Sitemap: https://leanshot.app/sitemap.xml
+Sitemap: https://app.leanshot.app/sitemap.xml
