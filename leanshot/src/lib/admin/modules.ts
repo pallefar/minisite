@@ -47,6 +47,8 @@ import {
   Activity as ActivityIcon,
   // Phase 61 Plan 61-04 — Admin Protocol Creator module icon.
   ClipboardList as ClipboardListIcon,
+  // Phase 62 Plan 62-04 — Admin Research module icon.
+  FlaskConical as FlaskConicalIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -336,6 +338,22 @@ export const ADMIN_MODULES = [
     lazy: () => import('@/components/admin/protocols/ProtocolsLayout'),
     flagKey: 'admin_protocols',
     minRole: 'admin' as AdminRole,
+  },
+  // Phase 62 Plan 62-04 (INSIGHTS-01/02/06) — Admin Research module.
+  // Cohort builder UI + retention curves + cross-tab matrix + epsilon display.
+  // AdminShell.tsx URL-prefix routing (pathname.startsWith('/admin/research/'))
+  // covers all sub-routes automatically — no hardcoded switch branch required per
+  // feedback_admin_module_manifest_vs_router_branch_drift.
+  // minRole 'staff' so research staff access; SECDEF RPCs (compile_research_cohort,
+  // estimate_research_cohort) enforce is_staff() at the DB layer (Pattern S1 dual-layer).
+  {
+    key: 'research',
+    label: 'Research',
+    route: 'research',
+    icon: FlaskConicalIcon,
+    lazy: () => import('@/components/admin/research/ResearchLayout'),
+    flagKey: 'admin_research',
+    minRole: 'staff' as AdminRole,
   },
   // Phase 50 Plan 50-02 — Admin-curated RAG knowledge base.
   // Surface: topics CRUD + sources allowlist + telemetry placeholders + cost dash.

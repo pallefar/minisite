@@ -117,6 +117,23 @@ export default defineConfig({
           include: ['src/lib/**/__tests__/*.test.ts', 'src/lib/**/*.test.ts'],
         },
       },
+      {
+        // Phase 62 Plan 62-04 — React component unit tests (jsdom, @testing-library/react).
+        // Covers admin/research/* components + any future src/components tests.
+        // Run: npx vitest run --project=src-ui-unit
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+          },
+        },
+        test: {
+          name: 'src-ui-unit',
+          environment: 'jsdom',
+          globals: true,
+          include: ['src/components/**/__tests__/*.test.tsx', 'src/components/**/__tests__/*.test.ts'],
+          setupFiles: [],
+        },
+      },
     ],
   },
 });
