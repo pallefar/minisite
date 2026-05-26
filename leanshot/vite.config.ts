@@ -431,6 +431,20 @@ export default defineConfig(({ mode }) => {
         // Placed here (not Deno) because the handler tests use vi.fn() injection seam.
         '../supabase/functions/rag-embed-approved/__tests__/openai.test.ts',
         '../supabase/functions/rag-embed-approved/__tests__/embed-pipeline.test.ts',
+        // Phase 60 Plan 60-07 — vitest unit tests for federated adapter Edge Fns.
+        // Dependency injection seam (fetchImpl + supabase) used for mocking.
+        '../supabase/functions/_shared/__tests__/federated-host-allowlist.test.ts',
+        '../supabase/functions/_shared/__tests__/federated-cache.test.ts',
+        '../supabase/functions/_shared/__tests__/federated-integration.test.ts',
+        '../supabase/functions/rag-federated-pubmed/__tests__/client.test.ts',
+        '../supabase/functions/rag-federated-pubmed/__tests__/normalize.test.ts',
+        '../supabase/functions/rag-federated-pubmed/__tests__/index.test.ts',
+        '../supabase/functions/rag-federated-fda/__tests__/client.test.ts',
+        '../supabase/functions/rag-federated-fda/__tests__/normalize.test.ts',
+        '../supabase/functions/rag-federated-fda/__tests__/index.test.ts',
+        '../supabase/functions/rag-federated-dailymed/__tests__/client.test.ts',
+        '../supabase/functions/rag-federated-dailymed/__tests__/normalize.test.ts',
+        '../supabase/functions/rag-federated-dailymed/__tests__/index.test.ts',
         'eslint-rules/**/*.test.{js,ts,cjs}',
       ],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
