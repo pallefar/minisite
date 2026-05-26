@@ -13,7 +13,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { VirtuosoGrid } from 'react-virtuoso';
 
@@ -45,6 +45,7 @@ import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
 // active path. Once Wave-0 vendor-checkpoint Task 6 (Supabase Pro upgrade)
 // lands, the PhotoTile state machine can switch primary→transform with no
 // further code changes here.
+import { useActiveProtocolAssignment } from '@/lib/hooks/useActiveProtocolAssignment';
 import { softDeletePhoto } from '@/lib/photo-trash';
 import { storageTransformUrl } from '@/lib/photo-url';
 import { useStore } from '@/lib/store';
@@ -61,6 +62,40 @@ export function BodyTab() {
   const photos = useStore((s) => s.photos);
   const addPhoto = useStore((s) => s.addPhoto);
   const toast = useToast();
+  // Phase 61 Plan 07 — Protocol adherence card (PROTOCOL-07 Surface 6).
+  // Hook is unconditional (rules-of-hooks); null patientId returns null data immediately.
+  const currentUserId = u?.id ?? null;
+  const { data: activeAssignment } = useActiveProtocolAssignment(currentUserId);
+  const injections = useStore((s) => s.injections);
+
+  const adherencePct = useMemo(() => {
+    if (!activeAssignment) return null;
+    // Compute adherence over last N weeks (N = min(currentWeek, 4))
+    const weeks = Math.min(activeAssignment.currentWeek, 4);
+    const recentInjections = injections.filter((inj) => {
+      const d = new Date(inj.datetime).getTime();
+      return d >= Date.now() - weeks * 7 * 24 * 60 * 60 * 1000;
+    });
+    if (recentInjections.length === 0) return 0;
+    let onTarget = 0;
+    for (const inj of recentInjections) {
+      // Only count mg injections against protocol steps
+      if (inj.unit !== 'mg') continue;
+      const loggedMg = parseFloat(inj.dose);
+      if (isNaN(loggedMg)) continue;
+      const injDate = new Date(inj.datetime);
+      const weekOffset =
+        Math.floor(
+          (injDate.getTime() - new Date(activeAssignment.assignment.started_at).getTime()) /
+            (7 * 24 * 60 * 60 * 1000),
+        ) + 1;
+      const step = activeAssignment.allSteps.find((s) => s.week === weekOffset);
+      if (!step) continue;
+      const deviation = Math.abs(step.dose_mg - loggedMg) / step.dose_mg;
+      if (deviation <= 0.2) onTarget += 1;
+    }
+    return Math.round((onTarget / recentInjections.length) * 100);
+  }, [activeAssignment, injections]);
 
   const [compareOpen, setCompareOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
@@ -214,6 +249,24 @@ export function BodyTab() {
           </p>
         </Card>
       )}
+
+      {/* Phase 61 Plan 07 — Protocol adherence card (PROTOCOL-07 / UI-SPEC Surface 6).
+          Accent color on percentage number is the ONE permitted accent use per UI-SPEC reserved-for #5. */}
+      <Card span={6}>
+        <CardHeader title="Protocol adherence" icon={<ListChecks className="size-4" />} />
+        {activeAssignment ? (
+          <div className="space-y-1">
+            <p className="text-[28px] font-semibold text-[var(--color-primary)] tabular-nums">
+              {adherencePct ?? 0}%
+            </p>
+            <p className="text-[11px] text-[var(--color-text-secondary)]">
+              last {Math.min(activeAssignment.currentWeek, 4)} week{Math.min(activeAssignment.currentWeek, 4) !== 1 ? 's' : ''}
+            </p>
+          </div>
+        ) : (
+          <p className="text-[13px] text-[var(--color-text-secondary)]">No protocol assigned</p>
+        )}
+      </Card>
 
       <Card span={6}>
         <CardHeader title={t('patient:tab.body.log_weight_title')} icon={<Scale className="size-4" />} />

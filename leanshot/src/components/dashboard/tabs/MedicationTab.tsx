@@ -17,6 +17,7 @@ import { SITES, siteShort } from '@/lib/constants';
 import { formatShort, todayStr } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
 import { HALF_LIVES, TITRATION } from '@/lib/pharmacology';
+import { useActiveProtocolAssignment } from '@/lib/hooks/useActiveProtocolAssignment';
 import { useStore } from '@/lib/store';
 import type { DoseUnit, Injection, InjectionSite, Vial, Cost } from '@/types';
 
@@ -29,6 +30,11 @@ export function MedicationTab() {
   // render a clean no-op.
   const user = useStore((s) => s.user);
   const injections = useStore((s) => s.injections);
+  // Phase 61 Plan 07 — active protocol assignment for Expected/Logged deviation row (PROTOCOL-07).
+  // Hook is called unconditionally (rules-of-hooks); patientId is null when user is null
+  // so the hook returns null data immediately without a DB round-trip.
+  const currentUserId = user?.id ?? null;
+  const { data: activeAssignment } = useActiveProtocolAssignment(currentUserId);
   const vials = useStore((s) => s.vials);
   const costs = useStore((s) => s.costs);
   const addInjection = useStore((s) => s.addInjection);
@@ -323,26 +329,54 @@ export function MedicationTab() {
                 </tr>
               </thead>
               <tbody>
-                {injections.slice(0, 8).map((i, idx) => (
-                  <tr key={idx} className="border-t border-[var(--color-border)]">
-                    <td className="py-2 px-1">{formatShort(i.datetime)}</td>
-                    <td className="py-2 px-1 font-bold numerals-tabular">
-                      {i.dose} {i.unit}
-                    </td>
-                    <td className="py-2 px-1 text-[var(--color-text-secondary)]">
-                      {siteShort(i.site ?? '—')}
-                    </td>
-                    <td className="py-2 px-1 text-end">
-                      <button
-                        onClick={() => removeInjection(idx)}
-                        aria-label={t('patient:tab.medication.aria_delete_injection', { date: formatShort(i.datetime) })}
-                        className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {injections.slice(0, 8).map((i, idx) => {
+                    // Phase 61 Plan 07 — Expected/Logged deviation row (PROTOCOL-07).
+                    // Non-destructive: only annotates; never overwrites logged data.
+                    // Only show when: active assignment exists, currentStep exists,
+                    // logged dose differs from expected, and dose is in 'mg' units.
+                    const expectedMg = activeAssignment?.currentStep?.dose_mg ?? null;
+                    const loggedMg = i.unit === 'mg' ? parseFloat(i.dose) : null;
+                    const showDeviation =
+                      expectedMg !== null &&
+                      loggedMg !== null &&
+                      !isNaN(loggedMg) &&
+                      Math.abs(expectedMg - loggedMg) > Number.EPSILON;
+                    const deviationPct =
+                      showDeviation && expectedMg !== 0
+                        ? Math.abs(expectedMg - loggedMg!) / expectedMg
+                        : 0;
+                    const loggedClass =
+                      deviationPct > 0.2
+                        ? 'text-[var(--color-warning)]'
+                        : 'text-[var(--color-text-secondary)]';
+                    return (
+                      <tr key={idx} className="border-t border-[var(--color-border)]">
+                        <td className="py-2 px-1">{formatShort(i.datetime)}</td>
+                        <td className="py-2 px-1">
+                          <span className="font-bold numerals-tabular">{i.dose} {i.unit}</span>
+                          {showDeviation && (
+                            <div className="text-[11px] text-[var(--color-text-secondary)] mt-0.5">
+                              Expected: <span className="font-mono tabular-nums">{expectedMg}mg</span>
+                              <span className="mx-1 text-[var(--color-text-tertiary)]">•</span>
+                              Logged: <span className={cn('font-mono tabular-nums', loggedClass)}>{loggedMg}mg</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2 px-1 text-[var(--color-text-secondary)]">
+                          {siteShort(i.site ?? '—')}
+                        </td>
+                        <td className="py-2 px-1 text-end">
+                          <button
+                            onClick={() => removeInjection(idx)}
+                            aria-label={t('patient:tab.medication.aria_delete_injection', { date: formatShort(i.datetime) })}
+                            className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
