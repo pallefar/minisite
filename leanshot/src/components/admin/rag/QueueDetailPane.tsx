@@ -25,7 +25,24 @@ const SANITIZE_CONFIG = {
   ALLOWED_ATTR: ['href', 'target', 'rel'],
   FORBID_TAGS: ['img', 'script', 'iframe', 'style', 'svg', 'math', 'form', 'input'],
   FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick', 'onmouseover', 'onfocus'],
+  ADD_ATTR: ['target', 'rel'],
 };
+
+// WR-04: Register afterSanitizeAttributes hook to force target=_blank + rel=noopener
+// on all anchor elements in scraped source text. Prevents admin tab-napping via
+// window.opener when source markdown contains external links.
+// Hook registered once per module load (mirrors sanitize.ts / community/dompurify-config.ts).
+let _adminHookRegistered = false;
+function ensureAdminHook(): void {
+  if (_adminHookRegistered) return;
+  _adminHookRegistered = true;
+  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if ('tagName' in node && (node as Element).tagName === 'A') {
+      (node as Element).setAttribute('target', '_blank');
+      (node as Element).setAttribute('rel', 'noopener noreferrer');
+    }
+  });
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,10 +89,14 @@ export function QueueDetailPane({
   const [approving, setApproving] = useState(false);
 
   // Sanitize source_markdown per T-60-08-XSS-1
+  // Ensure the afterSanitizeAttributes hook is registered before sanitizing.
   // Cast to string: DOMPurify.sanitize returns TrustedHTML in strict TS contexts,
   // but it is always a string value at runtime.
   const sanitizedMarkdown = useMemo(
-    () => String(DOMPurify.sanitize(chunk.source_markdown, SANITIZE_CONFIG)),
+    () => {
+      ensureAdminHook();
+      return String(DOMPurify.sanitize(chunk.source_markdown, SANITIZE_CONFIG));
+    },
     [chunk.source_markdown],
   );
 
