@@ -201,6 +201,13 @@ const AdminShellRoot = lazy(() =>
   import('@/components/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })),
 );
 
+// Phase 60 Plan 60-13 — Public /knowledge/* SEO hub (RAG-09).
+// Consumer-phase widening per reference_react_router_consumer_admin_split.
+// Own lazy chunk — targets ≤30 kB gz (CLAUDE.md bundle ceiling).
+// No globalOverlays (Sidebar/Topbar/MobileNav) on this surface — it is a
+// public no-auth leaf, same isolation model as /verify/ and /share/.
+const KnowledgeRoute = lazy(() => import('@/components/knowledge/KnowledgeRoute'));
+
 // Phase 40 Plan 40-04 (POLISH-01) — CancellationModal lazy chunk (single chunk
 // per CONTEXT specifics + RESEARCH §Pitfall 8). ALL step sub-components are
 // non-lazy imports from CancellationModal.tsx so Vite emits ONE 'cancellation'
@@ -613,7 +620,13 @@ type View =
   // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
   // Anonymous-OK: the invite token IS the auth (T-29-06-01 anti-enumeration).
   // Must render BEFORE any auth gate so patients without an account can proceed.
-  | 'consent-accept';
+  | 'consent-accept'
+  // Phase 60 Plan 60-13 — Public /knowledge/* SEO hub (RAG-09).
+  // PATH-based routing — selectView checks pathname.startsWith('/knowledge')
+  // at TOP-PRIORITY (before auth-gated branches) so a Zustand-persisted user
+  // does NOT bounce to dashboard when visiting /knowledge/*.
+  // Consumer-phase widening per reference_react_router_consumer_admin_split.
+  | 'knowledge';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -671,6 +684,13 @@ function pushViewLog(entry: ViewLogEntry): void {
 function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; pathname: string }): View {
   if (opts.hash.startsWith('#/share/')) return 'share';
   if (opts.hash.startsWith('#/legal/')) return 'legal';
+  // Phase 60 Plan 60-13 — /knowledge/* public hub (RAG-09). TOP-PRIORITY
+  // pathname branch: runs BEFORE auth-callback, clinic-invite, admin, and
+  // dashboard so a persisted Zustand user visits /knowledge/* without being
+  // rerouted to dashboard (same anti-bounce pattern as /verify/).
+  // Public no-auth: never requires opts.user — always returns 'knowledge'.
+  // Consumer-phase widening allowed per reference_react_router_consumer_admin_split.
+  if (opts.pathname.startsWith('/knowledge')) return 'knowledge';
   // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback. MUST be matched
   // BEFORE the `#/auth/` hash branch below: the callback URL is
   // `${origin}/auth/callback?code=...` and matching the PATH first avoids
@@ -1660,6 +1680,18 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <CertVerifyPage />
+      </Suspense>
+    );
+  }
+
+  // Phase 60 Plan 60-13 — /knowledge/* public SEO hub (RAG-09).
+  // No globalOverlays — public no-auth leaf surface (same pattern as /verify/).
+  // BrowserRouter + react-router is scoped inside KnowledgeRoute so no router
+  // bleeds into the consumer SPA (reference_react_router_consumer_admin_split).
+  if (view === 'knowledge') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <KnowledgeRoute />
       </Suspense>
     );
   }

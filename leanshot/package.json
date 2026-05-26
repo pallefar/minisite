@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "tsx scripts/build-sitemap.ts || echo 'sitemap skipped (db unreachable)'",
     "build": "tsc -b && vite build",
     "build:marketing": "tsc -b && vite build --config vite.marketing.config.ts",
     "preview": "vite preview",
@@ -91,8 +92,10 @@
     "posthog-js": "^1.372.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-helmet-async": "^2.0.5",
     "react-i18next": "17.0.8",
     "react-markdown": "9.0.0",
+    "react-router-dom": "^6.30.3",
     "react-virtuoso": "^4.18.7",
     "rehype-raw": "7.0.0",
     "remark-gfm": "^4.0.1",
@@ -100,6 +103,7 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@axe-core/react": "^4.11.3",
     "@capacitor/android": "^8.3.4",
     "@capacitor/cli": "^8.3.4",

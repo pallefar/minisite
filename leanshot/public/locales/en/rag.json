@@ -1,6 +1,7 @@
 {
   "attribution": "{{source_name}} · As of {{date}} · Tier {{tier}}",
   "disclaimer": "Not medical advice — consult your clinician.",
+  "fda_off_label_full": "This information is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Consult a licensed healthcare provider before making any changes to your health regimen. Some content may reference off-label uses; such uses may not be FDA-approved.",
   "newsletter": {
     "section_heading": "Research newsletter",
     "toggle_label": "Send me the weekly research digest",

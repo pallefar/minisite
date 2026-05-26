@@ -1,6 +1,7 @@
 {
   "attribution": "{{source_name}} · A partir de {{date}} · Nivel {{tier}}",
   "disclaimer": "No es consejo médico — consulte a su médico.",
+  "fda_off_label_full": "Esta información es solo para fines educativos y no constituye consejo médico, diagnóstico ni tratamiento. Consulte a un proveedor de atención médica autorizado antes de realizar cualquier cambio en su régimen de salud. Parte del contenido puede hacer referencia a usos no aprobados por la FDA; dichos usos pueden no estar aprobados por la FDA.",
   "tier": {
     "A": {
       "label": "Nivel A",

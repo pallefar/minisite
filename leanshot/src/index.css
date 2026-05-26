@@ -104,6 +104,8 @@
   --text-xl--line-height: 1.35;
   --text-2xl: 1.625rem; /* 26px */
   --text-2xl--line-height: 1.25;
+  --text-heading: 1.75rem; /* 28px — Phase 60-13: Fraunces H1 on /knowledge root + topic index */
+  --text-heading--line-height: 1.2;
   --text-3xl: 2rem; /* 32px */
   --text-3xl--line-height: 1.15;
   --text-4xl: 2.625rem; /* 42px */

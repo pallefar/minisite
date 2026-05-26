@@ -1,5 +1,6 @@
 import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
+import { HelmetProvider } from 'react-helmet-async';
 import { App } from './App';
 import './index.css';
 import { I18nSuspenseFallback } from './components/i18n/I18nSuspenseFallback';
@@ -236,11 +237,17 @@ void hydrate().then(async () => {
   await initI18n();
 
   const root = createRoot(document.getElementById('root')!);
+  // Phase 60 Plan 60-13 — HelmetProvider wraps App so react-helmet-async
+  // <Helmet> instances in /knowledge/* pages can set <head> meta.
+  // Per react-helmet-async docs: single HelmetProvider at root is required;
+  // multiple HelmetProvider instances conflict on head management.
   root.render(
     <StrictMode>
-      <Suspense fallback={<I18nSuspenseFallback />}>
-        <App />
-      </Suspense>
+      <HelmetProvider>
+        <Suspense fallback={<I18nSuspenseFallback />}>
+          <App />
+        </Suspense>
+      </HelmetProvider>
     </StrictMode>,
   );
 
