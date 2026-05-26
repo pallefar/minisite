@@ -147,7 +147,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 - [x] **RAG-06**: Federated sources (Wave 3 STRETCH) — PubMed E-utilities + FDA OpenFDA + DailyMed API adapters; periodic sync into `external_knowledge_sources` table; admin enables per-source
 - [x] **RAG-07**: Tip-of-day cron (Wave 4) — daily Edge Fn picks one curated chunk → sends as in-app + push notification (PUSH-06 category)
 - [x] **RAG-08**: Newsletter integration (Wave 4) — weekly Resend digest highlights newly curated chunks; opt-in via notification_settings
-- [ ] **RAG-09**: Public knowledge hub (Wave 4 STRETCH) — `/knowledge/*` SEO-indexed surface rendered via page-render Fn; rate-limited; sitemap inclusion
+- [x] **RAG-09**: Public knowledge hub (Wave 4 STRETCH) — `/knowledge/*` SEO-indexed surface rendered via page-render Fn; rate-limited; sitemap inclusion
 
 ### WS10 — Admin Protocol Creator (PROTOCOL, 8 REQ-IDs — NEW)
 
@@ -416,7 +416,7 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | RAG-06 | Phase 60 | Complete |
 | RAG-07 | Phase 60 | Complete |
 | RAG-08 | Phase 60 | Complete |
-| RAG-09 | Phase 60 | Pending |
+| RAG-09 | Phase 60 | Complete |
 | PROTOCOL-01 | Phase 61 | Pending |
 | PROTOCOL-02 | Phase 61 | Pending |
 | PROTOCOL-03 | Phase 61 | Pending |
