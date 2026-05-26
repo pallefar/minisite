@@ -51,7 +51,7 @@ import RagCostPage from '../RagCostPage';
 const ALL_ROLLUPS = [
   { vendor: 'firecrawl', mtd_usd: 5.5, sparkline_7d: [1, 2, 3, 4, 5, 6, 7], last_day_with_data: '2026-05-22' },
   { vendor: 'openai_embed', mtd_usd: 12.0, sparkline_7d: [2, 3, 4, 5, 6, 7, 8], last_day_with_data: '2026-05-22' },
-  { vendor: 'anthropic_summarize', mtd_usd: 18.0, sparkline_7d: [3, 4, 5, 6, 7, 8, 9], last_day_with_data: '2026-05-22' },
+  { vendor: 'anthropic_summary', mtd_usd: 18.0, sparkline_7d: [3, 4, 5, 6, 7, 8, 9], last_day_with_data: '2026-05-22' },
   { vendor: 'cohere_rerank', mtd_usd: 3.68, sparkline_7d: [0, 0, 0, 1, 2, 3, 0], last_day_with_data: '2026-05-21' },
   { vendor: 'jina_rerank', mtd_usd: 1.2, sparkline_7d: [0, 0, 0, 0, 0, 1, 2], last_day_with_data: '2026-05-21' },
   { vendor: 'federated_fetch', mtd_usd: 0.5, sparkline_7d: [0, 0, 0, 0, 0, 0, 1], last_day_with_data: '2026-05-20' },
@@ -63,7 +63,7 @@ const ALL_ROLLUPS = [
 const ALL_CAPS = [
   { vendor: 'firecrawl', cap_usd: 50, mtd_spend_usd: 5.5, last_acknowledged_at: null, source_pause_state: false },
   { vendor: 'openai_embed', cap_usd: 30, mtd_spend_usd: 12.0, last_acknowledged_at: null, source_pause_state: false },
-  { vendor: 'anthropic_summarize', cap_usd: 50, mtd_spend_usd: 18.0, last_acknowledged_at: null, source_pause_state: false },
+  { vendor: 'anthropic_summary', cap_usd: 50, mtd_spend_usd: 18.0, last_acknowledged_at: null, source_pause_state: false },
   { vendor: 'cohere_rerank', cap_usd: 20, mtd_spend_usd: 3.68, last_acknowledged_at: null, source_pause_state: false },
   { vendor: 'jina_rerank', cap_usd: 10, mtd_spend_usd: 1.2, last_acknowledged_at: null, source_pause_state: false },
   { vendor: 'federated_fetch', cap_usd: 5, mtd_spend_usd: 0.5, last_acknowledged_at: null, source_pause_state: false },

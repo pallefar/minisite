@@ -39,7 +39,7 @@ import { captureRagEvent } from '../_shared/posthog-server.ts';
 const ALLOWED_VENDORS = [
   'firecrawl',
   'openai_embed',
-  'anthropic_summarize',
+  'anthropic_summary',   // canonical rag_vendor enum value (was 'anthropic_summarize' — typo)
   'cohere_rerank',
   'jina_rerank',
   'federated_fetch',

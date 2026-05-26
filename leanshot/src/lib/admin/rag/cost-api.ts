@@ -25,7 +25,7 @@ import { supabase } from '@/lib/supabase';
 export type Vendor =
   | 'firecrawl'
   | 'openai_embed'
-  | 'anthropic_summarize'
+  | 'anthropic_summary'   // canonical rag_vendor enum (was 'anthropic_summarize' — typo)
   | 'cohere_rerank'
   | 'jina_rerank'
   | 'federated_fetch';

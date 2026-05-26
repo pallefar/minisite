@@ -61,7 +61,7 @@ interface VendorConfig {
 const SECTION_1_VENDORS: VendorConfig[] = [
   { key: 'firecrawl', label: 'Firecrawl' },
   { key: 'openai_embed', label: 'OpenAI embeddings' },
-  { key: 'anthropic_summarize', label: 'Anthropic summarizer' },
+  { key: 'anthropic_summary', label: 'Anthropic summarizer' },
 ];
 
 const SECTION_2_VENDORS: VendorConfig[] = [
@@ -235,7 +235,7 @@ export default function RagCostPage() {
             vendors: [
               'firecrawl',
               'openai_embed',
-              'anthropic_summarize',
+              'anthropic_summary',
               'cohere_rerank',
               'jina_rerank',
               'federated_fetch',
