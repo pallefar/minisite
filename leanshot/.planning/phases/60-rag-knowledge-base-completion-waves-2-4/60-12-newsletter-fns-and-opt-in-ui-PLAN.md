@@ -22,7 +22,7 @@ files_modified:
   - src/lib/rag/newsletter-api.ts
   - src/lib/rag/__tests__/newsletter-api.test.ts
   - src/components/dashboard/settings/__tests__/NewsletterSettings.test.tsx
-  - locales/en/rag.json
+  - leanshot/public/locales/en/rag.json
   - tests/e2e/newsletter-opt-in.spec.ts
 autonomous: true
 requirements:
@@ -78,7 +78,7 @@ must_haves:
     - path: "src/lib/rag/newsletter-api.ts"
       provides: "Client-side wrapper for subscribe/unsubscribe via PostgREST"
       exports: ["getNewsletterSubscription", "setNewsletterOptIn"]
-    - path: "locales/en/rag.json"
+    - path: "leanshot/public/locales/en/rag.json"
       provides: "EN newsletter copy keys per UI-SPEC §Copywriting Contract"
       contains: "newsletter"
   key_links:
@@ -140,7 +140,7 @@ Output: 2 Edge Fns (sender + unsubscribe-1click) + Resend HTML template + shared
 <!-- Key contracts the executor needs. Extracted from 60-01 + 60-02 + existing v1.4 codebase. -->
 <!-- Executor MUST use these directly — no codebase exploration required. -->
 
-From `supabase/migrations/20261201000001_phase60_kb_tables.sql` (60-01 ships this table):
+From `supabase/migrations/20281201000001_phase60_kb_tables.sql` (60-01 ships this table):
 ```sql
 create table public.newsletter_subscribers (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -227,7 +227,7 @@ From CONTEXT.md PHARMA-02 carveout (per [[feedback_3_layer_must_never_invariant_
 
 From `src/lib/i18n/` (v1.4 existing Phase 58 wiring):
 ```typescript
-// t('rag.newsletter.subject_format') etc — keys land in locales/en/rag.json
+// t('rag.newsletter.subject_format') etc — keys land in leanshot/public/locales/en/rag.json
 // EN-only at MVP per CONTEXT.md; ES file NOT shipped this plan (v1.5)
 ```
 </interfaces>
@@ -268,7 +268,7 @@ All high-severity threats (T-60-12-01, T-60-12-02, T-60-12-03, T-60-12-05) have 
 
 <task type="auto" tdd="true">
   <name>Task 1: Add EN newsletter locale strings + client API wrapper + types</name>
-  <files>locales/en/rag.json, src/lib/rag/newsletter-api.ts, src/lib/rag/__tests__/newsletter-api.test.ts</files>
+  <files>leanshot/public/locales/en/rag.json, src/lib/rag/newsletter-api.ts, src/lib/rag/__tests__/newsletter-api.test.ts</files>
   <read_first>leanshot/.planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-UI-SPEC.md (Copywriting Contract — Settings Page Newsletter Toggle, Onboarding Newsletter Checkbox, Newsletter Email Template sections), leanshot/src/lib/i18n (existing Phase 58 wiring), leanshot/src/lib/rag (any existing helpers from 60-10 if shipped at this point)</read_first>
   <behavior>
     - Test 1: `getNewsletterSubscription(userId)` returns `{ opted_in: false, topic_tags: [], email: '...' }` when no row exists (PostgREST returns 0 rows; helper returns synthetic default)
@@ -279,7 +279,7 @@ All high-severity threats (T-60-12-01, T-60-12-02, T-60-12-03, T-60-12-05) have 
     - Test 6: locale keys present per UI-SPEC §Copywriting Contract — section_heading, toggle_label, toggle_sublabel, save_cta, onboarding_label, subject_format, header, digest_intro_placeholder, chunk_section_heading, read_full_cta_format, footer_unsubscribe, footer_disclaimer
   </behavior>
   <action>
-    Add EN-only locale file at `locales/en/rag.json` (CONTEXT.md i18n decisions — newsletter EN-only at MVP; ES queued v1.5; do NOT create `locales/es/rag.json` for newsletter keys this phase). Keys MUST mirror UI-SPEC §Copywriting Contract verbatim — `newsletter.section_heading: "Research newsletter"`, `newsletter.toggle_label: "Send me the weekly research digest"`, `newsletter.toggle_sublabel: "Curated summaries from approved research sources, sent Sundays. Unsubscribe anytime."`, `newsletter.save_cta: "Save preferences"`, `newsletter.onboarding_label: "Send me the weekly research digest (optional — unsubscribe anytime)"`, `newsletter.subject_format: "LeanShot Research: Week of {date}"`, `newsletter.header: "LeanShot Research Digest"`, `newsletter.intro_placeholder: "{admin_intro}"`, `newsletter.section_heading_topic: "This week in {topic}"`, `newsletter.read_full_cta: "Read at {source_name} ↗"`, `newsletter.footer_unsubscribe: "Unsubscribe · Manage preferences"`, `newsletter.footer_disclaimer: "Not medical advice — consult your clinician. LeanShot, [address per CAN-SPAM]."`, `newsletter.unsubscribe_success: "You're unsubscribed."`, `newsletter.resubscribe_cta: "Resubscribe"`. Add merge-by-spread if `locales/en/rag.json` already exists from 60-10 — DO NOT overwrite existing AI-coach citation keys.
+    Add EN-only locale file at `leanshot/public/locales/en/rag.json` (CONTEXT.md i18n decisions — newsletter EN-only at MVP; ES queued v1.5; do NOT create `locales/es/rag.json` for newsletter keys this phase). Keys MUST mirror UI-SPEC §Copywriting Contract verbatim — `newsletter.section_heading: "Research newsletter"`, `newsletter.toggle_label: "Send me the weekly research digest"`, `newsletter.toggle_sublabel: "Curated summaries from approved research sources, sent Sundays. Unsubscribe anytime."`, `newsletter.save_cta: "Save preferences"`, `newsletter.onboarding_label: "Send me the weekly research digest (optional — unsubscribe anytime)"`, `newsletter.subject_format: "LeanShot Research: Week of {date}"`, `newsletter.header: "LeanShot Research Digest"`, `newsletter.intro_placeholder: "{admin_intro}"`, `newsletter.section_heading_topic: "This week in {topic}"`, `newsletter.read_full_cta: "Read at {source_name} ↗"`, `newsletter.footer_unsubscribe: "Unsubscribe · Manage preferences"`, `newsletter.footer_disclaimer: "Not medical advice — consult your clinician. LeanShot, [address per CAN-SPAM]."`, `newsletter.unsubscribe_success: "You're unsubscribed."`, `newsletter.resubscribe_cta: "Resubscribe"`. Add merge-by-spread if `leanshot/public/locales/en/rag.json` already exists from 60-10 — DO NOT overwrite existing AI-coach citation keys.
 
     Implement `src/lib/rag/newsletter-api.ts`:
     - Export `interface NewsletterSubscription { user_id: string; opted_in: boolean; topic_tags: string[]; email: string; last_sent_at: string | null; opted_in_at: string | null; opted_out_at: string | null; }` (NO `unsubscribe_token` field — server-only column, never exposed to client per T-60-12-04).
@@ -299,7 +299,7 @@ All high-severity threats (T-60-12-01, T-60-12-02, T-60-12-03, T-60-12-05) have 
     <automated>cd leanshot && npx vitest run --config vite.config.ts src/lib/rag/__tests__/newsletter-api.test.ts && npm run typecheck</automated>
   </verify>
   <done>
-    - `locales/en/rag.json` contains all newsletter copy keys per UI-SPEC §Copywriting Contract (existing AI-coach keys from 60-10 preserved if present)
+    - `leanshot/public/locales/en/rag.json` contains all newsletter copy keys per UI-SPEC §Copywriting Contract (existing AI-coach keys from 60-10 preserved if present)
     - `src/lib/rag/newsletter-api.ts` exports `NewsletterSubscription` type, `getNewsletterSubscription`, `setNewsletterOptIn` — never references `unsubscribe_token`
     - 6 vitest cases pass
     - typecheck clean (no any, strict mode)

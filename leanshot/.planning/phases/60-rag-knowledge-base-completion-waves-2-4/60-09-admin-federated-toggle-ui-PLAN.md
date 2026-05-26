@@ -108,7 +108,7 @@ Output:
 <!-- Contracts the executor uses without re-exploring the codebase. -->
 <!-- Phase 60 owns these tables/RPCs/Fns; signatures derived from outline + CONTEXT.md. -->
 
-From leanshot/supabase/migrations/20261201000001_phase60_kb_tables.sql (60-01):
+From leanshot/supabase/migrations/20281201000001_phase60_kb_tables.sql (60-01):
 ```sql
 -- Table created by 60-01
 create table public.federated_sources (
@@ -124,7 +124,7 @@ create table public.federated_sources (
 -- Seed rows for 'pubmed', 'openfda', 'dailymed' inserted by 60-01.
 ```
 
-From leanshot/supabase/migrations/20261201000002_phase60_secdef_rpcs.sql (60-01):
+From leanshot/supabase/migrations/20281201000002_phase60_secdef_rpcs.sql (60-01):
 ```sql
 -- Returns rows visible to staff only (RLS via public.is_staff()).
 create or replace function public.list_federated_sources()

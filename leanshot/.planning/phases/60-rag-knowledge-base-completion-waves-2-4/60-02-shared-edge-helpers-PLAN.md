@@ -89,7 +89,7 @@ import map.
 @supabase/functions/_shared/sentry.ts
 
 # Phase 60 dependency artifact (60-01 migration, must already exist on disk by Wave-0 execute order):
-@supabase/migrations/20261201000001_phase60_kb_tables.sql
+@supabase/migrations/20281201000001_phase60_kb_tables.sql
 
 <interfaces>
 <!-- Pinned contracts the executor must implement against. Do NOT explore. -->

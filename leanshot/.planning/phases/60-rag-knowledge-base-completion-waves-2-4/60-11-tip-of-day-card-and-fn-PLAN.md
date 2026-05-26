@@ -3,7 +3,7 @@ phase: 60-rag-knowledge-base-completion-waves-2-4
 plan: 11
 type: execute
 wave: 2
-depends_on: [60-01-data-layer-migrations, 60-02-shared-edge-helpers, 60-06-retrieval-and-rerank-fn, 60-08-admin-queue-ui]
+depends_on: [60-01, 60-02, 60-06, 60-08]
 files_modified:
   - leanshot/src/components/dashboard/cards/TipOfTheDayCard.tsx
   - leanshot/src/components/dashboard/cards/__tests__/TipOfTheDayCard.test.tsx
@@ -15,7 +15,7 @@ files_modified:
   - supabase/functions/rag-tip-of-day-generate/__tests__/prompt.test.ts
   - supabase/functions/rag-tip-of-day-generate/__tests__/push-payload.test.ts
   - supabase/functions/rag-tip-of-day-generate/__tests__/index.test.ts
-  - supabase/migrations/20261201000004_kb_tip_of_day_table.sql
+  - supabase/migrations/20281201000004_kb_tip_of_day_table.sql
   - leanshot/tests/e2e/tip-of-day.spec.ts
 autonomous: true
 requirements: [RAG-07]
@@ -57,7 +57,7 @@ must_haves:
     - path: supabase/functions/rag-tip-of-day-generate/deno.json
       provides: "Per-fn import map (CLI v2.101.0+ ignores --import-map flag)"
       contains: "@ai-sdk/anthropic"
-    - path: supabase/migrations/20261201000004_kb_tip_of_day_table.sql
+    - path: supabase/migrations/20281201000004_kb_tip_of_day_table.sql
       provides: "kb_tip_of_day(id, user_id, date_utc, chunk_id, generated_at, push_dispatched_at) with UNIQUE(user_id,date_utc) + RLS SELECT for own row + SECDEF INSERT used by Fn"
       contains: "create table public.kb_tip_of_day"
     - path: leanshot/src/components/dashboard/cards/__tests__/TipOfTheDayCard.test.tsx
@@ -257,7 +257,7 @@ Push:
 
 <task type="auto" tdd="true">
   <name>Task 1: kb_tip_of_day migration + push category seed</name>
-  <files>supabase/migrations/20261201000004_kb_tip_of_day_table.sql</files>
+  <files>supabase/migrations/20281201000004_kb_tip_of_day_table.sql</files>
   <read_first>
     supabase/migrations/20260519000003_rag_chunks_table.sql (for kb_chunks FK target verification)
     supabase/migrations/20270704000002_notification_category_config.sql (for category-seed pattern)
@@ -272,7 +272,7 @@ Push:
     - Test 6 (Edge Fn change): the `VALID_CATEGORIES` Set in `supabase/functions/push-dispatch/index.ts` is NOT modified here — 60-01 owns that edit per outline; THIS plan only seeds the config row. If 60-01 has not yet shipped (chunked dispatch — sibling plan not yet executed), the migration file MUST include a `do $$ ... $$` block that INSERT-ON-CONFLICT-DO-NOTHINGs the row so re-running is idempotent.
   </behavior>
   <action>
-    Write `supabase/migrations/20261201000004_kb_tip_of_day_table.sql`:
+    Write `supabase/migrations/20281201000004_kb_tip_of_day_table.sql`:
 
     1. `create extension if not exists pgcrypto;` (for gen_random_uuid).
     2. `create table if not exists public.kb_tip_of_day` with the column list from Test 1. `chunk_id` FK references `public.kb_chunks(id)` if that table exists (it does, per Phase 50-05 migration 20260519000003); use `on delete cascade`.
@@ -283,13 +283,13 @@ Push:
     7. `create or replace function public.write_kb_tip_of_day(...)` SECDEF function in `public` schema that takes the 13 parameters + does INSERT…ON CONFLICT(user_id,date_utc) DO NOTHING and RETURNS uuid (the id, or null on conflict). `grant execute on function public.write_kb_tip_of_day(...) to service_role;` only — no anon/authenticated grants.
     8. Seed row for `notification_category_config`: `insert into public.notification_category_config (category, display_name, urgent_escalation, daily_cap, weekly_cap, phi_redaction, default_enabled) values ('research_tips', 'Research tips', false, 1, 7, false, true) on conflict (category) do nothing;` (column names match Phase 54 schema — verify in read_first).
 
-    Migration filename `20261201000004_kb_tip_of_day_table.sql` follows the Phase 60 timestamp prefix declared in the outline (60-01 uses 20261201000001..3). NO cron schedules in this migration — that's 60-15's exclusive responsibility per [[feedback_fn_deploy_before_cron_db_push]].
+    Migration filename `20281201000004_kb_tip_of_day_table.sql` follows the Phase 60 timestamp prefix declared in the outline (60-01 uses 20281201000001..3). NO cron schedules in this migration — that's 60-15's exclusive responsibility per [[feedback_fn_deploy_before_cron_db_push]].
   </action>
   <verify>
-    <automated>cd /Users/karstenhaldan/minisite && grep -E "create table if not exists public\.kb_tip_of_day|unique index kb_tip_of_day_user_date_uniq|create policy kb_tip_of_day_select_own|create or replace function public\.write_kb_tip_of_day|'research_tips'" supabase/migrations/20261201000004_kb_tip_of_day_table.sql | grep -v '^--' | wc -l | grep -q '^[[:space:]]*5$' && echo "migration shape OK"</automated>
+    <automated>cd /Users/karstenhaldan/minisite && grep -E "create table if not exists public\.kb_tip_of_day|unique index kb_tip_of_day_user_date_uniq|create policy kb_tip_of_day_select_own|create or replace function public\.write_kb_tip_of_day|'research_tips'" supabase/migrations/20281201000004_kb_tip_of_day_table.sql | grep -v '^--' | wc -l | grep -q '^[[:space:]]*5$' && echo "migration shape OK"</automated>
   </verify>
   <done>
-    Migration file exists at the declared path with all 5 grep tokens present (table, unique index, RLS policy, SECDEF function, category seed). No `cron.schedule(` text in the file (verified `! grep -q "cron.schedule" supabase/migrations/20261201000004_kb_tip_of_day_table.sql`). File is NOT pushed in this plan — 60-15 BLOCKING task pushes all Phase 60 migrations after Fns deploy.
+    Migration file exists at the declared path with all 5 grep tokens present (table, unique index, RLS policy, SECDEF function, category seed). No `cron.schedule(` text in the file (verified `! grep -q "cron.schedule" supabase/migrations/20281201000004_kb_tip_of_day_table.sql`). File is NOT pushed in this plan — 60-15 BLOCKING task pushes all Phase 60 migrations after Fns deploy.
   </done>
 </task>
 
@@ -574,8 +574,8 @@ Push:
 <verification>
 ## Phase-level verification (this plan only — full phase verification in 60-15)
 
-1. Migration shape: `grep -E "create table if not exists public\.kb_tip_of_day|unique index kb_tip_of_day_user_date_uniq|create policy kb_tip_of_day_select_own|create or replace function public\.write_kb_tip_of_day|'research_tips'" supabase/migrations/20261201000004_kb_tip_of_day_table.sql | wc -l` returns 5.
-2. No cron in migration: `! grep -q "cron.schedule" supabase/migrations/20261201000004_kb_tip_of_day_table.sql`.
+1. Migration shape: `grep -E "create table if not exists public\.kb_tip_of_day|unique index kb_tip_of_day_user_date_uniq|create policy kb_tip_of_day_select_own|create or replace function public\.write_kb_tip_of_day|'research_tips'" supabase/migrations/20281201000004_kb_tip_of_day_table.sql | wc -l` returns 5.
+2. No cron in migration: `! grep -q "cron.schedule" supabase/migrations/20281201000004_kb_tip_of_day_table.sql`.
 3. Deno tests: `cd supabase/functions/rag-tip-of-day-generate && $HOME/.deno/bin/deno test --no-check --allow-env --allow-net .` → all 3 test files green.
 4. Deno.serve guarded: `grep -c "^Deno.serve" supabase/functions/rag-tip-of-day-generate/index.ts` returns 0; `grep -c "if (import.meta.main) Deno.serve" supabase/functions/rag-tip-of-day-generate/index.ts` returns 1.
 5. Model ID hyphenated: `grep -c "claude-haiku-4-5-20251001" supabase/functions/rag-tip-of-day-generate/index.ts` returns ≥1; `! grep -E "claude-haiku-4\\.5|claude\\.haiku" supabase/functions/rag-tip-of-day-generate/index.ts`.
@@ -591,8 +591,8 @@ Push:
 ## Deferred to 60-15 BLOCKING (NOT this plan)
 
 - `supabase functions deploy rag-tip-of-day-generate --project-ref <ref>` — deploy gates cron registration per [[feedback_fn_deploy_before_cron_db_push]].
-- `supabase db push --linked` for `20261201000004_kb_tip_of_day_table.sql` — pushed alongside all Phase 60 migrations after Fns deploy.
-- pg_cron schedule `phase60_tip_of_day_daily` registered in `20261201000099_phase60_cron_schedules.sql` per outline 60-15.
+- `supabase db push --linked` for `20281201000004_kb_tip_of_day_table.sql` — pushed alongside all Phase 60 migrations after Fns deploy.
+- pg_cron schedule `phase60_tip_of_day_daily` registered in `20281201000099_phase60_cron_schedules.sql` per outline 60-15.
 - Live verification of (chunk eligibility → Haiku synth → kb_tip_of_day INSERT → push delivery) end-to-end on a staging user.
 
 ## Deferred to 60-13 (consumer route)
@@ -601,7 +601,7 @@ Push:
 </verification>
 
 <success_criteria>
-1. Migration `20261201000004_kb_tip_of_day_table.sql` exists with 5 required tokens (Task 1).
+1. Migration `20281201000004_kb_tip_of_day_table.sql` exists with 5 required tokens (Task 1).
 2. `supabase/functions/rag-tip-of-day-generate/` directory has 4 source files (index.ts, prompt.ts, push-payload.ts, deno.json) + 3 test files; all `deno test` green (Tasks 2-4).
 3. `leanshot/src/components/dashboard/cards/TipOfTheDayCard.tsx` exists and renders verbatim per UI-SPEC §6 with `null` empty state; HomeTab.tsx mounts it; vitest green (Task 5).
 4. Playwright spec `tip-of-day.spec.ts` passes under `PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1` (Task 6).
@@ -619,7 +619,7 @@ Create `.planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-11-tip-of
 Summary MUST include:
 - Files created (12 expected: 1 migration + 4 Fn source + 3 Fn test + 1 card + 1 card test + 1 HomeTab edit + 1 E2E spec).
 - Confirmation that all 13 phase-level verification gates pass.
-- Cross-plan dependency reminders for the orchestrator: (a) 60-01 owns `push_subscription_categories` `research_tips` row (this plan ALSO seeds it idempotently as belt-and-suspenders); (b) 60-13 owns `/knowledge/<topic>/<slug>` route (this plan's link asserts URL change only); (c) 60-15 BLOCKING owns Fn deploy + cron registration + `supabase db push --linked` for `20261201000004_kb_tip_of_day_table.sql`.
+- Cross-plan dependency reminders for the orchestrator: (a) 60-01 owns `push_subscription_categories` `research_tips` row (this plan ALSO seeds it idempotently as belt-and-suspenders); (b) 60-13 owns `/knowledge/<topic>/<slug>` route (this plan's link asserts URL change only); (c) 60-15 BLOCKING owns Fn deploy + cron registration + `supabase db push --linked` for `20281201000004_kb_tip_of_day_table.sql`.
 - AI-SPEC dimension coverage: Dim #1 (citation faithfulness via verbatim-substring prompt clause), Dim #8 (source-tier rendering via TierBadge), Dim #9 (k-anon floor in Fn), Dim #12 (cost envelope via gateOrThrow), Dim #13 (personalization appropriateness via prescriptive-verb regex gate).
 - Guardrail coverage: G1 (PHARMA-02 layer 2 + layer 3 mirror in push-payload.ts), G2 (AI-04 fence in prompt.ts), G3 (out-of-corpus via empty results refusal), G6 (cost envelope), G8 (k-anon), G9 (FDA-equivalence regex in push-payload.ts).
 </output>

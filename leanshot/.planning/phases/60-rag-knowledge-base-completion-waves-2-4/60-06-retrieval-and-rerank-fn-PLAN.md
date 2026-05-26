@@ -16,7 +16,7 @@ files_modified:
   - supabase/functions/rag-retrieve/__tests__/jina-rerank.test.ts
   - supabase/functions/rag-retrieve/__tests__/refusal.test.ts
   - supabase/functions/rag-retrieve/__tests__/integration.test.ts
-  - supabase/migrations/20261201000010_match_external_kb_embeddings_fn.sql
+  - supabase/migrations/20281201000010_match_external_kb_embeddings_fn.sql
   - eval/phase60/dimensions/rerank-delta.ts
   - eval/phase60/dimensions/retrieval-recall.ts
 autonomous: true
@@ -73,7 +73,7 @@ must_haves:
       provides: "Refusal builders — outOfCorpusRefusal(maxCosine) returns {refused:true, refusal_reason:'out_of_corpus', results:[]}; postRerankRefusal(maxScore) returns {refused:true, refusal_reason:'post_rerank_low_relevance', results:[]}; emits rag_refusal_emitted via 60-02 posthog helper"
     - path: "supabase/functions/rag-retrieve/deno.json"
       provides: "Per-fn import map: ai, @ai-sdk/openai, cohere-ai, zod, @supabase/supabase-js — explicit npm: pins (CLI v2.101.0+ ignores --import-map per [[reference_supabase_functions_deploy_import_map_flag]])"
-    - path: "supabase/migrations/20261201000010_match_external_kb_embeddings_fn.sql"
+    - path: "supabase/migrations/20281201000010_match_external_kb_embeddings_fn.sql"
       provides: "SECURITY INVOKER RPC match_external_kb_embeddings(query_embedding vector(1536), match_count int, requesting_user_id uuid default null) returning chunk metadata + (1 - (embedding <=> query_embedding)) as similarity; ORDER BY embedding <=> query_embedding LIMIT match_count; uses HNSW index; excludes c.retracted_at NOT NULL"
     - path: "eval/phase60/dimensions/rerank-delta.ts"
       provides: "Suite implementation for `--suite=rerank-delta`: replays gold-set through raw-cosine-only vs rerank pipelines; computes precision@5 / recall@5 / MRR for each; asserts rerank precision@5 − cosine precision@5 ≥ +0.10; bootstrap 95% CI"
@@ -81,7 +81,7 @@ must_haves:
       provides: "Suite implementation for `--suite=retrieval`: computes recall@5, recall@10, MRR vs gold-set labeled relevant_chunk_ids; per topic_tag + per source_tier breakdown"
   key_links:
     - from: "supabase/functions/rag-retrieve/index.ts"
-      to: "match_external_kb_embeddings RPC (migration 20261201000010)"
+      to: "match_external_kb_embeddings RPC (migration 20281201000010)"
       via: "supabase.rpc('match_external_kb_embeddings', {query_embedding, match_count: k*4})"
       pattern: "supabase\\.rpc\\('match_external_kb_embeddings'"
     - from: "supabase/functions/rag-retrieve/index.ts"
@@ -134,7 +134,7 @@ Output: 1 Edge Fn (5 source files + deno.json) + 1 SECURITY INVOKER RPC migratio
 <interfaces>
 <!-- Contracts the executor must use directly. Do NOT explore the codebase for these. -->
 
-From 60-01 migration `20261201000001_phase60_kb_tables.sql` (Wave 0 already landed):
+From 60-01 migration `20281201000001_phase60_kb_tables.sql` (Wave 0 already landed):
 ```sql
 -- Phase 50 schema reused verbatim — these columns are stable on rag_chunks + external_kb_embeddings:
 -- rag_chunks: id uuid PK, summary text, quote_blocks jsonb, source_text_excerpt text,
@@ -253,7 +253,7 @@ Jina Reranker v2 REST contract (per https://api.jina.ai/v1/rerank):
 
 <task type="auto" tdd="true">
   <name>Task 1: Write match_external_kb_embeddings SECURITY INVOKER RPC migration</name>
-  <files>supabase/migrations/20261201000010_match_external_kb_embeddings_fn.sql</files>
+  <files>supabase/migrations/20281201000010_match_external_kb_embeddings_fn.sql</files>
   <read_first>supabase/migrations/20260519000004_external_kb_embeddings_table.sql, supabase/migrations/20270705000004_phase38_match_content_embeddings_fn.sql</read_first>
   <behavior>
     - Function `public.match_external_kb_embeddings(query_embedding vector(1536), match_count integer default 20, requesting_user_id uuid default null)` exists
@@ -268,7 +268,7 @@ Jina Reranker v2 REST contract (per https://api.jina.ai/v1/rerank):
     - Idempotent: DROP FUNCTION IF EXISTS at top
   </behavior>
   <action>
-    Author `supabase/migrations/20261201000010_match_external_kb_embeddings_fn.sql`:
+    Author `supabase/migrations/20281201000010_match_external_kb_embeddings_fn.sql`:
     - `DROP FUNCTION IF EXISTS public.match_external_kb_embeddings(vector, integer, uuid);`
     - `CREATE OR REPLACE FUNCTION public.match_external_kb_embeddings(query_embedding vector(1536), match_count integer default 20, requesting_user_id uuid default null)`
     - `RETURNS TABLE (chunk_id uuid, summary text, quote_blocks jsonb, canonical_url text, scraped_at timestamptz, source_tier text, topic_tag text, freshness_window_days integer, source_name text, source_domain text, similarity double precision)`
@@ -498,7 +498,8 @@ Jina Reranker v2 REST contract (per https://api.jina.ai/v1/rerank):
   <files>supabase/functions/rag-retrieve/index.ts, supabase/functions/rag-retrieve/__tests__/integration.test.ts</files>
   <read_first>supabase/functions/rag-retrieve/merge.ts, supabase/functions/rag-retrieve/cohere-rerank.ts, supabase/functions/rag-retrieve/jina-rerank.ts, supabase/functions/rag-retrieve/refusal.ts, supabase/functions/rag-embed-approved/openai.ts, supabase/functions/_shared/posthog-rag-events.ts</read_first>
   <behavior>
-    - POST with `{ query: string, k?: number, filters?: { topic_tag?: string, source_tier?: ('A'|'B'|'C')[] } }`; default `k = 3`
+    - POST with `{ query: string, k?: number, filters?: { topic_tag?: string, source_tier?: ('A'|'B'|'C')[] }, mode?: 'retrieve' | 'eval-sweep' }`; default `k = 3`, default `mode='retrieve'`
+    - `mode='eval-sweep'` branch (Warning W-2 fix from plan-checker iter-1): operates as a nightly batch driver invoked by 60-15's `phase60_eval_nightly` cron. Reads gold-set fixture path from `Deno.env.get('PHASE60_GOLD_SET_PATH')` (default `/tmp/phase60-gold-set.jsonl` — operator stages via 60-03 harness pre-cron), iterates each gold-set query through the normal retrieve pipeline, computes recall@5 + MRR + rerank-delta per dimension, emits `$ai_evaluation` PostHog events per query via `_shared/posthog-rag-events.ts`, returns aggregated `{ mode: 'eval-sweep', queries_run: N, dimensions: {...} }` summary. Service-role bearer required (cron-only); reject `mode='eval-sweep'` POSTs lacking service-role auth with 401.
     - GET `/healthz` returns `{ ok: true, rerank_provider: 'cohere'|'jina' }`
     - Pipeline order: input parse → trace_id mint → embed query → RPC match_external_kb_embeddings → out-of-corpus gate → tier/freshness reweight via rankAndTrim → top-N=20 cap for rerank input → rerank (env-flag) → post-rerank gate → slice to top-k → emit AI generation events → return JSON
     - `RAG_RERANKER_PROVIDER=jina` → uses JinaRerankClient; otherwise CohereRerankClient

@@ -5,6 +5,7 @@ type: execute
 wave: 3
 depends_on: [60-01]
 files_modified:
+  - supabase/migrations/20281201000011_rag_budget_caps.sql
   - supabase/functions/rag-cost-query/index.ts
   - supabase/functions/rag-cost-query/deno.json
   - supabase/functions/rag-cost-query/__tests__/posthog-query.test.ts
@@ -30,7 +31,7 @@ must_haves:
     - "Super-admin visits /admin/rag/cost and sees 6 vendor cards (Firecrawl, OpenAI embeddings, Anthropic summarizer, Cohere rerank, Jina rerank, federated-source-fetch overhead) + 3 cron rows (Coach synthesis / day, Tip-of-day cron / day, Newsletter cron / week)"
     - "Each vendor card displays MTD spend, budget cap caption, CostBar (existing primitive from 50-02), reset countdown, AND a 7-day Sparkline (existing primitive at src/components/ui/Sparkline.tsx) — per UI-SPEC §17 / Surface 3"
     - "Cost data is sourced from PostHog $ai_generation events aggregated server-side via a new Edge Fn rag-cost-query (admin-gated; uses POSTHOG_PERSONAL_API_KEY vault secret) — per AI-SPEC §7 line 945 (PostHog Insights embedded; NOT a parallel rag_cost_log table)"
-    - "Auto-pause banner renders above the bento grid when any vendor's MTD spend ≥ 100% of cap; AlertOctagon lucide icon + copy from UI-SPEC §C Copywriting Contract verbatim; Acknowledge-and-resume CTA calls rag_acknowledge_budget_cap(p_vendor text) RPC (defined in 60-01 migration set)"
+    - "Auto-pause banner renders above the bento grid when any vendor's MTD spend ≥ 100% of cap; AlertOctagon lucide icon + copy from UI-SPEC §C Copywriting Contract verbatim; Acknowledge-and-resume CTA calls rag_acknowledge_budget_cap(p_vendor text) RPC (defined by this plan's migration 20281201000011_rag_budget_caps.sql — Blocker-2 fix from plan-checker iter-1; previously claimed to be in 60-01 but was not actually shipped there)"
     - "Cost-event payload contains NO PII — only model, vendor, action category, usage_total_cost, latency_ms, trace_id (audited via T-60-14-PII-1 mitigation)"
     - "Page is super-admin only — Edge Fn enforces auth.uid() ∈ public.is_staff() AND a stricter super-admin RPC check (public.is_super_admin() if exists, else public.is_staff() + audit-log entry); UI hides /admin/rag/cost nav entry for non-super-admin per existing RagLayout convention"
     - "Phase 69 4-size typography ceiling honored (only 11/13/18/28 px); accent reserved-list (UI-SPEC §Color) honored — spend figures use font-mono 18px; eyebrow labels 11px uppercase"
@@ -141,8 +142,8 @@ Existing supabase client convenience — `leanshot/src/lib/supabase.ts`:
 - `supabase.functions.invoke('rag-cost-query', { body: {...} })` is the existing call pattern (other admin libs in `src/lib/admin/` use this — grep `src/lib/admin/admin-api.ts` for an example shape if needed).
 
 Phase 60-01 dependency (declared `depends_on: [60-01]`):
-- 60-01 ships `rag_budget_caps` table (vendor TEXT PK, cap_usd NUMERIC, mtd_spend_usd NUMERIC cached, last_acknowledged_at TIMESTAMPTZ, source_pause_state BOOL) AND the `rag_acknowledge_budget_cap(p_vendor text) RETURNS void` SECDEF RPC (mirrors 50-09 Task 4 RPC design — confirm row exists in 60-01 PLAN before this plan executes; if absent, surface gap before dispatch).
-- If 60-01 does NOT include `rag_budget_caps` + `rag_acknowledge_budget_cap` RPC, executor MUST surface as BLOCKER (not silently add table — that's 60-01's scope).
+- **This plan ships** `rag_budget_caps` table (vendor TEXT PK, cap_usd NUMERIC, mtd_spend_usd NUMERIC cached, last_acknowledged_at TIMESTAMPTZ, source_pause_state BOOL) AND the `rag_acknowledge_budget_cap(p_vendor text) RETURNS void` SECDEF RPC via new migration `20281201000011_rag_budget_caps.sql` (mirrors 50-09 Task 4 RPC design). Plan-checker iter-1 identified that 60-01 did NOT define these despite earlier outline assertions — Blocker-2 fix: 60-14 owns the migration self-sufficiently.
+- Migration timestamp `20281201000011` lands AFTER 60-01's `20281201000001..03` series (same phase prefix; sequential suffix); push order remains 60-15 BLOCKING `supabase db push --linked`.
 
 Phase 50-09 (NOT shipped) — what this plan is replacing/owning:
 - 50-09 Task 4 designed: 3 vendor cards (Firecrawl/OpenAI/Anthropic span={4}) + per-topic breakdown table + auto-pause banner + `rag_acknowledge_budget_cap` RPC. None shipped.
@@ -205,6 +206,41 @@ Section heading for cron rollups: `Phase 60 Synthesis` (verbatim from UI-SPEC ta
 </threat_model>
 
 <tasks>
+
+<task type="auto" tdd="true">
+  <name>Task 0: Ship rag_budget_caps migration (self-sufficient — Blocker-2 fix)</name>
+  <files>supabase/migrations/20281201000011_rag_budget_caps.sql</files>
+  <read_first>
+    @supabase/migrations/20281201000002_phase60_secdef_rpcs.sql (60-01 SECDEF pattern — copy is_staff() guard + SECDEF + grant execute to authenticated shape);
+    @leanshot/.planning/phases/50-admin-curated-rag-knowledge-base-peptide-topic-research-scra/50-09-PLAN.md (Task 4 original rag_budget_caps design — table column shape + RPC signature)
+  </read_first>
+  <behavior>
+    - Migration adds `public.rag_budget_caps` table: `vendor TEXT PRIMARY KEY`, `cap_usd NUMERIC(10,2) NOT NULL`, `mtd_spend_usd NUMERIC(10,2) NOT NULL DEFAULT 0`, `last_acknowledged_at TIMESTAMPTZ`, `source_pause_state BOOLEAN NOT NULL DEFAULT false`, `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`.
+    - Seeds 6 vendor rows: `firecrawl` ($50/mo), `openai_embed` ($30/mo), `anthropic_summarize` ($50/mo), `cohere_rerank` ($20/mo), `jina_rerank` ($10/mo), `federated_fetch` ($5/mo) — values per AI-SPEC §6 G6/G7 cost envelopes.
+    - RLS enabled; select policy gates to `public.is_staff()`; insert/update only via SECDEF RPCs (deny public write).
+    - SECDEF function `public.rag_acknowledge_budget_cap(p_vendor text) RETURNS void` — re-checks `public.is_staff()` inside body; raises if not staff; updates `last_acknowledged_at = now()` and `source_pause_state = false` for the named vendor; writes audit row to `audit_log` (if Phase 51 audit table exists; else no-op with comment).
+    - `grant execute on function public.rag_acknowledge_budget_cap(text) to authenticated` (NOT to anon).
+    - No `cron.schedule` calls; no Fn deploys; this migration is pushed by 60-15 BLOCKING with all other Phase 60 migrations.
+    - Timestamp `20281201000011` lands AFTER 60-01's `20281201000001..03` series and BEFORE 60-15's `20281201000099_phase60_cron_schedules.sql`.
+  </behavior>
+  <action>
+    Author `supabase/migrations/20281201000011_rag_budget_caps.sql`:
+    - Header comment block referencing this plan (60-14) and Blocker-2 fix from plan-checker iter-1.
+    - `create table if not exists public.rag_budget_caps (...)` with columns listed above.
+    - Seed via `INSERT ... ON CONFLICT (vendor) DO NOTHING` per [[reference_postgres_no_insert_on_conflict_do_delete]] (toggle-safe; do NOT use `ON CONFLICT DO DELETE`).
+    - `alter table public.rag_budget_caps enable row level security;`
+    - `create policy rag_budget_caps_select_staff on public.rag_budget_caps for select using (public.is_staff());` per [[reference_supabase_is_staff_helper]].
+    - SECDEF function body: verify `not public.is_staff()` → `raise exception 'forbidden: rag_acknowledge_budget_cap requires staff role';` else UPDATE + audit insert.
+    - `grant execute on function public.rag_acknowledge_budget_cap(text) to authenticated;`
+    - `revoke all on table public.rag_budget_caps from public;`
+    - File ends with comment `-- pushed by Plan 60-15 BLOCKING (supabase db push --linked)`.
+  </action>
+  <verify>
+    <automated>cd /Users/karstenhaldan/minisite && grep -E "create table if not exists public\.rag_budget_caps|create or replace function public\.rag_acknowledge_budget_cap|enable row level security|public\.is_staff\(\)|ON CONFLICT \(vendor\) DO NOTHING|grant execute on function public\.rag_acknowledge_budget_cap" supabase/migrations/20281201000011_rag_budget_caps.sql | grep -v '^[[:space:]]*--' | wc -l | grep -q '^[[:space:]]*6$' &amp;&amp; echo "MIGRATION-OK"</automated>
+    <automated>cd /Users/karstenhaldan/minisite && ! grep -q "cron.schedule\|ON CONFLICT.*DO DELETE\|staff_users" supabase/migrations/20281201000011_rag_budget_caps.sql &amp;&amp; echo "NO-CRON-NO-CONFLICT-DELETE-NO-STAFF-USERS"</automated>
+  </verify>
+  <done>Migration file exists at git-root path with all 6 grep tokens; no cron / no ON CONFLICT DO DELETE / no staff_users; MIGRATION-OK + NO-CRON-NO-CONFLICT-DELETE-NO-STAFF-USERS printed. Migration is NOT pushed in this plan — 60-15 BLOCKING pushes all Phase 60 migrations after Fn deploys.</done>
+</task>
 
 <task type="auto" tdd="true">
   <name>Task 1: Build rag-cost-query Edge Fn (admin-gated PostHog Query API proxy)</name>

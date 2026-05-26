@@ -3,9 +3,9 @@ phase: 60-rag-knowledge-base-completion-waves-2-4
 plan: 15
 type: execute
 wave: 3
-depends_on: [60-04, 60-05, 60-06, 60-07, 60-11, 60-12]
+depends_on: [60-04, 60-05, 60-06, 60-07, 60-08, 60-09, 60-11, 60-12, 60-13, 60-14]
 files_modified:
-  - supabase/migrations/20261201000099_phase60_cron_schedules.sql
+  - supabase/migrations/20281201000099_phase60_cron_schedules.sql
   - .planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-DEPLOY-EVIDENCE.md
   - .planning/ROADMAP.md
 autonomous: false
@@ -14,34 +14,34 @@ tags: [supabase, edge-functions, pg-cron, deploy, blocking-close-out]
 
 user_setup:
   - service: supabase
-    why: "Deploy 9 Edge Functions atomically + push cron migration after Fns are live (per [[feedback_fn_deploy_before_cron_db_push]] — cron fires within 15min of db push to non-existent endpoints otherwise)."
+    why: "Deploy 10 Edge Functions atomically + push cron migration after Fns are live (per [[feedback_fn_deploy_before_cron_db_push]] — cron fires within 15min of db push to non-existent endpoints otherwise)."
     env_vars:
       - name: SUPABASE_ACCESS_TOKEN
         source: "supabase.com → Account → Access Tokens (operator's personal token; required for `supabase functions deploy` and `supabase db push --linked`)"
     dashboard_config:
-      - task: "Verify vault entry `service_role_key` exists (used by all 5 cron jobs to authenticate Fn invocations)"
+      - task: "Verify vault entry `service_role_key` exists (used by all 7 cron jobs to authenticate Fn invocations)"
         location: "Supabase Dashboard → Database → Vault — confirm row `service_role_key` decrypts"
       - task: "Verify vault entry `slack_guardrail_webhook` exists (used by guardrail alert helper from 60-02)"
         location: "Supabase Dashboard → Database → Vault — confirm row `slack_guardrail_webhook` decrypts to a valid Slack incoming-webhook URL"
 
 must_haves:
   truths:
-    - "All 9 Phase 60 Edge Functions deployed to project `ytnsipxxmzgaebkqmokp` and visible in `supabase functions list`"
-    - "5 pg_cron jobs registered with `jobname like 'phase60_%'` after Fns are live (federated-pubmed daily 03:00 UTC, federated-fda daily 03:00 UTC, federated-dailymed daily 03:00 UTC, embed-worker every 5 min, tip-of-day daily 00:00 UTC, newsletter weekly Sunday 13:00 UTC = 09:00 ET, eval nightly 02:00 UTC) — count == 7 cron rows (3 federated + embed + tip + newsletter + eval)"
+    - "All 10 Phase 60 Edge Functions deployed to project `ytnsipxxmzgaebkqmokp` and visible in `supabase functions list`"
+    - "7 pg_cron jobs registered with `jobname like 'phase60_%'` after Fns are live (federated-pubmed daily 03:00 UTC, federated-fda daily 03:00 UTC, federated-dailymed daily 03:00 UTC, embed-worker every 5 min, tip-of-day daily 00:00 UTC, newsletter weekly Sunday 13:00 UTC = 09:00 ET, eval nightly 02:00 UTC) — count == 7 cron rows (3 federated + embed + tip + newsletter + eval)"
     - "Cron jobs authenticate via `vault.decrypted_secrets` lookup of `service_role_key` (no GUC, no hardcoded bearer)"
     - "`supabase db push --linked` exits 0 with no back-dated-migration block"
     - "ROADMAP.md Phase 60 entry flipped from `- [ ]` → `- [x]` (Plans line updated from `TBD` to `15 plans (all complete)`)"
     - "60-DEPLOY-EVIDENCE.md records the deploy timestamp, function names, cron jobnames, and migration timestamp for audit trail"
   artifacts:
-    - path: "supabase/migrations/20261201000099_phase60_cron_schedules.sql"
-      provides: "5 pg_cron job registrations for Phase 60 Fns"
+    - path: "supabase/migrations/20281201000099_phase60_cron_schedules.sql"
+      provides: "7 pg_cron job registrations for Phase 60 Fns"
       contains: "cron.schedule('phase60_"
       min_lines: 80
     - path: ".planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-DEPLOY-EVIDENCE.md"
       provides: "Deploy audit trail: functions list output, cron.job query output, db push log excerpt"
       min_lines: 30
   key_links:
-    - from: "supabase/migrations/20261201000099_phase60_cron_schedules.sql"
+    - from: "supabase/migrations/20281201000099_phase60_cron_schedules.sql"
       to: "supabase/functions/rag-federated-pubmed (and 8 siblings)"
       via: "net.http_post URL pointing at deployed Fn endpoint"
       pattern: "https://ytnsipxxmzgaebkqmokp\\.supabase\\.co/functions/v1/rag-"
@@ -54,8 +54,8 @@ must_haves:
 <objective>
 **BLOCKING close-out plan for Phase 60.** Strict 3-step ordering per `[[feedback_fn_deploy_before_cron_db_push]]`:
 
-1. Deploy all 9 Phase 60 Edge Functions atomically (`supabase functions deploy ... --project-ref ytnsipxxmzgaebkqmokp`).
-2. Write cron migration `20261201000099_phase60_cron_schedules.sql` registering 7 pg_cron jobs targeting the now-live Fns.
+1. Deploy all 10 Phase 60 Edge Functions atomically (`supabase functions deploy ... --project-ref ytnsipxxmzgaebkqmokp`).
+2. Write cron migration `20281201000099_phase60_cron_schedules.sql` registering 7 pg_cron jobs targeting the now-live Fns.
 3. `supabase db push --linked` from `leanshot/` so the cron jobs activate.
 
 Phase 60 verification CANNOT pass without this plan. If steps 2 → 1 order is reversed, the FIRST cron tick (≤ 5 min for embed-worker, ≤ 15 min for daily) fires `net.http_post` against a 404 endpoint, silently dropping work and logging stale-Fn errors.
@@ -82,7 +82,7 @@ Output: Deployed Fns + migration file + ROADMAP toggle + deploy evidence artifac
 @supabase/migrations/20280401000005_ad_revenue_etl_cron_rpc.sql
 
 <interfaces>
-<!-- The 9 Phase 60 Edge Functions this plan deploys + crons against. Names + invocation URLs MUST match exactly. -->
+<!-- The 10 Phase 60 Edge Functions this plan deploys + crons against. Names + invocation URLs MUST match exactly. -->
 
 Deployed by Plan 60-04:
   - supabase/functions/rag-summarize-and-chunk/    → POST https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/rag-summarize-and-chunk
@@ -108,7 +108,7 @@ Additional cron (no Fn — invokes nightly eval harness shipped by Plan 60-03):
 Project ref: `ytnsipxxmzgaebkqmokp` (from `.planning/PROJECT.md:22`).
 Repo layout: `supabase/functions/` and `supabase/migrations/` live at **git root** `/Users/karstenhaldan/minisite/`, NOT under `leanshot/`. The `supabase` CLI must be invoked from `leanshot/` (where `supabase/config.toml`-linked project lives) — verify with `pwd` before every `supabase` invocation.
 
-Latest applied migration timestamp on disk: `20280401000007_ad_config_anon_select.sql` (Phase 56 ad-network). The Phase 60 cron migration uses **`20261201000099_...`** which is BACK-DATED relative to Phase 56 — per `[[reference_supabase_back_dated_migration_blocks_push]]` this would normally block `supabase db push`. **Mitigation:** the planner outline already chose `20261201000099` (Dec 2026, AFTER Phase 50 originals which are 20261101*); operator must verify with `supabase migration list --linked` at Task 1 that the remote has NOT yet applied any 2027/2028 migration past `20261201000099`. If Phase 56 (2028-04) is already remote-applied, follow the rescue recipe: `mv` Phase 60 file to `/tmp`, push other pending, restore Phase 60 with bumped timestamp `20280501000099_phase60_cron_schedules.sql`.
+Latest applied migration timestamp on disk: `20280401000007_ad_config_anon_select.sql` (Phase 56 ad-network). The Phase 60 cron migration uses **`20281201000099_...`** which is BACK-DATED relative to Phase 56 — per `[[reference_supabase_back_dated_migration_blocks_push]]` this would normally block `supabase db push`. **Mitigation:** the planner outline already chose `20281201000099` (Dec 2026, AFTER Phase 50 originals which are 20261101*); operator must verify with `supabase migration list --linked` at Task 1 that the remote has NOT yet applied any 2027/2028 migration past `20281201000099`. If Phase 56 (2028-04) is already remote-applied, follow the rescue recipe: `mv` Phase 60 file to `/tmp`, push other pending, restore Phase 60 with bumped timestamp `20280501000099_phase60_cron_schedules.sql`.
 
 Canonical cron pattern (copy STRUCTURE from):
   - supabase/migrations/20280401000005_ad_revenue_etl_cron_rpc.sql
@@ -171,14 +171,14 @@ Vault entries required (verify in Task 2):
        ```
        supabase migration list --linked 2>&1 | tee /tmp/phase60-migration-list.txt
        ```
-       Required check: search the output for any row matching `20261201000099`. Expected: not present (remote has not yet applied this exact migration ID).
+       Required check: search the output for any row matching `20281201000099`. Expected: not present (remote has not yet applied this exact migration ID).
 
-       Additionally check: search for any remote-applied row whose timestamp is **lexicographically GREATER than `20261201000099`** AND whose status is `applied`. If ANY such row exists, the back-dated-blocker rule per `[[reference_supabase_back_dated_migration_blocks_push]]` will fire on `db push`. Record the highest-applied remote timestamp to `/tmp/phase60-remote-max.txt` and proceed; Task 5 will choose between in-place write vs bumped-timestamp rescue based on this value.
+       Additionally check: search for any remote-applied row whose timestamp is **lexicographically GREATER than `20281201000099`** AND whose status is `applied`. If ANY such row exists, the back-dated-blocker rule per `[[reference_supabase_back_dated_migration_blocks_push]]` will fire on `db push`. Record the highest-applied remote timestamp to `/tmp/phase60-remote-max.txt` and proceed; Task 5 will choose between in-place write vs bumped-timestamp rescue based on this value.
   </action>
   <verify>
-    <automated>cd /Users/karstenhaldan/minisite/leanshot &amp;&amp; pwd | grep -q '/leanshot$' &amp;&amp; for fn in rag-summarize-and-chunk rag-embed-approved rag-retrieve rag-federated-pubmed rag-federated-fda rag-federated-dailymed rag-tip-of-day-generate rag-newsletter-sender rag-newsletter-unsubscribe-1click; do test -f "../supabase/functions/$fn/index.ts" || { echo "MISSING $fn"; exit 1; }; done &amp;&amp; echo "PREFLIGHT-OK"</automated>
+    <automated>cd /Users/karstenhaldan/minisite/leanshot &amp;&amp; pwd | grep -q '/leanshot$' &amp;&amp; for fn in rag-summarize-and-chunk rag-embed-approved rag-retrieve rag-federated-pubmed rag-federated-fda rag-federated-dailymed rag-tip-of-day-generate rag-newsletter-sender rag-newsletter-unsubscribe-1click rag-cost-query; do test -f "../supabase/functions/$fn/index.ts" || { echo "MISSING $fn"; exit 1; }; done &amp;&amp; echo "PREFLIGHT-OK"</automated>
   </verify>
-  <done>9 Fn directories present with index.ts + deno.json; all Deno.serve calls guarded by import.meta.main (or absent); remote migration list captured to /tmp/phase60-migration-list.txt; remote-max timestamp captured to /tmp/phase60-remote-max.txt; PREFLIGHT-OK printed.</done>
+  <done>10 Fn directories present with index.ts + deno.json; all Deno.serve calls guarded by import.meta.main (or absent); remote migration list captured to /tmp/phase60-migration-list.txt; remote-max timestamp captured to /tmp/phase60-remote-max.txt; PREFLIGHT-OK printed.</done>
 </task>
 
 <task type="checkpoint:human-verify" gate="blocking">
@@ -211,10 +211,10 @@ Vault entries required (verify in Task 2):
 </task>
 
 <task type="auto">
-  <name>Task 3: Atomic deploy of all 9 Phase 60 Edge Functions</name>
+  <name>Task 3: Atomic deploy of all 10 Phase 60 Edge Functions</name>
   <files>(no files modified locally; deploys to Supabase project ytnsipxxmzgaebkqmokp)</files>
   <action>
-    Per `[[feedback_fn_deploy_before_cron_db_push]]` strict ordering: deploy ALL 9 Fns in a single atomic CLI invocation BEFORE writing or pushing the cron migration. If this command fails partway, halt — do NOT proceed to Task 5 with a partial deploy (some crons would land against live Fns, others against 404s).
+    Per `[[feedback_fn_deploy_before_cron_db_push]]` strict ordering: deploy ALL 10 Fns in a single atomic CLI invocation BEFORE writing or pushing the cron migration. If this command fails partway, halt — do NOT proceed to Task 5 with a partial deploy (some crons would land against live Fns, others against 404s).
 
     From `leanshot/`:
     ```
@@ -228,6 +228,7 @@ Vault entries required (verify in Task 2):
       rag-tip-of-day-generate \
       rag-newsletter-sender \
       rag-newsletter-unsubscribe-1click \
+      rag-cost-query \
       --project-ref ytnsipxxmzgaebkqmokp \
       2>&1 | tee /tmp/phase60-deploy.log
     ```
@@ -236,14 +237,14 @@ Vault entries required (verify in Task 2):
     - CLI v2.101.0+ silently ignores `--import-map` per `[[reference_supabase_functions_deploy_import_map_flag]]`; per-Fn `deno.json` import maps (declared in 60-02 helper convention + shipped per-Fn by 60-04..07,11,12) handle resolution. Do NOT pass `--import-map`.
     - `SUPABASE_ACCESS_TOKEN` must be set in the operator's shell env. If the CLI prompts for auth, operator runs `supabase login` first.
     - Cost: deploy is free; bundles each Fn into Deno's edge runtime.
-    - On partial failure (some Fns deployed, others errored): halt and retry only the failed names; do not advance to Task 5 until `supabase functions list --project-ref ytnsipxxmzgaebkqmokp` shows all 9.
+    - On partial failure (some Fns deployed, others errored): halt and retry only the failed names; do not advance to Task 5 until `supabase functions list --project-ref ytnsipxxmzgaebkqmokp` shows all 10.
 
     Capture the deploy log to `/tmp/phase60-deploy.log` for the audit-trail artifact in Task 7.
   </action>
   <verify>
-    <automated>grep -cE 'Deployed Function (rag-summarize-and-chunk|rag-embed-approved|rag-retrieve|rag-federated-pubmed|rag-federated-fda|rag-federated-dailymed|rag-tip-of-day-generate|rag-newsletter-sender|rag-newsletter-unsubscribe-1click)' /tmp/phase60-deploy.log | grep -q '^9$' &amp;&amp; echo DEPLOY-9-OK</automated>
+    <automated>grep -cE 'Deployed Function (rag-summarize-and-chunk|rag-embed-approved|rag-retrieve|rag-federated-pubmed|rag-federated-fda|rag-federated-dailymed|rag-tip-of-day-generate|rag-newsletter-sender|rag-newsletter-unsubscribe-1click|rag-cost-query)' /tmp/phase60-deploy.log | grep -q '^10$' &amp;&amp; echo DEPLOY-10-OK</automated>
   </verify>
-  <done>All 9 Phase 60 Fn names appear in /tmp/phase60-deploy.log as successfully deployed; CLI exit code 0; DEPLOY-9-OK printed.</done>
+  <done>All 10 Phase 60 Fn names appear in /tmp/phase60-deploy.log as successfully deployed; CLI exit code 0; DEPLOY-10-OK printed.</done>
 </task>
 
 <task type="auto">
@@ -255,19 +256,19 @@ Vault entries required (verify in Task 2):
     supabase functions list --project-ref ytnsipxxmzgaebkqmokp 2>&1 | tee /tmp/phase60-functions-list.txt
     ```
 
-    Verify all 9 Phase 60 Fn names appear AND each has a recent `UPDATED_AT` (within the last hour — confirms this run's deploy, not a stale prior version).
+    Verify all 10 Phase 60 Fn names appear AND each has a recent `UPDATED_AT` (within the last hour — confirms this run's deploy, not a stale prior version).
 
-    If any Fn is missing from the output, return to Task 3 and re-deploy ONLY the missing names. Do NOT proceed to Task 5 until count is 9.
+    If any Fn is missing from the output, return to Task 3 and re-deploy ONLY the missing names. Do NOT proceed to Task 5 until count is 10.
   </action>
   <verify>
-    <automated>for fn in rag-summarize-and-chunk rag-embed-approved rag-retrieve rag-federated-pubmed rag-federated-fda rag-federated-dailymed rag-tip-of-day-generate rag-newsletter-sender rag-newsletter-unsubscribe-1click; do grep -q "$fn" /tmp/phase60-functions-list.txt || { echo "MISSING-IN-LIST $fn"; exit 1; }; done &amp;&amp; echo LIST-9-OK</automated>
+    <automated>for fn in rag-summarize-and-chunk rag-embed-approved rag-retrieve rag-federated-pubmed rag-federated-fda rag-federated-dailymed rag-tip-of-day-generate rag-newsletter-sender rag-newsletter-unsubscribe-1click rag-cost-query; do grep -q "$fn" /tmp/phase60-functions-list.txt || { echo "MISSING-IN-LIST $fn"; exit 1; }; done &amp;&amp; echo LIST-10-OK</automated>
   </verify>
-  <done>All 9 Phase 60 Fn names present in `supabase functions list` output; LIST-9-OK printed; /tmp/phase60-functions-list.txt captured for evidence artifact.</done>
+  <done>All 10 Phase 60 Fn names present in `supabase functions list` output; LIST-10-OK printed; /tmp/phase60-functions-list.txt captured for evidence artifact.</done>
 </task>
 
 <task type="auto">
-  <name>Task 5: Write cron migration `20261201000099_phase60_cron_schedules.sql`</name>
-  <files>supabase/migrations/20261201000099_phase60_cron_schedules.sql</files>
+  <name>Task 5: Write cron migration `20281201000099_phase60_cron_schedules.sql`</name>
+  <files>supabase/migrations/20281201000099_phase60_cron_schedules.sql</files>
   <action>
     Author the cron migration registering 7 pg_cron jobs targeting the now-live Fns (Task 4 confirmed). All jobs share these conventions:
 
@@ -276,7 +277,7 @@ Vault entries required (verify in Task 2):
     - **Hardcoded base URL** `https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/<fn-name>` (project ref from `.planning/PROJECT.md:22`).
     - **Dollar-quote tags:** the migration may contain nested DO blocks for logging; use **named tags `$cron$...$cron$`** for the outer `cron.schedule` body string and `$partition$...$partition$` if any nested anonymous block is needed, per `[[reference_postgres_dollar_quote_nesting_in_cron_body]]`. NEVER use bare `$$` inside another `$$`.
     - **Job naming convention:** all jobnames prefixed with `phase60_` so the verification grep in Task 7 (and any future cleanup) can identify Phase 60-owned crons uniquely.
-    - **Migration timestamp:** use `20261201000099` IF Task 1 step (e) confirmed no remote-applied migration is lexicographically greater. IF Task 1 captured a remote-max GREATER than `20261201000099` (e.g., Phase 56's `20280401000007`), rename the file to `20280501000099_phase60_cron_schedules.sql` (forward-dated past the latest remote) and update the migration's leading comment timestamp to match. Do NOT push a back-dated file; per `[[reference_supabase_back_dated_migration_blocks_push]]` it blocks the entire push.
+    - **Migration timestamp:** use `20281201000099` IF Task 1 step (e) confirmed no remote-applied migration is lexicographically greater. IF Task 1 captured a remote-max GREATER than `20281201000099` (e.g., Phase 56's `20280401000007`), rename the file to `20280501000099_phase60_cron_schedules.sql` (forward-dated past the latest remote) and update the migration's leading comment timestamp to match. Do NOT push a back-dated file; per `[[reference_supabase_back_dated_migration_blocks_push]]` it blocks the entire push.
 
     The 7 cron jobs to register:
 
@@ -298,7 +299,7 @@ Vault entries required (verify in Task 2):
     ```sql
     -- Phase 60 Plan 15 — pg_cron schedules for the 7 Phase 60 jobs.
     -- STRICT ordering rule: this migration is pushed ONLY after `supabase functions deploy`
-    -- of all 9 Phase 60 Fns succeeds (per [[feedback_fn_deploy_before_cron_db_push]]).
+    -- of all 10 Phase 60 Fns succeeds (per [[feedback_fn_deploy_before_cron_db_push]]).
     --
     -- Cron pattern mirrors 20280401000005_ad_revenue_etl_cron_rpc.sql:
     --   vault.decrypted_secrets service_role bearer + hardcoded project URL.
@@ -344,7 +345,7 @@ Vault entries required (verify in Task 2):
   <verify>
     <automated>cd /Users/karstenhaldan/minisite/leanshot &amp;&amp; CRON_FILE=$(ls ../supabase/migrations/*phase60_cron_schedules.sql 2&gt;/dev/null | tail -1) &amp;&amp; test -n "$CRON_FILE" &amp;&amp; grep -c "cron.schedule" "$CRON_FILE" | grep -q '^7$' &amp;&amp; grep -c "phase60_" "$CRON_FILE" | grep -q -E '^(14|15|21)$' &amp;&amp; grep -q "vault.decrypted_secrets" "$CRON_FILE" &amp;&amp; grep -q '\$cron\$' "$CRON_FILE" &amp;&amp; ! grep -E "current_setting\('app\.service" "$CRON_FILE" &amp;&amp; echo "CRON-MIGRATION-OK"</automated>
   </verify>
-  <done>Migration file at supabase/migrations/{20261201000099|20280501000099}_phase60_cron_schedules.sql contains exactly 7 `cron.schedule` calls, each prefixed `phase60_`, each using vault.decrypted_secrets + $cron$ named dollar-quote tag; zero `current_setting('app.service` references; CRON-MIGRATION-OK printed.</done>
+  <done>Migration file at supabase/migrations/{20281201000099|20280501000099}_phase60_cron_schedules.sql contains exactly 7 `cron.schedule` calls, each prefixed `phase60_`, each using vault.decrypted_secrets + $cron$ named dollar-quote tag; zero `current_setting('app.service` references; CRON-MIGRATION-OK printed.</done>
 </task>
 
 <task type="auto">
@@ -399,14 +400,14 @@ Vault entries required (verify in Task 2):
     - `slack_guardrail_webhook`: {OK (length N) | degraded-no-slack}
 
     ## Step 2 — Edge Functions deployed (Task 3)
-    All 9 Phase 60 Fns deployed atomically via single `supabase functions deploy` invocation:
-    {paste the 9 "Deployed Function ..." lines from /tmp/phase60-deploy.log}
+    All 10 Phase 60 Fns deployed atomically via single `supabase functions deploy` invocation:
+    {paste the 10 "Deployed Function ..." lines from /tmp/phase60-deploy.log}
 
     ## Step 3 — Functions visible on project (Task 4)
     {paste the 9 matching rows from /tmp/phase60-functions-list.txt}
 
     ## Step 4 — Cron migration applied (Task 6)
-    Migration: `supabase/migrations/{20261201000099|20280501000099}_phase60_cron_schedules.sql`
+    Migration: `supabase/migrations/{20281201000099|20280501000099}_phase60_cron_schedules.sql`
     Push log excerpt: {paste "Applying migration..." + "Finished" lines from /tmp/phase60-db-push.log}
 
     ## Step 5 — Cron jobs registered (Task 6)
@@ -462,7 +463,7 @@ Vault entries required (verify in Task 2):
     git add supabase/migrations/*phase60_cron_schedules.sql \
             leanshot/.planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-DEPLOY-EVIDENCE.md \
             leanshot/.planning/ROADMAP.md
-    git commit -m "docs(60): close-out — 9 Fns deployed, 7 phase60_* cron jobs registered, ROADMAP toggled
+    git commit -m "docs(60): close-out — 10 Fns deployed, 7 phase60_* cron jobs registered, ROADMAP toggled
 
     Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
     ```
@@ -493,9 +494,9 @@ Vault entries required (verify in Task 2):
 |-----------|----------|-----------|-------------|-----------------|
 | T-60-15-01 | Tampering | cron migration body — dollar-quote nesting collision | mitigate | Use `$cron$...$cron$` named tag per `[[reference_postgres_dollar_quote_nesting_in_cron_body]]`; Task 5 verify gate greps for `\$cron\$` presence and rejects bare `$$` inside `cron.schedule`. |
 | T-60-15-02 | Information Disclosure | service_role_key leak via push logs | mitigate | Bearer minted at-runtime via `vault.decrypted_secrets` subquery; literal JWT never appears in migration file. Task 5 verify gate negates pattern `current_setting('app.service` AND would reject any inline `eyJ...` JWT (operator-spot-check at PR review). |
-| T-60-15-03 | Tampering / DoS | cron fires to non-existent Fn endpoint (deploy-skew) | mitigate | Strict ordering: Task 3 deploys ALL 9 Fns before Task 5 writes migration; Task 4 verifies via `functions list` BEFORE Task 6 pushes. Per `[[feedback_fn_deploy_before_cron_db_push]]`. |
+| T-60-15-03 | Tampering / DoS | cron fires to non-existent Fn endpoint (deploy-skew) | mitigate | Strict ordering: Task 3 deploys ALL 10 Fns before Task 5 writes migration; Task 4 verifies via `functions list` BEFORE Task 6 pushes. Per `[[feedback_fn_deploy_before_cron_db_push]]`. |
 | T-60-15-04 | Tampering | back-dated migration blocks Phase 60 + later push | mitigate | Task 1 step (e) captures remote-max migration timestamp; Task 5 selects in-place vs forward-dated rescue path BEFORE writing the file. Per `[[reference_supabase_back_dated_migration_blocks_push]]`. |
-| T-60-15-05 | Repudiation | no audit trail of when/who deployed which Fn | mitigate | 60-DEPLOY-EVIDENCE.md captures operator handle, ISO timestamp, 9-Fn deploy log, 7-cron registration log, db push log. Single commit on main with co-author trailer. |
+| T-60-15-05 | Repudiation | no audit trail of when/who deployed which Fn | mitigate | 60-DEPLOY-EVIDENCE.md captures operator handle, ISO timestamp, 10-Fn deploy log, 7-cron registration log, db push log. Single commit on main with co-author trailer. |
 | T-60-15-06 | Spoofing | wrong project ref deploys Fns to attacker-controlled project | accept | Hardcoded `ytnsipxxmzgaebkqmokp` from `.planning/PROJECT.md:22` (project-wide canonical); typo would fail at first `supabase functions deploy` invocation (project doesn't exist or operator lacks access). Operator typos are non-silent. |
 | T-60-15-07 | Elevation of Privilege | cron worker runs as superuser-equivalent, can hit any Fn | accept | pg_cron is project-wide DB-level; Phase 60 jobs use a phase60_ prefix so future tooling can audit & revoke specifically. Phase 67 OPS-08 may add per-job role isolation if cron-scope CVE drops. |
 | T-60-15-SC | Tampering | npm/pip/cargo install in deploy step | n/a (no package installs) | Task 3 invokes `supabase functions deploy` only; no package manager runs. Supply-chain risk lives in upstream plans (60-04..14) that authored the Fn source code; their own threat models cover it. |
@@ -506,7 +507,7 @@ Vault entries required (verify in Task 2):
 
 Phase-level checks this plan completes:
 
-1. **All 9 Phase 60 Edge Functions deployed atomically and observable on project `ytnsipxxmzgaebkqmokp`** (Tasks 3-4).
+1. **All 10 Phase 60 Edge Functions deployed atomically and observable on project `ytnsipxxmzgaebkqmokp`** (Tasks 3-4).
 2. **7 pg_cron jobs registered with `jobname like 'phase60_%'`** after Fns are live, in strict ordering per `[[feedback_fn_deploy_before_cron_db_push]]` (Tasks 5-6).
 3. **Cron bodies use vault.decrypted_secrets + named dollar-quote tag** per `[[reference_supabase_pg_cron_vault_service_role_pattern]]` and `[[reference_postgres_dollar_quote_nesting_in_cron_body]]`.
 4. **`supabase db push --linked` exits 0** with no back-dated-migration block (Task 1 pre-flight + Task 6).
@@ -523,7 +524,7 @@ Carry-over to milestone UAT (Phase 70): first cron tick for each schedule is the
 - `select count(*) from cron.job where jobname like 'phase60_%'` returns exactly **7**.
 - Each `phase60_*` cron job's `command` field references `https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/` + the corresponding Fn name.
 - Each `phase60_*` cron job's `command` field references `vault.decrypted_secrets` (NOT `current_setting('app.`).
-- Migration file `supabase/migrations/{20261201000099|20280501000099}_phase60_cron_schedules.sql` exists, contains 7 `cron.schedule` calls, uses `$cron$...$cron$` named dollar-quote tags.
+- Migration file `supabase/migrations/{20281201000099|20280501000099}_phase60_cron_schedules.sql` exists, contains 7 `cron.schedule` calls, uses `$cron$...$cron$` named dollar-quote tags.
 - `.planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-DEPLOY-EVIDENCE.md` exists with all 5 verification sections filled.
 - `.planning/ROADMAP.md` line ~20 reads `- [x] **Phase 60: RAG Knowledge Base Completion**` AND the Phase 60 detail block no longer contains `**Plans**: TBD`.
 - A single close-out commit lands on `main` (NOT a worktree) authored by the operator with the Claude co-author trailer.
@@ -532,8 +533,8 @@ Carry-over to milestone UAT (Phase 70): first cron tick for each schedule is the
 
 <output>
 Create `.planning/phases/60-rag-knowledge-base-completion-waves-2-4/60-15-SUMMARY.md` when done. Summary must cite:
-- The 9 Fn deploy log (Task 3) and `functions list` output (Task 4)
+- The 10 Fn deploy log (Task 3) and `functions list` output (Task 4)
 - The 7 registered cron jobnames + schedules (Task 6)
-- The migration file's final path (in-place `20261201000099_` vs rescue-bumped `20280501000099_`)
+- The migration file's final path (in-place `20281201000099_` vs rescue-bumped `20280501000099_`)
 - Carry-over notes for Phase 70 milestone UAT (first-tick verification)
 </output>

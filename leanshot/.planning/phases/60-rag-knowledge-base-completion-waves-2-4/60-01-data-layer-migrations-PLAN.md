@@ -6,9 +6,9 @@ type: execute
 wave: 0
 depends_on: []
 files_modified:
-  - supabase/migrations/20261201000001_phase60_kb_tables.sql
-  - supabase/migrations/20261201000002_phase60_secdef_rpcs.sql
-  - supabase/migrations/20261201000003_phase60_push_categories.sql
+  - supabase/migrations/20281201000001_phase60_kb_tables.sql
+  - supabase/migrations/20281201000002_phase60_secdef_rpcs.sql
+  - supabase/migrations/20281201000003_phase60_push_categories.sql
 autonomous: true
 requirements: [RAG-03, RAG-06, RAG-07, RAG-08]
 tags: [rag, phase-60, data-layer, secdef-rpcs, 2-person-rule, federated-sources, newsletter]

@@ -118,7 +118,7 @@ From `supabase/migrations/20260519000004_external_kb_embeddings_table.sql` — t
 - Tag/tier btree on `(topic_tag, source_tier)`
 
 From sibling plan 60-01 (assumed shipped by Wave 0):
-- Migration `20261201000002_phase60_secdef_rpcs.sql` adds `public.list_pending_embed_chunks(p_limit int)` SECDEF RPC returning rows joined with `rag_sources.freshness_window_days` — this Fn calls that RPC instead of inlining the JOIN (decouples from RLS on rag_sources).
+- Migration `20281201000002_phase60_secdef_rpcs.sql` adds `public.list_pending_embed_chunks(p_limit int)` SECDEF RPC returning rows joined with `rag_sources.freshness_window_days` — this Fn calls that RPC instead of inlining the JOIN (decouples from RLS on rag_sources).
 - If 60-01 elects to keep the JOIN inline at execute-time (planner discretion), this Fn falls back to a parameterized SQL query via `supabase.from('rag_chunks').select(...)` with explicit JOIN — acceptable per 60-01 surface contract.
 
 From sibling plan 60-02 (assumed shipped by Wave 0):
