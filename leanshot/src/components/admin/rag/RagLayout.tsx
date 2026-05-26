@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase';
 
 const RagTopicsPage = lazy(() => import('./RagTopicsPage'));
 const RagSourcesPage = lazy(() => import('./RagSourcesPage'));
+const FederatedSourcesPage = lazy(() => import('./FederatedSourcesPage'));
 const RagQueuePage = lazy(() => import('./RagQueuePage'));
 
 interface TelemetryRow {
@@ -153,6 +154,7 @@ function CostPlaceholder() {
 const SUB_ROUTES: readonly SubRoute[] = [
   { key: 'topics',    label: 'Topics',    path: 'topics',    Component: RagTopicsPage },
   { key: 'sources',   label: 'Sources',   path: 'sources',   Component: RagSourcesPage },
+  { key: 'federated', label: 'Federated', path: 'federated', Component: FederatedSourcesPage },
   { key: 'queue',     label: 'Queue',     path: 'queue',     Component: RagQueuePage },
   { key: 'telemetry', label: 'Telemetry', path: 'telemetry', Component: RagTelemetryPage },
   { key: 'cost',      label: 'Cost',      path: 'cost',      Component: CostPlaceholder },
