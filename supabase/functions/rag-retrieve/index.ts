@@ -40,6 +40,7 @@ import {
 } from './refusal.ts';
 import { OpenAIEmbedBatchClient } from '../rag-embed-approved/openai.ts';
 import { emitAiGeneration, shutdownPostHog } from '../_shared/posthog-rag-events.ts';
+import { constantTimeEqual } from '../_shared/newsletter-token.ts';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -123,7 +124,11 @@ export async function handler(req: Request): Promise<Response> {
   if (body.mode === 'eval-sweep') {
     const authHeader = req.headers.get('Authorization') ?? '';
     const serviceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    if (!authHeader.replace('Bearer ', '') || authHeader.replace('Bearer ', '') !== serviceRoleKey) {
+    // Use constant-time comparison to prevent timing-oracle enumeration of the key
+    const presented = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : authHeader;
+    if (!presented || !constantTimeEqual(presented, serviceRoleKey)) {
       return jsonResp({ error: 'eval_sweep_requires_service_role' }, 401);
     }
     return await handleEvalSweep();
