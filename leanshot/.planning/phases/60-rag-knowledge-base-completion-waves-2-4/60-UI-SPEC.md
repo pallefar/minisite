@@ -47,41 +47,41 @@ Declared values — all multiples of 4. Source: `src/index.css` `--spacing: 0.25
 | 3xl | 64px | Page-level vertical spacing (public `/knowledge/*` pages) |
 
 Exceptions:
-- Citation `[N]` superscript tap target: invisible padded hitbox yields ≥24px tap area even though the visible badge is 14px — use `p-[5px]` (padding beyond the 4-scale is acceptable for touch-target compliance only).
+- Citation `[N]` superscript tap target: invisible padded hitbox yields ≥24px tap area even though the visible badge is 14px — use `p-[5px]` (padding beyond the 4-scale; acceptable for touch-target compliance only). Alternative `p-1.5` (6px) achieves the same tap target and is closer to the 4-scale — executor may substitute if preferred.
 - Admin queue two-column split: `lg:grid-cols-[7fr_5fr]` — column ratio is not a spacing token; this is a layout fraction.
 
 ---
 
 ## Typography
 
-**Hard ceiling: ONLY 4 sizes permitted (11 / 13 / 16 / 18 px). ONLY 2 weights permitted (400 regular + 600 semibold).** Phase 69 will CI-gate this. Phase 60 MUST pre-comply.
+**Hard ceiling: ONLY 4 sizes permitted (11 / 13 / 18 / 28 px). ONLY 2 weights permitted (400 regular + 600 semibold).** Phase 69 will CI-gate this. Phase 60 MUST pre-comply.
 
 Mapping to LeanShot DS tokens (`src/index.css`):
 - 11px → `text-micro` (`--text-micro: 0.6875rem`)
 - 13px → `text-sm` (`--text-sm: 0.8125rem`)
-- 16px → `text-base` / `text-md` (`--text-base: 1rem`)
 - 18px → `text-lg` (`--text-lg: 1.125rem`)
+- 28px → `text-heading` (`--text-heading: 1.75rem`) — **NEW token required in `src/index.css` `@theme` block**
 
-> Note: Phase 69 DS-02 requirement pins sizes at 11/13/18/28 px. Phase 60 does NOT introduce a 28px size (that would be Fraunces display only — used once per surface for H1 on `/knowledge/*` hub pages per 50-09 §C2 constraint). The existing DS h1 heading uses `text-2xl` or `text-3xl` on non-hub surfaces; Phase 60 restricts public hub H1 to `text-lg` (18px) font-sans to stay within the 4-size ceiling, unless the Fraunces display exception applies.
+> 28px token: No existing `@theme` token maps to exactly 28px (`text-2xl` = 26px, `text-3xl` = 32px). Executor MUST add `--text-heading: 1.75rem` and `--text-heading--line-height: 1.2` to the `@theme` block in `src/index.css`. This token is used exclusively for the public `/knowledge` H1 display heading (Fraunces italic). Do NOT reuse it for other elements; that would break the 4-size ceiling.
 
 | Role | Size (px) | Tailwind Token | Weight | Line Height | Usage |
 |------|-----------|---------------|--------|-------------|-------|
-| Body / default | 16px | `text-base` | 400 | 1.55 | Card body text, chunk text, coach reply text, newsletter blurb |
-| Label / secondary | 13px | `text-sm` | 400 | 1.5 | Eyebrow labels, source meta strips, freshness timestamps, form field labels, queue list item summaries |
-| Caption / micro | 11px | `text-micro` | 400 | 1.4 | Disclaimer copy ("Not medical advice"), tier badge labels in tiny contexts, `<kbd>` shortcut chips |
-| Heading | 18px | `text-lg` | 600 | 1.5 | Card headings, section titles, chunk titles in popover, public `/knowledge/*` H1 (font-sans; Fraunces display is the SOLE exception per §C2) |
+| Display heading | 28px | `text-heading` | 600 | 1.2 | Public `/knowledge` root H1, `/knowledge/<topic>` index H1 — Fraunces italic, font-display ONLY |
+| Heading | 18px | `text-lg` | 600 | 1.5 | Card headings, section titles, chunk titles in popover, featured chunk title, newsletter section headings, primary CTAs, `/knowledge/<topic>/<slug>` detail page H1 (font-sans) |
+| Body / label | 13px | `text-sm` | 400 | 1.5 | Card body text, chunk text in queue and popover, coach reply text, eyebrow labels, source meta strips, freshness timestamps, form field labels, queue list item summaries, breadcrumb, related chunk titles, article grid copy, newsletter blurb, inline body anywhere 16px was previously used |
+| Caption / micro | 11px | `text-micro` | 400 | 1.4 | Disclaimer copy ("Not medical advice"), tier badge labels in tiny contexts, `<kbd>` shortcut chips, eyebrow labels when uppercase-small, cost dashboard reset countdown, freshness strip dates |
 
-Semibold (600) reserved for: headings, primary CTA button labels, tier badge text in popover, chunk title in citation popover, `[N]` citation marker number.
+Semibold (600) reserved for: headings, primary CTA button labels, tier badge text in popover, chunk title in citation popover, `[N]` citation marker number, display heading (28px).
 
-Monospace (`font-mono`): "As of YYYY-MM-DD" freshness dates in popovers and cost dashboard numbers. Weight 400 only.
+Monospace (`font-mono`): "As of YYYY-MM-DD" freshness dates in popovers and cost dashboard numbers. Weight 400 only. Size 11px (`text-micro`) for freshness strips; 18px (`text-lg`) for large spend figures.
 
-Fraunces exception: public `/knowledge/<topic>` index page and `/knowledge/<topic>/<slug>` detail page H1 renders in `font-display` (Fraunces italic) at `text-lg` (18px) weight 600. This is the ONLY Fraunces usage on these pages — no other elements may use it. Source: 50-09 §C2 constraint.
+Fraunces exception: public `/knowledge` root page and `/knowledge/<topic>` index page H1 renders in `font-display` (Fraunces italic) at `text-heading` (28px) weight 600. The `/knowledge/<topic>/<slug>` detail page H1 uses `text-lg` (18px) font-sans (NOT Fraunces — Fraunces is index/root-level only). This is the ONLY Fraunces usage on these pages — no other elements may use it. Source: 50-09 §C2 constraint.
 
 ---
 
 ## Color
 
-All colors are Tailwind v4 `@theme` tokens from `src/index.css`. No ad-hoc hex values. No new `@theme` blocks.
+All colors are Tailwind v4 `@theme` tokens from `src/index.css`. No ad-hoc hex values. No new `@theme` color blocks.
 
 | Role | Token | Resolved Value (light) | Usage |
 |------|-------|----------------------|-------|
@@ -97,9 +97,9 @@ All colors are Tailwind v4 `@theme` tokens from `src/index.css`. No ad-hoc hex v
 **Accent reserved for (explicit list — never general interactive):**
 1. Citation `[N]` marker badge background (`tone="info"`)
 2. "Open source ↗" ghost button text on citation popover and tip card
-3. "Approve" primary button in admin queue
+3. "Approve chunk" primary button in admin queue
 4. Active filter pill selected state in admin queue and `/knowledge/*` hub
-5. Primary CTA buttons ("Approve", "Save preferences", "Subscribe", "Acknowledge and resume")
+5. Primary CTA buttons ("Approve chunk", "Save preferences", "Subscribe to digest", "Acknowledge and resume")
 6. Focus ring on interactive elements (native ring color)
 
 **Source tier badge coloring — neutral palette only (NO traffic-light coloring):**
@@ -147,8 +147,8 @@ Key: `rag.disclaimer` in `src/lib/i18n/rag-strings.ts`. Font: 11px (`text-micro`
 | Empty state heading | `Queue clear` |
 | Empty state body | `Nothing to review. Tier-A chunks auto-publish; new Tier-B/C items will appear here for review.` |
 | Backlog warning badge | `Backlog: {N} items` (appears warning-colored when N > 100) |
-| Approve CTA | `Approve` |
-| Reject CTA | `Reject` |
+| Approve CTA | `Approve chunk` |
+| Reject CTA | `Reject chunk` |
 | Edit CTA | `Edit & approve` |
 | Retract CTA | `Retract` |
 | Approved toast | `Approved · Undo` (5s undo affordance) |
@@ -157,7 +157,7 @@ Key: `rag.disclaimer` in `src/lib/i18n/rag-strings.ts`. Font: 11px (`text-micro`
 | Reject reason options | `Off-topic` · `Factually wrong` · `Off-label` · `Low quality` · `Duplicate` · `Safety concern` |
 | Retract confirmation title | `Retract this chunk?` |
 | Retract confirmation body | `Chunk removes from RAG retrieval immediately. Already-sent newsletter inclusions stay sent. Action is logged.` |
-| Retract confirmation actions | `Cancel` (secondary) · `Retract chunk` (danger) |
+| Retract confirmation actions | `Keep chunk` (secondary) · `Retract chunk` (danger) |
 | Error state | `Failed to load queue. Refresh to try again.` |
 | Keyboard shortcut help label | `Keyboard shortcuts` |
 
@@ -253,7 +253,7 @@ Note: push body must NOT include dosing numbers, prescriptive verbs ("take", "in
 
 | Element | Copy |
 |---------|------|
-| H1 | `{topic_display_name}` (Fraunces italic, 18px — sole Fraunces usage on page) |
+| H1 | `{topic_display_name}` (Fraunces italic, 28px `text-heading` — sole Fraunces usage on page) |
 | Subtitle | `Curated peptide and metabolic research, summarized with sources.` |
 | Search placeholder | `Search {topic_display_name}…` |
 | Empty filter state heading | `No results for "{query}"` |
@@ -263,11 +263,11 @@ Note: push body must NOT include dosing numbers, prescriptive verbs ("take", "in
 
 | Element | Copy |
 |---------|------|
-| H1 | `Knowledge Base` (Fraunces italic — sole Fraunces usage on page) |
+| H1 | `Knowledge Base` (Fraunces italic, 28px `text-heading` — sole Fraunces usage on page) |
 | Subtitle | `Curated peptide and metabolic research, summarized with sources.` |
 | Newsletter signup heading | `Get the weekly research digest` |
 | Newsletter signup body | `Curated summaries from peer-reviewed sources, delivered Sundays. Unsubscribe anytime.` |
-| Subscribe CTA | `Subscribe` |
+| Subscribe CTA | `Subscribe to digest` |
 | Subscribe confirmation | `You're subscribed. Check your inbox for a confirmation.` |
 
 ### Settings Page Newsletter Toggle
@@ -323,8 +323,8 @@ Note: push body must NOT include dosing numbers, prescriptive verbs ("take", "in
 - Filter pills: `All` · `Tier B` · `Tier C` · `by tag` · `by source` — active pill uses accent background, inactive uses `bg-surface-soft` + `text-text-secondary`.
 - Each row: `Card variant="interactive" span={12}`.
   - Left: source name (13px/600) + `TierBadge` + topic tag `Pill` + 1-line summary (13px/400, `line-clamp-1`).
-  - Right: `queued {relative-time}` (11px/400 `text-text-tertiary`) + `Approve` Button (`size="sm"`) + reject `IconButton` (`aria-label="Reject"`).
-- **2-person rule badge**: when `current_actor_id === chunk.created_by`, render `<Badge tone="warning">You created this — needs a different reviewer</Badge>` inline below the row; disable the `Approve` button for this row.
+  - Right: `queued {relative-time}` (11px/400 `text-text-tertiary`) + `Approve chunk` Button (`size="sm"`) + reject `IconButton` (`aria-label="Reject chunk"`).
+- **2-person rule badge**: when `current_actor_id === chunk.created_by`, render `<Badge tone="warning">You created this — needs a different reviewer</Badge>` inline below the row; disable the `Approve chunk` button for this row.
 
 **Right column — QueueDetailPane:**
 - Header strip: source name (external link, 13px/600) + `TierBadge` + `Scraped {date}` (11px/400) + canonical URL link.
@@ -332,8 +332,8 @@ Note: push body must NOT include dosing numbers, prescriptive verbs ("take", "in
   - Left half, label `SOURCE TEXT` (11px/600 uppercase, `text-text-tertiary`): react-markdown + DOMPurify rendered. Background `bg-surface-soft`. Allowlist: `p a ul ol li code pre strong em blockquote mark h2 h3 h4` only — no `img script iframe` inline styles.
   - Right half, label `EXTRACTED QUOTE` (11px/600 uppercase, `text-text-tertiary`): each quote_block renders verbatim text (13px/400) + kind `Badge` (`dose | indication | contraindication | adverse-event`) + gloss (11px/400 `text-text-secondary` if present).
   - At `<lg`: stack vertically (source text above, quotes below).
-- Summary block (full-width below): chunk.summary as plain text (16px/400).
-- Sticky action row: `Reject` (secondary) · `Edit & approve` (ghost) · `Approve` (primary). Keyboard shortcut `<kbd>` chips: `A`, `R`, `E`, `J/K`.
+- Summary block (full-width below): chunk.summary as plain text (13px/400).
+- Sticky action row: `Reject chunk` (secondary) · `Edit & approve` (ghost) · `Approve chunk` (primary). Keyboard shortcut `<kbd>` chips: `A`, `R`, `E`, `J/K`.
 
 **Keyboard shortcuts:** `A` = approve selected, `R` = reject (opens RejectReasonSheet), `E` = edit (opens EditChunkModal), `J`/`K` = next/prev row, `Shift+?` = help modal.
 
@@ -344,7 +344,7 @@ Note: push body must NOT include dosing numbers, prescriptive verbs ("take", "in
 
 **RejectReasonSheet:** Bottom Sheet with 6 `Pill` components in `role="radiogroup"`. Arrow-key cycling. Danger-toned pills: `Factually wrong`, `Off-label`, `Safety concern`. Neutral-toned: `Off-topic`, `Low quality`, `Duplicate`. Single tap = immediate reject + close + Toast.
 
-**RetractChunkModal:** Modal, title `Retract this chunk?`, body verbatim per copywriting contract above, `reason` textarea (required), `Cancel` + `Retract chunk` (danger).
+**RetractChunkModal:** Modal, title `Retract this chunk?`, body verbatim per copywriting contract above, `reason` textarea (required), `Keep chunk` (secondary) + `Retract chunk` (danger).
 
 **Empty state:** `EmptyState` component with CheckCheck icon + heading `Queue clear` + body copy above.
 
@@ -362,11 +362,11 @@ Note: push body must NOT include dosing numbers, prescriptive verbs ("take", "in
 **Layout:** Single-column list of 3 source rows within existing `RagLayout` admin shell.
 
 Each row renders as `Card variant="default" span={12}`:
-- Left: source name (16px/600) + sync cadence (13px/400 `text-text-secondary`).
+- Left: source name (18px/600) + sync cadence (13px/400 `text-text-secondary`).
 - Center: last-sync timestamp (13px/400) + last-error Pill (warning tone, only shown when `last_error IS NOT NULL`).
 - Right: enabled `Toggle` (`aria-pressed` on the toggle button itself).
 
-`Full-history pull` button renders as ghost `Button` below each row's footer. Destructive confirmation via `Dialog` (not a full Modal — inline confirm pattern): `Pull full history — this may increase costs significantly. Continue? [Cancel] [Pull history]`.
+`Full-history pull` button renders as ghost `Button` below each row's footer. Destructive confirmation via `Dialog` (not a full Modal — inline confirm pattern): `Pull full history — this may increase costs significantly. Continue? [Cancel pull] [Pull history]`.
 
 **a11y:** `aria-label="Enable {source_name} sync"` on each toggle. `aria-live="polite"` region for last-sync timestamp updates.
 
@@ -403,11 +403,11 @@ Auto-pause banner: full-width above bento grid when any vendor hits 100%. `Alert
 **Citation Popover (desktop ≥md):**
 - Floats anchored to `[N]` button via `getBoundingClientRect` offset.
 - Width: 320px max.
-- Header: source title (16px/600) linked to `canonical_url` (`target="_blank" rel="noopener noreferrer"`) + `TierBadge` inline-right.
+- Header: source title (18px/600) linked to `canonical_url` (`target="_blank" rel="noopener noreferrer"`) + `TierBadge` inline-right.
 - Verbatim quote: 13px/400, `bg-surface-soft` background, `border-l-2 border-primary` left accent. Truncated at 280 chars with `…` + `Read full chunk` link (13px/400 accent-colored) if longer.
 - Freshness strip: `As of YYYY-MM-DD` (11px/400 `font-mono`) + stale warning Pill (13px/400 warning tone) if >2yr.
 - `leanshot_research` disclosure line: (11px/400 `text-text-tertiary`) if `source_type === 'leanshot_research'`.
-- "Open source ↗" Button (`variant="ghost"` accent text, 16px/400).
+- "Open source ↗" Button (`variant="ghost"` accent text, 13px/400).
 - Disclaimer: 11px/400 `text-text-tertiary` `Not medical advice — consult your clinician.`
 - Keyboard: ESC closes; `←`/`→` cycle previous/next citation.
 - `role="dialog"` + `aria-modal="true"` + focus trap + return focus to marker on close.
@@ -429,8 +429,8 @@ Auto-pause banner: full-width above bento grid when any vendor hits 100%. `Alert
 **MUST NOT look like a normal coach reply with empty citations.**
 
 Renders as `<Card variant="flat">` with:
-- Left accent: `AlertTriangle` lucide icon (16px, warning/danger tone depending on refusal type).
-- Body text: refusal copy per copywriting contract (16px/400 `text-text`).
+- Left accent: `AlertTriangle` lucide icon (18px, warning/danger tone depending on refusal type).
+- Body text: refusal copy per copywriting contract (13px/400 `text-text`).
 - NO `[N]` citation markers anywhere in refusal text.
 - NO "Sources (N)" footer.
 - Disclaimer (11px/400 `text-text-tertiary`) below body — only for out-of-corpus refusal. PHARMA-02 refusal does NOT append disclaimer (the refusal IS the safety intervention).
@@ -448,8 +448,8 @@ PHARMA-02 vs out-of-corpus visual distinction:
 
 Content when chunk available:
 - Eyebrow (11px/400 uppercase `text-text-tertiary`): `TIP OF THE DAY` · topic-tag `Pill`.
-- Headline (16px/600 `line-clamp-2`): derived from chunk.summary first sentence.
-- Body (16px/400 `text-text-secondary` `line-clamp-3`): chunk.summary remainder + first quote_block if present.
+- Headline (18px/600 `line-clamp-2`): derived from chunk.summary first sentence.
+- Body (13px/400 `text-text-secondary` `line-clamp-3`): chunk.summary remainder + first quote_block if present.
 - Footer flex-between: left `{source_name} · As of {YYYY-MM-DD} · TierBadge` (11px/400); right `Open source ↗` ghost Button (13px/400 accent).
 - Bottom disclaimer: 11px/400 `text-text-tertiary` `Not medical advice — consult your clinician.`
 - Top-right `RotateCcw` icon button (`aria-label="Show another tip"`).
@@ -486,12 +486,12 @@ Deep-link: tapping notification opens `/knowledge/<topic>/<slug>` (or in-app equ
 
 Header section:
 - Breadcrumb (13px/400 `text-text-secondary`): `Home › Knowledge › {topic} › {slug}`. Each segment is a link.
-- H1 (18px/600 font-sans — NOT Fraunces on detail pages; Fraunces is index-page-only): chunk title.
+- H1 (18px/600 font-sans — NOT Fraunces on detail pages; Fraunces is index/root-page-only): chunk title.
 - Source/tier/freshness meta strip (13px/400 `text-text-secondary`): `{source_name} · TierBadge · Last reviewed {YYYY-MM-DD}`.
 
 Body section:
 - Full chunk text rendered via react-markdown + DOMPurify. DOMPurify allowlist: `p a ul ol li code pre strong em blockquote mark h2 h3 h4` — NO `img script iframe`.
-- "Read at source ↗" CTA: Button (`variant="ghost"` accent, 16px/400) sticky in right rail on desktop, below content on mobile.
+- "Read at source ↗" CTA: Button (`variant="ghost"` accent, 13px/400) sticky in right rail on desktop, below content on mobile.
 
 Related chunks sidebar (right rail desktop / collapsed accordion mobile):
 - Heading `Related` (13px/600 `text-text-secondary`).
@@ -515,11 +515,11 @@ SEO meta (via react-helmet-async):
 
 **Layout:** full-width hero strip + filter/search bar + article grid.
 
-- H1 (18px/600 font-display Fraunces italic — SOLE Fraunces usage on this page): `{topic_display_name}`.
-- Subtitle (16px/400): `Curated peptide and metabolic research, summarized with sources.`
+- H1 (28px/600 font-display Fraunces italic — SOLE Fraunces usage on this page): `{topic_display_name}`.
+- Subtitle (13px/400): `Curated peptide and metabolic research, summarized with sources.`
 - Search input (`Input` primitive, placeholder per copywriting contract). Client-side fuse.js search (already in package.json).
 - Filter pills row: `All Tiers` · `Tier A` · `Tier B` · `Tier C`. URL-synced (`?tier=A`).
-- Article grid: `Card variant="interactive" span={6}` per chunk (12-col bento). Per card: TierBadge top-right + topic Pill top-left + title (16px/600 `line-clamp-2`) + 2-line summary (13px/400) + footer `{source_name} · As of {YYYY-MM-DD}` + `Read at source ↗` ghost link.
+- Article grid: `Card variant="interactive" span={6}` per chunk (12-col bento). Per card: TierBadge top-right + topic Pill top-left + title (18px/600 `line-clamp-2`) + 2-line summary (13px/400) + footer `{source_name} · As of {YYYY-MM-DD}` + `Read at source ↗` ghost link (13px/400 accent).
 - Empty filtered state: `EmptyState` component.
 - JSON-LD `CollectionPage` schema in `<head>`.
 
@@ -531,12 +531,12 @@ SEO meta (via react-helmet-async):
 
 Topic grid: `Card variant="interactive" span={4}` per topic. Topic count label (13px/400) below topic name.
 
-Featured chunk: `Card variant="elevated" span={12}`. Title (18px/600) + source + TierBadge + 2-line summary + `Read more →` link.
+Featured chunk: `Card variant="elevated" span={12}`. Title (18px/600) + source + TierBadge + 2-line summary (13px/400) + `Read more →` link (13px/400).
 
 Newsletter signup section:
 - Heading (18px/600): `Get the weekly research digest`.
-- Body (16px/400): per copywriting contract.
-- `Input` for email + `Subscribe` Button (primary). Inline success message on submit.
+- Body (13px/400): per copywriting contract.
+- `Input` for email + `Subscribe to digest` Button (primary). Inline success message on submit.
 - Disclaimer (11px/400 `text-text-tertiary`): `Unsubscribe anytime. Not medical advice.`
 
 JSON-LD `WebSite` schema in `<head>`.
@@ -547,8 +547,8 @@ JSON-LD `WebSite` schema in `<head>`.
 
 Additive row in existing `<SettingsPage>` notifications section:
 
-- Section heading `Research newsletter` (16px/600).
-- Toggle row: label (16px/400) + sublabel (13px/400 `text-text-secondary`) + Toggle (`aria-pressed`).
+- Section heading `Research newsletter` (18px/600).
+- Toggle row: label (13px/400) + sublabel (13px/400 `text-text-secondary`) + Toggle (`aria-pressed`).
 - Multi-select tags: `Pill` components for each topic_tag; `aria-pressed` per pill.
 - `Save preferences` Button (primary).
 
@@ -573,11 +573,11 @@ Optional checkbox at an appropriate onboarding step (planner picks slot):
 
 Structure:
 - Header (teal-700 background, white text): LeanShot logo + `LeanShot Research Digest` + `Week of {YYYY-MM-DD}`.
-- Admin-editable intro paragraph (16px/400 dark text).
+- Admin-editable intro paragraph (13px/400 dark text).
 - Per-topic sections: heading `This week in {topic}` (18px/600) + 3 tier-A chunk cards.
 - Each chunk card (bordered, 12px radius, surface-card background):
   - TierBadge (inline `<span>` styled neutral — no CSS classes, inline styles only for email compatibility).
-  - Chunk title (16px/600, dark).
+  - Chunk title (18px/600, dark).
   - 1-line summary (13px/400, secondary text).
   - `Read at {source_name} ↗` CTA button (32px height, teal-700 background, white text, `border-radius: 8px`).
 - 1 evergreen popular chunk (same card layout, label `Popular this month`).
@@ -600,7 +600,7 @@ The following invariants are load-bearing and MUST NOT be violated:
 
 3. **PHARMA-02 refusal copy is LOCKED** to `"That topic requires clinician guidance — please ask your doctor."` — exact string from Phase 39 39-02 D-06. Do not modify without updating all 3 invariant layers.
 
-4. **All admin queue actions MUST show 2-person rule badge** when `current_actor_id === chunk.created_by`. Approve button MUST be disabled in this state. This is a SECDEF RPC-level enforcement (CONTEXT.md §Admin Curation Queue) mirrored in UI.
+4. **All admin queue actions MUST show 2-person rule badge** when `current_actor_id === chunk.created_by`. Approve chunk button MUST be disabled in this state. This is a SECDEF RPC-level enforcement (CONTEXT.md §Admin Curation Queue) mirrored in UI.
 
 5. **`/knowledge/*` pages MUST include FDA off-label / DSHEA disclaimer in footer.** Full verbatim text from copywriting contract above. This is required pre-Phase 64 (Legal Refresh); Phase 64 will audit and potentially revise — do NOT abbreviate.
 
@@ -614,6 +614,8 @@ The following invariants are load-bearing and MUST NOT be violated:
 
 10. **No horizontal scroll at ≥375px.** All surfaces must reflow. Tap targets ≥44px (EXCEPT citation `[N]` marker hitbox which is ≥24px via padding — explicitly documented exception).
 
+11. **Typography 4-size ceiling enforced.** Only 11 / 13 / 18 / 28 px. No 16px. Phase 69 CI-gate will FAIL any `text-base` or `text-md` usage in Phase 60 components. The `text-heading` (28px) token is restricted to Fraunces H1 on `/knowledge` root and `/knowledge/<topic>` index pages only — executor MUST NOT use it elsewhere.
+
 ---
 
 ## Accessibility Baseline
@@ -624,7 +626,7 @@ Per LeanShot DS conventions (CLAUDE.md):
 - `aria-label` on icon-only buttons: reject icon, reroll icon, citation marker (per `Open citation {N}`), Sources chevron toggle, federated source sync button.
 - `aria-pressed` on: filter pills (queue + hub), newsletter toggle, federated source enabled toggle.
 - `role="status"` + `aria-live="polite"` on: approve/reject Toast, newsletter subscribe confirmation, federated sync status updates.
-- `aria-busy` on: Approve button while RPC in flight.
+- `aria-busy` on: Approve chunk button while RPC in flight.
 - `role="radiogroup"` + arrow-key cycling on: RejectReasonSheet pills.
 - `useReducedMotion()` gates: Skeleton animations, Card hover transitions, Popover entry animations.
 - Focus trap in all overlays. Return focus to trigger element on close.
