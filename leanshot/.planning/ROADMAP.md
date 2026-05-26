@@ -296,8 +296,8 @@ Plans:
 
   1. `COHERE_API_KEY` set + `vendor_smoke_log` shows green Cohere Rerank v3.5 smoke (Phase 60 60-06 rerank path)
   2. `JINA_API_KEY` set (optional fallback — admin can swap via `RAG_RERANKER_PROVIDER=jina`)
-  3. `OPENAI_API_KEY` (or `AI_GATEWAY_API_KEY_CONSUMER` path verified) set + embedding smoke green (60-05)
-  4. `VERCEL_AI_GATEWAY_TOKEN` (or equivalent) set; cost-tracking proxy path verified (60-05, 60-06)
+  3. ✅ **Substituted:** `OPENROUTER_API_KEY` (set Batch 1) routes embeddings via `https://openrouter.ai/api/v1/embeddings` with model `openai/text-embedding-3-small`. 60-05 plan amended with `<override>` block. Direct `OPENAI_API_KEY` only needed as fallback if OpenRouter rejects the embedding model at execute time.
+  4. ✅ **N/A:** Vercel AI Gateway eliminated for Phase 60 — OpenRouter provides equivalent cost-tracking + multi-provider routing. AI_GATEWAY_* env vars not needed.
   5. `POSTHOG_PERSONAL_API_KEY` set + cost dashboard HogQL query smoke green (60-14)
   6. `PUBMED_API_KEY` + `OPENFDA_API_KEY` set (optional; relaxes federated rate-limits for 60-07)
   7. Vault entry `slack_guardrail_webhook` populated (Slack incoming-webhook URL) for 60-02 guardrail alerts

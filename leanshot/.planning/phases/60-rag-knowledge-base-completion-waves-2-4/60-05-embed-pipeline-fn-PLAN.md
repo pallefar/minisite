@@ -69,8 +69,33 @@ must_haves:
       pattern: "emit.*ai_generation|\\$ai_generation"
 ---
 
+<override>
+**Phase 60.5 vendor substitution (operator direction 2026-05-26):** Route embeddings via **OpenRouter** instead of direct OpenAI / Vercel AI Gateway. User instruction: *"Route OpenAI embeddings through OpenRouter"* — keeps a single vendor key for chat AND embeddings.
+
+**Implementation change scope:**
+- Replace any `AI_GATEWAY_*` env-var references and direct `openai.com` URLs with:
+  - Base URL: `https://openrouter.ai/api/v1/embeddings`
+  - Auth: `Authorization: Bearer ${Deno.env.get('OPENROUTER_API_KEY')}` (secret set 2026-05-26 in Batch 1)
+  - Model: `'openai/text-embedding-3-small'` (OpenRouter's provider-prefixed ID — passes through to OpenAI; preserves the 1536-dim output that matches existing pgvector schema)
+  - Headers: `HTTP-Referer: https://leanshot.app`, `X-Title: LeanShot` (OpenRouter attribution)
+  - Request body (OpenAI-compatible): `{ model: 'openai/text-embedding-3-small', input: chunkTextsArray }`
+  - Response: `data.data[i].embedding` (Float32Array of length 1536); `data.usage.prompt_tokens` for cost tracking
+- All `AI_GATEWAY_API_KEY_CONSUMER` + `OPENAI_EMBED_MODEL` env-var references → consolidated under `OPENROUTER_API_KEY` (single key for chat + embed in Phase 60).
+- PostHog `$ai_generation` event: `model: 'openrouter/openai/text-embedding-3-small'`, `provider: 'openrouter'`.
+
+**Fallback contingency:** if OpenRouter's `/embeddings` endpoint rejects `openai/text-embedding-3-small` at execute-time (their embedding catalog is smaller than chat catalog), executor MUST surface as BLOCKER with the rejection error code. Resolution path: operator sets `OPENAI_API_KEY` directly + executor patches to use `https://api.openai.com/v1/embeddings`. Do NOT auto-fall-back silently — surface the error so the vendor decision is explicit.
+
+**Verification gate updates:**
+- `grep -c "OPENROUTER_API_KEY" supabase/functions/rag-embed-approved/openai.ts` ≥ 1
+- `grep -c "openrouter.ai/api/v1/embeddings" supabase/functions/rag-embed-approved/openai.ts` ≥ 1
+- `grep -c "'openai/text-embedding-3-small'" supabase/functions/rag-embed-approved/openai.ts` ≥ 1
+- No `AI_GATEWAY_*` env reads remain in this Fn's source.
+
+The rest of the plan (batch sizing, retry-with-backoff, pgvector(1536) write path, ON CONFLICT idempotency, PostHog cost emit) is UNCHANGED. The embedding dimensionality stays 1536 (OpenAI's text-embedding-3-small via OpenRouter is the same model — just proxied).
+</override>
+
 <objective>
-Ship the approved-chunk embedding pipeline as the Phase 60 Wave 1 Edge Function `rag-embed-approved`. Selects approved, non-retracted, non-embedded chunks from `public.rag_chunks` (Phase 50 schema), embeds them in batches of 100 via OpenAI `text-embedding-3-small` (1536-dim) through the Vercel AI Gateway, and inserts into `public.external_kb_embeddings` (existing pgvector(1536) + HNSW index from Phase 50 Wave 1). Idempotent via `ON CONFLICT (chunk_id) DO NOTHING`. Emits per-batch cost telemetry via 60-02's shared PostHog `$ai_generation` helper. NO cron schedule in this plan — cron registration is the sole responsibility of 60-15 (Fn-deploy-before-cron-push ordering rule).
+Ship the approved-chunk embedding pipeline as the Phase 60 Wave 1 Edge Function `rag-embed-approved`. Selects approved, non-retracted, non-embedded chunks from `public.rag_chunks` (Phase 50 schema), embeds them in batches of 100 via `openai/text-embedding-3-small` (1536-dim) routed through OpenRouter, and inserts into `public.external_kb_embeddings` (existing pgvector(1536) + HNSW index from Phase 50 Wave 1). Idempotent via `ON CONFLICT (chunk_id) DO NOTHING`. Emits per-batch cost telemetry via 60-02's shared PostHog `$ai_generation` helper. NO cron schedule in this plan — cron registration is the sole responsibility of 60-15 (Fn-deploy-before-cron-push ordering rule).
 
 Purpose: without this Edge Fn, approved chunks are dead data and `external_kb_embeddings` stays empty — `rag-retrieve` (60-06) has nothing to ANN-search against, and the entire Phase 60 retrieval/synthesis chain collapses. RAG-02 maps here.
 Output: 1 Edge Fn (3 source files + per-Fn deno.json) + 3 vitest/Deno test files. Deployed (but un-cron-scheduled) at end of plan.
