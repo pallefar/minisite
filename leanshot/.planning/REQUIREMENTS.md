@@ -451,17 +451,17 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | LEGAL-08 | Phase 64 | Complete |
 | LEGAL-09 | Phase 64 | Complete |
 | LEGAL-10 | Phase 64 | Pending |
-| PAY-01 | Phase 65 | Pending |
-| PAY-02 | Phase 65 | Pending |
-| PAY-03 | Phase 65 | Pending |
-| PAY-04 | Phase 65 | Pending |
-| PAY-05 | Phase 65 | Pending |
-| PAY-06 | Phase 65 | Pending |
-| PAY-07 | Phase 65 | Pending |
-| PAY-08 | Phase 65 | Pending |
-| PAY-09 | Phase 65 | Pending |
-| PAY-10 | Phase 65 | Pending |
-| PAY-11 | Phase 65 | Pending |
+| PAY-01 | Phase 65 | Complete (code) |
+| PAY-02 | Phase 65 | Complete (code) |
+| PAY-03 | Phase 65 | Complete (code) |
+| PAY-04 | Phase 65 | Complete (code) |
+| PAY-05 | Phase 65 | Complete (code) |
+| PAY-06 | Phase 65 | Complete (code) |
+| PAY-07 | Phase 65 | Complete (code) |
+| PAY-08 | Phase 65 | Complete (code) |
+| PAY-09 | Phase 65 | Complete (code) |
+| PAY-10 | Phase 65 | Complete (code) |
+| PAY-11 | Phase 65 | Complete (code) |
 | AUTH-12 | Phase 66 | Pending |
 | AUTH-13 | Phase 66 | Pending |
 | AUTH-14 | Phase 66 | Pending |

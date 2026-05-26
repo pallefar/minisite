@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 65
+**Status:** Phase 65 CODE-COMPLETE (2026-05-27) — Stripe Tax + Payment Resilience: 10 schema migrations, 7 Edge Fns + 31 email templates, 3 UI surfaces, 173 new tests (all green). Plan 65-10 close-out partial — remote `db push` blocked by `org_subscriptions` tracking drift (SQLSTATE 42P01 despite migration list showing it applied); 2 operator gates (Stripe Tax enable + 3 Win-back Coupons) outstanding. ALL deploy items deferred to Phase 70 UAT (see 65-CARRY-OVER.md). PAY-01..11 code-complete. Advancing to Phase 66 (Consumer Account Security).
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,12 +27,12 @@ progress:
 
 ## Current Position
 
-Phase: 65 (Stripe Tax + Payment Resilience) — EXECUTING
-Plan: 1 of 10
+Phase: 66 (Consumer Account Security) — NEXT
+Plan: 0 of N (discuss + plan pending)
 
-- **Phase:** 64 COMPLETE — Legal Refresh shipped: 5 DB tables (privacy_optout_requests, policy_notice_log, ad_targeting_exclusion, email_lifecycle_exclusion, data_rights_requests) + 2 Edge Fns (privacy-optout-process + grandfathered-policy-notice) + PrivacyPolicy 5 state addendums (CA/VA/CO/CT/UT) + SubprocessorList live-fetch + ToS UGC content-license + 3 new legal pages (DoNotSell/Accessibility/DMCA) + DSAR state-residency extension + cookie banner Do-Not-Sell footer + new routes + sitemap.xml. Stub-then-replace pattern worked clean (64-07 stubs → 64-05 full implementations at merge).
-- **Last completed:** Phase 64 close-out 2026-05-26. Plan 08 inline. DSAR portal tsc cast fix post-merge (data: never → typed array).
-- **Status:** autonomous run `61→69`. Phase 63 restructured to Phase 69.5 (final pre-launch cleanup). Advancing to Phase 65 (Stripe Tax + Payment Resilience).
+- **Phase:** 65 CODE-COMPLETE — Stripe Tax + Payment Resilience: 10 migrations + 7 Fns + 31 email templates + 3 UI surfaces (PaymentFailedBanner / RefundRequestForm / TaxDashboard) + 5 Rule-1 schema drift fixes (subscriptions.id text vs uuid; org_subscriptions PK=org_id; subscriptions.trial_end; subscriptions.id IS Stripe natural PK; 2 unplanned migrations from 65-08 nexus alert log). 173/173 new tests green; cross-Fn Deno sweep 100/100. Remote deploy + operator gates ALL deferred to Phase 70 UAT.
+- **Last completed:** Phase 65 close-out 2026-05-27. Tasks 5+6 inline (artifacts). Tasks 1-4 deferred — `db push` blocked at migration 20290104000001 with `org_subscriptions does not exist` despite list-applied (tracking drift). Operator psql intervention needed before Phase 70.
+- **Status:** autonomous run `65→69` ongoing. Advancing to Phase 66 (Consumer Account Security).
 
 ### Phase 60 deliverables (this session, 2026-05-26)
 
