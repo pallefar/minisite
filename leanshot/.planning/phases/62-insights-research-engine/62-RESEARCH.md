@@ -784,22 +784,26 @@ export function DpMethodsFooter({ epsilon, cohortSize, suppressedBuckets }: DpMe
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **pending_rag_ingest queue consumption by rag-embed-approved**
-   - What we know: Phase 60 `rag-embed-approved` reads `rag_chunks WHERE embedding IS NULL AND status='approved'`. The RAG ingest trigger for Phase 62 should insert a `rag_chunks` row (not just a queue entry), so the existing cron picks it up.
-   - What's unclear: Does Phase 62 need the `pending_rag_ingest` table as described in CONTEXT.md, or should `publish_research` RPC directly insert into `rag_chunks` (bypassing admin review since the paper is already 2-person reviewed)?
-   - Recommendation: Insert directly into `rag_chunks` with `status='approved'` from the `publish_research` RPC (or a DB trigger). Keep `pending_rag_ingest` as an audit/monitoring table. This avoids needing an Edge Fn call in the RPC.
+All three open questions are resolved by the planning_directives and confirmed in the 62-* PLAN files. Answers are tagged RESOLVED and the source plan task is named where applicable.
 
-2. **Source_type vs rag_sources row for leanshot_research**
-   - What we know: `rag_chunks` links to `rag_sources` via `source_id`. The `source_type` field read by `api.ts` comes from a join on `rag_sources`. Phase 62 chunks need to display as `source_type='leanshot_research'`.
-   - What's unclear: Whether `source_type` is a column to add to `rag_sources` or if the convention is to use `rag_sources.name` as the discriminator.
-   - Recommendation: Add `ALTER TABLE rag_sources ADD COLUMN IF NOT EXISTS source_type text;` in migration `20290102000005`. Insert one `rag_sources` seed row: `(name='LeanShot Research', domain='research.leanshot.app', tier='A', source_type='leanshot_research', freshness_window_days=365)`. All published papers link to this single source row.
+1. **pending_rag_ingest queue consumption by rag-embed-approved** — **RESOLVED**
+   - **Answer (Option A from planning_directives): direct `rag_chunks` INSERT.** `publish_research` SECDEF RPC (Plan 62-02 Task 2) writes directly into `public.rag_chunks` (source_id pointing at the leanshot_research `rag_sources` row, `status='approved'`, `tier='A'`, `embedding=NULL`). Phase 60's existing `rag-embed-approved` cron polls `rag_chunks WHERE embedding IS NULL AND status='approved'` and embeds the body — no Edge Fn call is required from the RPC.
+   - **`pending_rag_ingest` retained as audit / monitoring only.** The queue table is still populated (by the on-publish trigger from Plan 62-01 AND by the RPC's belt-and-suspenders INSERT), but delivery does NOT depend on it being consumed. The queue is read-only telemetry for the admin dashboard and post-publish forensics.
+   - **VALIDATION verifier:** see Plan 62-08 close-out — `select count(*) from rag_chunks where source_id = (select id from rag_sources where source_type='leanshot_research') and status='approved'` MUST be ≥ 1 after the 3 seed publications are inserted.
 
-3. **REFRESH CONCURRENTLY requires unique index**
-   - What we know: `REFRESH MATERIALIZED VIEW CONCURRENTLY` requires at least one unique index on the matview.
-   - What's unclear: What constitutes the natural unique key for each matview (week_bin + compound + tenure_bucket + audience_segment is likely unique but not formally declared).
-   - Recommendation: Each matview migration must include `CREATE UNIQUE INDEX` on the natural key columns before enabling CONCURRENTLY. Planner must identify the correct composite key per matview.
+2. **Source_type vs rag_sources row for leanshot_research** — **RESOLVED**
+   - **Answer:** Plan 62-01 Task 3 ships `ALTER TABLE public.rag_sources ADD COLUMN IF NOT EXISTS source_type text;` in migration `20290102000005_rag_sources_leanshot_research.sql`, plus a single seed row `(name='LeanShot Research', domain='research.leanshot.app', tier='A', source_type='leanshot_research', freshness_window_days=365)`. All published papers link to this single source row via `rag_chunks.source_id`.
+
+3. **REFRESH CONCURRENTLY requires unique index** — **RESOLVED**
+   - **Answer:** Per-matview unique composite keys are declared in Plan 62-01 Task 2 (migration `20290102000002_insights_matviews.sql`):
+     - `insights_dose_rollup` UNIQUE (week_bin, compound, tenure_bucket, audience_segment)
+     - `insights_body_metrics_rollup` UNIQUE (week_bin, tenure_bucket, audience_segment)
+     - `insights_retention_rollup` UNIQUE (week_bin, tenure_bucket, audience_segment)
+     - `insights_engagement_rollup` UNIQUE (week_bin, tenure_bucket, audience_segment)
+     - `insights_ai_interaction_rollup` UNIQUE (week_bin, tenure_bucket, audience_segment)
+   - Plan 62-01 verify block (`grep -E "create unique index if not exists"`) enforces this count ≥ 5.
 
 ---
 
