@@ -166,16 +166,16 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 
 > Phase 62 — anonymized aggregate compilation: dose logs + body metrics + symptoms + retention curves + gamification engagement + AI coach interactions. K-anonymity + differential privacy. Admin research dashboard + white-paper publishing pipeline + opt-in public blog. Feeds RAG.
 
-- [ ] **INSIGHTS-01**: K-anonymity (k≥5) enforced on every aggregate rollup view; cohorts <5 returned as `<suppressed>` rather than partial data
-- [ ] **INSIGHTS-02**: Differential privacy Laplace-noise injection for cohorts 5-50; epsilon configurable per output surface (admin / public differ)
-- [ ] **INSIGHTS-03**: Aggregate rollups schema — `insights_dose_rollup`, `insights_body_metrics_rollup`, `insights_retention_rollup`, `insights_engagement_rollup`, `insights_ai_interaction_rollup` matviews refreshed via pg_cron daily; NO user_id, email, phone, address ever appear
-- [ ] **INSIGHTS-04**: Date binning to week-level for all metric rollups (no day-level public output)
-- [ ] **INSIGHTS-05**: AI-coach interaction inclusion requires explicit user opt-in (`profiles.research_consent BOOLEAN DEFAULT false`); revoke-consent triggers user-data drop from future rollups within 30 days via cron
-- [ ] **INSIGHTS-06**: Admin research dashboard at `/admin/research` — interactive cohort builder (compound × tenure × audience × outcome metric) + cross-tab + retention curves; admin-only role gate
-- [ ] **INSIGHTS-07**: White-paper publishing pipeline — markdown-source under version control at `content/research/*.md`; PDF + HTML generators; reviewer approval workflow (IRB-equivalent 2-person admin review per PROTOCOL-04 pattern); published artifacts in `research_publications` table
-- [ ] **INSIGHTS-08**: Public research blog at `/research/*` — opt-in publishing (admin-curated); SEO-optimized + sitemap inclusion + RSS feed; social-share OG cards
-- [ ] **INSIGHTS-09**: RAG feedback loop — published white papers become Phase 60 RAG primary-research evidence (closing the loop); auto-ingested into `kb_chunks` + tagged `source_type='leanshot_research'`
-- [ ] **INSIGHTS-10**: HIPAA compliance — aggregate-only output structurally; no PHI ever leaves rollup view; SECDEF RPC `compile_research_cohort(...)` rejects cohorts that would breach k-anonymity floor
+- [x] **INSIGHTS-01**: K-anonymity (k≥5) enforced on every aggregate rollup view; cohorts <5 returned as `<suppressed>` rather than partial data
+- [x] **INSIGHTS-02**: Differential privacy Laplace-noise injection for cohorts 5-50; epsilon configurable per output surface (admin / public differ)
+- [x] **INSIGHTS-03**: Aggregate rollups schema — `insights_dose_rollup`, `insights_body_metrics_rollup`, `insights_retention_rollup`, `insights_engagement_rollup`, `insights_ai_interaction_rollup` matviews refreshed via pg_cron daily; NO user_id, email, phone, address ever appear
+- [x] **INSIGHTS-04**: Date binning to week-level for all metric rollups (no day-level public output)
+- [x] **INSIGHTS-05**: AI-coach interaction inclusion requires explicit user opt-in (`profiles.research_consent BOOLEAN DEFAULT false`); revoke-consent triggers user-data drop from future rollups within 30 days via cron
+- [x] **INSIGHTS-06**: Admin research dashboard at `/admin/research` — interactive cohort builder (compound × tenure × audience × outcome metric) + cross-tab + retention curves; admin-only role gate
+- [x] **INSIGHTS-07**: White-paper publishing pipeline — markdown-source under version control at `content/research/*.md`; PDF + HTML generators; reviewer approval workflow (IRB-equivalent 2-person admin review per PROTOCOL-04 pattern); published artifacts in `research_publications` table
+- [x] **INSIGHTS-08**: Public research blog at `/research/*` — opt-in publishing (admin-curated); SEO-optimized + sitemap inclusion + RSS feed; social-share OG cards
+- [x] **INSIGHTS-09**: RAG feedback loop — published white papers become Phase 60 RAG primary-research evidence (closing the loop); auto-ingested into `kb_chunks` + tagged `source_type='leanshot_research'`
+- [x] **INSIGHTS-10**: HIPAA compliance — aggregate-only output structurally; no PHI ever leaves rollup view; SECDEF RPC `compile_research_cohort(...)` rejects cohorts that would breach k-anonymity floor
 
 ### WS12 — Device-UAT + Tech Debt Cleanup (DEBT, 6 REQ-IDs — v1.3 carry)
 
@@ -425,16 +425,16 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | PROTOCOL-06 | Phase 61 | Complete |
 | PROTOCOL-07 | Phase 61 | Complete |
 | PROTOCOL-08 | Phase 61 | Complete |
-| INSIGHTS-01 | Phase 62 | Pending |
-| INSIGHTS-02 | Phase 62 | Pending |
-| INSIGHTS-03 | Phase 62 | Pending |
-| INSIGHTS-04 | Phase 62 | Pending |
-| INSIGHTS-05 | Phase 62 | Pending |
-| INSIGHTS-06 | Phase 62 | Pending |
-| INSIGHTS-07 | Phase 62 | Pending |
-| INSIGHTS-08 | Phase 62 | Pending |
-| INSIGHTS-09 | Phase 62 | Pending |
-| INSIGHTS-10 | Phase 62 | Pending |
+| INSIGHTS-01 | Phase 62 | Complete |
+| INSIGHTS-02 | Phase 62 | Complete |
+| INSIGHTS-03 | Phase 62 | Complete |
+| INSIGHTS-04 | Phase 62 | Complete |
+| INSIGHTS-05 | Phase 62 | Complete |
+| INSIGHTS-06 | Phase 62 | Complete |
+| INSIGHTS-07 | Phase 62 | Complete |
+| INSIGHTS-08 | Phase 62 | Complete |
+| INSIGHTS-09 | Phase 62 | Complete |
+| INSIGHTS-10 | Phase 62 | Complete |
 | DEBT-01 | Phase 63 | Pending |
 | DEBT-02 | Phase 63 | Pending |
 | DEBT-03 | Phase 63 | Pending |

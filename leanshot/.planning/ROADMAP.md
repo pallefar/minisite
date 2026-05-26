@@ -20,7 +20,7 @@
 - [x] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
 - [ ] **Phase 60.5: Late-Phase Vendor Setup (60-69)** — `autonomous: false`. Consolidates operator-required vendor onboarding that emerged during Phase 60-69 planning: Cohere Rerank, OpenAI direct + Vercel AI Gateway, PostHog Personal API key (cost dashboard), Jina/PubMed/OpenFDA optional, Slack guardrail webhook vault entry. Mirrors Phase 52 pattern; runtime-verification of Phase 60+ gates on this.
 - [x] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
-- [ ] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
+- [x] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
 - [ ] **Phase 63: Device-UAT + Tech Debt Cleanup** — Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign
 - [ ] **Phase 64: Legal Refresh** — State-privacy (CCPA/CDPA/CPA/CTDPA/UCPA) + policy/ToS audit + accessibility statement + DMCA agent + cookie WCAG 2.2 AA re-audit + grandfathered-notice email (BLOCKER)
 - [ ] **Phase 65: Stripe Tax + Payment Resilience** — Stripe Tax enable + automatic_tax + B2B tax_id collection + nexus-monitoring dashboard + 3-email dunning + in-app banner + refund self-service + idempotency burst-retry test + trial-ending/win-back (BLOCKER)
@@ -621,7 +621,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 59. Apple OAuth + Onboarding Completion | 0/3 | Planned | - |
 | 60. RAG Knowledge Base Completion | 13/15 | In Progress|  |
 | 61. Admin Protocol Creator | 8/8 | Complete | 3 migrations + 1 Fn deployed; 64+ tests green |
-| 62. Insights & Research Engine | 0/0 | Not started | - |
+| 62. Insights & Research Engine | 8/8 | Complete | 6 migrations + 1 Fn deployed; 84 tests green |
 | 63. Device-UAT + Tech Debt Cleanup | 0/0 | Not started | - |
 | 64. Legal Refresh | 0/0 | Not started | - |
 | 65. Stripe Tax + Payment Resilience | 0/0 | Not started | - |

@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: in_progress
-last_updated: "2026-05-26T17:45:00Z"
+last_updated: "2026-05-26T19:30:00Z"
 progress:
   total_phases: 20
-  completed_phases: 10
-  total_plans: 61
-  completed_plans: 56
-  percent: 92
+  completed_phases: 11
+  total_plans: 69
+  completed_plans: 64
+  percent: 93
 ---
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 61 COMPLETE (2026-05-26) — All 8 plans shipped + plan-checked + post-merge swept; 3 migrations applied to remote, 1 Fn (protocol-ai-assist) deployed ACTIVE; 64 tests green across 12 files. Advancing to Phase 62.
+**Status:** Phase 62 COMPLETE (2026-05-26) — All 8 plans shipped; 6 migrations applied to remote (incl. matview reorder), 1 Fn (research-publish) deployed ACTIVE; 84 tests green (61 + 62 React + phase62-eval + handler + renderer). Advancing to Phase 63.
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,9 +27,9 @@ progress:
 
 ## Current Position
 
-- **Phase:** 61 COMPLETE — Admin Protocol Creator shipped: 6 DB tables + 7 SECDEF RPCs + protocol-ai-assist Edge Fn + 13 React components across admin/clinic/patient/KB/public surfaces + KB shortcode plugin wired into KnowledgeArticleDetailPage. 3 migrations renamed forward (20290101*) to avoid back-date push block. PROTOCOL-01..08 all Complete in REQUIREMENTS.md.
-- **Last completed:** Phase 61 close-out 2026-05-26. Plan 08 inline (operational close-out: db push + Fn deploy + state updates).
-- **Status:** autonomous run `61→69`. Advancing to Phase 62 (Insights & Research Engine).
+- **Phase:** 62 COMPLETE — Insights & Research Engine shipped: 5 matviews + 7 SECDEF RPCs (k-anonymity floor + Laplace noise + 2-person publish_research + research_consent purge) + research-publish Edge Fn + admin cohort builder + admin publications + public /research/* hub + settings consent toggle + KB shortcode plugin wired. INSIGHTS-09 RAG feedback loop delivers: `publish_research` inserts directly into rag_chunks (per iter-1 BLOCKER 2 fix). INSIGHTS-01..10 all Complete.
+- **Last completed:** Phase 62 close-out 2026-05-26. Plan 08 inline. Matview migration reorder forced (20290102000002 → 000010) because 000002 referenced p.research_consent (added in 000003).
+- **Status:** autonomous run `61→69`. Advancing to Phase 63 (Device-UAT + Tech Debt).
 
 ### Phase 60 deliverables (this session, 2026-05-26)
 
