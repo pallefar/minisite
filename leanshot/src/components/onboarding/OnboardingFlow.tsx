@@ -51,6 +51,10 @@ import type { OnboardingStepNode } from '@/types/onboarding-step';
 import { ConsumerOnboardingRenderer } from './ConsumerOnboardingRenderer';
 import { ProgressIndicator } from './ProgressIndicator';
 import { UnitToggle } from './UnitToggle';
+// Phase 60 Plan 60-12 (RAG-08): optional newsletter opt-in step inserted
+// between snapshot review and the final "ready" step.
+import { NewsletterOptInStep } from './steps/NewsletterOptInStep';
+import { setNewsletterOptIn } from '@/lib/rag/newsletter-api';
 
 interface OnboardingFlowProps {
   onCancel: () => void;
@@ -98,13 +102,17 @@ interface DraftState {
   bodyFat: string;
   goalWeight: string;
   goal: GoalType;
+  // Phase 60 Plan 60-12 (RAG-08): CAN-SPAM affirmative opt-in MUST default false.
+  newsletterOptIn: boolean;
   protein: string;
   injectionDay: number;
   activity: ActivityLevel;
   lifting: LiftingLevel;
 }
 
-const TOTAL_STEPS = 8;
+// Phase 60 Plan 60-12: bumped from 8 to 9 to accommodate NewsletterOptInStep
+// inserted between snapshot (6) and ready (8). New order: 0-6, 7=newsletter, 8=ready.
+const TOTAL_STEPS = 9;
 
 export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
   // Phase 32 Plan 32-07 (I18N-01) — hreflang tags on the onboarding entry
@@ -144,6 +152,8 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
     injectionDay: 0,
     activity: 'light',
     lifting: 'none',
+    // Phase 60 Plan 60-12: CAN-SPAM affirmative opt-in — MUST default false.
+    newsletterOptIn: false,
   });
 
   const wU = draft.units === 'metric' ? 'kg' : 'lb';
@@ -284,6 +294,25 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
             .from('profiles')
             .update({ locale: signupLocale })
             .eq('id', authData.user.id);
+
+          // Phase 60 Plan 60-12 (RAG-08): newsletter opt-in persistence.
+          // ONLY write when user explicitly opted in (newsletterOptIn=true).
+          // No DB write for default-false case — DB default opted_in=false
+          // means no row is needed until the user opts in (avoids row spam).
+          if (draft.newsletterOptIn) {
+            try {
+              await setNewsletterOptIn({
+                userId: authData.user.id,
+                optedIn: true,
+                topicTags: [],
+              });
+            } catch (newsletterErr) {
+              // Newsletter opt-in failure MUST NOT block onboarding completion.
+              // User can opt in via Settings later.
+              console.warn('[OnboardingFlow] newsletter opt-in failed (best-effort):', newsletterErr);
+              toast(t('common:error.generic'), 'info');
+            }
+          }
         }
       } catch (err) {
         console.warn('[OnboardingFlow] mark_onboarding_complete failed (best-effort):', err);
@@ -631,7 +660,20 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                   </div>
                 )}
 
+                {/* Phase 60 Plan 60-12 (RAG-08): newsletter opt-in step (7).
+                    Inserted AFTER snapshot review (6) and BEFORE final ready step (8).
+                    CAN-SPAM: checkbox defaults unchecked via draft.newsletterOptIn=false.
+                    Step is OPTIONAL — user may skip via Continue without checking. */}
                 {step === 7 && (
+                  <NewsletterOptInStep
+                    checked={draft.newsletterOptIn}
+                    onChange={(v) => update({ newsletterOptIn: v })}
+                    onNext={next}
+                    onBack={back}
+                  />
+                )}
+
+                {step === 8 && (
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
                       <AIAvatar size={56} className="shrink-0" />
@@ -685,7 +727,8 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
               </motion.div>
             </AnimatePresence>
 
-            {step === 0 ? null : (
+            {/* Phase 60: step 7 = NewsletterOptInStep — renders its OWN nav buttons */}
+            {step === 0 || step === 7 ? null : (
               <div className="flex gap-2 mt-7">
                 {step === 1 ? (
                   <Button variant="ghost" onClick={onCancel} className="flex-1">
@@ -794,6 +837,8 @@ function OrgOnboardingFlowRenderer({
     injectionDay: 0,
     activity: 'light',
     lifting: 'none',
+    // OrgOnboardingFlowRenderer: newsletter opt-in defaults false (CAN-SPAM).
+    newsletterOptIn: false,
   });
 
   const wU = draft.units === 'metric' ? 'kg' : 'lb';
