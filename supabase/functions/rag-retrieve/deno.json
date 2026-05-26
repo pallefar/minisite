@@ -1,0 +1,17 @@
+{
+  "tasks": {
+    "test": "deno test --no-check --allow-env --allow-net ."
+  },
+  "imports": {
+    "ai": "npm:ai@^4",
+    "@ai-sdk/openai": "npm:@ai-sdk/openai@^1",
+    "cohere-ai": "npm:cohere-ai@^7",
+    "zod": "npm:zod@^3",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}
