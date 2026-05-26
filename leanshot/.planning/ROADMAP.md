@@ -621,7 +621,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 59. Apple OAuth + Onboarding Completion | 0/3 | Planned | - |
 | 60. RAG Knowledge Base Completion | 13/15 | In Progress|  |
 | 61. Admin Protocol Creator | 8/8 | Complete | 3 migrations + 1 Fn deployed; 64+ tests green |
-| 62. Insights & Research Engine | 0/0 | Not started | - |
+| 62. Insights & Research Engine | 4/8 | In Progress|  |
 | 63. Device-UAT + Tech Debt Cleanup | 0/0 | Not started | - |
 | 64. Legal Refresh | 0/0 | Not started | - |
 | 65. Stripe Tax + Payment Resilience | 0/0 | Not started | - |

@@ -173,7 +173,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 - [ ] **INSIGHTS-05**: AI-coach interaction inclusion requires explicit user opt-in (`profiles.research_consent BOOLEAN DEFAULT false`); revoke-consent triggers user-data drop from future rollups within 30 days via cron
 - [ ] **INSIGHTS-06**: Admin research dashboard at `/admin/research` — interactive cohort builder (compound × tenure × audience × outcome metric) + cross-tab + retention curves; admin-only role gate
 - [ ] **INSIGHTS-07**: White-paper publishing pipeline — markdown-source under version control at `content/research/*.md`; PDF + HTML generators; reviewer approval workflow (IRB-equivalent 2-person admin review per PROTOCOL-04 pattern); published artifacts in `research_publications` table
-- [ ] **INSIGHTS-08**: Public research blog at `/research/*` — opt-in publishing (admin-curated); SEO-optimized + sitemap inclusion + RSS feed; social-share OG cards
+- [x] **INSIGHTS-08**: Public research blog at `/research/*` — opt-in publishing (admin-curated); SEO-optimized + sitemap inclusion + RSS feed; social-share OG cards
 - [ ] **INSIGHTS-09**: RAG feedback loop — published white papers become Phase 60 RAG primary-research evidence (closing the loop); auto-ingested into `kb_chunks` + tagged `source_type='leanshot_research'`
 - [ ] **INSIGHTS-10**: HIPAA compliance — aggregate-only output structurally; no PHI ever leaves rollup view; SECDEF RPC `compile_research_cohort(...)` rejects cohorts that would breach k-anonymity floor
 
@@ -432,7 +432,7 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | INSIGHTS-05 | Phase 62 | Pending |
 | INSIGHTS-06 | Phase 62 | Pending |
 | INSIGHTS-07 | Phase 62 | Pending |
-| INSIGHTS-08 | Phase 62 | Pending |
+| INSIGHTS-08 | Phase 62 | Complete |
 | INSIGHTS-09 | Phase 62 | Pending |
 | INSIGHTS-10 | Phase 62 | Pending |
 | DEBT-01 | Phase 63 | Pending |
