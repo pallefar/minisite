@@ -1,0 +1,30 @@
+LeanShot — Payment issue
+========================
+
+We couldn't process your last payment
+
+Hi {{user_first_name}},
+
+We were unable to process your most recent LeanShot subscription payment.
+This can happen for a number of reasons — your card may have expired, or
+the bank may have flagged the charge. We'll automatically try again over
+the next few days.
+
+To avoid any interruption to your subscription, you can update your
+payment method right now from your billing settings.
+
+UPDATE PAYMENT METHOD
+---------------------
+
+{{billing_portal_url}}
+
+Questions? Reply to this email or reach us at billing@leanshot.app.
+
+---
+
+This is a transactional notification about your LeanShot subscription.
+
+Unsubscribe: {{unsubscribe_url}}
+Manage preferences: https://leanshot.app/account/data-rights
+
+LeanShot — {{physical_address}}

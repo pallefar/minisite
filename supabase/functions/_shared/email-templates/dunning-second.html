@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Action needed: second payment attempt failed</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+  <!-- preheader -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+    A second LeanShot subscription payment attempt has failed. Please update your billing details to avoid cancellation.
+  </div>
+  <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f5f5f5">
+    <tr>
+      <td align="center" style="padding:24px 16px;">
+        <table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff"
+               style="max-width:600px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+          <tr>
+            <td bgcolor="#b45309" style="padding:32px 40px;">
+              <h1 style="margin:0;font-size:22px;font-weight:600;color:#ffffff;">Action needed</h1>
+              <p style="margin:6px 0 0 0;font-size:13px;color:rgba(255,255,255,0.9);">
+                Second payment attempt failed
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 40px;">
+              <p style="margin:0 0 20px 0;font-size:15px;color:#374151;line-height:1.6;">
+                Hi {{user_first_name}},
+              </p>
+              <p style="margin:0 0 20px 0;font-size:15px;color:#374151;line-height:1.6;">
+                We tried again to process your LeanShot subscription payment and it
+                still didn't go through. Your subscription is at risk of being
+                cancelled if we can't collect payment within the next few days.
+              </p>
+              <p style="margin:0 0 24px 0;font-size:15px;color:#374151;line-height:1.6;">
+                Please take a moment to update your payment method &#8212; it usually
+                takes less than a minute.
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                <tr>
+                  <td>
+                    <a href="{{billing_portal_url}}"
+                       style="display:inline-block;height:40px;line-height:40px;padding:0 24px;background:#b45309;color:#ffffff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
+                      Update payment method &#x2197;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
+                Need help? Reply to this email or reach us at
+                <a href="mailto:billing@leanshot.app" style="color:#0d9488;">billing@leanshot.app</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#f9fafb" style="padding:24px 40px;border-top:1px solid #e5e7eb;">
+              <p style="margin:0 0 8px 0;font-size:11px;color:#6b7280;text-align:center;">
+                This is a transactional notification about your LeanShot subscription.
+              </p>
+              <p style="margin:0 0 8px 0;font-size:11px;color:#6b7280;text-align:center;">
+                <a href="{{unsubscribe_url}}" style="color:#0d9488;">Unsubscribe</a>
+                &nbsp;&#183;&nbsp;
+                <a href="https://leanshot.app/account/data-rights" style="color:#0d9488;">Manage preferences</a>
+              </p>
+              <p style="margin:0;font-size:10px;color:#9ca3af;text-align:center;">
+                LeanShot &mdash; {{physical_address}}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

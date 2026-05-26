@@ -1,0 +1,29 @@
+LeanShot — Action needed
+========================
+
+Second payment attempt failed
+
+Hi {{user_first_name}},
+
+We tried again to process your LeanShot subscription payment and it
+still didn't go through. Your subscription is at risk of being
+cancelled if we can't collect payment within the next few days.
+
+Please take a moment to update your payment method — it usually takes
+less than a minute.
+
+UPDATE PAYMENT METHOD
+---------------------
+
+{{billing_portal_url}}
+
+Need help? Reply to this email or reach us at billing@leanshot.app.
+
+---
+
+This is a transactional notification about your LeanShot subscription.
+
+Unsubscribe: {{unsubscribe_url}}
+Manage preferences: https://leanshot.app/account/data-rights
+
+LeanShot — {{physical_address}}
