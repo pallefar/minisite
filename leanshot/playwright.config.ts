@@ -51,6 +51,12 @@ const P32_I18N_OPT_IN = process.env.PLAYWRIGHT_RUN_P32_I18N === '1';
 // `npx playwright test` never executes the stub assertions.
 const ES_SMOKE_OPT_IN = process.env.PLAYWRIGHT_RUN_ES_SMOKE === '1';
 
+// Phase 60 Plan 60-08: opt-in RAG queue admin e2e via PLAYWRIGHT_RUN_RAG_QUEUE=1.
+// Covers all 5 SECDEF RPCs (approve/reject/retract/queue/list) + 2-person rule
+// disabled-Approve + DOMPurify XSS smoke. Requires the dev server to be running.
+// Per [[reference_playwright_conditional_project_argv]] — env var gate only.
+const RAG_QUEUE_OPT_IN = process.env.PLAYWRIGHT_RUN_RAG_QUEUE === '1';
+
 // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
 // Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
 // pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
@@ -131,6 +137,9 @@ export default defineConfig({
         // real assertions. Always excluded from the default chromium run;
         // opt in via PLAYWRIGHT_RUN_ES_SMOKE=1 --project=p58-es-smoke.
         /e2e\/i18n\/es-smoke\.spec\.ts$/,
+        // Phase 60 Plan 60-08: RAG queue admin e2e requires dev server + mocked
+        // Supabase RPCs. Gated by PLAYWRIGHT_RUN_RAG_QUEUE=1.
+        /e2e\/admin\/rag-queue\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -272,6 +281,20 @@ export default defineConfig({
           {
             name: 'p58-es-smoke',
             testMatch: [/e2e\/i18n\/es-smoke\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 60 Plan 60-08 — opt-in RAG queue admin e2e.
+    // Invoke via `PLAYWRIGHT_RUN_RAG_QUEUE=1 npx playwright test --project=p60-rag-queue`.
+    // Tests exercise all 5 SECDEF RPC paths (approve/reject/retract/queue/list)
+    // + 2-person rule disabled-Approve + DOMPurify XSS smoke.
+    // Uses page.route() API intercepts so no live Supabase needed.
+    ...(RAG_QUEUE_OPT_IN
+      ? [
+          {
+            name: 'p60-rag-queue',
+            testMatch: [/e2e\/admin\/rag-queue\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
