@@ -23,6 +23,7 @@ const RagTopicsPage = lazy(() => import('./RagTopicsPage'));
 const RagSourcesPage = lazy(() => import('./RagSourcesPage'));
 const FederatedSourcesPage = lazy(() => import('./FederatedSourcesPage'));
 const RagQueuePage = lazy(() => import('./RagQueuePage'));
+const RagCostPage = lazy(() => import('./RagCostPage'));
 
 interface TelemetryRow {
   topic_id: string;
@@ -133,31 +134,13 @@ interface SubRoute {
   readonly Component: ComponentType;
 }
 
-function PlaceholderCard({ heading, body }: { heading: string; body: string }) {
-  return (
-    <Card variant="flat" padding="lg" className="max-w-xl">
-      <h2 className="text-[15px] font-semibold mb-1">{heading}</h2>
-      <p className="text-[13px] text-[var(--color-text-secondary)]">{body}</p>
-    </Card>
-  );
-}
-
-function CostPlaceholder() {
-  return (
-    <PlaceholderCard
-      heading="Cost dashboard"
-      body="Plan 50-09 finalizes the cost dashboard. Until then, see Settings → Audit Log for the live cost ledger."
-    />
-  );
-}
-
 const SUB_ROUTES: readonly SubRoute[] = [
   { key: 'topics',    label: 'Topics',    path: 'topics',    Component: RagTopicsPage },
   { key: 'sources',   label: 'Sources',   path: 'sources',   Component: RagSourcesPage },
   { key: 'federated', label: 'Federated', path: 'federated', Component: FederatedSourcesPage },
   { key: 'queue',     label: 'Queue',     path: 'queue',     Component: RagQueuePage },
   { key: 'telemetry', label: 'Telemetry', path: 'telemetry', Component: RagTelemetryPage },
-  { key: 'cost',      label: 'Cost',      path: 'cost',      Component: CostPlaceholder },
+  { key: 'cost',      label: 'Cost',      path: 'cost',      Component: RagCostPage },
 ] as const;
 
 const DEFAULT_PATH = 'topics';
