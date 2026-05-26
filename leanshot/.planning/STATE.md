@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: in_progress
-last_updated: "2026-05-26T16:52:31Z"
+last_updated: "2026-05-26T17:05:00Z"
 progress:
   total_phases: 20
   completed_phases: 9
-  total_plans: 53
-  completed_plans: 49
-  percent: 53
+  total_plans: 61
+  completed_plans: 51
+  percent: 84
 ---
 
 # Milestone v1.4: Launch Readiness
@@ -73,10 +73,16 @@ supabase secrets set NEWSLETTER_PHYSICAL_ADDRESS="<LeanShot physical mailing add
 
 Newsletter sender will return HTTP 503 + emit Slack `regulatory` P1 alert if missing or contains "placeholder" substring (WR-02 fix).
 
-### Phase 61 in progress (2026-05-26)
+### Phase 61 IN PROGRESS — Wave 0 complete (2026-05-26)
 
-- **61-02** (SECDEF RPCs): COMPLETE — 7 SECDEF RPCs shipped: publish_protocol (2-person rule + SELF_REVIEW_REJECTED), submit_protocol_for_review, rollback_protocol, archive_protocol, assign_protocol_to_patient, get_protocol_by_slug, list_admin_ai_assist_usage_today. Commit 69dcaa2a.
-- **61-01** (DB tables + RLS): Wave 0, parallel plan — pending execution
+**Wave 0 (3/3 plans shipped):**
+
+- **61-01** (DB tables + RLS): COMPLETE — 6 tables (`protocols` composite PK, `protocol_steps`, `protocol_evidence`, `protocol_review_log`, `patient_protocol_assignment`, `admin_ai_assist_log`), `protocol_review_state` enum, RLS via `is_staff()`, 3 reference protocols seeded (Tirzepatide 12-wk B2C+clinic, Retatrutide 16-wk B2C+clinic, GHRP-2 clinic-only), TS types barrel-exported from `src/types/protocols.ts`. Commits `61a8e29b` (schema), `a0385768` (seed), `b3227fad` (SUMMARY).
+- **61-02** (SECDEF RPCs): COMPLETE — 7 SECDEF RPCs: `publish_protocol` (mirrors `approve_rag_chunk` shape verbatim + SELF_REVIEW_REJECTED), `submit_protocol_for_review`, `rollback_protocol`, `archive_protocol`, `assign_protocol_to_patient` (idempotent upsert), `get_protocol_by_slug`, `list_admin_ai_assist_usage_today` (UTC-day rate-limit pre-check). Commits `69dcaa2a`, `8338ad2c`.
+- **61-03** (protocol-ai-assist Edge Fn): COMPLETE — handler/index split (Vitest testability per [[reference_deno_test_top_level_serve_trap]]), 6/6 RED→GREEN tests pass, OpenRouter `anthropic/claude-sonnet-4-5` (dotted) + PHARMA-02 carveout + 50/day rate-limit + refusal flag. Commits `dbede1ef`, `98169720`, `44d7787e`, `3a466f10`.
+
+**Wave 1 (next, parallel-safe):** 61-04 (admin core UI) + 61-06 (clinic adopt) + 61-07 (patient/KB/public).
+**Wave 2 (after):** 61-05 (admin editor — depends on 04 for @theme tokens) → 61-08 (close-out: db push + Fn deploy + ROADMAP + STATE).
 
 ### Phase 61 resume notes (context)
 

@@ -450,6 +450,9 @@ export default defineConfig(({ mode }) => {
         '../supabase/functions/rag-federated-dailymed/__tests__/normalize.test.ts',
         '../supabase/functions/rag-federated-dailymed/__tests__/index.test.ts',
         'eslint-rules/**/*.test.{js,ts,cjs}',
+        // Phase 61 Plan 03 — protocol-ai-assist Edge Fn handler tests.
+        // Dependency injection seam (fetchImpl + ragRetrieve) used for mocking.
+        '../supabase/functions/protocol-ai-assist/__tests__/handler.test.ts',
       ],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
       // Avoid React 19 StrictMode double-invoke flake (RESEARCH.md Pitfall 6)
