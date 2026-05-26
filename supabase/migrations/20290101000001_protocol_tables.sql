@@ -245,7 +245,7 @@ alter table public.admin_ai_assist_log        enable row level security;
 -- --- public.protocols ---
 
 -- Staff: full access
-create policy if not exists "staff_all"
+create policy "staff_all"
   on public.protocols
   for all
   to authenticated
@@ -254,7 +254,7 @@ create policy if not exists "staff_all"
 
 -- Public: authenticated users can SELECT published protocols
 -- (for /protocols/<slug> consumer surface — auth-gated, published-only)
-create policy if not exists "public_published_select"
+create policy "public_published_select"
   on public.protocols
   for select
   to authenticated
@@ -263,7 +263,7 @@ create policy if not exists "public_published_select"
 -- --- public.protocol_steps ---
 
 -- Staff: full access
-create policy if not exists "staff_all"
+create policy "staff_all"
   on public.protocol_steps
   for all
   to authenticated
@@ -271,7 +271,7 @@ create policy if not exists "staff_all"
   with check (public.is_staff());
 
 -- Public: authenticated users can SELECT steps for published protocols
-create policy if not exists "public_published_select"
+create policy "public_published_select"
   on public.protocol_steps
   for select
   to authenticated
@@ -287,7 +287,7 @@ create policy if not exists "public_published_select"
 -- --- public.protocol_evidence ---
 
 -- Staff: full access
-create policy if not exists "staff_all"
+create policy "staff_all"
   on public.protocol_evidence
   for all
   to authenticated
@@ -295,7 +295,7 @@ create policy if not exists "staff_all"
   with check (public.is_staff());
 
 -- Public: authenticated users can SELECT evidence for published protocol steps
-create policy if not exists "public_published_select"
+create policy "public_published_select"
   on public.protocol_evidence
   for select
   to authenticated
@@ -312,7 +312,7 @@ create policy if not exists "public_published_select"
 -- --- public.protocol_review_log ---
 
 -- Staff: full access (RPCs enforce append-only by never calling DELETE/UPDATE)
-create policy if not exists "staff_all"
+create policy "staff_all"
   on public.protocol_review_log
   for all
   to authenticated
@@ -322,14 +322,14 @@ create policy if not exists "staff_all"
 -- --- public.patient_protocol_assignment ---
 
 -- Patient: own-row select only
-create policy if not exists "own_select"
+create policy "own_select"
   on public.patient_protocol_assignment
   for select
   to authenticated
   using (auth.uid() = patient_id);
 
 -- Staff: full access (write assignments via SECDEF assign_protocol_to_patient RPC)
-create policy if not exists "staff_write"
+create policy "staff_write"
   on public.patient_protocol_assignment
   for all
   to authenticated
@@ -340,7 +340,7 @@ create policy if not exists "staff_write"
 
 -- Staff: full access (INSERT via Edge Fn service-role bypasses RLS;
 --   this policy supports any direct admin queries for audit review)
-create policy if not exists "staff_all"
+create policy "staff_all"
   on public.admin_ai_assist_log
   for all
   to authenticated
