@@ -299,7 +299,8 @@ export function DsarPortalPage() {
       }
 
       // Surface the first inserted row as the result card.
-      const firstRow = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      const insertedRows = data as Array<{ id: string }> | null;
+      const firstRow = Array.isArray(insertedRows) && insertedRows.length > 0 ? insertedRows[0] : null;
       if (firstRow) {
         setStateRequestResult({
           id: firstRow.id as string,
