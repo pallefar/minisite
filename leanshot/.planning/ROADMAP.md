@@ -19,7 +19,7 @@
 - [x] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished
 - [x] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
 - [ ] **Phase 60.5: Late-Phase Vendor Setup (60-69)** — `autonomous: false`. Consolidates operator-required vendor onboarding that emerged during Phase 60-69 planning: Cohere Rerank, OpenAI direct + Vercel AI Gateway, PostHog Personal API key (cost dashboard), Jina/PubMed/OpenFDA optional, Slack guardrail webhook vault entry. Mirrors Phase 52 pattern; runtime-verification of Phase 60+ gates on this.
-- [ ] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
+- [x] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
 - [ ] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
 - [ ] **Phase 63: Device-UAT + Tech Debt Cleanup** — Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign
 - [ ] **Phase 64: Legal Refresh** — State-privacy (CCPA/CDPA/CPA/CTDPA/UCPA) + policy/ToS audit + accessibility statement + DMCA agent + cookie WCAG 2.2 AA re-audit + grandfathered-notice email (BLOCKER)
@@ -341,14 +341,14 @@ Plans:
 
 **Plans**: 8 plans (Wave 0 foundation: 3 / Wave 1 UI + integrations: 4 / Wave 2 close-out: 1)
 
-- [ ] 61-01-PLAN.md — DB tables + RLS + seed (PROTOCOL-01, 05)
-- [ ] 61-02-PLAN.md — 7 SECDEF RPCs (PROTOCOL-04, 05, 06)
-- [ ] 61-03-PLAN.md — protocol-ai-assist Edge Fn handler.ts/index.ts + tests (PROTOCOL-02, 03)
-- [ ] 61-04-PLAN.md — Admin core UI: Layout + ListPage + StatusBadge + KeyboardHelp + module manifest + @theme tokens (PROTOCOL-02)
-- [ ] 61-05-PLAN.md — Admin editor UI: EditorPage + StepRow + ReviewBanner + EvidenceSearchSheet + AiAssistModal (PROTOCOL-02, 03, 04, 05)
-- [ ] 61-06-PLAN.md — Clinician adopt flow: ClinicProtocolsPage + AdoptProtocolSheet + AdoptDiffModal + ClinicWorkspace nav (PROTOCOL-06)
-- [ ] 61-07-PLAN.md — Patient MedicationTab extension + BodyTab insights card + ProtocolSummaryCard + KB shortcode plugin + PublicProtocolPage + App.tsx selectView (PROTOCOL-07, 08)
-- [ ] 61-08-PLAN.md — Close-out: db push + Fn deploy + ROADMAP + STATE + CARRY-OVER
+- [x] 61-01-PLAN.md — DB tables + RLS + seed (PROTOCOL-01, 05)
+- [x] 61-02-PLAN.md — 7 SECDEF RPCs (PROTOCOL-04, 05, 06)
+- [x] 61-03-PLAN.md — protocol-ai-assist Edge Fn handler.ts/index.ts + tests (PROTOCOL-02, 03)
+- [x] 61-04-PLAN.md — Admin core UI: Layout + ListPage + StatusBadge + KeyboardHelp + module manifest + @theme tokens (PROTOCOL-02)
+- [x] 61-05-PLAN.md — Admin editor UI: EditorPage + StepRow + ReviewBanner + EvidenceSearchSheet + AiAssistModal (PROTOCOL-02, 03, 04, 05)
+- [x] 61-06-PLAN.md — Clinician adopt flow: ClinicProtocolsPage + AdoptProtocolSheet + AdoptDiffModal + ClinicWorkspace nav (PROTOCOL-06)
+- [x] 61-07-PLAN.md — Patient MedicationTab extension + BodyTab insights card + ProtocolSummaryCard + KB shortcode plugin + PublicProtocolPage + App.tsx selectView (PROTOCOL-07, 08)
+- [x] 61-08-PLAN.md — Close-out: db push + Fn deploy + ROADMAP + STATE + CARRY-OVER
 
 **UI hint**: yes
 
@@ -620,7 +620,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
 | 59. Apple OAuth + Onboarding Completion | 0/3 | Planned | - |
 | 60. RAG Knowledge Base Completion | 13/15 | In Progress|  |
-| 61. Admin Protocol Creator | 1/8 | In Progress|  |
+| 61. Admin Protocol Creator | 8/8 | Complete | 3 migrations + 1 Fn deployed; 64+ tests green |
 | 62. Insights & Research Engine | 0/0 | Not started | - |
 | 63. Device-UAT + Tech Debt Cleanup | 0/0 | Not started | - |
 | 64. Legal Refresh | 0/0 | Not started | - |
