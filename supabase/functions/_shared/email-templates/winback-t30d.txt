@@ -1,0 +1,20 @@
+We miss you -- {{discount_pct}}% off if you come back
+======================================================
+
+Hi {{user_first_name}},
+
+It's been about a month since you last logged in. Your data is still safe and
+your dashboard is waiting.
+
+Use code {{promo_code}} for {{discount_pct}}% off your reactivated subscription
+-- valid for 30 days.
+
+Reactivate subscription: {{reactivate_url}}
+
+Questions? Reply to this email.
+
+---
+
+Unsubscribe: {{unsubscribe_url}}
+
+LeanShot -- {{physical_address}}
