@@ -49,6 +49,8 @@ import {
   ClipboardList as ClipboardListIcon,
   // Phase 62 Plan 62-04 — Admin Research module icon.
   FlaskConical as FlaskConicalIcon,
+  // Phase 65 Plan 65-09 (PAY-08) — Admin Tax Nexus module icon.
+  Landmark as LandmarkIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -353,6 +355,28 @@ export const ADMIN_MODULES = [
     icon: FlaskConicalIcon,
     lazy: () => import('@/components/admin/research/ResearchLayout'),
     flagKey: 'admin_research',
+    minRole: 'staff' as AdminRole,
+  },
+  // Phase 65 Plan 65-09 (PAY-08) — Admin Tax Nexus module.
+  // Surface: /admin/tax — per-state YTD revenue × threshold proximity dashboard.
+  // Placed alongside research per UI-SPEC §3 "admin shell module entry alongside
+  // protocols/research". AdminShell.tsx URL-prefix routing
+  // (pathname.startsWith('/admin/tax')) auto-resolves this — no hardcoded switch
+  // branch required per feedback_admin_module_manifest_vs_router_branch_drift.
+  // minRole 'staff' so finance + ops staff see it; RLS on tax_nexus_thresholds +
+  // tax_nexus_state_revenue matview enforces staff scope at the DB layer
+  // (Pattern S1 dual-layer). Refresh button invokes nexus-monitor Edge Fn which
+  // re-checks is_staff() server-side.
+  {
+    key: 'tax',
+    label: 'Tax',
+    route: 'tax',
+    icon: LandmarkIcon,
+    lazy: () =>
+      import('@/components/admin/tax').then((m) => ({
+        default: m.TaxDashboard,
+      })),
+    flagKey: 'admin.tax.enabled',
     minRole: 'staff' as AdminRole,
   },
   // Phase 50 Plan 50-02 — Admin-curated RAG knowledge base.
