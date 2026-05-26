@@ -64,7 +64,8 @@ export function BodyTab() {
   const toast = useToast();
   // Phase 61 Plan 07 — Protocol adherence card (PROTOCOL-07 Surface 6).
   // Hook is unconditional (rules-of-hooks); null patientId returns null data immediately.
-  const currentUserId = u?.id ?? null;
+  // User ID comes from the Supabase signedIn slice (not the LeanShot User shape which lacks id).
+  const currentUserId = useStore((s) => s.signedIn?.user?.id ?? null);
   const { data: activeAssignment } = useActiveProtocolAssignment(currentUserId);
   const injections = useStore((s) => s.injections);
 

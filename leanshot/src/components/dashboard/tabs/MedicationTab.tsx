@@ -31,9 +31,10 @@ export function MedicationTab() {
   const user = useStore((s) => s.user);
   const injections = useStore((s) => s.injections);
   // Phase 61 Plan 07 — active protocol assignment for Expected/Logged deviation row (PROTOCOL-07).
-  // Hook is called unconditionally (rules-of-hooks); patientId is null when user is null
+  // Hook is called unconditionally (rules-of-hooks); patientId is null when not signed in
   // so the hook returns null data immediately without a DB round-trip.
-  const currentUserId = user?.id ?? null;
+  // User ID comes from the Supabase signedIn slice (not the LeanShot User shape which lacks id).
+  const currentUserId = useStore((s) => s.signedIn?.user?.id ?? null);
   const { data: activeAssignment } = useActiveProtocolAssignment(currentUserId);
   const vials = useStore((s) => s.vials);
   const costs = useStore((s) => s.costs);
