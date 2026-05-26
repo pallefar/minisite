@@ -21,6 +21,7 @@
  * to git root.
  */
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
@@ -118,8 +119,9 @@ export default defineConfig({
         },
       },
       {
-        // Phase 62 Plan 62-04 — React component unit tests (jsdom, @testing-library/react).
-        // Covers admin/research/* components + any future src/components tests.
+        // Phase 62 — React component unit tests (jsdom + @testing-library/react).
+        // Consolidated from Plan 62-04 (src-ui-unit) + Plan 62-07 (src-components).
+        // Covers admin/research/* + dashboard/settings/* + any future src/components tests.
         // Run: npx vitest run --project=src-ui-unit
         resolve: {
           alias: {
@@ -130,8 +132,12 @@ export default defineConfig({
           name: 'src-ui-unit',
           environment: 'jsdom',
           globals: true,
-          include: ['src/components/**/__tests__/*.test.tsx', 'src/components/**/__tests__/*.test.ts'],
-          setupFiles: [],
+          include: [
+            'src/components/**/__tests__/*.test.tsx',
+            'src/components/**/__tests__/*.test.ts',
+            'src/components/**/*.test.tsx',
+            'src/components/**/*.test.ts',
+          ],
         },
       },
     ],

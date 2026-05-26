@@ -8,6 +8,7 @@ import {
   Trash2,
   Download,
   FileText,
+  FlaskConical,
   GraduationCap,
   Terminal,
   KeyRound,
@@ -70,6 +71,10 @@ const NewsletterSettings = lazy(() =>
   import('./NewsletterSettings').then((m) => ({ default: m.NewsletterSettings })),
 );
 
+// Phase 62 Plan 62-07 (INSIGHTS-05): Research participation consent toggle — lazy-loaded
+// so the Supabase profiles read + revoke modal are not pulled into the main settings chunk.
+const ResearchConsentSection = lazy(() => import('./ResearchConsentSection'));
+
 /**
  * Phase 22 plan 22-11: link-out NAV IDs. Clicking these navigates to a
  * dedicated `/settings/*` route instead of swapping the modal section.
@@ -103,6 +108,9 @@ const NAV: { id: Section; Icon: typeof UserIcon }[] = [
   // Phase 60 Plan 60-12 (RAG-08): research newsletter opt-in. Sits after push
   // notifications so communication-preference items cluster together visually.
   { id: 'newsletter', Icon: Mail },
+  // Phase 62 Plan 62-07 (INSIGHTS-05): research participation consent toggle.
+  // Sits after newsletter — clusters with communication/data-sharing preferences.
+  { id: 'research-consent', Icon: FlaskConical },
   // Phase 35 Plan 35-08 (GAME-04): leaderboard opt-in settings.
   { id: 'leaderboards', Icon: Trophy },
   { id: 'privacy', Icon: Shield },
@@ -609,6 +617,18 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             >
               <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
                 <NewsletterSettings />
+              </Suspense>
+            </Section>
+          )}
+
+          {/* Phase 62 Plan 62-07 (INSIGHTS-05): research participation consent toggle + revoke modal. */}
+          {section === 'research-consent' && (
+            <Section
+              title="Research Participation"
+              body=""
+            >
+              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
+                <ResearchConsentSection />
               </Suspense>
             </Section>
           )}
