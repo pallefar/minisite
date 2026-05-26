@@ -3,20 +3,21 @@ import { Suspense, lazy, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EffectivenessCard } from '@/components/dashboard/cards/EffectivenessCard';
 import { FocusCard } from '@/components/dashboard/cards/FocusCard';
+import { GamificationCard } from '@/components/dashboard/cards/GamificationCard';
 import { GLPCurveCard } from '@/components/dashboard/cards/GLPCurveCard';
 import { HeroCard } from '@/components/dashboard/cards/HeroCard';
 import { QuickLogCard } from '@/components/dashboard/cards/QuickLogCard';
 import { SiteRotationCard } from '@/components/dashboard/cards/SiteRotationCard';
-import { GamificationCard } from '@/components/dashboard/cards/GamificationCard';
 import { StreaksCard } from '@/components/dashboard/cards/StreaksCard';
 import { SymptomCard } from '@/components/dashboard/cards/SymptomCard';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
-
-const ForYouCard = lazy(() => import('@/components/dashboard/cards/ForYouCard'));
 import { generateInsights } from '@/lib/insights';
 import { initialState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
+const ForYouCard = lazy(() => import('@/components/dashboard/cards/ForYouCard'));
+// Phase 60 Plan 60-11 — Tip-of-the-Day Bento card (top-right span={4} slot)
+const TipOfTheDayCard = lazy(() => import('@/components/dashboard/cards/TipOfTheDayCard'));
 
 export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
   const { t } = useTranslation('patient');
@@ -90,6 +91,12 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
         }
       >
         <ForYouCard span={6} />
+      </Suspense>
+
+      {/* Phase 60 Plan 60-11 — Tip-of-the-Day Bento card (top-right span=4 slot).
+          Returns null when no eligible chunk for today (UI-SPEC §6 D-24 empty-state). */}
+      <Suspense fallback={null}>
+        <TipOfTheDayCard />
       </Suspense>
 
       <Card span={12}>
