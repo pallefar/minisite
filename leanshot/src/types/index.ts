@@ -283,3 +283,6 @@ export interface BillingState {
 
 // Phase 40 Plan 40-04 — Cancellation flow types (single-writer: 40-04)
 export * from './cancellation';
+
+// Phase 61 Plan 61-01 — Admin protocol creator types (single-writer: 61-01)
+export * from './protocols';
