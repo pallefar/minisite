@@ -281,7 +281,7 @@ Plans:
 - ✅ 60-05 (rag-embed-approved Fn via OpenRouter)
 - ✅ 60-06 (rag-retrieve Edge Fn + Cohere/Jina rerank + eval dimensions)
 - [x] 60-07 (federated PubMed/FDA/DailyMed)
-- [ ] 60-08 (admin queue UI)
+- [x] 60-08 (admin queue UI)
 - [ ] 60-09 (admin federated toggle UI)
 - [ ] 60-10 through 60-15 (Waves 2-4)
 **UI hint**: yes
