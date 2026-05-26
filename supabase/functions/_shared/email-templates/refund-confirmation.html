@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your refund has been processed</title>
+</head>
+<!--
+  refund-confirmation.html — Phase 65 Plan 65-06 (PAY-08).
+
+  Resend confirmation template for the request-refund Edge Fn. The actual send
+  is rendered inline in supabase/functions/request-refund/handler.ts (kept
+  consistent with grandfathered-policy-notice pattern); this file is the
+  source-of-truth reference for designers / legal review.
+
+  Variables interpolated by handler:
+    ${amountDollars}     — "29.99" (refund.amount cents divided by 100)
+    ${currencyUpper}     — "USD"
+    ${eligibilityCopy}   — "within your trial period" OR "within the 14-day money-back window"
+    ${unsubscribeUrl}    — HMAC-signed 1-click unsubscribe URL
+    ${physicalAddress}   — CAN-SPAM compliant business address (PHYSICAL_ADDRESS env var)
+
+  Required copy elements (per FTC ROSCA + CAN-SPAM 15 U.S.C. § 7704):
+    - "5-10 business days" funds-arrival expectation
+    - Transactional disclaimer ("not a marketing email")
+    - Unsubscribe link
+    - Physical postal address
+-->
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f5f5f5">
+    <tr>
+      <td align="center" style="padding:24px 16px;">
+        <table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff"
+               style="max-width:600px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+          <tr>
+            <td bgcolor="#0f766e" style="padding:32px 40px;">
+              <h1 style="margin:0;font-size:22px;font-weight:600;color:#ffffff;">Your refund has been processed</h1>
+              <p style="margin:6px 0 0 0;font-size:13px;color:rgba(255,255,255,0.85);">
+                LeanShot &middot; Billing
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 40px;">
+              <p style="margin:0 0 20px 0;font-size:15px;color:#374151;line-height:1.6;">
+                Hi,
+              </p>
+              <p style="margin:0 0 20px 0;font-size:15px;color:#374151;line-height:1.6;">
+                We&#8217;ve processed your refund of <strong>$${amountDollars} ${currencyUpper}</strong> ${eligibilityCopy}.
+              </p>
+              <p style="margin:0 0 20px 0;font-size:14px;color:#374151;line-height:1.6;">
+                Please <strong>allow 5-10 business days</strong> for the funds to appear on your original
+                payment method. Refund timing depends on your bank or card issuer.
+              </p>
+              <p style="margin:0 0 20px 0;font-size:14px;color:#374151;line-height:1.6;">
+                Your LeanShot subscription has been cancelled. You can re-subscribe anytime at
+                <a href="https://leanshot.app/settings" style="color:#0d9488;">leanshot.app/settings</a>.
+              </p>
+              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
+                Questions? Reply to this email or contact
+                <a href="mailto:billing-support@leanshot.app" style="color:#0d9488;">billing-support@leanshot.app</a>.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#f9fafb" style="padding:24px 40px;border-top:1px solid #e5e7eb;">
+              <p style="margin:0 0 8px 0;font-size:11px;color:#6b7280;text-align:center;">
+                This is a transactional confirmation. It is not a marketing email.
+              </p>
+              <p style="margin:0 0 8px 0;font-size:11px;color:#6b7280;text-align:center;">
+                <a href="${unsubscribeUrl}" style="color:#0d9488;">Unsubscribe</a>
+                &nbsp;&#183;&nbsp;
+                <a href="https://leanshot.app/account/data-rights" style="color:#0d9488;">Manage preferences</a>
+              </p>
+              <p style="margin:0;font-size:10px;color:#9ca3af;text-align:center;">
+                LeanShot &mdash; ${physicalAddress}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
