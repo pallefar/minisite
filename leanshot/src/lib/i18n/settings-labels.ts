@@ -30,6 +30,8 @@ export type Section =
   | 'healthkit'
   // Phase 60 Plan 60-12: research newsletter opt-in
   | 'newsletter'
+  // Phase 62 Plan 62-07 (INSIGHTS-05): research participation consent toggle
+  | 'research-consent'
   | 'dev';
 
 export function sectionLabel(t: TFunction, id: Section): string {
@@ -71,6 +73,9 @@ export function sectionLabel(t: TFunction, id: Section): string {
     // Phase 60 Plan 60-12: research newsletter opt-in section
     case 'newsletter':
       return t('settings:nav.newsletter');
+    // Phase 62 Plan 62-07 (INSIGHTS-05): research participation consent toggle
+    case 'research-consent':
+      return t('settings:nav.research_consent');
     case 'dev':
       return t('settings:nav.dev');
     default: {

@@ -77,7 +77,9 @@
     "recovery": "Recuperación",
     "security": "Seguridad (2FA)",
     "shares": "Compartidos activos",
-    "subscription": "Suscripción"
+    "subscription": "Suscripción",
+    "newsletter": "Boletín de investigación",
+    "research_consent": "Participación en investigación"
   },
   "saved": "Configuración guardada",
   "section": {
