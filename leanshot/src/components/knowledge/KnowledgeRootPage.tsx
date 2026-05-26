@@ -116,7 +116,7 @@ export function KnowledgeRootPage() {
         <section aria-labelledby="kb-heading">
           <h1
             id="kb-heading"
-            className="font-display italic text-heading font-semibold text-text-primary leading-tight"
+            className="font-display italic text-heading font-semibold text-text leading-tight"
           >
             Knowledge Base
           </h1>
@@ -141,13 +141,13 @@ export function KnowledgeRootPage() {
                   type="button"
                   onClick={() => navigate(`/${topic.slug}`)}
                   className={[
-                    'text-left rounded-xl border border-border-subtle bg-surface-card p-4',
-                    'hover:border-border focus-visible:outline-2 focus-visible:outline-accent',
+                    'text-left rounded-xl border border-border bg-surface p-4',
+                    'hover:border-border focus-visible:outline-2 focus-visible:outline-primary',
                     reducedMotion ? '' : 'transition-colors duration-150',
                   ].join(' ')}
                   aria-label={`Browse ${topic.display_name} — ${topic.chunk_count} articles`}
                 >
-                  <div className="text-lg font-semibold text-text-primary leading-snug">
+                  <div className="text-lg font-semibold text-text leading-snug">
                     {topic.display_name}
                   </div>
                   <div className="text-xs text-text-secondary mt-1">
@@ -169,7 +169,7 @@ export function KnowledgeRootPage() {
                 </span>
                 <KnowledgeTierBadge tier={featured.source_tier} />
               </div>
-              <h2 className="text-lg font-semibold text-text-primary leading-snug line-clamp-2">
+              <h2 className="text-lg font-semibold text-text leading-snug line-clamp-2">
                 {featured.title ?? featured.summary.split('\n')[0]}
               </h2>
               <p className="text-sm text-text-secondary line-clamp-2">
@@ -185,7 +185,7 @@ export function KnowledgeRootPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/${featured.topic_tag}/${featured.slug}`)}
-                    className="text-sm font-medium text-accent hover:underline"
+                    className="text-sm font-normal text-primary hover:underline"
                   >
                     Read more →
                   </button>
@@ -196,10 +196,10 @@ export function KnowledgeRootPage() {
         )}
 
         {/* ── Newsletter signup ────────────────────────────────────── */}
-        <section aria-labelledby="newsletter-heading" className="rounded-xl border border-border-subtle bg-surface p-6">
+        <section aria-labelledby="newsletter-heading" className="rounded-xl border border-border bg-surface p-6">
           <h2
             id="newsletter-heading"
-            className="text-lg font-semibold text-text-primary mb-1"
+            className="text-lg font-semibold text-text mb-1"
           >
             Get the weekly research digest
           </h2>
@@ -208,7 +208,7 @@ export function KnowledgeRootPage() {
           </p>
 
           {subscribeStatus === 'success' ? (
-            <p className="text-sm text-success" role="status">
+            <p className="text-sm text-[var(--color-success)]" role="status">
               You&apos;re subscribed. Check your inbox for a confirmation.
             </p>
           ) : (
@@ -244,7 +244,7 @@ export function KnowledgeRootPage() {
         </section>
 
         {/* ── FDA/DSHEA disclaimer footer ──────────────────────────── */}
-        <footer className="border-t border-border-subtle pt-6">
+        <footer className="border-t border-border pt-6">
           <p className="text-xs text-text-tertiary leading-relaxed">
             {t('fda_off_label_full')}
           </p>

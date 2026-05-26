@@ -152,7 +152,7 @@ export function KnowledgeTopicIndexPage() {
           </nav>
           <h1
             id="topic-heading"
-            className="font-display italic text-heading font-semibold text-text-primary leading-tight"
+            className="font-display italic text-heading font-semibold text-text leading-tight"
           >
             {topicDisplayName}
           </h1>
@@ -228,7 +228,7 @@ export function KnowledgeTopicIndexPage() {
         </section>
 
         {/* ── FDA/DSHEA disclaimer footer ──────────────────────────── */}
-        <footer className="border-t border-border-subtle pt-6">
+        <footer className="border-t border-border pt-6">
           <p className="text-xs text-text-tertiary leading-relaxed">
             {t('fda_off_label_full')}
           </p>
@@ -267,13 +267,13 @@ function ArticleCard({ chunk, reducedMotion, onNavigate }: ArticleCardProps) {
             sourceType={sourceObj?.source_type}
           />
         </div>
-        <h2 className="text-base font-semibold text-text-primary leading-snug line-clamp-2 flex-1">
+        <h2 className="text-lg font-semibold text-text leading-snug line-clamp-2 flex-1">
           {title}
         </h2>
         <p className="text-xs text-text-secondary line-clamp-2">
           {chunk.summary}
         </p>
-        <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-border-subtle">
+        <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-border">
           <span className="text-xs text-text-tertiary truncate">
             {sourceObj?.name ?? 'Unknown'}{date ? ` · As of ${date}` : ''}
           </span>
@@ -282,7 +282,7 @@ function ArticleCard({ chunk, reducedMotion, onNavigate }: ArticleCardProps) {
               href={chunk.canonical_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-accent hover:underline shrink-0"
+              className="text-xs text-primary hover:underline shrink-0"
               onClick={(e) => e.stopPropagation()}
               aria-label={`Read at source: ${sourceObj?.name ?? 'source'}`}
             >

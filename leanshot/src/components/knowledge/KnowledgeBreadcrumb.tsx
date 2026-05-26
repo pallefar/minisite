@@ -69,7 +69,7 @@ export function KnowledgeBreadcrumb({ topic, chunkTitle }: KnowledgeBreadcrumbPr
               <li key={i} className="flex items-center gap-1">
                 {i > 0 && <span aria-hidden="true" className="text-text-tertiary">›</span>}
                 {isLast || !item.href ? (
-                  <span aria-current={isLast ? 'page' : undefined} className={isLast ? 'text-text-primary font-medium truncate max-w-[200px]' : ''}>
+                  <span aria-current={isLast ? 'page' : undefined} className={isLast ? 'text-text font-normal truncate max-w-[200px]' : ''}>
                     {item.name}
                   </span>
                 ) : (
@@ -78,12 +78,12 @@ export function KnowledgeBreadcrumb({ topic, chunkTitle }: KnowledgeBreadcrumbPr
                   item.href.startsWith(CANONICAL_BASE + '/knowledge') ? (
                     <Link
                       to={item.href.replace(CANONICAL_BASE + '/knowledge', '') || '/'}
-                      className="hover:underline hover:text-text-primary"
+                      className="hover:underline hover:text-text"
                     >
                       {item.name}
                     </Link>
                   ) : (
-                    <a href={item.href} className="hover:underline hover:text-text-primary">
+                    <a href={item.href} className="hover:underline hover:text-text">
                       {item.name}
                     </a>
                   )

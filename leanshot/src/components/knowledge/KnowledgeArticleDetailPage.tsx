@@ -210,7 +210,7 @@ export function KnowledgeArticleDetailPage() {
             <KnowledgeBreadcrumb topic={topic} slug={slug} chunkTitle={title} />
 
             <header className="space-y-3">
-              <h1 className="text-lg font-semibold text-text-primary leading-snug">
+              <h1 className="text-lg font-semibold text-text leading-snug">
                 {title}
               </h1>
 
@@ -221,7 +221,7 @@ export function KnowledgeArticleDetailPage() {
                 <KnowledgeTierBadge tier={chunk.source_tier} sourceType={source?.source_type} />
                 {freshnessState === 'outdated' && (
                   <span
-                    className="text-xs px-2 py-0.5 rounded-pill bg-warning-subtle text-warning-foreground"
+                    className="text-xs px-2 py-0.5 rounded-pill bg-danger-soft text-danger"
                     role="alert"
                   >
                     May be outdated
@@ -245,7 +245,7 @@ export function KnowledgeArticleDetailPage() {
 
             {/* ── Article body ──────────────────────────────────────── */}
             <article
-              className="prose prose-sm max-w-none text-text-primary [&_a]:text-accent [&_a:hover]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-text-secondary [&_code]:text-sm [&_pre]:overflow-x-auto"
+              className="prose prose-sm max-w-none text-text [&_a]:text-primary [&_a:hover]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-text-secondary [&_code]:text-sm [&_pre]:overflow-x-auto"
               aria-label="Article body"
             >
               {/* react-markdown renders the markdown; sanitizeRagMarkdown
@@ -257,7 +257,7 @@ export function KnowledgeArticleDetailPage() {
 
             {/* ── Related articles ──────────────────────────────────── */}
             {related.length > 0 && (
-              <section aria-labelledby="related-heading" className="border-t border-border-subtle pt-6 space-y-3">
+              <section aria-labelledby="related-heading" className="border-t border-border pt-6 space-y-3">
                 <h2 id="related-heading" className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
                   Related
                 </h2>
@@ -269,12 +269,12 @@ export function KnowledgeArticleDetailPage() {
                         key={r.id}
                         type="button"
                         onClick={() => r.slug && navigate(`/${r.topic_tag}/${r.slug}`)}
-                        className="w-full text-left rounded-lg border border-border-subtle p-3 hover:border-border transition-colors group"
+                        className="w-full text-left rounded-lg border border-border p-3 hover:border-border transition-colors group"
                         aria-label={`Related: ${rTitle}`}
                       >
                         <div className="flex items-start gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-text-primary line-clamp-2 group-hover:text-accent">
+                            <p className="text-sm font-semibold text-text line-clamp-2 group-hover:text-primary">
                               {rTitle}
                             </p>
                             <p className="text-xs text-text-secondary mt-0.5">
@@ -291,7 +291,7 @@ export function KnowledgeArticleDetailPage() {
             )}
 
             {/* ── Disclaimer footer ──────────────────────────────────── */}
-            <footer className="border-t border-border-subtle pt-6 space-y-2">
+            <footer className="border-t border-border pt-6 space-y-2">
               <p className="text-sm text-text-secondary">{t('disclaimer')}</p>
               <p className="text-xs text-text-tertiary leading-relaxed">
                 {t('fda_off_label_full')}
