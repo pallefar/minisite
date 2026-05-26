@@ -13,6 +13,16 @@
  * Phase 40 Plan 40-02 — D-08/D-09: pause_collection mirror + T-0 auto-resume email.
  * Extends this handler in-place (NO new case arms in index.ts per RESEARCH §Pitfall 1).
  * customer.subscription.paused/.resumed events do NOT fire for pause_collection pauses.
+ *
+ * Phase 65-04 Plan 65-04 — PAY-07 dunning cancelled_for_payment transition.
+ * When `event.data.object.status === 'canceled'` AND prior dunning_state IN
+ * ('first_failed', 'second_failed', 'final_warning'), Stripe gave up retrying →
+ * transition to 'cancelled_for_payment'. User-initiated cancels (where
+ * dunning_state is null/'none') do NOT touch dunning_state; the Phase 40
+ * cancellation save-offer flow owns that path.
+ *
+ * Per [[reference_rpc_auth_uid_vs_service_role_mismatch]]: this handler uses
+ * service_role admin client; do NOT use SECDEF RPCs that reference auth.uid().
  */
 import type Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
@@ -156,9 +166,10 @@ export async function handle(
     const newIsPaused = pauseCollection != null;
 
     // Step 2: Read-back previous state to detect auto-resume + get clinic_id for PHI flag.
+    // Phase 65-04: ALSO fetch dunning_state — used downstream to decide cancelled_for_payment.
     const { data: prev } = await admin
       .from('subscriptions')
-      .select('is_paused, clinic_id, user_id')
+      .select('is_paused, clinic_id, user_id, dunning_state')
       .eq('id', subId)
       .maybeSingle();
 
@@ -166,6 +177,39 @@ export async function handle(
     // PHI flag: clinic_id IS NOT NULL → SES; else Resend. D-09.
     const subClinicId = (prev as { clinic_id?: string | null } | null)?.clinic_id ?? clinicId;
     const isPhi = subClinicId != null;
+
+    // Phase 65-04: Capture prior dunning_state for cancelled_for_payment transition below.
+    const priorDunningState =
+      (prev as { dunning_state?: string | null } | null)?.dunning_state ?? null;
+
+    // Phase 65-04 — Step 2b: PAY-07 dunning cancelled_for_payment transition.
+    // When Stripe gives up retrying (subscription.status='canceled') AND the sub
+    // was in an active dunning failure sequence, mark it cancelled_for_payment.
+    // User-initiated cancels (priorDunningState in null/'none') do NOT touch
+    // dunning_state — Phase 40 save-offer flow owns that path.
+    if (
+      subscription.status === 'canceled' &&
+      (priorDunningState === 'first_failed' ||
+        priorDunningState === 'second_failed' ||
+        priorDunningState === 'final_warning')
+    ) {
+      console.log(
+        '[stripe-webhook/subscription-updated] dunning transition',
+        JSON.stringify({ subId, from: priorDunningState, to: 'cancelled_for_payment' }),
+      );
+      const { error: dunErr } = await admin
+        .from('subscriptions')
+        .update({ dunning_state: 'cancelled_for_payment' })
+        .eq('id', subId);
+      if (dunErr) {
+        console.error(
+          '[stripe-webhook/subscription-updated] dunning update error',
+          dunErr.message,
+          dunErr.code,
+        );
+        // Non-fatal — do not re-throw (Stripe retries must not be triggered for mirror errors).
+      }
+    }
 
     // Step 3: UPDATE pause mirror columns.
     // reset reminded_t7=false on auto-resume so future pauses re-arm the reminder.

@@ -453,6 +453,112 @@ Deno.test('P40-T4: clinic-org auto-resume — T-0 email sent with phi=true', asy
 
 // ── Test P40-T5: no-op on unrelated update (no pause_collection delta) ──
 
+// ============================================================================
+// Phase 65-04 — PAY-07 dunning state cancelled_for_payment transition
+// ============================================================================
+
+/** Build a canceled-status event with optional pause_collection. */
+function buildCanceledEvent(
+  meta: Record<string, string> = { tier_kind: 'web', user_id: 'user-cancel-test', provider: 'stripe' },
+  subId: string = 'sub_cancel_test',
+): Stripe.Event {
+  return {
+    id: `evt_canceled_${subId}`,
+    object: 'event',
+    type: 'customer.subscription.updated',
+    livemode: false,
+    created: Math.floor(Date.now() / 1000),
+    data: {
+      object: {
+        id: subId,
+        object: 'subscription',
+        status: 'canceled',
+        metadata: meta,
+        pause_collection: null,
+        current_period_end: Math.floor(Date.now() / 1000) + 30 * 86400,
+        trial_end: null,
+        cancel_at_period_end: false,
+        customer: { id: 'cus_cancel', email: 'cancel@example.com' },
+        items: { data: [{ price: { id: 'price_test_monthly' } }] },
+      } as unknown as Stripe.Subscription,
+    },
+    api_version: '2026-04-22.dahlia',
+  } as unknown as Stripe.Event;
+}
+
+Deno.test('65-T7: status=canceled AND prior dunning_state=final_warning → cancelled_for_payment', async () => {
+  // Prev row in payment-failed dunning sequence.
+  const prevRow = {
+    is_paused: false,
+    clinic_id: null,
+    user_id: 'user-cancel-test',
+    dunning_state: 'final_warning',
+  };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+
+  const event = buildCanceledEvent();
+  await handle(event, admin);
+
+  const updates = getUpdateCalls();
+  // Find an update that sets dunning_state.
+  const dunningUpdate = updates.find(
+    (u) => u.table === 'subscriptions' && u.data.dunning_state === 'cancelled_for_payment',
+  );
+  assertEquals(
+    dunningUpdate !== undefined,
+    true,
+    `Expected dunning_state=cancelled_for_payment update; got updates: ${JSON.stringify(updates.map((u) => u.data))}`,
+  );
+});
+
+Deno.test('65-T8: status=canceled AND prior dunning_state=null → dunning_state NOT touched (user-initiated cancel)', async () => {
+  // No payment-failed sequence in flight; this is a user-initiated cancel.
+  const prevRow = {
+    is_paused: false,
+    clinic_id: null,
+    user_id: 'user-self-cancel',
+    dunning_state: null,
+  };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+
+  const event = buildCanceledEvent(
+    { tier_kind: 'web', user_id: 'user-self-cancel', provider: 'stripe' },
+    'sub_self_cancel',
+  );
+  await handle(event, admin);
+
+  const updates = getUpdateCalls();
+  const dunningTouched = updates.find(
+    (u) => u.table === 'subscriptions' && 'dunning_state' in u.data,
+  );
+  assertEquals(
+    dunningTouched,
+    undefined,
+    `dunning_state must NOT be touched on user-initiated cancel; got: ${JSON.stringify(dunningTouched)}`,
+  );
+});
+
+Deno.test('65-T9: status=canceled AND prior dunning_state=first_failed → cancelled_for_payment', async () => {
+  const prevRow = {
+    is_paused: false,
+    clinic_id: null,
+    user_id: 'user-cancel-early',
+    dunning_state: 'first_failed',
+  };
+  const [admin, getUpdateCalls] = buildPauseMockAdmin(prevRow);
+
+  const event = buildCanceledEvent(
+    { tier_kind: 'web', user_id: 'user-cancel-early', provider: 'stripe' },
+    'sub_cancel_early',
+  );
+  await handle(event, admin);
+
+  const dunningUpdate = getUpdateCalls().find(
+    (u) => u.table === 'subscriptions' && u.data.dunning_state === 'cancelled_for_payment',
+  );
+  assertEquals(dunningUpdate !== undefined, true);
+});
+
 Deno.test('P40-T5: unrelated update (status change, no pause) — no pause update, no T-0 email', async () => {
   // Prev row shows not paused; event has no pause_collection at all
   const prevRow = { is_paused: false, clinic_id: null, user_id: 'user-uuid-noop' };
