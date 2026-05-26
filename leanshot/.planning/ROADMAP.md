@@ -283,7 +283,9 @@ Plans:
 - [x] 60-07 (federated PubMed/FDA/DailyMed)
 - [x] 60-08 (admin queue UI)
 - [x] 60-09 (admin federated toggle UI)
-- [ ] 60-10 through 60-15 (Waves 2-4)
+- [x] 60-10 (AI-coach citation UI)
+- [x] 60-11 (tip-of-day card + Fn)
+- [ ] 60-12 through 60-15 (Waves 3-4)
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.

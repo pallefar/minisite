@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-26T12:00:24.032Z"
+last_updated: "2026-05-26T12:21:29.960Z"
 progress:
   total_phases: 20
   completed_phases: 8
   total_plans: 53
-  completed_plans: 45
-  percent: 45
+  completed_plans: 46
+  percent: 47
 ---
 
 # Milestone v1.4: Launch Readiness
@@ -28,8 +28,8 @@ progress:
 ## Current Position
 
 - **Phase:** 60 (RAG Knowledge Base Completion) — Wave 0 COMPLETE (3/15 plans); Waves 1-3 PAUSED on Phase 60.5 vendor pre-flight
-- **Last completed:** Phase 60 Wave 1 — 60-09 (admin federated toggle UI, 5 tasks, 35 vitest, Option D resolution, ending 36d6c728). Prior: 60-08 (admin queue UI, ending d7d50153), 60-07 (ending 834d7542), 60-06 (ending f5b13378), 60-05 (ending 723c22cc), 60-04 (ending 941dfbb4), Wave 0: 60-01..03 (ending bc2b138f).
-- **Status:** 60-09 COMPLETE (2026-05-26). Wave 1 continues: 60-10.
+- **Last completed:** Phase 60 Wave 2 — 60-11 (tip-of-day card + Fn, 6 tasks, 27 deno + 5 vitest, OpenRouter Haiku, ending d5ed6c89). Prior: 60-10 (AI-coach citation UI), 60-09 (admin federated toggle UI, ending 36d6c728), 60-08 (admin queue UI, ending d7d50153).
+- **Status:** 60-11 COMPLETE (2026-05-26). Wave 2 complete (60-10 + 60-11).
 
 ### Phase 60 PAUSE — Wave 1 vendor blockers (resume notes)
 
@@ -47,7 +47,7 @@ Wave 0 (3 plans) shipped CLEAN — no vendor secrets needed. **Wave 1 (6 plans) 
 **Wave 2 (2 plans):**
 
 - ✅ **60-10** (AI-coach citation UI) — depends_on 60-06 — code can ship, runtime gates on Phase 60.5
-- ⚠️ **60-11** (tip-of-day card + Fn) — depends_on 60-06, 60-08 — gates on Phase 60.5
+- ✅ **60-11** (tip-of-day card + Fn) — COMPLETE 2026-05-26 (ending d5ed6c89)
 
 **Wave 3 (4 plans):**
 
