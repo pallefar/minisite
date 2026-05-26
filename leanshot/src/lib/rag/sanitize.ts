@@ -67,22 +67,34 @@ const RAG_ARTICLE_ALLOWED_ATTR = ['href'];
  * all tags outside the article body allowlist.
  *
  * After sanitization, all anchor hrefs are forced to target=_blank rel=noopener
- * by DOMPurify's afterSanitizeAttributes hook.
+ * by DOMPurify's afterSanitizeAttributes hook (registered via addHook() —
+ * the config-object HOOK key is silently ignored by DOMPurify).
  */
+
+let _hookRegistered = false;
+
 export function sanitizeRagMarkdown(html: string): string {
+  // Register hook once per module load (mirrors community/dompurify-config.ts pattern).
+  // DOMPurify.sanitize() config does NOT support hooks — must use addHook().
+  if (!_hookRegistered) {
+    _hookRegistered = true;
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+      if ('tagName' in node && (node as Element).tagName === 'A') {
+        (node as Element).setAttribute('target', '_blank');
+        (node as Element).setAttribute('rel', 'noopener noreferrer');
+        const href = (node as Element).getAttribute('href') ?? '';
+        if (!href.startsWith('http://') && !href.startsWith('https://')) {
+          (node as Element).removeAttribute('href');
+        }
+      }
+    });
+  }
+
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: RAG_ARTICLE_ALLOWED_TAGS,
     FORBID_TAGS: RAG_ARTICLE_FORBID_TAGS,
     ALLOWED_ATTR: RAG_ARTICLE_ALLOWED_ATTR,
     FORCE_BODY: false,
     ADD_ATTR: ['target', 'rel'],
-    HOOK: 'afterSanitizeAttributes',
-    afterSanitizeAttributes(node: Element) {
-      // Force all links to open in new tab safely
-      if (node.tagName === 'A') {
-        node.setAttribute('target', '_blank');
-        node.setAttribute('rel', 'noopener noreferrer');
-      }
-    },
-  } as Parameters<typeof DOMPurify.sanitize>[1]);
+  });
 }
