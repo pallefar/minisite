@@ -6,12 +6,11 @@
  */
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-import { RejectReasonSheet } from '../RejectReasonSheet';
-import { EditChunkModal } from '../EditChunkModal';
-import { RetractChunkModal } from '../RetractChunkModal';
-import { QueueKeyboardHelpModal } from '../QueueKeyboardHelpModal';
 import type { QuoteBlock } from '@/lib/admin/rag/chunk-api';
+import { EditChunkModal } from '../EditChunkModal';
+import { QueueKeyboardHelpModal } from '../QueueKeyboardHelpModal';
+import { RejectReasonSheet } from '../RejectReasonSheet';
+import { RetractChunkModal } from '../RetractChunkModal';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { rpc: vi.fn() },
@@ -82,7 +81,7 @@ describe('RejectReasonSheet', () => {
   });
 
   it('Test 5: danger-toned pills are Factually wrong, Off-label, Safety concern', () => {
-    const { container } = render(
+    render(
       <RejectReasonSheet open={true} onClose={vi.fn()} onSelect={vi.fn()} />,
     );
     // Find pill buttons by text, check for danger class

@@ -6,7 +6,7 @@
  * 2-person rule UI layer per D-AdminQueue-02 + [[feedback_3_layer_must_never_invariant_pattern]].
  *
  * Typography: ONLY text-[11px] (text-micro) / text-[13px] (text-sm) / text-[18px] (text-lg).
- * No text-base / text-md / text-2xl / text-3xl / text-heading.
+ * Forbidden size tokens excluded per UI-SPEC Critical Invariant #11.
  */
 import DOMPurify from 'dompurify';
 import { ExternalLink } from 'lucide-react';

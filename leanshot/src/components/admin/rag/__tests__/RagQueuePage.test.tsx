@@ -7,6 +7,7 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReviewQueueRow } from '@/lib/admin/rag/chunk-api';
+import RagQueuePage from '../RagQueuePage';
 
 const { mockListQueue, mockApproveChunk, mockRejectChunk, mockCurrentUserId } = vi.hoisted(() => ({
   mockListQueue: vi.fn(),
@@ -37,8 +38,6 @@ vi.mock('@/lib/supabase', () => ({
   supabase: { rpc: vi.fn() },
 }));
 
-import RagQueuePage from '../RagQueuePage';
-
 const makeRow = (overrides?: Partial<ReviewQueueRow>): ReviewQueueRow => ({
   id: `chunk-${Math.random().toString(36).slice(2)}`,
   source_id: 'src-1',
@@ -65,20 +64,17 @@ beforeEach(() => {
 });
 
 describe('RagQueuePage', () => {
-  it('Test 1: on mount calls ragListReviewQueue once and shows skeleton initially', async () => {
-    // Delay the resolution to observe loading state
-    let resolve: (val: unknown) => void;
+  it('Test 1: on mount calls ragListReviewQueue once', async () => {
+    let resolve: (val: unknown) => void = () => {};
     mockListQueue.mockReturnValueOnce(new Promise((r) => { resolve = r; }));
     render(<RagQueuePage />);
-    // At this point, rows haven't loaded yet
     expect(mockListQueue).toHaveBeenCalledTimes(1);
-    // Resolve
     await act(async () => {
-      resolve!({ data: ROWS, error: null });
+      resolve({ data: ROWS, error: null });
     });
   });
 
-  it('Test 2: renders header "Curation Queue" (18px) + backlog badge "Backlog: 3 items"', async () => {
+  it('Test 2: renders header "Curation Queue" + backlog badge "Backlog: 3 items"', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
       expect(screen.getByText('Curation Queue')).toBeTruthy();
@@ -89,7 +85,7 @@ describe('RagQueuePage', () => {
   it('Test 3: backlog badge is warning-toned when count > 100', async () => {
     const bigRows = Array.from({ length: 101 }, () => makeRow());
     mockListQueue.mockResolvedValueOnce({ data: bigRows, error: null });
-    const { container } = render(<RagQueuePage />);
+    render(<RagQueuePage />);
     await waitFor(() => {
       const badge = screen.getByText('Backlog: 101 items');
       expect(badge.closest('span')?.className ?? '').toContain('warning');
@@ -101,8 +97,6 @@ describe('RagQueuePage', () => {
     await waitFor(() => {
       expect(screen.getByText('Backlog: 3 items')).toBeTruthy();
     });
-    // Filter pills are Pill components with aria-pressed attribute
-    // Find the Tier B pill (Pill component, not TierBadge)
     const allButtons = screen.getAllByRole('button');
     const tierBPill = allButtons.find(
       (btn) =>
@@ -116,14 +110,12 @@ describe('RagQueuePage', () => {
     });
   });
 
-  it('Test 5: each queue row shows source name, TierBadge, topic tag, summary (line-clamp), Approve + reject buttons', async () => {
+  it('Test 5: each queue row shows source name, TierBadge, topic tag, summary, Approve + reject buttons', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
-      // Multiple PubMed entries
       const pubmedEls = screen.getAllByText('PubMed');
       expect(pubmedEls.length).toBe(3);
     });
-    // Approve buttons (one per row)
     const approveBtns = screen.getAllByRole('button', { name: /approve chunk/i });
     expect(approveBtns.length).toBeGreaterThanOrEqual(1);
   });
@@ -133,44 +125,36 @@ describe('RagQueuePage', () => {
     await waitFor(() => {
       expect(screen.getAllByText('PubMed').length).toBe(3);
     });
-    // Click first row — this should render the detail pane
-    const cards = screen.getAllByRole('button', { name: /approve chunk/i });
-    // Click the row area (not the button itself)
     fireEvent.click(screen.getAllByText('A summary')[0]);
-    // Detail pane should be visible
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
   });
 
-  it('Test 7: pressing A key approves active chunk, optimistically removes row, shows Toast', async () => {
+  it('Test 7: pressing A key approves active chunk', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
       expect(screen.getAllByText('PubMed').length).toBe(3);
     });
-    // Select first row
     fireEvent.click(screen.getAllByText('A summary')[0]);
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
-    // Press A key
     fireEvent.keyDown(window, { key: 'a' });
     await waitFor(() => {
       expect(mockApproveChunk).toHaveBeenCalled();
     });
   });
 
-  it('Test 8: pressing R opens RejectReasonSheet; pressing J/K moves active chunk', async () => {
+  it('Test 8: pressing R opens RejectReasonSheet', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
       expect(screen.getAllByText('A summary').length).toBe(3);
     });
-    // Select first row
     fireEvent.click(screen.getAllByText('A summary')[0]);
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
-    // Press R to open RejectReasonSheet
     fireEvent.keyDown(window, { key: 'r' });
     await waitFor(() => {
       expect(screen.getByText('Off-topic')).toBeTruthy();
@@ -182,19 +166,15 @@ describe('RagQueuePage', () => {
     await waitFor(() => {
       expect(screen.getAllByText('A summary').length).toBe(3);
     });
-    // Select a row
     fireEvent.click(screen.getAllByText('A summary')[0]);
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
-    // Open sheet via R
     fireEvent.keyDown(window, { key: 'r' });
     await waitFor(() => {
       expect(screen.getByText('Off-topic')).toBeTruthy();
     });
-    // Now press A — should NOT approve because overlay is open
     fireEvent.keyDown(window, { key: 'a' });
-    // mockApproveChunk should NOT have been called
     expect(mockApproveChunk).not.toHaveBeenCalled();
   });
 
@@ -203,12 +183,10 @@ describe('RagQueuePage', () => {
     await waitFor(() => {
       expect(screen.getAllByText('A summary').length).toBe(3);
     });
-    // Select a row
     fireEvent.click(screen.getAllByText('A summary')[0]);
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
-    // Simulate keydown from within an input
     const input = screen.getByRole('textbox', { name: /topic tag/i });
     fireEvent.keyDown(input, { key: 'a' });
     expect(mockApproveChunk).not.toHaveBeenCalled();
@@ -225,7 +203,6 @@ describe('RagQueuePage', () => {
         ),
       ).toBeTruthy();
     });
-    // Right column hidden at empty state
     expect(screen.queryByText('SOURCE TEXT')).toBeNull();
   });
 

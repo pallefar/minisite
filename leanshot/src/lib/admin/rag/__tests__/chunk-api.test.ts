@@ -9,6 +9,14 @@
  *   npx vitest run --config vite.config.ts src/lib/admin/rag/__tests__/chunk-api.test.ts
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { RejectReason } from '../chunk-api';
+import {
+  ragListReviewQueue,
+  ragApproveChunk,
+  ragRejectChunk,
+  ragRetractChunk,
+  ragQueueChunk,
+} from '../chunk-api';
 
 const { mockRpc, mockCapture } = vi.hoisted(() => ({
   mockRpc: vi.fn(),
@@ -22,15 +30,6 @@ vi.mock('@/lib/supabase', () => ({
 vi.mock('posthog-js', () => ({
   default: { capture: mockCapture },
 }));
-
-import {
-  ragListReviewQueue,
-  ragApproveChunk,
-  ragRejectChunk,
-  ragRetractChunk,
-  ragQueueChunk,
-} from '../chunk-api';
-import type { RejectReason } from '../chunk-api';
 
 const CHUNK_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
@@ -171,7 +170,6 @@ describe('RPC error handling', () => {
     const result = await ragApproveChunk(CHUNK_ID, { sourceTier: 'B', queueAgeHours: 1 });
     expect(result.data).toBeNull();
     expect(result.error).toEqual(pgError);
-    // No posthog event on error
     expect(mockCapture).not.toHaveBeenCalled();
   });
 });

@@ -6,6 +6,8 @@
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReviewQueueRow } from '@/lib/admin/rag/chunk-api';
+import { QueueDetailPane } from '../QueueDetailPane';
 
 const { mockQueueChunk } = vi.hoisted(() => ({
   mockQueueChunk: vi.fn(),
@@ -18,9 +20,6 @@ vi.mock('@/lib/admin/rag/chunk-api', () => ({
 vi.mock('@/lib/supabase', () => ({
   supabase: { rpc: vi.fn() },
 }));
-
-import { QueueDetailPane } from '../QueueDetailPane';
-import type { ReviewQueueRow } from '@/lib/admin/rag/chunk-api';
 
 const CHUNK: ReviewQueueRow = {
   id: 'chunk-1',
@@ -60,9 +59,7 @@ describe('QueueDetailPane', () => {
   it('Test 1: renders header with source name, TierBadge, date, and canonical URL link', () => {
     render(<QueueDetailPane {...defaultProps} />);
     expect(screen.getByText('PubMed Central')).toBeTruthy();
-    // TierBadge shows "Tier B"
     expect(screen.getByText('Tier B')).toBeTruthy();
-    // canonical URL rendered as a link
     const link = screen.getAllByRole('link').find(
       (l) => l.getAttribute('href') === 'https://pubmed.example.com/123',
     );
@@ -73,7 +70,6 @@ describe('QueueDetailPane', () => {
     const { container } = render(<QueueDetailPane {...defaultProps} />);
     const twoCol = container.querySelector('.lg\\:grid-cols-2');
     expect(twoCol).toBeTruthy();
-    // base class grid-cols-1
     const gridEl = container.querySelector('.grid-cols-1');
     expect(gridEl).toBeTruthy();
   });
@@ -84,18 +80,15 @@ describe('QueueDetailPane', () => {
   });
 
   it('Test 4: DOMPurify strips <script> and <img> from source_markdown', () => {
-    const malicious = CHUNK;
     const maliciousChunk: ReviewQueueRow = {
-      ...malicious,
+      ...CHUNK,
       source_markdown: '<script>alert(1)</script><img src="x" onerror="alert(2)"><p>safe</p>',
     };
     const { container } = render(
       <QueueDetailPane {...defaultProps} chunk={maliciousChunk} />,
     );
-    // No script tag in rendered DOM
     expect(container.querySelector('script')).toBeNull();
     expect(container.querySelector('img')).toBeNull();
-    // Safe content still present (via text rendered via react-markdown)
     expect(container.textContent).toContain('safe');
   });
 
@@ -103,7 +96,6 @@ describe('QueueDetailPane', () => {
     render(<QueueDetailPane {...defaultProps} />);
     expect(screen.getByText('Take 0.25mg weekly')).toBeTruthy();
     expect(screen.getByText('Risk of nausea')).toBeTruthy();
-    // kind badge text
     expect(screen.getByText('dose')).toBeTruthy();
     expect(screen.getByText('adverse-event')).toBeTruthy();
   });
@@ -116,12 +108,10 @@ describe('QueueDetailPane', () => {
       ],
     };
     const { container } = render(<QueueDetailPane {...defaultProps} chunk={chunkWithContra} />);
-    // danger badge should contain text 'contraindication'
     const badgeEl = Array.from(container.querySelectorAll('span')).find(
       (el) => el.textContent === 'contraindication',
     );
     expect(badgeEl).toBeTruthy();
-    // Check the badge has a class containing 'danger' color token
     expect(badgeEl?.className ?? '').toContain('danger');
   });
 
@@ -133,7 +123,6 @@ describe('QueueDetailPane', () => {
   it('Test 8: sticky action row has Reject chunk, Edit & approve, and Approve chunk buttons', () => {
     render(<QueueDetailPane {...defaultProps} />);
     expect(screen.getByRole('button', { name: /approve chunk/i })).toBeTruthy();
-    // Reject is an icon-only button with aria-label "Reject chunk"
     expect(screen.getByRole('button', { name: /reject chunk/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /edit.*approve/i })).toBeTruthy();
   });
@@ -149,7 +138,6 @@ describe('QueueDetailPane', () => {
   it('Test 10: tier select and topic tag inputs exist; save calls onQueueWithEdits', async () => {
     const onQueueWithEdits = vi.fn().mockResolvedValue(undefined);
     render(<QueueDetailPane {...defaultProps} onQueueWithEdits={onQueueWithEdits} />);
-    // Save edits button present
     const saveBtn = screen.getByRole('button', { name: /save edits/i });
     expect(saveBtn).toBeTruthy();
     fireEvent.click(saveBtn);
@@ -162,21 +150,14 @@ describe('QueueDetailPane', () => {
   });
 
   it('Test 11: TierBadge uses neutral/info palette — no green/red coloring', () => {
-    const { container } = render(<QueueDetailPane {...defaultProps} />);
-    // Should not have success/danger colored tier elements
-    // TierBadge uses tone="neutral" for C and tone="info" for A/B
-    // Check no inline green or red styles on tier badge
+    render(<QueueDetailPane {...defaultProps} />);
     const tierBadge = screen.getByText('Tier B');
     expect(tierBadge.className).not.toContain('success');
     expect(tierBadge.className).not.toContain('danger');
-    // info tone contains 'info' class token
     expect(tierBadge.closest('span')?.className ?? '').toContain('info');
   });
 
   it('Test 12: renders without framer-motion transitions when useReducedMotion returns true', () => {
-    // We just assert the component renders without errors when reduced motion is true
-    // (jsdom matchMedia returns false by default from test-setup.ts, which means reduced=false;
-    //  this test confirms the component uses useReducedMotion without crashing)
     const { container } = render(<QueueDetailPane {...defaultProps} />);
     expect(container.firstChild).not.toBeNull();
   });

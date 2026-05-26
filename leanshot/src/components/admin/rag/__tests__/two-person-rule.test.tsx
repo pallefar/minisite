@@ -10,6 +10,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReviewQueueRow } from '@/lib/admin/rag/chunk-api';
+import RagQueuePage from '../RagQueuePage';
 
 const CURRENT_USER_ID = 'current-admin-user';
 
@@ -39,8 +40,6 @@ vi.mock('@/lib/store', () => ({
 vi.mock('@/lib/supabase', () => ({
   supabase: { rpc: vi.fn() },
 }));
-
-import RagQueuePage from '../RagQueuePage';
 
 const SELF_CREATED_ROW: ReviewQueueRow = {
   id: 'chunk-self',
@@ -76,9 +75,7 @@ describe('2-person rule UI layer', () => {
     await waitFor(() => {
       expect(screen.getAllByText('PubMed').length).toBeGreaterThan(0);
     });
-    // Find approve buttons - the first one (for SELF_CREATED_ROW) should be disabled
     const approveBtns = screen.getAllByRole('button', { name: /approve chunk/i });
-    // The button for the self-created row should be disabled
     const disabledBtn = approveBtns.find((b) => b.hasAttribute('disabled'));
     expect(disabledBtn).toBeTruthy();
     expect(disabledBtn).toHaveAttribute('aria-disabled', 'true');
@@ -101,40 +98,34 @@ describe('2-person rule UI layer', () => {
     const approveBtns = screen.getAllByRole('button', { name: /approve chunk/i });
     const disabledBtn = approveBtns.find((b) => b.hasAttribute('disabled'));
     expect(disabledBtn).toBeTruthy();
-    // Try to click the disabled button
     if (disabledBtn) {
       fireEvent.click(disabledBtn);
     }
-    // Should NOT have called approve
     expect(mockApproveChunk).not.toHaveBeenCalled();
   });
 
-  it('Test D: Reject button on self-created row remains enabled (2-person rule applies ONLY to approve)', async () => {
+  it('Test D: Reject button on self-created row remains enabled', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
       expect(screen.getAllByText('PubMed').length).toBeGreaterThan(0);
     });
-    // All reject buttons should be enabled (not disabled)
     const rejectBtns = screen.getAllByRole('button', { name: /reject chunk/i });
     rejectBtns.forEach((btn) => {
       expect(btn).not.toHaveAttribute('disabled');
     });
   });
 
-  it('Test E: opening QueueDetailPane for self-created row shows warning Badge above action row + Approve disabled', async () => {
+  it('Test E: opening QueueDetailPane for self-created row shows warning Badge + Approve disabled', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
       expect(screen.getAllByText('Self-created summary').length).toBeGreaterThan(0);
     });
-    // Click the self-created row
     fireEvent.click(screen.getByText('Self-created summary'));
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
-    // Warning badge in detail pane
     const badges = screen.getAllByText('You created this — needs a different reviewer');
     expect(badges.length).toBeGreaterThanOrEqual(1);
-    // Approve button in detail pane should be disabled
     const detailApprove = screen.getAllByRole('button', { name: /approve chunk/i });
     const disabledApprove = detailApprove.find((b) => b.hasAttribute('disabled'));
     expect(disabledApprove).toBeTruthy();
@@ -145,12 +136,10 @@ describe('2-person rule UI layer', () => {
     await waitFor(() => {
       expect(screen.getAllByText('Self-created summary').length).toBeGreaterThan(0);
     });
-    // Click the self-created row to make it active
     fireEvent.click(screen.getByText('Self-created summary'));
     await waitFor(() => {
       expect(screen.getByText('SOURCE TEXT')).toBeTruthy();
     });
-    // Press A — should be a no-op for the 2-person blocked chunk
     fireEvent.keyDown(window, { key: 'a' });
     expect(mockApproveChunk).not.toHaveBeenCalled();
   });
