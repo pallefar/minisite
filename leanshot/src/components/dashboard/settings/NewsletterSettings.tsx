@@ -14,15 +14,15 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Button } from '@/components/ui/Button';
+import { Pill, PillGroup } from '@/components/ui/Pill';
 import { useToast } from '@/hooks/useToast';
-import { useStore } from '@/lib/store';
 import {
   getNewsletterSubscription,
   setNewsletterOptIn,
   type NewsletterSubscription,
 } from '@/lib/rag/newsletter-api';
+import { useStore } from '@/lib/store';
 
 // ─── Fallback topic tags ────────────────────────────────────────────────────
 // Used when kb_topics table is not yet accessible from the client-side.

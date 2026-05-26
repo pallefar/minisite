@@ -9,9 +9,9 @@
  * The step is OPTIONAL — user may skip without checking.
  */
 
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export interface NewsletterOptInStepProps {
   // Whether the checkbox is currently checked
