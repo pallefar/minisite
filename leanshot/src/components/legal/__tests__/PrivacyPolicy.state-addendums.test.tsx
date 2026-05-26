@@ -71,8 +71,9 @@ describe('PrivacyPolicy state addendums', () => {
   it('Test 3: page contains banner with "Last updated" and "What changed" and a date', () => {
     render(<PrivacyPolicy />);
 
-    expect(screen.getByText(/Last updated/i)).toBeInTheDocument();
-    expect(screen.getByText(/What changed/i)).toBeInTheDocument();
+    // Multiple elements may contain these texts — use getAllByText
+    expect(screen.getAllByText(/Last updated/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/What changed/i).length).toBeGreaterThan(0);
     // Date should be in YYYY-MM-DD format
     const dateRegex = /\d{4}-\d{2}-\d{2}/;
     expect(document.body.textContent).toMatch(dateRegex);
