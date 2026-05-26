@@ -604,7 +604,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 57. Watch Apps | 3/3 | Complete   | 2026-05-25 |
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
 | 59. Apple OAuth + Onboarding Completion | 0/3 | Planned | - |
-| 60. RAG Knowledge Base Completion | 0/0 | Not started | - |
+| 60. RAG Knowledge Base Completion | 10/15 | In Progress|  |
 | 61. Admin Protocol Creator | 0/0 | Not started | - |
 | 62. Insights & Research Engine | 0/0 | Not started | - |
 | 63. Device-UAT + Tech Debt Cleanup | 0/0 | Not started | - |
