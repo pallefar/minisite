@@ -153,6 +153,42 @@ function emitConsentChange(): void {
 }
 
 /**
+ * Phase 64 Plan 64-07 (LEGAL-07 + AUTH-16) — Build the US-specific consentModal
+ * description string. Exported as a testable pure helper to avoid triggering the
+ * vanilla-cookieconsent value-import during unit tests (bundle-budget contract per
+ * file-header comment). The helper is called once inside initCookieConsent() where
+ * isEU is already computed.
+ *
+ * US copy includes:
+ *   - AUTH-16 cross-reference: sign-in rate-limiting mention (CPRA notice-of-security-practices)
+ *   - CPRA "Do Not Sell or Share" link to /privacy/do-not-sell (LEGAL-07)
+ *     Note: no target="_blank" so it opens in-app per UI-SPEC §6
+ */
+export function buildConsentModalDescription(isEU: boolean): string {
+  if (isEU) {
+    return (
+      "We use cookies to keep the app working, measure how it\u2019s used, and improve your experience." +
+      " You can accept all, reject all, or customize your choices. Essential cookies are always on." +
+      " <a href=\"/privacy\" target=\"_blank\">Privacy policy</a>"
+    );
+  }
+  return (
+    "We use cookies to keep the app working, measure how it\u2019s used, and improve your experience." +
+    " Essential cookies are always on. You can opt out of analytics any time." +
+    " We also use sign-in rate-limiting to protect your account." +
+    " <a href=\"/privacy\" target=\"_blank\">Privacy policy</a>" +
+    " \u00b7 <a href=\"/privacy/do-not-sell\">Do Not Sell or Share My Personal Information</a>"
+  );
+}
+/**
+ * Phase 64 Plan 64-07 (LEGAL-07) — Build the preferencesModal "Further information"
+ * section description. Includes Do Not Sell or Share anchor + privacy@leanshot.app.
+ */
+export function buildFurtherInfoDescription(): string {
+  return 'Questions? Read our <a href="/privacy" target="_blank">privacy policy</a>, exercise <a href="/privacy/do-not-sell">Do Not Sell or Share</a> rights, or email privacy@leanshot.app.';
+}
+
+/**
  * GDPR-01 banner init — called once by `loadConsent()` in consent-defer.ts.
  * Returns void so the caller doesn't need to await the modal-creation promise.
  */
@@ -238,9 +274,7 @@ export function initCookieConsent(): void {
         en: {
           consentModal: {
             title: 'We value your privacy',
-            description: isEU
-              ? 'We use cookies to keep the app working, measure how it’s used, and improve your experience. You can accept all, reject all, or customize your choices. Essential cookies are always on. <a href="/privacy" target="_blank">Privacy policy</a>'
-              : 'We use cookies to keep the app working, measure how it’s used, and improve your experience. Essential cookies are always on. You can opt out of analytics any time. <a href="/privacy" target="_blank">Privacy policy</a>',
+            description: buildConsentModalDescription(isEU),
             acceptAllBtn: 'Accept all',
             acceptNecessaryBtn: 'Reject all',
             showPreferencesBtn: 'Customize',
@@ -278,8 +312,8 @@ export function initCookieConsent(): void {
               },
               {
                 title: 'Further information',
-                description:
-                  'Questions? Read our <a href="/privacy" target="_blank">privacy policy</a> or email privacy@leanshot.app.',
+                // Phase 64 Plan 64-07 (LEGAL-07): includes Do Not Sell or Share anchor + privacy email.
+                description: buildFurtherInfoDescription(),
               },
             ],
           },
