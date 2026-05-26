@@ -137,7 +137,7 @@ export function TipOfTheDayCard() {
     <Card variant="elevated" span={4} data-testid="tip-of-day-card">
       {/* Eyebrow row */}
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-[11px] uppercase tracking-wider text-[var(--color-text-tertiary)] font-medium">
+        <span className="text-[11px] uppercase tracking-wider text-[var(--color-text-tertiary)] font-normal">
           TIP OF THE DAY
         </span>
         <span className="inline-flex items-center rounded-full bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-2 py-0.5 text-[11px] text-[var(--color-text-secondary)]">

@@ -76,7 +76,7 @@ export function SourcesFooter({ citations }: SourcesFooterProps) {
         aria-label={t('sources_footer.aria', { count: citations.length })}
         onClick={handleToggle}
         className={cn(
-          'flex items-center gap-1.5 text-[12px] font-semibold text-[var(--color-text-secondary)]',
+          'flex items-center gap-1.5 text-[11px] font-semibold text-[var(--color-text-secondary)]',
           'hover:text-[var(--color-text)] transition-colors focus-visible:outline-none',
           'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-sm',
         )}
@@ -97,13 +97,13 @@ export function SourcesFooter({ citations }: SourcesFooterProps) {
         )}
       >
         {expanded && (
-          <ul className="space-y-1.5 text-[12px]">
+          <ul className="space-y-1.5 text-[11px]">
             {citations.map((c) => (
               <li key={c.chunkId} className="flex items-center gap-2 min-w-0">
                 <span className="text-[var(--color-text-secondary)] font-semibold shrink-0">
                   [{c.refIndex}]
                 </span>
-                <span className="truncate text-[var(--color-text)] font-medium">
+                <span className="truncate text-[var(--color-text)] font-normal">
                   {c.sourceName}
                 </span>
                 <TierBadge tier={c.sourceTier} />

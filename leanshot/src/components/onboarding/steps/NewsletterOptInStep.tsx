@@ -32,7 +32,7 @@ export function NewsletterOptInStep({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-[26px] font-bold tracking-tight">
+        <h1 className="text-heading font-semibold tracking-tight">
           {t('rag:newsletter.header')}
         </h1>
         <p id="newsletter-opt-in-desc" className="text-[11px] text-[var(--color-text-tertiary)] mt-1">

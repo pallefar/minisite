@@ -126,7 +126,7 @@ export function NewsletterSettings() {
       {/* Toggle row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium">{t('rag:newsletter.toggle_label')}</span>
+          <span className="text-sm font-semibold">{t('rag:newsletter.toggle_label')}</span>
           <span className="text-sm text-[var(--color-text-secondary)]">
             {t('rag:newsletter.toggle_sublabel')}
           </span>

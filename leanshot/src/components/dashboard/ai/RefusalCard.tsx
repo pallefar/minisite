@@ -66,7 +66,7 @@ export function RefusalCard({ kind }: RefusalCardProps) {
           aria-hidden
         />
         <div className="space-y-1.5 min-w-0">
-          <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
+          <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
             {refusalText}
           </p>
           {showDisclaimer && (

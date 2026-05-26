@@ -261,7 +261,7 @@ export function CitationPopover({
             href={chunk.canonical_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[15px] font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors flex-1 min-w-0 truncate"
+            className="text-[13px] font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors flex-1 min-w-0 truncate"
             id="citation-popover-source-name"
           >
             {chunk.source_name}
@@ -280,7 +280,7 @@ export function CitationPopover({
             href={chunk.canonical_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[12px] text-[var(--color-primary)] hover:underline"
+            className="text-[11px] text-[var(--color-primary)] hover:underline"
           >
             {t('popover.read_full_chunk')}
           </a>
@@ -310,7 +310,7 @@ export function CitationPopover({
           href={chunk.canonical_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[13px] text-[var(--color-primary)] hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-[13px] text-[var(--color-primary)] hover:underline font-normal"
         >
           <ExternalLink className="size-3" aria-hidden />
           {t('popover.open_source')}
