@@ -281,10 +281,14 @@ Plans:
 
 **Goal**: Consolidate ALL operator-required vendor onboarding that emerged during Phase 60-69 planning into a single phase, per [[feedback_vendor_secret_preflight_surface]]. Mirrors Phase 52 vendor-setup-foundation pattern but for downstream v1.4 vendors. `autonomous: false` — operator runs CLI + dashboard signups.
 
-3 secrets already set programmatically (committed by autonomous run 2026-05-26):
-- ✅ `POSTHOG_PROJECT_ID=140479`
-- ✅ `RAG_RERANKER_PROVIDER=cohere` (env-flag default)
-- ✅ `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY` (openssl rand -hex 32)
+7 secrets already set (programmatic + operator paste-back 2026-05-26):
+- ✅ `POSTHOG_PROJECT_ID=140479` (programmatic)
+- ✅ `RAG_RERANKER_PROVIDER=cohere` (env-flag default, programmatic)
+- ✅ `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY` (openssl rand -hex 32, programmatic)
+- ✅ `COHERE_API_KEY` (operator-provided)
+- ✅ `POSTHOG_PERSONAL_API_KEY` (operator-provided, scope query:read)
+- ✅ `OPENROUTER_API_KEY` (operator-provided — replaces direct Anthropic per substitution decision; 60-04 + 60-11 plans amended)
+- ✅ `SLACK_GUARDRAIL_WEBHOOK_URL` (operator-provided; 60-02 helper patched to support env-var fast-path)
 
 **Depends on**: Phase 52 (Vendor Setup Foundation patterns + vendor_smoke_log infra + runbooks/vendor-secrets.md)
 **Requirements**: VENDOR-13, VENDOR-14, VENDOR-15, VENDOR-16, VENDOR-17, VENDOR-18 (new — extend Phase 52 vendor registry)

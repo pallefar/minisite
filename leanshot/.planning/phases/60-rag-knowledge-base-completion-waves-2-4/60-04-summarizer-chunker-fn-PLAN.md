@@ -72,8 +72,32 @@ must_haves:
       pattern: "update.*rag_chunks"
 ---
 
+<override>
+**Phase 60.5 vendor substitution (operator direction 2026-05-26):** Use **OpenRouter** (OpenAI-compatible API) instead of `@anthropic-ai/sdk` direct. User instruction: *"lets use openrouter and choose the models rather than anthropic"*.
+
+**Implementation change scope:**
+- Replace `@anthropic-ai/sdk` import with native `fetch` against `https://openrouter.ai/api/v1/chat/completions` (OpenAI Chat Completions shape).
+- Auth: `Authorization: Bearer ${Deno.env.get('OPENROUTER_API_KEY')}` (secret set 2026-05-26).
+- Model literal: `'anthropic/claude-haiku-4.5'` (OpenRouter's dotted convention — this is the OpenRouter model ID format and is distinct from direct Anthropic API's hyphenated convention per [[reference_anthropic_model_id_hyphenated_format]]; the hyphenated rule applies only when calling Anthropic's API directly).
+- Required header: `HTTP-Referer: https://leanshot.app` + `X-Title: LeanShot` (OpenRouter ranking/attribution; non-blocking).
+- Response shape matches OpenAI: `data.choices[0].message.content` (parse JSON from there) + `data.usage.{prompt_tokens, completion_tokens, total_cost}`.
+- All `SUMMARIZE_MODEL` literals + grep gates below should be updated to `'anthropic/claude-haiku-4.5'` (dotted, OpenRouter-routed). The "hyphenated invariant" grep gates in this plan are **suspended** for this Fn — OpenRouter's model ID format is the source of truth here.
+- PostHog `$ai_generation` event: emit `model: 'openrouter/anthropic/claude-haiku-4.5'` for clarity vs direct-Anthropic provenance.
+- No `anthropic-version: 2023-06-01` header (OpenRouter doesn't require it).
+
+**Why operator chose OpenRouter:** single API key + budget envelope across multiple model families; easy model swaps without code changes; transparent cost tracking per request. Trade-off: ~5-10% latency overhead vs direct Anthropic API + dependency on OpenRouter uptime.
+
+**Affected sections (mental-merge during execution):**
+- Plan task "Task 2: Anthropic SDK wrapper" → renamed/reimplemented as OpenRouter HTTP client (same class shape `LLMSummarizer`, same 3-attempt backoff, same `.summarize()` contract returning `{json, inputTokens, outputTokens, model}`).
+- All "claude-haiku-4-5-20251001" literals → "anthropic/claude-haiku-4.5".
+- All "anthropic/v1/messages" URL paths → "openrouter.ai/api/v1/chat/completions".
+- Verify command updates: grep for `'anthropic/claude-haiku-4.5'` (dotted) instead of hyphenated; presence of `OPENROUTER_API_KEY` env-var lookup; presence of `openrouter.ai/api/v1` URL.
+
+The rest of the plan (chunker logic, PHARMA-02 carveout, deno.json import map, Deno.serve guard, PostHog event emit, queue insertion) is UNCHANGED.
+</override>
+
 <objective>
-Ship the Anthropic-haiku quote-only summarizer + sentence-aware semantic chunker Edge Function for Phase 60 Wave 1. Reuse v1.3 Phase 50 Plan 50-05 task breakdowns verbatim where applicable (per `[[feedback_planner_prompt_explicit_reuse_targets]]`), with three Phase 60 deltas:
+Ship the OpenRouter-routed Haiku quote-only summarizer + sentence-aware semantic chunker Edge Function for Phase 60 Wave 1. Reuse v1.3 Phase 50 Plan 50-05 task breakdowns verbatim where applicable (per `[[feedback_planner_prompt_explicit_reuse_targets]]`), with three Phase 60 deltas:
 
 1. **Model downgrade** from `claude-sonnet-4` (50-05) to `claude-haiku-4-5-20251001` for cost (AI-SPEC §4 model lineup — Haiku is ~5-10× cheaper for chunk-level summarization and is the documented sub-task routing decision; user-facing synthesis remains Sonnet in 60-06).
 2. **PHARMA-02 runtime helper invocation** (3-layer invariant Layer 2) — this Fn rejects quote_blocks whose `kind='dose'` AND topic_tag is in the carveout list. ESLint (Layer 1) + CI grep gate (Layer 3) are owned by sibling plans; this plan owns Layer 2.

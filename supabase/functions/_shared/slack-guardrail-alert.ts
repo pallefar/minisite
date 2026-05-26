@@ -117,6 +117,18 @@ async function fetchWebhookUrl(): Promise<string | null> {
   // Return cached value if we've already attempted a fetch
   if (_webhookFetched) return _cachedWebhook;
 
+  // Env-var fast-path (Phase 60.5 operator setup 2026-05-26): if
+  // SLACK_GUARDRAIL_WEBHOOK_URL is set as a Supabase secret, prefer it
+  // over the vault lookup. Keeps the vault path as the production-canonical
+  // form per [[reference_supabase_pg_cron_vault_service_role_pattern]] but
+  // unblocks Phase 60 Wave 1 without requiring an SQL insert into vault.secrets.
+  const envWebhook = Deno.env.get('SLACK_GUARDRAIL_WEBHOOK_URL');
+  if (envWebhook && envWebhook.startsWith('https://hooks.slack.com/services/')) {
+    _cachedWebhook = envWebhook;
+    _webhookFetched = true;
+    return _cachedWebhook;
+  }
+
   const admin = getVaultAdmin();
   if (!admin) {
     _webhookFetched = true;

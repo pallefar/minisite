@@ -97,6 +97,27 @@ must_haves:
       pattern: "posthog-rag-events"
 ---
 
+<override>
+**Phase 60.5 vendor substitution (operator direction 2026-05-26):** Use **OpenRouter** instead of `@anthropic-ai/sdk` direct. User instruction: *"lets use openrouter and choose the models rather than anthropic"*. Same scope and rationale as 60-04 override (see that plan for full mental-merge details).
+
+**Implementation change scope for this Fn:**
+- Replace `@anthropic-ai/sdk` import with native `fetch` to `https://openrouter.ai/api/v1/chat/completions` (OpenAI-compatible).
+- Auth: `Authorization: Bearer ${Deno.env.get('OPENROUTER_API_KEY')}` (secret set 2026-05-26).
+- Model literal: `SYNTH_MODEL = 'anthropic/claude-haiku-4.5'` (OpenRouter dotted convention — distinct from direct-Anthropic hyphenated rule).
+- Required headers: `HTTP-Referer: https://leanshot.app`, `X-Title: LeanShot` (OpenRouter attribution).
+- Response parse: `data.choices[0].message.content` (OpenAI shape); usage at `data.usage.{prompt_tokens, completion_tokens, total_cost}`.
+- PostHog `$ai_generation` emits `model: 'openrouter/anthropic/claude-haiku-4.5'`.
+- COST_VENDOR string stays `'anthropic_tip_of_day'` (semantic vendor tag for ledger, NOT API route).
+
+**Hyphenated-model grep gates in this plan are SUSPENDED for OpenRouter routing.** New verification gates:
+- `grep -c "'anthropic/claude-haiku-4.5'" index.ts` ≥ 1
+- `grep -c "openrouter.ai/api/v1" index.ts` ≥ 1  
+- `grep -c "OPENROUTER_API_KEY" index.ts` ≥ 1
+- Cost-ledger gate (`gateOrThrow`) still required BEFORE the OpenRouter call (unchanged semantic).
+
+The rest of the plan (tip card UI, push payload, kb_tip_of_day migration, Phase 54 freq-cap integration, prompt builder, PHARMA-02 carveout) is UNCHANGED.
+</override>
+
 <objective>
 Ship the Tip-of-the-Day Bento card on the consumer HomeTab AND the per-user `rag-tip-of-day-generate` Edge Fn that selects + synthesizes + persists today's tip and dispatches a push notification under the existing Phase 54 pipeline.
 
