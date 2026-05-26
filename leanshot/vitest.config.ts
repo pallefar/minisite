@@ -121,8 +121,11 @@ export default defineConfig({
       {
         // Phase 62 — React component unit tests (jsdom + @testing-library/react).
         // Consolidated from Plan 62-04 (src-ui-unit) + Plan 62-07 (src-components).
+        // plugins:[react()] required for JSX automatic-runtime transform; tests
+        // assume React is auto-imported (no explicit `import React`).
         // Covers admin/research/* + dashboard/settings/* + any future src/components tests.
         // Run: npx vitest run --project=src-ui-unit
+        plugins: [react()],
         resolve: {
           alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -132,6 +135,7 @@ export default defineConfig({
           name: 'src-ui-unit',
           environment: 'jsdom',
           globals: true,
+          setupFiles: ['./src/test-setup.ts'],
           include: [
             'src/components/**/__tests__/*.test.tsx',
             'src/components/**/__tests__/*.test.ts',
