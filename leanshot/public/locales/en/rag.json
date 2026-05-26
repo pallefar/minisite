@@ -1,6 +1,22 @@
 {
   "attribution": "{{source_name}} · As of {{date}} · Tier {{tier}}",
   "disclaimer": "Not medical advice — consult your clinician.",
+  "newsletter": {
+    "section_heading": "Research newsletter",
+    "toggle_label": "Send me the weekly research digest",
+    "toggle_sublabel": "Curated summaries from approved research sources, sent Sundays. Unsubscribe anytime.",
+    "save_cta": "Save preferences",
+    "onboarding_label": "Send me the weekly research digest (optional — unsubscribe anytime)",
+    "subject_format": "LeanShot Research: Week of {{date}}",
+    "header": "LeanShot Research Digest",
+    "intro_placeholder": "{{admin_intro}}",
+    "section_heading_topic": "This week in {{topic}}",
+    "read_full_cta": "Read at {{source_name}} ↗",
+    "footer_unsubscribe": "Unsubscribe · Manage preferences",
+    "footer_disclaimer": "Not medical advice — consult your clinician. LeanShot, [address per CAN-SPAM].",
+    "unsubscribe_success": "You're unsubscribed.",
+    "resubscribe_cta": "Resubscribe"
+  },
   "tier": {
     "A": {
       "label": "Tier A",
