@@ -1,0 +1,20 @@
+Your trial ends in 3 days (Variant A)
+======================================
+
+Hi {{user_first_name}},
+
+Your LeanShot free trial ends on {{trial_end_date}}.
+
+Lock in continued access to drug-level projection, injection-site rotation, and
+your AI coach. Pick the plan that fits your journey -- we kept the price clean
+and the value high.
+
+Choose your plan: {{pricing_url}}
+
+Questions? Reply to this email or contact support@leanshot.app.
+
+---
+
+Unsubscribe: {{unsubscribe_url}}
+
+LeanShot -- {{physical_address}}

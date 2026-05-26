@@ -1,0 +1,19 @@
+{{discount_pct}}% off your return
+=================================
+
+{{user_first_name}}, two months gone -- here's a bigger nudge.
+
+Two months in, we want you back. Here's {{discount_pct}}% off when you
+reactivate -- the biggest discount we offer at this stage.
+
+Use code {{promo_code}} -- valid for 30 days.
+
+Reactivate subscription: {{reactivate_url}}
+
+Not the right time? Reply and let us know.
+
+---
+
+Unsubscribe: {{unsubscribe_url}}
+
+LeanShot -- {{physical_address}}

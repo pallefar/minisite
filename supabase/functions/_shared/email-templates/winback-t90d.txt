@@ -1,0 +1,21 @@
+Last chance: {{discount_pct}}% off
+==================================
+
+{{user_first_name}}, this is the final win-back email.
+
+This is the last automated win-back email we'll send. After this, we'll
+quietly stop reminding you -- your data stays preserved and you can come
+back anytime on your own.
+
+If you want one last shot, here's {{discount_pct}}% off -- the deepest
+discount we have.
+
+Use code {{promo_code}} -- valid for 30 days.
+
+Reactivate subscription: {{reactivate_url}}
+
+---
+
+Unsubscribe: {{unsubscribe_url}}
+
+LeanShot -- {{physical_address}}

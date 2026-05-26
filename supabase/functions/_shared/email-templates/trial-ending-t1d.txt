@@ -1,0 +1,19 @@
+Last day of your trial
+======================
+
+Hi {{user_first_name}} -- final reminder.
+
+Your LeanShot trial ends {{trial_end_date}}. After that, your data stays safe
+but premium features pause.
+
+Pick a plan in under 30 seconds -- cancel any time from settings.
+
+Choose your plan: {{pricing_url}}
+
+Questions or want help picking? Reply to this email.
+
+---
+
+Unsubscribe: {{unsubscribe_url}}
+
+LeanShot -- {{physical_address}}
