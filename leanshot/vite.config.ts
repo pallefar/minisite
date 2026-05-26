@@ -427,6 +427,10 @@ export default defineConfig(({ mode }) => {
         'tests/perf/**/*.spec.ts',
         'scripts/**/*.test.ts',
         '../shared/**/*.test.ts',
+        // Phase 60 Plan 60-05 — vitest unit tests for rag-embed-approved Edge Fn.
+        // Placed here (not Deno) because the handler tests use vi.fn() injection seam.
+        '../supabase/functions/rag-embed-approved/__tests__/openai.test.ts',
+        '../supabase/functions/rag-embed-approved/__tests__/embed-pipeline.test.ts',
         'eslint-rules/**/*.test.{js,ts,cjs}',
       ],
       exclude: ['e2e/**', 'node_modules/**', 'dist/**'],

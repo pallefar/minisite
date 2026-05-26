@@ -1,0 +1,18 @@
+{
+  "tasks": {
+    "test": "deno test --no-check --allow-env --allow-net ."
+  },
+  "imports": {
+    "npm:@supabase/supabase-js@2": "npm:@supabase/supabase-js@^2.105",
+    "npm:@supabase/supabase-js": "npm:@supabase/supabase-js@^2.105",
+    "npm:zod@3": "npm:zod@^3",
+    "npm:zod": "npm:zod@^3",
+    "posthog-rag-events": "../_shared/posthog-rag-events.ts",
+    "slack-guardrail-alert": "../_shared/slack-guardrail-alert.ts"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}
