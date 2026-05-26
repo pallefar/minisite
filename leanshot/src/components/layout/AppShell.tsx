@@ -2,12 +2,13 @@ import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { PastDueBanner } from '@/components/billing/PastDueBanner';
-import { PausedBanner } from './PausedBanner';
+import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
 import { QuickLogSheet } from '@/components/dashboard/QuickLogSheet';
 import { Toast } from '@/components/ui/Toast';
 import { cn } from '@/lib/helpers';
 import { LegalFooter } from './LegalFooter';
 import { MobileNav } from './MobileNav';
+import { PausedBanner } from './PausedBanner';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
@@ -56,6 +57,13 @@ export function AppShell({
         data-testid="dashboard"
       >
         <div className="pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto">
+          {/* Phase 65 Plan 65-09 — PaymentFailedBanner (PAY-06 dunning).
+              Sibling to PastDueBanner but driven by `subscriptions.dunning_state`
+              (the 5-state machine landed in Phase 65-01). Returns null when no
+              active dunning. Mounted ABOVE PastDueBanner per UI-SPEC §1 "TOP of
+              app shell" — when both fire simultaneously the dunning ladder is
+              the more actionable signal. */}
+          <PaymentFailedBanner />
           {/* Phase 14 Plan 14-06 — PastDueBanner (D-08 always-on chrome).
               Renders only when tier='past_due'. Returns null for free/paid — zero
               DOM footprint + zero layout shift. Bare component, no wrapper div. */}

@@ -281,6 +281,27 @@ export interface BillingState {
   provider: SubscriptionProvider;
 }
 
+// Phase 65 Plan 65-09 — Dunning + cloud-backed subscription shape.
+// Reads from the `subscriptions` table (RLS-gated to user_id = auth.uid()).
+// The 5-state dunning machine drives the PaymentFailedBanner copy ladder.
+export type DunningState =
+  | 'none'
+  | 'first_failed'
+  | 'second_failed'
+  | 'final_warning'
+  | 'cancelled_for_payment'
+  | null;
+
+export interface Subscription {
+  id: string;
+  status: string | null;
+  trial_end_at: string | null;
+  dunning_state: DunningState;
+  last_dunning_email_at: string | null;
+  current_period_end: string | null;
+  created_at: string | null;
+}
+
 // Phase 40 Plan 40-04 — Cancellation flow types (single-writer: 40-04)
 export * from './cancellation';
 
