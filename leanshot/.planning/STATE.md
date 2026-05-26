@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-26T05:58:17.807Z"
+last_updated: "2026-05-26T09:30:00.000Z"
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 8
-  total_plans: 37
-  completed_plans: 37
-  percent: 42
+  total_plans: 53
+  completed_plans: 40
+  percent: 40
 ---
 
 # Milestone v1.4: Launch Readiness
@@ -27,9 +27,47 @@ progress:
 
 ## Current Position
 
-- **Phase:** 60 (RAG Knowledge Base Completion) — Plans 60-01 + 60-02 + 60-03 COMPLETE
-- **Last completed:** Phase 59 (Apple OAuth + Onboarding) — VERIFICATION passed 2026-05-26 (3 plans; web+native SIWA flag-gated, HIG wordmark; signInWithIdToken+nonce; shared uid-scoped anon-merge in AuthCallbackView; PostHog experiment-variant bug FIXED; code review CR-01 OAuth-nonce-replay + 5 more fixed). DEFERRED to P70: live Apple provider config + flag-flip + on-device, private-relay live E2E, Lighthouse≥90, PostHog live ship-winner (VENDOR-09), superadmin-fixture HITL, D-16 admin-flow UUID→StepId mapping.
-- **Status:** autonomous run `57→69` PAUSED at Phase 60 boundary (8/18 done: 52-59 ✅). Resume: `/gsd-autonomous --from 60 --to 69` in a fresh session.
+- **Phase:** 60 (RAG Knowledge Base Completion) — Wave 0 COMPLETE (3/15 plans); Waves 1-3 PAUSED on Phase 60.5 vendor pre-flight
+- **Last completed:** Phase 60 Wave 0 — 60-01 (data layer migrations, 7 tasks, 6 commits, ending acedcf3f) + 60-02 (shared edge helpers, 6 tasks, 7 commits, ending 618d1dd2) + 60-03 (eval harness + 120-example gold-set + 13 RED scaffolds + CI workflow, 6 tasks, 7 commits, ending bc2b138f). Total: 18 task-commits + 3 summary-commits = 21 Wave-0 commits.
+- **Status:** autonomous run `60→69` PAUSED at Phase 60 Wave 0/1 boundary. Resume: `/gsd-autonomous --from 60 --to 69` in a fresh session (orchestrator will detect Wave 0 plans complete via SUMMARY presence + skip to Wave 1).
+
+### Phase 60 PAUSE — Wave 1 vendor blockers (resume notes)
+
+Wave 0 (3 plans) shipped CLEAN — no vendor secrets needed. **Wave 1 (6 plans) hits 4 different vendor blockers** spread across Phase 60.5 (consolidated vendor setup, inserted 2026-05-26 commit 443ffc4f).
+
+**Wave 1 plans (vendor dependency map):**
+- ✅ **60-04** (chunker Fn) — uses existing `ANTHROPIC_API_KEY` — CAN ship without Phase 60.5
+- ⚠️ **60-05** (embed Fn) — needs `OPENAI_API_KEY` + `VERCEL_AI_GATEWAY_TOKEN` — UNSET; Phase 60.5 owns
+- ⚠️ **60-06** (retrieval + rerank Fn) — needs `COHERE_API_KEY` (+ optional `JINA_API_KEY`) — UNSET; code can ship but runtime untestable until Phase 60.5
+- ✅ **60-07** (federated PubMed/FDA/DailyMed) — works WITHOUT optional `PUBMED_API_KEY` + `OPENFDA_API_KEY` (rate-limited but functional) — CAN ship
+- ✅ **60-08** (admin queue UI) — no vendor — CAN ship
+- ✅ **60-09** (admin federated toggle UI) — no vendor — CAN ship
+
+**Wave 2 (2 plans):**
+- ✅ **60-10** (AI-coach citation UI) — depends_on 60-06 — code can ship, runtime gates on Phase 60.5
+- ⚠️ **60-11** (tip-of-day card + Fn) — depends_on 60-06, 60-08 — gates on Phase 60.5
+
+**Wave 3 (4 plans):**
+- ⚠️ **60-12** (newsletter) — needs `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY` ✅ SET via openssl rand-hex-32 + RESEND_API_KEY ✅ existing — CAN ship
+- ⚠️ **60-13** (public /knowledge hub) — depends_on 60-06 — gates on Phase 60.5
+- ⚠️ **60-14** (cost dashboard) — needs `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_PROJECT_ID` ✅ SET — partial
+- ⚠️ **60-15 BLOCKING** (`autonomous: false`) — Phase close-out; gates on ALL above
+
+**3 secrets set programmatically 2026-05-26 (Supabase secrets):**
+- `POSTHOG_PROJECT_ID=140479`
+- `RAG_RERANKER_PROVIDER=cohere` (env-flag default)
+- `NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY=<32-byte hex>` (openssl rand)
+
+**Operator action required (Phase 60.5):**
+- Sign up for Cohere → `COHERE_API_KEY` → `supabase secrets set --project-ref ytnsipxxmzgaebkqmokp COHERE_API_KEY=co_xxx`
+- Verify Phase 50-07 Vercel AI Gateway deployment + capture `VERCEL_AI_GATEWAY_TOKEN` + `OPENAI_API_KEY` (or `AI_GATEWAY_API_KEY_CONSUMER` per 60-05 plan)
+- PostHog dashboard → Personal API keys → create scope `query:read` → `POSTHOG_PERSONAL_API_KEY`
+- (optional) Sign up for Jina / PubMed / OpenFDA for fallback rerank + relaxed federated rate-limits
+- Supabase Dashboard → Database → Vault → add `slack_guardrail_webhook` row with Slack incoming-webhook URL
+- Update `.planning/runbooks/vendor-secrets.md` with Phase 60-69 vendor registry rows
+- Then re-dispatch `/gsd-autonomous --from 60 --to 69`
+
+**Aggressive-foundations note:** Continuing Wave 1 inline WITHOUT Phase 60.5 secrets would land 60-04 + 60-07 + 60-08 + 60-09 CLEAN (code-only, runtime-defer to Phase 60.5). 60-05 + 60-06 would compile/test green (mocked) but their runtime smoke would fail until Phase 60.5. Operator may prefer to set Cohere + OpenAI keys FIRST (single dashboard session, ~10 min) before continuing.
 
 ### Phase 60 resume notes (investigated 2026-05-26, NOT yet started — saves re-investigation)
 
