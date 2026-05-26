@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>LeanShot Research Digest</title>
+  <!--
+    List-Unsubscribe-Post: List-Unsubscribe=One-Click
+    Per RFC 8058 — this comment anchors the tag for grep assertion.
+    Actual headers are set in the Resend API request, not here.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      font-family: 'Geist', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    table { border-spacing: 0; }
+    td { padding: 0; }
+    img { border: 0; display: block; }
+    a { color: #0d9488; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f5f5f5">
+    <tr>
+      <td align="center" style="padding: 24px 16px;">
+        <!-- Card container: single-column max 600px -->
+        <table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff"
+               style="max-width:600px; border-radius:12px; overflow:hidden; border:1px solid #e5e7eb;">
+
+          <!-- Header: teal-700 background -->
+          <tr>
+            <td bgcolor="#0f766e" style="padding:32px 40px;">
+              <h1 style="margin:0; font-family:'Geist',Arial,sans-serif; font-size:24px; font-weight:600; color:#ffffff; letter-spacing:-0.02em;">
+                LeanShot Research Digest
+              </h1>
+              <p style="margin:6px 0 0 0; font-size:13px; color:rgba(255,255,255,0.8);">
+                Week of {{week_date}}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 40px;">
+
+              <!-- Admin intro paragraph (optional) -->
+              {{admin_intro}}
+
+              <!-- Per-topic sections (composed by Fn) -->
+              {{per_topic_sections}}
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#f9fafb" style="padding:24px 40px; border-top:1px solid #e5e7eb;">
+              <p style="margin:0 0 8px 0; font-size:11px; color:#6b7280; text-align:center;">
+                Not medical advice — consult your clinician.
+              </p>
+              <p style="margin:0; font-size:11px; color:#6b7280; text-align:center;">
+                <a href="{{footer_unsubscribe_url}}" style="color:#0d9488;">Unsubscribe</a>
+                &nbsp;·&nbsp;
+                <a href="/settings#newsletter" style="color:#0d9488;">Manage preferences</a>
+              </p>
+              <p style="margin:8px 0 0 0; font-size:10px; color:#9ca3af; text-align:center;">
+                LeanShot, {{footer_address}}
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
