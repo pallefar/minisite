@@ -70,6 +70,13 @@ const P60_COACH_CITATION_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_COACH_CITATION 
 // Gate: PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1 env var only (never argv per reference).
 const P60_TIP_OF_DAY_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_TIP_OF_DAY === '1';
 
+// Phase 60 Plan 60-12: opt-in newsletter opt-in E2E via PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN=1.
+// Covers: CAN-SPAM checkbox default unchecked, onboarding step insertion, Settings toggle,
+// newsletter DB row creation/deletion, a11y scan, visual snapshot.
+// Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY (for DB tests).
+// Gate: PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN=1 env var only.
+const P60_NEWSLETTER_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN === '1';
+
 // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
 // Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
 // pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
@@ -159,6 +166,9 @@ export default defineConfig({
         // Phase 60 Plan 60-11: Tip-of-the-Day card e2e. Requires SUPABASE_SERVICE_ROLE_KEY.
         // Gated by PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1.
         /e2e\/tip-of-day\.spec\.ts$/,
+        // Phase 60 Plan 60-12: newsletter opt-in e2e. Requires SUPABASE_SERVICE_ROLE_KEY.
+        // Gated by PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN=1.
+        /e2e\/newsletter-opt-in\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -341,6 +351,19 @@ export default defineConfig({
           {
             name: 'p60-tip-of-day',
             testMatch: [/e2e\/tip-of-day\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+
+    // Invoke via `PLAYWRIGHT_RUN_P60_NEWSLETTER_OPTIN=1 npx playwright test --project=p60-newsletter`.
+    // Tests: CAN-SPAM checkbox default unchecked, onboarding step insertion,
+    // Settings newsletter toggle, DB row creation, a11y, visual snapshot (RAG-08).
+    ...(P60_NEWSLETTER_OPT_IN
+      ? [
+          {
+            name: 'p60-newsletter',
+            testMatch: [/e2e\/newsletter-opt-in\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
