@@ -29,7 +29,7 @@ progress:
 
 - **Phase:** 62 COMPLETE — Insights & Research Engine shipped: 5 matviews + 7 SECDEF RPCs (k-anonymity floor + Laplace noise + 2-person publish_research + research_consent purge) + research-publish Edge Fn + admin cohort builder + admin publications + public /research/* hub + settings consent toggle + KB shortcode plugin wired. INSIGHTS-09 RAG feedback loop delivers: `publish_research` inserts directly into rag_chunks (per iter-1 BLOCKER 2 fix). INSIGHTS-01..10 all Complete.
 - **Last completed:** Phase 62 close-out 2026-05-26. Plan 08 inline. Matview migration reorder forced (20290102000002 → 000010) because 000002 referenced p.research_consent (added in 000003).
-- **Status:** autonomous run `61→69`. Advancing to Phase 63 (Device-UAT + Tech Debt).
+- **Status:** autonomous run `61→69`. **Phase 63 restructured 2026-05-26**: moved to Phase 69.5 (final pre-launch cleanup, mirrors Phase 60.5 decimal pattern) per user direction *"need this to be the final phase to clean everything before launching"*. Phase 69.5 now absorbs tech-debt items from Phases 60/61/62 CARRY-OVER.md (18 success criteria total — 5 original DEBT + 13 absorbed). Advancing to Phase 64 (Legal Refresh).
 
 ### Phase 60 deliverables (this session, 2026-05-26)
 

@@ -179,9 +179,9 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 
 ### WS12 — Device-UAT + Tech Debt Cleanup (DEBT, 6 REQ-IDs — v1.3 carry)
 
-> Phase 63 — Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings (Phase 41 + 51) + v1.2/v1.3-era tech debt sweep + ROADMAP checkbox drift fix.
+> Phase 69.5 — Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings (Phase 41 + 51) + v1.2/v1.3-era tech debt sweep + ROADMAP checkbox drift fix.
 
-- [ ] **DEBT-01**: Phase 42 5 device-UAT signals validated (axe-core CI baseline, push device smoke, dark-mode VR snapshots, PWA installability, smart notifications); evidence captured to `.planning/phases/63-*/EVIDENCE/`
+- [ ] **DEBT-01**: Phase 42 5 device-UAT signals validated (axe-core CI baseline, push device smoke, dark-mode VR snapshots, PWA installability, smart notifications); evidence captured to `.planning/phases/69.5-*/EVIDENCE/`
 - [ ] **DEBT-02**: REVIEW.md IN-* findings (Phase 41 embed-provider IN-01..04 + Phase 51 traffic IN-01..02) addressed; per-finding resolution row in `tech_debt_log` table
 - [ ] **DEBT-03**: ROADMAP.md checkbox drift fix — phase-close hook normalizes per-plan checkboxes against SUMMARY frontmatter (closes `feedback_roadmap_format_variance_close_out_check` recurring issue)
 - [ ] **DEBT-04**: SUMMARY frontmatter `requirements:` tagging consistency sweep across v1.2 + v1.3 SUMMARY.md files; broken refs surfaced and fixed
@@ -278,7 +278,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 > Phase 70 — `autonomous: false`. Multi-signal HUMAN-UAT per `feedback_multi_signal_human_verify_checkpoint_pattern`. Roll up of EVERY outstanding UAT signal.
 
 - [ ] **UAT-01**: 33 v1.3-deferred HUMAN-UAT signals (from `v1.3-uat-deferred.md`) replayed at staging with live-vendor-secret fixtures + signoff per signal
-- [ ] **UAT-02**: 5 Phase 42 device-UAT signals validated on physical iOS + Android device (overlap with DEBT-01 from Phase 63 — re-validate against final v1.4 build)
+- [ ] **UAT-02**: 5 Phase 42 device-UAT signals validated on physical iOS + Android device (overlap with DEBT-01 from Phase 69.5 — re-validate against final v1.4 build)
 - [ ] **UAT-03**: New v1.4 phase UAT signals validated — mobile shells (P53) cold-launch + dose-log; push (P54) cross-platform delivery; HealthKit (P55) opt-in + import + revoke; Apple OAuth (P59) sign-in + private-relay-email handling; watch (P57) complication + quick-log; ad network (P56) consumer-only placement + clinic-zero-ads; RAG (P60) AI-coach citation + admin curation; Protocol Creator (P61) 2-person-review + clinician-adopt + patient-prefill; Insights (P62) k-anonymity-enforcement + research-blog-publish; Legal (P64) state-privacy-opt-out + DMCA-takedown; Stripe Tax (P65) cross-state-purchase + dunning-email-cadence + refund-self-service; MFA (P66) consumer-TOTP-enroll + brute-force-lockout; Runbooks (P67) PITR-restore-drill-evidence + DDoS-load-test-results; Landing (P68) per-audience-page-render + demo-org-auto-purge
 - [ ] **UAT-04**: Phase 69 design polish UAT — `gsd-ui-auditor` final-pass evidence + dark-mode VR snapshot diff + mobile-responsive Lighthouse score ≥90 on all critical surfaces
 - [ ] **UAT-05**: Full regression sweep — Playwright e2e suite + Deno test sweep + axe-core CI + per-Edge-Fn smoke run + Sentry health-check; CI green across `main` for ≥48h before launch
@@ -435,12 +435,12 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | INSIGHTS-08 | Phase 62 | Complete |
 | INSIGHTS-09 | Phase 62 | Complete |
 | INSIGHTS-10 | Phase 62 | Complete |
-| DEBT-01 | Phase 63 | Pending |
-| DEBT-02 | Phase 63 | Pending |
-| DEBT-03 | Phase 63 | Pending |
-| DEBT-04 | Phase 63 | Pending |
-| DEBT-05 | Phase 63 | Pending |
-| DEBT-06 | Phase 63 | Pending |
+| DEBT-01 | Phase 69.5 | Pending |
+| DEBT-02 | Phase 69.5 | Pending |
+| DEBT-03 | Phase 69.5 | Pending |
+| DEBT-04 | Phase 69.5 | Pending |
+| DEBT-05 | Phase 69.5 | Pending |
+| DEBT-06 | Phase 69.5 | Pending |
 | LEGAL-01 | Phase 64 | Pending |
 | LEGAL-02 | Phase 64 | Pending |
 | LEGAL-03 | Phase 64 | Pending |

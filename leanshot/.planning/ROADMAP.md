@@ -21,13 +21,13 @@
 - [ ] **Phase 60.5: Late-Phase Vendor Setup (60-69)** — `autonomous: false`. Consolidates operator-required vendor onboarding that emerged during Phase 60-69 planning: Cohere Rerank, OpenAI direct + Vercel AI Gateway, PostHog Personal API key (cost dashboard), Jina/PubMed/OpenFDA optional, Slack guardrail webhook vault entry. Mirrors Phase 52 pattern; runtime-verification of Phase 60+ gates on this.
 - [x] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
 - [x] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
-- [ ] **Phase 63: Device-UAT + Tech Debt Cleanup** — Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign
 - [ ] **Phase 64: Legal Refresh** — State-privacy (CCPA/CDPA/CPA/CTDPA/UCPA) + policy/ToS audit + accessibility statement + DMCA agent + cookie WCAG 2.2 AA re-audit + grandfathered-notice email (BLOCKER)
 - [ ] **Phase 65: Stripe Tax + Payment Resilience** — Stripe Tax enable + automatic_tax + B2B tax_id collection + nexus-monitoring dashboard + 3-email dunning + in-app banner + refund self-service + idempotency burst-retry test + trial-ending/win-back (BLOCKER)
 - [ ] **Phase 66: Consumer Account Security** — Consumer-facing MFA/TOTP self-serve + per-IP/per-email sign-in lockout + brute-force PostHog alerting
 - [ ] **Phase 67: Operational Runbooks + Observability** — Secrets-rotation runbook + DDoS k6 load-test + Vercel rate-limit + SENTRY_DSN Edge-Fn verify + funnel-break alerts + incident-response runbook + backup PITR restore drill
 - [ ] **Phase 68: Audience Landing + Sales Enablement** — /for-doctors + /for-clinics + /for-coaches via page-builder + schema.org Service JSON-LD + demo/sandbox mode for clinic-buyer prospects (synthetic patients + auto-purge)
 - [ ] **Phase 69: Layout & Design Polish** — DS harmonization audit across all v1.1/v1.2/v1.3/v1.4 surfaces; 4-size typography + 2 weights + accent reserved-list + DS primitive adoption + a11y baseline + dark mode parity + responsive sweep
+- [ ] **Phase 69.5: Final Tech Debt Sweep + Device-UAT (Launch Prep)** — Last cleanup phase before launch gate. Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign + absorbed tech-debt from Phases 60/61/62 CARRY-OVER.md (vitest project bloat, schema-drift audit, migration timestamp drift, build artifacts gitignore, community_engagement fallback, matview cron registration). Mirrors Phase 60.5 decimal pattern.
 - [ ] **Phase 70: Consolidated UAT — v1.4 Launch Gate** — `autonomous: false`. Multi-signal HUMAN-UAT roll-up: 33 v1.3 carry + 5 Phase 42 device + new v1.4 per-phase UAT + design polish UAT + full regression sweep across all 4 milestones
 
 ## Phase Details
@@ -374,23 +374,6 @@ Plans:
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
-### Phase 63: Device-UAT + Tech Debt Cleanup
-
-**Goal**: Validate Phase 42's 5 device-UAT signals against the v1.4 build (which differs from v1.3 ship), sweep v1.2/v1.3-era REVIEW.md IN-* findings, fix ROADMAP checkbox drift, finish deferred Calendly OAuth signed-handoff redesign, and address SUMMARY frontmatter consistency.
-**Depends on**: v1.3 close (Phase 42 axe baseline + REVIEW.md docs); Phase 52 (Calendly OAuth secrets for CR-02 redesign)
-**Requirements**: DEBT-01, DEBT-02, DEBT-03, DEBT-04, DEBT-05, DEBT-06
-**Success Criteria** (what must be TRUE):
-
-  1. Phase 42 5 device-UAT signals (axe-core CI baseline, push device smoke, dark-mode VR snapshots, PWA installability, smart notifications) all PASS evidence captured
-  2. REVIEW.md IN-* findings (Phase 41 + Phase 51) each resolved with `tech_debt_log` row
-  3. ROADMAP.md per-plan checkbox normalization passes against SUMMARY frontmatter for every phase
-  4. Phase 41 CR-02 Calendly OAuth signed-handoff redesign shipped (replaces popup-iframe pattern)
-  5. VALIDATION.md flag-flip post-merge automation in place; no manual inline-generation required
-
-**Plans**: TBD
-
-> Signals roll up to Phase 70 — see consolidated UAT phase.
-
 ### Phase 64: Legal Refresh
 
 **Goal**: Ship the 5 launch-readiness legal items grouped from research B1+B2+HD6+HD7+HD8: state-privacy disclosures (CCPA + 4 others), policy/ToS audit + grandfathered notice email, accessibility statement page, DMCA agent + page, cookie banner WCAG 2.2 AA re-audit + CPRA copy. **BLOCKER per research** — cannot launch nationally without these.
@@ -505,6 +488,36 @@ Plans:
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
+### Phase 69.5: Final Tech Debt Sweep + Device-UAT (Launch Prep)
+
+**Goal**: The last cleanup phase before launch gate UAT. Validate Phase 42's 5 device-UAT signals against the v1.4 build, sweep all v1.2/v1.3-era REVIEW.md IN-* findings, fix ROADMAP checkbox drift + SUMMARY frontmatter consistency, finish deferred Calendly OAuth signed-handoff redesign, AND absorb all tech-debt items accumulated during Phases 60-69 CARRY-OVER.md files (vitest project bloat, schema-drift audit, migration timestamp drift, build artifacts gitignore, community_engagement fallback, matview cron registration, Layer 1 UPDATE-immutability for published rows, org-scoping check inside `assign_protocol_to_patient`). Mirrors Phase 60.5 decimal pattern; moved from Phase 63 to position immediately before launch gate per user direction 2026-05-26 ("need this to be the final phase to clean everything before launching").
+**Depends on**: v1.3 close (Phase 42 axe baseline + REVIEW.md docs); Phase 52 (Calendly OAuth secrets for CR-02 redesign); Phases 60/61/62 CARRY-OVER.md (tech-debt items absorbed at plan-time)
+**Requirements**: DEBT-01, DEBT-02, DEBT-03, DEBT-04, DEBT-05, DEBT-06 (existing); plus carry-over items from Phases 60-69 cataloged at plan-time
+**Success Criteria** (what must be TRUE):
+
+  1. Phase 42 5 device-UAT signals (axe-core CI baseline, push device smoke, dark-mode VR snapshots, PWA installability, smart notifications) all PASS evidence captured
+  2. REVIEW.md IN-* findings (Phase 41 + Phase 51 + any IN-* from Phase 60 code review) each resolved with `tech_debt_log` row
+  3. ROADMAP.md per-plan checkbox normalization passes against SUMMARY frontmatter for every phase
+  4. Phase 41 CR-02 Calendly OAuth signed-handoff redesign shipped (replaces popup-iframe pattern)
+  5. VALIDATION.md flag-flip post-merge automation in place; no manual inline-generation required
+  6. **Vitest project includes tightened** — `functions-unit` + `src-lib-unit` projects from Phase 62 no longer capture pre-existing Phase 47/49/50/60 Deno-only tests as false positives (per `feedback_vitest_project_include_too_broad`)
+  7. **Schema-drift audit completed** — diff `supabase migration list --linked` against repo `supabase/migrations/*.sql`; reconciliation migrations written for any drift (Phase 62 surfaced `rag_sources.source_type`; expect more)
+  8. **Build artifacts gitignored** — `leanshot/public/research/` + `leanshot/public/research-content/` (Phase 62 RSS/sitemap generator output) added to `.gitignore`
+  9. **Matview cron registration** — pg_cron schedule for daily 02:00 UTC `REFRESH MATERIALIZED VIEW CONCURRENTLY` on all 5 Phase 62 `insights_*_rollup` matviews (currently NOT scheduled per Phase 62 CARRY-OVER)
+  10. **Revoke-purge cron registration** — pg_cron schedule for nightly 01:00 UTC `purge_research_data_for_revoked()` (currently NOT scheduled per Phase 62 CARRY-OVER)
+  11. **Migration timestamp convention** — codify forward-dating rule in `.planning/CLAUDE.md` or planner guidance to prevent back-dated push blocks (per `feedback_phase_close_out_supabase_gotchas`)
+  12. **`community_engagement` table source** — either create the real table OR document the `ai_messages` fallback decision permanently in Phase 62 `insights_engagement_rollup` matview
+  13. **Migration filename dependency ordering** — re-verify all Phase 62 migrations apply cleanly to a fresh DB rebuild (the 20290102000010 matview reorder was reactive, not preventive)
+  14. **Phase 61 Layer 1 immutability** — Postgres trigger preventing UPDATE on `protocols` rows where `review_state='published'` except via SECDEF RPCs (per Phase 61 CARRY-OVER)
+  15. **Phase 61 org-scoping** — add explicit org_id check inside `assign_protocol_to_patient` RPC (currently trusts Phase 30 roster RLS; per Phase 61 CARRY-OVER)
+  16. **Vendor-string drift audit** — sweep all $ai_generation event emissions for canonical `vendor:` field per Phase 60 CR-01 lesson (Phase 60 CARRY-OVER item)
+  17. **Admin-action-token mechanism** — Phase 60-09 Option D deferred admin-action-token; either ship the mechanism here OR explicitly defer to v1.5 with rationale (per Phase 60 CARRY-OVER)
+  18. **Backlog migration audit** — retroactive testing of P48/49/50-traffic migrations applied via `migration repair` (per Phase 60 CARRY-OVER)
+
+**Plans**: TBD (8-12 plans expected; tech-debt absorber)
+
+> Signals roll up to Phase 70 — see consolidated UAT phase.
+
 ### Phase 70: Consolidated UAT — v1.4 Launch Gate
 
 **Goal**: Single multi-signal HUMAN-UAT phase that rolls up every outstanding UAT signal accumulated across v1.3 carry-over + Phase 42 device-UAT + new v1.4 per-phase UAT + Phase 69 design polish UAT + full regression sweep. **`autonomous: false`** — the only non-autonomous phase in v1.4. Per `feedback_multi_signal_human_verify_checkpoint_pattern`: N discrete approve-able signals, not one mega-signal. Ship rule decided at planning.
@@ -535,7 +548,7 @@ Plans:
 - Phase 60 — AI-coach citation footnotes + admin curation + public knowledge hub render on real session
 - Phase 61 — 2-person review flow on real admin accounts + clinician-adopt-protocol → patient-prefill on real patient account
 - Phase 62 — k-anonymity-enforcement (cohort <5 returns suppressed) + research-blog publish + RAG feedback ingestion verified
-- Phase 63 — Phase 42 5 device-UAT re-evidence against v1.4 build
+- Phase 69.5 — Phase 42 5 device-UAT re-evidence against v1.4 build + accumulated tech-debt sweep from Phases 60-69 CARRY-OVER.md
 - Phase 64 — state-privacy opt-out propagation to PostHog + ad-network within 24h verified on real account; DMCA-takedown email-to-action flow walkthrough
 - Phase 65 — cross-state purchase tax calc verified; 3-email dunning cadence delivered; refund self-service in trial + money-back window
 - Phase 66 — consumer TOTP enroll + AAL2 step-up + brute-force lockout fires on 6th failed attempt
@@ -622,13 +635,13 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 60. RAG Knowledge Base Completion | 13/15 | In Progress|  |
 | 61. Admin Protocol Creator | 8/8 | Complete | 3 migrations + 1 Fn deployed; 64+ tests green |
 | 62. Insights & Research Engine | 8/8 | Complete | 6 migrations + 1 Fn deployed; 84 tests green |
-| 63. Device-UAT + Tech Debt Cleanup | 0/0 | Not started | - |
 | 64. Legal Refresh | 0/0 | Not started | - |
 | 65. Stripe Tax + Payment Resilience | 0/0 | Not started | - |
 | 66. Consumer Account Security | 0/0 | Not started | - |
 | 67. Operational Runbooks + Observability | 0/0 | Not started | - |
 | 68. Audience Landing + Sales Enablement | 0/0 | Not started | - |
 | 69. Layout & Design Polish | 0/0 | Not started | - |
+| 69.5. Final Tech Debt Sweep + Device-UAT (Launch Prep) | 0/0 | Not started | Absorbs tech-debt from Phases 60-69 CARRY-OVER.md |
 | 70. Consolidated UAT — v1.4 Launch Gate | 0/0 | Not started | - |
 
 ---
