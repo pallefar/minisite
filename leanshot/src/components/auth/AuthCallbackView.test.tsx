@@ -21,11 +21,13 @@ const {
   mockFromSelect,
   mockFromEq,
   mockFromMaybeSingle,
+  mockMergeAnonSession,
 } = vi.hoisted(() => ({
   mockExchangeCodeForSession: vi.fn(),
   mockFromSelect: vi.fn(),
   mockFromEq: vi.fn(),
   mockFromMaybeSingle: vi.fn(),
+  mockMergeAnonSession: vi.fn(async () => ({ merged: false })),
 }));
 
 vi.mock('@/lib/supabase', () => ({
@@ -49,6 +51,10 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+vi.mock('@/lib/onboarding/anon-merge', () => ({
+  mergeAnonSession: (...args: unknown[]) => mockMergeAnonSession(...args),
+}));
+
 let originalLocation: Location;
 let replaceMock: ReturnType<typeof vi.fn>;
 
@@ -57,6 +63,8 @@ beforeEach(() => {
   mockFromSelect.mockReset();
   mockFromEq.mockReset();
   mockFromMaybeSingle.mockReset();
+  mockMergeAnonSession.mockReset();
+  mockMergeAnonSession.mockResolvedValue({ merged: false });
 
   originalLocation = window.location;
   replaceMock = vi.fn();
@@ -150,5 +158,49 @@ describe('AuthCallbackView — PKCE code exchange + onboarding routing', () => {
     expect(status).toBeTruthy();
     expect(status.getAttribute('aria-live')).toBe('polite');
     expect(status.textContent).toMatch(/Signing you in/i);
+  });
+
+  // ── AUTH-10: best-effort anon-merge on OAuth/Apple sign-in ──────────────
+
+  it('Test 5 — mergeAnonSession called with session access_token after successful exchange', async () => {
+    mockExchangeCodeForSession.mockResolvedValueOnce({
+      data: { session: { user: { id: 'u3' }, access_token: 'tok-abc' } },
+      error: null,
+    });
+    mockFromMaybeSingle.mockResolvedValueOnce({
+      data: { completed_onboarding_at: null },
+      error: null,
+    });
+
+    const { default: AuthCallbackView } = await import('./AuthCallbackView');
+    render(<AuthCallbackView />);
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith('/#/onboarding');
+    });
+    expect(mockMergeAnonSession).toHaveBeenCalledWith(
+      expect.objectContaining({ accessToken: 'tok-abc' }),
+    );
+  });
+
+  it('Test 6 — mergeAnonSession rejection does NOT block redirect', async () => {
+    mockExchangeCodeForSession.mockResolvedValueOnce({
+      data: { session: { user: { id: 'u4' }, access_token: 'tok-xyz' } },
+      error: null,
+    });
+    mockFromMaybeSingle.mockResolvedValueOnce({
+      data: { completed_onboarding_at: null },
+      error: null,
+    });
+    // Simulate a total merge failure.
+    mockMergeAnonSession.mockRejectedValueOnce(new Error('merge network error'));
+
+    const { default: AuthCallbackView } = await import('./AuthCallbackView');
+    render(<AuthCallbackView />);
+
+    // Redirect must still happen despite merge failure.
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith('/#/onboarding');
+    });
   });
 });

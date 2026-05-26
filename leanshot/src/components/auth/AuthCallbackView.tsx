@@ -18,6 +18,7 @@
  */
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
 
 export default function AuthCallbackView() {
   const [status, setStatus] = useState<'exchanging' | 'redirecting' | 'error'>(
@@ -43,6 +44,15 @@ export default function AuthCallbackView() {
           .eq('id', data.session.user.id)
           .maybeSingle();
         if (cancelled) return;
+
+        // Best-effort anon→authenticated merge (T-59-09: failure must never
+        // block the redirect; wrapper swallows any rejection).
+        try {
+          await mergeAnonSession({ accessToken: data.session.access_token });
+        } catch {
+          // Intentionally swallowed — redirect always proceeds.
+        }
+
         setStatus('redirecting');
         if (prof?.completed_onboarding_at) {
           window.location.replace('/#/dashboard');
