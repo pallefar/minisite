@@ -9,6 +9,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  listFederatedSources,
+  setFederatedSourceEnabled,
+  triggerHistoricalPull,
+  type FederatedSource,
+} from '../federated-api';
 
 const { mockRpc, mockInvoke } = vi.hoisted(() => ({
   mockRpc: vi.fn(),
@@ -21,13 +27,6 @@ vi.mock('@/lib/supabase', () => ({
     functions: { invoke: mockInvoke },
   },
 }));
-
-import {
-  listFederatedSources,
-  setFederatedSourceEnabled,
-  triggerHistoricalPull,
-  type FederatedSource,
-} from '../federated-api';
 
 const makeSources = (): FederatedSource[] => [
   {
