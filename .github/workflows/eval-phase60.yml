@@ -1,0 +1,169 @@
+# eval-phase60.yml
+#
+# Phase 60 RAG evaluation harness — PR gate + nightly full sweep.
+#
+# PR gate: fires when PRs touch RAG source files or the eval harness itself.
+#   Runs 4 CI-gating suites: refusal --strict, citation, safety --strict, kanon.
+#   RED state is expected until 60-04..07 deploy the RAG Edge Fns.
+#
+# Nightly: full 13-dimension sweep at 02:00 UTC + JUnit artifact upload +
+#   Slack alert on failure.
+#
+# Required GitHub secrets (set before first Wave 1 PR):
+#   PHASE60_EVAL_BASE_URL        — https://<project-ref>.supabase.co/functions/v1
+#   PHASE60_EVAL_SERVICE_KEY     — Supabase service-role key
+#   POSTHOG_PROJECT_API_KEY      — Already set from Phase 38
+#   SLACK_GUARDRAIL_WEBHOOK_URL  — Already set from Phase 60-02
+#
+# NOTE: Until the above secrets are set AND 60-15 deploys the Fns, the
+# PR gate jobs will RED-fail — that is the proof the harness wires up.
+# Per [[feedback_vendor_secret_preflight_surface]]: secrets are the
+# operator's pre-60-04 dispatch concern.
+
+name: eval-phase60
+
+on:
+  pull_request:
+    paths:
+      - 'src/lib/rag/**'
+      - 'supabase/functions/rag-**'
+      - 'tests/eval/phase60/**'
+      - 'leanshot/vitest.config.ts'
+      - 'leanshot/package.json'
+  schedule:
+    # Nightly 02:00 UTC — AI-SPEC §5 line 860
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Specific suite to run (leave blank for all)'
+        required: false
+        default: ''
+      strict:
+        description: 'Enable strict mode (EVAL_STRICT=true)'
+        required: false
+        default: 'false'
+
+concurrency:
+  group: eval-phase60-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-gate:
+    name: PR gate — CI-gating suites
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      # Per [[reference_sentry_capacitor_npm_install_blocker]]: --ignore-scripts
+      # prevents @sentry/capacitor sibling-check from aborting the install.
+      - name: Install (--ignore-scripts)
+        run: cd leanshot && npm ci --ignore-scripts
+
+      # Equivalent to: npm run test:eval:phase60 -- --suite=refusal --strict
+      - name: Refusal strict (Dim #5 + #6 + PHARMA-02)
+        env:
+          EVAL_BASE_URL: ${{ secrets.PHASE60_EVAL_BASE_URL }}
+          EVAL_SERVICE_KEY: ${{ secrets.PHASE60_EVAL_SERVICE_KEY }}
+          POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
+          EVAL_SUITE: refusal
+          EVAL_STRICT: 'true'
+          CI: 'true'
+        run: cd leanshot && npm run test:eval:phase60
+
+      # Equivalent to: npm run test:eval:phase60 -- --suite=citation
+      - name: Citation (Dim #1)
+        env:
+          EVAL_BASE_URL: ${{ secrets.PHASE60_EVAL_BASE_URL }}
+          EVAL_SERVICE_KEY: ${{ secrets.PHASE60_EVAL_SERVICE_KEY }}
+          POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
+          EVAL_SUITE: citation
+          CI: 'true'
+        run: cd leanshot && npm run test:eval:phase60
+
+      # Equivalent to: npm run test:eval:phase60 -- --suite=safety --strict
+      - name: Safety meta-suite strict (Dim #5+#6+#9+#10)
+        env:
+          EVAL_BASE_URL: ${{ secrets.PHASE60_EVAL_BASE_URL }}
+          EVAL_SERVICE_KEY: ${{ secrets.PHASE60_EVAL_SERVICE_KEY }}
+          POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
+          EVAL_SUITE: safety
+          EVAL_STRICT: 'true'
+          CI: 'true'
+        run: cd leanshot && npm run test:eval:phase60
+
+      # Equivalent to: npm run test:eval:phase60 -- --suite=kanon
+      - name: k-anonymity invariant (Dim #9 — SQL invariant)
+        env:
+          EVAL_BASE_URL: ${{ secrets.PHASE60_EVAL_BASE_URL }}
+          EVAL_SERVICE_KEY: ${{ secrets.PHASE60_EVAL_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
+          EVAL_SUITE: kanon
+          CI: 'true'
+        run: cd leanshot && npm run test:eval:phase60
+
+  nightly:
+    name: Nightly — full 13-dimension sweep
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: leanshot/package-lock.json
+
+      - name: Install (--ignore-scripts)
+        run: cd leanshot && npm ci --ignore-scripts
+
+      - name: Full sweep (all 13 dims)
+        id: run_eval
+        env:
+          EVAL_BASE_URL: ${{ secrets.PHASE60_EVAL_BASE_URL }}
+          EVAL_SERVICE_KEY: ${{ secrets.PHASE60_EVAL_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          POSTHOG_PROJECT_API_KEY: ${{ secrets.POSTHOG_PROJECT_API_KEY }}
+          # Workflow-dispatch override: run specific suite if provided
+          EVAL_SUITE: ${{ github.event.inputs.suite || '' }}
+          EVAL_STRICT: ${{ github.event.inputs.strict || 'false' }}
+          CI: 'true'
+        run: cd leanshot && npm run test:eval:phase60
+        continue-on-error: true
+
+      - name: Upload JUnit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase60-eval-junit-${{ github.run_id }}
+          path: tests/eval/phase60-junit.xml
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Slack alert on failure
+        if: steps.run_eval.outcome == 'failure' && env.SLACK_GUARDRAIL_WEBHOOK_URL != ''
+        env:
+          SLACK_GUARDRAIL_WEBHOOK_URL: ${{ secrets.SLACK_GUARDRAIL_WEBHOOK_URL }}
+        run: |
+          curl -sS -X POST "$SLACK_GUARDRAIL_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"phase60-eval nightly RED: see job https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+
+      - name: Propagate eval outcome
+        if: steps.run_eval.outcome == 'failure'
+        run: |
+          echo "Phase 60 eval suite failed — see uploaded JUnit artifact + PostHog phase60-eval-runs"
+          exit 1
