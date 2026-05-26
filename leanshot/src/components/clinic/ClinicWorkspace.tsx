@@ -41,6 +41,14 @@ const ClinicDashboardOverview = lazy(() =>
   import('./dashboard/ClinicDashboardOverview').then((m) => ({ default: m.ClinicDashboardOverview })),
 );
 
+// Phase 61 Plan 61-06 — ClinicProtocolsPage lazy-loaded (keeps clinic chunk under ceiling).
+// Clinician protocol adoption flow: browse published protocols + adopt for patient.
+const ClinicProtocolsPage = lazy(() =>
+  import('./protocols/ClinicProtocolsPage').then((m) => ({ default: m.ClinicProtocolsPage })),
+);
+
+type ClinicTab = 'roster' | 'protocols';
+
 /**
  * Default permission map for the org owner. Role-specific permissions are
  * resolved by Plan 10-07's clinic-snapshot Edge Function; this default
@@ -94,6 +102,7 @@ function navigateHome(): void {
 export function ClinicWorkspace() {
   const [load, setLoad] = useState<LoadState>({ kind: 'loading' });
   const [inviteOpen, setInviteOpen] = useState<boolean>(() => shouldOpenInviteFromQuery());
+  const [currentTab, setCurrentTab] = useState<ClinicTab>('roster');
 
   const slug = useMemo(() => slugFromLocation(), []);
 
@@ -189,40 +198,99 @@ export function ClinicWorkspace() {
   return (
     <div className="min-h-screen bg-[var(--color-bg)]" data-testid="clinic-workspace">
       <ClinicContextBar org={org} />
-      <main className="max-w-5xl mx-auto p-6 md:p-8 space-y-6">
-        <header className="space-y-1.5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
-            Workspace
-          </p>
-          <h1 className="text-[24px] md:text-[32px] font-bold text-[var(--color-text)]">
-            {org.name}
-          </h1>
-          <p className="text-[14px] text-[var(--color-text-secondary)]">
-            Your patients will appear here.
-          </p>
-        </header>
 
-        {/* P30 — Dashboard overview (CLIN-05 / CLIN-08). Lazy-loaded; falls back to a small Skeleton. */}
-        <Suspense fallback={<div className="h-32 rounded-card bg-[var(--color-surface-elevated)]" aria-hidden="true" />}>
-          <ClinicDashboardOverview orgId={org.id} />
-        </Suspense>
+      {/* Phase 61 Plan 61-06 — Tab navigation bar (Roster | Protocols) */}
+      <nav
+        className="sticky top-14 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 md:px-6"
+        aria-label="Workspace tabs"
+      >
+        <div className="max-w-5xl mx-auto flex gap-0">
+          {(
+            [
+              { key: 'roster' as ClinicTab, label: 'Roster' },
+              { key: 'protocols' as ClinicTab, label: 'Protocols' },
+            ] as const
+          ).map((tab) => {
+            const isActive = currentTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`tabpanel-${tab.key}`}
+                onClick={() => setCurrentTab(tab.key)}
+                className={`px-4 py-3 text-[13px] font-semibold border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-inset ${
+                  isActive
+                    ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                    : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
-        <section
-          className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-4 md:p-6"
-          aria-label="Patient roster"
+      <main className="max-w-5xl mx-auto p-6 md:p-8">
+        {/* Roster tab panel */}
+        <div
+          id="tabpanel-roster"
+          role="tabpanel"
+          aria-label="Roster"
+          hidden={currentTab !== 'roster'}
+          className={currentTab === 'roster' ? 'space-y-6' : ''}
         >
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Roster</h2>
-            <Button variant="secondary" size="sm" onClick={() => setInviteOpen(true)}>
-              Invite patient
-            </Button>
-          </div>
-          <RosterTable
-            orgId={org.id}
-            slug={org.slug}
-            permissionMap={OWNER_PERMISSION_MAP}
-          />
-        </section>
+          <header className="space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
+              Workspace
+            </p>
+            <h1 className="text-[24px] md:text-[32px] font-bold text-[var(--color-text)]">
+              {org.name}
+            </h1>
+            <p className="text-[14px] text-[var(--color-text-secondary)]">
+              Your patients will appear here.
+            </p>
+          </header>
+
+          {/* P30 — Dashboard overview (CLIN-05 / CLIN-08). Lazy-loaded; falls back to a small Skeleton. */}
+          <Suspense fallback={<div className="h-32 rounded-card bg-[var(--color-surface-elevated)]" aria-hidden="true" />}>
+            <ClinicDashboardOverview orgId={org.id} />
+          </Suspense>
+
+          <section
+            className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-4 md:p-6"
+            aria-label="Patient roster"
+          >
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Roster</h2>
+              <Button variant="secondary" size="sm" onClick={() => setInviteOpen(true)}>
+                Invite patient
+              </Button>
+            </div>
+            <RosterTable
+              orgId={org.id}
+              slug={org.slug}
+              permissionMap={OWNER_PERMISSION_MAP}
+            />
+          </section>
+        </div>
+
+        {/* Protocols tab panel — Phase 61 Plan 61-06 */}
+        <div
+          id="tabpanel-protocols"
+          role="tabpanel"
+          aria-label="Protocols"
+          hidden={currentTab !== 'protocols'}
+          className={currentTab === 'protocols' ? '' : ''}
+        >
+          {currentTab === 'protocols' && (
+            <Suspense fallback={<Skeleton className="h-40 w-full rounded-card" />}>
+              <ClinicProtocolsPage orgId={org.id} />
+            </Suspense>
+          )}
+        </div>
       </main>
 
       <InvitePatientModal
