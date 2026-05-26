@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase';
 
 const RagTopicsPage = lazy(() => import('./RagTopicsPage'));
 const RagSourcesPage = lazy(() => import('./RagSourcesPage'));
+const RagQueuePage = lazy(() => import('./RagQueuePage'));
 
 interface TelemetryRow {
   topic_id: string;
@@ -140,15 +141,6 @@ function PlaceholderCard({ heading, body }: { heading: string; body: string }) {
   );
 }
 
-function QueuePlaceholder() {
-  return (
-    <PlaceholderCard
-      heading="Review queue"
-      body="Plan 50-06 ships the scrape-output review queue. Until then, queued chunks live in rag_chunks with status='queued' and are visible to admins via direct table reads only."
-    />
-  );
-}
-
 function CostPlaceholder() {
   return (
     <PlaceholderCard
@@ -161,7 +153,7 @@ function CostPlaceholder() {
 const SUB_ROUTES: readonly SubRoute[] = [
   { key: 'topics',    label: 'Topics',    path: 'topics',    Component: RagTopicsPage },
   { key: 'sources',   label: 'Sources',   path: 'sources',   Component: RagSourcesPage },
-  { key: 'queue',     label: 'Queue',     path: 'queue',     Component: QueuePlaceholder },
+  { key: 'queue',     label: 'Queue',     path: 'queue',     Component: RagQueuePage },
   { key: 'telemetry', label: 'Telemetry', path: 'telemetry', Component: RagTelemetryPage },
   { key: 'cost',      label: 'Cost',      path: 'cost',      Component: CostPlaceholder },
 ] as const;
