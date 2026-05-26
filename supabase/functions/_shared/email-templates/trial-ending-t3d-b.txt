@@ -1,0 +1,22 @@
+3 days left -- here's what you keep (Variant B)
+================================================
+
+{{user_first_name}}, your data and insights stay with you.
+
+In 3 days ({{trial_end_date}}), your LeanShot trial ends. Here's what
+continuing means in plain language:
+
+- Your 28-day pharmacology curve stays in view
+- Injection-site rotation tracking stays unlocked
+- Your AI coach keeps the context it learned about your treatment
+- You can cancel anytime from settings (1 click)
+
+Choose your plan: {{pricing_url}}
+
+Need help deciding? Reply to this email.
+
+---
+
+Unsubscribe: {{unsubscribe_url}}
+
+LeanShot -- {{physical_address}}
