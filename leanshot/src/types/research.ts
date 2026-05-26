@@ -12,6 +12,9 @@
  *
  * IMPORTANT: Do not widen these interfaces without a corresponding
  * migration — they are the single source of truth for DB ↔ UI contracts.
+ *
+ * Imported as: `import type { ResearchPublication, ResearchPublicationStatus } from '@/types/research';`
+ * DO NOT re-declare this type in any consumer file (per Plan 62-06 revision iter-1).
  */
 
 /** State machine for research publication review workflow (mirrors ENUM). */

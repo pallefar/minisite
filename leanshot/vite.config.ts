@@ -17,6 +17,21 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      // Phase 62 Plan 62-06 — Research hub prebuild hook (INSIGHTS-08).
+      // Runs build-research-rss.mjs + build-research-sitemap.mjs at buildStart:
+      //   1. Copies content/research/*.md → public/research-content/ (for fetchResearchMarkdown)
+      //   2. Generates public/research/rss.xml (RSS 2.0 feed of published papers)
+      //   3. Appends /research/* URLs to public/sitemap.xml
+      // Set SKIP_RESEARCH_PREBUILD=1 to skip (e.g., in tsconfig-only CI checks).
+      {
+        name: 'leanshot-research-prebuild',
+        buildStart: async () => {
+          if (process.env['SKIP_RESEARCH_PREBUILD']) return;
+          const { spawnSync } = await import('node:child_process');
+          spawnSync('node', ['scripts/build-research-rss.mjs'], { stdio: 'inherit', cwd: process.cwd() });
+          spawnSync('node', ['scripts/build-research-sitemap.mjs'], { stdio: 'inherit', cwd: process.cwd() });
+        },
+      },
       process.env.ANALYZE === 'true' &&
         visualizer({
           filename: 'dist/stats.html',
