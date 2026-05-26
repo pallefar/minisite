@@ -620,7 +620,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 58. Spanish i18n Wiring | 0/0 | Not started | - |
 | 59. Apple OAuth + Onboarding Completion | 0/3 | Planned | - |
 | 60. RAG Knowledge Base Completion | 13/15 | In Progress|  |
-| 61. Admin Protocol Creator | 0/0 | Not started | - |
+| 61. Admin Protocol Creator | 1/8 | In Progress|  |
 | 62. Insights & Research Engine | 0/0 | Not started | - |
 | 63. Device-UAT + Tech Debt Cleanup | 0/0 | Not started | - |
 | 64. Legal Refresh | 0/0 | Not started | - |

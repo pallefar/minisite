@@ -156,9 +156,9 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 - [ ] **PROTOCOL-01**: Schema: `protocols` table (id, name, audience[], compound, version, review_state ENUM 'draft|published|archived', published_at, created_by_admin_id) + `protocol_steps` (protocol_id, week, dose_mg, frequency, monitoring[]) + `protocol_evidence` (protocol_id, citation, rag_source_id FK to Phase 60 RAG)
 - [ ] **PROTOCOL-02**: Admin authoring UI at `/admin/protocols` — compound picker + target audience multiselect (B2C / clinic) + step-builder grid + RAG-evidence search drawer + AI-assist suggesting safe escalation curves
 - [ ] **PROTOCOL-03**: RAG-evidence search uses Phase 60 retriever; selected chunks attach as `protocol_evidence` rows with citation text
-- [ ] **PROTOCOL-04**: 2-person review rule: draft → reviewer-admin approves → published; reviewer cannot be author; enforced via SECDEF RPC `publish_protocol(protocol_id)` checking actor != created_by
-- [ ] **PROTOCOL-05**: Versioning — edits create new `version` row (immutable history); previous `published` version remains live until new version approved; rollback action restores prior `published`
-- [ ] **PROTOCOL-06**: Clinician dashboard (Phase 30 extension) — clinicians browse published protocols + adopt-for-patient flow assigns protocol to roster patient → prefills patient dose schedule + reminder timing + side-effect-monitor cadence
+- [x] **PROTOCOL-04**: 2-person review rule: draft → reviewer-admin approves → published; reviewer cannot be author; enforced via SECDEF RPC `publish_protocol(protocol_id)` checking actor != created_by
+- [x] **PROTOCOL-05**: Versioning — edits create new `version` row (immutable history); previous `published` version remains live until new version approved; rollback action restores prior `published`
+- [x] **PROTOCOL-06**: Clinician dashboard (Phase 30 extension) — clinicians browse published protocols + adopt-for-patient flow assigns protocol to roster patient → prefills patient dose schedule + reminder timing + side-effect-monitor cadence
 - [ ] **PROTOCOL-07**: Patient dose-log (Phase 35 extension) — protocol prefills the dose schedule UI; patient can deviate but UI shows protocol expectation alongside actual logged values
 - [ ] **PROTOCOL-08**: Helpdesk KB integration (Phase 37 extension) — KB articles can reference a published protocol via `protocol_id`; renders inline protocol summary card with citation footnotes
 
@@ -420,9 +420,9 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | PROTOCOL-01 | Phase 61 | Pending |
 | PROTOCOL-02 | Phase 61 | Pending |
 | PROTOCOL-03 | Phase 61 | Pending |
-| PROTOCOL-04 | Phase 61 | Pending |
-| PROTOCOL-05 | Phase 61 | Pending |
-| PROTOCOL-06 | Phase 61 | Pending |
+| PROTOCOL-04 | Phase 61 | Complete |
+| PROTOCOL-05 | Phase 61 | Complete |
+| PROTOCOL-06 | Phase 61 | Complete |
 | PROTOCOL-07 | Phase 61 | Pending |
 | PROTOCOL-08 | Phase 61 | Pending |
 | INSIGHTS-01 | Phase 62 | Pending |
