@@ -25,8 +25,10 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ProtocolSummaryCard } from '@/components/admin/protocols/ProtocolSummaryCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { getChunkBySlug, listRelatedChunks } from '@/lib/knowledge/api';
+import { parseProtocolShortcodes } from '@/lib/markdown/protocol-shortcode-plugin';
 import type { RagChunkDetail, RagChunkRow } from '@/lib/knowledge/api';
 import { isReservedSlug } from '@/lib/knowledge/topics';
 import { sanitizeRagMarkdown } from '@/lib/rag/sanitize';
@@ -248,11 +250,29 @@ export function KnowledgeArticleDetailPage() {
               className="prose prose-sm max-w-none text-text [&_a]:text-primary [&_a:hover]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-text-secondary [&_code]:text-sm [&_pre]:overflow-x-auto"
               aria-label="Article body"
             >
-              {/* react-markdown renders the markdown; sanitizeRagMarkdown
-                  provides defense-in-depth on any raw HTML in the source.
-                  react-markdown itself escapes HTML by default (no raw HTML pass-through).
-                  T-60-13-XSS-1: the sanitized string is only used if there were raw HTML. */}
-              <ReactMarkdown>{sanitizedBody}</ReactMarkdown>
+              {/* Phase 61 Plan 07 Task 4 — pre-parse [protocol:<uuid>] shortcodes BEFORE
+                  handing markdown to ReactMarkdown. Mirrors the remark-citations.ts pure-parser
+                  pattern. Text segments render as markdown; protocol segments render inline as
+                  ProtocolSummaryCard. Sanitize-then-parse ordering: sanitizeRagMarkdown runs
+                  FIRST (T-60-13-XSS-1 defense), parseProtocolShortcodes runs SECOND on the
+                  sanitized string (T-61-07-02 mitigation). */}
+              {(() => {
+                const { segments } = parseProtocolShortcodes(sanitizedBody);
+                return segments.map((seg, i) => {
+                  if (seg.type === 'protocol') {
+                    return (
+                      <div
+                        key={`protocol-${i}-${seg.protocolId}`}
+                        className="my-4 not-prose"
+                      >
+                        <ProtocolSummaryCard protocolId={seg.protocolId} />
+                      </div>
+                    );
+                  }
+                  // Text segment — render as markdown. ReactMarkdown handles empty strings gracefully.
+                  return <ReactMarkdown key={`text-${i}`}>{seg.value}</ReactMarkdown>;
+                });
+              })()}
             </article>
 
             {/* ── Related articles ──────────────────────────────────── */}

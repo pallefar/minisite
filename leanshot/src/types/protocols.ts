@@ -87,7 +87,8 @@ export interface ProtocolReviewLogRow {
 
 /**
  * Clinician-to-patient protocol assignment.
- * PK (patient_id, protocol_id) — idempotent on re-assign (upserts version on conflict).
+ * Composite PK (patient_id, protocol_id) — idempotent on re-assign (upserts version on conflict).
+ * NO `id` or `created_at` columns — schema is intentionally compact.
  */
 export interface PatientProtocolAssignment {
   patient_id: string;

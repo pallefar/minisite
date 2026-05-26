@@ -208,6 +208,15 @@ const AdminShellRoot = lazy(() =>
 // public no-auth leaf, same isolation model as /verify/ and /share/.
 const KnowledgeRoute = lazy(() => import('@/components/knowledge/KnowledgeRoute'));
 
+// Phase 61 Plan 07 — /protocols/<slug> auth-gated read-only protocol view (PROTOCOL-08).
+// Signed-in users only; selectView returns 'auth' when user is null (T-61-07-05).
+// Own lazy chunk; renders without Sidebar/Topbar/MobileNav (read-only leaf surface).
+const PublicProtocolPage = lazy(() =>
+  import('@/components/protocols/PublicProtocolPage').then((m) => ({
+    default: m.PublicProtocolPage,
+  })),
+);
+
 // Phase 40 Plan 40-04 (POLISH-01) — CancellationModal lazy chunk (single chunk
 // per CONTEXT specifics + RESEARCH §Pitfall 8). ALL step sub-components are
 // non-lazy imports from CancellationModal.tsx so Vite emits ONE 'cancellation'
@@ -626,7 +635,11 @@ type View =
   // at TOP-PRIORITY (before auth-gated branches) so a Zustand-persisted user
   // does NOT bounce to dashboard when visiting /knowledge/*.
   // Consumer-phase widening per reference_react_router_consumer_admin_split.
-  | 'knowledge';
+  | 'knowledge'
+  // Phase 61 Plan 07 — /protocols/<slug> auth-gated read-only protocol view (PROTOCOL-08).
+  // PATH-based routing; placed AFTER /knowledge/* (public) and BEFORE /clinic/* + admin branches.
+  // Unlike /knowledge (no-auth), this branch REQUIRES auth — unauthenticated users bounce to 'auth'.
+  | 'protocols';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -691,6 +704,13 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   // Public no-auth: never requires opts.user — always returns 'knowledge'.
   // Consumer-phase widening allowed per reference_react_router_consumer_admin_split.
   if (opts.pathname.startsWith('/knowledge')) return 'knowledge';
+  // Phase 61 Plan 07 — /protocols/<slug> auth-gated public route (PROTOCOL-08).
+  // Per Pitfall 7: placed AFTER /knowledge/* (public, no-auth) and BEFORE /clinic/* +
+  // auth-gated admin branches. Unlike /knowledge, this branch REQUIRES auth —
+  // unauthenticated visitors bounce to 'auth' (T-61-07-05 Spoofing mitigation).
+  if (opts.pathname.startsWith('/protocols')) {
+    return opts.user ? 'protocols' : 'auth';
+  }
   // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback. MUST be matched
   // BEFORE the `#/auth/` hash branch below: the callback URL is
   // `${origin}/auth/callback?code=...` and matching the PATH first avoids
@@ -1692,6 +1712,17 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <KnowledgeRoute />
+      </Suspense>
+    );
+  }
+
+  // Phase 61 Plan 07 — /protocols/<slug> auth-gated read-only protocol view (PROTOCOL-08).
+  // No globalOverlays — same read-only leaf isolation model as /knowledge/.
+  // selectView already bounced unauthenticated visitors to 'auth' (T-61-07-05).
+  if (view === 'protocols') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <PublicProtocolPage />
       </Suspense>
     );
   }
