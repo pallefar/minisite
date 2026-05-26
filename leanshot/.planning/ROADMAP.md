@@ -280,7 +280,7 @@ Plans:
 - ✅ 60-04 (rag-summarize-and-chunk Fn)
 - ✅ 60-05 (rag-embed-approved Fn via OpenRouter)
 - ✅ 60-06 (rag-retrieve Edge Fn + Cohere/Jina rerank + eval dimensions)
-- [ ] 60-07 (federated PubMed/FDA/DailyMed)
+- [x] 60-07 (federated PubMed/FDA/DailyMed)
 - [ ] 60-08 (admin queue UI)
 - [ ] 60-09 (admin federated toggle UI)
 - [ ] 60-10 through 60-15 (Waves 2-4)
