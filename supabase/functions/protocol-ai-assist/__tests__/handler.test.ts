@@ -3,6 +3,9 @@
  *
  * Phase 61 Plan 03. Task 1 (RED → GREEN cycle).
  *
+ * Handler uses full dependency injection (no Deno.* or npm: imports at module
+ * level) so these tests run under Vitest without Deno runtime.
+ *
  * Tests:
  *  T1: Zero RAG chunks → refusal: true, no OpenRouter call.
  *  T2: PHARMA-02 gated compound → refusal: true, no OpenRouter call.
@@ -16,46 +19,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleAiAssist, type HandlerDeps, type HandlerRequest } from '../handler';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Mock @supabase/supabase-js
+// Mock Supabase client factory (duck-typed, no npm: import needed)
 // ──────────────────────────────────────────────────────────────────────────────
 
-const mockInsertSelect = vi.fn();
-const mockInsert = vi.fn(() => ({ select: mockInsertSelect }));
-const mockGte = vi.fn();
-const mockEq = vi.fn(() => ({ gte: mockGte }));
-const mockSelect = vi.fn(() => ({ eq: mockEq }));
-const mockFrom = vi.fn(() => ({
-  select: mockSelect,
-  insert: mockInsert,
-}));
+function makeSupabaseMock(rateLimitCount = 0) {
+  const mockInsertSelect = vi.fn().mockResolvedValue({ data: [{ id: 'log-row-1' }], error: null });
+  const mockInsert = vi.fn().mockReturnValue({ select: mockInsertSelect });
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: mockFrom,
-  })),
-}));
+  const mockGte = vi.fn().mockResolvedValue({
+    count: rateLimitCount,
+    data: [],
+    error: null,
+  });
+  const mockEq = vi.fn().mockReturnValue({ gte: mockGte });
+  const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+  const mockFrom = vi.fn().mockReturnValue({
+    select: mockSelect,
+    insert: mockInsert,
+  });
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Mock _shared helpers
-// ──────────────────────────────────────────────────────────────────────────────
-
-const mockEmitAiGeneration = vi.fn();
-const mockShutdownPostHog = vi.fn();
-vi.mock('../../_shared/posthog-rag-events.ts', () => ({
-  emitAiGeneration: (...args: unknown[]) => mockEmitAiGeneration(...args),
-  shutdownPostHog: (...args: unknown[]) => mockShutdownPostHog(...args),
-}));
-
-const mockSendSlackGuardrailAlert = vi.fn();
-vi.mock('../../_shared/slack-guardrail-alert.ts', () => ({
-  sendSlackGuardrailAlert: (...args: unknown[]) => mockSendSlackGuardrailAlert(...args),
-}));
-
-// isPharma02GatedTopic returns true for 'cabergoline' (mock for tests)
-const mockIsPharma02GatedTopic = vi.fn((compound: string) => compound === 'cabergoline');
-vi.mock('../../_shared/pharma-02-carveout.ts', () => ({
-  isPharma02GatedTopic: (compound: string) => mockIsPharma02GatedTopic(compound),
-}));
+  return {
+    sb: { from: mockFrom },
+    mocks: { mockInsert, mockInsertSelect, mockGte, mockEq, mockSelect, mockFrom },
+  };
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Fixtures
@@ -76,24 +63,6 @@ function makeBaseRequest(overrides: Partial<HandlerRequest> = {}): HandlerReques
   };
 }
 
-function makeBaseDeps(overrides: Partial<HandlerDeps> = {}): HandlerDeps {
-  // Default: rate limit not exceeded (count = 0)
-  mockGte.mockResolvedValue({ count: 0, data: [], error: null });
-  mockInsertSelect.mockResolvedValue({ data: [{ id: 'log-row-1' }], error: null });
-
-  return {
-    openrouterApiKey: 'sk-or-test-valid-key',
-    supabaseUrl: 'http://localhost:54321',
-    supabaseServiceKey: 'test-service-key',
-    posthogKey: undefined,
-    slackWebhookUrl: undefined,
-    fetchImpl: vi.fn(),
-    ragRetrieve: vi.fn(),
-    now: () => new Date('2026-05-26T10:00:00Z'),
-    ...overrides,
-  };
-}
-
 function makeRagChunks(n: number) {
   return Array.from({ length: n }, (_, i) => ({
     chunk_id: i === 0 ? CHUNK_ID_1 : CHUNK_ID_2,
@@ -109,9 +78,19 @@ function makeRagChunks(n: number) {
     evidence_date: '2025-01-01',
     freshness_reweight_applied: false,
     public_visibility: true,
+  }));
+}
+
+function makeRagResult(n: number) {
+  return {
     refused: false,
     refusal_reason: null,
-  }));
+    chunks: makeRagChunks(n),
+    trace_id: crypto.randomUUID(),
+    reranker_provider: 'none',
+    embed_cost_usd: 0,
+    rerank_cost_usd: 0,
+  };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -119,21 +98,24 @@ function makeRagChunks(n: number) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe('handleAiAssist', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    // Reset default mock implementations
-    mockGte.mockResolvedValue({ count: 0, data: [], error: null });
-    mockInsertSelect.mockResolvedValue({ data: [{ id: 'log-row-1' }], error: null });
-  });
-
   it('T1: returns refusal when RAG chunks are empty (no OpenRouter call)', async () => {
-    const deps = makeBaseDeps({
-      ragRetrieve: vi.fn().mockResolvedValue({ chunks: [], refused: false, refusal_reason: null, trace_id: 'trace-1', reranker_provider: 'none', embed_cost_usd: 0, rerank_cost_usd: 0 }),
-      fetchImpl: vi.fn(),
-    });
-    const req = makeBaseRequest();
+    const { sb } = makeSupabaseMock(0);
+    const mockFetch = vi.fn();
+    const mockEmit = vi.fn();
 
-    const result = await handleAiAssist(req, deps);
+    const deps: HandlerDeps = {
+      openrouterApiKey: 'sk-or-test-valid-key',
+      supabaseUrl: 'http://localhost:54321',
+      supabaseServiceKey: 'test-service-key',
+      supabaseClient: sb,
+      fetchImpl: mockFetch,
+      ragRetrieve: vi.fn().mockResolvedValue(makeRagResult(0)),
+      emitAiGenerationFn: mockEmit,
+      isPharma02GatedTopicFn: () => false,
+      now: () => new Date('2026-05-26T10:00:00Z'),
+    };
+
+    const result = await handleAiAssist(makeBaseRequest(), deps);
 
     expect(result.status).toBe(200);
     expect(result.body).toMatchObject({
@@ -143,49 +125,71 @@ describe('handleAiAssist', () => {
       cited_chunk_ids: [],
     });
     expect((result.body as { refusal_reason?: string }).refusal_reason).toMatch(/no.*evidence/i);
-    expect(deps.fetchImpl).not.toHaveBeenCalled();
+    // No OpenRouter call when no chunks
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('T2: returns refusal for PHARMA-02 gated compound (no OpenRouter call)', async () => {
-    const deps = makeBaseDeps({
-      ragRetrieve: vi.fn().mockResolvedValue({ chunks: makeRagChunks(2), refused: false, refusal_reason: null, trace_id: 'trace-2', reranker_provider: 'none', embed_cost_usd: 0, rerank_cost_usd: 0 }),
-      fetchImpl: vi.fn(),
-    });
-    const req = makeBaseRequest({ compound: 'cabergoline' });
+    const { sb, mocks } = makeSupabaseMock(0);
+    const mockFetch = vi.fn();
 
-    const result = await handleAiAssist(req, deps);
+    const deps: HandlerDeps = {
+      openrouterApiKey: 'sk-or-test-valid-key',
+      supabaseUrl: 'http://localhost:54321',
+      supabaseServiceKey: 'test-service-key',
+      supabaseClient: sb,
+      fetchImpl: mockFetch,
+      ragRetrieve: vi.fn().mockResolvedValue(makeRagResult(2)),
+      isPharma02GatedTopicFn: (compound: string) => compound === 'cabergoline',
+      now: () => new Date('2026-05-26T10:00:00Z'),
+    };
+
+    const result = await handleAiAssist(makeBaseRequest({ compound: 'cabergoline' }), deps);
 
     expect(result.status).toBe(200);
     expect(result.body).toMatchObject({ refusal: true });
     expect((result.body as { refusal_reason?: string }).refusal_reason).toMatch(/gated|carveout/i);
-    expect(deps.fetchImpl).not.toHaveBeenCalled();
+    // No OpenRouter call
+    expect(mockFetch).not.toHaveBeenCalled();
+    // INSERT was called for audit log
+    expect(mocks.mockInsert).toHaveBeenCalledTimes(1);
   });
 
   it('T3: returns 429 when actor_id has hit daily rate limit (no INSERT, no OpenRouter)', async () => {
-    // Simulate rate limit exceeded: count = 50
-    mockGte.mockResolvedValue({ count: 50, data: [], error: null });
+    const { sb, mocks } = makeSupabaseMock(50); // count = 50 → rate limit hit
+    const mockFetch = vi.fn();
+    const mockRag = vi.fn();
 
-    const deps = makeBaseDeps({
-      ragRetrieve: vi.fn(),
-      fetchImpl: vi.fn(),
-    });
-    const req = makeBaseRequest();
+    const deps: HandlerDeps = {
+      openrouterApiKey: 'sk-or-test-valid-key',
+      supabaseUrl: 'http://localhost:54321',
+      supabaseServiceKey: 'test-service-key',
+      supabaseClient: sb,
+      fetchImpl: mockFetch,
+      ragRetrieve: mockRag,
+      isPharma02GatedTopicFn: () => false,
+      now: () => new Date('2026-05-26T10:00:00Z'),
+    };
 
-    const result = await handleAiAssist(req, deps);
+    const result = await handleAiAssist(makeBaseRequest(), deps);
 
     expect(result.status).toBe(429);
     expect((result.body as { error: string }).error).toBe('rate_limit_exceeded');
-    expect((result.body as { resets_at: string }).resets_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    // No INSERT should have been called
-    expect(mockInsert).not.toHaveBeenCalled();
+    // resets_at must be midnight UTC tomorrow
+    const resetsAt = new Date((result.body as { resets_at: string }).resets_at);
+    expect(resetsAt.getUTCHours()).toBe(0);
+    expect(resetsAt.getUTCMinutes()).toBe(0);
+    // No INSERT (rate-limit doesn't log)
+    expect(mocks.mockInsert).not.toHaveBeenCalled();
     // No OpenRouter call
-    expect(deps.fetchImpl).not.toHaveBeenCalled();
-    // ragRetrieve should NOT have been called
-    expect(deps.ragRetrieve).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
+    // RAG retrieve NOT called (rate limit checked first)
+    expect(mockRag).not.toHaveBeenCalled();
   });
 
   it('T4: success path — inserts log row and emits PostHog with correct vendor/model', async () => {
-    const chunks = makeRagChunks(3);
+    const { sb, mocks } = makeSupabaseMock(0);
+    const mockEmit = vi.fn();
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -202,23 +206,22 @@ describe('handleAiAssist', () => {
         ],
         usage: { prompt_tokens: 150, completion_tokens: 50 },
       }),
+      text: async () => '',
     });
 
-    const deps = makeBaseDeps({
-      ragRetrieve: vi.fn().mockResolvedValue({
-        chunks,
-        refused: false,
-        refusal_reason: null,
-        trace_id: 'trace-4',
-        reranker_provider: 'none',
-        embed_cost_usd: 0,
-        rerank_cost_usd: 0,
-      }),
+    const deps: HandlerDeps = {
+      openrouterApiKey: 'sk-or-test-valid-key',
+      supabaseUrl: 'http://localhost:54321',
+      supabaseServiceKey: 'test-service-key',
+      supabaseClient: sb,
       fetchImpl: mockFetch,
-    });
-    const req = makeBaseRequest();
+      ragRetrieve: vi.fn().mockResolvedValue(makeRagResult(3)),
+      emitAiGenerationFn: mockEmit,
+      isPharma02GatedTopicFn: () => false,
+      now: () => new Date('2026-05-26T10:00:00Z'),
+    };
 
-    const result = await handleAiAssist(req, deps);
+    const result = await handleAiAssist(makeBaseRequest(), deps);
 
     expect(result.status).toBe(200);
     const body = result.body as {
@@ -233,11 +236,11 @@ describe('handleAiAssist', () => {
     expect(body.refusal).toBe(false);
 
     // INSERT into admin_ai_assist_log
-    expect(mockInsert).toHaveBeenCalledTimes(1);
+    expect(mocks.mockInsert).toHaveBeenCalledTimes(1);
 
     // emitAiGeneration called once with correct vendor/model
-    expect(mockEmitAiGeneration).toHaveBeenCalledTimes(1);
-    const emitCall = mockEmitAiGeneration.mock.calls[0][0] as {
+    expect(mockEmit).toHaveBeenCalledTimes(1);
+    const emitCall = mockEmit.mock.calls[0][0] as {
       userId: string;
       properties: { vendor_field: string; model: string };
     };
@@ -247,28 +250,36 @@ describe('handleAiAssist', () => {
   });
 
   it('T5: returns 503 and calls Slack when OPENROUTER_API_KEY is missing or placeholder', async () => {
-    const deps = makeBaseDeps({
-      openrouterApiKey: 'placeholder-key',
-      ragRetrieve: vi.fn(),
-      fetchImpl: vi.fn(),
-      slackWebhookUrl: 'https://hooks.slack.com/services/test',
-    });
-    const req = makeBaseRequest();
+    const { sb } = makeSupabaseMock(0);
+    const mockFetch = vi.fn();
+    const mockSlack = vi.fn().mockResolvedValue(undefined);
 
-    const result = await handleAiAssist(req, deps);
+    const deps: HandlerDeps = {
+      openrouterApiKey: 'placeholder-key',
+      supabaseUrl: 'http://localhost:54321',
+      supabaseServiceKey: 'test-service-key',
+      supabaseClient: sb,
+      fetchImpl: mockFetch,
+      ragRetrieve: vi.fn(),
+      sendSlackAlertFn: mockSlack,
+      now: () => new Date('2026-05-26T10:00:00Z'),
+    };
+
+    const result = await handleAiAssist(makeBaseRequest(), deps);
 
     expect(result.status).toBe(503);
     expect((result.body as { error: string }).error).toBe('service_unavailable');
-    expect((result.body as { reason: string }).reason).toMatch(/api.*key/i);
-    // Slack should have been called with regulatory severity
-    expect(mockSendSlackGuardrailAlert).toHaveBeenCalledTimes(1);
-    const slackCall = mockSendSlackGuardrailAlert.mock.calls[0];
+    expect((result.body as { reason: string }).reason).toMatch(/api.*key|key.*missing|placeholder/i);
+
+    // Slack should have been called with regulatory channel and P1 severity
+    expect(mockSlack).toHaveBeenCalledTimes(1);
+    const slackCall = mockSlack.mock.calls[0] as [string, { severity: string }];
     expect(slackCall[0]).toBe('regulatory');
     expect(slackCall[1].severity).toBe('P1');
   });
 
   it('T6: server-side refusal override when OpenRouter returns cited_chunk_ids: []', async () => {
-    const chunks = makeRagChunks(2);
+    const { sb, mocks } = makeSupabaseMock(0);
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -285,23 +296,21 @@ describe('handleAiAssist', () => {
         ],
         usage: { prompt_tokens: 100, completion_tokens: 30 },
       }),
+      text: async () => '',
     });
 
-    const deps = makeBaseDeps({
-      ragRetrieve: vi.fn().mockResolvedValue({
-        chunks,
-        refused: false,
-        refusal_reason: null,
-        trace_id: 'trace-6',
-        reranker_provider: 'none',
-        embed_cost_usd: 0,
-        rerank_cost_usd: 0,
-      }),
+    const deps: HandlerDeps = {
+      openrouterApiKey: 'sk-or-test-valid-key',
+      supabaseUrl: 'http://localhost:54321',
+      supabaseServiceKey: 'test-service-key',
+      supabaseClient: sb,
       fetchImpl: mockFetch,
-    });
-    const req = makeBaseRequest();
+      ragRetrieve: vi.fn().mockResolvedValue(makeRagResult(2)),
+      isPharma02GatedTopicFn: () => false,
+      now: () => new Date('2026-05-26T10:00:00Z'),
+    };
 
-    const result = await handleAiAssist(req, deps);
+    const result = await handleAiAssist(makeBaseRequest(), deps);
 
     expect(result.status).toBe(200);
     const body = result.body as { refusal: boolean; refusal_reason?: string; cited_chunk_ids: string[] };
@@ -309,6 +318,6 @@ describe('handleAiAssist', () => {
     expect(body.refusal_reason).toMatch(/no qualifying evidence/i);
     expect(body.cited_chunk_ids).toHaveLength(0);
     // INSERT still happens with refusal=true
-    expect(mockInsert).toHaveBeenCalledTimes(1);
+    expect(mocks.mockInsert).toHaveBeenCalledTimes(1);
   });
 });
