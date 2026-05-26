@@ -140,7 +140,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 > Phase 60 — resume in-place: scrape + chunk + embed + admin curation + re-rank + federated sources; MVP + STRETCH per user's aggressive-foundations preference.
 
 - [ ] **RAG-01**: Scrape pipeline (Wave 2 50-05) — admin-pasted URL → Edge Fn fetches HTML → Trafilatura-equivalent boilerplate strip → chunked → queued for embedding
-- [ ] **RAG-02**: Embedding worker (50-06) — pgvector batch insert via OpenAI `text-embedding-3-small` (reuses RECOMMEND-02 gateway); HNSW index already shipped Wave 1
+- [x] **RAG-02**: Embedding worker (50-06) — pgvector batch insert via OpenAI `text-embedding-3-small` (reuses RECOMMEND-02 gateway); HNSW index already shipped Wave 1
 - [x] **RAG-03**: Admin curation surface (50-07) — pending-chunks review queue → approve / reject / edit / re-chunk; 2-person review for clinical-content sources
 - [ ] **RAG-04**: AI-coach citation integration (Wave 3 50-08) — `ai-chat` Edge Fn injects top-k retrieved RAG chunks into system prompt; response includes citation footnotes linking to source row
 - [ ] **RAG-05**: Re-ranker (50-09 MVP) — cross-encoder cohere-reranker pass on top-k=20 retrieved chunks; returns top-3 to LLM
@@ -409,7 +409,7 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | AUTH-10 | Phase 59 | Pending |
 | AUTH-11 | Phase 59 | Pending |
 | RAG-01 | Phase 60 | Pending |
-| RAG-02 | Phase 60 | Pending |
+| RAG-02 | Phase 60 | Complete |
 | RAG-03 | Phase 60 | Complete |
 | RAG-04 | Phase 60 | Pending |
 | RAG-05 | Phase 60 | Pending |
