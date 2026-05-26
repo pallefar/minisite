@@ -1,4 +1,6 @@
 // Phase 7 Plan 07-04 (COMPL-01) — Privacy Policy for v1 broad launch.
+// Phase 64 Plan 04 (LEGAL-01 + LEGAL-04) — Extended with 5 state-privacy addendums,
+//   live SubprocessorList, TOC, and "What changed" banner.
 //
 // Self-drafted under CONTEXT D-01 (LOCKED): no attorney engagement.
 // Cross-sourced (per D-01 "at least two sources cross-referenced"):
@@ -19,9 +21,14 @@
 
 import { DATA_CATEGORIES } from '@/lib/legal/data-categories';
 import { LegalLayout } from './LegalLayout';
+import { SubprocessorList } from './SubprocessorList';
 
 const EFFECTIVE_DATE = '2026-05-12';
-const LAST_UPDATED = '2026-05-12';
+const LAST_UPDATED = '2026-05-27';
+
+// State-addendum sections per LEGAL-01 / D-State-Privacy-Addendums.
+// Each section includes: rights enumeration + exercise instructions + state contact.
+// T-64-04-04 mitigation: all sections include draft disclaimer pending Phase 70 counsel review.
 
 export function PrivacyPolicy() {
   return (
@@ -29,8 +36,64 @@ export function PrivacyPolicy() {
       <article className="max-w-[760px] mx-auto px-1 py-2 space-y-6 text-[14px] text-[var(--color-text)] leading-relaxed">
         {/* 07-02 spec contract: data-todo marker names the authoring plan. */}
         <div data-todo="07-04" hidden />
+
+        {/* Phase 64 Plan 04 — "What changed" sticky banner (T-64-04-04) */}
+        <div
+          className="rounded-lg p-4 bg-[var(--color-warning-soft)] border border-[var(--color-border)] space-y-2"
+          role="note"
+          aria-label="Policy update notice"
+        >
+          <p className="text-[13px] text-[var(--color-text)]">
+            <strong>Last updated:</strong> {LAST_UPDATED} ·{' '}
+            <strong>What changed:</strong> Added state-specific privacy disclosures for
+            California, Virginia, Colorado, Connecticut, and Utah residents. Updated subprocessor
+            list to include OpenRouter, Cohere, Mux, Stripe Connect, Sentry, and the pgvector
+            recommender. New Do Not Sell or Share opt-out page.
+          </p>
+          <p className="text-[11px] text-[var(--color-text-secondary)]">
+            <a
+              href="#what-changed"
+              className="underline decoration-1 underline-offset-2 hover:no-underline focus-visible:no-underline"
+            >
+              See full change log →
+            </a>
+          </p>
+        </div>
+
+        {/* Phase 64 Plan 04 — Table of contents (sticky on lg+) */}
+        <nav
+          aria-label="Policy table of contents"
+          className="lg:sticky lg:top-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-4 space-y-2"
+        >
+          <p className="text-[13px] font-semibold text-[var(--color-text)]">Jump to:</p>
+          <ul className="space-y-1">
+            {[
+              { href: '#overview', label: 'Privacy overview' },
+              { href: '#categories-collected', label: 'Information we collect' },
+              { href: '#how-we-use', label: 'How we use your info' },
+              { href: '#subprocessors', label: 'Subprocessors' },
+              { href: '#california', label: 'California (CCPA/CPRA)' },
+              { href: '#virginia', label: 'Virginia (CDPA)' },
+              { href: '#colorado', label: 'Colorado (CPA)' },
+              { href: '#connecticut', label: 'Connecticut (CTDPA)' },
+              { href: '#utah', label: 'Utah (UCPA)' },
+              { href: '#what-changed', label: 'What changed' },
+              { href: '#contact', label: 'Contact us' },
+            ].map(({ href, label }) => (
+              <li key={href}>
+                <a
+                  href={href}
+                  className="text-[11px] font-normal text-[var(--color-text-secondary)] hover:underline focus-visible:underline"
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
         {/* Header */}
-        <header className="space-y-1">
+        <header id="overview" className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Privacy Policy</h1>
           <p className="text-[13px] text-[var(--color-text-tertiary)]">
             Effective date: {EFFECTIVE_DATE}
@@ -57,7 +120,7 @@ export function PrivacyPolicy() {
         </p>
 
         {/* § Categories collected */}
-        <section className="space-y-3">
+        <section id="categories-collected" className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ Categories collected</h2>
           <p>
             We collect the following <strong>health-data categories</strong> when you log them in
@@ -89,7 +152,7 @@ export function PrivacyPolicy() {
         </section>
 
         {/* § How we use it */}
-        <section className="space-y-3">
+        <section id="how-we-use" className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ How we use it</h2>
           <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             <li>
@@ -191,6 +254,18 @@ export function PrivacyPolicy() {
           </p>
         </section>
 
+        {/* § Subprocessors — live-fetched from Phase 25 pipeline (LEGAL-04) */}
+        <section id="subprocessors" className="space-y-3">
+          <h2 className="text-[18px] font-semibold mt-8 mb-3">§ Subprocessors</h2>
+          <p className="text-[13px] text-[var(--color-text-secondary)]">
+            The following table is live-fetched from our subprocessor monitoring pipeline. It
+            reflects the most recent snapshot captured by our automated subprocessor-diff cron job
+            (Phase 25). We do not maintain a static vendor list — this ensures the information is
+            always current.
+          </p>
+          <SubprocessorList />
+        </section>
+
         {/* § How long we retain */}
         <section className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ How long we retain</h2>
@@ -287,7 +362,7 @@ export function PrivacyPolicy() {
         </section>
 
         {/* § Contact */}
-        <section className="space-y-3">
+        <section id="contact" className="space-y-3">
           <h2 className="text-[18px] font-semibold mt-8 mb-3">§ Contact</h2>
           <p>
             Privacy questions: karsten.haldan@gmail.com. For Washington State consumer-health-data
@@ -300,6 +375,496 @@ export function PrivacyPolicy() {
             </a>
             .
           </p>
+        </section>
+
+        {/* ============================================================
+            Phase 64 Plan 04 — STATE-PRIVACY ADDENDUMS (LEGAL-01)
+            Each section: anchored H2 + 3 subsections (rights / how to
+            exercise / state-specific contact) + draft disclaimer.
+            T-64-04-04: Each section opens with italic draft notice.
+            T-64-04-03: All colors via var(--color-*) bracket syntax.
+            Typography: text-[18px]/600 h2, text-[13px]/400 body,
+                        text-[11px]/400 meta — within UI-SPEC ceiling.
+            ============================================================ */}
+
+        {/* § California (CCPA / CPRA) */}
+        <section
+          id="california"
+          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
+        >
+          <h2 className="text-[18px] font-semibold">California (CCPA / CPRA)</h2>
+          <em className="block text-[13px] text-[var(--color-text-secondary)]">
+            This addendum is in draft pending legal counsel review (Phase 70 UAT).
+          </em>
+
+          <div className="space-y-3">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">Your rights</h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              The California Consumer Privacy Act (CCPA) and the California Privacy Rights Act
+              (CPRA) grant California residents the following rights over their personal information:
+            </p>
+            <ul className="list-disc ps-5 space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
+              <li>
+                <strong className="text-[var(--color-text)]">Right to know.</strong> You may
+                request disclosure of the categories and specific pieces of personal information we
+                have collected about you, the sources, our business or commercial purposes for
+                collecting it, and the categories of third parties with whom we share it.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to delete.</strong> You may
+                request deletion of personal information we have collected from you, subject to
+                certain exceptions (e.g., completing a transaction, detecting security incidents,
+                complying with legal obligations).
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to correct.</strong> You may
+                request correction of inaccurate personal information we maintain about you.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">
+                  Right to opt out of sale or sharing.
+                </strong>{' '}
+                You may direct us not to sell or share your personal information with third parties.
+                LeanShot does not sell personal information. To exercise this right formally, visit
+                our{' '}
+                <a
+                  href="#/privacy/do-not-sell"
+                  className="underline decoration-1 underline-offset-2"
+                >
+                  Do Not Sell or Share
+                </a>{' '}
+                page.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">
+                  Right to limit sensitive personal information use.
+                </strong>{' '}
+                Under CPRA, you may direct us to limit use of sensitive personal information
+                (including health data) to purposes necessary to perform the services you request.
+                Submit a request via{' '}
+                <a
+                  href="#/account/data-rights"
+                  className="underline decoration-1 underline-offset-2"
+                >
+                  your data-rights portal
+                </a>
+                .
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to non-discrimination.</strong>{' '}
+                You will not receive discriminatory treatment for exercising your CCPA/CPRA rights.
+                We will not deny you services, charge different prices, or provide a different
+                quality of service as a result.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              How to exercise these rights
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Submit a request via our{' '}
+              <a href="#/account/data-rights" className="underline decoration-1 underline-offset-2">
+                Data Rights portal
+              </a>{' '}
+              or the{' '}
+              <a href="#/privacy/do-not-sell" className="underline decoration-1 underline-offset-2">
+                Do Not Sell or Share page
+              </a>
+              . We will respond within 45 days of receipt. If we need more time, we will notify you
+              with the reason and the extension period (up to an additional 45 days).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              State-specific contact
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Email{' '}
+              <a
+                href="mailto:privacy@leanshot.app?subject=[CA Privacy]"
+                className="underline decoration-1 underline-offset-2"
+              >
+                privacy@leanshot.app
+              </a>{' '}
+              with subject line <code>[CA Privacy]</code> for California-specific inquiries.
+            </p>
+          </div>
+        </section>
+
+        {/* § Virginia (CDPA) */}
+        <section
+          id="virginia"
+          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
+        >
+          <h2 className="text-[18px] font-semibold">Virginia (CDPA)</h2>
+          <em className="block text-[13px] text-[var(--color-text-secondary)]">
+            This addendum is in draft pending legal counsel review (Phase 70 UAT).
+          </em>
+
+          <div className="space-y-3">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">Your rights</h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Virginia&apos;s Consumer Data Protection Act (CDPA) grants Virginia residents the
+              following rights:
+            </p>
+            <ul className="list-disc ps-5 space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
+              <li>
+                <strong className="text-[var(--color-text)]">Right to access.</strong> Confirm
+                whether we process your personal data and access that data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to delete.</strong> Delete
+                personal data you have provided or that we have collected about you.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to correct.</strong> Correct
+                inaccuracies in your personal data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain
+                a copy of your personal data in a portable, readily usable format where technically
+                feasible.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">
+                  Right to opt out.
+                </strong>{' '}
+                Opt out of the processing of your personal data for purposes of targeted advertising,
+                sale of personal data, or profiling in furtherance of decisions producing legal or
+                similarly significant effects.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              How to exercise these rights
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Submit a request via our{' '}
+              <a href="#/account/data-rights" className="underline decoration-1 underline-offset-2">
+                Data Rights portal
+              </a>{' '}
+              or the{' '}
+              <a href="#/privacy/do-not-sell" className="underline decoration-1 underline-offset-2">
+                Do Not Sell or Share page
+              </a>
+              . We will respond within 45 days. You may appeal our decision by emailing{' '}
+              <a
+                href="mailto:privacy@leanshot.app?subject=[VA Privacy Appeal]"
+                className="underline decoration-1 underline-offset-2"
+              >
+                privacy@leanshot.app
+              </a>
+              .
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              State-specific contact
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Email{' '}
+              <a
+                href="mailto:privacy@leanshot.app?subject=[VA Privacy]"
+                className="underline decoration-1 underline-offset-2"
+              >
+                privacy@leanshot.app
+              </a>{' '}
+              with subject line <code>[VA Privacy]</code>.
+            </p>
+          </div>
+        </section>
+
+        {/* § Colorado (CPA) */}
+        <section
+          id="colorado"
+          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
+        >
+          <h2 className="text-[18px] font-semibold">Colorado (CPA)</h2>
+          <em className="block text-[13px] text-[var(--color-text-secondary)]">
+            This addendum is in draft pending legal counsel review (Phase 70 UAT).
+          </em>
+
+          <div className="space-y-3">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">Your rights</h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Colorado&apos;s Privacy Act (CPA) grants Colorado residents the following rights:
+            </p>
+            <ul className="list-disc ps-5 space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
+              <li>
+                <strong className="text-[var(--color-text)]">Right to access.</strong> Confirm
+                whether we process your personal data and access that data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to delete.</strong> Delete
+                personal data you have provided or that we have collected about you.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to correct.</strong> Correct
+                inaccuracies in your personal data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain
+                a copy of your personal data in a portable, readily usable format.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">
+                  Right to opt out.
+                </strong>{' '}
+                Opt out of targeted advertising, sale, or profiling that produces legal or similarly
+                significant effects.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Universal opt-out signals.</strong>{' '}
+                Colorado recognizes universal opt-out mechanisms, including the Global Privacy
+                Control (GPC) browser signal. If your browser sends a GPC signal, we treat it as an
+                opt-out request for sale and targeted advertising.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              How to exercise these rights
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Submit a request via our{' '}
+              <a href="#/account/data-rights" className="underline decoration-1 underline-offset-2">
+                Data Rights portal
+              </a>{' '}
+              or the{' '}
+              <a href="#/privacy/do-not-sell" className="underline decoration-1 underline-offset-2">
+                Do Not Sell or Share page
+              </a>
+              . We respond within 45 days (up to 90 days with notice).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              State-specific contact
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Email{' '}
+              <a
+                href="mailto:privacy@leanshot.app?subject=[CO Privacy]"
+                className="underline decoration-1 underline-offset-2"
+              >
+                privacy@leanshot.app
+              </a>{' '}
+              with subject line <code>[CO Privacy]</code>.
+            </p>
+          </div>
+        </section>
+
+        {/* § Connecticut (CTDPA) */}
+        <section
+          id="connecticut"
+          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
+        >
+          <h2 className="text-[18px] font-semibold">Connecticut (CTDPA)</h2>
+          <em className="block text-[13px] text-[var(--color-text-secondary)]">
+            This addendum is in draft pending legal counsel review (Phase 70 UAT).
+          </em>
+
+          <div className="space-y-3">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">Your rights</h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Connecticut&apos;s Data Privacy Act (CTDPA) grants Connecticut residents the following
+              rights:
+            </p>
+            <ul className="list-disc ps-5 space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
+              <li>
+                <strong className="text-[var(--color-text)]">Right to access.</strong> Confirm
+                whether we process your personal data and access that data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to delete.</strong> Delete
+                personal data you have provided or that we have collected about you.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to correct.</strong> Correct
+                inaccuracies in your personal data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain
+                a copy of your personal data in a portable, readily usable format.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">
+                  Right to opt out.
+                </strong>{' '}
+                Opt out of targeted advertising, sale, or profiling with significant effects.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Universal opt-out signals.</strong>{' '}
+                Connecticut recognizes the Global Privacy Control (GPC) browser signal as a valid
+                opt-out mechanism.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              How to exercise these rights
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Submit a request via our{' '}
+              <a href="#/account/data-rights" className="underline decoration-1 underline-offset-2">
+                Data Rights portal
+              </a>{' '}
+              or the{' '}
+              <a href="#/privacy/do-not-sell" className="underline decoration-1 underline-offset-2">
+                Do Not Sell or Share page
+              </a>
+              . We respond within 45 days (up to 90 days with notice). You may appeal our decision
+              within 60 days of receiving our response.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              State-specific contact
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Email{' '}
+              <a
+                href="mailto:privacy@leanshot.app?subject=[CT Privacy]"
+                className="underline decoration-1 underline-offset-2"
+              >
+                privacy@leanshot.app
+              </a>{' '}
+              with subject line <code>[CT Privacy]</code>.
+            </p>
+          </div>
+        </section>
+
+        {/* § Utah (UCPA) */}
+        <section
+          id="utah"
+          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
+        >
+          <h2 className="text-[18px] font-semibold">Utah (UCPA)</h2>
+          <em className="block text-[13px] text-[var(--color-text-secondary)]">
+            This addendum is in draft pending legal counsel review (Phase 70 UAT).
+          </em>
+
+          <div className="space-y-3">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">Your rights</h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Utah&apos;s Consumer Privacy Act (UCPA) grants Utah residents a narrower set of rights
+              compared to some other state laws. Specifically, the UCPA does not include rights to
+              correction or portability. Utah residents have the following rights:
+            </p>
+            <ul className="list-disc ps-5 space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
+              <li>
+                <strong className="text-[var(--color-text)]">Right to access.</strong> Confirm
+                whether we process your personal data and access that data.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to deletion.</strong> Delete
+                personal data you have provided to us.
+              </li>
+              <li>
+                <strong className="text-[var(--color-text)]">Right to opt out.</strong> Opt out of
+                the sale of personal data or the processing of personal data for targeted
+                advertising.
+              </li>
+            </ul>
+            <p className="text-[13px] text-[var(--color-text-secondary)] italic">
+              Note: The UCPA does not grant rights to correction or data portability. If you are
+              a Utah resident seeking to correct data, you may do so directly within the LeanShot
+              app — every entry is editable from the surface that created it.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              How to exercise these rights
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Submit a request via our{' '}
+              <a href="#/account/data-rights" className="underline decoration-1 underline-offset-2">
+                Data Rights portal
+              </a>{' '}
+              or the{' '}
+              <a href="#/privacy/do-not-sell" className="underline decoration-1 underline-offset-2">
+                Do Not Sell or Share page
+              </a>
+              . We respond within 45 days of receipt.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-[13px] font-semibold text-[var(--color-text)]">
+              State-specific contact
+            </h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              Email{' '}
+              <a
+                href="mailto:privacy@leanshot.app?subject=[UT Privacy]"
+                className="underline decoration-1 underline-offset-2"
+              >
+                privacy@leanshot.app
+              </a>{' '}
+              with subject line <code>[UT Privacy]</code>.
+            </p>
+          </div>
+        </section>
+
+        {/* § What changed (change log anchor) */}
+        <section
+          id="what-changed"
+          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
+        >
+          <h2 className="text-[18px] font-semibold">What changed</h2>
+          <p className="text-[13px] text-[var(--color-text-secondary)]">
+            Chronological change log for this policy:
+          </p>
+          <div className="space-y-4">
+            <div>
+              <p className="text-[13px] font-semibold text-[var(--color-text)]">
+                2026-05-27 — Phase 64 Legal Refresh
+              </p>
+              <ul className="list-disc ps-5 mt-1 space-y-1 text-[13px] text-[var(--color-text-secondary)]">
+                <li>
+                  Added state-specific privacy addendums for California (CCPA/CPRA), Virginia
+                  (CDPA), Colorado (CPA), Connecticut (CTDPA), and Utah (UCPA) residents.
+                </li>
+                <li>
+                  Replaced static subprocessor list with live-fetched{' '}
+                  <code>SubprocessorList</code> component drawing from the Phase 25
+                  subprocessor-diff snapshot pipeline. Current vendors include: Supabase, Vercel,
+                  Anthropic/Moonshot, Sentry, PostHog, Mux, Stripe Connect, OpenRouter, Cohere,
+                  Resend.
+                </li>
+                <li>
+                  Launched new{' '}
+                  <a
+                    href="#/privacy/do-not-sell"
+                    className="underline decoration-1 underline-offset-2"
+                  >
+                    Do Not Sell or Share
+                  </a>{' '}
+                  opt-out page (Plan 64-05).
+                </li>
+                <li>Updated DSAR portal with state-residency intake (Plan 64-06).</li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-[var(--color-text)]">
+                2026-05-12 — Phase 7 Initial Policy
+              </p>
+              <ul className="list-disc ps-5 mt-1 space-y-1 text-[13px] text-[var(--color-text-secondary)]">
+                <li>Initial policy published for v1 launch.</li>
+              </ul>
+            </div>
+          </div>
         </section>
       </article>
     </LegalLayout>

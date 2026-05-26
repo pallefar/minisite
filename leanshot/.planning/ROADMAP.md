@@ -392,7 +392,7 @@ Plans:
 - [ ] 64-01-PLAN.md — DB schema: privacy_optout_requests + policy_notice_log + ad_targeting_exclusion + email_lifecycle_exclusion + data_rights_requests (5 migrations)
 - [ ] 64-02-PLAN.md — privacy-optout-process Edge Fn (synchronous fan-out to PostHog opt-out + ad/email exclusion tables + Resend confirmation)
 - [ ] 64-03-PLAN.md — grandfathered-policy-notice Edge Fn (idempotent one-shot Resend send — operator-invoked at Phase 70 UAT)
-- [ ] 64-04-PLAN.md — PrivacyPolicy 5 state addendums + What Changed banner + live SubprocessorList + ToS UGC content-license (LEGAL-01/04/08)
+- [x] 64-04-PLAN.md — PrivacyPolicy 5 state addendums + What Changed banner + live SubprocessorList + ToS UGC content-license (LEGAL-01/04/08)
 - [ ] 64-05-PLAN.md — DoNotSellPage + AccessibilityPage + DMCAPage + LegalLayout title render (LEGAL-02/05/06)
 - [ ] 64-06-PLAN.md — DSAR portal state-residency Select + conditional checkboxes + data_rights_requests insert (LEGAL-03)
 - [ ] 64-07-PLAN.md — Cookie banner CPRA Do-Not-Sell + AUTH-16 rate-limit mention + App.tsx routes + LegalFooter audit + sitemap (LEGAL-07/10 + AUTH-16)
@@ -643,7 +643,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 60. RAG Knowledge Base Completion | 13/15 | In Progress|  |
 | 61. Admin Protocol Creator | 8/8 | Complete | 3 migrations + 1 Fn deployed; 64+ tests green |
 | 62. Insights & Research Engine | 8/8 | Complete | 6 migrations + 1 Fn deployed; 84 tests green |
-| 64. Legal Refresh | 0/0 | Not started | - |
+| 64. Legal Refresh | 1/8 | In Progress|  |
 | 65. Stripe Tax + Payment Resilience | 0/0 | Not started | - |
 | 66. Consumer Account Security | 0/0 | Not started | - |
 | 67. Operational Runbooks + Observability | 0/0 | Not started | - |
