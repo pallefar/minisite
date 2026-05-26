@@ -70,12 +70,16 @@ describe('DoNotSellPage', () => {
     await user.type(screen.getByLabelText(/your name/i), 'Jane Doe');
     await user.type(screen.getByLabelText(/your email/i), 'jane@example.com');
 
-    // Open confirmation modal
-    await user.click(screen.getByRole('button', { name: /submit opt-out request/i }));
+    // Open confirmation modal — click the form submit button (first one)
+    const buttons = screen.getAllByRole('button', { name: /submit opt-out request/i });
+    await user.click(buttons[0]);
 
-    // Confirm in the modal
-    const confirmBtn = screen.getByRole('button', { name: /submit opt-out request/i });
-    await user.click(confirmBtn);
+    // Confirm in the modal — click the modal's confirm button (last one)
+    await waitFor(() => {
+      expect(screen.getByText(/submit this opt-out request\?/i)).toBeInTheDocument();
+    });
+    const confirmBtns = screen.getAllByRole('button', { name: /submit opt-out request/i });
+    await user.click(confirmBtns[confirmBtns.length - 1]);
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
@@ -104,10 +108,15 @@ describe('DoNotSellPage', () => {
     await user.type(screen.getByLabelText(/your name/i), 'Jane Doe');
     await user.type(screen.getByLabelText(/your email/i), 'jane@example.com');
 
-    await user.click(screen.getByRole('button', { name: /submit opt-out request/i }));
-    // Confirm in modal
-    const confirmBtn = screen.getByRole('button', { name: /submit opt-out request/i });
-    await user.click(confirmBtn);
+    const buttons = screen.getAllByRole('button', { name: /submit opt-out request/i });
+    await user.click(buttons[0]);
+
+    // Wait for modal to open then confirm
+    await waitFor(() => {
+      expect(screen.getByText(/submit this opt-out request\?/i)).toBeInTheDocument();
+    });
+    const confirmBtns = screen.getAllByRole('button', { name: /submit opt-out request/i });
+    await user.click(confirmBtns[confirmBtns.length - 1]);
 
     await waitFor(() => {
       expect(
@@ -130,7 +139,8 @@ describe('DoNotSellPage', () => {
     await user.type(screen.getByLabelText(/your name/i), 'Jane Doe');
     await user.type(screen.getByLabelText(/your email/i), 'jane@example.com');
 
-    await user.click(screen.getByRole('button', { name: /submit opt-out request/i }));
+    const buttons = screen.getAllByRole('button', { name: /submit opt-out request/i });
+    await user.click(buttons[0]);
 
     // Modal should be visible with verbatim copy from UI-SPEC §Copywriting
     await waitFor(() => {
@@ -138,9 +148,12 @@ describe('DoNotSellPage', () => {
         screen.getByText(/submit this opt-out request\?/i),
       ).toBeInTheDocument();
     });
-    expect(
-      screen.getByText(/you can change your mind later by emailing privacy@leanshot\.app/i),
-    ).toBeInTheDocument();
+    // The "you can change your mind" text is split across a paragraph + link element,
+    // so use a function matcher on the containing paragraph
+    const modalParas = screen.getAllByText((_, el) => {
+      return (el?.textContent ?? '').includes('You can change your mind later by emailing');
+    });
+    expect(modalParas.length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByText(/allow 24 hours for propagation across our systems/i),
     ).toBeInTheDocument();

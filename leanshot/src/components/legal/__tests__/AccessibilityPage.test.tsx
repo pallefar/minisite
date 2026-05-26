@@ -29,10 +29,11 @@ describe('AccessibilityPage', () => {
 
   it('Test 2: Page body mentions WCAG 2.2 AA + ADA Title III + accessibility@leanshot.app + 30-day SLA', () => {
     renderAccessibilityPage();
-    expect(screen.getByText(/WCAG 2\.2 AA/)).toBeInTheDocument();
-    expect(screen.getByText(/ADA Title III/i)).toBeInTheDocument();
-    expect(screen.getByText(/accessibility@leanshot\.app/i)).toBeInTheDocument();
-    expect(screen.getByText(/30.?day/i)).toBeInTheDocument();
+    // Use getAllByText to handle cases where text appears in multiple elements
+    expect(screen.getAllByText(/WCAG 2\.2 AA/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/ADA Title III/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/accessibility@leanshot\.app/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/30.?day/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('Test 3: "Report an accessibility issue" CTA renders as mailto:accessibility@leanshot.app link', () => {

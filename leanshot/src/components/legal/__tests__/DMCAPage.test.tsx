@@ -33,15 +33,15 @@ describe('DMCAPage', () => {
   it('Test 2: Body sections — agent info, takedown procedure, counter-notice procedure, safe-harbor disclaimer', () => {
     renderDMCAPage();
     // Agent info section
-    expect(screen.getByText(/designated dmca agent/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/designated dmca agent/i).length).toBeGreaterThanOrEqual(1);
     // Takedown procedure
-    expect(screen.getByText(/takedown notice/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/takedown notice/i).length).toBeGreaterThanOrEqual(1);
     // Counter-notice procedure
-    expect(screen.getByText(/counter.?notice/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/counter.?notice/i).length).toBeGreaterThanOrEqual(1);
     // Safe harbor
-    expect(screen.getByText(/safe.?harbor/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/safe.?harbor/i).length).toBeGreaterThanOrEqual(1);
     // abuse@leanshot.app must appear
-    expect(screen.getByText(/abuse@leanshot\.app/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/abuse@leanshot\.app/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('Test 3: "Submit DMCA notice" CTA renders as mailto:abuse@leanshot.app link with correct subject', () => {
