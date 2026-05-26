@@ -21,6 +21,7 @@
  * to git root.
  */
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
@@ -115,6 +116,32 @@ export default defineConfig({
           environment: 'node',
           globals: true,
           include: ['src/lib/**/__tests__/*.test.ts', 'src/lib/**/*.test.ts'],
+        },
+      },
+      {
+        // React component unit tests (jsdom + @testing-library/react).
+        // Run: npx vitest run --project=src-components
+        // Phase 62 Plan 62-07: ResearchConsentSection + settings component tests.
+        // Note: worktree has no node_modules; add main leanshot node_modules to module directories.
+        plugins: [react()],
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+          },
+          // Worktree has no node_modules; resolve from main leanshot checkout.
+          moduleDirectories: ['node_modules', '/Users/karstenhaldan/minisite/leanshot/node_modules'],
+        },
+        test: {
+          name: 'src-components',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./src/test-setup.ts'],
+          include: [
+            'src/components/**/__tests__/*.test.tsx',
+            'src/components/**/__tests__/*.test.ts',
+            'src/components/**/*.test.tsx',
+            'src/components/**/*.test.ts',
+          ],
         },
       },
     ],
