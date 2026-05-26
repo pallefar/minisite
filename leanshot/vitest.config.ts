@@ -77,6 +77,27 @@ export default defineConfig({
           include: ['../supabase/functions/**/__tests__/*.test.ts'],
         },
       },
+      {
+        // Pure src/lib utility unit tests (no React, no DOM needed).
+        // Includes markdown renderers, pure logic libs, etc.
+        // Run: npx vitest run --project=src-lib-unit
+        // Phase 62: research-renderer.ts + protocol-shortcode-plugin.ts tests.
+        // resolve.alias for markdown-it points to main leanshot node_modules
+        // since worktree node_modules does not carry installed npm packages.
+        // Absolute path needed — worktree is a sibling of main leanshot, not a child.
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            'markdown-it': '/Users/karstenhaldan/minisite/leanshot/node_modules/markdown-it/index.mjs',
+          },
+        },
+        test: {
+          name: 'src-lib-unit',
+          environment: 'node',
+          globals: true,
+          include: ['src/lib/**/__tests__/*.test.ts', 'src/lib/**/*.test.ts'],
+        },
+      },
     ],
   },
 });

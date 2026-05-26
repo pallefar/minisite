@@ -139,6 +139,8 @@
     "fake-indexeddb": "^6.0.0",
     "i18next-parser": "9.4.0",
     "jsdom": "^29.1.1",
+    "markdown-it": "^14.1.0",
+    "@types/markdown-it": "^14.1.2",
     "knip": "^6.14.1",
     "lighthouse": "^12.8.2",
     "prettier": "^3.8.3",
