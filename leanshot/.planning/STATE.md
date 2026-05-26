@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
-status: in_progress
-last_updated: "2026-05-26T23:00:00Z"
+status: executing
+last_updated: "2026-05-26T21:41:22.712Z"
 progress:
   total_phases: 20
   completed_phases: 12
@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 64 COMPLETE (2026-05-26) — All 8 plans shipped; 5 migrations applied to remote, 2 Fns deployed (privacy-optout-process + grandfathered-policy-notice), 62 tests green across legal/dsar/consent surfaces. LEGAL-01..09 + AUTH-16 all Complete. Advancing to Phase 65 (Stripe Tax).
+**Status:** Executing Phase 65
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -26,6 +26,9 @@ progress:
 - `.planning/ROADMAP.md` (phase details + UAT roll-up)
 
 ## Current Position
+
+Phase: 65 (Stripe Tax + Payment Resilience) — EXECUTING
+Plan: 1 of 10
 
 - **Phase:** 64 COMPLETE — Legal Refresh shipped: 5 DB tables (privacy_optout_requests, policy_notice_log, ad_targeting_exclusion, email_lifecycle_exclusion, data_rights_requests) + 2 Edge Fns (privacy-optout-process + grandfathered-policy-notice) + PrivacyPolicy 5 state addendums (CA/VA/CO/CT/UT) + SubprocessorList live-fetch + ToS UGC content-license + 3 new legal pages (DoNotSell/Accessibility/DMCA) + DSAR state-residency extension + cookie banner Do-Not-Sell footer + new routes + sitemap.xml. Stub-then-replace pattern worked clean (64-07 stubs → 64-05 full implementations at merge).
 - **Last completed:** Phase 64 close-out 2026-05-26. Plan 08 inline. DSAR portal tsc cast fix post-merge (data: never → typed array).
