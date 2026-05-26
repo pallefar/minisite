@@ -24,9 +24,8 @@ export function MedicalDisclaimer() {
       <article className="max-w-[760px] mx-auto px-1 py-2 space-y-6 text-[14px] text-[var(--color-text)] leading-relaxed">
         {/* 07-02 spec contract: data-todo marker names the authoring plan. */}
         <div data-todo="07-04" hidden />
-        {/* Header */}
+        {/* Header — H1 now rendered by LegalLayout per Phase 64 UI-SPEC §Surfaces in Scope */}
         <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Medical Disclaimer</h1>
           <p className="text-[13px] text-[var(--color-text-tertiary)]">
             Effective date: {EFFECTIVE_DATE}
           </p>
