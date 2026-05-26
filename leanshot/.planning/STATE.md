@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-26T13:10:00.000Z"
+last_updated: "2026-05-26T11:27:26.824Z"
 progress:
   total_phases: 20
   completed_phases: 8
@@ -28,8 +28,8 @@ progress:
 ## Current Position
 
 - **Phase:** 60 (RAG Knowledge Base Completion) — Wave 0 COMPLETE (3/15 plans); Waves 1-3 PAUSED on Phase 60.5 vendor pre-flight
-- **Last completed:** Phase 60 Wave 1 — 60-08 (admin queue UI, 6 tasks, 56 vitest + 8 Playwright E2E, ending d7d50153). Prior: 60-07 (ending 834d7542), 60-06 (ending f5b13378), 60-05 (ending 723c22cc), 60-04 (ending 941dfbb4), Wave 0: 60-01..03 (ending bc2b138f).
-- **Status:** 60-08 COMPLETE (2026-05-26). Wave 1 continues: 60-09.
+- **Last completed:** Phase 60 Wave 1 — 60-09 (admin federated toggle UI, 5 tasks, 35 vitest, Option D resolution, ending 36d6c728). Prior: 60-08 (admin queue UI, ending d7d50153), 60-07 (ending 834d7542), 60-06 (ending f5b13378), 60-05 (ending 723c22cc), 60-04 (ending 941dfbb4), Wave 0: 60-01..03 (ending bc2b138f).
+- **Status:** 60-09 COMPLETE (2026-05-26). Wave 1 continues: 60-10.
 
 ### Phase 60 PAUSE — Wave 1 vendor blockers (resume notes)
 
@@ -140,6 +140,7 @@ P70 (Consolidated UAT) waits for EVERYTHING (last phase)
 - **D-60-06-01:** Cohere Rerank v3.5 via REST API (not npm SDK) for Deno-native fetch compatibility and full mock control in tests.
 - **D-60-06-02:** captureRagEvent (system-actor) used for refusal events — refusals are pipeline-level quality gates, not user-attributed telemetry; D-13 user-attribution applies to user-generated AI calls only.
 - **D-60-06-03:** eval/phase60/dimensions/ created at git root per plan spec for Deno-native CLI runner; coexists with existing Vitest harness at tests/eval/phase60/.
+- **D-60-09-01 (Option D):** Pull-history button in FederatedSourcesPage rendered DISABLED pending admin-action-token auth mechanism (60-15). 60-07 Fns designed for service-role/cron, not admin browser calls. SOURCE_META client-side const map derives display_name + sync_cadence_label (no new DB columns). Migration 20281201000020 ships list_federated_sources + set_federated_source_enabled RPCs (NOT pushed until 60-15).
 
 ### Todos
 
