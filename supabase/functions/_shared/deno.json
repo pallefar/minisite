@@ -1,0 +1,16 @@
+{
+  "imports": {
+    "posthog-node": "npm:posthog-node@5.10.4",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "zod": "npm:zod@^3",
+    "std/assert": "https://deno.land/std@0.224.0/assert/mod.ts"
+  },
+  "tasks": {
+    "test": "deno test --no-check ."
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}
