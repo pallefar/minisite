@@ -80,6 +80,8 @@ Mono usage: `font-mono tabular-nums` on `dose_mg` numeric inputs and week-number
 | Destructive — danger actions only | `var(--color-danger)` | `#cf5454` | Archive protocol confirm, delete-step action, SELF_REVIEW_REJECTED error toast |
 | Success — state indicators | `var(--color-success)` | `#45b077` | Published status badge, protocol adherence 85%+ ring color |
 | Warning — advisory states | `var(--color-warning)` | `#e37748` | AI-assist refusal warning, in_review banner background tint |
+| Warning/review banner background | `var(--color-rose-soft)` | `#fbe4dc` | Review banner background (Surface 3) — soft rose tint distinct from orange warning |
+| Subtle raised surface | `var(--color-surface-elevated)` | `#f6f2e8` | AI-Assist Modal suggestion output area background, evidence chips background — prevents undefined-token invisible-render (Phase 60 BLOCKER pattern) |
 | Border | `var(--color-border)` | `#dad3c0` | Step-row separators, drawer border, table grid lines, input borders |
 | Text | `var(--color-text)` | `#16221f` | All body copy |
 | Text secondary | `var(--color-text-secondary)` | `#4d5e58` | Meta labels, placeholder text, empty state body, week numbers |
@@ -164,7 +166,7 @@ Clinician list: Same table shape as admin list page, minus admin-only actions. F
 Adopt flow:
 1. Sheet opens (Sheet DS primitive, right-side) — patient picker (reuses Phase 30 roster patient-list component). Sheet heading: "Adopt Protocol" (18px/600).
 2. "Preview assignment" button advances to diff modal.
-3. Diff modal: heading "Assignment preview" (18px/600). Two-column: "Current schedule" vs "Protocol expectation" (13px/400). Week-by-week diff highlighted. Confirm CTA: "Assign to patient" (accent, primary). Cancel: "Cancel" (secondary).
+3. Diff modal: heading "Assignment preview" (18px/600). Two-column: "Current schedule" vs "Protocol expectation" (13px/400). Week-by-week diff highlighted. Confirm CTA: "Assign to patient" (accent, primary). Cancel: "Keep current schedule" (secondary).
 
 Keyboard: focus trap in sheet + modal per DS primitive defaults; Tab/Shift+Tab; Escape closes.
 
@@ -252,9 +254,9 @@ Triggered by "Suggest" button on each step row.
 | Error — step save failure | "Step could not be saved. Check your connection and try again." |
 | Review banner — in_review (author view) | "Pending review by another admin" |
 | Review banner — in_review (reviewer view) | "Review as: {name}" |
-| Destructive — archive protocol | Confirm.tsx dialog: heading "Archive protocol?" / body "This will remove it from all clinician views. It can be restored later." / CTA "Archive" (danger) |
+| Destructive — archive protocol | Confirm.tsx dialog: heading "Archive protocol?" / body "This will remove it from all clinician views. It can be restored later." / CTA "Archive protocol" (danger) |
 | Destructive — remove step | No modal — immediate with undo Toast: "{Week N} removed. Undo?" with Undo action, 6-second timeout |
-| Destructive — rollback protocol | Confirm.tsx dialog: heading "Rollback to version {N}?" / body "Current version will be archived. Clinicians will see version {N}." / CTA "Rollback" (danger) |
+| Destructive — rollback protocol | Confirm.tsx dialog: heading "Rollback to version {N}?" / body "Current version will be archived. Clinicians will see version {N}." / CTA "Rollback to v{N}" (danger) |
 | AI suggest loading | "Generating suggestion…" (13px/400, text-secondary, in modal body) |
 
 ---
