@@ -271,8 +271,26 @@ export async function handleNewsletterSend(
   const resendApiKey = deps?.resendApiKey ?? Deno.env.get('RESEND_API_KEY') ?? '';
   const supabaseUrl = deps?.supabaseUrl ?? Deno.env.get('SUPABASE_URL') ?? '';
   const signingKey = deps?.signingKey ?? Deno.env.get('NEWSLETTER_UNSUBSCRIBE_SIGNING_KEY') ?? '';
-  const footerAddress = deps?.footerAddress ?? '[LeanShot address — CAN-SPAM placeholder; replace before first live send]';
+  const footerAddress = deps?.footerAddress
+    ?? Deno.env.get('NEWSLETTER_PHYSICAL_ADDRESS')
+    ?? null;
   const adminIntro = deps?.adminIntro ?? '';
+
+  // ── CAN-SPAM physical address guard (WR-02) ────────────────────────────────
+  // MUST refuse to send if the footer address is unset or still a placeholder.
+  // Sending with the placeholder violates 15 U.S.C. § 7704(a)(5).
+  if (!footerAddress || footerAddress.startsWith('[')) {
+    console.error('[rag-newsletter-sender] BLOCKED: NEWSLETTER_PHYSICAL_ADDRESS not set or is placeholder');
+    void sendSlackGuardrailAlert('regulatory', {
+      severity: 'P1',
+      title: 'Newsletter BLOCKED — NEWSLETTER_PHYSICAL_ADDRESS not configured',
+      text: 'Set NEWSLETTER_PHYSICAL_ADDRESS as a Supabase Function Secret before the next cron fires.',
+    }).catch(() => {});
+    return new Response(
+      JSON.stringify({ error: 'can_spam_address_not_configured' }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
   const fetchImpl = deps?.fetchImpl ?? fetch;
 
   const supabaseClient = deps?.supabaseServiceClient ?? createClient(
