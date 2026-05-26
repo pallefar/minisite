@@ -1,7 +1,8 @@
 ---
-status: flags
+status: fixes_applied
 phase: 60
 audited: 2026-05-26
+fixes_applied: 2026-05-26
 baseline: 60-UI-SPEC.md (approved design contract)
 screenshots: not captured (no dev server detected)
 typography_score: 2
@@ -18,6 +19,50 @@ overall: 16/24
 **Audited:** 2026-05-26
 **Baseline:** 60-UI-SPEC.md
 **Screenshots:** not captured (dev server not running)
+
+---
+
+## Fixes Applied (2026-05-26)
+
+### BLOCKER 1 — Undefined @theme tokens resolved
+
+**Commit:** `1cc1615e`
+
+Replaced ~8 undefined Tailwind v4 token classes that rendered as transparent/no-op across all four knowledge pages and breadcrumb:
+
+| Broken token | Replacement | Token in @theme |
+|---|---|---|
+| `text-text-primary` | `text-text` | `--color-text` |
+| `bg-surface-card` | `bg-surface` | `--color-surface` |
+| `border-border-subtle` | `border-border` | `--color-border` |
+| `text-accent` | `text-primary` | `--color-primary` |
+| `focus-visible:outline-accent` | `focus-visible:outline-primary` | `--color-primary` |
+| `bg-warning-subtle` | `bg-danger-soft` | `--color-danger-soft` |
+| `text-warning-foreground` | `text-danger` | `--color-danger` |
+| `text-success` | `text-[var(--color-success)]` | `--color-success` |
+| `hover:text-text-primary` | `hover:text-text` | `--color-text` |
+
+Files: `KnowledgeRootPage.tsx`, `KnowledgeTopicIndexPage.tsx`, `KnowledgeArticleDetailPage.tsx`, `KnowledgeBreadcrumb.tsx`
+
+Also included in this commit: `font-medium text-accent` → `font-normal text-primary` on Read more link (overlapping BLOCK-2), `text-base` → `text-lg` on article card H2 (`KnowledgeTopicIndexPage.tsx:270`).
+
+### BLOCKER 2 — Typography ceiling normalized
+
+**Commit:** `abb512fb`
+
+Fixed all out-of-spec sizes and weights to conform to 4-size ceiling (11/13/18/28px) and 2-weight rule (400/600):
+
+| File | Line | Before | After |
+|---|---|---|---|
+| `CitationPopover.tsx` | 264 | `text-[15px]` | `text-[13px]` |
+| `CitationPopover.tsx` | 283 | `text-[12px]` | `text-[11px]` |
+| `CitationPopover.tsx` | 313 | `font-medium` | `font-normal` |
+| `SourcesFooter.tsx` | 79,100 | `text-[12px]` | `text-[11px]` |
+| `SourcesFooter.tsx` | 106 | `font-medium` | `font-normal` |
+| `RefusalCard.tsx` | 69 | `text-[14px]` | `text-[13px]` |
+| `NewsletterOptInStep.tsx` | 35 | `text-[26px] font-bold` | `text-heading font-semibold` |
+| `TipOfTheDayCard.tsx` | 140 | `font-medium` | `font-normal` |
+| `NewsletterSettings.tsx` | 129 | `font-medium` | `font-semibold` |
 
 ---
 
