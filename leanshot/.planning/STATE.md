@@ -29,7 +29,22 @@ progress:
 
 - **Phase:** 60 (RAG Knowledge Base Completion) — NEXT (pending dispatch)
 - **Last completed:** Phase 59 (Apple OAuth + Onboarding) — VERIFICATION passed 2026-05-26 (3 plans; web+native SIWA flag-gated, HIG wordmark; signInWithIdToken+nonce; shared uid-scoped anon-merge in AuthCallbackView; PostHog experiment-variant bug FIXED; code review CR-01 OAuth-nonce-replay + 5 more fixed). DEFERRED to P70: live Apple provider config + flag-flip + on-device, private-relay live E2E, Lighthouse≥90, PostHog live ship-winner (VENDOR-09), superadmin-fixture HITL, D-16 admin-flow UUID→StepId mapping.
-- **Status:** autonomous run `57→69` in progress (8/18 autonomous phases done)
+- **Status:** autonomous run `57→69` PAUSED at Phase 60 boundary (8/18 done: 52-59 ✅). Resume: `/gsd-autonomous --from 60 --to 69` in a fresh session.
+
+### Phase 60 resume notes (investigated 2026-05-26, NOT yet started — saves re-investigation)
+
+- **Scope = complete v1.3 Phase 50 Waves 2-4 + 2 NEW items.** Phase 50 dir `.planning/phases/50-admin-curated-rag-knowledge-base-peptide-topic-research-scra/`: Wave 1 (50-01..04: pgvector schema + admin shell + event registry + scrape) SHIPPED (have SUMMARYs). **50-05..09 are PLANNED-but-UNEXECUTED** (PLAN.md only, no SUMMARY) — detailed + mostly reusable:
+  - 50-05 = Anthropic summarizer + sentence-aware chunker Edge Fn (quote-only D-17) → RAG-01/02
+  - 50-06 = admin review queue UI + 5 SECDEF state-machine RPCs (queued→approved/rejected/retracted) → RAG-03
+  - 50-07 = embedding pipeline (OpenAI text-embedding-3-small via Vercel AI Gateway) + retrieval Edge Fn (HNSW ANN + freshness/tier reweight) → RAG-04
+  - 50-08 = AI-coach inline citations + popover + Tip-of-day Bento card + server-rag-event-relay + rag.attribution/disclaimer i18n → RAG-05/06
+  - 50-09 = weekly Research newsletter (Resend) + public hub + NewsletterSettings + Cost dashboard → RAG-07/08/09 (STRETCH)
+- **NEW (not in 50-05..09):** (a) cross-encoder RE-RANKER (success-crit 3, a/b vs raw cosine) → research the model/approach; (b) federated PubMed + OpenFDA + DailyMed adapters w/ per-source admin toggle (success-crit 4) → research the APIs; (c) public hub path is `/knowledge/*` in P60 goal vs `/research` in 50-09 — rename to `/knowledge`.
+- **Approach:** plan FRESH in a new `60-rag-knowledge-base-completion-waves-2-4` dir (the 50-05..09 v1.3 plans are reference inputs — reuse task breakdowns, re-validate against v1.4). Map all to RAG-01..09. Aggressive-foundations: MVP+STRETCH both ship.
+- **Defer to P70:** live scrape/embed against prod, live federated-source syncs, newsletter live send, on-device tip-of-day push, any vendor-key-gated live verification.
+
+### Execution lesson for remaining phases (57-59 validated)
+- **Use SEQUENTIAL-ON-MAIN executors, NOT worktrees.** Phase 58 worktrees hit: 217-commit stale-base fork (58-04), file-leaks (OnboardingFlow/clinic-invite), pwd-leak-to-main (58-01) — ~heavy remediation. Phases 57 (worktree, small/disjoint, OK) then 58 (worktree, painful) then 59 (sequential-on-main, CLEAN). For 60-69 default to sequential-on-main: spawn gsd-executor WITHOUT isolation, on main, one plan at a time; they edit + commit directly to main. Per-phase post-merge gate = tsc + targeted vitest + locale gate; full-suite baseline is ~106-110 failing/24-25 files (FLAKY EnvironmentTeardownError — gate by own-tests + no-net-new, not whole-suite pass). `|tail` hides vitest exit in zsh.
 
 ## Milestone Contract
 
