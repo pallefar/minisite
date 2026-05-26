@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "_shared/": "../_shared/",
+    "npm:markdown-it@14": "npm:markdown-it@^14"
+  }
+}

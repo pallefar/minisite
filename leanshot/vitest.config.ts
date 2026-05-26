@@ -87,6 +87,36 @@ export default defineConfig({
             : ['default'],
         },
       },
+      {
+        // Edge Function unit tests (Vitest, no Deno runtime).
+        // handler.ts files use DI — no Deno.* imports — so they run cleanly here.
+        // Run: npx vitest run --project=functions-unit
+        // Phase 61 protocol-ai-assist + Phase 62 research-publish handlers.
+        test: {
+          name: 'functions-unit',
+          environment: 'node',
+          globals: true,
+          include: ['../supabase/functions/**/__tests__/*.test.ts'],
+        },
+      },
+      {
+        // Pure src/lib utility unit tests (no React, no DOM needed).
+        // Includes markdown renderers, pure logic libs, etc.
+        // Run: npx vitest run --project=src-lib-unit
+        // Phase 62: research-renderer.ts + protocol-shortcode-plugin.ts tests.
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            'markdown-it': '/Users/karstenhaldan/minisite/leanshot/node_modules/markdown-it/index.mjs',
+          },
+        },
+        test: {
+          name: 'src-lib-unit',
+          environment: 'node',
+          globals: true,
+          include: ['src/lib/**/__tests__/*.test.ts', 'src/lib/**/*.test.ts'],
+        },
+      },
     ],
   },
 });
