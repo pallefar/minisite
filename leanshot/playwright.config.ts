@@ -64,6 +64,12 @@ const RAG_QUEUE_OPT_IN = process.env.PLAYWRIGHT_RUN_RAG_QUEUE === '1';
 // Gate: PLAYWRIGHT_RUN_P60_COACH_CITATION=1 env var only.
 const P60_COACH_CITATION_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_COACH_CITATION === '1';
 
+// Phase 60 Plan 60-11: opt-in Tip-of-the-Day card + Fn e2e via PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1.
+// Covers: card mount on HomeTab, Open source navigation, D-24 empty state, a11y.
+// Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY.
+// Gate: PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1 env var only (never argv per reference).
+const P60_TIP_OF_DAY_OPT_IN = process.env.PLAYWRIGHT_RUN_P60_TIP_OF_DAY === '1';
+
 // Phase 42 Plan 42-08 — opt-in /settings/notifications e2e (POLISH-05/06).
 // Requires SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY env vars + a
 // pre-seeded test user. Gate via PLAYWRIGHT_NOTIFICATION_RUN=1 per
@@ -150,6 +156,9 @@ export default defineConfig({
         // Phase 60 Plan 60-10: AI coach citation UI e2e. Uses page.route() mocks.
         // Gated by PLAYWRIGHT_RUN_P60_COACH_CITATION=1.
         /e2e\/60-ai-coach-citation\.spec\.ts$/,
+        // Phase 60 Plan 60-11: Tip-of-the-Day card e2e. Requires SUPABASE_SERVICE_ROLE_KEY.
+        // Gated by PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1.
+        /e2e\/tip-of-day\.spec\.ts$/,
       ],
       use: { ...devices['Desktop Chrome'] },
     },
@@ -319,6 +328,19 @@ export default defineConfig({
           {
             name: 'p60-coach-citation',
             testMatch: [/e2e\/60-ai-coach-citation\.spec\.ts$/],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]
+      : []),
+    // Phase 60 Plan 60-11 — opt-in Tip-of-the-Day card e2e.
+    // Invoke via `PLAYWRIGHT_RUN_P60_TIP_OF_DAY=1 npx playwright test --project=p60-tip-of-day`.
+    // Tests: card visible with seeded kb_tip_of_day row, Open source URL navigation,
+    // D-24 empty state, a11y RotateCcw aria-disabled + Open source focus ring.
+    ...(P60_TIP_OF_DAY_OPT_IN
+      ? [
+          {
+            name: 'p60-tip-of-day',
+            testMatch: [/e2e\/tip-of-day\.spec\.ts$/],
             use: { ...devices['Desktop Chrome'] },
           },
         ]
