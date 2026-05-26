@@ -1,0 +1,42 @@
+LeanShot Policy Update
+======================
+
+Updated Privacy Policy & Terms — your data, your control
+
+We've updated our Privacy Policy and Terms of Service to reflect the services and
+partners we use to run LeanShot. Here's what changed and what it means for you.
+
+WHAT CHANGED
+------------
+
+We added the following subprocessors as part of our v1.4 launch:
+
+- PostHog Session Replay — anonymised product analytics
+- Anthropic — powers the AI coaching feature
+- Mux — video streaming for educational content
+- Stripe Connect — payment processing and payouts
+- OpenRouter — multi-model AI gateway
+- Cohere — semantic search and embeddings
+- Resend — transactional and lifecycle email delivery
+- Sentry — error monitoring and performance tracing
+- pgvector recommender — personalised knowledge recommendations
+- Traffic attribution — aggregate campaign analytics (no PII)
+
+YOUR DATA, YOUR CONTROL
+-----------------------
+
+You have full control over your data. Use the links below to review your options:
+
+- View Privacy Policy: https://leanshot.app/#/legal/privacy
+- Manage Preferences: https://leanshot.app/account/data-rights
+- Do Not Sell My Data: https://leanshot.app/privacy/do-not-sell
+
+If you have questions, contact us at privacy@leanshot.app
+
+---
+
+This is a required policy update notification. It is not a marketing email.
+
+Unsubscribe: {{UNSUBSCRIBE_URL}}
+
+LeanShot — {{PHYSICAL_ADDRESS}}
