@@ -1,9 +1,21 @@
 /**
  * checkout-session-completed.ts — Handler for `checkout.session.completed` event.
  * Phase 14 Plan 03 Task 2 (full implementation).
+ *
+ * Phase 65-04 Plan 65-04 — PAY-03 + PAY-01:
+ *   1. PAY-03: mirror collected B2B tax_id to org_subscriptions.tax_id when the
+ *      session is a clinic plan AND session.customer_tax_ids has length ≥ 1.
+ *   2. PAY-01: call writeTaxCollectionLog to audit every Stripe Tax calculation
+ *      that the session engaged (gated on session.automatic_tax?.status presence).
+ *
+ * PII safety (T-65-04-02): the tax_id VALUE is never logged. Only `tax_id_set: true/false`
+ * appears in operator logs. Audit-log failures (T-65-04-04 accept disposition) are
+ * caught and logged but never re-thrown — primary subscription mapping must succeed.
  */
 import type Stripe from 'stripe';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+
+import { writeTaxCollectionLog } from './tax-collection-log.ts';
 
 export async function handle(event: Stripe.Event, admin: SupabaseClient): Promise<void> {
   const session = event.data.object as Stripe.Checkout.Session;
@@ -140,5 +152,80 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
     throw new Error(
       `metadata-missing: tier_kind not in {web,clinic,lifetime} for session ${session.id}`,
     );
+  }
+
+  // ─── Phase 65-04 — PAY-03: clinic tax_id mirror to org_subscriptions ─────
+  //
+  // Stripe Tax `tax_id_collection` populates session.customer_tax_ids on B2B
+  // checkouts. We mirror the FIRST collected value (Stripe Tax typically returns
+  // exactly one for US-only launch) into org_subscriptions.tax_id keyed by
+  // org_id (uuid; the clinic_id from metadata IS the org id per Phase 28 schema).
+  //
+  // PII guard (T-65-04-02): only log `tax_id_set: true/false`, NEVER the value.
+  try {
+    if (meta.tier_kind === 'clinic') {
+      const customerTaxIds = (session as unknown as Record<string, unknown>).customer_tax_ids as
+        | Array<{ type?: string; value?: string }>
+        | undefined
+        | null;
+      if (customerTaxIds && customerTaxIds.length > 0) {
+        const firstTaxId = customerTaxIds[0];
+        const clinicId = meta.clinic_id;
+        if (clinicId && firstTaxId?.value) {
+          const { error: taxIdErr } = await admin
+            .from('org_subscriptions')
+            .update({ tax_id: firstTaxId.value })
+            .eq('org_id', clinicId);
+          if (taxIdErr) {
+            console.error(
+              '[stripe-webhook/checkout-completed] org_subscriptions.tax_id update error',
+              JSON.stringify({
+                clinic_id: clinicId,
+                tax_id_set: false,
+                error_message: taxIdErr.message,
+                error_code: taxIdErr.code,
+              }),
+            );
+            // Non-fatal: subscription mapping already succeeded.
+          } else {
+            console.log(
+              '[stripe-webhook/checkout-completed] tax_id mirrored',
+              JSON.stringify({
+                clinic_id: clinicId,
+                tax_id_set: true,
+                tax_id_type: firstTaxId.type ?? null,
+              }),
+            );
+          }
+        } else if (!clinicId) {
+          console.warn(
+            '[stripe-webhook/checkout-completed] tax_id collected but no clinic_id in metadata — skipping mirror',
+          );
+        }
+      }
+    }
+  } catch (taxIdErr) {
+    console.error(
+      '[stripe-webhook/checkout-completed] tax_id mirror failed',
+      taxIdErr instanceof Error ? taxIdErr.message : 'unknown',
+    );
+    // Audit/mirror failures MUST NOT fail the webhook (T-65-04-04).
+  }
+
+  // ─── Phase 65-04 — PAY-01: tax_collection_log audit ─────────────────────
+  //
+  // writeTaxCollectionLog internally gates on session.automatic_tax?.status,
+  // so calling unconditionally is safe (no-op on non-Stripe-Tax sessions).
+  // Wrap in try/catch — audit failures MUST NOT fail the webhook
+  // (T-65-04-04: accept disposition; subscription_events PK upstream is the
+  // primary idempotency gate).
+  try {
+    await writeTaxCollectionLog(admin, session);
+  } catch (logErr) {
+    console.error(
+      '[stripe-webhook/checkout-completed] tax_collection_log write failed',
+      logErr instanceof Error ? logErr.message : 'unknown',
+    );
+    // Do NOT re-throw — audit best-effort.
   }
 }
