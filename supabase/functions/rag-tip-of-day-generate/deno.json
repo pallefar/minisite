@@ -1,0 +1,14 @@
+{
+  "tasks": {
+    "test": "deno test --no-check --allow-env --allow-net ."
+  },
+  "imports": {
+    "zod": "npm:zod@^3",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}
