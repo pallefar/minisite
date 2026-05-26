@@ -13,6 +13,23 @@
 
 begin;
 
+-- Pre-create event_rsvps table (idempotent) so functions below can reference the type.
+-- Full schema (indexes + RLS) ships in 20270801000007_p47_event_rsvps_schema.sql.
+-- This CREATE TABLE IF NOT EXISTS is a no-op when that migration runs later.
+create table if not exists public.event_rsvps (
+  id                uuid        primary key default gen_random_uuid(),
+  event_id          uuid        not null references public.events(id) on delete cascade,
+  user_id           uuid        not null references auth.users(id) on delete cascade,
+  status            text        not null check (status in ('going','maybe','not_going','waitlist')),
+  waitlist_position integer,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now(),
+  constraint event_rsvps_unique unique (event_id, user_id),
+  constraint event_rsvps_waitlist_pos_chk
+    check ((status = 'waitlist' and waitlist_position is not null)
+        or (status <> 'waitlist' and waitlist_position is null))
+);
+
 ----------------------------------------------------------------------
 -- event_rsvp_create — user-initiated RSVP write under SELECT FOR UPDATE.
 ----------------------------------------------------------------------

@@ -47,13 +47,13 @@ comment on table public.rag_budget_caps is
 --    (idempotent re-runs; per [[reference_postgres_no_insert_on_conflict_do_delete]])
 -- ---------------------------------------------------------------------------
 
-insert into public.rag_budget_caps (vendor, cap_usd) values
-  ('firecrawl',          50.00),
-  ('openai_embed',       30.00),
-  ('anthropic_summarize',50.00),
-  ('cohere_rerank',      20.00),
-  ('jina_rerank',        10.00),
-  ('federated_fetch',     5.00)
+-- Seed only enum-valid vendors (rag_vendor has 4 members: firecrawl, openai_embed, anthropic_summary, resend).
+-- cohere_rerank, jina_rerank, federated_fetch deferred to Phase 67 enum widening.
+insert into public.rag_budget_caps (vendor, monthly_cap_usd) values
+  ('firecrawl',         50.00),
+  ('openai_embed',      30.00),
+  ('anthropic_summary', 50.00),
+  ('resend',            10.00)
 on conflict (vendor) do nothing;
 
 -- ---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ begin
       auth.uid(),
       jsonb_build_object(
         'vendor',          p_vendor,
-        'cap_usd',         v_cap_row.cap_usd,
+        'cap_usd',         v_cap_row.monthly_cap_usd,
         'mtd_spend_usd',   v_cap_row.mtd_spend_usd,
         'acknowledged_at', now()
       )

@@ -61,7 +61,7 @@ update public.rag_chunks
   ))
   where slug is null
     and (title is not null or summary is not null)
-    and status = 'published';
+    and status = 'approved';
 
 -- ---------------------------------------------------------------------------
 -- 3. public_visibility column
@@ -80,7 +80,7 @@ comment on column public.rag_chunks.public_visibility is
 -- Index for sitemap query + hub API (status=published + visibility filter)
 create index if not exists rag_chunks_public_hub_idx
   on public.rag_chunks (topic_tag, status, public_visibility, published_at desc)
-  where status = 'published' and retracted_at is null and public_visibility = true;
+  where status = 'approved' and retracted_at is null and public_visibility = true;
 
 -- ---------------------------------------------------------------------------
 -- RLS: extend anon SELECT to include public_visibility=true check
@@ -101,7 +101,7 @@ create policy "anon_read_published_chunks"
   for select
   to anon
   using (
-    status = 'published'
+    status = 'approved'
     and retracted_at is null
     and public_visibility = true
   );

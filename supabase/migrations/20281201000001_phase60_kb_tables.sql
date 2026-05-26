@@ -130,10 +130,10 @@ create table if not exists public.federated_source_cache (
   constraint federated_source_cache_uq unique (source_name, cache_key)
 );
 
--- Partial index: makes nightly expired-row purge (60-15 cron) cheap
+-- Index on expires_at for purge queries (now() not allowed in partial index predicate).
 create index if not exists federated_source_cache_expired_idx
   on public.federated_source_cache (expires_at)
-  where expires_at < now();
+  where expires_at is not null;
 
 -- Trigger: keep updated_at in sync
 do $$

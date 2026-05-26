@@ -65,8 +65,7 @@ begin
   end if;
 end $$;
 
-comment on policy objects_insert_dm_attachments on storage.objects is
-  'Phase 45 Plan 45-03 — thread-participant gate via dm_threads JOIN; path[0] is thread_id (uuid)';
+-- comment on policy objects_insert_dm_attachments on storage.objects -- removed: role lacks ownership of storage.objects
 
 -- SELECT: same predicate as INSERT — any thread participant may download attachments.
 -- Bucket is private + signed-URL TTL (60 min) bounds replay window. (T-45-03 mitigation.)
@@ -89,8 +88,7 @@ begin
   end if;
 end $$;
 
-comment on policy objects_select_dm_attachments on storage.objects is
-  'Phase 45 Plan 45-03 — thread-participant read gate via dm_threads JOIN; signed-URL TTL bounds replay';
+-- comment on policy objects_select_dm_attachments on storage.objects -- removed: role lacks ownership of storage.objects
 
 -- DELETE: author-only — only the message sender (direct_messages.sender_user_id = auth.uid())
 -- may delete the attachment. Uses path segment [2] = message_id JOINed to direct_messages.
@@ -114,5 +112,4 @@ begin
   end if;
 end $$;
 
-comment on policy objects_delete_dm_attachments on storage.objects is
-  'Phase 45 Plan 45-03 — author-only delete via direct_messages.sender_user_id; path[1] is message_id (uuid)';
+-- comment on policy objects_delete_dm_attachments on storage.objects -- removed: role lacks ownership of storage.objects

@@ -17,7 +17,7 @@
 - [x] **Phase 57: Watch Apps** — Apple Watch SwiftUI + Wear OS Compose companion; quick dose log + complication; offline-tolerant
 - [x] **Phase 58: Spanish i18n Wiring** — Contractor TMX import + glossary integration + ES KB articles + ES smoke spec
 - [x] **Phase 59: Apple OAuth + Onboarding Completion** — Sign-in-with-Apple provider + private-relay email + ONBOARD-05/06/07/10/11 finished
-- [ ] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
+- [x] **Phase 60: RAG Knowledge Base Completion** — Phase 50 Waves 2-4 resume (scrape + embed + curation + AI-coach citations + federated PubMed/FDA + tip-of-day + newsletter + public hub)
 - [ ] **Phase 60.5: Late-Phase Vendor Setup (60-69)** — `autonomous: false`. Consolidates operator-required vendor onboarding that emerged during Phase 60-69 planning: Cohere Rerank, OpenAI direct + Vercel AI Gateway, PostHog Personal API key (cost dashboard), Jina/PubMed/OpenFDA optional, Slack guardrail webhook vault entry. Mirrors Phase 52 pattern; runtime-verification of Phase 60+ gates on this.
 - [ ] **Phase 61: Admin Protocol Creator** — Evidence-cited dosing protocols (Tirzepatide titration, Retatrutide stack); 2-person review; distributes to clinician + patient + KB
 - [ ] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
@@ -272,7 +272,7 @@ Plans:
   5. Tip-of-day push fires daily to opted-in users; newsletter Resend digest delivers weekly
   6. Public knowledge hub at `/knowledge/*` renders SEO-indexed pages; rate-limited; sitemap inclusion
 
-**Plans**: 15 plans (Wave 0: 60-01/02/03 COMPLETE; Wave 1: 60-04/05/06 COMPLETE, 60-07/08/09 in progress; Wave 2: 60-10/11; Wave 3: 60-12/13/14; Wave 4: 60-15)
+**Plans**: 15 plans (all complete — see `.planning/phases/60-rag-knowledge-base-completion-waves-2-4/`)
 **Progress (Wave 0 + Wave 1 through 60-06):**
 - ✅ 60-01 (kb_tables migration)
 - ✅ 60-02 (_shared posthog-rag-events + rag-retrieve client)

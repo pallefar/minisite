@@ -116,15 +116,13 @@ on conflict (category) do update set
   updated_at             = now();
 
 -- 3. Backfill per-user notification_settings — defaults ON for existing users.
---    INSERT … ON CONFLICT (user_id, category) DO NOTHING per
---    feedback_state_counter_table_needs_upsert_on_event: idempotent on re-apply,
---    no clobber of users who have already opted out.
---    in_app = true and email = true match the config seed for 1d/1h/promotion
---    (push toggle is a separate column added in Phase 48; not present on
---    notification_settings here per the original Phase 44 schema).
+--    Uses channel-based multi-row pattern (UNIQUE user_id, category, channel) —
+--    the actual schema uses channel+enabled, not in_app/email columns.
+--    ON CONFLICT DO NOTHING is idempotent; doesn't clobber users who opted out.
+--    push channel is added by Phase 48 migration.
 
-insert into public.notification_settings (user_id, category, in_app, email)
-select p.id, c.category, true, true
+insert into public.notification_settings (user_id, category, channel, enabled)
+select p.id, c.category, ch.channel, true
   from public.profiles p
   cross join (
     values
@@ -132,6 +130,11 @@ select p.id, c.category, true, true
       ('event_reminders_1h'),
       ('event_promotion')
   ) as c(category)
-on conflict (user_id, category) do nothing;
+  cross join (
+    values
+      ('in-app'),
+      ('email')
+  ) as ch(channel)
+on conflict (user_id, category, channel) do nothing;
 
 commit;

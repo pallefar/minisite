@@ -50,9 +50,15 @@ as $fn$
     join public.community_spaces s  on s.id = e.space_id
     join public.profiles p          on p.id = r.user_id
     join auth.users u               on u.id = r.user_id
-    left join public.notification_settings ns
-           on ns.user_id = r.user_id and ns.category = 'event_reminders_1d'
-   where coalesce(ns.email, true) = true
+    -- channel-based check: email enabled if row exists with channel='email' and enabled=true,
+    -- or if no row exists (default ON per Phase 47 seed). Replaces old ns.email boolean column.
+   where coalesce((
+           select enabled from public.notification_settings ns2
+            where ns2.user_id = r.user_id
+              and ns2.category = 'event_reminders_1d'
+              and ns2.channel = 'email'
+            limit 1
+         ), true) = true
      and (e.start_at - now()) >= interval '23 hours'
      and (e.start_at - now()) <  interval '25 hours'
      and not exists (
@@ -77,9 +83,13 @@ as $fn$
     join public.community_spaces s  on s.id = e.space_id
     join public.profiles p          on p.id = r.user_id
     join auth.users u               on u.id = r.user_id
-    left join public.notification_settings ns
-           on ns.user_id = r.user_id and ns.category = 'event_reminders_1h'
-   where coalesce(ns.email, true) = true
+   where coalesce((
+           select enabled from public.notification_settings ns2
+            where ns2.user_id = r.user_id
+              and ns2.category = 'event_reminders_1h'
+              and ns2.channel = 'email'
+            limit 1
+         ), true) = true
      and (e.start_at - now()) >= interval '0 hours'
      and (e.start_at - now()) <  interval '2 hours'
      and not exists (
@@ -104,10 +114,14 @@ as $fn$
     join public.community_spaces s  on s.id = e.space_id
     join public.profiles p          on p.id = q.user_id
     join auth.users u               on u.id = q.user_id
-    left join public.notification_settings ns
-           on ns.user_id = q.user_id and ns.category = 'event_promotion'
    where q.drained_at is null
-     and coalesce(ns.email, true) = true;
+     and coalesce((
+           select enabled from public.notification_settings ns2
+            where ns2.user_id = q.user_id
+              and ns2.category = 'event_promotion'
+              and ns2.channel = 'email'
+            limit 1
+         ), true) = true;
 $fn$;
 
 revoke all    on function public.select_event_reminder_targets() from public;
