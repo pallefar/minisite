@@ -45,6 +45,8 @@ import {
   ShieldCheck as ShieldCheckIcon,
   // Phase 51 Plan 51-05 — growth/traffic admin module icon.
   Activity as ActivityIcon,
+  // Phase 61 Plan 61-04 — Admin Protocol Creator module icon.
+  ClipboardList as ClipboardListIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -316,6 +318,23 @@ export const ADMIN_MODULES = [
     icon: Building2Icon,
     lazy: () => import('@/components/admin/modules/ClinicOrgsPreview'),
     flagKey: 'admin.clinic_orgs.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 61 Plan 61-04 (PROTOCOL-02) — Admin Protocol Creator module.
+  // Authoring tool for versioned, RAG-evidence-cited dosing protocols that flow
+  // into the clinician dashboard, patient dose-log, and helpdesk KB.
+  // AdminShell.tsx URL-prefix routing (pathname.startsWith('/admin/protocols/'))
+  // covers all sub-routes automatically — no hardcoded switch branch required per
+  // feedback_admin_module_manifest_vs_router_branch_drift.
+  // minRole 'admin' for UI gate; SECDEF RPCs (publish_protocol, rollback_protocol,
+  // assign_protocol_to_patient) re-check is_staff() at the DB layer (Pattern S1).
+  {
+    key: 'protocols',
+    label: 'Protocols',
+    route: 'protocols',
+    icon: ClipboardListIcon,
+    lazy: () => import('@/components/admin/protocols/ProtocolsLayout'),
+    flagKey: 'admin_protocols',
     minRole: 'admin' as AdminRole,
   },
   // Phase 50 Plan 50-02 — Admin-curated RAG knowledge base.
