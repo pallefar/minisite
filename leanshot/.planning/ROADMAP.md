@@ -339,7 +339,17 @@ Plans:
   5. Patient dose-log surfaces protocol-expected vs actual logged values
   6. Helpdesk KB article references a protocol_id → renders inline protocol summary card with citation footnotes
 
-**Plans**: TBD
+**Plans**: 8 plans (Wave 0 foundation: 3 / Wave 1 UI + integrations: 4 / Wave 2 close-out: 1)
+
+- [ ] 61-01-PLAN.md — DB tables + RLS + seed (PROTOCOL-01, 05)
+- [ ] 61-02-PLAN.md — 7 SECDEF RPCs (PROTOCOL-04, 05, 06)
+- [ ] 61-03-PLAN.md — protocol-ai-assist Edge Fn handler.ts/index.ts + tests (PROTOCOL-02, 03)
+- [ ] 61-04-PLAN.md — Admin core UI: Layout + ListPage + StatusBadge + KeyboardHelp + module manifest + @theme tokens (PROTOCOL-02)
+- [ ] 61-05-PLAN.md — Admin editor UI: EditorPage + StepRow + ReviewBanner + EvidenceSearchSheet + AiAssistModal (PROTOCOL-02, 03, 04, 05)
+- [ ] 61-06-PLAN.md — Clinician adopt flow: ClinicProtocolsPage + AdoptProtocolSheet + AdoptDiffModal + ClinicWorkspace nav (PROTOCOL-06)
+- [ ] 61-07-PLAN.md — Patient MedicationTab extension + BodyTab insights card + ProtocolSummaryCard + KB shortcode plugin + PublicProtocolPage + App.tsx selectView (PROTOCOL-07, 08)
+- [ ] 61-08-PLAN.md — Close-out: db push + Fn deploy + ROADMAP + STATE + CARRY-OVER
+
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -395,7 +405,7 @@ Plans:
   5. `/legal/accessibility` + `/legal/dmca` pages exist with correct legal copy; DMCA agent registered with U.S. Copyright Office + listed
   6. Cookie banner passes axe-core WCAG 2.2 AA + surfaces "Do Not Sell" in same banner per CPRA regs
 
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -414,7 +424,7 @@ Plans:
   5. Stripe webhook burst-retry Deno test (5× same event_id <1s) produces single-row outcome across affiliate-eligibility + ux_tier + subscription_events
   6. Trial-ending T-3d + T-1d emails deliver; win-back T+30 / T+60 / T+90 emails deliver to cancelled users with reactivation coupon
 
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -433,7 +443,7 @@ Plans:
   5. Cookie banner copy mentions sign-in-rate-limiting per CPRA notice-of-security-practices clause
   6. Admin can require MFA per-role (clinic-org admins, Gold+ affiliates, research-opt-in users)
 
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -452,7 +462,7 @@ Plans:
   5. PostHog funnel-break alert fires + Slack webhook delivers when activation / payment / signup funnel drops >20% week-over-week
   6. `.planning/runbooks/incident-response.md` + `.planning/runbooks/backup-restore.md` exist; PITR restore drill executed once + data integrity verified
 
-**Plans**: TBD
+**Plans**: 8 plans
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
@@ -470,7 +480,7 @@ Plans:
   5. Phase 51 traffic attribution captures `landing_page` dimension; admin sees per-audience conversion separately in Funnels tab
   6. UTM-default-landing resolver routes `utm_source=clinic_outreach` to `/for-clinics`
 
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -490,7 +500,7 @@ Plans:
   6. Dark mode parity audit: every v1.4 surface (P52-68) renders correctly in `data-theme="dark"`; VR snapshots captured
   7. Mobile responsive sweep at 375px: no horizontal scroll, ≥44px tap targets, content reflows correctly
 
-**Plans**: TBD
+**Plans**: 8 plans
 **UI hint**: yes
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
@@ -534,7 +544,7 @@ Plans:
 - Phase 69 — `gsd-ui-auditor` final-pass + dark-mode VR diff + mobile Lighthouse ≥90 evidence
 - Full regression: Playwright e2e + Deno sweep + axe-core CI + Edge Fn smoke + Sentry health green for ≥48h
 
-**Plans**: TBD
+**Plans**: 8 plans
 
 ---
 
