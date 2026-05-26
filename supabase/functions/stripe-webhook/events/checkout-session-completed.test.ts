@@ -293,3 +293,331 @@ Deno.test('3.5: lifetime upsert error → throws lifetime-purchases-upsert-faile
     'lifetime-purchases-upsert-failed',
   );
 });
+
+// ============================================================================
+// Phase 65-04 — PAY-03 (tax_id mirror) + PAY-01 (tax_collection_log audit)
+// ============================================================================
+//
+// Behaviors (from 65-04-PLAN <behavior>):
+//   65-T10: clinic session with customer_tax_ids=[{ type, value }] writes
+//           org_subscriptions.tax_id=value keyed by clinic_id.
+//   65-T11: consumer (web) session with no customer_tax_ids does NOT touch
+//           org_subscriptions.
+//   65-T12: clinic session with customer_tax_ids=[] (empty) does NOT touch
+//           org_subscriptions.
+//   65-T13: session with automatic_tax.status='complete' writes one
+//           tax_collection_log row with state/postal + tax/subtotal/total cents.
+//   65-T14: session with automatic_tax.status='requires_location_inputs' STILL
+//           writes a tax_collection_log row (visibility into failures).
+//   65-T15: session without automatic_tax field does NOT write a tax_collection_log row.
+//   65-T16: tax_id is NEVER logged via console.log/console.error (PII safety, T-65-04-02).
+
+/**
+ * Enhanced mock admin that tracks both upsert AND update+eq + insert calls.
+ * Mirrors the supabase-js builder pattern.
+ */
+interface AdminCall {
+  table: string;
+  op: 'upsert' | 'update' | 'insert';
+  data: Record<string, unknown>;
+  filter?: { col: string; val: unknown };
+  options?: Record<string, unknown>;
+}
+
+function buildExtendedMockAdmin(): [SupabaseClient, () => AdminCall[]] {
+  const calls: AdminCall[] = [];
+  const mockAdmin = {
+    from: (table: string) => ({
+      upsert: (data: Record<string, unknown>, options?: Record<string, unknown>) => {
+        calls.push({ table, op: 'upsert', data, options });
+        return Promise.resolve({ error: null });
+      },
+      update: (data: Record<string, unknown>) => ({
+        eq: (col: string, val: unknown) => {
+          calls.push({ table, op: 'update', data, filter: { col, val } });
+          return Promise.resolve({ error: null });
+        },
+      }),
+      insert: (data: Record<string, unknown>) => {
+        calls.push({ table, op: 'insert', data });
+        return Promise.resolve({ error: null });
+      },
+    }),
+  } as unknown as SupabaseClient;
+  return [mockAdmin, () => calls];
+}
+
+/** Build a clinic Checkout session event with optional tax_id_collection + automatic_tax. */
+function buildClinicTaxEvent(opts: {
+  clinicId?: string;
+  customerTaxIds?: Array<{ type: string; value: string }>;
+  automaticTaxStatus?: 'complete' | 'requires_location_inputs' | 'failed' | null;
+  customerState?: string;
+  customerPostal?: string;
+  amountSubtotal?: number;
+  amountTax?: number;
+  amountTotal?: number;
+  sessionId?: string;
+  subId?: string;
+}): Stripe.Event {
+  const obj: Record<string, unknown> = {
+    id: opts.sessionId ?? 'cs_clinic_tax_001',
+    object: 'checkout.session',
+    subscription: opts.subId ?? 'sub_clinic_tax_001',
+    customer: 'cus_clinic_tax',
+    metadata: { clinic_id: opts.clinicId ?? 'clinic-uuid-001' },
+    subscription_data: {
+      metadata: {
+        tier_kind: 'clinic',
+        clinic_id: opts.clinicId ?? 'clinic-uuid-001',
+        provider: 'stripe',
+      },
+    },
+    line_items: { data: [{ price: { id: 'price_clinic_base' } }] },
+  };
+  if (opts.customerTaxIds !== undefined) {
+    obj.customer_tax_ids = opts.customerTaxIds;
+  }
+  if (opts.automaticTaxStatus !== undefined && opts.automaticTaxStatus !== null) {
+    obj.automatic_tax = { status: opts.automaticTaxStatus, enabled: true };
+  }
+  if (
+    opts.customerState !== undefined ||
+    opts.customerPostal !== undefined
+  ) {
+    obj.customer_details = {
+      address: {
+        state: opts.customerState ?? null,
+        postal_code: opts.customerPostal ?? null,
+      },
+    };
+  }
+  if (opts.amountSubtotal !== undefined) obj.amount_subtotal = opts.amountSubtotal;
+  if (opts.amountTax !== undefined) obj.total_details = { amount_tax: opts.amountTax };
+  if (opts.amountTotal !== undefined) obj.amount_total = opts.amountTotal;
+
+  return {
+    id: `evt_clinic_tax_${opts.sessionId ?? '001'}`,
+    object: 'event',
+    type: 'checkout.session.completed',
+    livemode: false,
+    created: Math.floor(Date.now() / 1000),
+    data: { object: obj as unknown as Stripe.Checkout.Session },
+    api_version: '2026-04-22.dahlia',
+  } as unknown as Stripe.Event;
+}
+
+/** Build a web (consumer) Checkout session event with optional automatic_tax. */
+function buildWebTaxEvent(opts: {
+  automaticTaxStatus?: 'complete' | 'requires_location_inputs' | 'failed' | null;
+  customerState?: string;
+  amountSubtotal?: number;
+  amountTax?: number;
+  amountTotal?: number;
+  sessionId?: string;
+} = {}): Stripe.Event {
+  const obj: Record<string, unknown> = {
+    id: opts.sessionId ?? 'cs_web_tax_001',
+    object: 'checkout.session',
+    subscription: 'sub_web_tax_001',
+    customer: 'cus_web_tax',
+    metadata: {},
+    subscription_data: {
+      metadata: { tier_kind: 'web', user_id: 'user-web-tax', provider: 'stripe' },
+    },
+    line_items: { data: [{ price: { id: 'price_web_monthly' } }] },
+  };
+  if (opts.automaticTaxStatus !== undefined && opts.automaticTaxStatus !== null) {
+    obj.automatic_tax = { status: opts.automaticTaxStatus, enabled: true };
+  }
+  if (opts.customerState !== undefined) {
+    obj.customer_details = { address: { state: opts.customerState, postal_code: null } };
+  }
+  if (opts.amountSubtotal !== undefined) obj.amount_subtotal = opts.amountSubtotal;
+  if (opts.amountTax !== undefined) obj.total_details = { amount_tax: opts.amountTax };
+  if (opts.amountTotal !== undefined) obj.amount_total = opts.amountTotal;
+
+  return {
+    id: `evt_web_tax_${opts.sessionId ?? '001'}`,
+    object: 'event',
+    type: 'checkout.session.completed',
+    livemode: false,
+    created: Math.floor(Date.now() / 1000),
+    data: { object: obj as unknown as Stripe.Checkout.Session },
+    api_version: '2026-04-22.dahlia',
+  } as unknown as Stripe.Event;
+}
+
+// ─── 65-T10: clinic session with customer_tax_ids → org_subscriptions.tax_id ────
+
+Deno.test('65-T10: clinic session with customer_tax_ids writes org_subscriptions.tax_id', async () => {
+  const event = buildClinicTaxEvent({
+    clinicId: 'clinic-uuid-T10',
+    customerTaxIds: [{ type: 'us_ein', value: '12-3456789' }],
+  });
+  const [admin, getCalls] = buildExtendedMockAdmin();
+  await handle(event, admin);
+
+  const taxIdUpdate = getCalls().find(
+    (c) => c.table === 'org_subscriptions' && c.op === 'update' && c.data.tax_id === '12-3456789',
+  );
+  assertEquals(taxIdUpdate !== undefined, true, 'org_subscriptions.tax_id update expected');
+  assertEquals(taxIdUpdate!.filter?.col, 'org_id');
+  assertEquals(taxIdUpdate!.filter?.val, 'clinic-uuid-T10');
+});
+
+// ─── 65-T11: consumer session without tax_ids → no org_subscriptions update ────
+
+Deno.test('65-T11: consumer (web) session with no customer_tax_ids does NOT touch org_subscriptions', async () => {
+  const event = buildWebTaxEvent({});
+  const [admin, getCalls] = buildExtendedMockAdmin();
+  await handle(event, admin);
+
+  const orgSubTouched = getCalls().find((c) => c.table === 'org_subscriptions');
+  assertEquals(orgSubTouched, undefined, 'No org_subscriptions write expected for consumer session');
+});
+
+// ─── 65-T12: clinic session with empty customer_tax_ids → no org_subscriptions update ─
+
+Deno.test('65-T12: clinic session with customer_tax_ids=[] does NOT touch org_subscriptions', async () => {
+  const event = buildClinicTaxEvent({
+    clinicId: 'clinic-uuid-T12',
+    customerTaxIds: [], // empty array — operator skipped Stripe UI
+  });
+  const [admin, getCalls] = buildExtendedMockAdmin();
+  await handle(event, admin);
+
+  const orgSubTouched = getCalls().find(
+    (c) => c.table === 'org_subscriptions' && c.op === 'update',
+  );
+  assertEquals(
+    orgSubTouched,
+    undefined,
+    'No org_subscriptions.tax_id update when customer_tax_ids is empty',
+  );
+});
+
+// ─── 65-T13: automatic_tax.status='complete' writes tax_collection_log ──────
+
+Deno.test('65-T13: automatic_tax.status=complete writes tax_collection_log row', async () => {
+  const event = buildClinicTaxEvent({
+    clinicId: 'clinic-uuid-T13',
+    automaticTaxStatus: 'complete',
+    customerState: 'CA',
+    customerPostal: '94105',
+    amountSubtotal: 10000,
+    amountTax: 825,
+    amountTotal: 10825,
+    sessionId: 'cs_t13',
+    subId: 'sub_t13',
+  });
+  const [admin, getCalls] = buildExtendedMockAdmin();
+  await handle(event, admin);
+
+  const logInsert = getCalls().find((c) => c.table === 'tax_collection_log' && c.op === 'insert');
+  assertEquals(logInsert !== undefined, true, 'tax_collection_log insert expected');
+  assertEquals(logInsert!.data.customer_state, 'CA');
+  assertEquals(logInsert!.data.customer_postal, '94105');
+  assertEquals(logInsert!.data.tax_amount_cents, 825);
+  assertEquals(logInsert!.data.subtotal_cents, 10000);
+  assertEquals(logInsert!.data.total_cents, 10825);
+  assertEquals(logInsert!.data.automatic_tax_status, 'complete');
+  assertEquals(logInsert!.data.stripe_session_id, 'cs_t13');
+});
+
+// ─── 65-T14: automatic_tax.status='requires_location_inputs' STILL writes log ─
+
+Deno.test('65-T14: automatic_tax.status=requires_location_inputs writes log (visibility)', async () => {
+  const event = buildClinicTaxEvent({
+    clinicId: 'clinic-uuid-T14',
+    automaticTaxStatus: 'requires_location_inputs',
+    amountSubtotal: 5000,
+    amountTax: 0,
+    amountTotal: 5000,
+  });
+  const [admin, getCalls] = buildExtendedMockAdmin();
+  await handle(event, admin);
+
+  const logInsert = getCalls().find((c) => c.table === 'tax_collection_log' && c.op === 'insert');
+  assertEquals(logInsert !== undefined, true, 'tax_collection_log insert expected for visibility');
+  assertEquals(logInsert!.data.automatic_tax_status, 'requires_location_inputs');
+});
+
+// ─── 65-T15: no automatic_tax field → no tax_collection_log row ─────────────
+
+Deno.test('65-T15: session without automatic_tax does NOT write tax_collection_log', async () => {
+  // Use the default web/consumer event which has no automatic_tax set.
+  const event = buildWebTaxEvent({}); // no automaticTaxStatus
+  const [admin, getCalls] = buildExtendedMockAdmin();
+  await handle(event, admin);
+
+  const logInsert = getCalls().find((c) => c.table === 'tax_collection_log');
+  assertEquals(logInsert, undefined, 'No tax_collection_log row expected without automatic_tax');
+});
+
+// ─── 65-T16: tax_id never logged (PII safety, T-65-04-02) ────────────────────
+
+Deno.test('65-T16: tax_id value is NEVER logged to console (T-65-04-02 PII guard)', async () => {
+  const sensitiveTaxId = '99-9999999-SECRET';
+  const event = buildClinicTaxEvent({
+    clinicId: 'clinic-uuid-T16',
+    customerTaxIds: [{ type: 'us_ein', value: sensitiveTaxId }],
+  });
+  const [admin] = buildExtendedMockAdmin();
+
+  // Hook console.log + console.error to capture all output during handle().
+  const captured: string[] = [];
+  const origLog = console.log;
+  const origErr = console.error;
+  const origWarn = console.warn;
+  console.log = (...args: unknown[]) => {
+    captured.push(args.map(String).join(' '));
+  };
+  console.error = (...args: unknown[]) => {
+    captured.push(args.map(String).join(' '));
+  };
+  console.warn = (...args: unknown[]) => {
+    captured.push(args.map(String).join(' '));
+  };
+
+  try {
+    await handle(event, admin);
+  } finally {
+    console.log = origLog;
+    console.error = origErr;
+    console.warn = origWarn;
+  }
+
+  const leak = captured.find((line) => line.includes(sensitiveTaxId));
+  assertEquals(
+    leak,
+    undefined,
+    `tax_id value MUST NOT appear in console output (T-65-04-02). Found: ${leak}`,
+  );
+});
+
+// ─── 65-T17: writeTaxCollectionLog helper exports + is unit-testable ────────
+
+Deno.test('65-T17: writeTaxCollectionLog helper exists and writes a row', async () => {
+  const { writeTaxCollectionLog } = await import('./tax-collection-log.ts');
+  const [admin, getCalls] = buildExtendedMockAdmin();
+
+  const session = {
+    id: 'cs_helper_test',
+    subscription: 'sub_helper_test',
+    metadata: {},
+    subscription_data: { metadata: { tier_kind: 'web', user_id: 'user-helper', provider: 'stripe' } },
+    automatic_tax: { status: 'complete', enabled: true },
+    customer_details: { address: { state: 'TX', postal_code: '78701' } },
+    amount_subtotal: 4900,
+    amount_total: 5304,
+    total_details: { amount_tax: 404 },
+  } as unknown as Stripe.Checkout.Session;
+
+  await writeTaxCollectionLog(admin, session);
+
+  const insertCall = getCalls().find((c) => c.table === 'tax_collection_log');
+  assertEquals(insertCall !== undefined, true);
+  assertEquals(insertCall!.data.customer_state, 'TX');
+  assertEquals(insertCall!.data.tax_amount_cents, 404);
+});
