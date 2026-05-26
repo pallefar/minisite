@@ -1,0 +1,31 @@
+LeanShot — Final notice
+=======================
+
+Your subscription will be cancelled in 24 hours
+
+Hi {{user_first_name}},
+
+This is our final notice: we have not been able to collect payment for
+your LeanShot subscription. Your subscription will be cancelled in the
+next 24 hours unless we receive payment.
+
+If you'd like to keep your subscription, please update your payment
+method now. Your tracked data, injections, and metrics will remain on
+your account either way — you just won't have access to the premium
+features while cancelled.
+
+KEEP MY SUBSCRIPTION
+--------------------
+
+{{billing_portal_url}}
+
+Questions? Reply to this email or reach us at billing@leanshot.app.
+
+---
+
+This is a transactional notification about your LeanShot subscription.
+
+Unsubscribe: {{unsubscribe_url}}
+Manage preferences: https://leanshot.app/account/data-rights
+
+LeanShot — {{physical_address}}
