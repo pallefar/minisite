@@ -644,7 +644,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 61. Admin Protocol Creator | 8/8 | Complete | 3 migrations + 1 Fn deployed; 64+ tests green |
 | 62. Insights & Research Engine | 8/8 | Complete | 6 migrations + 1 Fn deployed; 84 tests green |
 | 64. Legal Refresh | 1/8 | In Progress|  |
-| 65. Stripe Tax + Payment Resilience | 2/10 | In Progress|  |
+| 65. Stripe Tax + Payment Resilience | 9/10 | In Progress|  |
 | 66. Consumer Account Security | 0/0 | Not started | - |
 | 67. Operational Runbooks + Observability | 0/0 | Not started | - |
 | 68. Audience Landing + Sales Enablement | 0/0 | Not started | - |
