@@ -106,6 +106,19 @@ async function main() {
     `  <url>\n    <loc>${CANONICAL_BASE}/knowledge</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`,
   );
 
+  // Phase 68 Plan 68-03 — audience-specific landing pages
+  // (/for-doctors, /for-clinics, /for-coaches). High-priority (0.9) because
+  // they're the conversion-side surface for clinic / coach / doctor traffic
+  // referred via UTM-default-landing (Phase 51 + Phase 68-01 utm_landing_defaults).
+  // changefreq=monthly because the page-builder seed is operator-editable
+  // post-launch via the admin page-list / page-editor UI (Phase 15).
+  const AUDIENCE_LASTMOD = new Date().toISOString().slice(0, 10);
+  for (const audienceSlug of ['/for-doctors', '/for-clinics', '/for-coaches']) {
+    urls.push(
+      `  <url>\n    <loc>${CANONICAL_BASE}${audienceSlug}</loc>\n    <lastmod>${AUDIENCE_LASTMOD}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.9</priority>\n  </url>`,
+    );
+  }
+
   // Topic index pages
   for (const topic of topics) {
     urls.push(
@@ -213,10 +226,21 @@ async function main() {
 // ─── Empty sitemap for dry-run without DB ─────────────────────────────────────
 
 function generateEmptySitemap() {
+  // Phase 68 Plan 68-03 — even when the DB is unreachable, the audience
+  // landing pages are static-route surfaces (block_tree seeded into the DB
+  // but the routes themselves resolve client-side). Include them in the
+  // skeleton so SEO crawlers see them on every build.
+  const audienceLastmod = new Date().toISOString().slice(0, 10);
+  const audienceUrls = ['/for-doctors', '/for-clinics', '/for-coaches'].map(
+    (slug) =>
+      `  <url>\n    <loc>${CANONICAL_BASE}${slug}</loc>\n    <lastmod>${audienceLastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.9</priority>\n  </url>`,
+  );
+
   const sitemapXml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     `  <url>\n    <loc>${CANONICAL_BASE}/knowledge</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>`,
+    ...audienceUrls,
     '</urlset>',
   ].join('\n');
 
