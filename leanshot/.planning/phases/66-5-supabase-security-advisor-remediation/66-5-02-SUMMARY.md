@@ -94,4 +94,4 @@ None — plan executed exactly as written.
 ## Self-Check: PASSED
 
 - `supabase/migrations/20290106000003_function_search_path_fix.sql` exists (160 lines, 16 `alter function public.` matches)
-- Commit hash recorded below
+- Commit: `3e55d0ee` (worktree branch `worktree-agent-aba7bbf4c584db1a4`, base `4a74d686`)
