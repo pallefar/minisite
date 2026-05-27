@@ -1,0 +1,44 @@
+# Phase 67 Plan 67-03 — OPS-04 SENTRY_DSN Edge Fn CI guard.
+#
+# Runs `scripts/ci/check-sentry-imports.ts` under Deno. The script walks every
+# `supabase/functions/<fn>/` directory, finds files that import `@sentry/*`
+# (directly or via the shared `_shared/sentry.ts` wrapper), and fails if any
+# imported module resolves to a no-op shim (e.g. `export default {}`,
+# empty-body exports, missing file).
+#
+# Allow-list: a Fn can opt out by adding a header comment
+#   `// SENTRY-DISABLED: <reason>` to its index.ts.
+#
+# Phase 60.5 set SENTRY_DSN as a Supabase Function Secret; this gate ensures
+# that secret is actually consumed by a real SDK at runtime — not silently
+# swallowed by a placeholder shim.
+
+name: Sentry DSN check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sentry-dsn-check:
+    name: Edge Fn @sentry/* import audit
+    runs-on: ubuntu-latest
+    # CRITICAL: do NOT inherit `defaults.run.working-directory: leanshot` from
+    # other workflows — `supabase/functions/` lives at the repo root, NOT under
+    # leanshot/. The script reads `Deno.cwd() + supabase/functions` by default.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Audit @sentry/* imports across Edge Fns
+        run: deno run --no-check -A scripts/ci/check-sentry-imports.ts
