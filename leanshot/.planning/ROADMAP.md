@@ -564,7 +564,12 @@ Plans:
   9. Phase 69 VR baselines captured via `npx playwright test --config playwright.config.vr.ts --update-snapshots` against staging
   10. DS-01/02/03 CI gates fire on the next PR (validates Phase 69 gate activation)
 
-**Plans**: 3-4 plans (TBD when this phase is planned — likely (1) drift recovery + db push, (2) Edge Fn deploys + cron + secrets, (3) Vercel build + VR baseline capture, (4) close-out)
+**Plans**: 4 plans
+
+- [ ] 69.7-01-PLAN.md — DB push + advisor/lint sweep (Wave 0; HUMAN drift gate)
+- [ ] 69.7-02-PLAN.md — Edge Fn deploys + cron + secrets inventory (Wave 1)
+- [ ] 69.7-03-PLAN.md — Vercel build + staging deploy + VR baselines (Wave 1)
+- [ ] 69.7-04-PLAN.md — Multi-signal HUMAN close-out + SUMMARY + ROADMAP/STATE flip (Wave 2)
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
