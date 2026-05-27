@@ -14,8 +14,8 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 69
-**Phases:** 52-70 (19 phases)
+**Status:** Phase 69 CODE-COMPLETE (2026-05-27) — autonomous run `--from 65 --to 69` finished. All 5 in-scope phases shipped code-complete: 65 (Stripe Tax), 66 (Consumer MFA), 66.5 (Supabase security remediation), 67 (Ops runbooks), 68 (Audience landing), 69 (Design polish CI gates + audit reports). Plus Phase 69.7 inserted per user direction (Vercel+Supabase build/deploy verification before Phase 70 UAT). Net new: ~30 PLAN.md files, ~700 new tests, 18 pending migrations, 10 new Edge Fns. All remote-deploy items + 11 ERROR-level Supabase advisor findings (now fixed in code) + 9 pg_cron registrations deferred to Phase 69.7. **Operator next:** resolve Phase 65 `org_subscriptions` schema-tracking drift (psql), then Phase 69.7 (deploy + smoke + verify), then Phase 70 UAT.
+**Phases:** 52-70 (20 phases incl. 66.5 + 69.5 + 69.7)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
 

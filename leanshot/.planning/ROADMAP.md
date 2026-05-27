@@ -27,8 +27,9 @@
 - [x] **Phase 66.5: Supabase Security Advisor Remediation** — Fix 11 ERROR-level findings (7 RLS-disabled public tables + 2 SECURITY DEFINER views + 2 auth.users-exposing views) + 16 mutable-search_path functions surfaced by `supabase db advisors --linked` audit — CODE-COMPLETE 2026-05-27
 - [x] **Phase 67: Operational Runbooks + Observability** — Secrets-rotation runbook + DDoS k6 load-test + Vercel rate-limit + SENTRY_DSN Edge-Fn verify + funnel-break alerts + incident-response runbook + backup PITR restore drill — CODE-COMPLETE 2026-05-27
 - [x] **Phase 68: Audience Landing + Sales Enablement** — /for-doctors + /for-clinics + /for-coaches via page-builder + schema.org Service JSON-LD + demo/sandbox mode for clinic-buyer prospects (synthetic patients + auto-purge)
-- [ ] **Phase 69: Layout & Design Polish** — DS harmonization audit across all v1.1/v1.2/v1.3/v1.4 surfaces; 4-size typography + 2 weights + accent reserved-list + DS primitive adoption + a11y baseline + dark mode parity + responsive sweep
-- [ ] **Phase 69.5: Final Tech Debt Sweep + Device-UAT (Launch Prep)** — Last cleanup phase before launch gate. Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign + absorbed tech-debt from Phases 60/61/62 CARRY-OVER.md (vitest project bloat, schema-drift audit, migration timestamp drift, build artifacts gitignore, community_engagement fallback, matview cron registration). Mirrors Phase 60.5 decimal pattern.
+- [x] **Phase 69: Layout & Design Polish** — DS harmonization audit across all v1.1/v1.2/v1.3/v1.4 surfaces; 4-size typography + 2 weights + accent reserved-list + DS primitive adoption + a11y baseline + dark mode parity + responsive sweep
+- [ ] **Phase 69.5: Final Tech Debt Sweep + Device-UAT (Launch Prep)** — Last cleanup phase before launch gate. Phase 42's 5 device-UAT signals + REVIEW.md IN-* findings + ROADMAP checkbox drift + Calendly signed-handoff redesign + absorbed tech-debt from Phases 60/61/62/65/66/66.5/67/68/69 CARRY-OVER.md (vitest project bloat, schema-drift audit, migration timestamp drift, build artifacts gitignore, community_engagement fallback, matview cron registration, modules.test.ts rewrite, 6 pre-existing test failures, 4 DS-04 duplicates, 10 DS-05 a11y findings, 15 DS-08 spacing, 114 DS-07 mobile, 714 supabase advisor WARN). Mirrors Phase 60.5 decimal pattern.
+- [ ] **Phase 69.7: Vercel + Supabase Build & Deploy Verification** — End-to-end build + deploy validation BEFORE Phase 70 UAT. Inserted per user direction 2026-05-27: ensure both Vercel + Supabase are building/running correctly. Resolves Phase 65 `org_subscriptions` drift (operator psql), pushes 18 pending migrations, deploys 10 new Edge Fns + healthz smokes, registers 9 pg_cron jobs, executes Phase 65 operator gates (Stripe Tax + 3 Win-back Coupons + 4 secrets), captures VR baselines (Phase 69 spec). Validates DS-01/02/03 CI gates fire on next PR.
 - [ ] **Phase 70: Consolidated UAT — v1.4 Launch Gate** — `autonomous: false`. Multi-signal HUMAN-UAT roll-up: 33 v1.3 carry + 5 Phase 42 device + new v1.4 per-phase UAT + design polish UAT + full regression sweep across all 4 milestones
 
 ## Phase Details
@@ -542,6 +543,28 @@ Plans:
   18. **Backlog migration audit** — retroactive testing of P48/49/50-traffic migrations applied via `migration repair` (per Phase 60 CARRY-OVER)
 
 **Plans**: TBD (8-12 plans expected; tech-debt absorber)
+
+> Signals roll up to Phase 70 — see consolidated UAT phase.
+
+### Phase 69.7: Vercel + Supabase Build & Deploy Verification
+
+**Goal**: End-to-end build + deploy validation BEFORE Phase 70 UAT. Inserted mid-run per user direction 2026-05-27: "ensure that both vercel and superbase are building correctly and running that way they should, before we go to the UAT in phase 70".
+**Depends on**: Phases 65-69.5 all CODE-COMPLETE; operator must complete §1 (org_subscriptions drift recovery) before this phase can be executed.
+**Requirements**: DEPLOY-01..06 (new — to be added to REQUIREMENTS.md)
+**Success Criteria** (what must be TRUE):
+
+  1. `npx supabase db push --linked` succeeds for all 18 pending migrations (10 Phase 65 + 2 Phase 66 + 3 Phase 66.5 + 3 Phase 68)
+  2. `npx supabase db advisors --linked --type security --level error --fail-on error` returns 0 entries
+  3. `npx supabase db lint --linked --fail-on error` cleared of RPC body errors (operator may need to drop+recreate RPCs given drift)
+  4. `npm run build` in leanshot/ produces clean Vite production bundle
+  5. `vercel build --prod` or `vercel deploy --prebuilt` produces deployable artifact
+  6. All 10 new Edge Fns deployed + `/healthz` returns `ok:true` for each: stripe-checkout, stripe-webhook, stripe-dunning-orchestrator, request-refund, lifecycle-trial-ending, lifecycle-win-back, nexus-monitor, auth-rate-limit-check, bs-status-poller, demo-org-purge
+  7. 9 pg_cron jobs registered (P65: 5 jobs + P66 cron + P67 bs-status-poller + P68 demo-org-purge + P66 auth-attempts retention)
+  8. Phase 65 operator-gate actions complete: Stripe Tax enabled in Dashboard, 3 Win-back Coupons created, 4 secrets verified (STRIPE_COUPON_*, SLACK_GUARDRAIL_WEBHOOK_URL, PHYSICAL_ADDRESS, BETTER_STACK_API_KEY, VITE_CALENDLY_BOOK_DEMO_URL)
+  9. Phase 69 VR baselines captured via `npx playwright test --config playwright.config.vr.ts --update-snapshots` against staging
+  10. DS-01/02/03 CI gates fire on the next PR (validates Phase 69 gate activation)
+
+**Plans**: 3-4 plans (TBD when this phase is planned — likely (1) drift recovery + db push, (2) Edge Fn deploys + cron + secrets, (3) Vercel build + VR baseline capture, (4) close-out)
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 

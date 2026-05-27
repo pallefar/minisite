@@ -486,16 +486,16 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | LAND-06 | Phase 68 | Complete (code) |
 | LAND-07 | Phase 68 | Complete (code) |
 | LAND-08 | Phase 68 | Complete (code) |
-| DS-01 | Phase 69 | Pending |
-| DS-02 | Phase 69 | Pending |
-| DS-03 | Phase 69 | Pending |
-| DS-04 | Phase 69 | Pending |
-| DS-05 | Phase 69 | Pending |
-| DS-06 | Phase 69 | Pending |
-| DS-07 | Phase 69 | Pending |
-| DS-08 | Phase 69 | Pending |
-| DS-09 | Phase 69 | Pending |
-| DS-10 | Phase 69 | Pending |
+| DS-01 | Phase 69 | Complete (code) |
+| DS-02 | Phase 69 | Complete (code) |
+| DS-03 | Phase 69 | Complete (code) |
+| DS-04 | Phase 69 | Complete (code) |
+| DS-05 | Phase 69 | Complete (code) |
+| DS-06 | Phase 69 | Complete (code) |
+| DS-07 | Phase 69 | Complete (code) |
+| DS-08 | Phase 69 | Complete (code) |
+| DS-09 | Phase 69 | Complete (code) |
+| DS-10 | Phase 69 | Complete (code) |
 | UAT-01 | Phase 70 | Pending |
 | UAT-02 | Phase 70 | Pending |
 | UAT-03 | Phase 70 | Pending |
