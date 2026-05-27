@@ -630,6 +630,33 @@ export const ADMIN_MODULES = [
     flagKey: 'admin.vendor_smoke.enabled',
     minRole: 'superadmin' as AdminRole,
   },
+  // Phase 66 Plan 66-06 (AUTH-17) — Role MFA requirement editor.
+  // Surface: /admin/users/security — per-role MFA-required toggle table.
+  // Reads/writes public.mfa_role_requirements (Phase 66-01 schema) via the
+  // set_mfa_role_requirement SECDEF RPC (superadmin-only at DB layer).
+  //
+  // Route 'users/security' is a SIBLING entry (not a sub-route edit of the
+  // 'users' entry) per [[feedback_admin_module_manifest_vs_router_branch_drift]].
+  // AdminShell.tsx URL-prefix routing
+  // (pathname === '/admin/users/security' || pathname.startsWith('/admin/users/security/'))
+  // resolves automatically — no hardcoded switch branch in App.tsx required.
+  //
+  // minRole 'admin' is the Pattern S1 UX layer (any admin sees the table
+  // read-only); the SECDEF RPC re-checks superadmin server-side so only
+  // superadmins can actually toggle. The component greys out the checkbox
+  // for non-superadmin viewers.
+  {
+    key: 'users-security',
+    label: 'User Security',
+    route: 'users/security',
+    icon: ShieldIcon,
+    lazy: () =>
+      import('@/components/admin/users/RoleMfaRequirementTable').then((m) => ({
+        default: m.RoleMfaRequirementTable,
+      })),
+    flagKey: 'admin.users_security.enabled',
+    minRole: 'admin' as AdminRole,
+  },
   // Phase 56 Plan 56-05 (AD-06) — Admin revenue dashboard.
   // Surfaces eCPM / RPM / fill rate / CTR KPI tiles by placement + network.
   // Data read via get_ad_revenue_dashboard SECDEF RPC (T-56-14 mitigated:
