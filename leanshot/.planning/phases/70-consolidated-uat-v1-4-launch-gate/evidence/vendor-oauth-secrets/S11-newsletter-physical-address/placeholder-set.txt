@@ -1,0 +1,60 @@
+S11 — NEWSLETTER_PHYSICAL_ADDRESS (PLACEHOLDER set; real value before launch)
+================================================================================
+
+Created: 2026-05-27
+Disposition: PLACEHOLDER-SET (runtime guard will block all newsletter sends until real value lands)
+User direction: "for the mailing address, put in a placeholder for now and we can change this in the admin"
+
+Placeholder value
+-----------------
+NEWSLETTER_PHYSICAL_ADDRESS='[PLACEHOLDER — set real LeanShot mailing address before launch; see Phase 70-01 S11+S13]'
+
+Guard semantics
+---------------
+Consumer Fns (newsletter-dispatch / lifecycle-win-back / stripe-dunning-orchestrator)
+read the address and run:
+
+    /\[|TODO|REPLACE_ME|PLACEHOLDER/i.test(physicalAddress)
+
+Our placeholder contains both `[` AND `PLACEHOLDER` — guard MATCHES (verified inline:
+`grep -ciE '(\\[|TODO|REPLACE_ME|PLACEHOLDER)' → 1`).
+
+Fns will return HTTP 503 + emit Slack `regulatory` P1 alert if invoked while this
+value is set. This is the SAFETY mode operating as designed — refuses to ship a
+newsletter that would CAN-SPAM-violate (15 U.S.C. § 7704(a)(5)).
+
+Verification
+------------
+$ npx supabase secrets list --project-ref ytnsipxxmzgaebkqmokp | grep NEWSLETTER_PHYSICAL_ADDRESS
+   NEWSLETTER_PHYSICAL_ADDRESS        | 79023273caa2e2bf1916117ec2ddd796cee315b9c8eca79a3bcda18cfccf3247
+
+(Digest matches PHYSICAL_ADDRESS digest — same value stored at both keys, intentional.)
+
+Path to real value
+------------------
+Operator runs ONE of these BEFORE Plan 70-08 final-signoff:
+
+(a) CLI (immediate; what S11/S13 will ultimately do):
+    npx supabase secrets set --project-ref ytnsipxxmzgaebkqmokp \\
+      NEWSLETTER_PHYSICAL_ADDRESS='<Street, City, State ZIP, Country>' \\
+      PHYSICAL_ADDRESS='<Street, City, State ZIP, Country>'
+
+(b) Future admin UI (tech debt, NOT scoped to Phase 70):
+    Extend src/components/admin/pages/SiteSettingsPanel.tsx with a
+    physical_address field; add `physical_address text` column to
+    public.site_settings via migration; refactor 3 consumer Fns
+    (newsletter-dispatch / lifecycle-win-back / stripe-dunning-orchestrator)
+    to read site_settings.physical_address row instead of env var. ~150-200 LOC.
+    Captured as carry-over for post-launch tech debt cycle.
+
+Why option (a) is fine for v1.4 launch
+--------------------------------------
+- One-time write before launch
+- Operator already has staff Supabase access for many other secret writes
+- Adds no runtime DB-query overhead vs env var reads
+- DB row vs env var doesn't change the operator workflow (you still type the
+  address ONCE, just in a different surface)
+- Migration to site_settings can happen post-launch without changing the address itself
+
+Signal status: PLACEHOLDER-SET (must flip to PASS before launch)
+signoff: karsten.haldan@gmail.com, 2026-05-27, placeholder set per user direction; guard verified to fire; real value REQUIRED before launch (cron next-fire Sun 2026-05-31 13:00 UTC ~4 days out — Fn will 503-block + Slack P1 instead of CAN-SPAM-violating)

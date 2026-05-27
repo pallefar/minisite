@@ -1,0 +1,29 @@
+S13 — PHYSICAL_ADDRESS (PLACEHOLDER set; real value before launch)
+====================================================================
+
+Created: 2026-05-27
+Disposition: PLACEHOLDER-SET (runtime guard will block sends until real value lands)
+User direction: "for the mailing address, put in a placeholder for now and we can change this in the admin"
+
+Same placeholder value as S11 (single source of legal address; intentional digest match):
+PHYSICAL_ADDRESS='[PLACEHOLDER — set real LeanShot mailing address before launch; see Phase 70-01 S11+S13]'
+
+Consumers
+---------
+- lifecycle-win-back (Fn at supabase/functions/lifecycle-win-back/handler.ts:198,209) — refund-email footer + win-back email footer
+- stripe-dunning-orchestrator (handler.ts:349-357) — dunning email footer
+- (any future Fn reading PHYSICAL_ADDRESS, e.g. request-refund)
+
+Guard: identical regex /\[|TODO|REPLACE_ME|PLACEHOLDER/i — matches our placeholder.
+
+Verification
+------------
+$ npx supabase secrets list --project-ref ytnsipxxmzgaebkqmokp | grep '^   PHYSICAL_ADDRESS'
+   PHYSICAL_ADDRESS                   | 79023273caa2e2bf1916117ec2ddd796cee315b9c8eca79a3bcda18cfccf3247
+
+(Digest identical to NEWSLETTER_PHYSICAL_ADDRESS — same value stored at both keys.)
+
+Path to real value: see S11 evidence (same CLI for both at once + future admin-UI tech debt).
+
+Signal status: PLACEHOLDER-SET (must flip to PASS before launch)
+signoff: karsten.haldan@gmail.com, 2026-05-27, placeholder set per user direction; guard verified to fire; real value REQUIRED before launch

@@ -678,9 +678,9 @@ Operator: fill checkbox + `signoff:` line as each signal completes. If you stop 
 - [x] **S08** — ~~`STRIPE_COUPON_WB_3MO_50`~~ → **`STRIPE_COUPON_WINBACK_10`** (drift-corrected to deployed Fn naming) — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST coupon `WINBACK_10` (10% once, t30d cadence) + secret + `_LIVE` placeholder; matches `lifecycle-win-back` handler.ts:59
 - [x] **S09** — ~~`STRIPE_COUPON_WB_6MO_30`~~ → **`STRIPE_COUPON_WINBACK_25`** (drift-corrected) — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST coupon `WINBACK_25` (25% once, t60d cadence) + secret + `_LIVE` placeholder
 - [x] **S10** — ~~`STRIPE_COUPON_WB_LIFETIME_20`~~ → **`STRIPE_COUPON_WINBACK_50`** (drift-corrected) — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST coupon `WINBACK_50` (50% once, t90d cadence) + secret + `_LIVE` placeholder
-- [ ] **S11** — `NEWSLETTER_PHYSICAL_ADDRESS` — signoff: __________
+- [~] **S11** — `NEWSLETTER_PHYSICAL_ADDRESS` — **PLACEHOLDER-SET; must flip to PASS before launch** — signoff: karsten.haldan@gmail.com, 2026-05-27, placeholder set per user direction; guard fires (verified `[` + `PLACEHOLDER` matches regex); real value required before Sun 2026-05-31 newsletter cron OR launch (whichever first); admin-UI extension via `site_settings` row deferred as tech debt
 - [ ] **S12** — `BETTER_STACK_API_KEY` — signoff: __________
-- [ ] **S13** — `PHYSICAL_ADDRESS` — signoff: __________
+- [~] **S13** — `PHYSICAL_ADDRESS` — **PLACEHOLDER-SET; must flip to PASS before launch** — signoff: karsten.haldan@gmail.com, 2026-05-27, same placeholder + same guard semantics as S11; required before launch
 - [ ] **S14** — Apple Dev `APPLE_TEAM_ID` + `APPLE_BUNDLE_ID` — signoff: __________
 - [ ] **S15** — Sign-in-with-Apple `APPLE_CLIENT_SECRET` JWT — signoff: __________
 - [ ] **S16** — Play Developer account + Android signing key — signoff: __________
