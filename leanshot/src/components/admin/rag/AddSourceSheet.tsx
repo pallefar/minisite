@@ -97,6 +97,7 @@ export function AddSourceSheet({ open, onClose, onCreated }: AddSourceSheetProps
           onChange={(e) => setName(e.target.value)}
           error={errors.name}
           required
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- intentional UX: focus first field when sheet opens.
           autoFocus
         />
         <Input

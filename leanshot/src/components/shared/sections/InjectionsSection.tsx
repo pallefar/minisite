@@ -38,7 +38,7 @@ export function InjectionsSection({ data, viewerMode: _viewerMode, onMount }: In
         {data.length === 0 ? (
           <p className="text-[13px] text-[var(--color-text-tertiary)]">None logged.</p>
         ) : (
-          <ul role="list" className="flex flex-col gap-2 text-[13px]">
+          <ul className="flex flex-col gap-2 text-[13px]">
             {data.slice(0, 12).map((i) => (
               <li
                 key={i.id}

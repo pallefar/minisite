@@ -162,7 +162,6 @@ export function CommunityImageUploader({
       {/* Selected image previews */}
       {previews.length > 0 && (
         <ul
-          role="list"
           aria-label={`${previews.length} image${previews.length === 1 ? '' : 's'} selected`}
           className="flex flex-wrap gap-2"
         >
@@ -170,7 +169,7 @@ export function CommunityImageUploader({
             <li key={src}>
               <img
                 src={src}
-                alt={`Image preview ${i + 1}`}
+                alt={`Preview ${i + 1}`}
                 width={64}
                 height={64}
                 className="h-16 w-16 rounded object-cover ring-1 ring-[var(--color-border)]"
@@ -193,7 +192,7 @@ export function CommunityImageUploader({
 
       {/* Error messages */}
       {errors.length > 0 && (
-        <ul role="list" aria-live="polite" className="flex flex-col gap-0.5">
+        <ul aria-live="polite" className="flex flex-col gap-0.5">
           {errors.map((err) => (
             <li key={err} className="text-sm text-[var(--color-error)]">
               {err}

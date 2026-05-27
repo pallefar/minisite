@@ -176,12 +176,11 @@ export function CommunityFeed({
             />
           ) : (
             <ul
-              role="list"
               aria-label="Posts in this space"
               className="flex flex-col gap-4"
             >
               {posts.map((post) => (
-                <li key={post.id} role="listitem">
+                <li key={post.id}>
                   <CommunityPost
                     post={post}
                     reactions={reactionsByPost[post.id] ?? []}

@@ -34,7 +34,7 @@ export function SymptomsSection({ data, viewerMode: _viewerMode, onMount }: Symp
         {data.length === 0 ? (
           <p className="text-[13px] text-[var(--color-text-tertiary)]">No symptoms logged.</p>
         ) : (
-          <ul role="list" className="flex flex-col gap-2 text-[13px]">
+          <ul className="flex flex-col gap-2 text-[13px]">
             {data.slice(0, 20).map((s) => (
               <li
                 key={s.id}

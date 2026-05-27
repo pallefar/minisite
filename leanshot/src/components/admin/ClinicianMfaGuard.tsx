@@ -153,6 +153,7 @@ function ChallengeClinicianTotp({ onComplete }: ChallengeProps) {
               onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
               autoComplete="one-time-code"
+              // eslint-disable-next-line jsx-a11y/no-autofocus -- intentional UX: TOTP entry is the sole interactive element on the MFA gate; sighted + screen-reader users both expect immediate focus.
               autoFocus
               className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg font-mono text-lg tracking-[0.3em] text-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               aria-label="6-digit authenticator code"

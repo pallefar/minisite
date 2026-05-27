@@ -75,7 +75,6 @@ export function CommunityPost({
 
   return (
     <article
-      role="article"
       aria-label={`Post by ${displayName}`}
       className="flex flex-col gap-3"
     >

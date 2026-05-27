@@ -64,7 +64,7 @@ export function PhotosSection({ data, viewerMode: _viewerMode, orgId: _orgId, on
                 <figure key={p.id} className="flex flex-col gap-1">
                   <img
                     src={p.storage_path}
-                    alt={`Body photo from ${formatShort(p.taken_at)}`}
+                    alt={`Body shot from ${formatShort(p.taken_at)}`}
                     width={400}
                     height={400}
                     decoding="async"

@@ -136,7 +136,7 @@ export function PhotoTrashView({ open, onClose }: PhotoTrashViewProps) {
                   {thumbUrl ? (
                     <img
                       src={thumbUrl}
-                      alt={`Photo from ${photo.date}`}
+                      alt={`From ${photo.date}`}
                       width={200}
                       height={200}
                       loading="lazy"

@@ -50,7 +50,6 @@ export function CommunityPostMediaStrip({
       {/* ── Image carousel (D-04) ── */}
       {hasImages && (
         <ul
-          role="list"
           aria-label={`${post.community_post_media.length} attached image${post.community_post_media.length === 1 ? '' : 's'}`}
           className="flex flex-wrap gap-2 overflow-x-auto"
         >

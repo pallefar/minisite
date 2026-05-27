@@ -93,7 +93,7 @@ function CommentRow({
   );
 
   return (
-    <li role="listitem" className="flex flex-col gap-2 py-2 border-b border-[var(--color-border)] last:border-b-0">
+    <li className="flex flex-col gap-2 py-2 border-b border-[var(--color-border)] last:border-b-0">
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ export function CommunityCommentThread({
       {loading ? (
         <div className="text-xs text-[var(--color-fg-muted)] py-2">Loading comments…</div>
       ) : (
-        <ul role="list" className="flex flex-col">
+        <ul className="flex flex-col">
           {comments.map((comment) => (
             <CommentRow
               key={comment.id}
@@ -231,7 +231,7 @@ export function CommunityCommentThread({
             />
           ))}
           {comments.length === 0 && (
-            <li role="listitem" className="text-xs text-[var(--color-fg-muted)] py-2 italic">
+            <li className="text-xs text-[var(--color-fg-muted)] py-2 italic">
               No comments yet.
             </li>
           )}

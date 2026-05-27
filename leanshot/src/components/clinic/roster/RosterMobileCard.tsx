@@ -123,10 +123,12 @@ export function RosterMobileCard({
 
   return (
     <article
+      // Phase 65.1 lint fix: the card is clickable (onClick + keyboard handler);
+      // semantically a button, so we set role="button" to validate aria-pressed.
+      role="button"
       tabIndex={0}
-      role="article"
       aria-label={`${row.display_name}, score ${row.score}, last dose ${relativeTime(row.last_injection_at)}`}
-      aria-selected={onToggleSelect ? isSelected : undefined}
+      aria-pressed={onToggleSelect ? isSelected : undefined}
       className={cn(
         'cursor-pointer focus-visible:outline-none focus-visible:ring-2',
         'focus-visible:ring-[var(--color-primary)] rounded-card min-h-[80px]',

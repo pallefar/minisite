@@ -86,6 +86,7 @@ export function AddTopicSheet({ open, onClose, onCreated }: AddTopicSheetProps) 
           onChange={(e) => setQuery(e.target.value)}
           error={errors.query}
           required
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- intentional UX: focus first field when sheet opens.
           autoFocus
         />
         <Input

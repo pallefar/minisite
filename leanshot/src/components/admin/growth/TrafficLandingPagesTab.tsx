@@ -297,7 +297,6 @@ export const TrafficLandingPagesTab: React.FC = () => {
                 <th className="py-2 pe-3 text-start">Variant</th>
                 <th
                   className="py-2 pe-3 text-end cursor-pointer select-none"
-                  role="button"
                   tabIndex={0}
                   aria-label="Sort by visits"
                   aria-sort={ariaSortFor('visits')}
@@ -310,7 +309,6 @@ export const TrafficLandingPagesTab: React.FC = () => {
                 </th>
                 <th
                   className="py-2 pe-3 text-end cursor-pointer select-none"
-                  role="button"
                   tabIndex={0}
                   aria-label="Sort by non-signup rate"
                   aria-sort={ariaSortFor('bounce')}
@@ -324,7 +322,6 @@ export const TrafficLandingPagesTab: React.FC = () => {
                 </th>
                 <th
                   className="py-2 pe-3 text-end cursor-pointer select-none"
-                  role="button"
                   tabIndex={0}
                   aria-label="Sort by signup rate"
                   aria-sort={ariaSortFor('signup_rate')}
@@ -338,7 +335,6 @@ export const TrafficLandingPagesTab: React.FC = () => {
                 </th>
                 <th
                   className="py-2 text-end cursor-pointer select-none"
-                  role="button"
                   tabIndex={0}
                   aria-label="Sort by paid conversion"
                   aria-sort={ariaSortFor('paid_conv')}
