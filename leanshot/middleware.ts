@@ -1,7 +1,22 @@
 /**
- * Phase 41 Plan 41-03 + Phase 51 Plan 51-02 + Phase 67 Plan 67-02 — Vercel Edge Middleware.
+ * Phase 41 Plan 41-03 + Phase 51 Plan 51-02 + Phase 67 Plan 67-02 + Phase 68 Plan 68-04 — Vercel Edge Middleware.
  *
- * FOUR concerns wired into a single edge middleware:
+ * FIVE concerns wired into a single edge middleware:
+ *
+ *   (E) Phase 68-04 LAND-08 — UTM-default-landing 307 redirect
+ *       When a visitor lands on root `/` with a `utm_source` query param that
+ *       matches a row in the `utm_landing_defaults` table (e.g.
+ *       `clinic_outreach` → `/for-clinics`), short-circuit with a 307
+ *       Temporary Redirect to the mapped path. Original query params are
+ *       PRESERVED so the redirected page still receives the full UTM tuple.
+ *       Runs BEFORE rate-limit/cookie/CSP so it never spawns downstream work.
+ *
+ *       Architectural note: the resolver lives HERE (not in the
+ *       `traffic-attribution-recorder` Edge Fn the plan first proposed) because
+ *       the recorder fires from the SPA AFTER React mounts; a 307 from the Fn
+ *       would arrive long after the wrong audience landing already painted.
+ *       Middleware is the only true server-side request interceptor for SPA
+ *       root landings.
  *
  *   (D) Phase 67-02 OPS-03 — per-IP rate-limit on hot public API routes
  *       In-memory token bucket guarding `/api/lead-capture` (30/min),
@@ -180,6 +195,134 @@ const CACHE_TTL_MS = 60_000;
 let cache: { hosts: string[]; expiresAt: number } | null = null;
 
 // =====================================================================
+// Phase 68 Plan 68-04 — UTM-default-landing resolver (LAND-08)
+// SEPARATE module-level cache — does not share state with iframe / ad CSP caches.
+// Maps utm_source → landing_path. Mirrors the iframe_allowlist fetch shape
+// (anon-key SELECT, 60s TTL, fail-safe to empty map on error).
+// =====================================================================
+let utmLandingCache: { map: Record<string, string>; expiresAt: number } | null = null;
+
+async function fetchUtmLandingDefaults(
+  supabaseUrl: string,
+  anonKey: string,
+): Promise<Record<string, string>> {
+  const url = `${supabaseUrl}/rest/v1/utm_landing_defaults?select=utm_source,landing_path`;
+  const res = await fetch(url, {
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`utm_landing_defaults fetch ${res.status}`);
+  }
+  const rows = (await res.json()) as Array<{
+    utm_source?: unknown;
+    landing_path?: unknown;
+  }>;
+  const out: Record<string, string> = {};
+  for (const r of rows) {
+    if (
+      typeof r.utm_source === 'string' &&
+      r.utm_source.length > 0 &&
+      typeof r.landing_path === 'string' &&
+      r.landing_path.startsWith('/')
+    ) {
+      out[r.utm_source] = r.landing_path;
+    }
+  }
+  return out;
+}
+
+/**
+ * Resolve the inbound request against `utm_landing_defaults` and return a
+ * 307 redirect Response when the resolver matches. Returns null otherwise
+ * (request should fall through to the rest of the middleware pipeline).
+ *
+ * Match conditions (ALL must hold):
+ *   1. Pathname is exactly `/` (root landing only — internal links to
+ *      `/for-clinics` etc. must NOT be re-redirected).
+ *   2. Query param `utm_source` is present.
+ *   3. `utm_source` value maps to a `landing_path` in the cache.
+ *
+ * Preserves all original query params on the redirect URL so the destination
+ * page still records the full UTM tuple via the recorder Fn.
+ *
+ * Fail-safe: any fetch error returns null (resolver disabled) — the user
+ * sees the generic root landing instead of an error page.
+ *
+ * Test seam: `setUtmLandingCacheForTest` lets the integration tests inject a
+ * synthetic mapping without hitting the network.
+ */
+export async function maybeRedirectUtmLanding(
+  request: Request,
+  supabaseUrl: string,
+  anonKey: string,
+): Promise<Response | null> {
+  let url: URL;
+  try {
+    url = new URL(request.url);
+  } catch {
+    return null; // malformed URL — let downstream handle
+  }
+
+  // Gate 1: root-pathname only.
+  if (url.pathname !== '/') return null;
+
+  // Gate 2: utm_source present.
+  const utmSource = url.searchParams.get('utm_source');
+  if (!utmSource) return null;
+
+  // Resolve map (env-gated; missing env → fail-safe no-op).
+  if (!supabaseUrl || !anonKey) return null;
+
+  let map: Record<string, string>;
+  try {
+    const now = Date.now();
+    if (!utmLandingCache || utmLandingCache.expiresAt <= now) {
+      const fresh = await fetchUtmLandingDefaults(supabaseUrl, anonKey);
+      utmLandingCache = { map: fresh, expiresAt: now + CACHE_TTL_MS };
+    }
+    map = utmLandingCache.map;
+  } catch (err) {
+    console.warn(
+      'middleware: utm_landing_defaults fetch failed; falling through (Phase 68-04)',
+      err instanceof Error ? err.message : String(err),
+    );
+    return null;
+  }
+
+  const landingPath = map[utmSource];
+  if (!landingPath) return null; // unknown source → pass-through
+
+  // Build the redirect URL: clone the original URL, swap pathname, preserve
+  // all query params (including utm_source itself so the recorder Fn still
+  // sees the full UTM tuple after the redirect).
+  const dest = new URL(request.url);
+  dest.pathname = landingPath;
+
+  return new Response(null, {
+    status: 307,
+    headers: {
+      Location: dest.toString(),
+      // No-cache so an aborted A/B test (utm_landing_defaults row removed)
+      // surfaces immediately rather than after a CDN TTL.
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
+/** Test seam — inject a synthetic utm_landing_defaults map. */
+export function setUtmLandingCacheForTest(
+  map: Record<string, string> | null,
+): void {
+  utmLandingCache =
+    map === null
+      ? null
+      : { map, expiresAt: Date.now() + CACHE_TTL_MS };
+}
+
+// =====================================================================
 // Phase 56 Plan 04 — Ad-network CSP cache (AD-09)
 // SEPARATE module-level cache — does not share state with iframe cache.
 // =====================================================================
@@ -332,6 +475,33 @@ function buildSetCookie(name: string, value: string, maxAgeSeconds: number): str
 }
 
 export default async function middleware(request: Request): Promise<Response> {
+  // =====================================================================
+  // (E) Phase 68 Plan 68-04 — UTM-default-landing resolver (LAND-08)
+  //
+  // Runs FIRST — before rate-limit, cookie mint, and CSP augmentation —
+  // because a matching redirect short-circuits the whole pipeline. The
+  // destination page (e.g. /for-clinics) will run through middleware()
+  // fresh on the client's follow-up request and pick up cookies / CSP /
+  // rate-limit there.
+  //
+  // No-op when pathname != '/' OR utm_source missing OR no matching row OR
+  // env vars unset (fail-safe per [[reference_vercel_json_no_env_interpolation]]).
+  // =====================================================================
+  try {
+    const utmRedirect = await maybeRedirectUtmLanding(
+      request,
+      process.env.SUPABASE_URL ?? '',
+      process.env.SUPABASE_ANON_KEY ?? '',
+    );
+    if (utmRedirect) return utmRedirect;
+  } catch (err) {
+    // NEVER let the resolver break the page response.
+    console.warn(
+      'middleware: utm landing resolver threw; falling through (Phase 68-04)',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+
   // =====================================================================
   // (D) Phase 67 Plan 67-02 — Rate-limit gate (OPS-03)
   //
