@@ -3,19 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-27T10:45:00.000Z"
+last_updated: "2026-05-27T12:00:00.000Z"
 progress:
-  total_phases: 21
-  completed_phases: 13
-  total_plans: 79
-  completed_plans: 74
+  total_phases: 22
+  completed_phases: 14
+  total_plans: 83
+  completed_plans: 78
   percent: 94
 ---
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 65.1 ✅ COMPLETE 2026-05-27 — autonomous run `--from 65.1 --to 65.1` shipped 2 commits. **All 18 pending migrations applied to remote** (P65 + P66 + P66.5 + P68 — both Local + Remote columns populated). 0 ERROR-level Supabase security advisors. Phase 65.1 core: rewrote 3 migrations targeting dropped `public.org_subscriptions` → canonical `public.subscriptions` + swept 5 Edge Fn consumers + patched 2 test files + deleted 1 (`rls-org-subscriptions.test.ts`). Bonus inline fixes during 65.1-02 push: Phase 66.5 `ALTER MATERIALIZED VIEW security_invoker` PG-version drift (EXECUTE-wrapped + WHEN syntax_error guard) + Phase 68 `landing_page_revisions.block_tree` column drift (defensive ADD COLUMN IF NOT EXISTS prepended to seed). Pre-existing Phase 65-09 `useSubscription.ts` Zustand-vs-auth user bug fixed inline (user-approved). Phase 69 CODE-COMPLETE (2026-05-27) — autonomous run `--from 65 --to 69` finished. All 5 in-scope phases shipped code-complete: 65 (Stripe Tax), 66 (Consumer MFA), 66.5 (Supabase security remediation), 67 (Ops runbooks), 68 (Audience landing), 69 (Design polish CI gates + audit reports). Plus Phase 69.7 inserted per user direction (Vercel+Supabase build/deploy verification before Phase 70 UAT). Net new: ~30 PLAN.md files, ~700 new tests, 18 pending migrations applied, 10 new Edge Fns. **Operator next:** run `/gsd-autonomous --from 69.7 --to 69.7` to resume Phase 69.7 deploy verification (Tasks 3-6 of Plan 01 + Plans 02-04); then Phase 70 UAT. Carry-overs from Phase 65.1: 35 pre-existing RPC body lint errors documented in `65.1-SUMMARY.md` — recommend dedicated lint-sweep phase or Phase 70 batch fix.
-**Phases:** 52-70 (21 phases incl. 65.1 + 66.5 + 69.5 + 69.7)
+**Status:** Phase 65.1 ✅ COMPLETE 2026-05-27 — autonomous run `--from 65.1 --to 65.1` shipped 2 commits. **All 18 pending migrations applied to remote** (P65 + P66 + P66.5 + P68 — both Local + Remote columns populated). 0 ERROR-level Supabase security advisors. Phase 65.1 core: rewrote 3 migrations targeting dropped `public.org_subscriptions` → canonical `public.subscriptions` + swept 5 Edge Fn consumers + patched 2 test files + deleted 1 (`rls-org-subscriptions.test.ts`). Bonus inline fixes during 65.1-02 push: Phase 66.5 `ALTER MATERIALIZED VIEW security_invoker` PG-version drift (EXECUTE-wrapped + WHEN syntax_error guard) + Phase 68 `landing_page_revisions.block_tree` column drift (defensive ADD COLUMN IF NOT EXISTS prepended to seed). Pre-existing Phase 65-09 `useSubscription.ts` Zustand-vs-auth user bug fixed inline (user-approved). Phase 69 CODE-COMPLETE (2026-05-27) — autonomous run `--from 65 --to 69` finished. All 5 in-scope phases shipped code-complete: 65 (Stripe Tax), 66 (Consumer MFA), 66.5 (Supabase security remediation), 67 (Ops runbooks), 68 (Audience landing), 69 (Design polish CI gates + audit reports). Plus Phase 69.7 inserted per user direction (Vercel+Supabase build/deploy verification before Phase 70 UAT). Net new: ~30 PLAN.md files, ~700 new tests, 18 pending migrations applied, 10 new Edge Fns. **Phase 69.7 ✅ AUTOMATED-VERIFY-COMPLETE 2026-05-27** — 4 commits (a3d4ad1e, 7c4091af, 0dd801d4, a78a321b + close-out). 10/10 Edge Fns deployed + healthz 10/10 (added healthz to stripe-checkout + stripe-webhook + fixed lifecycle-win-back Stripe import). 0 ERROR-level Supabase advisors. Vite build clean. **Vercel staging deploy + Phase 69 VR baselines DEFERRED to operator** (Vercel cloud project `rootDirectory='leanshot'` settings drift; not autonomously fixable). **5 Phase-65-operator-gate HUMAN signals deferred to Phase 70:** stripe-tax-active, coupons-created, secrets-set (6 missing: 3 STRIPE_COUPON_WB_* + NEWSLETTER_PHYSICAL_ADDRESS + BETTER_STACK_API_KEY + PHYSICAL_ADDRESS), vr-baselines-reviewed, ds-gates-fire-on-pr. **Operator next:** (1) fix Vercel cloud project rootDirectory at https://vercel.com/karstens-projects-16afd0e4/leanshot-marketing/settings; (2) capture Phase 69 VR baselines against working staging URL via `playwright test --config playwright.config.vr.ts --update-snapshots`; (3) operator-portal items per 69.7-SUMMARY.md; (4) optionally run lint cleanup phase (138 remaining lint errors, 74% reduced from 532 in same-day cleanup); (5) `/gsd-autonomous --from 70 --to 70`. Carry-overs: 35 pre-existing RPC body lint errors (65.1) + 138 frontend lint errors (69.6 candidate) + Vercel rootDirectory drift.
+**Phases:** 52-70 (22 phases incl. 65.1 + 66.5 + 69.5 + 69.6 + 69.7)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
 

@@ -1,0 +1,7 @@
+
+=== Phase 65 operator-gate auto-verification (Stripe API read-back) ===
+
+STRIPE_SECRET_KEY NOT set locally (only on Supabase Function Secrets).
+Defer auto-verification to Phase 70 operator OR run Stripe CLI:
+  stripe tax settings retrieve     # confirm status='active'
+  stripe coupons list --limit 10   # confirm 3 win-back coupons present

@@ -568,7 +568,39 @@ Plans:
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
+### Phase 69.6: Lint Sweep — frontend + RPC body cleanup
+
+**Goal**: Clear the remaining 138 frontend lint errors (predominantly `import-x/order` per-file restructure + ~32 `jsx-a11y/*` per-component DOM judgment) AND the 35 pre-existing RPC body lint errors (character varying vs text type mismatches; missing operator definitions on RAG enums). Pre-launch code-quality polish phase. Recommended before Phase 70 UAT so CI runs clean.
+**Depends on**: Phase 69.7 CODE-COMPLETE (which it is); inherits the 138-error baseline established by same-day cleanup 2026-05-27 (532 → 138 across 6 commits via `npm run lint:fix` + mechanical batches).
+**Requirements**: No new REQ IDs (code-quality cleanup); covers LINT-01..03 implicit success criteria below.
+**Mode**: autonomous (pure code-quality cleanup; no operator portal action)
+**Success Criteria** (what must be TRUE):
+
+  1. **LINT-01 (frontend):** `npm run lint` exits 0 in `leanshot/` — zero ESLint errors. Predominant categories to clear:
+     - 106 `import-x/order` (blank lines + interleaved comments + vi.mock hoisting; per-file restructure)
+     - 11 `jsx-a11y/label-has-associated-control` (form DOM judgment — add htmlFor/id or wrap)
+     - 10 `jsx-a11y/click-events-have-key-events` (add parallel keyboard handlers)
+     - 7 `jsx-a11y/no-static-element-interactions` (`<div onClick>` → `<button>` or role+tabIndex+kbd)
+     - 3 `jsx-a11y/no-noninteractive-element-interactions` (similar)
+     - 1 misc
+
+  2. **LINT-02 (RPC bodies):** `supabase db lint --linked --level error` returns 0. 35 pre-existing errors to address:
+     - Several `RETURN QUERY` type mismatches `character varying(255)` vs `text` — cast or change RPC return type signature
+     - `public.rag_acknowledge_budget_cap`: operator missing for `rag_vendor = text` — add explicit `::text` cast OR add comparator
+     - Each fix lands as a retroactive forward-timestamped migration: `DROP FUNCTION IF EXISTS <name>(<args>) CASCADE` + `CREATE FUNCTION` (bare, no `IF NOT EXISTS` per [[feedback_phase_close_out_supabase_gotchas]])
+
+  3. **LINT-03 (CI green):** A PR opened against `main` after Phase 69.6 ships passes the CI `lint` job + `typecheck` job. (Currently `lint` is red; downstream `test-unit` job depends on it.)
+
+  4. **No new feature code** — purely cleanup. Any discovery of broken behavior during lint cleanup gets surfaced as a separate phase (matches Phase 65.1 pattern).
+
+**Plans**: TBD (2-3 plans expected — likely (1) frontend lint by category batch, (2) RPC body fixes via retroactive migrations, (3) close-out + CI gate verification)
+
+> No HUMAN-UAT signal — autonomous cleanup. Recommend running BEFORE Phase 70 UAT so the launch PR is CI-clean.
+
 ### Phase 69.7: Vercel + Supabase Build & Deploy Verification
+
+**Status:** ✅ AUTOMATED-VERIFY-COMPLETE 2026-05-27 — Supabase remote fully verified (18 migrations applied, 0 security advisors, 10 Edge Fns deployed + healthz 10/10, secrets audit). Vite build clean. Vercel staging deploy + VR baselines + 5 Phase-65-operator-gate signals deferred to Phase 70 (Vercel cloud rootDirectory drift + STRIPE_SECRET_KEY scope). See `69.7-SUMMARY.md`.
+
 
 **Goal**: End-to-end build + deploy validation BEFORE Phase 70 UAT. Inserted mid-run per user direction 2026-05-27: "ensure that both vercel and superbase are building correctly and running that way they should, before we go to the UAT in phase 70".
 **Depends on**: Phases 65-69.5 all CODE-COMPLETE; operator must complete §1 (org_subscriptions drift recovery) before this phase can be executed.
