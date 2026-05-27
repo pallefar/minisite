@@ -1,0 +1,11 @@
+=== Task 1 (corrected): Fn inventory across index.ts + handler.ts ===
+FAIL-NO-HEALTHZ: stripe-checkout
+FAIL-NO-HEALTHZ: stripe-webhook
+PASS: stripe-dunning-orchestrator (healthz route present)
+PASS: request-refund (healthz route present)
+PASS: lifecycle-trial-ending (healthz route present)
+PASS: lifecycle-win-back (healthz route present)
+PASS: nexus-monitor (healthz route present)
+PASS: auth-rate-limit-check (healthz route present)
+PASS: bs-status-poller (healthz route present)
+PASS: demo-org-purge (healthz route present)

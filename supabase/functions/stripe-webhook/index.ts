@@ -226,6 +226,12 @@ export async function handleRequest(
     return new Response('ok', { status: 200, headers: BASE_RESPONSE_HEADERS });
   }
 
+  // Phase 69.7 — operational smoke endpoint (GET only, no signature required).
+  const url = new URL(request.url);
+  if (request.method === 'GET' && url.pathname.endsWith('/healthz')) {
+    return jsonResponse(200, { ok: true, fn: 'stripe-webhook' });
+  }
+
   // Method guard
   if (request.method !== 'POST') {
     return jsonResponse(405, { error: 'method-not-allowed' });

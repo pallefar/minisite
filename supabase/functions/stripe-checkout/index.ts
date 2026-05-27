@@ -715,6 +715,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const action = fnIdx >= 0 ? (segments[fnIdx + 1] ?? '') : (segments[segments.length - 1] ?? '');
 
   try {
+    // Phase 69.7 — operational smoke endpoint (GET only, no auth, returns 200).
+    if (action === 'healthz' && req.method === 'GET') {
+      return new Response(
+        JSON.stringify({ ok: true, fn: 'stripe-checkout' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
     if (action === 'session') {
       if (req.method !== 'POST') return jsonError(405, 'method_not_allowed');
       return await handleSession(req);

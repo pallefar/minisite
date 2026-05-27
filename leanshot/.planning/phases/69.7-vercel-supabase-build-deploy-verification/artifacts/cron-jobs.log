@@ -1,0 +1,280 @@
+=== Task 4: cron.job registry ===
+DESCRIPTION
+  Manage remote databases.
+
+USAGE
+  supabase db remote <subcommand> [flags]
+
+GLOBAL FLAGS
+  --help, -h                Show help information
+  --version                 Show version information
+  --completions choice      Print shell completion script (choices: bash, zsh, fish, sh)
+  --log-level choice        Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)
+  --output-format choice    Output format: text (default), json, or stream-json (NDJSON) (choices: text, json, stream-json)
+  --output, -o choice       Output format of status variables. (choices: env, pretty, json, toml, yaml)
+  --profile string          Use a specific profile for connecting to Supabase API.
+  --debug                   Output debug logs to stderr.
+  --workdir string          Path to a Supabase project directory.
+  --experimental            Enable experimental features.
+  --network-id string       Use the specified Docker network instead of a generated one.
+  --yes                     Answer yes to all prompts.
+  --dns-resolver choice     Look up domain names using the specified resolver. (choices: native, https)
+  --create-ticket           Create a support ticket for any CLI error.
+  --agent choice            Override agent detection: yes, no, or auto. (choices: auto, yes, no)
+
+SUBCOMMANDS
+  changes    Show changes on the remote database
+  commit     Commit remote changes as a new migration
+
+ERRORS
+  Unknown subcommand "query" for "supabase db remote"
+  Unrecognized flag: --linked in command supabase db remote
+[90m│[39m
+[31m■[39m  [31mHelp requested[39m
+exit=1
+--- fallback: db url query ---
+  (no DB URL available; operator must verify cron.job table inline)
+
+=== Migration-source cron.schedule registrations (proof of intent) ===
+(Direct cron.job query unavailable via CLI; relying on migration body evidence — all 18 migrations applied per Plan 65.1-02)
+
+--- 20260512000002_anon_cleanup_pg_cron.sql ---
+select cron.schedule(
+
+--- 20260519000011_rag_scrape_cron.sql ---
+-- Idempotent: cron.schedule() upserts by job name. The DO-block guards a
+    perform cron.unschedule('rag-scrape-tick');
+select cron.schedule(
+
+--- 20260601000003_audit_retention_cron.sql ---
+select cron.schedule(
+
+--- 20260601000013_finalize_account_deletions_cron.sql ---
+select cron.schedule(
+
+--- 20260601000035_funnel_anomaly_cron_schedule.sql ---
+--   cron.schedule upserts by jobname; re-running this migration replaces the
+select cron.schedule(
+
+--- 20270101000009_click_baseline_refresh_cron.sql ---
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('affiliate-click-baseline-refresh');
+
+--- 20270101000012_payouts_materialization_and_cron.sql ---
+-- Idempotency: `cron.schedule` upserts by jobname (re-running this migration
+select cron.schedule(
+select cron.schedule(
+select cron.schedule(
+
+--- 20270601000001_finalize_cron_seven_days.sql ---
+select cron.unschedule('finalize-account-deletions')
+select cron.schedule(
+
+--- 20270601000009_user_activity_refresh_cron.sql ---
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('user-activity-daily-refresh');
+
+--- 20270601000016_feature_flag_overrides_cleanup_cron.sql ---
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('feature-flag-overrides-cleanup');
+
+--- 20270601000017_lifecycle_cron_schedules.sql ---
+-- Analog: supabase/migrations/20270101000012_payouts_materialization_and_cron.sql (cron.schedule + Vault bearer)
+-- Idempotency: `cron.schedule` upserts by jobname; re-running this migration replaces the schedule
+select cron.schedule(
+select cron.schedule(
+select cron.schedule(
+
+--- 20270601000021_dsar_export_cron_tick.sql ---
+select cron.schedule(
+
+--- 20270601000025_photos_trash_purge_cron.sql ---
+select cron.schedule(
+
+--- 20270601000032_audit_archive_cron.sql ---
+-- Idempotent: cron.schedule() upserts by job name.
+select cron.schedule(
+
+--- 20270601100018_org_invites_expiry_purge_cron.sql ---
+select cron.schedule(
+
+--- 20270601200006_org_metered_billing_cron.sql ---
+    perform cron.unschedule('p29_org_metered_billing_cron');
+select cron.schedule(
+
+--- 20270601200007_patient_invite_expiry_cron.sql ---
+    perform cron.unschedule('p29_org_patient_invites_expiry_purge');
+select cron.schedule(
+
+--- 20270601300004_p30_matviews_and_cron.sql ---
+select cron.unschedule('p30_clinician_alert_detect')
+select cron.unschedule('p30_clinician_alert_deliver')
+select cron.unschedule('p30_clinician_alert_auto_resolve')
+select cron.unschedule('p30_clinic_matview_refresh')
+select cron.schedule(
+
+--- 20270602000013_cohort_matview_refresh_cron.sql ---
+  perform cron.unschedule('cohort-membership-refresh');
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('cohort-membership-refresh');
+
+--- 20270602000050_admin_bulk_job_worker_cron.sql ---
+select cron.schedule(
+
+--- 20270602000060_bulk_undo_token_purge_cron.sql ---
+--     `cron.schedule()` body is the recommended variant.
+-- analog — pure SQL inside `cron.schedule()` with no HTTP-post).
+-- ROLLBACK (manual): select cron.unschedule('bulk-undo-token-purge');
+  perform cron.unschedule('bulk-undo-token-purge');
+select cron.schedule(
+
+--- 20270701000008_affiliate_ratio_baseline_mv.sql ---
+select cron.schedule(
+
+--- 20270701000009_affiliate_anomaly_sla_cron.sql ---
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('affiliate-anomaly-sla-reminder');
+
+--- 20270701000012_affiliate_lifetime_recurring_cron.sql ---
+-- Idempotency: cron.schedule upserts by jobname (re-running this migration
+select cron.schedule(
+
+--- 20270702000008_baa_alert_cron.sql ---
+-- Idempotency: cron.schedule upserts by jobname (safe to re-run).
+select cron.schedule(
+select cron.schedule(
+
+--- 20270703000001_ad_spend_facts_partition.sql ---
+select cron.unschedule('ad_spend_facts_drop_old_partitions')
+select cron.schedule(
+
+--- 20270703000011_ad_etl_cron_schedules.sql ---
+-- DOWN block: cron.unschedule() calls at end of file for clean rollback.
+select cron.unschedule('ad_spend_cron_meta')
+select cron.unschedule('ad_spend_cron_google')
+select cron.unschedule('ad_spend_cron_tiktok')
+select cron.unschedule('ad_revenue_refresh')
+
+--- 20270704000023_quarterly_nps_cron.sql ---
+-- `cron.unschedule` raises if the job doesn't exist, so we wrap it in an
+    PERFORM cron.unschedule('quarterly-nps-enqueue');
+SELECT cron.schedule(
+
+--- 20270705000030_phase38_pg_cron_schedules.sql ---
+-- Idempotency: cron.schedule() upserts by jobname; the leading DO-block unschedules any pre-existing entry so
+    perform cron.unschedule(job_name);
+select cron.schedule(
+select cron.schedule(
+select cron.schedule(
+
+--- 20270706000005_p34_anon_session_ttl_cron.sql ---
+-- Idempotency: `cron.schedule()` upserts by jobname; the leading DO-block
+    perform cron.unschedule(job_name);
+select cron.schedule(
+
+--- 20270707000007_helpdesk_pg_cron.sql ---
+-- Idempotency: cron.schedule() upserts by jobname; the leading DO-block unschedules
+    perform cron.unschedule(job_name);
+select cron.schedule(
+select cron.schedule(
+
+--- 20270707000008_helpdesk_sla_breach_state.sql ---
+--   re-use inside a do-block or cron.schedule(..., $cron$ … $cron$) body does
+
+--- 20270708000006_p35_streak_cron.sql ---
+-- Pre-flight unschedule — idempotent re-apply (cron.schedule upserts by jobname,
+    perform cron.unschedule(job_name);
+select cron.schedule(
+
+--- 20270708000007_p35_freeze_monthly_grant_cron.sql ---
+    perform cron.unschedule(job_name);
+select cron.schedule(
+
+--- 20270708000013_p35_leaderboard_refresh_cron.sql ---
+--   $cron$  → outer delimiter passed to cron.schedule()
+    perform cron.unschedule(job_name);
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('phase35-leaderboard-refresh');
+
+--- 20270708000021_p35_challenge_evaluate_cron.sql ---
+    perform cron.unschedule(job_name);
+select cron.schedule(
+
+--- 20270709000005_p40_pause_reminder_cron.sql ---
+    perform cron.unschedule(job_name);
+select cron.schedule(
+
+--- 20270709000006_p40_pause_autoresume_reconcile_cron.sql ---
+    perform cron.unschedule(job_name);
+select cron.schedule(
+
+--- 20270714000010_p39_42day_archive_cron.sql ---
+--   $cron$ outer (cron.schedule body).
+  perform cron.unschedule('p39-variant-42day-archive');
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('p39-variant-42day-archive');
+
+--- 20270714000011_p39_refund_rate_kill_cron.sql ---
+  perform cron.unschedule('p39-refund-rate-kill');
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('p39-refund-rate-kill');
+
+--- 20270714000012_p39_pharma_nps_kill_cron.sql ---
+  perform cron.unschedule('p39-pharma-nps-kill');
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('p39-pharma-nps-kill');
+
+--- 20270727000006_p45_admin_report_digest_cron.sql ---
+--   Bare `$$ ... $$` inside `cron.schedule(name, sched, $$ ... $$)` would
+  perform cron.unschedule('community-admin-report-digest');
+select cron.schedule(
+-- Rollback hint (manual): select cron.unschedule('community-admin-report-digest');
+
+--- 20270727000007_p45_leaderboard_matview.sql ---
+--   $cron$       → outer delimiter passed to cron.schedule()
+    perform cron.unschedule(job_name);
+select cron.schedule('phase35-leaderboard-refresh',
+--   select cron.unschedule('phase35-leaderboard-refresh');
+
+--- 20270801000010_p47_pg_cron_schedules.sql ---
+  perform cron.unschedule('phase47-event-reminders-hourly');
+select cron.schedule(
+
+--- 20270901000007_p48_temp_suspended_restore_cron.sql ---
+--   outer $cron$ (passed to cron.schedule)
+  perform cron.unschedule('phase48-temp-suspended-restore-hourly');
+select cron.schedule(
+
+--- 20270901000018_p48_revoke_user_sessions_rpc.sql ---
+-- standalone (not nested inside cron.schedule), single $fn$ tag is safe.
+
+--- 20271001000008_p49_pg_cron_schedules.sql ---
+    perform cron.unschedule(job_name);
+select cron.schedule(
+select cron.schedule(
+
+--- 20271102000013_traffic_matview_refresh_cron.sql ---
+-- NAMED tag `$body$...$body$` for cron.schedule's command argument so any
+    perform cron.unschedule(v_old_jobname);
+    perform cron.unschedule(v_old_jobname);
+    perform cron.unschedule('ad_revenue_and_traffic_refresh');
+select cron.schedule(
+
+--- 20280101000001_vendor_smoke_log.sql ---
+--   cron.schedule upserts by job name (safe to re-run).
+SELECT cron.schedule(
+
+--- 20280401000005_ad_revenue_etl_cron_rpc.sql ---
+select cron.unschedule('ad_revenue_etl_cron')
+select cron.schedule(
+
+--- 20281201000099_phase60_cron_schedules.sql ---
+--   Each cron.schedule body uses $cron$...$cron$ named dollar-quote tag
+select cron.unschedule('phase60_federated_pubmed_sync')
+select cron.unschedule('phase60_federated_fda_sync')
+select cron.unschedule('phase60_federated_dailymed_sync')
+select cron.unschedule('phase60_embed_worker')
+
+--- 20290102000006_insights_secdef_rpcs.sql ---
+-- NO cron.schedule() calls in this file — deferred to 62-08 close-out.
+

@@ -25,7 +25,7 @@
  */
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
-import Stripe from 'npm:stripe@19?target=denonext';
+import Stripe from 'https://esm.sh/stripe@19?target=denonext';
 import { handle } from './handler.ts';
 import type { WinBackDeps } from './handler.ts';
 

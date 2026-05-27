@@ -1,0 +1,123 @@
+=== Task 2: deploy all 10 Edge Fns ===
+
+--- deploy stripe-checkout (JWT required) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: stripe-checkout
+Deploying Function: stripe-checkout (script size: 779.7kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: stripe-checkout
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy stripe-webhook (JWT required) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: stripe-webhook
+Deploying Function: stripe-webhook (script size: 4.501MB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: stripe-webhook
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy request-refund (JWT required) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: request-refund
+Deploying Function: request-refund (script size: 766kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: request-refund
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy stripe-dunning-orchestrator (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: stripe-dunning-orchestrator
+Deploying Function: stripe-dunning-orchestrator (script size: 731kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: stripe-dunning-orchestrator
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy lifecycle-trial-ending (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: lifecycle-trial-ending
+Deploying Function: lifecycle-trial-ending (script size: 725.6kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: lifecycle-trial-ending
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy lifecycle-win-back (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: lifecycle-win-back
+Error: failed to create the graph
+
+Caused by:
+    Invalid package specifier 'npm:stripe@19?target=denonext'
+        0: Invalid specifier version requirement
+        1: Unexpected character.
+             ?target=denonext
+             ~
+        at file:///Users/karstenhaldan/minisite/supabase/functions/lifecycle-win-back/index.ts:28:20
+error running container: exit 1
+Try rerunning the command with --debug to troubleshoot the error.
+exit=1
+
+--- deploy nexus-monitor (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: nexus-monitor
+Deploying Function: nexus-monitor (script size: 714.7kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: nexus-monitor
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy auth-rate-limit-check (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: auth-rate-limit-check
+Deploying Function: auth-rate-limit-check (script size: 864.9kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: auth-rate-limit-check
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy bs-status-poller (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: bs-status-poller
+Deploying Function: bs-status-poller (script size: 727.4kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: bs-status-poller
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- deploy demo-org-purge (--no-verify-jwt) ---
+Using workdir /Users/karstenhaldan/minisite
+Bundling Function: demo-org-purge
+Deploying Function: demo-org-purge (script size: 724kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: demo-org-purge
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+exit=0
+
+--- retry deploy lifecycle-win-back (fixed npm:→https://esm.sh:) ---
+Bundling Function: lifecycle-win-back
+Deploying Function: lifecycle-win-back (script size: 763.3kB)
+Deployed Functions on project ytnsipxxmzgaebkqmokp: lifecycle-win-back
+You can inspect your deployment in the Dashboard: https://supabase.com/dashboard/project/ytnsipxxmzgaebkqmokp/functions
+exit=0
