@@ -28,7 +28,29 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
-import { captureServer } from './posthog-server.ts';
+import { captureServer as captureServerImpl } from './posthog-server.ts';
+
+// ============================================================================
+// captureServer test seam (Phase 68 Plan 68-04 LAND-07).
+//
+// `captureServer` is module-level in posthog-server.ts and has no built-in
+// override. We wrap it locally so Deno unit tests can assert the PostHog
+// property payload (specifically: the `landing_page` first-touch dimension
+// added in this plan) without spinning up the live posthog-node client.
+// Production behavior is unchanged — the override is null by default.
+// ============================================================================
+
+type CaptureFn = typeof captureServerImpl;
+let _captureOverride: CaptureFn | null = null;
+
+/** Test seam — inject a mock captureServer for unit tests. Pass null to reset. */
+export function setCaptureServerForTest(fn: CaptureFn | null): void {
+  _captureOverride = fn;
+}
+
+function captureServer(args: Parameters<CaptureFn>[0]): void {
+  (_captureOverride ?? captureServerImpl)(args);
+}
 
 // ============================================================================
 // Lazy admin singleton + test seam
@@ -189,17 +211,32 @@ export async function recordTouch(args: RecordTouchArgs): Promise<RecordTouchRes
         channel_group: channelGroup,
         audience: args.audience,
         landing_path: args.landingPath,
+        // Phase 68 Plan 68-04 LAND-07 — `landing_page` is the canonical
+        // first-touch dimension used by Phase 67 funnel-break alerts to slice
+        // conversion per-audience (e.g. /for-doctors vs /for-clinics vs
+        // /for-coaches vs generic /). It is the SAME value as landing_path on
+        // any given event but is also pinned into person-property $set_once
+        // below so downstream funnel steps inherit the first-touch audience
+        // without re-reading landing_path on every event.
+        landing_page: args.landingPath,
         page_variant_id: args.pageVariantId ?? null,
         $set: {
           last_touch_channel_group: channelGroup,
           last_touch_source: args.utm.source ?? null,
           last_touch_medium: args.utm.medium ?? null,
+          // Last-touch landing_page mirrors the event-level value so re-visit
+          // events overwrite the user's most-recent audience landing.
+          last_touch_landing_page: args.landingPath,
           last_touch_at: args.now.toISOString(),
         },
         $set_once: {
           first_touch_channel_group: channelGroup,
           first_touch_source: args.utm.source ?? null,
           first_touch_medium: args.utm.medium ?? null,
+          // First-touch landing_page is the dimension Phase 67 funnel-break
+          // alerts pivot on — pin it once at the user's first traffic_visit
+          // and let downstream events inherit it (PostHog $set_once contract).
+          first_touch_landing_page: args.landingPath,
           first_touch_at: args.now.toISOString(),
         },
       },
