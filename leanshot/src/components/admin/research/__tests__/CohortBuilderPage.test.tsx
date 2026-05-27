@@ -4,9 +4,10 @@
  * Tests for empty state, suppressed banner, and basic rendering.
  * Uses @testing-library/react with vitest globals.
  */
-import React from 'react';
+
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { CohortBuilderPage } from '../CohortBuilderPage';
 

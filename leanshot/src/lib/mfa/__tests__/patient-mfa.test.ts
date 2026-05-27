@@ -13,7 +13,15 @@
  *   7. requireStepUp without TOTP, no user email → ok=false
  *   8. requireStepUp without TOTP, signInWithOtp fails → ok=false
  */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import {
+  isPatientTotpEnrolled,
+  enrollPatientTotp,
+  unenrollPatientTotp,
+  requireStepUp,
+} from '../patient-mfa';
 
 // ---------------------------------------------------------------------------
 // Mock supabase — must use inline vi.fn() in factory (hoisting rule)
@@ -33,13 +41,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
-import {
-  isPatientTotpEnrolled,
-  enrollPatientTotp,
-  unenrollPatientTotp,
-  requireStepUp,
-} from '../patient-mfa';
 
 const mockGetUser = vi.mocked(supabase.auth.getUser);
 const mockSignInWithOtp = vi.mocked(supabase.auth.signInWithOtp);

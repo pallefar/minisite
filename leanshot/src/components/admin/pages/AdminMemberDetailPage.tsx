@@ -15,6 +15,7 @@
  *
  * Route wiring into App.tsx is plan 22-12.
  */
+
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { MemberActivityTab } from '@/components/admin/members/MemberActivityTab';
@@ -24,6 +25,13 @@ import { MemberFlagsTab } from '@/components/admin/members/MemberFlagsTab';
 import { MemberProfileTab } from '@/components/admin/members/MemberProfileTab';
 import { MemberStripeTab } from '@/components/admin/members/MemberStripeTab';
 import type { RefundCharge } from '@/components/admin/members/RefundModal';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { InitialsAvatar } from '@/components/ui/InitialsAvatar';
+import { Pill, PillGroup } from '@/components/ui/Pill';
+import type { Member } from '@/lib/admin/admin-api';
+import { supabase } from '@/lib/supabase';
 
 // Lazy-load the admin Stripe-action modals so the /admin/members detail page
 // doesn't pull modal code into the admin-bundle critical path. Pattern S1
@@ -37,13 +45,6 @@ const CancelSubModal = lazy(() =>
 const CompSubModal = lazy(() =>
   import('@/components/admin/members/CompSubModal').then((m) => ({ default: m.CompSubModal })),
 );
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { InitialsAvatar } from '@/components/ui/InitialsAvatar';
-import { Pill, PillGroup } from '@/components/ui/Pill';
-import type { Member } from '@/lib/admin/admin-api';
-import { supabase } from '@/lib/supabase';
 
 type TabKey = 'profile' | 'billing' | 'activity' | 'stripe' | 'flags' | 'audit';
 

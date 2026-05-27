@@ -6,8 +6,10 @@
  *
  * SubprocessorList is mocked so it doesn't make real network calls.
  */
+
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { PrivacyPolicy } from '../PrivacyPolicy';
 
 // Mock SubprocessorList to avoid real Supabase calls
 vi.mock('../SubprocessorList', () => ({
@@ -32,7 +34,6 @@ vi.mock('@/lib/legal/data-categories', () => ({
   ],
 }));
 
-import { PrivacyPolicy } from '../PrivacyPolicy';
 
 describe('PrivacyPolicy state addendums', () => {
   beforeEach(() => {

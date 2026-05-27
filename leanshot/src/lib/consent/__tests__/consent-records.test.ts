@@ -11,7 +11,9 @@
  *   6. Supabase write failure → console.warn + DOES NOT throw.
  *   7. Network/throw failure → console.warn + DOES NOT propagate.
  */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { upsertConsentRecord, type CookieConsentSnapshot } from '@/lib/consent/consent-records';
 
 const insertSpy = vi.fn();
 const getUserSpy = vi.fn();
@@ -25,7 +27,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { upsertConsentRecord, type CookieConsentSnapshot } from '@/lib/consent/consent-records';
 
 const FAKE_AUTHENTICATED = { data: { user: { id: 'user-uuid-123' } } };
 const FAKE_ANONYMOUS = { data: { user: null } };

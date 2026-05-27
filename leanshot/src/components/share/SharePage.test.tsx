@@ -11,6 +11,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SnapshotResponse } from '@/types/share';
+import * as client from './share-client';
 import { SharePage } from './SharePage';
 
 vi.mock('./share-client', () => ({
@@ -18,7 +19,6 @@ vi.mock('./share-client', () => ({
   redeemShare: vi.fn(),
 }));
 
-import * as client from './share-client';
 
 const mockedFetchSnapshot = vi.mocked(client.fetchSnapshot);
 

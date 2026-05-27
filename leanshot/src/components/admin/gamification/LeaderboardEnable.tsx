@@ -7,6 +7,7 @@
  *
  * Surface gate: admin.gamification.cohorts.enable_leaderboard (support_lead/superadmin).
  */
+
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';

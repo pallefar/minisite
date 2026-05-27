@@ -10,6 +10,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeSend } from './sentry';
+import { deferSentryInit } from './telemetry-defer';
 
 // Mock the native platform module BEFORE importing the SUT.
 const platformState = vi.hoisted(() => ({ current: 'web' as 'web' | 'ios' | 'android' }));
@@ -33,8 +35,6 @@ vi.mock('@sentry/react', () => ({
 const ORIGINAL_DSN = import.meta.env.VITE_SENTRY_DSN;
 
 // Import AFTER mocks.
-import { beforeSend } from './sentry';
-import { deferSentryInit } from './telemetry-defer';
 
 describe('deferSentryInit — native-platform guard (Phase 16 MOBILE-09)', () => {
   beforeEach(() => {

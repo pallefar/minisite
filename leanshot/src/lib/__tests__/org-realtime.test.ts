@@ -20,6 +20,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { _clearSecretCache, channelNameFor } from '../org-realtime';
 
 // Use vi.hoisted to create the mock function BEFORE vi.mock's hoisted factory
 // runs — this avoids the "Cannot access before initialization" ReferenceError.
@@ -34,7 +35,6 @@ vi.mock('../supabase', () => ({
 }));
 
 // Import after mock is registered.
-import { _clearSecretCache, channelNameFor } from '../org-realtime';
 
 // ── Fixture secret ────────────────────────────────────────────────────────────
 // 64 hex chars = 32 zero bytes. Deterministic: lets us pre-compute expected HMAC.

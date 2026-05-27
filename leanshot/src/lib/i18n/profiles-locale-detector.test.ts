@@ -16,9 +16,13 @@
  * Per RESEARCH §Anti-Patterns the detector must NEVER scatter region tags;
  * it returns the Locale union ('en' | 'es') directly.
  */
+
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useStore } from '@/lib/store';
+import { detectionOptions } from './detector-config';
+import { profilesLocaleDetector } from './profiles-locale-detector';
 
 // Hoisted mock so vi.mock can replace the module before the detector imports it.
 vi.mock('@/lib/store', () => ({
@@ -27,9 +31,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-import { useStore } from '@/lib/store';
-import { detectionOptions } from './detector-config';
-import { profilesLocaleDetector } from './profiles-locale-detector';
 // (Imports above resolve AFTER the vi.mock declaration so the detector picks
 // up the mocked store module — the no-blank-line layout above is required
 // by import-x/order; the mock-then-import sequence is semantic, not lexical.)

@@ -11,8 +11,10 @@
  *  - Dismiss mid-flow shows inline confirm Card (NOT a Modal-on-Modal).
  *  - consent=false renders null (Hard Constraint #6).
  */
+
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { OnboardingFlowPaywall, SCREENS } from '../index';
 
 const trackingConsentMock = vi.fn<() => boolean>();
 vi.mock('@/lib/paywall/consent-adapter', () => ({
@@ -28,7 +30,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { OnboardingFlowPaywall, SCREENS } from '../index';
 
 describe('OnboardingFlowPaywall', () => {
   beforeEach(() => {

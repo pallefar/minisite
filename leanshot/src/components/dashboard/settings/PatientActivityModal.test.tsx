@@ -20,6 +20,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { type RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PatientActivityModal } from './PatientActivityModal';
+import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 
 // ─── Mock supabase (network) ──────────────────────────────────────────────────
 
@@ -63,8 +65,6 @@ vi.mock('posthog-js', () => ({
 
 // ─── Imports under test (after mocks are wired) ───────────────────────────────
 
-import { PatientActivityModal } from './PatientActivityModal';
-import { ActiveOrganizationsSection } from './sections/ActiveOrganizationsSection';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

@@ -17,6 +17,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { HelmetProvider } from 'react-helmet-async';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AudienceLandingPage } from '@/components/landing/AudienceLandingPage';
 
 // ─── Supabase mock (chainable builder + per-test rows) ─────────────────────
 
@@ -100,7 +101,6 @@ vi.mock('@/lib/supabase', () => ({
 
 // ─── Import after mock so vi.mock is hoisted correctly ─────────────────────
 
-import { AudienceLandingPage } from '@/components/landing/AudienceLandingPage';
 
 // ─── Fixtures ──────────────────────────────────────────────────────────────
 

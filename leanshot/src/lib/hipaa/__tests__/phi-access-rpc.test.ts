@@ -12,6 +12,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import { logPhiAccess } from '../phi-access-rpc';
 
 // Mock the supabase module BEFORE importing the wrapper
 vi.mock('@/lib/supabase', () => ({
@@ -20,8 +22,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
-import { logPhiAccess } from '../phi-access-rpc';
 
 describe('logPhiAccess', () => {
   const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

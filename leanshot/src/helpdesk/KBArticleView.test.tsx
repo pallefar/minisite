@@ -7,9 +7,11 @@
  *  - Locale toggle swaps body_es when available.
  *  - Back button calls onBack prop.
  */
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import KBArticleView from './KBArticleView';
 
 // supabase.from('kb_articles').select(...).eq(...).single() returns the article row.
 const singleMock = vi.fn();
@@ -25,7 +27,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import KBArticleView from './KBArticleView';
 
 describe('KBArticleView', () => {
   beforeEach(() => {

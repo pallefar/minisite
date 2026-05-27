@@ -14,6 +14,7 @@
  *
  * UI-SPEC line 132 reserved-accent constraint: no teal class on signoff badges.
  */
+
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { PharmaVersionList, type PharmaContentVersion } from './PharmaVersionList';

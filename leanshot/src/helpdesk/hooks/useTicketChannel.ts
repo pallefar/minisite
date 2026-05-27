@@ -11,6 +11,7 @@
  * `channel.subscribe()` or the subscription fails with CHANNEL_ERROR on
  * private channels (postgres_changes filtered by ticket_id RLS).
  */
+
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';

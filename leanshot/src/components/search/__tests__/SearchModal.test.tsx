@@ -8,8 +8,10 @@
  *  4. 300ms debounce coalesces rapid typing into a single RPC call.
  *  5. Results render grouped into Posts / Lessons / Events sections.
  */
+
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import SearchModal from '../SearchModal';
 
 // --- Hoisted mock surface ---------------------------------------------------
 const { rpcMock, storeState } = vi.hoisted(() => ({
@@ -32,7 +34,6 @@ vi.mock('@/lib/store', () => ({
   useStore: <T,>(selector: (s: unknown) => T): T => selector(storeState.current),
 }));
 
-import SearchModal from '../SearchModal';
 
 beforeEach(() => {
   rpcMock.mockReset().mockResolvedValue({ data: [], error: null });

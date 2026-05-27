@@ -12,6 +12,7 @@
  * Registers via ADMIN_MODULES (src/lib/admin/modules.ts entry key='moderation').
  * AdminShell.tsx prefix-routes /admin/moderation/* here automatically.
  */
+
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
 

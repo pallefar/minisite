@@ -15,12 +15,14 @@
  *   - W9 self-check — the source file has zero `supabase` references
  *     (comment-stripped).
  */
-import '@testing-library/jest-dom/vitest';
+
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PromoterCtaModal } from '../PromoterCtaModal';
 
 // --- Mock decide-client ---------------------------------------------------
 const mockLogCtaClick = vi.fn<(slug: string) => Promise<void>>(() =>
@@ -33,7 +35,6 @@ vi.mock('@/lib/nps/decide-client', () => ({
 // --- Mock window.open -----------------------------------------------------
 const mockOpen = vi.fn();
 
-import { PromoterCtaModal } from '../PromoterCtaModal';
 
 function stripComments(src: string): string {
   return src

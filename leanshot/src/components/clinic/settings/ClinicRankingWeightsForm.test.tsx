@@ -3,9 +3,11 @@
  *
  * Covers all 7 behavior tests from the plan.
  */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ClinicRankingWeightsForm } from './ClinicRankingWeightsForm';
 
 // Use vi.hoisted to avoid hoisting issues with vi.mock factory referencing local vars
 const { mockRpc, mockToast } = vi.hoisted(() => {
@@ -34,7 +36,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-import { ClinicRankingWeightsForm } from './ClinicRankingWeightsForm';
 
 const ORG_ID = 'org-test-123';
 

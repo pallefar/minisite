@@ -11,6 +11,7 @@
 
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PhotoTrashView } from './PhotoTrashView';
 
 // ---------------------------------------------------------------------------
 // Hoisted spies
@@ -53,7 +54,6 @@ vi.mock('@/lib/photo-url', () => ({
 // Subject under test
 // ---------------------------------------------------------------------------
 
-import { PhotoTrashView } from './PhotoTrashView';
 
 // ---------------------------------------------------------------------------
 // Helpers

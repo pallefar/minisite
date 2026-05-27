@@ -5,9 +5,11 @@
  * awaiting-code → showing-codes → done), download CTA, and the "I've saved
  * these" confirmation gate before onSuccess fires.
  */
+
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as TotpShared from '@/lib/auth/totp-shared';
+import TotpEnrollFlow from './TotpEnrollFlow';
 
 // Hoisted spies so vi.mock factories can grab them safely.
 const mocks = vi.hoisted(() => ({
@@ -39,7 +41,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import TotpEnrollFlow from './TotpEnrollFlow';
 
 const FAKE_QR =
   'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>';

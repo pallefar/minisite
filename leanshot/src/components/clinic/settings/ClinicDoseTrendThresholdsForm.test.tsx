@@ -3,9 +3,11 @@
  *
  * Covers all 4 behavior tests from the plan.
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ClinicDoseTrendThresholdsForm } from './ClinicDoseTrendThresholdsForm';
 
 const { mockRpc, mockToast } = vi.hoisted(() => {
   const mockRpc = vi.fn();
@@ -33,7 +35,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-import { ClinicDoseTrendThresholdsForm } from './ClinicDoseTrendThresholdsForm';
 
 const ORG_ID = 'org-test-456';
 

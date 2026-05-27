@@ -10,6 +10,7 @@
  * TDD note: Tests are RED until Migration 1 (20270601400005_p31_04_org_onboarding_flows.sql)
  * is pushed to the live DB in Task 4.
  */
+
 import { describe, expect, it } from 'vitest';
 import { getAdmin, SHOULD_RUN } from './_fixtures/p28-rls-fixture';
 

@@ -11,8 +11,10 @@
  *  - Modal inherits role="dialog" + aria-modal="true" from primitive.
  *  - vendor_unconfigured response → renders soft banner (Pattern A).
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PaywallModal } from './PaywallModal';
 
 const trackingConsentMock = vi.fn<() => boolean>();
 vi.mock('@/lib/paywall/consent-adapter', () => ({
@@ -28,7 +30,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { PaywallModal } from './PaywallModal';
 
 describe('PaywallModal', () => {
   beforeEach(() => {

@@ -8,6 +8,7 @@
 
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import FirstActionSurface from './FirstActionSurface';
 
 // ── Hoisted mock for fireActivation ────────────────────────────────────────
 const { mockFireActivation } = vi.hoisted(() => ({
@@ -18,7 +19,6 @@ vi.mock('@/lib/onboarding/activation-hooks', () => ({
   fireActivation: mockFireActivation,
 }));
 
-import FirstActionSurface from './FirstActionSurface';
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

@@ -35,7 +35,6 @@ import {
 import { useConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
 import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import { medLabel } from '@/lib/pharmacology';
-// Phase 60 Plan 60-12 (RAG-08): newsletter opt-in write at onboarding completion.
 import { setNewsletterOptIn } from '@/lib/rag/newsletter-api';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
@@ -52,9 +51,11 @@ import type {
 import type { OnboardingStepNode } from '@/types/onboarding-step';
 import { ConsumerOnboardingRenderer } from './ConsumerOnboardingRenderer';
 import { ProgressIndicator } from './ProgressIndicator';
-// Phase 60 Plan 60-12 (RAG-08): optional newsletter opt-in step (step 7).
 import { NewsletterOptInStep } from './steps/NewsletterOptInStep';
 import { UnitToggle } from './UnitToggle';
+
+// Phase 60 Plan 60-12 (RAG-08): newsletter opt-in write at onboarding completion.
+// Phase 60 Plan 60-12 (RAG-08): optional newsletter opt-in step (step 7).
 
 interface OnboardingFlowProps {
   onCancel: () => void;

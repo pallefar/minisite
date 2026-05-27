@@ -25,6 +25,7 @@
  * dynamic colours (not tokens); `text-white` resolves to a Tailwind
  * default token. CLAUDE.md "Anti-Patterns (Hard-coding colors)" honored.
  */
+
 import { type ReactElement } from 'react';
 import { cn } from '@/lib/helpers';
 

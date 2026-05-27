@@ -9,9 +9,11 @@
  *       freezeReason + Appeal mailto link. (RESEARCH OQ#4 + D-04.)
  *   T4: A11y — progressbar has aria-valuenow / aria-valuemax / aria-valuemin.
  */
+
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { PartnerTierProgress } from '@/components/partner/PartnerTierProgress';
+import { getTierProgress } from '@/lib/affiliate/api';
 
 vi.mock('@/lib/affiliate/api', () => ({
   getTierProgress: vi.fn(),
@@ -22,7 +24,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Import after mock so the typed handle resolves to the mock factory.
-import { getTierProgress } from '@/lib/affiliate/api';
 
 describe('PartnerTierProgress (Plan 26-03 — AFFTIER-03)', () => {
   it('renders progressbar at 7/10 for standard tier + "3 more to Gold"', async () => {

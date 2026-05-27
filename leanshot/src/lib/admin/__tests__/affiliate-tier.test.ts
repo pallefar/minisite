@@ -9,14 +9,8 @@
  *   - decision typing (compile-time narrowed to 'clear' | 'fraud_confirmed')
  *   - affiliate-review.ts confirmFraud/markClear delegate to anomalyReviewDecision
  */
+
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-
-vi.mock('@/lib/supabase', () => ({
-  supabase: {
-    rpc: vi.fn(),
-  },
-}));
-
 import { supabase } from '@/lib/supabase';
 import { confirmFraud, markClear } from '../affiliate-review';
 import {
@@ -26,6 +20,13 @@ import {
   grantLifetime,
   reverseLifetimeGrant,
 } from '../affiliate-tier';
+
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    rpc: vi.fn(),
+  },
+}));
+
 
 const rpcMock = supabase.rpc as unknown as ReturnType<typeof vi.fn>;
 

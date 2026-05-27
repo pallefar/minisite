@@ -13,6 +13,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { softDeletePhoto, restorePhoto, deletePhotoPermanently } from './photo-trash';
 
 // ---------------------------------------------------------------------------
 // Hoisted spy factories — must be created with vi.hoisted so they are
@@ -38,7 +39,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Subject under test (imported AFTER vi.mock registration)
-import { softDeletePhoto, restorePhoto, deletePhotoPermanently } from './photo-trash';
 
 // ---------------------------------------------------------------------------
 // Reset helpers

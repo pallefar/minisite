@@ -10,6 +10,7 @@
  * 5. Primary CTA copy is exactly "Submit opt-out request"
  * 6. Confirmation Modal appears BEFORE submit with verbatim copy
  */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HelmetProvider } from 'react-helmet-async';

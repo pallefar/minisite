@@ -15,9 +15,12 @@
  *   - useFeatureFlag is mocked at module level (per-test we re-import after
  *     swapping the mock's return value via vi.fn().mockReturnValue).
  */
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useFeatureFlag } from '@/lib/feature-flags';
+import { SignUpForm } from '../SignUpForm';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 // useFeatureFlag is the single switch we drive per-test. Default returns false
@@ -48,8 +51,6 @@ vi.mock('@/hooks/useToast', () => ({
 }));
 
 // Import after vi.mock so the mocks are applied.
-import { useFeatureFlag } from '@/lib/feature-flags';
-import { SignUpForm } from '../SignUpForm';
 
 beforeEach(() => {
   signUpMock.mockReset();

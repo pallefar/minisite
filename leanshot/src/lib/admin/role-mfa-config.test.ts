@@ -3,7 +3,14 @@
  *
  * Cases: list (success + RLS error), set (success + forbidden + network).
  */
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import {
+  listRoleMfaRequirements,
+  setRoleMfaRequirement,
+  RoleMfaConfigError,
+} from './role-mfa-config';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -12,12 +19,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
-import {
-  listRoleMfaRequirements,
-  setRoleMfaRequirement,
-  RoleMfaConfigError,
-} from './role-mfa-config';
 
 const mockFrom = supabase.from as unknown as ReturnType<typeof vi.fn>;
 const mockRpc = supabase.rpc as unknown as ReturnType<typeof vi.fn>;

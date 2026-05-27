@@ -7,9 +7,11 @@
  *   - Re-enroll button triggers unenrollFactor + re-renders enroll flow
  *   - Error state renders a recoverable Try again CTA
  */
+
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as TotpShared from '@/lib/auth/totp-shared';
+import SecuritySettingsPage from './SecuritySettingsPage';
 
 const mocks = vi.hoisted(() => ({
   listEnrolledFactors: vi.fn(),
@@ -37,7 +39,6 @@ vi.mock('@/components/auth/TotpEnrollFlow', () => ({
   ),
 }));
 
-import SecuritySettingsPage from './SecuritySettingsPage';
 
 beforeEach(() => {
   mocks.listEnrolledFactors.mockReset();

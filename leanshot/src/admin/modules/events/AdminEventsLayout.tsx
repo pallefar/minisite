@@ -22,6 +22,7 @@
  *
  * Browser back/forward updates the view via the popstate listener.
  */
+
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 
 const EventListPage = lazy(() =>

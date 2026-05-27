@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { PHI_URL_REGEX, __test } from '@/lib/posthog-route-disable';
 
 // --- Mock posthog-js --------------------------------------------------------
 const mockStop = vi.fn();
@@ -28,7 +29,6 @@ vi.mock('posthog-js', () => ({
 // --- Import AFTER mocking posthog-js ----------------------------------------
 // Dynamic import of applyDecision is tested indirectly via the exported helpers.
 // We also import PHI_URL_REGEX and __test seam for direct testing.
-import { PHI_URL_REGEX, __test } from '@/lib/posthog-route-disable';
 
 // Helper: call applyDecision via the module under test.
 // We access it through dynamic import to match production code paths.

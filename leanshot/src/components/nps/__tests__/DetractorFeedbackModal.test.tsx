@@ -11,17 +11,18 @@
  *   - Submit rejection → error pill rendered ("Couldn't send...").
  *   - Skip → onDismiss invoked.
  */
+
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DetractorFeedbackModal } from '../DetractorFeedbackModal';
 
 const mockSubmit = vi.fn<(text: string) => Promise<{ ticket_id: string }>>();
 vi.mock('@/lib/nps/decide-client', () => ({
   submitNpsFeedback: (text: string) => mockSubmit(text),
 }));
 
-import { DetractorFeedbackModal } from '../DetractorFeedbackModal';
 
 describe('<DetractorFeedbackModal /> — Plan 36-03 Task 2', () => {
   beforeEach(() => {

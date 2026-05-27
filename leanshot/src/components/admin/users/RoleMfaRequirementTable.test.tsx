@@ -4,8 +4,10 @@
  * Covers: load + render, superadmin toggle path, non-superadmin disabled path,
  * optimistic update + rollback on error, ADMIN_MODULES manifest entry.
  */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -15,7 +17,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
 
 const mockFrom = supabase.from as unknown as ReturnType<typeof vi.fn>;
 const mockRpc = supabase.rpc as unknown as ReturnType<typeof vi.fn>;

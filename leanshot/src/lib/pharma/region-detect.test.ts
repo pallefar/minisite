@@ -15,7 +15,9 @@
  *   (e) document undefined (SSR)          -> false
  *   (f) profile wins over absent cookie   -> profile-only path is sufficient
  */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { isPharmaRegionBlocked } from './region-detect';
 
 // Mock the store BEFORE importing region-detect (it reads getState() inline).
 const getStateMock = vi.fn<() => { user: { state_of_residence?: string | null } | null }>();
@@ -25,7 +27,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-import { isPharmaRegionBlocked } from './region-detect';
 
 function setCookie(value: string | null): void {
   if (value === null) {

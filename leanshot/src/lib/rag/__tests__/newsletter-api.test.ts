@@ -15,6 +15,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  getNewsletterSubscription,
+  setNewsletterOptIn,
+  type NewsletterSubscription,
+} from '../newsletter-api';
 
 // ─── Mock @/lib/supabase ──────────────────────────────────────────────────────
 
@@ -28,11 +33,6 @@ vi.mock('@/lib/supabase', () => ({
 
 // ─── Import after mock setup ──────────────────────────────────────────────────
 
-import {
-  getNewsletterSubscription,
-  setNewsletterOptIn,
-  type NewsletterSubscription,
-} from '../newsletter-api';
 
 // ─── Helper: fluent builder for chained Supabase calls ───────────────────────
 

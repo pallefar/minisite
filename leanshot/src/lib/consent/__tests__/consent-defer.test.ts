@@ -11,7 +11,9 @@
  * Build-time chunk-separation assertion is covered in Task 4 (bundle verification),
  * not here — vitest cannot inspect rollup chunk graph.
  */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { _resetConsentDeferForTests, scheduleConsentInit } from '@/lib/consent/consent-defer';
 
 // Mock the dynamic-import target so we can assert init was called without
 // pulling in the real vanilla-cookieconsent SDK at test time.
@@ -20,7 +22,6 @@ vi.mock('@/components/consent/consent-config', () => ({
   initCookieConsent: () => initCookieConsentSpy(),
 }));
 
-import { _resetConsentDeferForTests, scheduleConsentInit } from '@/lib/consent/consent-defer';
 
 describe('consent-defer (Phase 22 GDPR-01 Pattern 4 bundle gate)', () => {
   let rICSpy: ReturnType<typeof vi.fn>;

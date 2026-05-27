@@ -4,6 +4,8 @@
 
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { LiveSignupCounter, SOCIAL_PROOF_OPTOUT_KEY } from './LiveSignupCounter';
+import { TestimonialRotator } from './TestimonialRotator';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -19,8 +21,6 @@ vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: () => reducedMotionState,
 }));
 
-import { LiveSignupCounter, SOCIAL_PROOF_OPTOUT_KEY } from './LiveSignupCounter';
-import { TestimonialRotator } from './TestimonialRotator';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Test scaffolding

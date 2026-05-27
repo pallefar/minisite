@@ -11,6 +11,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mergeAnonSession } from './anon-merge';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -48,7 +49,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-import { mergeAnonSession } from './anon-merge';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Tests

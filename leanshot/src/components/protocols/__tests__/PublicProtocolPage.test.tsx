@@ -1,9 +1,11 @@
 /**
  * Phase 61 Plan 07 Task 3 — PublicProtocolPage unit tests.
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { HelmetProvider } from 'react-helmet-async';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { supabase } from '@/lib/supabase';
 import { PublicProtocolPage } from '../PublicProtocolPage';
 
 // ─── Mock supabase ────────────────────────────────────────────────────────────
@@ -14,7 +16,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

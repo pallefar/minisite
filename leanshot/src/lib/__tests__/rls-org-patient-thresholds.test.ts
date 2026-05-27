@@ -17,6 +17,7 @@
  * ES256-compat: uses generateLink + verifyOtp (NOT signInWithPassword).
  * File-scoped prefix: avoids vitest file-parallelism slug clobbering.
  */
+
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {

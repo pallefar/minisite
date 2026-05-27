@@ -8,9 +8,11 @@
  *  T4 — Step removal triggers undo Toast (not a modal)
  *  T5 — Editing a published protocol creates a new version INSERT
  */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Protocol, ProtocolStep } from '@/types/protocols';
+import { ProtocolEditorPage } from '../ProtocolEditorPage';
 
 // ─── Hoisted state (accessible inside vi.mock factory closures) ────────────────
 // vi.hoisted() runs BEFORE module evaluation and BEFORE vi.mock() hoisting.
@@ -183,7 +185,6 @@ function makeStep(week: number): ProtocolStep {
   };
 }
 
-import { ProtocolEditorPage } from '../ProtocolEditorPage';
 
 describe('ProtocolEditorPage', () => {
   beforeEach(() => {

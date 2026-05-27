@@ -16,6 +16,8 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import { useOrgOnboardingFlow } from '../use-org-onboarding-flow';
 
 // ---------------------------------------------------------------------------
 // Supabase client mock
@@ -41,8 +43,6 @@ vi.mock('@/lib/store', () => ({
 }));
 
 // Import AFTER mocks are established
-import { supabase } from '@/lib/supabase';
-import { useOrgOnboardingFlow } from '../use-org-onboarding-flow';
 
 // ---------------------------------------------------------------------------
 // Helper: build a chainable supabase-js builder stub

@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NewsletterSettings } from '../NewsletterSettings';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -52,7 +53,6 @@ vi.mock('@/lib/supabase', () => ({
 
 // ─── Import after mocks ──────────────────────────────────────────────────────
 
-import { NewsletterSettings } from '../NewsletterSettings';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

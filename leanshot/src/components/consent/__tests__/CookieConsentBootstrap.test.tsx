@@ -8,8 +8,10 @@
  *   3. Re-render does NOT re-invoke scheduleConsentInit() (idempotent
  *      useEffect deps).
  */
+
 import { render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
 
 const scheduleConsentInitSpy = vi.fn();
 
@@ -17,7 +19,6 @@ vi.mock('@/lib/consent/consent-defer', () => ({
   scheduleConsentInit: () => scheduleConsentInitSpy(),
 }));
 
-import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
 
 describe('CookieConsentBootstrap (Phase 22 GDPR-01)', () => {
   beforeEach(() => {

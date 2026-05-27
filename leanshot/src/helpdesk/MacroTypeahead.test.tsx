@@ -7,9 +7,11 @@
  *  - Click → onSelect(macro.body) fires
  *  - Typing a query filters the list (Fuse.js fuzzy)
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import MacroTypeahead from './MacroTypeahead';
 
 // supabase.from('agent_macros').select(...).order(...) chainable, returning rows.
 const macroRowsRef: { rows: unknown[] | null } = { rows: [] };
@@ -23,7 +25,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import MacroTypeahead from './MacroTypeahead';
 
 describe('MacroTypeahead', () => {
   beforeEach(() => {

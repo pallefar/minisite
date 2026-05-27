@@ -9,9 +9,11 @@
  *  - data-sentry-mask attribute present on the body textarea (HIPAA per CLAUDE.md)
  *  - Empty subject/body → no RPC call
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import TicketForm from './TicketForm';
 
 const trackMock = vi.fn();
 vi.mock('@/lib/analytics', () => ({
@@ -25,7 +27,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import TicketForm from './TicketForm';
 
 describe('TicketForm', () => {
   beforeEach(() => {

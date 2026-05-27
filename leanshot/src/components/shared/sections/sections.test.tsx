@@ -11,14 +11,14 @@
 import { act, render, screen } from '@testing-library/react';
 import { Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-// Import all 6 section components (will fail until they exist — RED)
 import { ChartSection } from './ChartSection';
 import { DoctorReportSection } from './DoctorReportSection';
 import { InjectionsSection } from './InjectionsSection';
 import { PhotosSection } from './PhotosSection';
 import { SymptomsSection } from './SymptomsSection';
 import { WeightsSection } from './WeightsSection';
+
+// Import all 6 section components (will fail until they exist — RED)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fixtures

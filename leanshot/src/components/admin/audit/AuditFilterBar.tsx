@@ -16,6 +16,7 @@
  * PHI contract: filter inputs are admin-only context; debounce avoids
  * over-firing but no PostHog events from this surface (superadmin only).
  */
+
 import { useEffect, useRef } from 'react';
 
 // ── D-14 table list ────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@
  * gate happens at save_consumer_onboarding_flow SECDEF (Plan 34-01). Standard
  * admins can drag/drop here but Save will return 42501.
  */
+
 import {
   CONSUMER_STEP_TYPES,
   CONSUMER_STEP_TYPE_LABELS,

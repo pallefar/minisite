@@ -17,8 +17,13 @@
  * vi.mock hoisting: factory functions must NOT reference outer variables — all
  * mock state is captured inside the factory closure.
  */
+
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
+import { RosterTable } from './RosterTable';
+import { ScoreChip } from './ScoreChip';
 
 // ---- Mock supabase -----------------------------------------------------------
 // NOTE: vi.mock is hoisted to the top of the file. The factory MUST NOT
@@ -44,10 +49,6 @@ vi.mock('@/hooks/useToast', () => ({
 }));
 
 // Import after mocks
-import { supabase } from '@/lib/supabase';
-import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
-import { RosterTable } from './RosterTable';
-import { ScoreChip } from './ScoreChip';
 
 // Typed mock accessors
 const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>;

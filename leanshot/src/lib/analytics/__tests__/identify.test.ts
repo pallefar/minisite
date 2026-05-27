@@ -6,7 +6,10 @@
  * 5. aliasAnonymousToUid(anon_id, uid) calls posthog.alias once;
  *    second call is idempotent (localStorage marker prevents double-fire).
  */
+
+import posthog from 'posthog-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { identify, aliasAnonymousToUid } from '../identify';
 
 vi.mock('posthog-js', () => ({
   default: {
@@ -16,8 +19,6 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
-import posthog from 'posthog-js';
-import { identify, aliasAnonymousToUid } from '../identify';
 
 const mockPosthog = posthog as {
   capture: ReturnType<typeof vi.fn>;

@@ -19,6 +19,7 @@
  *  - epsilon display: "epsilon = 1.0 (admin output)"
  *  - error toast: "Cohort could not be compiled. Check filters and try again."
  */
+
 import { AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';

@@ -11,10 +11,12 @@
  * Note: hashBackupCode is server-side only (in Postgres RPC) per plan revision.
  * assertAal2 lives in src/lib/supabase.ts (not totp.ts) — tested here via import.
  */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateBackupCodes, enrollTotp, verifyTotp } from '@/lib/admin/totp';
 import type * as SupabaseModule from '@/lib/supabase';
 import { assertAal2 } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
 // Mock supabase module — each test sets up its own mfa state
@@ -39,7 +41,6 @@ vi.mock('@/lib/supabase', async (importOriginal) => {
   };
 });
 
-import { supabase } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
 // T1: generateBackupCodes(10) — format + uniqueness

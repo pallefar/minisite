@@ -20,6 +20,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import type { ReadOnlyPermissionMap, SnapshotData } from '@/types/snapshot';
+import { ClinicDrillInPage } from './ClinicDrillInPage';
 
 // ---- Shared toast tracking at module level (accessible to all tests) ----------
 // We use a module-level mock fn that the useToast mock returns. Tests can inspect
@@ -113,9 +116,6 @@ vi.mock('@/components/clinic/ClinicContextBar', () => ({
 }));
 
 // ---- Import after mocks -------------------------------------------------------
-import { supabase } from '@/lib/supabase';
-import type { ReadOnlyPermissionMap, SnapshotData } from '@/types/snapshot';
-import { ClinicDrillInPage } from './ClinicDrillInPage';
 
 // ---- Typed mock accessors -------------------------------------------------------
 const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>;

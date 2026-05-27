@@ -13,6 +13,9 @@
 
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { OrgOnboardingFlowState } from '@/lib/onboarding-builder/use-org-onboarding-flow';
+import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
+import { OnboardingFlow } from '../OnboardingFlow';
 
 // Mock useOrgOnboardingFlow before any module imports that depend on it
 vi.mock('@/lib/onboarding-builder/use-org-onboarding-flow', () => ({
@@ -31,9 +34,6 @@ vi.mock('@/lib/analytics', () => ({
   track: vi.fn(),
 }));
 
-import type { OrgOnboardingFlowState } from '@/lib/onboarding-builder/use-org-onboarding-flow';
-import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
-import { OnboardingFlow } from '../OnboardingFlow';
 
 const mockUseOrgOnboardingFlow = useOrgOnboardingFlow as ReturnType<typeof vi.fn>;
 

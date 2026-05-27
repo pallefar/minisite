@@ -14,7 +14,10 @@
  * import. These tests verify the identify.ts contract functions directly since
  * App.tsx's dynamic import pattern is exercised by integration tests.
  */
+
+import posthog from 'posthog-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { aliasAnonymousToUid, identify } from '../identify';
 
 vi.mock('posthog-js', () => ({
   default: {
@@ -26,8 +29,6 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
-import posthog from 'posthog-js';
-import { aliasAnonymousToUid, identify } from '../identify';
 
 const mockPosthog = posthog as {
   capture: ReturnType<typeof vi.fn>;

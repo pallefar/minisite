@@ -7,8 +7,10 @@
  *  T3 — rate-limit 429 path: toast shown, modal closes
  *  T4 — loading state: Skeleton present, Apply button has aria-busy=true
  */
+
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AiAssistModal } from '../AiAssistModal';
 
 // ─── Mock supabase ────────────────────────────────────────────────────────────
 
@@ -50,7 +52,6 @@ vi.mock('@/lib/store', () => ({
   useStore_DEPRECATED: undefined,
 }));
 
-import { AiAssistModal } from '../AiAssistModal';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

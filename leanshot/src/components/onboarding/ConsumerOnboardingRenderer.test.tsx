@@ -6,6 +6,7 @@
 
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ConsumerOnboardingRenderer, GOAL_OPTIONS } from './ConsumerOnboardingRenderer';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Hoisted mocks
@@ -54,7 +55,6 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
-import { ConsumerOnboardingRenderer, GOAL_OPTIONS } from './ConsumerOnboardingRenderer';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Test scaffolding

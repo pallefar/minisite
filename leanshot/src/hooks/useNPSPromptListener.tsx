@@ -33,6 +33,7 @@
  * meaningful bundle benefit — once the user has triggered any modal, the
  * other two are already needed for the rating-driven swap.
  */
+
 import { useCallback, useEffect, useState } from 'react';
 import { DetractorFeedbackModal } from '@/components/nps/DetractorFeedbackModal';
 import { NPSPromptModal } from '@/components/nps/NPSPromptModal';

@@ -31,7 +31,6 @@ import * as CookieConsent from 'vanilla-cookieconsent';
 // lazy chunk as this module, preserving the Pattern 4 dynamic-import gate
 // (consent-config + its CSS both stay off the index static graph).
 import 'vanilla-cookieconsent/dist/cookieconsent.css';
-
 import { CONSENT_CHANGE_EVENT, type ConsentChangeDetail } from '@/lib/consent/consent-event';
 import { upsertConsentRecord } from '@/lib/consent/consent-records';
 

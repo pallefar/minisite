@@ -10,7 +10,12 @@
  *  5. Missing-DSN early return — no init call.
  */
 
+import { Capacitor } from '@capacitor/core';
+import * as SentryCapacitor from '@sentry/capacitor';
+import * as SentryReact from '@sentry/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeSend } from './sentry';
+import { __resetSentryNativeForTests, initSentryNative } from './sentry-native';
 
 // Hoisted mock state — vi.mock factories run BEFORE imports per vitest hoist rules,
 // so we use vi.hoisted to share mutable platform state with the factory.
@@ -32,11 +37,6 @@ vi.mock('@sentry/react', () => ({
 }));
 
 // Import AFTER mocks are registered.
-import { Capacitor } from '@capacitor/core';
-import * as SentryCapacitor from '@sentry/capacitor';
-import * as SentryReact from '@sentry/react';
-import { beforeSend } from './sentry';
-import { __resetSentryNativeForTests, initSentryNative } from './sentry-native';
 
 const VALID_DSN = 'https://abc@o0.ingest.sentry.io/1';
 

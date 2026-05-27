@@ -20,6 +20,7 @@
  * Pure presentational component: caller supplies userMfaFactors + userRole +
  * the role-requirements map (fetched once and cached by the parent page).
  */
+
 import { Badge } from '@/components/ui/Badge';
 
 export type MfaStatusState = 'on' | 'required-not-enrolled' | 'off';

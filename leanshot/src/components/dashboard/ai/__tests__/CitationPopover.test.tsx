@@ -5,6 +5,7 @@
  */
 
 import { render, screen, waitFor, act, cleanup } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach, type MockedFunction } from 'vitest';
 import type { RagChunkResult, ragChunkById as RagChunkByIdFn } from '@/lib/rag/retrieve-client';
@@ -344,4 +345,3 @@ describe('CitationPopover', () => {
 });
 
 // import needed at top
-import { fireEvent } from '@testing-library/react';

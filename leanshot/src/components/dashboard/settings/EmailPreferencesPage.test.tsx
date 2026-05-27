@@ -9,9 +9,11 @@
  *   5. Save success → 'Preferences saved' toast.
  *   6. Save error → "Couldn't save. Try again." toast.
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { EmailPreferencesPage } from '@/components/dashboard/settings/EmailPreferencesPage';
 
 // ─── Mock supabase (network) ──────────────────────────────────────────────────
 
@@ -63,7 +65,6 @@ vi.mock('@/hooks/useToast', () => ({
 
 // ─── Imports under test (after mocks are wired) ───────────────────────────────
 
-import { EmailPreferencesPage } from '@/components/dashboard/settings/EmailPreferencesPage';
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
 

@@ -18,10 +18,12 @@
  * `@/lib/admin/palette/aal2-step-up` to control the freshness signal
  * without touching JWT decoding or localStorage timing.
  */
+
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { requireAal2ForConsumerAction } from '@/lib/auth/aal2-consumer';
 import type * as Aal2StepUp from '@/lib/admin/palette/aal2-step-up';
+import { isAal2Fresh, AAL2_LS_KEY } from '@/lib/admin/palette/aal2-step-up';
+import { requireAal2ForConsumerAction } from '@/lib/auth/aal2-consumer';
 
 // ---------------------------------------------------------------------------
 // localStorage polyfill — `src-lib-unit` runs in node env without jsdom, so
@@ -64,7 +66,6 @@ vi.mock('@/lib/admin/palette/aal2-step-up', async (importOriginal) => {
   };
 });
 
-import { isAal2Fresh, AAL2_LS_KEY } from '@/lib/admin/palette/aal2-step-up';
 
 // ---------------------------------------------------------------------------
 // Build a controllable SupabaseClient stub.

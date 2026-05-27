@@ -12,7 +12,10 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react';
+import posthog from 'posthog-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import { useConsumerOnboardingFlow } from '../use-consumer-onboarding-flow';
 
 // ──────────────────────────────────────────────────────────────────────────
 // supabase + store mocks (must come before importing the hook)
@@ -39,9 +42,6 @@ vi.mock('posthog-js', () => {
   };
 });
 
-import posthog from 'posthog-js';
-import { supabase } from '@/lib/supabase';
-import { useConsumerOnboardingFlow } from '../use-consumer-onboarding-flow';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Helpers

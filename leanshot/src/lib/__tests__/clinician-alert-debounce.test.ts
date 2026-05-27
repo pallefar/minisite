@@ -11,6 +11,7 @@
  * ES256-compat fixture used for org creation; inserts via admin for append-only tables.
  * File-scoped prefix: avoids vitest file-parallelism slug clobbering.
  */
+
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {

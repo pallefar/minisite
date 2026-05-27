@@ -11,6 +11,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import {
+  CostApiError,
+  acknowledgeBudgetCap,
+  fetchBudgetCaps,
+  fetchCostRollup,
+} from '../cost-api';
 
 // vi.mock is hoisted — factory must use vi.fn() without referencing outer vars
 vi.mock('@/lib/supabase', () => ({
@@ -22,13 +29,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Import AFTER vi.mock setup
-import { supabase } from '@/lib/supabase';
-import {
-  CostApiError,
-  acknowledgeBudgetCap,
-  fetchBudgetCaps,
-  fetchCostRollup,
-} from '../cost-api';
 
 // ---------------------------------------------------------------------------
 // Helpers

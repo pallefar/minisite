@@ -15,6 +15,7 @@
  * File-scoped prefix: avoids vitest file-parallelism slug clobbering.
  * Per [[reference_rls_fixture_gotrueclient_flake]] + [[feedback_rls_per_file_slug_prefix]].
  */
+
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {

@@ -1,38 +1,19 @@
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { lazy, Suspense, useEffect, useState } from 'react';
-// Phase 16 Plan 16-02 Task 5 — BiometricGate is intentionally a direct
-// (non-lazy) import: it must render BEFORE first paint of dashboard content
-// when biometric unlock is enabled, and the gate-active derivation lives at
-// the top of App() so a Suspense boundary would otherwise flash app content.
-// Component is small (<3 kB gz expected) and stays within the 50 kB index gz
-// ceiling (verified post-build by Task 5 verify step).
 import { BiometricGate } from '@/components/BiometricGate';
+import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
 import { DisclaimerModal } from '@/components/dashboard/DisclaimerModal';
-// Phase 42 Plan 42-08 (POLISH-05) — In-app notification toast renderer.
-// Non-lazy: the component renders null and only registers a single Realtime
-// channel inside useEffect; static-graph cost is ~1 kB (subscribeToUserNotifications
-// + Realtime types already pulled by clinic-realtime). Lazy-loading would add
-// a Suspense boundary that flashes between dashboard renders.
 import { InAppNotificationToast } from '@/components/dashboard/notifications/InAppNotificationToast';
+import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBanner';
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
 import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCountdownBanner';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
-// Phase 24 Plan 04 D-13: identify + alias bridge to merge anon events under Supabase uid.
-// aliasAnonymousToUid is idempotent (localStorage marker); posthog.reset() on sign-out
-// ensures the next anon session is truly anonymous. Both imports are lightweight
-// (posthog-js itself is already deferred via deferAnalyticsInit in main.tsx).
 import { aliasAnonymousToUid, identify } from '@/lib/analytics/identify';
-// Phase 16 Plan 16-02 Task 5 — Universal Link / App Link dispatcher install
-// (MOBILE-06 client half). Idempotency guard inside installDeepLinkHandler
-// protects against StrictMode double-mount.
+import { clearOverrideCache, loadOverrides } from '@/lib/consent/feature-flag-overrides';
 import { installDeepLinkHandler } from '@/lib/native/deeplink';
-// Phase 16 Plan 16-05 — platform fork for the `?upgrade=` deep link + the
-// Realtime `subscriptions:user_id=eq.X` listener (D-25). detectPlatform()
-// drives the ios/android branch; the iap.ts module is dynamic-imported in
-// the handler body so the RC SDK stays off App.tsx's static graph.
 import { detectPlatform } from '@/lib/native/platform';
 import { isUserEligibleForQuarterlyNPS } from '@/lib/nps/quarterly-eligibility';
 import {
@@ -41,8 +22,44 @@ import {
   showQuarterlyNpsModal,
 } from '@/lib/nps/quarterly-modal';
 import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
+import { useSessionReplayPhiGuard } from '@/lib/posthog-route-disable';
 import { removeUserNamespace, renameStorageNamespace, setActiveStorageUserId } from '@/lib/storage';
 import { useStore } from '@/lib/store';
+import {
+  autoMintAnonSessionIfMissing,
+  deferFlush,
+  deferOnSignedIn,
+  deferOnSignedOut,
+  deferSetLastWasAnon,
+  subscribeAuthStateChanges,
+} from '@/lib/sync-defer';
+import { captureFirstTouchUtm } from '@/lib/utm/capture-first-touch';
+import { AFFILIATE_APPLY_ROUTES } from '@/routes/affiliate-apply-routes';
+import { LANDING_ROUTES } from '@/routes/landing-routes';
+import { PARTNER_ROUTES } from '@/routes/partner-routes';
+
+// Phase 16 Plan 16-02 Task 5 — BiometricGate is intentionally a direct
+// (non-lazy) import: it must render BEFORE first paint of dashboard content
+// when biometric unlock is enabled, and the gate-active derivation lives at
+// the top of App() so a Suspense boundary would otherwise flash app content.
+// Component is small (<3 kB gz expected) and stays within the 50 kB index gz
+// ceiling (verified post-build by Task 5 verify step).
+// Phase 42 Plan 42-08 (POLISH-05) — In-app notification toast renderer.
+// Non-lazy: the component renders null and only registers a single Realtime
+// channel inside useEffect; static-graph cost is ~1 kB (subscribeToUserNotifications
+// + Realtime types already pulled by clinic-realtime). Lazy-loading would add
+// a Suspense boundary that flashes between dashboard renders.
+// Phase 24 Plan 04 D-13: identify + alias bridge to merge anon events under Supabase uid.
+// aliasAnonymousToUid is idempotent (localStorage marker); posthog.reset() on sign-out
+// ensures the next anon session is truly anonymous. Both imports are lightweight
+// (posthog-js itself is already deferred via deferAnalyticsInit in main.tsx).
+// Phase 16 Plan 16-02 Task 5 — Universal Link / App Link dispatcher install
+// (MOBILE-06 client half). Idempotency guard inside installDeepLinkHandler
+// protects against StrictMode double-mount.
+// Phase 16 Plan 16-05 — platform fork for the `?upgrade=` deep link + the
+// Realtime `subscriptions:user_id=eq.X` listener (D-25). detectPlatform()
+// drives the ios/android branch; the iap.ts module is dynamic-imported in
+// the handler body so the RC SDK stays off App.tsx's static graph.
 // Phase 19 Plan 19-09 (BL-4) — route registries from Plans 19-05 / 19-06b / 19-08.
 // resolvePhase19Route() below matches the current pathname against these
 // three registries (LANDING most-specific → PARTNER prefix → AFFILIATE_APPLY
@@ -59,17 +76,6 @@ import { useStore } from '@/lib/store';
 // from 42-07 enforces unconditional surfacing). The wrapper module is tiny
 // (< 1 kB gz) so it stays on the static graph; the modal component itself is
 // React.lazy below.
-import {
-  autoMintAnonSessionIfMissing,
-  deferFlush,
-  deferOnSignedIn,
-  deferOnSignedOut,
-  deferSetLastWasAnon,
-  subscribeAuthStateChanges,
-} from '@/lib/sync-defer';
-import { AFFILIATE_APPLY_ROUTES } from '@/routes/affiliate-apply-routes';
-import { LANDING_ROUTES } from '@/routes/landing-routes';
-import { PARTNER_ROUTES } from '@/routes/partner-routes';
 // Phase 6 D-12 CI hardening: App.tsx no longer eagerly imports @/lib/sync,
 // @/lib/auth-migration, or @/lib/supabase. All three (and transitively
 // @supabase/supabase-js) move OFF the entry chunk static graph and load
@@ -399,22 +405,17 @@ const SecuritySettingsPage = lazy(() =>
 //
 // Each component is tiny (< 200 LoC) and contributes < 1 kB gz to the index
 // chunk. Verified post-build by the Task 4 bundle check.
-import { CookieConsentBootstrap } from '@/components/consent/CookieConsentBootstrap';
-import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBanner';
 // Phase 22 Plan 22-06 — D-08 per-user feature flag overrides. loadOverrides()
 // is the post-auth hook consumer; clearOverrideCache() is the SIGNED_OUT
 // hook consumer. Wiring lands in this plan; see useEffect blocks below.
-import { clearOverrideCache, loadOverrides } from '@/lib/consent/feature-flag-overrides';
 // Phase 25 Plan 25-07 HIPAA-17: session-replay PHI guard. Called as the first
 // hook inside App() so the guard is active before any tab/modal renders.
 // posthog-js stays dynamically imported (per project_phase5_bundle_regression).
-import { useSessionReplayPhiGuard } from '@/lib/posthog-route-disable';
 // Phase 39 Plan 39-04 (PAYWALL-07 / D-09 / OQ-5) — first-touch UTM cookie
 // writer. Phase 39 OWNS the lt_utm_source cookie key; Phase 51 will adopt
 // the same key when shipping its UTM map pipeline. Idempotent: post-React-
 // mount call so jsdom tests that stub window.location after main.tsx init
 // still see the value at App body invocation time (NOT in main.tsx).
-import { captureFirstTouchUtm } from '@/lib/utm/capture-first-touch';
 
 // Phase 7 Plan 07-02 — Legal pages live behind hash routes (`#/legal/*`),
 // mirroring the Phase 5 D-01 `#/auth/*` precedent. Each page is its OWN lazy

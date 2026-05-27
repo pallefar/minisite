@@ -41,6 +41,7 @@
  * Typography ceiling: 4 sizes (text-display/text-4xl/text-lg/text-sm) +
  * 2 weights (font-semibold/font-normal) per UI-checker constraints.
  */
+
 import { type ReactElement, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';

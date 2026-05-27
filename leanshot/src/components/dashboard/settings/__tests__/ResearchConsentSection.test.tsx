@@ -12,14 +12,15 @@
  * Mock strategy: supabase returns a profile row with research_consent=false
  * on initial load; individual tests exercise the toggle interaction paths.
  */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResearchConsentSection } from '../ResearchConsentSection';
+import { getRevokeUpdate } from '../ResearchConsentSection';
 
 // --- Pure logic helpers (also exported from component) ----------------------
 
 // Re-export for the getRevokeUpdate helper test
-import { getRevokeUpdate } from '../ResearchConsentSection';
 
 // --- Mocks ------------------------------------------------------------------
 

@@ -12,10 +12,12 @@
  *   8. Dark mode smoke: no hardcoded hex colors (no style[*="#"])
  */
 
+import '@testing-library/jest-dom';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import '@testing-library/jest-dom';
+import { fetchBudgetCaps, fetchCostRollup, acknowledgeBudgetCap } from '@/lib/admin/rag/cost-api';
+import RagCostPage from '../RagCostPage';
 
 // ---------------------------------------------------------------------------
 // Mock cost-api
@@ -41,8 +43,6 @@ vi.mock('@/hooks/useToast', () => ({
 }));
 
 // Import after mock setup
-import { fetchBudgetCaps, fetchCostRollup, acknowledgeBudgetCap } from '@/lib/admin/rag/cost-api';
-import RagCostPage from '../RagCostPage';
 
 // ---------------------------------------------------------------------------
 // Test fixtures

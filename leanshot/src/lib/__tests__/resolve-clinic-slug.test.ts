@@ -12,6 +12,7 @@
  *   T8: expired invite ignored — expired invite returns not_found.
  *   T9: accepted/revoked invite ignored — returns not_found.
  */
+
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {

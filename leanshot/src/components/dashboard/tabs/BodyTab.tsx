@@ -16,15 +16,6 @@ import {
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { VirtuosoGrid } from 'react-virtuoso';
-
-// Phase 23 Plan 23-04 (DEBT-03) — lazy-load PhotoTrashView so it splits
-// into its own chunk and does NOT grow the BodyTab entry chunk.
-// Confirmed by `npm run build` producing PhotoTrashView-<hash>.js.
-const PhotoTrashView = lazy(() =>
-  import('@/components/dashboard/photos/PhotoTrashView').then((m) => ({
-    default: m.PhotoTrashView,
-  })),
-);
 import { WeightChart, CompositionChart } from '@/components/dashboard/charts/SimpleCharts';
 import { PhotoCompareModal } from '@/components/dashboard/modals/PhotoCompareModal';
 import { Button } from '@/components/ui/Button';
@@ -39,6 +30,19 @@ import { EmptyPhotos } from '@/illustrations/EmptyPhotos';
 import { todayStr, formatShort } from '@/lib/helpers';
 import { useActiveProtocolAssignment } from '@/lib/hooks/useActiveProtocolAssignment';
 import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
+import { softDeletePhoto } from '@/lib/photo-trash';
+import { storageTransformUrl } from '@/lib/photo-url';
+import { useStore } from '@/lib/store';
+import type { Measurement, Photo } from '@/types';
+
+// Phase 23 Plan 23-04 (DEBT-03) — lazy-load PhotoTrashView so it splits
+// into its own chunk and does NOT grow the BodyTab entry chunk.
+// Confirmed by `npm run build` producing PhotoTrashView-<hash>.js.
+const PhotoTrashView = lazy(() =>
+  import('@/components/dashboard/photos/PhotoTrashView').then((m) => ({
+    default: m.PhotoTrashView,
+  })),
+);
 // Phase 16 Plan 16-01 Task 4 — storageTransformUrl is the Pro-tier
 // Supabase-Storage transform URL builder used inside <PhotoTile> as a
 // fallback rendering path. Today (Free tier) the transformed URLs return
@@ -46,10 +50,6 @@ import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
 // active path. Once Wave-0 vendor-checkpoint Task 6 (Supabase Pro upgrade)
 // lands, the PhotoTile state machine can switch primary→transform with no
 // further code changes here.
-import { softDeletePhoto } from '@/lib/photo-trash';
-import { storageTransformUrl } from '@/lib/photo-url';
-import { useStore } from '@/lib/store';
-import type { Measurement, Photo } from '@/types';
 
 export function BodyTab() {
   const { t } = useTranslation('patient');

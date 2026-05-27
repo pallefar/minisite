@@ -12,6 +12,7 @@
  *
  * Per 40-PATTERNS §9 + RESEARCH §Pitfall 8: NO react-router, NO nested routes.
  */
+
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
@@ -19,11 +20,11 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { track } from '@/lib/analytics';
 import { cn } from '@/lib/helpers';
 import type { CancellationReason } from '@/types/cancellation';
-
-// Non-lazy imports — keeps all steps in the single 'cancellation' chunk
 import { LossSummaryStep } from './steps/LossSummaryStep';
 import { OfferStep } from './steps/OfferStep';
 import { ReasonPicklistStep } from './steps/ReasonPicklistStep';
+
+// Non-lazy imports — keeps all steps in the single 'cancellation' chunk
 
 interface CancellationModalProps {
   onClose: () => void;

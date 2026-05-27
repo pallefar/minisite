@@ -14,9 +14,11 @@
  *   - The window.location.hash is reset in beforeEach to prevent promote-mode
  *     leaking between tests.
  */
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SignInForm } from '../SignInForm';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -42,7 +44,6 @@ vi.mock('@/hooks/useToast', () => ({
 }));
 
 // Import after vi.mock so the mocks are applied.
-import { SignInForm } from '../SignInForm';
 
 beforeEach(() => {
   signInMock.mockReset();

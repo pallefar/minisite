@@ -21,6 +21,7 @@
  * Admin surface — react-router-dom NOT required here; pathname-based switching
  * matches the existing project convention for admin modules.
  */
+
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';

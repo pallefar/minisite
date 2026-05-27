@@ -8,7 +8,10 @@
  * 4. identify(uid) calls posthog.identify.
  * 5. aliasAnonymousToUid is idempotent (second call is no-op via localStorage marker).
  */
+
+import posthog from 'posthog-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { capture } from '../capture';
 
 // Mock posthog-js before any imports
 vi.mock('posthog-js', () => ({
@@ -19,8 +22,6 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
-import posthog from 'posthog-js';
-import { capture } from '../capture';
 
 const mockPosthog = posthog as {
   capture: ReturnType<typeof vi.fn>;

@@ -22,6 +22,7 @@
  * Phase 31 assign-mode: 12-row × 3-col matrix table from ROLE_PERMISSIONS;
  * last-owner client guard with tooltip; change_member_role RPC caller.
  */
+
 import { Check, Minus } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';

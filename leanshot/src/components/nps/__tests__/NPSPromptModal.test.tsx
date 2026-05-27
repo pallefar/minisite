@@ -15,12 +15,14 @@
  * eslint-rules/no-conditional-native-review): the component file does NOT
  * import useNativeReviewTrigger or review-shim.
  */
-import '@testing-library/jest-dom/vitest';
+
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { NPSPromptModal } from '../NPSPromptModal';
 
 /**
  * Strip block + line comments before scanning a source file for forbidden
@@ -41,7 +43,6 @@ vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: () => reducedMotionMock(),
 }));
 
-import { NPSPromptModal } from '../NPSPromptModal';
 
 describe('<NPSPromptModal /> — Plan 36-03 Task 1', () => {
   beforeEach(() => {

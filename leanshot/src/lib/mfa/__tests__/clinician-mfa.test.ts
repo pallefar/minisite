@@ -15,7 +15,16 @@
  *   9. redeemClinicianBackupCode bad code → aal1 + error='invalid_or_used'
  *  10. isClinicianTotpEnrolled true when factor verified; false when factor pending or absent
  */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import {
+  getClinicianAal,
+  isClinicianTotpEnrolled,
+  enrollClinicianTotp,
+  challengeClinicianTotp,
+  redeemClinicianBackupCode,
+} from '../clinician-mfa';
 
 // ---------------------------------------------------------------------------
 // Mock supabase BEFORE importing the module under test
@@ -38,14 +47,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
-import {
-  getClinicianAal,
-  isClinicianTotpEnrolled,
-  enrollClinicianTotp,
-  challengeClinicianTotp,
-  redeemClinicianBackupCode,
-} from '../clinician-mfa';
 
 // Typed mock accessors — cast after import so TypeScript is happy
 const mockGetSession = vi.mocked(supabase.auth.getSession);

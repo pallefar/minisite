@@ -37,6 +37,8 @@ import {
   type Channel,
   type DismissalState,
 } from '@/lib/notifications/types';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 
 // Phase 49 Plan 09 — narrow snoozeable categories (analytics event schema
 // limits `notification_snoozed` to the original 5 categories per
@@ -51,8 +53,6 @@ type SnoozeableCategory =
   | 'clinic-alerts'
   | 'billing'
   | 'marketing';
-import { useStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
 
 const CATEGORY_LABEL: Partial<Record<Category, string>> = {
   'dose-reminders': 'Dose reminders',

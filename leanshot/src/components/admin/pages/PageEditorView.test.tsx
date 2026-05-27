@@ -14,10 +14,12 @@
  * AdminMemberDetailPage.test.tsx pattern for vi.mock('@/lib/supabase') is the
  * stable seam.
  */
+
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as PageApi from '@/lib/page-builder/page-api';
+import { PageEditorView } from './PageEditorView';
 
 // Mock the supabase client BEFORE importing the component (the import-time
 // `import { supabase } from '@/lib/supabase'` resolves the mocked module).
@@ -107,7 +109,6 @@ vi.mock('@/lib/page-builder/page-api', async () => {
   };
 });
 
-import { PageEditorView } from './PageEditorView';
 
 beforeEach(() => {
   mockInsertSingle.mockReset();

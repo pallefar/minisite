@@ -12,6 +12,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '@/lib/store';
+import { fireActivation } from './activation-hooks';
 
 // ---------------------------------------------------------------------------
 // Hoisted spies — referenced from inside vi.mock factories.
@@ -32,7 +33,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Subject under test — imported AFTER vi.mock registration.
-import { fireActivation } from './activation-hooks';
 
 // ---------------------------------------------------------------------------
 // Helpers

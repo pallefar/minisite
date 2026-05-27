@@ -20,7 +20,14 @@
  * The fake client has a minimal thenable query builder so the withOrgScope Proxy
  * can intercept .from() calls, track .eq() filter calls, and gate .then() resolution.
  */
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { _createServiceRoleClientUnsafe } from '../../../../supabase/functions/_shared/supabase-server.ts';
+import {
+  OrgScopeBypassError,
+  ORG_SCOPED_TABLES,
+  withOrgScope,
+} from '../../../../supabase/functions/_shared/with-org-scope.ts';
 
 // ---------------------------------------------------------------------------
 // vi.hoisted — define mock values BEFORE vi.mock factories are evaluated.
@@ -92,16 +99,10 @@ vi.mock('../../../../supabase/functions/_shared/supabase-server.ts', () => ({
 // ---------------------------------------------------------------------------
 
 // eslint-disable-next-line import-x/order
-import {
-  OrgScopeBypassError,
-  ORG_SCOPED_TABLES,
-  withOrgScope,
-} from '../../../../supabase/functions/_shared/with-org-scope.ts';
 
 // Import the mocked supabase-server for the compile-time test (Test 1).
 // @ts-expect-error is used below to prove .from is typed `never` on Unscoped client.
 // eslint-disable-next-line import-x/order
-import { _createServiceRoleClientUnsafe } from '../../../../supabase/functions/_shared/supabase-server.ts';
 
 // ---------------------------------------------------------------------------
 // Test constants

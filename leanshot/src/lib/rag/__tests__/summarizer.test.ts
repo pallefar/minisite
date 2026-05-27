@@ -14,6 +14,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { AnthropicSummarizer } from '../../../../../supabase/functions/rag-summarize-and-chunk/anthropic.ts';
+import {
+  buildPrompt,
+  containsInjectionSentinel,
+  isValidSummaryResponse,
+} from '../../../../../supabase/functions/rag-summarize-and-chunk/prompt.ts';
 
 // Mock Deno-only / npm: specifier modules that Vite can't bundle in browser context
 vi.mock('../../../../../supabase/functions/_shared/sentry.ts', () => ({
@@ -29,12 +35,6 @@ vi.mock('../../../../../supabase/functions/_shared/pharma-02-carveout.ts', async
   // Use actual implementation — pharma-02-carveout.ts has no npm: deps
   return await importOriginal();
 });
-import { AnthropicSummarizer } from '../../../../../supabase/functions/rag-summarize-and-chunk/anthropic.ts';
-import {
-  buildPrompt,
-  containsInjectionSentinel,
-  isValidSummaryResponse,
-} from '../../../../../supabase/functions/rag-summarize-and-chunk/prompt.ts';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Gold-set fixture loader

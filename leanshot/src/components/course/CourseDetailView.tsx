@@ -14,6 +14,7 @@
  * helper `renderPostBodyHtml` from `@/lib/course/dompurify-config`
  * (which re-exports `@/lib/community/dompurify-config`). NO new policy.
  */
+
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/Card';

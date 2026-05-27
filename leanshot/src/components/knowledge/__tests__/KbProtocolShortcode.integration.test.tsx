@@ -9,11 +9,13 @@
  *
  * Closes PROTOCOL-08 success criterion #6.
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { Suspense } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { supabase } from '@/lib/supabase';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -46,7 +48,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

@@ -8,9 +8,11 @@
  *  - track('helpdesk.kb_search.performed') uses length-only properties
  *  - Locale toggle defaults to 'en'; can switch to 'es'
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import KBSearchTypeahead from './KBSearchTypeahead';
 
 const trackMock = vi.fn();
 vi.mock('@/lib/analytics', () => ({
@@ -24,7 +26,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import KBSearchTypeahead from './KBSearchTypeahead';
 
 describe('KBSearchTypeahead', () => {
   beforeEach(() => {

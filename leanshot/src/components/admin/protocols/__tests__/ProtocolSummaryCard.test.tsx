@@ -1,8 +1,10 @@
 /**
  * Phase 61 Plan 07 Task 2 — ProtocolSummaryCard unit tests.
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { supabase } from '@/lib/supabase';
 import { ProtocolSummaryCard } from '../ProtocolSummaryCard';
 
 // ─── Mock supabase ────────────────────────────────────────────────────────────
@@ -22,7 +24,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
 
 beforeEach(() => {
   vi.clearAllMocks();

@@ -18,6 +18,7 @@
 
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { RoleEditorModal } from '@/components/clinic/settings/RoleEditorModal';
 
 // ---------------------------------------------------------------------------
 // Hoist mocks BEFORE vi.mock factories run
@@ -45,7 +46,6 @@ vi.mock('@/hooks/useToast', () => ({
 }));
 
 // Import after mocks
-import { RoleEditorModal } from '@/components/clinic/settings/RoleEditorModal';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -17,8 +17,13 @@
  * set in the factory (clearAllMocks clears mockImplementation/mockReturnValue).
  * Instead, we use mockRpc.mockReset() per-test and re-setup only what's needed.
  */
+
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { supabase } from '@/lib/supabase';
+import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
+import { BulkExportPDFFlow } from './BulkExportPDFFlow';
+import { RosterTable } from './RosterTable';
 
 // ---- Shared mock state (declared inside vi.mock factories) ------------------
 
@@ -77,10 +82,6 @@ vi.mock('jspdf', () => {
 });
 
 // Import after mocks
-import { supabase } from '@/lib/supabase';
-import type { RankRosterRow, ReadOnlyPermissionMap } from '@/types/snapshot';
-import { BulkExportPDFFlow } from './BulkExportPDFFlow';
-import { RosterTable } from './RosterTable';
 
 // Typed mock accessors
 const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>;

@@ -20,7 +20,9 @@
  *   T4: anonymous (no session)                      -> 'free'
  *   T5: signed-in + Lifetime tier (has_active=true) -> 'pro'
  */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getContentTier, _clearTierCacheForTest } from './get-content-tier';
 
 const fromMock = vi.fn();
 const supabaseGetSessionMock = vi.fn<() => Promise<{ data: { session: { user: { id: string } } | null } }>>();
@@ -31,7 +33,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { getContentTier, _clearTierCacheForTest } from './get-content-tier';
 
 function buildFromChain(result: { data: { has_active: boolean } | null; error: unknown }) {
   return {

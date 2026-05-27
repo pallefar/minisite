@@ -15,6 +15,7 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useStore } from '@/lib/store';
 import { AIChatPanel } from '../AIChatPanel';
 
 // jsdom doesn't implement scrollIntoView — mock it globally for this test file
@@ -45,7 +46,6 @@ vi.mock('@/lib/rag/server-rag-events-relay', () => ({
 // ─── Store mock ───────────────────────────────────────────────────────────────
 
 // Seed store with a test user + history
-import { useStore } from '@/lib/store';
 
 const TEST_USER = {
   id: 'test-user-1',

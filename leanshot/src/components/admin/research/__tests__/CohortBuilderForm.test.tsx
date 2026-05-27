@@ -4,10 +4,12 @@
  * Tests for k_floor sentinel UX, estimate display, and Run Cohort wiring.
  * Uses @testing-library/react with vitest globals.
  */
-import React from 'react';
+
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { supabase } from '@/lib/supabase';
 import { CohortBuilderForm } from '../CohortBuilderForm';
 
 // Mock supabase client
@@ -22,7 +24,6 @@ vi.mock('@/hooks/useToast', () => ({
   useToast: () => vi.fn(),
 }));
 
-import { supabase } from '@/lib/supabase';
 const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>;
 
 describe('CohortBuilderForm', () => {

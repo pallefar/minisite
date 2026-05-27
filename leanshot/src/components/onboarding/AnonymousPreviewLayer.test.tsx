@@ -15,6 +15,7 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AnonymousPreviewLayer, deriveSmartDefaults } from './AnonymousPreviewLayer';
 
 // Hoist mocks so they apply before the layer is imported.
 const writeAnonCookieMock = vi.fn();
@@ -26,7 +27,6 @@ vi.mock('@/lib/anonymous/cookie', () => ({
   ANON_COOKIE_NAME: '_ls_anon',
 }));
 
-import { AnonymousPreviewLayer, deriveSmartDefaults } from './AnonymousPreviewLayer';
 
 // Helper to patch navigator.language for a single test.
 function setLanguage(value: string): void {

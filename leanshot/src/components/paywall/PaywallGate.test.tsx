@@ -7,8 +7,10 @@
  *   3. consent-adapter returns false → render children directly (cookie-consent gate).
  *   4. consent=true + non-safety → invoke variant-resolver; render paywall slot when variant resolves.
  */
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PaywallGate } from './PaywallGate';
 
 const trackingConsentMock = vi.fn<() => boolean>();
 vi.mock('@/lib/paywall/consent-adapter', () => ({
@@ -34,7 +36,6 @@ vi.mock('@/lib/pharma/phaCheck', () => ({
   },
 }));
 
-import { PaywallGate } from './PaywallGate';
 
 describe('PaywallGate', () => {
   beforeEach(() => {

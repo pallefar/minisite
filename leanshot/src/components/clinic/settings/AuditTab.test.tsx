@@ -13,8 +13,12 @@
  *   9. Empty states: zero rows + no filters → "No events yet"; zero rows + filters → match copy
  *  10. Pagination: totalCount > 50 shows pagination controls
  */
+
 import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AuditCustomRangeModal } from './AuditCustomRangeModal';
+import { AuditTab } from './AuditTab';
+import { ClinicSettingsPage } from './ClinicSettingsPage';
 
 // ── Mock posthog-js ──────────────────────────────────────────────────────────
 
@@ -120,9 +124,6 @@ function setPath(p: string): void {
 
 // ── Imports after mocks ───────────────────────────────────────────────────────
 
-import { AuditCustomRangeModal } from './AuditCustomRangeModal';
-import { AuditTab } from './AuditTab';
-import { ClinicSettingsPage } from './ClinicSettingsPage';
 
 // ── Setup helpers ─────────────────────────────────────────────────────────────
 

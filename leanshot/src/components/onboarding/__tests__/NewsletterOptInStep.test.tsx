@@ -15,6 +15,7 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { NewsletterOptInStep } from '../steps/NewsletterOptInStep';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -74,7 +75,6 @@ vi.mock('@/lib/onboarding-builder/use-org-onboarding-flow', () => ({
 
 // ─── Import after mocks ──────────────────────────────────────────────────────
 
-import { NewsletterOptInStep } from '../steps/NewsletterOptInStep';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 

@@ -3,8 +3,10 @@
  *
  * Covers all 5 behavior tests from the plan.
  */
+
 import { renderHook, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useOrgSettingsRealtime } from './use-org-settings-realtime';
 
 // ---- Mocks (vi.hoisted to avoid hoisting issues) ----------------------------
 
@@ -61,7 +63,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Import AFTER mocks
-import { useOrgSettingsRealtime } from './use-org-settings-realtime';
 
 // ---- Tests -------------------------------------------------------------------
 

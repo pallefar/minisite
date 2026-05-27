@@ -14,6 +14,7 @@
  * Grouping by posthog_variant_id is included when variants are active
  * (v1.3 cold-start: all null, so grouping is a no-op).
  */
+
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
