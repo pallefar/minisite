@@ -368,6 +368,15 @@ const EmailPreferencesPage = lazy(() =>
   })),
 );
 
+// Phase 66 Plan 66-03 — Consumer security settings (`/settings/security`).
+// Mounts <SecuritySettingsPage> which wraps <TotpEnrollFlow mode="consumer">
+// for MFA enrollment (AUTH-12).
+const SecuritySettingsPage = lazy(() =>
+  import('@/components/settings/SecuritySettingsPage').then((m) => ({
+    default: m.default,
+  })),
+);
+
 // Phase 22 Plan 22-12 — three always-on overlay components (banners + cookie
 // consent bootstrap). All three are EAGER imports because:
 //   - ImpersonationBanner: returns null when !useImpersonation().active
@@ -654,6 +663,9 @@ type View =
   | 'admin-shell'
   | 'dsar'
   | 'email-prefs'
+  // Phase 66 Plan 66-03 — Consumer security settings (`/settings/security`).
+  // Auth-gated; renders <SecuritySettingsPage> with TOTP enrollment surface.
+  | 'security-settings'
   // Phase 29 Plan 06 — /accept-clinic-invite patient consent screen.
   // Anonymous-OK: the invite token IS the auth (T-29-06-01 anti-enumeration).
   // Must render BEFORE any auth gate so patients without an account can proceed.
@@ -849,6 +861,14 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
     opts.pathname === '/settings/email-preferences/'
   ) {
     return opts.user ? 'email-prefs' : 'auth';
+  }
+  // Phase 66 Plan 66-03 — Consumer security settings (`/settings/security`).
+  // Auth-gated; renders <SecuritySettingsPage> with consumer MFA enrollment.
+  if (
+    opts.pathname === '/settings/security' ||
+    opts.pathname === '/settings/security/'
+  ) {
+    return opts.user ? 'security-settings' : 'auth';
   }
   // Phase 22 Plan 22-05 — /cancel-deletion is anonymous-OK (HMAC token
   // is the auth). Match exact path; trailing-slash tolerated.
@@ -2046,6 +2066,17 @@ export function App() {
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
           <EmailPreferencesPage />
+        </Suspense>
+      </>
+    );
+  }
+  // Phase 66 Plan 66-03 — Consumer security settings (AUTH-12).
+  if (view === 'security-settings') {
+    return (
+      <>
+        {globalOverlays}
+        <Suspense fallback={<FullPageLoader />}>
+          <SecuritySettingsPage />
         </Suspense>
       </>
     );
