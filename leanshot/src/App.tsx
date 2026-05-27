@@ -127,6 +127,17 @@ const Onboarding = lazy(() =>
 const Marketing = lazy(() =>
   import('@/components/marketing/Landing').then((m) => ({ default: m.Landing })),
 );
+// Phase 68 Plan 68-03 — audience-specific landing pages mounted on
+// `/for-doctors`, `/for-clinics`, `/for-coaches`. Single component fetches
+// the matching `landing_pages` row by URL slug + renders the seeded
+// page-builder block_tree. Lazy-loaded so the audience-page bytes
+// (Helmet + supabase-from query) stay off the index static graph;
+// dashboard / clinic / admin users never download it.
+const AudienceLandingPage = lazy(() =>
+  import('@/components/landing/AudienceLandingPage').then((m) => ({
+    default: m.AudienceLandingPage,
+  })),
+);
 const AuthView = lazy(() => import('@/components/auth/AuthView'));
 // Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth callback view. Mounted on
 // the PATH route `/auth/callback?code=...` (NOT a #hash) because OAuth
@@ -688,7 +699,13 @@ type View =
   // Phase 64 Plan 64-07 — /privacy/do-not-sell standalone page (LEGAL-07 CPRA).
   // Hash route: #/privacy/do-not-sell (NOT under #/legal/* namespace per UI-SPEC §2 + CONTEXT).
   // Public no-auth: same as legal pages; renders DoNotSellPage lazy chunk.
-  | 'do-not-sell';
+  | 'do-not-sell'
+  // Phase 68 Plan 68-03 — audience-specific marketing landing pages
+  // (`/for-doctors`, `/for-clinics`, `/for-coaches`). Public no-auth;
+  // never requires opts.user. Routes BEFORE the user-gated dashboard /
+  // marketing fallback so signed-in users can still visit the audience
+  // landing pages (e.g. to forward a link to a colleague).
+  | 'audience-landing';
 
 // Phase 7 debug seam — guarded so it ships only when VITE_E2E='true' (CI e2e
 // builds, never Vercel production). Records every selectView invocation so
@@ -763,6 +780,23 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   // robots=index (NOT noindex) — research papers are SEO-discoverable per CONTEXT.md.
   // Consumer-phase widening per reference_react_router_consumer_admin_split.
   if (opts.pathname.startsWith('/research')) return 'research';
+  // Phase 68 Plan 68-03 — audience-specific marketing landing pages
+  // (`/for-doctors`, `/for-clinics`, `/for-coaches`). Public no-auth — placed
+  // AFTER /research and BEFORE /protocols (auth-gated) per
+  // [[feedback_admin_module_manifest_vs_router_branch_drift]] (catch-all
+  // ordering: more-specific public-no-auth branches before user-gated +
+  // marketing fallback). Each path maps to the SAME component; the component
+  // infers the slug from `window.location.pathname` and fetches the matching
+  // `landing_pages` row. The audience-landing view is intentionally tested
+  // against `pathname.startsWith(...)` so trailing slashes and any future
+  // sub-paths (e.g. `/for-clinics/case-studies`) route to the same chunk.
+  if (
+    opts.pathname.startsWith('/for-doctors') ||
+    opts.pathname.startsWith('/for-clinics') ||
+    opts.pathname.startsWith('/for-coaches')
+  ) {
+    return 'audience-landing';
+  }
   // Phase 61 Plan 07 — /protocols/<slug> auth-gated public route (PROTOCOL-08).
   // Per Pitfall 7: placed AFTER /knowledge/* (public, no-auth) and BEFORE /clinic/* +
   // auth-gated admin branches. Unlike /knowledge, this branch REQUIRES auth —
@@ -1792,6 +1826,20 @@ export function App() {
     return (
       <Suspense fallback={<FullPageLoader />}>
         <ResearchRoute />
+      </Suspense>
+    );
+  }
+
+  // Phase 68 Plan 68-03 — audience-specific landing pages
+  // (`/for-doctors`, `/for-clinics`, `/for-coaches`). Public no-auth; the
+  // component reads `window.location.pathname` to infer the slug and fetches
+  // the seeded `landing_pages` row + revision. No globalOverlays — same
+  // read-only leaf-isolation model as /knowledge/ and /research/ so the
+  // marketing chunk stays minimal.
+  if (view === 'audience-landing') {
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <AudienceLandingPage />
       </Suspense>
     );
   }
