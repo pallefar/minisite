@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 66 CODE-COMPLETE (2026-05-27) — Consumer Account Security: 2 migrations + shared `src/lib/auth/*` lib + auth-rate-limit-check Fn + 5 UI components + admin manifest entry. 96 new tests (137/143 in-scope green; 6 pre-existing failures). AUTH-12..15+17 code-complete (AUTH-16 was Phase 64). Remote deploy deferred. Mid-run insertion: `supabase db advisors --linked` surfaced 11 ERROR + 714 WARN security findings — Phase 66.5 inserted to address 11 ERRORs + 16 mutable-search_path. Advancing to Phase 66.5.
+**Status:** Phase 66.5 CODE-COMPLETE (2026-05-27) — Supabase Security Advisor Remediation: 3 migrations addressing all 11 ERROR + 16 mutable-search_path advisor findings. Drift-safe DO-block pattern throughout. 1 background executor 529-rescued inline (Task 2 of 66.5-01). All 714 WARN-level findings explicitly deferred to Phase 69.5 with per-category triage. Remote `db push` deferred to Phase 70 (still blocked on Phase 65 `org_subscriptions` drift). SEC-01..03 code-complete. Advancing to Phase 67 (Operational Runbooks + Observability).
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,8 +27,8 @@ progress:
 
 ## Current Position
 
-Phase: 66.5 (Supabase Security Advisor Remediation) — NEXT
-Plan: 0 of N (inserted mid-run; planning pending)
+Phase: 67 (Operational Runbooks + Observability) — NEXT
+Plan: 0 of N (discuss + plan pending)
 
 - **Phase:** 65 CODE-COMPLETE — Stripe Tax + Payment Resilience: 10 migrations + 7 Fns + 31 email templates + 3 UI surfaces (PaymentFailedBanner / RefundRequestForm / TaxDashboard) + 5 Rule-1 schema drift fixes (subscriptions.id text vs uuid; org_subscriptions PK=org_id; subscriptions.trial_end; subscriptions.id IS Stripe natural PK; 2 unplanned migrations from 65-08 nexus alert log). 173/173 new tests green; cross-Fn Deno sweep 100/100. Remote deploy + operator gates ALL deferred to Phase 70 UAT.
 - **Last completed:** Phase 65 close-out 2026-05-27. Tasks 5+6 inline (artifacts). Tasks 1-4 deferred — `db push` blocked at migration 20290104000001 with `org_subscriptions does not exist` despite list-applied (tracking drift). Operator psql intervention needed before Phase 70.

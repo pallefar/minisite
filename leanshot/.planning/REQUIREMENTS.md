@@ -505,3 +505,7 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | UAT-07 | Phase 70 | Pending |
 
 **Coverage:** 200/200 REQ-IDs mapped across 19 phases. No orphans. No duplicates.
+
+| SEC-01 | Phase 66.5 | Complete (code) |
+| SEC-02 | Phase 66.5 | Complete (code) |
+| SEC-03 | Phase 66.5 | Complete (code) |
