@@ -7,13 +7,13 @@
 import { render, screen, waitFor, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach, type MockedFunction } from 'vitest';
-import type { RagChunkResult } from '@/lib/rag/retrieve-client';
+import type { RagChunkResult, ragChunkById as RagChunkByIdFn } from '@/lib/rag/retrieve-client';
 import { CitationPopover } from '../CitationPopover';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 const { mockRagChunkById, mockCaptureRagEventBrowser } = vi.hoisted(() => ({
-  mockRagChunkById: vi.fn<Parameters<typeof import('@/lib/rag/retrieve-client').ragChunkById>, ReturnType<typeof import('@/lib/rag/retrieve-client').ragChunkById>>(),
+  mockRagChunkById: vi.fn<Parameters<typeof RagChunkByIdFn>, ReturnType<typeof RagChunkByIdFn>>(),
   mockCaptureRagEventBrowser: vi.fn(),
 }));
 

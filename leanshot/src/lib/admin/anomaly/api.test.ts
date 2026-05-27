@@ -8,6 +8,7 @@
  * Per 27-PATTERNS S7 — discriminated error contract on RPC wrappers.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as ApiModule from './api';
 
 // Mock supabase BEFORE importing the module under test so the import binding
 // resolves to our stub.
@@ -22,7 +23,7 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
  
-let api: typeof import('./api');
+let api: typeof ApiModule;
 
 beforeEach(async () => {
   mockRpc.mockReset();

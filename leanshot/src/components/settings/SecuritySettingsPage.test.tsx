@@ -9,6 +9,7 @@
  */
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as TotpShared from '@/lib/auth/totp-shared';
 
 const mocks = vi.hoisted(() => ({
   listEnrolledFactors: vi.fn(),
@@ -16,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth/totp-shared', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/auth/totp-shared')>(
+  const actual = await vi.importActual<typeof TotpShared>(
     '@/lib/auth/totp-shared',
   );
   return {

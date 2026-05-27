@@ -7,6 +7,7 @@
  */
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as TotpShared from '@/lib/auth/totp-shared';
 
 // Hoisted spies so vi.mock factories can grab them safely.
 const mocks = vi.hoisted(() => ({
@@ -17,7 +18,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth/totp-shared', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/auth/totp-shared')>(
+  const actual = await vi.importActual<typeof TotpShared>(
     '@/lib/auth/totp-shared',
   );
   return {

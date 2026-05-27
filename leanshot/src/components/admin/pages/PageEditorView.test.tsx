@@ -17,6 +17,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as PageApi from '@/lib/page-builder/page-api';
 
 // Mock the supabase client BEFORE importing the component (the import-time
 // `import { supabase } from '@/lib/supabase'` resolves the mocked module).
@@ -61,7 +62,7 @@ vi.mock('@/lib/supabase', () => ({
 // Mock page-api so the load-page on-mount effect does not blow up — the
 // PageEditorView tries to load `pageId` from the URL on mount.
 vi.mock('@/lib/page-builder/page-api', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/page-builder/page-api')>(
+  const actual = await vi.importActual<typeof PageApi>(
     '@/lib/page-builder/page-api',
   );
   return {

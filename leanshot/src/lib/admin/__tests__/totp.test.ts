@@ -13,6 +13,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateBackupCodes, enrollTotp, verifyTotp } from '@/lib/admin/totp';
+import type * as SupabaseModule from '@/lib/supabase';
 import { assertAal2 } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------
@@ -20,7 +21,7 @@ import { assertAal2 } from '@/lib/supabase';
 // ---------------------------------------------------------------------------
 
 vi.mock('@/lib/supabase', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/supabase')>();
+  const actual = await importOriginal<typeof SupabaseModule>();
   return {
     ...actual,
     assertAal2: vi.fn(),

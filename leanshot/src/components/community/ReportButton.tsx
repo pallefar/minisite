@@ -88,7 +88,7 @@ export function ReportButton({
       >
         <div className="flex flex-col gap-3">
           <label htmlFor="report-reason" className="text-sm font-medium">
-            What's wrong with this {targetType}?
+            What&apos;s wrong with this {targetType}?
           </label>
           <textarea
             id="report-reason"

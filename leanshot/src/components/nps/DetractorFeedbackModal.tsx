@@ -85,9 +85,9 @@ export function DetractorFeedbackModal({
             className="text-[var(--color-success)]"
             aria-hidden
           />
-          <h2 className="text-2xl font-display">Thanks — we'll be in touch</h2>
+          <h2 className="text-2xl font-display">Thanks — we&apos;ll be in touch</h2>
           <p className="text-base text-[var(--color-text-secondary)] text-center">
-            We've created a support ticket. You'll hear from us within 24 hours.
+            We&apos;ve created a support ticket. You&apos;ll hear from us within 24 hours.
           </p>
           <Button variant="primary" onClick={onDismiss}>
             Close
@@ -116,7 +116,7 @@ export function DetractorFeedbackModal({
               role="alert"
               className="rounded-pill bg-[var(--color-danger-soft)] text-[var(--color-danger)] text-[13px] px-3 py-2"
             >
-              Couldn't send. Tap Send feedback to try again.
+              Couldn&apos;t send. Tap Send feedback to try again.
             </p>
           )}
           <div className="flex justify-end gap-2 pt-2">

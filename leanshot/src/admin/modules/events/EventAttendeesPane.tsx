@@ -164,7 +164,7 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
                 Waitlist #
               </th>
               <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
-                RSVP'd
+                RSVP&apos;d
               </th>
               <th className="py-2"></th>
             </tr>

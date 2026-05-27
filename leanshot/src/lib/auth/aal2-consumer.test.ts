@@ -21,6 +21,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { requireAal2ForConsumerAction } from '@/lib/auth/aal2-consumer';
+import type * as Aal2StepUp from '@/lib/admin/palette/aal2-step-up';
 
 // ---------------------------------------------------------------------------
 // localStorage polyfill — `src-lib-unit` runs in node env without jsdom, so
@@ -56,9 +57,7 @@ beforeAll(() => {
 // ---------------------------------------------------------------------------
 
 vi.mock('@/lib/admin/palette/aal2-step-up', async (importOriginal) => {
-  const actual = await importOriginal<
-    typeof import('@/lib/admin/palette/aal2-step-up')
-  >();
+  const actual = await importOriginal<typeof Aal2StepUp>();
   return {
     ...actual,
     isAal2Fresh: vi.fn(),

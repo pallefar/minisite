@@ -211,7 +211,7 @@ export function SharePage({ token: tokenProp }: Props = {}) {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-semibold tracking-tight">
-                {snapshot.patient_first_name}'s LeanShot record
+                {snapshot.patient_first_name}&apos;s LeanShot record
               </h1>
               <p className="text-[13px] text-[var(--color-text-secondary)]">
                 Expires {formatShort(expiresAt)}
@@ -242,7 +242,7 @@ export function SharePage({ token: tokenProp }: Props = {}) {
           className="rounded-card border border-[var(--color-border)] bg-[var(--color-warning-soft)] p-4 text-[13px] leading-relaxed"
         >
           This is a modeled estimate of medication levels — not a measured serum value. Not medical
-          advice. Consult the patient's care plan.
+          advice. Consult the patient&apos;s care plan.
         </div>
 
         {/*
