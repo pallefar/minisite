@@ -13,16 +13,13 @@
  * Back navigation: button calls store.setActiveCommunitySpace(null) — Zustand-driven,
  * NOT react-router (CLAUDE.md consumer-surface no-router rule).
  */
-import { Suspense, lazy, useEffect, useState } from 'react';
-
 import { ArrowLeft } from 'lucide-react';
-
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
-import type { TierLabel } from '@/lib/community/tier-gate';
 import type { CommunitySpace } from '@/lib/community/community-types';
-import { supabase } from '@/lib/supabase';
+import type { TierLabel } from '@/lib/community/tier-gate';
 import { useStore } from '@/lib/store';
-
+import { supabase } from '@/lib/supabase';
 import { useSpaceRealtime } from './use-space-realtime';
 
 // ─── Lazy community sub-components (community-feed chunk) ─────────────────────

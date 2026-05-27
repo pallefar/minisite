@@ -7,10 +7,10 @@
  * D-20: PostHog variant framing resolved via posthog.getFeatureFlagPayload(flag_id).
  * Renders null if no active challenges.
  */
-import { useTranslation } from 'react-i18next';
 import { Target } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import {
   fetchActiveChallenges,

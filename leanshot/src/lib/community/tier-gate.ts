@@ -10,9 +10,9 @@
  * T-44-05 trust boundary: readTierLabel is read-only against tier_effective;
  * never used to write tier state.
  */
+import type { TierLabel } from '@/lib/community/community-types';
 import { supabase } from '@/lib/supabase';
 
-import type { TierLabel } from '@/lib/community/community-types';
 
 export type { TierLabel };
 

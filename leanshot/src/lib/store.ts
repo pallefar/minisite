@@ -750,7 +750,7 @@ export const useStore = create<Store>()(
         // Plan 34-06's ConsumerOnboardingRenderer already logs a warn when
         // the action is missing; on the success path we log a single
         // info-level line so the count is observable in dev tools.
-        // eslint-disable-next-line no-console
+         
         console.info(`[store] replayDraftEntries: queued ${entries.length} entries`);
       },
 

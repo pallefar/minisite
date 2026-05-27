@@ -5,11 +5,9 @@
  */
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
+import type { AdSurface } from '@/lib/ads/canShowAds';
 import { resetSessionCounts } from '@/lib/ads/freqCap';
 import type { AdPlacementConfig } from '@/lib/ads/placementRegistry';
-import type { AdSurface } from '@/lib/ads/canShowAds';
-
 import { AdRenderer } from './AdRenderer';
 
 // ─── Mock useStore ────────────────────────────────────────────────────────────

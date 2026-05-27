@@ -7,8 +7,8 @@
  * Supabase RPC is mocked to avoid real network calls.
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { AdRevenueDashboardPage } from './AdRevenueDashboardPage';
 
 // Mock the supabase client

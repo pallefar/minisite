@@ -2,7 +2,6 @@
 // Fuse.js bytes stay isolated (8 kB gz) per vite.config.ts manualChunks routing.
 import Fuse from 'fuse.js';
 import { useEffect, useMemo, useState, type JSX } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 /**

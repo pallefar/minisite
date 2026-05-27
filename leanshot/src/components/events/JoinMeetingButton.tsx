@@ -27,7 +27,6 @@
  *   - aria-live="polite" region for state changes (countdown / error messages)
  */
 import { useCallback, useEffect, useState, type JSX } from 'react';
-
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';

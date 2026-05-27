@@ -3,10 +3,10 @@
  * Vertical stack of 7 Pill-style radio rows per UI-SPEC Surface 1 Step 1.
  * Single-chunk: non-lazy import; lives in the cancellation chunk via CancellationModal.tsx.
  */
+import type { TFunction } from 'i18next';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { track } from '@/lib/analytics';
 import { cn } from '@/lib/helpers';
 import type { CancellationReason } from '@/types/cancellation';

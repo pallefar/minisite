@@ -15,13 +15,13 @@
  */
 import { Play, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { NotAuthorizedCard } from '@/components/admin/AdminShell';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
-import { NotAuthorizedCard } from '@/components/admin/AdminShell';
 
 // ---------------------------------------------------------------------------
 // Types

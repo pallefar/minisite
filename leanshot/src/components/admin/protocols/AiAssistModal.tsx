@@ -18,13 +18,13 @@
  *
  * Typography: text-[13px] / text-[11px] only per Phase 60 BLOCKER lesson.
  */
-import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/useToast';
+import { supabase } from '@/lib/supabase';
 import type { AiAssistResponse, ProtocolMonitoringKey } from '@/types/protocols';
 
 export interface AiAssistModalProps {

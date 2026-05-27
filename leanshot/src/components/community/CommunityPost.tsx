@@ -16,11 +16,9 @@ import { type JSX } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-
 import { Card } from '@/components/ui/Card';
-import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
 import type { CommunityPostWithMedia, CommunityReaction } from '@/lib/community/community-types';
-
+import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
 import { CommunityPostMediaStrip } from './CommunityPostMediaStrip';
 import { ReactionBar } from './ReactionBar';
 

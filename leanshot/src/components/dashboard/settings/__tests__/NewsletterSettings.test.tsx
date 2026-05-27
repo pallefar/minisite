@@ -8,10 +8,10 @@
  * Run: npx vitest run --config vite.config.ts src/components/dashboard/settings/__tests__/NewsletterSettings.test.tsx
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 

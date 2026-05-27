@@ -32,13 +32,11 @@
  * disabled-state + aria-busy convention).
  */
 import { useId, useState, type JSX } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
-import { useStore } from '@/lib/store';
 import { requestPushPermission } from '@/lib/notifications/permission';
+import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-
 import { DMAttachmentUploader } from './DMAttachmentUploader';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

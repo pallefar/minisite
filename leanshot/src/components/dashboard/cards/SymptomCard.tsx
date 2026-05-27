@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
 import { ShieldAlert, Plus, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';

@@ -23,7 +23,6 @@
  * approach to CommunityTabShell.
  */
 import { Suspense, lazy, useEffect, useState } from 'react';
-
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { TierLabel } from '@/lib/community/tier-gate';
 import { readTierLabel } from '@/lib/community/tier-gate';

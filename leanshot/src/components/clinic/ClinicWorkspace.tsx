@@ -23,11 +23,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { supabase } from '@/lib/supabase';
-import { lazy, Suspense } from 'react';
 import type { Org } from '@/types/clinic';
 import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { ClinicContextBar } from './ClinicContextBar';

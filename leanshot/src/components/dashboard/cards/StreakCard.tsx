@@ -4,8 +4,8 @@
  * Phase 35 Plan 35-06 — GAME-06 (progress rings on dashboard) + GAME-03 (freeze tokens).
  * Reuses v1.2 DS-9 ProgressRing for streak visualization.
  */
-import { useTranslation } from 'react-i18next';
 import { Flame, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { ProgressRing } from '@/components/ui/ProgressRing';
 import type { GamificationDashboardData } from '@/lib/gamification/dashboard-data';

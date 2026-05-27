@@ -8,9 +8,8 @@
  * FIREWALL: MUST NOT import native/health.
  */
 import { useEffect } from 'react';
-
-import { detectPlatform } from '@/lib/native/platform';
 import { showBannerAd } from '@/lib/native/ads';
+import { detectPlatform } from '@/lib/native/platform';
 
 interface PlatformAdSlotProps {
   placementId: string;

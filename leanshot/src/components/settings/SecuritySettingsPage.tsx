@@ -15,8 +15,8 @@
  * landing here. This component assumes a signed-in user.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { Card, CardHeader } from '@/components/ui/Card';
 import TotpEnrollFlow from '@/components/auth/TotpEnrollFlow';
+import { Card, CardHeader } from '@/components/ui/Card';
 import {
   listEnrolledFactors,
   unenrollFactor,

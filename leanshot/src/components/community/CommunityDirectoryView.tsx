@@ -19,16 +19,14 @@
  * Analog: leanshot/src/components/community/CommunitySpaceView.tsx (data fetch
  * shape, skeleton fallback, role="main" + Back button).
  */
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, Search } from 'lucide-react';
-
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { TierLabel } from '@/lib/community/tier-gate';
-import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
-
+import { supabase } from '@/lib/supabase';
 import type { DirectoryProfile } from './ProfileCard';
 
 // ─── Lazy ProfileCard (community-directory chunk per 45-07b vite config) ─────

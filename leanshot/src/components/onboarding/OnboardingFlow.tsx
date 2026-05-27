@@ -10,16 +10,6 @@ import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useHreflangTags } from '@/hooks/useHreflangTags';
 import { useToast } from '@/hooks/useToast';
-import {
-  activityLabel,
-  doseUnitLabel,
-  goalLabel,
-  injectionDayLabel,
-  injectionDayShortLabel,
-  liftingLabel,
-  medicationLabel,
-  sexLabel,
-} from '@/lib/i18n/onboarding-labels';
 import { AIAvatar } from '@/illustrations/AIAvatar';
 import {
   OnboardWelcome,
@@ -32,6 +22,16 @@ import {
 } from '@/illustrations/OnboardSteps';
 import { track } from '@/lib/analytics';
 import { todayStr } from '@/lib/helpers';
+import {
+  activityLabel,
+  doseUnitLabel,
+  goalLabel,
+  injectionDayLabel,
+  injectionDayShortLabel,
+  liftingLabel,
+  medicationLabel,
+  sexLabel,
+} from '@/lib/i18n/onboarding-labels';
 import { useConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
 import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import { medLabel } from '@/lib/pharmacology';

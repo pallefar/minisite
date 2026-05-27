@@ -9,7 +9,6 @@
  *     hook listens for).
  */
 import { useEffect, useState } from 'react';
-
 import {
   dismiss,
   getInstallPromptState,

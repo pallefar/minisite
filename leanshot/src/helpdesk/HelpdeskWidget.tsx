@@ -20,13 +20,11 @@
  *    React.lazy()'d so they don't bloat the root chunk.
  */
 import { lazy, Suspense, useEffect, useState, type JSX } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { track } from '@/lib/analytics';
 import { isPhiRoutePath } from '@/lib/posthog-route-disable';
 import { useStore } from '@/lib/store';
-
 import KBSearchTypeahead from './KBSearchTypeahead';
 
 const KBArticleView = lazy(() => import('./KBArticleView'));

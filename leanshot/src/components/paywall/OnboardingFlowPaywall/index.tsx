@@ -28,14 +28,12 @@
  *   - NO useQuery/useMutation; useEffect + setState + cancellation flag.
  */
 import { useEffect, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/helpers';
 import { getPaywallTrackingConsent } from '@/lib/paywall/consent-adapter';
 import { supabase } from '@/lib/supabase';
-
 import { Screen1 } from './Screen1';
 import { Screen2 } from './Screen2';
 import { Screen3 } from './Screen3';

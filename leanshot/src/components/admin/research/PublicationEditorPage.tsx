@@ -27,11 +27,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
-import { supabase } from '@/lib/supabase';
-import { useStore } from '@/lib/store';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/hooks/useToast';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type { ResearchPublication } from '@/types/research';
 import { PublicationStatusBadge } from './PublicationStatusBadge';
 import { ResearchReviewBanner } from './ResearchReviewBanner';

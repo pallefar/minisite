@@ -12,7 +12,6 @@
  * in a sub-chunk (T-37-06-06 mitigation — keeps helpdesk-widget root ≤25 kB gz).
  */
 import { lazy, Suspense, useState, type JSX } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Input';
 import { track } from '@/lib/analytics';

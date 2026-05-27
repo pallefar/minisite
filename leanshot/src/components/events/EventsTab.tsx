@@ -22,12 +22,10 @@
  * package name across the events/ tree).
  */
 import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
-
 import { Skeleton } from '@/components/ui/Skeleton';
-import { supabase } from '@/lib/supabase';
-import { useStore } from '@/lib/store';
 import type { Event, EventRsvp, RsvpStatus } from '@/lib/events/event-types';
-
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { EventCard } from './EventCard';
 import { EventDetailSheet } from './EventDetailSheet';
 

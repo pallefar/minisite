@@ -14,9 +14,9 @@
  */
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { track } from '@/lib/analytics';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Modal } from '@/components/ui/Modal';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { track } from '@/lib/analytics';
 import { cn } from '@/lib/helpers';
 import type { CancellationReason } from '@/types/cancellation';
 

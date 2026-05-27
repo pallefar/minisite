@@ -32,8 +32,8 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { HitlQueueRow, type HitlRow } from './HitlQueueRow';
 import { HitlDecisionModal } from './HitlDecisionModal';
+import { HitlQueueRow, type HitlRow } from './HitlQueueRow';
 
 type FilterKey = 'all' | 'recommender' | 'digest' | 'win_back';
 

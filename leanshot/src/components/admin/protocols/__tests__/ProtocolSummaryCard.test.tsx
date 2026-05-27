@@ -57,7 +57,7 @@ function setupPublishedProtocolMock(weekCount: number) {
   const stepsResolved = Promise.resolve({ count: weekCount, error: null });
   Object.defineProperty(stepsChain, 'then', { get: () => stepsResolved.then.bind(stepsResolved) });
 
-  let callCount = 0;
+  const callCount = 0;
   vi.mocked(supabase.from).mockImplementation((table: string) => {
     if (table === 'protocols') {
       return protocolsChain as ReturnType<typeof supabase.from>;

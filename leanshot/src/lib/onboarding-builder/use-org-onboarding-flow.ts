@@ -23,8 +23,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type { OnboardingStepNode } from '@/types/onboarding-step';
 
 // ---------------------------------------------------------------------------

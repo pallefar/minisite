@@ -15,7 +15,6 @@
  *     (T-45-09 mitigation — Information Disclosure).
  */
 import { useEffect, useState } from 'react';
-
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 

@@ -18,8 +18,8 @@
  * never re-fires. The browser flag is set once and never cleared.
  */
 
-import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type { ActionType, PrimaryGoal } from './first-action-map';
 
 // ──────────────────────────────────────────────────────────────────────────

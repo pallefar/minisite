@@ -4,8 +4,8 @@
  * Run: npx vitest run --config vite.config.ts src/components/dashboard/ai/__tests__/SourcesFooter.test.tsx
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SourcesFooter, type SourceCitationEntry } from '../SourcesFooter';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────

@@ -12,7 +12,6 @@
  *   - totalCents is the sum of the three known buckets
  */
 import { describe, expect, it } from 'vitest';
-
 import { rollupTierEarnings } from '../api';
 
 describe('rollupTierEarnings (Plan 26-03 — AFFTIER-03)', () => {

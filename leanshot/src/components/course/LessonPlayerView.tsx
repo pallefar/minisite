@@ -28,7 +28,6 @@
 import MuxPlayer from '@mux/mux-player-react/lazy';
 import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, Award } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { TierLabel } from '@/lib/community/tier-gate';
@@ -39,11 +38,10 @@ import {
   type ProgressRpcClient,
   type ProgressSyncer,
 } from '@/lib/course/course-progress';
-import { sanitizeCommunityMarkdown } from '@/lib/course/dompurify-config';
 import type { CourseLesson, LessonProgress } from '@/lib/course/course-types';
+import { sanitizeCommunityMarkdown } from '@/lib/course/dompurify-config';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-
 import { LessonResourceList } from './LessonResourceList';
 
 // ─── Props ────────────────────────────────────────────────────────────────────

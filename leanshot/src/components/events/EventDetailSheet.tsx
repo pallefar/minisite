@@ -24,12 +24,10 @@ import { useRef, type JSX } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-
 import { Sheet } from '@/components/ui/Sheet';
-import { useStore } from '@/lib/store';
 import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
 import type { Event, RsvpStatus } from '@/lib/events/event-types';
-
+import { useStore } from '@/lib/store';
 import { JoinMeetingButton } from './JoinMeetingButton';
 import { RsvpPills } from './RsvpPills';
 

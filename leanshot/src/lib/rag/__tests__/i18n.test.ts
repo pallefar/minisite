@@ -4,9 +4,9 @@
  * Run: npx vitest run --config vite.config.ts src/lib/rag/__tests__/i18n.test.ts
  */
 
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { describe, it, expect } from 'vitest';
 import { RAG_I18N_KEYS, RAG_REFUSAL_KIND_TO_KEY, useRagTranslation } from '../i18n';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

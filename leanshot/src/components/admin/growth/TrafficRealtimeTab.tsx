@@ -14,8 +14,8 @@
  * UI-SPEC §Real-time polling + §Interaction Contract + §Copywriting Contract.
  * Typography ceiling: 11 / 13 / 18 / 28 px only. No TanStack Query.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';

@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next';
 import { ChartLine, Clock } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useReducedMotion } from '@/hooks/useReducedMotion';

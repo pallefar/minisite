@@ -17,7 +17,6 @@
  *   - All anchors get target=_blank rel='noopener noreferrer' (forced, not from input)
  */
 import DOMPurify from 'dompurify';
-
 import type { CommunityPost } from '@/lib/community/community-types';
 
 // ─── Allowlist (D-10 markdown subset: no inline images) ───────────────────────

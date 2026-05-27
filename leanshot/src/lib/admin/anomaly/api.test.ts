@@ -21,7 +21,7 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 let api: typeof import('./api');
 
 beforeEach(async () => {

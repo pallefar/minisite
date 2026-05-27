@@ -9,9 +9,8 @@
  * T-44-05: No user content in this component — emojis are hardcoded, counts are numbers.
  */
 import { useState, type JSX } from 'react';
-
-import { supabase } from '@/lib/supabase';
 import type { CommunityReaction, ReactionEmoji } from '@/lib/community/community-types';
+import { supabase } from '@/lib/supabase';
 
 // ─── Fixed emoji set (D-03) ───────────────────────────────────────────────────
 

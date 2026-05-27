@@ -116,7 +116,7 @@ export function BaaChainTable() {
 
   useEffect(() => {
     void loadRows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Move focus to close button when modal opens.

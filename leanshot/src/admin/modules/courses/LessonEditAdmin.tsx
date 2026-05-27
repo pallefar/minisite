@@ -16,13 +16,11 @@
  * Mux upload Fn re-checks profiles.is_staff (Plan 46-05).
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { supabase } from '@/lib/supabase';
 import type { LessonResource, MuxStatus } from '@/lib/course/course-types';
-
+import { supabase } from '@/lib/supabase';
 import { LessonResourceUploader } from './LessonResourceUploader';
 import { LessonVideoUploader } from './LessonVideoUploader';
 

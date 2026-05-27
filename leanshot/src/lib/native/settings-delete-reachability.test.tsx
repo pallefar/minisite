@@ -117,7 +117,7 @@ function seedSignedInUser() {
       units: 'metric',
       locale: 'en',
       timezone: 'UTC',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } as any,
     signedIn: {
       user: {

@@ -53,7 +53,7 @@ export default function AgentReplyComposer({
     setError(null);
     try {
       // 1. INSERT ticket_messages row.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const insertRes = (await ((supabase
         .from('ticket_messages')
         .insert({
@@ -96,7 +96,7 @@ export default function AgentReplyComposer({
       }
 
       // 3. UPDATE tickets — bump last_agent_message_at + flip open→pending.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       await ((supabase
         .from('tickets')
         .update({

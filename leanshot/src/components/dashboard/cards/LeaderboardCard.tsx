@@ -11,9 +11,9 @@
  * Props sourced by Plan 35-08 (Settings → Leaderboards subtab owns the toggle + cohortId).
  * cohortId / hasOptedIn / nudgeDismissed are stubbed in GamificationCard for now.
  */
-import { useTranslation } from 'react-i18next';
 import { Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import type { GamificationDashboardData } from '@/lib/gamification/dashboard-data';
 import { fetchLeaderboardForCohort, type LeaderboardRow } from '@/lib/gamification/leaderboard';

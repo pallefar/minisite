@@ -9,12 +9,12 @@
  * (migrations 20270901000003/000006/000009/000011/000016). Client-side
  * minRole on the admin module is the Pattern S1 UX layer.
  */
-import { supabase } from '@/lib/supabase';
 import type {
   BanSeverity,
   ModerationStatus,
   UserModerationRosterRow,
 } from '@/lib/moderation/types';
+import { supabase } from '@/lib/supabase';
 
 // ── Report triage ───────────────────────────────────────────────────────────
 

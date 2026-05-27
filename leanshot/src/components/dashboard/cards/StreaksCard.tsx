@@ -1,11 +1,11 @@
-import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Flame } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useStreaks } from '@/hooks/useStreaks';
 import { AchievementShield } from '@/illustrations/AchievementShield';
 import { StreakBadge, type StreakTier } from '@/illustrations/StreakBadge';
-import type { TFunction } from 'i18next';
 
 type StreakKey = 'weight' | 'protein' | 'supps' | 'movement';
 

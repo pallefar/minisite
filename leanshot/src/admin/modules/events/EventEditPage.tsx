@@ -32,7 +32,6 @@
  * imports per reference_react_router_consumer_admin_split (CORRECTED 2026-05-23).
  */
 import { useEffect, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';

@@ -18,10 +18,10 @@
  *
  * Typography: text-[11px] / text-[13px] only per Phase 60 BLOCKER lesson.
  */
-import { useState } from 'react';
 import { X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { useState } from 'react';
 import { CitationPopover } from '@/components/dashboard/ai/CitationPopover';
+import { Button } from '@/components/ui/Button';
 import type { ProtocolStep, ProtocolEvidence, ProtocolMonitoringKey } from '@/types/protocols';
 
 const MONITORING_OPTIONS: { key: ProtocolMonitoringKey; label: string }[] = [

@@ -17,7 +17,6 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-
 import { callMergeAnonSession } from '../merge';
 
 function makeFetchSpy(
@@ -35,7 +34,7 @@ function makeFetchSpy(
       status,
       headers: { 'Content-Type': 'application/json' },
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   }) as any as typeof fetch;
   return { fetch, calls };
 }

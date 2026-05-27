@@ -25,13 +25,11 @@
  * Analog: CommunityFeed.tsx (skeleton + list + RLS-gated query shape).
  */
 import { useCallback, useEffect, useState, type JSX } from 'react';
-
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-
 import { useDmInboxRealtime } from '../use-dm-inbox-realtime';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

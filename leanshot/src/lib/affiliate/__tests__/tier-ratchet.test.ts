@@ -8,7 +8,6 @@
  * the SQL trigger constants (plan-checker single-source-of-truth gate).
  */
 import { describe, expect, it } from 'vitest';
-
 import {
   TIER_COMMISSION_PCT,
   TIER_VOLUME_THRESHOLD,

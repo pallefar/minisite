@@ -13,8 +13,8 @@
  *   T4: rate-limit Fn unreachable (fetch throws) → falls through to supabase
  *   T5: email is lowercased before being sent to both rate-limit Fn and Supabase
  */
-import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { describe, expect, it, vi } from 'vitest';
 import { signInWithLockout } from './sign-in-with-lockout';
 
 interface FetchCall {

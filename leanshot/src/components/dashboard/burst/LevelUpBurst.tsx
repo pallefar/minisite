@@ -17,9 +17,9 @@
  */
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { LevelUpShareModal } from '@/components/dashboard/share/LevelUpShareModal';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { fireXpEvent } from '@/lib/gamification/xp-event-client';
-import { LevelUpShareModal } from '@/components/dashboard/share/LevelUpShareModal';
 import { ConfettiBurst } from './ConfettiBurst';
 
 export interface LevelUpBurstProps {

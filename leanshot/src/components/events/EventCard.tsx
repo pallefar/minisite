@@ -17,12 +17,11 @@
  *   - RsvpPills row is wrapped in `onClick` stopPropagation so a pill click
  *     does NOT also trigger the drill-in (button-inside-button avoidance)
  */
-import { useCallback, type JSX } from 'react';
 import { Calendar, Users as UsersIcon } from 'lucide-react';
-
+import { useCallback, type JSX } from 'react';
+import type { Event, RsvpStatus } from '@/lib/events/event-types';
 import { useStore } from '@/lib/store';
 import { RsvpPills } from './RsvpPills';
-import type { Event, RsvpStatus } from '@/lib/events/event-types';
 
 export interface EventCardProps {
   event: Event;

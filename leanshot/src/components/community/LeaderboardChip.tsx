@@ -18,9 +18,8 @@
  *
  * Analog: leanshot/src/components/community/ReactionBar.tsx (small inline pill).
  */
-import { useEffect, useState, type JSX } from 'react';
 import { Trophy, Lock } from 'lucide-react';
-
+import { useEffect, useState, type JSX } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';

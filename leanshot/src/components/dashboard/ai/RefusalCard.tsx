@@ -21,8 +21,8 @@
 
 import { AlertTriangle, Info, AlertCircle, type LucideIcon } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { useRagTranslation, RAG_REFUSAL_KIND_TO_KEY, type RefusalKind } from '@/lib/rag/i18n';
 import { cn } from '@/lib/helpers';
+import { useRagTranslation, RAG_REFUSAL_KIND_TO_KEY, type RefusalKind } from '@/lib/rag/i18n';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

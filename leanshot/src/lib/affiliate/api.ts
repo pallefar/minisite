@@ -18,7 +18,6 @@
  * 'flagged' is excluded — under review; not yet earned.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-
 import { TIER_VOLUME_THRESHOLD, type AffiliateTier } from './tier-config';
 import type { TierEarningsBreakdown, TierProgress } from './types';
 

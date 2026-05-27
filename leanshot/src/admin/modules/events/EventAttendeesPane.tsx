@@ -11,11 +11,10 @@
  * Admin surface — pathname-based, no client-router package imports.
  */
 import { useCallback, useEffect, useState } from 'react';
-
 import { useToast } from '@/hooks/useToast';
+import type { RsvpStatus } from '@/lib/events/event-types';
 import { supabase } from '@/lib/supabase';
 
-import type { RsvpStatus } from '@/lib/events/event-types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

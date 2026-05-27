@@ -19,11 +19,11 @@ import { hydrate, useStore } from './lib/store';
 // Phase 51 Plan 51-02 (TRAFFIC-01) — SPA fires one traffic touch on first
 // mount so a row lands in user_traffic_attribution even when the Vercel
 // Edge Middleware can't post the recorder itself (RESEARCH Q1 fallback).
-import { fireTouchOnce } from './lib/traffic/fire-touch';
 // Phase 28 Plan 28-05 ORG-06: supabase singleton for wireAuthInvalidation.
 import { supabase } from './lib/supabase';
 import { scheduleSyncInit } from './lib/sync-defer';
 import { deferAnalyticsInit, deferSentryInit } from './lib/telemetry-defer';
+import { fireTouchOnce } from './lib/traffic/fire-touch';
 // Phase 28 Plan 28-05 ORG-06: USER_UPDATED invalidation — extracted helper
 // for testability; wired between hydrate() and createRoot.render() below.
 import { wireAuthInvalidation } from './lib/wire-auth-invalidation';

@@ -8,8 +8,8 @@
  *   - EXCLUDED_SURFACES set membership (exactly 7 entries)
  */
 import { describe, it, expect } from 'vitest';
-import { canShowAds, EXCLUDED_SURFACES, type AdSurface } from './canShowAds';
 import type { Tier } from '@/types';
+import { canShowAds, EXCLUDED_SURFACES, type AdSurface } from './canShowAds';
 
 const EXCLUDED_SURFACE_LIST: AdSurface[] = [
   'clinic',

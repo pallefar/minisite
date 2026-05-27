@@ -15,20 +15,20 @@
  * because patient MFA is optional by D-11 — forcing a step-up to disable
  * optional MFA would be circular.
  */
-import { useState, useEffect } from 'react';
 import { Shield, ShieldCheck, ShieldOff } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui/Card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Card, CardHeader } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
+import {
+  challengeClinicianTotp,
+} from '@/lib/mfa/clinician-mfa';
 import {
   isPatientTotpEnrolled,
   enrollPatientTotp,
   unenrollPatientTotp,
 } from '@/lib/mfa/patient-mfa';
 import { supabase } from '@/lib/supabase';
-import {
-  challengeClinicianTotp,
-} from '@/lib/mfa/clinician-mfa';
 
 type CardState =
   | 'loading'

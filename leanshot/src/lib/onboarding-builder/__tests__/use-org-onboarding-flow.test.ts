@@ -41,8 +41,8 @@ vi.mock('@/lib/store', () => ({
 }));
 
 // Import AFTER mocks are established
-import { useOrgOnboardingFlow } from '../use-org-onboarding-flow';
 import { supabase } from '@/lib/supabase';
+import { useOrgOnboardingFlow } from '../use-org-onboarding-flow';
 
 // ---------------------------------------------------------------------------
 // Helper: build a chainable supabase-js builder stub

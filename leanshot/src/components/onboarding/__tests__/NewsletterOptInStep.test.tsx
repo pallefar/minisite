@@ -13,8 +13,8 @@
  * Run: npx vitest run --config vite.config.ts src/components/onboarding/__tests__/NewsletterOptInStep.test.tsx
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 

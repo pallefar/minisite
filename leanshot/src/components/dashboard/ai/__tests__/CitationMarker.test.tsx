@@ -4,8 +4,8 @@
  * Run: npx vitest run --config vite.config.ts src/components/dashboard/ai/__tests__/CitationMarker.test.tsx
  */
 
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { CitationMarker } from '../CitationMarker';
 
 const UUID_A = 'a1b2c3d4-e5f6-7890-abcd-ef0123456789';

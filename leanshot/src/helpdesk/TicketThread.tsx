@@ -6,12 +6,10 @@
  * which handles the Phase 9 invariant (`realtime.setAuth()` BEFORE subscribe()).
  */
 import { type JSX } from 'react';
-
 import { Button } from '@/components/ui/Button';
-
+import { useTicketChannel } from './hooks/useTicketChannel';
 import ReplyComposer from './ReplyComposer';
 import TypingIndicator from './TypingIndicator';
-import { useTicketChannel } from './hooks/useTicketChannel';
 
 export interface TicketThreadProps {
   ticketId: string;

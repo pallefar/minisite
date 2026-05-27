@@ -17,7 +17,6 @@
  * (pathname-based pushState — see PATTERNS.md).
  */
 import { useEffect, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';

@@ -14,7 +14,6 @@
  *   - No magic colors / no new dependencies; reuses v1.2 Card primitive.
  */
 import { type ReactNode, useEffect, useState } from 'react';
-
 import { Card, CardHeader } from '@/components/ui/Card';
 import { getTierEarningsBreakdown } from '@/lib/affiliate/api';
 import type { TierEarningsBreakdown } from '@/lib/affiliate/types';

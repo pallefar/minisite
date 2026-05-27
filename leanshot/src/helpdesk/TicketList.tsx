@@ -7,7 +7,6 @@
  * be a Rule 1 bug if RLS were misconfigured — the principle is server-enforced).
  */
 import { useEffect, useState, type JSX } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 type TicketRow = {

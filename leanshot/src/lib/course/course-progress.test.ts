@@ -17,7 +17,6 @@
  * server complete_lesson RPC double-checks against duration_seconds in DB.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import {
   createProgressSyncer,
   isLessonComplete,

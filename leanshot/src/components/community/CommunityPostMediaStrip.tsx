@@ -4,7 +4,6 @@
 // to keep the 44-08 version. See 44-08-SUMMARY.md for full merge protocol.
 
 import { lazy, Suspense, useState } from 'react';
-
 import type { CommunityPostWithMedia } from '@/lib/community/community-types';
 
 // ─── Lazy Mux Player ─────────────────────────────────────────────────────────

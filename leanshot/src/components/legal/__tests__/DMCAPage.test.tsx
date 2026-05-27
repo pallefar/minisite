@@ -9,8 +9,8 @@
  * 4. Page includes inline disclaimer noting agent registration is pending Phase 70 UAT operator action
  */
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
 import { HelmetProvider } from 'react-helmet-async';
+import { describe, it, expect } from 'vitest';
 import { DMCAPage } from '../DMCAPage';
 
 function renderDMCAPage() {

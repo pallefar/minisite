@@ -10,7 +10,6 @@
  * ceiling alongside the widget chrome.
  */
 import { useEffect, useState, type JSX } from 'react';
-
 import { Input } from '@/components/ui/Input';
 import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';

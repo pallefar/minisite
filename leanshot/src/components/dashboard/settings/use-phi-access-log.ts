@@ -89,7 +89,7 @@ export function usePhiAccessLog(
         ),
       ];
 
-      let displayNameMap: Record<string, string> = {};
+      const displayNameMap: Record<string, string> = {};
       if (actorIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')

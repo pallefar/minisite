@@ -10,8 +10,8 @@
  * (handled by ModerationLayout's resolveView dispatch).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useStore } from '@/lib/store';
 import type { UserModerationRosterRow } from '@/lib/moderation/types';
+import { useStore } from '@/lib/store';
 import { listUserModerationRoster } from './api';
 
 interface UserBansRosterProps {

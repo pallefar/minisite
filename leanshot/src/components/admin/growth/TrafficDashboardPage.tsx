@@ -24,7 +24,6 @@
  * every sub-route into this component automatically — no switch edit needed
  * (per project memory `feedback_admin_module_manifest_vs_router_branch_drift`).
  */
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import {
   Activity,
   Filter,
@@ -32,6 +31,7 @@ import {
   Map as MapIcon,
   Settings2,
 } from 'lucide-react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useStore } from '@/lib/store';

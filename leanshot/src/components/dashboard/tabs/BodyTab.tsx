@@ -37,6 +37,7 @@ import { SwipeToDelete } from '@/components/ui/SwipeToDelete';
 import { useToast } from '@/hooks/useToast';
 import { EmptyPhotos } from '@/illustrations/EmptyPhotos';
 import { todayStr, formatShort } from '@/lib/helpers';
+import { useActiveProtocolAssignment } from '@/lib/hooks/useActiveProtocolAssignment';
 import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
 // Phase 16 Plan 16-01 Task 4 — storageTransformUrl is the Pro-tier
 // Supabase-Storage transform URL builder used inside <PhotoTile> as a
@@ -45,7 +46,6 @@ import { TRIAL_DATA, trialClass } from '@/lib/pharmacology';
 // active path. Once Wave-0 vendor-checkpoint Task 6 (Supabase Pro upgrade)
 // lands, the PhotoTile state machine can switch primary→transform with no
 // further code changes here.
-import { useActiveProtocolAssignment } from '@/lib/hooks/useActiveProtocolAssignment';
 import { softDeletePhoto } from '@/lib/photo-trash';
 import { storageTransformUrl } from '@/lib/photo-url';
 import { useStore } from '@/lib/store';

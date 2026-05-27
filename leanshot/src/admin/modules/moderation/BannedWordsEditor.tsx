@@ -10,9 +10,9 @@
  * region beneath the button.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useStore } from '@/lib/store';
 import type { BanSeverity, BannedWord } from '@/lib/moderation/types';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { bannedWordRemove, bannedWordUpsert, invokeBannedWordsSweep } from './api';
 
 const SEVERITIES: ReadonlyArray<BanSeverity> = ['warn', 'flag', 'escalate'];

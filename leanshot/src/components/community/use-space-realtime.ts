@@ -12,7 +12,6 @@
  * Analog: src/components/clinic/roster/use-roster-realtime.ts
  */
 import { useEffect } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 export function useSpaceRealtime(spaceId: string, onUpdate: () => void): void {

@@ -17,12 +17,11 @@
  *
  * Analog: leanshot/src/components/community/CommunityPost.tsx (markdown render).
  */
+import { MessageCircle, Stethoscope, Flame, Trophy } from 'lucide-react';
 import { type JSX } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-import { MessageCircle, Stethoscope, Flame, Trophy } from 'lucide-react';
-
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';

@@ -14,8 +14,8 @@
  */
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import LandingTemplateGold from '@/components/landing/LandingTemplateGold';
 import type { AffiliatePublicRow } from '@/components/landing/LandingTemplateCoach';
+import LandingTemplateGold from '@/components/landing/LandingTemplateGold';
 
 const BASE: AffiliatePublicRow = {
   id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',

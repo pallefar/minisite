@@ -15,11 +15,11 @@
  */
 import { useState, type FormEvent } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { LegalLayout } from './LegalLayout';
-import { Input, Select } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Input, Select } from '@/components/ui/Input';
+import { Modal } from '@/components/ui/Modal';
+import { LegalLayout } from './LegalLayout';
 
 interface FormState {
   name: string;

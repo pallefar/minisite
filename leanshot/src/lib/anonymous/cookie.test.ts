@@ -15,7 +15,6 @@
  */
 
 import { afterEach, describe, expect, it } from 'vitest';
-
 import {
   ANON_COOKIE_NAME,
   clearAnonCookie,

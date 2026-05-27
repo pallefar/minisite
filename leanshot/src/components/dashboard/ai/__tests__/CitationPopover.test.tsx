@@ -4,11 +4,11 @@
  * Run: npx vitest run --config vite.config.ts src/components/dashboard/ai/__tests__/CitationPopover.test.tsx
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, type MockedFunction } from 'vitest';
 import { render, screen, waitFor, act, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CitationPopover } from '../CitationPopover';
+import { describe, it, expect, vi, beforeEach, afterEach, type MockedFunction } from 'vitest';
 import type { RagChunkResult } from '@/lib/rag/retrieve-client';
+import { CitationPopover } from '../CitationPopover';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 

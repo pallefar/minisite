@@ -5,7 +5,6 @@
  * Uses @vitest/globals through vite.config.ts test setup.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-
 import { injectAdSenseScript, subscribeAdSenseConsent } from './adsense';
 
 const ADSENSE_SCRIPT_ID = 'adsense-script';

@@ -21,8 +21,8 @@
  *     never record impressions for missing / non-approved affiliates.
  */
 import { type ReactElement, Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { recordImpression } from '@/lib/affiliate/impression';
 import { useHreflangTags } from '@/hooks/useHreflangTags';
+import { recordImpression } from '@/lib/affiliate/impression';
 import { supabase } from '@/lib/supabase';
 import type { AffiliatePublicRow } from './LandingTemplateCoach';
 

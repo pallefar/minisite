@@ -16,8 +16,8 @@
  * Color: CSS custom properties only — no undefined tokens.
  */
 
-import { useState, useEffect, useCallback } from 'react';
 import { FlaskConical } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';

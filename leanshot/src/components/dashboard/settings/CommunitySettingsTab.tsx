@@ -19,9 +19,8 @@
  *
  * Analog: leanshot/src/components/dashboard/settings/LeaderboardsSubtab.tsx
  */
-import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
-
+import { useEffect, useState } from 'react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
 import { useStore } from '@/lib/store';

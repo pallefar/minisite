@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
 import { ArrowUpRight, Syringe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { SiteRotation } from '@/illustrations/SiteRotation';
 import { SITES } from '@/lib/constants';

@@ -19,12 +19,12 @@
  *  - Suppressed banner: "Cohort suppressed — k<5 at the selected filters."
  */
 import { useState } from 'react';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { CohortResponse } from './CohortBuilderForm';
 import { CohortBuilderForm } from './CohortBuilderForm';
 import { CrossTabMatrix } from './CrossTabMatrix';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { RetentionChart } from './RetentionChart';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 // Extract retention data from RPC response
 function extractRetentionData(

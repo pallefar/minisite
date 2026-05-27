@@ -34,6 +34,13 @@ import { installDeepLinkHandler } from '@/lib/native/deeplink';
 // drives the ios/android branch; the iap.ts module is dynamic-imported in
 // the handler body so the RC SDK stays off App.tsx's static graph.
 import { detectPlatform } from '@/lib/native/platform';
+import { isUserEligibleForQuarterlyNPS } from '@/lib/nps/quarterly-eligibility';
+import {
+  QUARTERLY_NPS_SHOW_EVENT,
+  isQuarterlyNPSShowDetail,
+  showQuarterlyNpsModal,
+} from '@/lib/nps/quarterly-modal';
+import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 import { removeUserNamespace, renameStorageNamespace, setActiveStorageUserId } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 // Phase 19 Plan 19-09 (BL-4) — route registries from Plans 19-05 / 19-06b / 19-08.
@@ -47,18 +54,11 @@ import { useStore } from '@/lib/store';
 // the result is only acted upon when view === 'dashboard'. For consumer-path
 // users (no primary_org_id / anonymous) the hook returns 'consumer' after a
 // single DB round-trip; subsequent renders return cached state (mount-only fetch).
-import { useOrgOnboardingFlow } from '@/lib/onboarding-builder/use-org-onboarding-flow';
 // Phase 42 Plan 42-10 (POLISH-12 D-20/D-21) — Quarterly NPS in-app fallback.
 // Eligibility wrapper + UNCONDITIONAL trigger (no-conditional-native-review.cjs
 // from 42-07 enforces unconditional surfacing). The wrapper module is tiny
 // (< 1 kB gz) so it stays on the static graph; the modal component itself is
 // React.lazy below.
-import { isUserEligibleForQuarterlyNPS } from '@/lib/nps/quarterly-eligibility';
-import {
-  QUARTERLY_NPS_SHOW_EVENT,
-  isQuarterlyNPSShowDetail,
-  showQuarterlyNpsModal,
-} from '@/lib/nps/quarterly-modal';
 import {
   autoMintAnonSessionIfMissing,
   deferFlush,

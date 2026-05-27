@@ -17,11 +17,9 @@ import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
-
-import { supabase } from '@/lib/supabase';
-import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
 import type { CommunityComment, CommunityReaction } from '@/lib/community/community-types';
-
+import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
+import { supabase } from '@/lib/supabase';
 import { ReactionBar } from './ReactionBar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

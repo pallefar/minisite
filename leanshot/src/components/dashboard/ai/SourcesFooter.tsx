@@ -13,8 +13,8 @@
  * Returns null when citations array is empty.
  */
 
-import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 import { TierBadge } from '@/components/admin/rag/TierBadge';
 import { cn } from '@/lib/helpers';
 import { useRagTranslation } from '@/lib/rag/i18n';

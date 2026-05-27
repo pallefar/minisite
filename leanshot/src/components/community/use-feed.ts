@@ -16,9 +16,8 @@
  *   hasMore      — false when last page returned < PAGE_SIZE rows
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-import { supabase } from '@/lib/supabase';
 import type { CommunityPostWithMedia } from '@/lib/community/community-types';
+import { supabase } from '@/lib/supabase';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -64,7 +63,7 @@ export function useFeed(spaceId: string): UseFeedResult {
       setLoading(true);
       setError(null);
 
-      let cancelled = false;
+      const cancelled = false;
 
       let q = supabase
         .from('community_posts')
@@ -132,7 +131,7 @@ export function useFeed(spaceId: string): UseFeedResult {
     fetchingRef.current = false;
 
     void (async () => {
-      let q = supabase
+      const q = supabase
         .from('community_posts')
         .select(
           'id, body, created_at, edited_at, deleted_at, author_id, space_id, mux_upload_id, mux_playback_id, video_status, community_post_media(id, post_id, path, display_order)',

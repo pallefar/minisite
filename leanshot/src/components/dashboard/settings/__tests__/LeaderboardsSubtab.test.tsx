@@ -10,8 +10,8 @@
  * picker is visible from the start. This avoids needing to simulate the
  * full opt-in RPC flow just to show the handle input.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LeaderboardsSubtab } from '../LeaderboardsSubtab';
 
 // --- mocks -------------------------------------------------------------------

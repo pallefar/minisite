@@ -15,11 +15,10 @@
  *
  * FIREWALL: MUST NOT import native/health.
  */
-import { useStore } from '@/lib/store';
 import { canShowAds, type AdSurface } from '@/lib/ads/canShowAds';
 import { canShowNextImpression } from '@/lib/ads/freqCap';
 import type { AdPlacementConfig } from '@/lib/ads/placementRegistry';
-
+import { useStore } from '@/lib/store';
 import { EmbedAdSlot } from './EmbedAdSlot';
 import { HouseAdSlot } from './HouseAdSlot';
 import { PlatformAdSlot } from './PlatformAdSlot';

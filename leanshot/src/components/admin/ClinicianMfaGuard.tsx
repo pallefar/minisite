@@ -21,8 +21,8 @@
  */
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { Card, CardHeader } from '@/components/ui/Card';
 import SetupClinicianTotp from '@/components/admin/SetupClinicianTotp';
+import { Card, CardHeader } from '@/components/ui/Card';
 import {
   getClinicianAal,
   isClinicianTotpEnrolled,
@@ -220,7 +220,7 @@ export function ClinicianMfaGuard({ children }: ClinicianMfaGuardProps) {
       if (!signal.cancelled) setState('enroll');
     });
     return () => { signal.cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+     
   }, []);
 
   if (state === 'loading') return null;

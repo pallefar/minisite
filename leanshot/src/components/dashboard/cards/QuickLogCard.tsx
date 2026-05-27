@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Syringe, Scale, Apple, ShieldAlert, Smile, Pill, Activity, Bot, Zap } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useStore } from '@/lib/store';
-import type { TFunction } from 'i18next';
 import type { TabId } from '@/types';
 
 interface QuickLogCardProps {

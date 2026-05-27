@@ -12,9 +12,8 @@
  *
  * Analog: leanshot/src/components/community/ReactionBar.tsx (small inline action).
  */
-import { useState, type JSX } from 'react';
 import { Flag } from 'lucide-react';
-
+import { useState, type JSX } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { useToast } from '@/hooks/useToast';

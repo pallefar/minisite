@@ -13,8 +13,8 @@
  * Environment: requires SUPABASE_URL + SUPABASE_ANON_KEY + SUPABASE_SERVICE_ROLE_KEY.
  * Skipped automatically when env not set (per [[reference_rls_fixture_gotrueclient_flake]]).
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

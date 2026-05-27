@@ -58,7 +58,7 @@ export default function SetupClinicianTotp({ onComplete }: SetupClinicianTotpPro
       }
     })();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+     
   }, []);
 
   // ---------------------------------------------------------------------------

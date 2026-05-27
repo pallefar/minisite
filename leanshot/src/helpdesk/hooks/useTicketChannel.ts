@@ -13,7 +13,6 @@
  */
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useEffect, useRef, useState } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 export type TicketMessage = {

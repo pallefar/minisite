@@ -8,8 +8,8 @@
  * 3. "Report an accessibility issue" CTA renders as mailto link
  */
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
 import { HelmetProvider } from 'react-helmet-async';
+import { describe, it, expect } from 'vitest';
 import { AccessibilityPage } from '../AccessibilityPage';
 
 function renderAccessibilityPage() {

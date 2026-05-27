@@ -12,14 +12,13 @@
  *   - isResourceAllowed (Phase 46 D-16 / COURSE-06) — NEW in Plan 46-03
  */
 import { describe, it, expect } from 'vitest';
-
+import type { TierLabel } from '@/lib/community/community-types';
 import {
   isVideoAllowed,
   canAccessSpace,
   isResourceAllowed,
   type ResourceType,
 } from '@/lib/community/tier-gate';
-import type { TierLabel } from '@/lib/community/community-types';
 
 // ─── Phase 44 baseline coverage ───────────────────────────────────────────────
 

@@ -13,8 +13,8 @@
  */
 
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StrictMode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Hoist mocks so they apply before the layer is imported.
 const writeAnonCookieMock = vi.fn();

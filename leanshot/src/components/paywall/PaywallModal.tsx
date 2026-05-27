@@ -18,7 +18,6 @@
  *   - NO useQuery/useMutation; useEffect + setState + cancellation flag.
  */
 import { useEffect, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { getPaywallTrackingConsent } from '@/lib/paywall/consent-adapter';

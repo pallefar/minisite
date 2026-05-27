@@ -429,7 +429,7 @@ export function AudienceLandingPage({
     })().catch((err: unknown) => {
       if (cancelled) return;
       // Soft-fail: log and render 404 rather than crashing the route.
-      // eslint-disable-next-line no-console
+       
       console.error('[audience-landing] fetch failed', err);
       setState({ status: 'not_found', page: null });
     });

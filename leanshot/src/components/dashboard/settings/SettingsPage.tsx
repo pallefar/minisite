@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { sectionLabel, type Section } from '@/lib/i18n/settings-labels';
 import { ManageSubscriptionLink } from '@/components/billing/ManageSubscriptionLink';
 import { UpgradeCTA } from '@/components/billing/UpgradeCTA';
 // Phase 55 Plan 55-04 (HEALTH-02/HEALTH-07): HealthKit consent + revoke/purge controls.
@@ -38,7 +37,6 @@ import { Modal } from '@/components/ui/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
 import { attachEmailToAnon, requestPasswordReset, signOut } from '@/lib/auth';
-import { requireStepUp } from '@/lib/mfa/patient-mfa';
 import {
   buildJsonExport,
   buildPdfDoc,
@@ -48,6 +46,8 @@ import {
   type CloudExtras,
 } from '@/lib/export-data';
 import { todayStr, cn } from '@/lib/helpers';
+import { sectionLabel, type Section } from '@/lib/i18n/settings-labels';
+import { requireStepUp } from '@/lib/mfa/patient-mfa';
 import type { PersistedState } from '@/lib/storage';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';

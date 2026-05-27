@@ -20,7 +20,6 @@
  */
 import { AlertCircle } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
-
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { getTierProgress } from '@/lib/affiliate/api';

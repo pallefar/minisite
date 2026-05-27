@@ -14,13 +14,13 @@
  *
  * Typography: text-[11px] / text-[13px] only per Phase 60 BLOCKER lesson.
  */
-import { useState, useCallback } from 'react';
 import { Search } from 'lucide-react';
-import { Sheet } from '@/components/ui/Sheet';
-import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { EmptyState } from '@/components/ui/EmptyState';
+import { useState, useCallback } from 'react';
 import { TierBadge } from '@/components/admin/rag/TierBadge';
+import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Sheet } from '@/components/ui/Sheet';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
 
 export interface RagChunk {

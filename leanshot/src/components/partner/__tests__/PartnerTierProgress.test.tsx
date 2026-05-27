@@ -11,7 +11,6 @@
  */
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-
 import { PartnerTierProgress } from '@/components/partner/PartnerTierProgress';
 
 vi.mock('@/lib/affiliate/api', () => ({

@@ -7,8 +7,8 @@
  *   3. Add variant button disappears after 2 variants added (D-20 max-2)
  *   4. createWeeklyChallenge called with correctly-parsed payload on submit
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ChallengeForm from '../ChallengeForm';
 
 // ---------------------------------------------------------------------------

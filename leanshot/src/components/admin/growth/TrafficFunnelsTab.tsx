@@ -41,9 +41,10 @@
  *   T-51-33 — client `(out / in) * 100` is presentation-only; rates from
  *             matview are authoritative.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ChartConfiguration } from 'chart.js';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BaseChart } from '@/components/dashboard/charts/BaseChart';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -51,7 +52,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Sheet } from '@/components/ui/Sheet';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { BaseChart } from '@/components/dashboard/charts/BaseChart';
 import { supabase } from '@/lib/supabase';
 import { useOrgScope } from './useOrgScope';
 

@@ -6,10 +6,10 @@
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useToast } from '@/hooks/useToast';
 import { track } from '@/lib/analytics';
 import { callAcceptOffer } from '@/lib/cancellation/accept-offer-client';
 import { callDecideOffer } from '@/lib/cancellation/decide-offer-client';
-import { useToast } from '@/hooks/useToast';
 import type { CancellationReason, DecideOfferResponse } from '@/types/cancellation';
 import { OfferCard } from '../OfferCard';
 

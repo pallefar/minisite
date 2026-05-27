@@ -16,9 +16,9 @@
  * surface) so the delta is <2 kB gz.
  */
 
-import { useTranslation } from 'react-i18next';
 import { ArrowRight } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';

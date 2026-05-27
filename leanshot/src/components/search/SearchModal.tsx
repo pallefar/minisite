@@ -16,11 +16,11 @@
 
 import { Command } from 'cmdk';
 import { useEffect, useState } from 'react';
-import { SearchResultsList } from './SearchResultsList';
 import { searchContent } from '@/lib/search/api';
+import type { SearchResult } from '@/lib/search/types';
 import { useDebouncedSearch } from '@/lib/search/use-debounced-search';
 import { useStore } from '@/lib/store';
-import type { SearchResult } from '@/lib/search/types';
+import { SearchResultsList } from './SearchResultsList';
 
 interface Props {
   onClose: () => void;

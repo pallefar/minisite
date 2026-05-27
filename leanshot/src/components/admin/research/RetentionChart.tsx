@@ -10,8 +10,8 @@
  * Typography: text-[18px] for heading, text-[13px] for body.
  * @theme tokens verified present in src/index.css.
  */
-import { useMemo } from 'react';
 import type { ChartConfiguration } from 'chart.js';
+import { useMemo } from 'react';
 import { BaseChart } from '@/components/dashboard/charts/BaseChart';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useTheme } from '@/hooks/useTheme';

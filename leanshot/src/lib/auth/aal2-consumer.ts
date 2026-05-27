@@ -43,7 +43,6 @@
  *   - `listEnrolledFactors()`   from `@/lib/auth/totp-shared`
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-
 import {
   AAL2_FRESHNESS_MS,
   AAL2_LS_KEY,

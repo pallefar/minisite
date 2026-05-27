@@ -27,7 +27,6 @@
  * for code consumers that store hashes inside service-role Edge Fns.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-
 import { supabase } from '@/lib/supabase';
 
 // ---------------------------------------------------------------------------

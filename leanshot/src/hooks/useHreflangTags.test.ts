@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useHreflangTags } from './useHreflangTags';
 
 function getHreflangLinks(): HTMLLinkElement[] {

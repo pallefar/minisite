@@ -95,6 +95,6 @@ export function phaCheck(content: PharmaContent): void {
     throw new Error(message);
   }
   // Production: warn-log only — never crash a real user's render.
-  // eslint-disable-next-line no-console
+   
   console.warn(message);
 }

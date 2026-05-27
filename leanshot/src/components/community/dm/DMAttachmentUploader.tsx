@@ -17,7 +17,6 @@
  * shape and bucket differ).
  */
 import { useRef, useState, type ChangeEvent, type JSX } from 'react';
-
 import { useToast } from '@/hooks/useToast';
 import {
   COMMUNITY_MEDIA_MIMES,

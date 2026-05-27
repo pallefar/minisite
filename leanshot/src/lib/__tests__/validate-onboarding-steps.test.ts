@@ -45,7 +45,7 @@ describeIfLive('_validate_onboarding_steps', () => {
 
   async function validate(steps: unknown): Promise<{ data: unknown; error: unknown }> {
     // Cast as any — function not in generated types (internal SECDEF)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     return admin.rpc('_validate_onboarding_steps', { p_steps: steps as any } as any);
   }
 

@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill } from '@/components/ui/Pill';
-import { supabase } from '@/lib/supabase';
 import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type { Protocol } from '@/types/protocols';
 import type { ProtocolReviewState } from '@/types/protocols';
 import { ProtocolKeyboardHelpModal } from './ProtocolKeyboardHelpModal';
@@ -81,7 +81,7 @@ export function ProtocolsListPage() {
         }
 
         // Dedupe to one row per id (highest version) for the list view
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const rows = ((data as unknown) as Protocol[]) ?? [];
         const byId = new Map<string, Protocol>();
         for (const row of rows) {

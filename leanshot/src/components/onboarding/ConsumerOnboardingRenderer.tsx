@@ -27,18 +27,18 @@
  * `/onboarding` continue to land in OnboardingFlow's existing DEFAULT_STEPS.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
 import posthog from 'posthog-js';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pill } from '@/components/ui/Pill';
-import { getSession, isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
 import { readAnonCookie } from '@/lib/anonymous/cookie';
-import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
+import { getSession, isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
 import { primaryGoalLabel } from '@/lib/i18n/onboarding-labels';
-import { useStore } from '@/lib/store';
+import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
 import type { ConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
+import { useStore } from '@/lib/store';
 import LiveSignupCounter from './social-proof/LiveSignupCounter';
 
 // ──────────────────────────────────────────────────────────────────────────

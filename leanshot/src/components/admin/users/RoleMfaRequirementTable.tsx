@@ -20,13 +20,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { supabase } from '@/lib/supabase';
-import type { AdminRole } from '@/lib/admin/roles';
 import {
   listRoleMfaRequirements,
   setRoleMfaRequirement,
   type RoleMfaRequirement,
 } from '@/lib/admin/role-mfa-config';
+import type { AdminRole } from '@/lib/admin/roles';
+import { supabase } from '@/lib/supabase';
 
 interface ProfileRow {
   admin_role?: AdminRole | null;

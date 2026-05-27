@@ -23,8 +23,8 @@
  */
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
-import { MfaStatusBadge } from './MfaStatusBadge';
 import { listRoleMfaRequirements } from '@/lib/admin/role-mfa-config';
+import { MfaStatusBadge } from './MfaStatusBadge';
 
 export interface UserDetailPageProps {
   /** auth.users.id of the target user. */

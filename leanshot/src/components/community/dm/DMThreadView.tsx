@@ -24,14 +24,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { Virtuoso } from 'react-virtuoso';
-
-import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { renderPostBodyHtml } from '@/lib/community/dompurify-config';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { getDmAttachmentSignedUrl } from '@/lib/community/community-storage';
+import { renderPostBodyHtml } from '@/lib/community/dompurify-config';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-
 import { ReportButton } from '../ReportButton';
 import { useDmInboxRealtime } from '../use-dm-inbox-realtime';
 import { DMComposer } from './DMComposer';
@@ -290,7 +288,7 @@ function MessageRow({ message, isMine, signedUrlCache }: MessageRowProps): JSX.E
           className="prose prose-sm max-w-none break-words"
           // T-45-05: sanitizeCommunityMarkdown is the XSS chokepoint — the body
           // arrives here ALREADY sanitized via renderPostBodyHtml above.
-          // eslint-disable-next-line react/no-danger
+           
           dangerouslySetInnerHTML={{ __html: sanitizedBody }}
         />
         {message.attachment_path ? (

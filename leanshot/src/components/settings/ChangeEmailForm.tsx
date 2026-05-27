@@ -27,7 +27,6 @@
  * to keep the dependency surface narrow).
  */
 import { useState } from 'react';
-
 import {
   Aal2ChallengeModal,
   type Aal2ChallengeModalPurpose,

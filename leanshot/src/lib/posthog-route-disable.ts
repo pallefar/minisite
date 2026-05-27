@@ -16,7 +16,6 @@
  * so it stays out of the entry static graph and off the 50 kB gz index ceiling.
  */
 import { useEffect } from 'react';
-
 import { useStore } from '@/lib/store';
 import type { TabId } from '@/types/index';
 

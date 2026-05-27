@@ -15,7 +15,6 @@
  */
 import { Download, FileArchive, FileText, Lock, Video } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-
 import { Card } from '@/components/ui/Card';
 import type { TierLabel } from '@/lib/community/tier-gate';
 import { isResourceAllowed } from '@/lib/community/tier-gate';

@@ -16,13 +16,13 @@
  *   Resolve  → resolve_report RPC
  */
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useStore } from '@/lib/store';
 import type {
   ModerationReport,
   ReportStatus,
   ReportTargetType,
 } from '@/lib/moderation/types';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { dismissReport, resolveReport, triageReport } from './api';
 
 const STATUS_FILTERS: ReadonlyArray<ReportStatus | 'all'> = [

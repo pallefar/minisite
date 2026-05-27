@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
 import { ArrowUpRight, TrendingDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressRing';
 import { SUPPS_DEFAULT } from '@/lib/constants';

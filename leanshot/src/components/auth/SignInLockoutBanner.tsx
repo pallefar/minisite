@@ -23,8 +23,8 @@
  *   --color-text-secondary (sub-copy)
  *   --color-primary       (magic-link CTA)
  */
-import { useEffect, useState, type ReactElement } from 'react';
 import { ShieldAlert } from 'lucide-react';
+import { useEffect, useState, type ReactElement } from 'react';
 
 export interface SignInLockoutBannerProps {
   lockedUntil: Date;

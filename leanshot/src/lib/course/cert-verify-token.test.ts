@@ -11,7 +11,6 @@
  * T-46-03 mitigation: constant-time compare prevents timing-oracle leaks of HMAC bytes.
  */
 import { describe, it, expect } from 'vitest';
-
 import { compareCertToken, mintCertToken, verifyCertToken } from '@/lib/course/cert-verify-token';
 
 const TEST_SECRET = 'TEST_SECRET_DO_NOT_USE_IN_PROD_46_03';

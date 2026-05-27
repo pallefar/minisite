@@ -24,21 +24,21 @@
  * before dangerouslySetInnerHTML.
  */
 
+import { AnimatePresence, motion } from 'framer-motion';
+import { X, ExternalLink, AlertCircle } from 'lucide-react';
 import {
   useEffect, useRef, useState, useCallback,
   type ReactNode,
 } from 'react';
-import { X, ExternalLink, AlertCircle } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { TierBadge } from '@/components/admin/rag/TierBadge';
 import { Badge } from '@/components/ui/Badge';
 import { Sheet } from '@/components/ui/Sheet';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { cn } from '@/lib/helpers';
+import { sanitizeVerbatimQuote } from '@/lib/rag/dompurify-config';
 import { useRagTranslation } from '@/lib/rag/i18n';
 import { ragChunkById, type RagChunkResult } from '@/lib/rag/retrieve-client';
-import { sanitizeVerbatimQuote } from '@/lib/rag/dompurify-config';
 import { captureRagEventBrowser } from '@/lib/rag/server-rag-events-relay';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -272,7 +272,7 @@ export function CitationPopover({
         {/* Verbatim quote block (DOMPurify-sanitized — T-60-10-XSS-1) */}
         <div
           className="text-[13px] border-l-2 border-[var(--color-primary)] bg-[var(--color-surface-elevated)] px-3 py-2 rounded-r-sm"
-          // eslint-disable-next-line react/no-danger
+           
           dangerouslySetInnerHTML={{ __html: sanitizedQuote }}
         />
         {truncated && (

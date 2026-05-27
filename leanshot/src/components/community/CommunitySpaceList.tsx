@@ -11,10 +11,8 @@
  * RLS (44-01) filters org-private spaces the caller is not a member of before
  * the rows ever reach the client, so we never need to check org_id client-side.
  */
-import { useEffect, useState } from 'react';
-
 import { Lock } from 'lucide-react';
-
+import { useEffect, useState } from 'react';
 import { canAccessSpace } from '@/lib/community/tier-gate';
 import type { TierLabel } from '@/lib/community/tier-gate';
 import { supabase } from '@/lib/supabase';

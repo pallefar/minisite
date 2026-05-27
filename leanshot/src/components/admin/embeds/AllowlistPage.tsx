@@ -22,11 +22,11 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
-import type { AdminRole } from '@/lib/admin/roles';
 import {
   listHostnames,
   type AllowlistRow,
 } from '@/lib/admin/iframe-allowlist';
+import type { AdminRole } from '@/lib/admin/roles';
 import { supabase } from '@/lib/supabase';
 import { AddHostnameForm } from './AddHostnameForm';
 import {

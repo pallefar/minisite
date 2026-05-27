@@ -7,14 +7,14 @@
 import { Database, Flame, MessageSquare } from 'lucide-react';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { track } from '@/lib/analytics';
+import { MedLevelChart } from '@/components/dashboard/charts/MedLevelChart';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useStreaks } from '@/hooks/useStreaks';
 import { useToast } from '@/hooks/useToast';
+import { track } from '@/lib/analytics';
+import { cn } from '@/lib/helpers';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-import { cn } from '@/lib/helpers';
-import { MedLevelChart } from '@/components/dashboard/charts/MedLevelChart';
 import type { CancellationReason } from '@/types/cancellation';
 
 interface LossSummaryStepProps {

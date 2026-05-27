@@ -12,9 +12,9 @@
  * for the UI to render inline (field-level) or via toast (form-level).
  */
 import type { AuthError, Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-import { detectPlatform } from '@/lib/native/platform';
 import { signInWithAppleNative } from '@/lib/native/apple-sign-in';
+import { detectPlatform } from '@/lib/native/platform';
+import { supabase } from '@/lib/supabase';
 
 export interface AuthResult {
   user: User | null;

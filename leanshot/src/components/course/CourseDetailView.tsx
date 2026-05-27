@@ -16,20 +16,18 @@
  */
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { TierLabel } from '@/lib/community/tier-gate';
-import { sanitizeCommunityMarkdown } from '@/lib/course/dompurify-config';
 import type {
   Course,
   CourseLesson,
   CourseModule,
   LessonProgress,
 } from '@/lib/course/course-types';
+import { sanitizeCommunityMarkdown } from '@/lib/course/dompurify-config';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-
 import { CourseSidebar } from './CourseSidebar';
 
 // ─── Props ────────────────────────────────────────────────────────────────────

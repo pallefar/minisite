@@ -15,7 +15,6 @@
  * Lazy-loads AdminEventsLayout.default (chunked separately by Vite admin chunk rule).
  */
 import { CalendarDays as CalendarDaysIcon } from 'lucide-react';
-
 import type { AdminModule } from '@/lib/admin/modules';
 
 export const eventsModule: AdminModule = {

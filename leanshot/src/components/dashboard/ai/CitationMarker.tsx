@@ -11,8 +11,8 @@
  * a11y: aria-label via i18n key 'citation_marker.aria' (e.g. "Open citation 3").
  */
 
-import { useRagTranslation } from '@/lib/rag/i18n';
 import { cn } from '@/lib/helpers';
+import { useRagTranslation } from '@/lib/rag/i18n';
 
 export interface CitationMarkerProps {
   /** 1-based numeric index shown in the marker (e.g. [1], [2], [3]). */

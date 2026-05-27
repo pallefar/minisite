@@ -4,8 +4,8 @@
  * "Resumes {date}" strip updates live when user picks a different preset.
  * Single-chunk: non-lazy import; lives in the cancellation chunk via CancellationModal.tsx.
  */
-import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/helpers';
 
 interface PauseControlsProps {

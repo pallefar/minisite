@@ -13,12 +13,11 @@
  * Path under media/ is CRITICAL for bundle hygiene:
  * 44-09's vite.config.ts routes media/ → 'community-media' chunk (~16 kB gz for uploader).
  */
-import { useRef } from 'react';
 import MuxUploader from '@mux/mux-uploader-react';
-
-import { supabase } from '@/lib/supabase';
+import { useRef } from 'react';
 import { isVideoAllowed } from '@/lib/community/tier-gate';
 import type { TierLabel } from '@/lib/community/tier-gate';
+import { supabase } from '@/lib/supabase';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 

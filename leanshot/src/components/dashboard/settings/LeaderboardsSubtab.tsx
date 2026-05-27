@@ -15,18 +15,18 @@
  * Follows the NotificationsSubtab.tsx pattern (controlled form + supabase-backed
  * prefs + useToast).
  */
-import { useEffect, useState } from 'react';
 import { Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
+import { validateHandle } from '@/lib/gamification/handle-validate';
 import {
   LeaderboardApiError,
   setLeaderboardOptin,
   suggestLeaderboardHandle,
 } from '@/lib/gamification/leaderboard';
-import { validateHandle } from '@/lib/gamification/handle-validate';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 

@@ -14,7 +14,6 @@
  *   - Backfill routes through trigger_ad_etl_backfill SECDEF RPC (T-33-05-02 mitigation)
  *   - Zero new UI primitives — Card, Badge, Button, Sheet, Skeleton, EmptyState reused.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle,
@@ -22,6 +21,7 @@ import {
   RefreshCw,
   TrendingUp,
 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';

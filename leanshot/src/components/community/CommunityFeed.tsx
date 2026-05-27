@@ -20,13 +20,11 @@
  * T-44-01 mitigation: query scoped to spaceId; RLS on community_posts is the gate.
  */
 import { useEffect, useRef, useState, type JSX } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getCommunityMediaSignedUrl } from '@/lib/community/community-storage';
 import type { CommunityReaction } from '@/lib/community/community-types';
 import { supabase } from '@/lib/supabase';
-
 import { CommunityPost } from './CommunityPost';
 import { useFeed } from './use-feed';
 

@@ -12,7 +12,6 @@
  *   - SameSite=Lax, Secure, max-age=1 year, JS-readable (no HttpOnly via JS anyway).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { captureFirstTouchUtm } from './capture-first-touch';
 
 const originalLocation = window.location;

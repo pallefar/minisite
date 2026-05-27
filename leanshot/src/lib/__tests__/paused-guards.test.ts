@@ -16,8 +16,8 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PausedSubscriptionError } from '@/lib/errors';
-import { useStore } from '@/lib/store';
 import { initialState } from '@/lib/storage';
+import { useStore } from '@/lib/store';
 import type {
   Injection,
   Meal,

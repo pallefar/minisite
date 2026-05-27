@@ -18,10 +18,9 @@
  * a typed caller from requesting waitlist directly.
  */
 import { useState, type JSX } from 'react';
-
 import { useToast } from '@/hooks/useToast';
-import { createRsvp } from '@/lib/events/rsvp-client';
 import type { RsvpStatus } from '@/lib/events/event-types';
+import { createRsvp } from '@/lib/events/rsvp-client';
 
 type SelectableStatus = Exclude<RsvpStatus, 'waitlist'>;
 

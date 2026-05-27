@@ -7,8 +7,8 @@
  * Run: npx vitest run --config vite.config.ts src/components/dashboard/ai/__tests__/RefusalCard.test.tsx
  */
 
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { RefusalCard } from '../RefusalCard';
 
 describe('RefusalCard', () => {

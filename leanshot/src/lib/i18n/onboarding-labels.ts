@@ -15,6 +15,7 @@
  */
 
 import type { TFunction } from 'i18next';
+import type { PrimaryGoal } from '@/components/onboarding/ConsumerOnboardingRenderer';
 import type {
   ActivityLevel,
   DoseUnit,
@@ -23,7 +24,6 @@ import type {
   MedicationId,
   Sex,
 } from '@/types';
-import type { PrimaryGoal } from '@/components/onboarding/ConsumerOnboardingRenderer';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Medication labels (clinical strings — P70 signoff via clinical-glossary.md)

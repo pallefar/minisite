@@ -18,7 +18,6 @@
  *   2. window.location.reload() to pick up the new bundle.
  */
 import { registerSW } from 'virtual:pwa-register';
-
 import { Capacitor } from '@/lib/native/capacitor-shim';
 
 /**

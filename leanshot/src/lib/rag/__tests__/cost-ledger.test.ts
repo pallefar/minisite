@@ -7,7 +7,6 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 import {
   CostCapExceededError,
   ESTIMATED_COST_USD,
@@ -39,7 +38,7 @@ interface FromStubResult {
  * `rag_mtd_spend_by_vendor` returns; `insertResult` and `selectResult`
  * control the from(...).insert / .select chain.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function makeClient(opts: {
   rpcResult?: RpcStubResult;
   insertResult?: FromStubResult;

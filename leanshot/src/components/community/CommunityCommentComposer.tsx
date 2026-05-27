@@ -15,11 +15,10 @@
  * the 'community-mentions' sub-chunk and does NOT inflate 'community-feed'.
  */
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
-import { parseMentions } from '@/lib/community/mention-parse';
 import type { CommunityComment } from '@/lib/community/community-types';
+import { parseMentions } from '@/lib/community/mention-parse';
 import { supabase } from '@/lib/supabase';
 
 // Lazy-import routes Fuse.js into 'community-mentions' sub-chunk (44-09 vite rule).

@@ -14,11 +14,11 @@
  * file; the test runs in jsdom-mode vitest so reading the source file is
  * a synchronous fs op (`readFileSync`).
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import type { ChangelogEntry } from '@/lib/changelog/drawer-trigger';
 import { WhatsNewDrawer } from './WhatsNewDrawer';

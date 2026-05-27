@@ -20,7 +20,6 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { requireAal2ForConsumerAction } from '@/lib/auth/aal2-consumer';
 
 // ---------------------------------------------------------------------------

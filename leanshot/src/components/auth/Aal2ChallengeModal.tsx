@@ -38,7 +38,6 @@
  * 18px heading; weights 400/600 only.
  */
 import { useEffect, useRef, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';

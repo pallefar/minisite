@@ -15,8 +15,8 @@
  * Per [[feedback_rls_per_file_slug_prefix]]: file-scoped TEST_SLUG_PREFIX.
  * Per [[reference_rls_fixture_gotrueclient_flake]]: uses sessionFor (generateLink + verifyOtp).
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   SHOULD_RUN,
   cleanupByPrefix,

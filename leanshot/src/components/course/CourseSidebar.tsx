@@ -15,10 +15,9 @@
  * editor; collapsible groups can land in a follow-up plan if needed).
  */
 import { CheckCircle2, Lock, Play } from 'lucide-react';
-
-import { cn } from '@/lib/helpers';
 import type { TierLabel } from '@/lib/community/tier-gate';
 import type { CourseLesson, CourseModule, LessonProgress } from '@/lib/course/course-types';
+import { cn } from '@/lib/helpers';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 

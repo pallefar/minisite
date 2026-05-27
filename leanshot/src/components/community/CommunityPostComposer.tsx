@@ -17,12 +17,11 @@
  * the 'community-mentions' sub-chunk and does NOT inflate 'community-feed'.
  */
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
+import type { CommunityPost } from '@/lib/community/community-types';
 import { sanitizeCommunityMarkdown } from '@/lib/community/dompurify-config';
 import { parseMentions } from '@/lib/community/mention-parse';
-import type { CommunityPost } from '@/lib/community/community-types';
 import { supabase } from '@/lib/supabase';
 
 // Lazy-import routes Fuse.js into 'community-mentions' sub-chunk (44-09 vite rule).
@@ -305,7 +304,7 @@ export function CommunityPostComposer({
         <div
           className="min-h-[120px] p-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] prose prose-sm max-w-none"
           // T-44-05: sanitizeCommunityMarkdown is the XSS chokepoint (DOMPurify allowlist + FORBID_TAGS)
-          // eslint-disable-next-line react/no-danger
+           
           dangerouslySetInnerHTML={{ __html: sanitizeCommunityMarkdown(body) }}
         />
       ) : (

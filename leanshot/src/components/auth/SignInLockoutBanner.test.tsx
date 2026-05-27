@@ -10,8 +10,8 @@
  *   T4: reason='email' vs reason='ip' surface differentiated body copy
  *   T5: magic-link href is overridable
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SignInLockoutBanner } from './SignInLockoutBanner';
 
 describe('<SignInLockoutBanner>', () => {

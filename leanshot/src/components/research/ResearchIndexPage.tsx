@@ -16,9 +16,9 @@
  * No text-base, text-lg, text-md, text-sm, text-xl, text-2xl.
  */
 
+import { FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { FileText } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { fetchPublishedResearch } from '@/lib/research/api';

@@ -13,8 +13,8 @@
  *                     otherwise sent as null (CHECK constraint enforces this).
  */
 import { useState } from 'react';
-import { useStore } from '@/lib/store';
 import type { ModerationStatus } from '@/lib/moderation/types';
+import { useStore } from '@/lib/store';
 import { applyUserModeration } from './api';
 
 const STATUSES: ReadonlyArray<{ value: ModerationStatus; label: string }> = [

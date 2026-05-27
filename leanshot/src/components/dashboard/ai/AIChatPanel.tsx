@@ -10,13 +10,13 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { AIAvatar } from '@/illustrations/AIAvatar';
 import { AIUnavailableError, RateLimitedError, callAIChat } from '@/lib/ai';
 import { cn } from '@/lib/helpers';
+import { parseCitations } from '@/lib/rag/remark-citations';
 import { useStore } from '@/lib/store';
 // Phase 60 Plan 60-10 — RAG citation UI (additive augmentation; AI-04 fence untouched)
 import { CitationMarker } from './CitationMarker';
 import { CitationPopover } from './CitationPopover';
-import { SourcesFooter } from './SourcesFooter';
 import { RefusalCard } from './RefusalCard';
-import { parseCitations } from '@/lib/rag/remark-citations';
+import { SourcesFooter } from './SourcesFooter';
 import type { SourceCitationEntry } from './SourcesFooter';
 
 interface AIChatPanelProps {

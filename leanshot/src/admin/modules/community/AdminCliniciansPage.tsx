@@ -18,7 +18,6 @@
  *   - Optimistic local update on toggle; on RPC error we revert and toast.
  */
 import { useCallback, useEffect, useState } from 'react';
-
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 

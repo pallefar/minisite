@@ -6,8 +6,8 @@
  * accessibility landmark, DOM order.
  */
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // ── Hoisted mock for fireActivation ────────────────────────────────────────
 const { mockFireActivation } = vi.hoisted(() => ({

@@ -15,7 +15,6 @@
  *   - aria-current=undefined on the list (selection happens via navigate).
  */
 import { useEffect, useState } from 'react';
-
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';

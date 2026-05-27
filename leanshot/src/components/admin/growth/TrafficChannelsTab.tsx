@@ -22,8 +22,8 @@
  *
  * Typography ceiling: 11/13/18/28 only (per UI-SPEC §Typography).
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ExternalLink, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';

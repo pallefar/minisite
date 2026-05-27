@@ -7,8 +7,8 @@
  */
 
 import { Command } from 'cmdk';
-import { SearchResultRow } from './SearchResultRow';
 import type { SearchResult } from '@/lib/search/types';
+import { SearchResultRow } from './SearchResultRow';
 
 interface Props {
   results: SearchResult[];

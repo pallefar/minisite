@@ -18,6 +18,7 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 import { supabase } from '@/lib/supabase';
+import { confirmFraud, markClear } from '../affiliate-review';
 import {
   AffiliateTierError,
   anomalyReviewDecision,
@@ -25,7 +26,6 @@ import {
   grantLifetime,
   reverseLifetimeGrant,
 } from '../affiliate-tier';
-import { confirmFraud, markClear } from '../affiliate-review';
 
 const rpcMock = supabase.rpc as unknown as ReturnType<typeof vi.fn>;
 

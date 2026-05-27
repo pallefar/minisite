@@ -17,7 +17,6 @@
  * Pathname-routed sibling of CommunityAdminLayout's SpacesListPage idiom.
  */
 import { useEffect, useState } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

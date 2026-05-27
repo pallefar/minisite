@@ -15,9 +15,9 @@
  *     wrapping the .request() / decideNpsTrigger call sites.
  */
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- Mocks ---------------------------------------------------------------
@@ -57,12 +57,12 @@ vi.mock('@/lib/analytics/events', () => ({
   },
 }));
 
+import { useNPSPromptListener } from '@/hooks/useNPSPromptListener';
 import {
   ANALYTICS_TRIGGER_EVENT,
   dispatchAnalyticsTrigger,
   isAnalyticsTriggerDetail,
 } from '@/lib/nps/analytics-trigger-bus';
-import { useNPSPromptListener } from '@/hooks/useNPSPromptListener';
 
 function stripComments(src: string): string {
   return src

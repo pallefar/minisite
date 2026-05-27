@@ -22,10 +22,10 @@
  * Components are React.lazy-loaded from the parent route.
  */
 
-import { cn } from '@/lib/helpers';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { cn } from '@/lib/helpers';
 import { useClinicMetrics } from './use-clinic-metrics';
 
 // ---------------------------------------------------------------------------

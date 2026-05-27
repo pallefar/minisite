@@ -12,9 +12,8 @@
  *
  * @mux/mux-uploader-react already vendored by the community uploader (Plan 44-08).
  */
-import { useRef, useState } from 'react';
 import MuxUploader from '@mux/mux-uploader-react';
-
+import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
 

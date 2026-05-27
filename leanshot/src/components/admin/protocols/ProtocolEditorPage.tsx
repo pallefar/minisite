@@ -22,20 +22,20 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { supabase } from '@/lib/supabase';
-import { useStore } from '@/lib/store';
 import { useToast } from '@/hooks/useToast';
-import { ProtocolReviewBanner } from './ProtocolReviewBanner';
-import { ProtocolStatusBadge } from './ProtocolStatusBadge';
-import { ProtocolStepRow } from './ProtocolStepRow';
-import { EvidenceSearchSheet } from './EvidenceSearchSheet';
-import { AiAssistModal } from './AiAssistModal';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type {
   Protocol,
   ProtocolStep,
   ProtocolEvidence,
   ProtocolMonitoringKey,
 } from '@/types/protocols';
+import { AiAssistModal } from './AiAssistModal';
+import { EvidenceSearchSheet } from './EvidenceSearchSheet';
+import { ProtocolReviewBanner } from './ProtocolReviewBanner';
+import { ProtocolStatusBadge } from './ProtocolStatusBadge';
+import { ProtocolStepRow } from './ProtocolStepRow';
 
 // ─── Compound options ─────────────────────────────────────────────────────────
 

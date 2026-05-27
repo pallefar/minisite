@@ -26,9 +26,9 @@
  */
 
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { SHOULD_RUN, cleanupByPrefix, makeSlugPrefix, createTwoOrgsTwoUsers } from './_fixtures/p28-rls-fixture';
 
 // ─── File-scoped slug prefix (per [[feedback_rls_per_file_slug_prefix]]) ──────

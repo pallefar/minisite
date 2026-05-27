@@ -16,8 +16,8 @@ import { VialIllustration } from '@/illustrations/Vial';
 import { SITES, siteShort } from '@/lib/constants';
 import { formatShort, todayStr } from '@/lib/helpers';
 import { cn } from '@/lib/helpers';
-import { HALF_LIVES, TITRATION } from '@/lib/pharmacology';
 import { useActiveProtocolAssignment } from '@/lib/hooks/useActiveProtocolAssignment';
+import { HALF_LIVES, TITRATION } from '@/lib/pharmacology';
 import { useStore } from '@/lib/store';
 import type { DoseUnit, Injection, InjectionSite, Vial, Cost } from '@/types';
 

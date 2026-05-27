@@ -12,9 +12,9 @@
  * Run: npx vitest run --config vite.config.ts src/lib/rag/__tests__/newsletter-api.test.ts
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Mock @/lib/supabase ──────────────────────────────────────────────────────
 

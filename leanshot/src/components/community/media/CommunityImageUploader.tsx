@@ -11,14 +11,13 @@
  * keeping this component out of the 20 kB 'community-feed' chunk.
  */
 import { useRef, useState } from 'react';
-
-import { supabase } from '@/lib/supabase';
 import {
   assertImageCap,
   COMMUNITY_MEDIA_MAX_BYTES,
   COMMUNITY_MEDIA_MIMES,
   uploadCommunityMedia,
 } from '@/lib/community/community-storage';
+import { supabase } from '@/lib/supabase';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 

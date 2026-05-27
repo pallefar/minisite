@@ -8,12 +8,12 @@
  *   2. ship-winner-flag Edge Fn (PostHog-side: flip feature flag per D-20)
  */
 import { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
-import { supabase } from '@/lib/supabase';
 import { shipWinnerChallengeVariant, ChallengeApiError } from '@/lib/gamification/admin-api';
 import type { WeeklyChallenge, ChallengeStatus, ChallengeVariantKey } from '@/lib/gamification/challenges';
+import { supabase } from '@/lib/supabase';
 
 interface ChallengeWithVariantCount extends WeeklyChallenge {
   variant_count: number;

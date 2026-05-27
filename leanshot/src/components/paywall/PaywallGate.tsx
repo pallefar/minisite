@@ -27,11 +27,9 @@
  * scripts/check-no-paywall-on-safety-category.sh option 3.
  */
 import { useEffect, useState, type ReactNode } from 'react';
-
 import { getPaywallTrackingConsent } from '@/lib/paywall/consent-adapter';
-import { supabase } from '@/lib/supabase';
 import type { PharmaContent } from '@/lib/pharma/phaCheck';
-
+import { supabase } from '@/lib/supabase';
 import { shouldShortCircuitForSafety } from './safety-carveout';
 
 export interface PaywallGateProps {
@@ -94,7 +92,7 @@ export function PaywallGate({ content, children, surface = 'paywall' }: PaywallG
       cancelled = true;
     };
     // surface is intentionally not in deps: the gate is one-shot per mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [skipPaywall]);
 
   if (skipPaywall) {

@@ -9,7 +9,6 @@
  * Security: RLS via public.is_staff() gates all writes (Plan 46-01 Task 2).
  */
 import { useCallback, useEffect, useState } from 'react';
-
 import { Button } from '@/components/ui/Button';
 import { SortableTreePanel } from '@/components/ui/SortableTreePanel';
 import { useToast } from '@/hooks/useToast';

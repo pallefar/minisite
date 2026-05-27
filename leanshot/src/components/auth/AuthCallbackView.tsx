@@ -17,8 +17,8 @@
  * implicit-grant double-`#` fix (lines 51-69) handles that path only.
  */
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthCallbackView() {
   const [status, setStatus] = useState<'exchanging' | 'redirecting' | 'error'>(

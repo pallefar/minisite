@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
 import '@testing-library/jest-dom';
-import i18next from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
 // jsdom does not implement window.matchMedia — required by useReducedMotion + framer-motion
 Object.defineProperty(window, 'matchMedia', {

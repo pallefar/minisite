@@ -15,8 +15,8 @@
  *
  * Instagram has no web share-intent API; users must copy the link and paste in DM/story.
  */
-import { useEffect, useState } from 'react';
 import { Twitter, Linkedin, Instagram, Link as LinkIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
 import { mintShareToken, buildShareUrl } from '@/lib/gamification/share-token';

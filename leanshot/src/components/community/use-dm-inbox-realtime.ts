@@ -13,7 +13,6 @@
  * only channel name + table + filter differ).
  */
 import { useEffect } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 export function useDmInboxRealtime(

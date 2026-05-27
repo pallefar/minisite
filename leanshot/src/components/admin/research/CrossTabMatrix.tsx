@@ -76,7 +76,7 @@ export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: Cr
                 </td>
                 {row.values.map((v, i) => (
                   <td
-                    // eslint-disable-next-line react/no-array-index-key
+                     
                     key={i}
                     className="text-[13px] text-right px-3 py-2"
                   >

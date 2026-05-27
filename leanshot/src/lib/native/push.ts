@@ -15,7 +15,6 @@
  */
 
 import { PushNotifications } from '@capacitor/push-notifications';
-
 import { detectPlatform } from './platform';
 
 // ─── Exported types ──────────────────────────────────────────────────────────

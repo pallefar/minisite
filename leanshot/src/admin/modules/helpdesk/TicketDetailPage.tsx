@@ -63,7 +63,7 @@ export default function TicketDetailPage({
   const reload = useCallback(async () => {
     setLoading(true);
     // ticket
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const tRes = (await (supabase
       .from('tickets')
       .select('id, org_id, user_id, subject, status, phi')
@@ -81,7 +81,7 @@ export default function TicketDetailPage({
     setTicket(tRes.data);
 
     // thread
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const mRes = (await (supabase
       .from('ticket_messages')
       .select('id, ticket_id, author_kind, body, created_at')

@@ -20,8 +20,8 @@
  * Plan 35-09 (notifications) can use it for streak_milestone events.
  */
 
-import { supabase } from '@/lib/supabase';
 import type { Phase35Event } from '@/lib/analytics/events';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Fires the xp-event Edge Fn for server-side PostHog capture.

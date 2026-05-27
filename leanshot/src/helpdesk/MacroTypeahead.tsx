@@ -13,7 +13,6 @@
  */
 import Fuse from 'fuse.js';
 import { useEffect, useMemo, useState, type JSX } from 'react';
-
 import { supabase } from '@/lib/supabase';
 
 type Macro = {

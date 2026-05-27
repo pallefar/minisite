@@ -13,8 +13,8 @@
  * Surface gate: admin.gamification.read — minimum 'admin' role (support_admin).
  */
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { hasMinRole, type AdminRole } from '@/lib/admin/roles';
+import { supabase } from '@/lib/supabase';
 
 const ChallengeList = lazy(() => import('./ChallengeList'));
 const ChallengeForm = lazy(() => import('./ChallengeForm'));

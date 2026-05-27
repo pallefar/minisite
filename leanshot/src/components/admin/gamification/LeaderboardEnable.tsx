@@ -10,8 +10,8 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
-import { supabase } from '@/lib/supabase';
 import { setCohortLeaderboardEnabled, ChallengeApiError } from '@/lib/gamification/admin-api';
+import { supabase } from '@/lib/supabase';
 
 interface CohortRow {
   id: string;

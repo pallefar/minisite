@@ -26,10 +26,10 @@
  * `flow=null` so the renderer's DEFAULT_STEPS fallback can render. Never throws.
  */
 
-import { useEffect, useState } from 'react';
 import posthog from 'posthog-js';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react';
 import { useStore } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import type { OnboardingStepNode } from '@/types/onboarding-step';
 
 export type ConsumerOnboardingStatus = 'loading' | 'preview' | 'consumer' | 'completed';
