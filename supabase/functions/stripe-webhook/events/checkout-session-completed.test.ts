@@ -298,13 +298,13 @@ Deno.test('3.5: lifetime upsert error → throws lifetime-purchases-upsert-faile
 // Phase 65-04 — PAY-03 (tax_id mirror) + PAY-01 (tax_collection_log audit)
 // ============================================================================
 //
-// Behaviors (from 65-04-PLAN <behavior>):
+// Behaviors (from 65-04-PLAN <behavior>; Phase 65.1 rewrite — target subscriptions):
 //   65-T10: clinic session with customer_tax_ids=[{ type, value }] writes
-//           org_subscriptions.tax_id=value keyed by clinic_id.
-//   65-T11: consumer (web) session with no customer_tax_ids does NOT touch
-//           org_subscriptions.
-//   65-T12: clinic session with customer_tax_ids=[] (empty) does NOT touch
-//           org_subscriptions.
+//           subscriptions.tax_id=value keyed by id (Stripe sub_xxx).
+//   65-T11: consumer (web) session with no customer_tax_ids does NOT update
+//           subscriptions.tax_id (the existing web upsert still fires).
+//   65-T12: clinic session with customer_tax_ids=[] (empty) does NOT update
+//           subscriptions.tax_id (the existing clinic upsert still fires).
 //   65-T13: session with automatic_tax.status='complete' writes one
 //           tax_collection_log row with state/postal + tax/subtotal/total cents.
 //   65-T14: session with automatic_tax.status='requires_location_inputs' STILL
@@ -448,9 +448,9 @@ function buildWebTaxEvent(opts: {
   } as unknown as Stripe.Event;
 }
 
-// ─── 65-T10: clinic session with customer_tax_ids → org_subscriptions.tax_id ────
+// ─── 65-T10: clinic session with customer_tax_ids → subscriptions.tax_id ──────
 
-Deno.test('65-T10: clinic session with customer_tax_ids writes org_subscriptions.tax_id', async () => {
+Deno.test('65-T10: clinic session with customer_tax_ids writes subscriptions.tax_id', async () => {
   const event = buildClinicTaxEvent({
     clinicId: 'clinic-uuid-T10',
     customerTaxIds: [{ type: 'us_ein', value: '12-3456789' }],
@@ -459,27 +459,29 @@ Deno.test('65-T10: clinic session with customer_tax_ids writes org_subscriptions
   await handle(event, admin);
 
   const taxIdUpdate = getCalls().find(
-    (c) => c.table === 'org_subscriptions' && c.op === 'update' && c.data.tax_id === '12-3456789',
+    (c) => c.table === 'subscriptions' && c.op === 'update' && c.data.tax_id === '12-3456789',
   );
-  assertEquals(taxIdUpdate !== undefined, true, 'org_subscriptions.tax_id update expected');
-  assertEquals(taxIdUpdate!.filter?.col, 'org_id');
-  assertEquals(taxIdUpdate!.filter?.val, 'clinic-uuid-T10');
+  assertEquals(taxIdUpdate !== undefined, true, 'subscriptions.tax_id update expected');
+  assertEquals(taxIdUpdate!.filter?.col, 'id');
+  assertEquals(taxIdUpdate!.filter?.val, 'sub_clinic_tax_001');
 });
 
-// ─── 65-T11: consumer session without tax_ids → no org_subscriptions update ────
+// ─── 65-T11: consumer session without tax_ids → no subscriptions.tax_id update ─
 
-Deno.test('65-T11: consumer (web) session with no customer_tax_ids does NOT touch org_subscriptions', async () => {
+Deno.test('65-T11: consumer (web) session with no customer_tax_ids does NOT update subscriptions.tax_id', async () => {
   const event = buildWebTaxEvent({});
   const [admin, getCalls] = buildExtendedMockAdmin();
   await handle(event, admin);
 
-  const orgSubTouched = getCalls().find((c) => c.table === 'org_subscriptions');
-  assertEquals(orgSubTouched, undefined, 'No org_subscriptions write expected for consumer session');
+  const taxIdUpdate = getCalls().find(
+    (c) => c.table === 'subscriptions' && c.op === 'update' && 'tax_id' in (c.data ?? {}),
+  );
+  assertEquals(taxIdUpdate, undefined, 'No subscriptions.tax_id update expected for consumer session (the standard web upsert at top of handler still fires; only the tax_id mirror is asserted absent here)');
 });
 
-// ─── 65-T12: clinic session with empty customer_tax_ids → no org_subscriptions update ─
+// ─── 65-T12: clinic session with empty customer_tax_ids → no subscriptions.tax_id update ─
 
-Deno.test('65-T12: clinic session with customer_tax_ids=[] does NOT touch org_subscriptions', async () => {
+Deno.test('65-T12: clinic session with customer_tax_ids=[] does NOT update subscriptions.tax_id', async () => {
   const event = buildClinicTaxEvent({
     clinicId: 'clinic-uuid-T12',
     customerTaxIds: [], // empty array — operator skipped Stripe UI
@@ -487,13 +489,13 @@ Deno.test('65-T12: clinic session with customer_tax_ids=[] does NOT touch org_su
   const [admin, getCalls] = buildExtendedMockAdmin();
   await handle(event, admin);
 
-  const orgSubTouched = getCalls().find(
-    (c) => c.table === 'org_subscriptions' && c.op === 'update',
+  const taxIdUpdate = getCalls().find(
+    (c) => c.table === 'subscriptions' && c.op === 'update' && 'tax_id' in (c.data ?? {}),
   );
   assertEquals(
-    orgSubTouched,
+    taxIdUpdate,
     undefined,
-    'No org_subscriptions.tax_id update when customer_tax_ids is empty',
+    'No subscriptions.tax_id update when customer_tax_ids is empty (the clinic upsert at top of handler still fires; only the tax_id mirror is asserted absent here)',
   );
 });
 

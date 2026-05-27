@@ -1,4 +1,5 @@
 -- Phase 65-01 — Stripe Tax + Payment Resilience (PAY-01 audit trail)
+-- Phase 65.1 rewrite (2026-05-27) — single FK to public.subscriptions only
 -- =============================================================================
 --
 -- Records every Stripe Tax calculation hitting checkout. The stripe-webhook
@@ -12,17 +13,21 @@
 --
 -- Schema decisions:
 --   - id is surrogate uuid PK (per [[reference_dual_auth_submission_table_pk_pattern]]).
---   - Both subscription_id (text) AND org_subscription_id (uuid) FKs exist —
---     a checkout produces exactly one of them.
---     CHECK: at least one of subscription_id / org_subscription_id is non-null.
---   - org_subscription_id references org_subscriptions(org_id) — that table's
---     PK is org_id (Phase 28 schema), NOT a separate id column. (Rule 1 fix.)
---   - subscription_id is TEXT (Phase 14 stripe_subscriptions.id is text).
+--   - Single FK column `subscription_id text references public.subscriptions(id)
+--     on delete set null`. Clinic vs consumer distinction is derived downstream
+--     via `subscriptions.clinic_id IS NOT NULL`. Phase 29 D-14 dropped the prior
+--     clinic-subs placeholder table; public.subscriptions is canonical.
+--   - subscription_id is TEXT (Phase 14 public.subscriptions.id is text — Stripe
+--     sub_xxx natural PK).
 --   - automatic_tax_status mirrors Stripe's `automatic_tax.status` enum.
 --   - Index by customer_state powers the matview in 20290104000008.
+--   - No CHECK on subscription_id non-null: setup-mode sessions (no subscription
+--     yet) are allowed; downstream queries filter `WHERE subscription_id IS NOT NULL`
+--     when subscription context is required.
 --
 -- No CREATE POLICY IF NOT EXISTS ([[feedback_phase_close_out_supabase_gotchas]]).
 -- Per [[reference_supabase_back_dated_migration_blocks_push]] — timestamp 20290104+
+-- Per [[feedback_planner_vs_archived_schema_drift]] — body re-targets canonical.
 -- =============================================================================
 
 begin;
@@ -34,7 +39,6 @@ begin;
 create table public.tax_collection_log (
   id                          uuid        not null default gen_random_uuid() primary key,
   subscription_id             text        references public.subscriptions(id) on delete set null,
-  org_subscription_id         uuid        references public.org_subscriptions(org_id) on delete set null,
   stripe_session_id           text,
   stripe_payment_intent_id    text,
   customer_state              text,                                -- US state code (e.g. 'CA', 'TX')
@@ -48,10 +52,9 @@ create table public.tax_collection_log (
                                             'complete',
                                             'failed'
                                           )),
-  created_at                  timestamptz not null default now(),
-  -- Exactly-one-or-both: every row must reference at least one subscription.
-  constraint tax_collection_log_sub_or_org_check
-    check (subscription_id is not null or org_subscription_id is not null)
+  created_at                  timestamptz not null default now()
+  -- No sub-or-org CHECK (Phase 65.1): subscription_id is nullable for setup-mode
+  -- sessions; downstream queries filter WHERE subscription_id IS NOT NULL.
 );
 
 -- ---------------------------------------------------------------------------
@@ -66,10 +69,6 @@ create index idx_tax_collection_log_state_created_at
 create index idx_tax_collection_log_subscription_id
   on public.tax_collection_log(subscription_id)
   where subscription_id is not null;
-
-create index idx_tax_collection_log_org_subscription_id
-  on public.tax_collection_log(org_subscription_id)
-  where org_subscription_id is not null;
 
 create index idx_tax_collection_log_session_id
   on public.tax_collection_log(stripe_session_id)

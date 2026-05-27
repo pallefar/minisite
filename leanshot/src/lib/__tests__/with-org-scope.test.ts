@@ -239,15 +239,16 @@ describe('with-org-scope (D-28)', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Additional: ORG_SCOPED_TABLES contains all 8 P28 tables
+  // Additional: ORG_SCOPED_TABLES contains the 7 retained Phase 28 org-scoped tables
+  // (Phase 65.1: prior placeholder clinic-subs table removed — Phase 29 D-14 dropped it;
+  // clinic subscription data lives in public.subscriptions WHERE clinic_id IS NOT NULL)
   // -------------------------------------------------------------------------
 
-  it('ORG_SCOPED_TABLES contains all 8 Phase 28 org-scoped tables', () => {
+  it('ORG_SCOPED_TABLES contains the 7 retained Phase 28 org-scoped tables (Phase 65.1)', () => {
     const expectedTables = [
       'organizations',
       'org_members',
       'org_invites',
-      'org_subscriptions',
       'org_settings',
       'org_branding',
       'org_patient_links',

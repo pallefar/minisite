@@ -26,8 +26,8 @@
  *   The PLAN.md narrative claims "relies on existing FK ON DELETE CASCADE for
  *   patients, dose_logs, weight_logs, etc.", but every Phase-28 child table
  *   FK on `public.organizations(id)` is declared `ON DELETE RESTRICT` (org_members,
- *   org_invites, org_settings, org_branding, org_subscriptions, org_patient_links,
- *   org_consent_grants). A bare `DELETE FROM organizations WHERE id = ?` will
+ *   org_invites, org_settings, org_branding, org_patient_links, org_consent_grants).
+ *   A bare `DELETE FROM organizations WHERE id = ?` will
  *   fail with 23503 foreign_key_violation. To honour the plan's intent
  *   (purging demo orgs cleanly), the handler manually deletes dependent rows
  *   first in dependency-safe order before deleting the organization itself.
@@ -80,13 +80,14 @@ interface ExpiredDemoOrg {
 // Tables that hold per-org rows and use `ON DELETE RESTRICT` FKs on
 // organizations(id). Order is dependency-safe: rows that reference other
 // child rows (e.g. org_patient_links → org_consent_grants) get cleaned first.
+// Phase 65.1: prior placeholder clinic-subs table removed (Phase 29 D-14 dropped it);
+// clinic subscription data lives in public.subscriptions WHERE clinic_id IS NOT NULL.
 const ORG_CHILD_TABLES = [
   'org_patient_links',
   'org_consent_grants',
   'org_invites',
   'org_branding',
   'org_settings',
-  'org_subscriptions',
   'org_members',
   'memberships',
   'roles',

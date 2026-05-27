@@ -8,12 +8,15 @@
  *
  * Schema reference: supabase/migrations/20290104000006_tax_collection_log.sql
  *   - id surrogate uuid PK
- *   - subscription_id (text, FK subscriptions.id)
- *   - org_subscription_id (uuid, FK org_subscriptions.org_id) — clinic path
+ *   - subscription_id (text, FK public.subscriptions.id; nullable for setup-mode sessions)
  *   - customer_state / customer_postal (from session.customer_details.address)
  *   - tax_amount_cents / subtotal_cents / total_cents (Stripe.Checkout.Session)
  *   - tax_rate_percent (computed: amount_tax / amount_subtotal * 100, 3 decimals)
  *   - automatic_tax_status enum (complete | requires_location_inputs | failed)
+ *
+ * Phase 65.1 rewrite (2026-05-27): the dual subscription resolution path was
+ * removed. Clinic vs consumer distinction is derived from public.subscriptions.clinic_id
+ * IS NOT NULL downstream — see [[feedback_planner_vs_archived_schema_drift]].
  *
  * Idempotency: The DB schema does NOT have a UNIQUE constraint on
  * `stripe_session_id`. The dedup gate is the upstream `subscription_events.event_id`
@@ -41,8 +44,9 @@ import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
  * session has no `automatic_tax` field (legacy / non-subscription / payment-mode
  * flows that don't engage Stripe Tax).
  *
- * Resolves subscription_id (text) OR org_subscription_id (uuid) from the session's
- * subscription_data.metadata — mirrors the checkout-session-completed.ts dispatch.
+ * Resolves only subscription_id (text) from session.subscription — both clinic and
+ * consumer Checkout sessions populate this field. Clinic vs consumer is derived
+ * downstream from public.subscriptions.clinic_id IS NOT NULL.
  *
  * Caller responsibility: wrap in try/catch — errors here MUST NOT fail the webhook.
  */
@@ -60,33 +64,11 @@ export async function writeTaxCollectionLog(
     return;
   }
 
-  // Resolve subscription_id (text — subscriptions.id is text per Phase 14 schema)
-  // OR org_subscription_id (uuid — org_subscriptions PK is org_id uuid per Phase 28).
-  // subscription_data.metadata is the source of truth (mirrors existing handler).
-  const subDataMeta = (
-    (session.subscription_data?.metadata ?? session.metadata) as Record<string, string>
-  ) ?? {};
-  const tierKind = subDataMeta.tier_kind;
-
-  let subscriptionId: string | null = null;
-  let orgSubscriptionId: string | null = null;
-  if (tierKind === 'clinic') {
-    orgSubscriptionId = subDataMeta.clinic_id ?? null;
-  } else {
-    // web / lifetime / fallback — subscription_id (text) if present.
-    subscriptionId = (session.subscription as string | null) ?? null;
-  }
-
-  // At least one of subscription_id / org_subscription_id MUST be non-null
-  // (CHECK constraint tax_collection_log_sub_or_org_check). If neither resolves,
-  // skip — this is a malformed session for our purposes; do not throw.
-  if (!subscriptionId && !orgSubscriptionId) {
-    console.warn(
-      '[tax-collection-log] skipping — neither subscription_id nor org_subscription_id resolvable',
-      JSON.stringify({ session_id: session.id, tier_kind: tierKind ?? null }),
-    );
-    return;
-  }
+  // Phase 65.1: public.subscriptions.id is the canonical Stripe sub_xxx text PK.
+  // Both clinic and consumer Checkout sessions populate session.subscription.
+  // FK is nullable post-Phase-65.1 (CHECK constraint dropped); setup-mode sessions
+  // without a subscription still produce a tax log row.
+  const subscriptionId: string | null = (session.subscription as string | null) ?? null;
 
   // Extract amounts. Stripe omits these on some session shapes (e.g. setup mode);
   // default to 0 to satisfy NOT NULL columns.
@@ -119,7 +101,6 @@ export async function writeTaxCollectionLog(
 
   const row: Record<string, unknown> = {
     subscription_id: subscriptionId,
-    org_subscription_id: orgSubscriptionId,
     stripe_session_id: session.id ?? null,
     stripe_payment_intent_id:
       typeof session.payment_intent === 'string' ? session.payment_intent : null,

@@ -3,7 +3,7 @@
  * Phase 14 Plan 03 Task 2 (full implementation).
  *
  * Phase 65-04 Plan 65-04 — PAY-03 + PAY-01:
- *   1. PAY-03: mirror collected B2B tax_id to org_subscriptions.tax_id when the
+ *   1. PAY-03: mirror collected B2B tax_id to subscriptions.tax_id (clinic row,
  *      session is a clinic plan AND session.customer_tax_ids has length ≥ 1.
  *   2. PAY-01: call writeTaxCollectionLog to audit every Stripe Tax calculation
  *      that the session engaged (gated on session.automatic_tax?.status presence).
@@ -154,12 +154,13 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
     );
   }
 
-  // ─── Phase 65-04 — PAY-03: clinic tax_id mirror to org_subscriptions ─────
+  // ─── Phase 65-04 — PAY-03: clinic tax_id mirror to public.subscriptions ───
   //
   // Stripe Tax `tax_id_collection` populates session.customer_tax_ids on B2B
-  // checkouts. We mirror the FIRST collected value (Stripe Tax typically returns
-  // exactly one for US-only launch) into org_subscriptions.tax_id keyed by
-  // org_id (uuid; the clinic_id from metadata IS the org id per Phase 28 schema).
+  // checkouts. We mirror the FIRST collected value into public.subscriptions.tax_id
+  // keyed by the Stripe subscription id (session.subscription — text). The row's
+  // clinic_id IS NOT NULL distinguishes it from consumer subs (Phase 14 +
+  // Phase 29 D-14 — Phase 65.1 rewrite replaced the prior dropped-table target).
   //
   // PII guard (T-65-04-02): only log `tax_id_set: true/false`, NEVER the value.
   try {
@@ -171,15 +172,16 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
       if (customerTaxIds && customerTaxIds.length > 0) {
         const firstTaxId = customerTaxIds[0];
         const clinicId = meta.clinic_id;
-        if (clinicId && firstTaxId?.value) {
+        if (clinicId && firstTaxId?.value && subId) {
           const { error: taxIdErr } = await admin
-            .from('org_subscriptions')
+            .from('subscriptions')
             .update({ tax_id: firstTaxId.value })
-            .eq('org_id', clinicId);
+            .eq('id', subId);
           if (taxIdErr) {
             console.error(
-              '[stripe-webhook/checkout-completed] org_subscriptions.tax_id update error',
+              '[stripe-webhook/checkout-completed] subscriptions.tax_id update error',
               JSON.stringify({
+                subscription_id: subId,
                 clinic_id: clinicId,
                 tax_id_set: false,
                 error_message: taxIdErr.message,
@@ -191,6 +193,7 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
             console.log(
               '[stripe-webhook/checkout-completed] tax_id mirrored',
               JSON.stringify({
+                subscription_id: subId,
                 clinic_id: clinicId,
                 tax_id_set: true,
                 tax_id_type: firstTaxId.type ?? null,
@@ -200,6 +203,10 @@ export async function handle(event: Stripe.Event, admin: SupabaseClient): Promis
         } else if (!clinicId) {
           console.warn(
             '[stripe-webhook/checkout-completed] tax_id collected but no clinic_id in metadata — skipping mirror',
+          );
+        } else if (!subId) {
+          console.warn(
+            '[stripe-webhook/checkout-completed] tax_id collected but no subscription_id on session — skipping mirror',
           );
         }
       }

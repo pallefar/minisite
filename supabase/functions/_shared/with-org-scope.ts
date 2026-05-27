@@ -38,11 +38,12 @@ import * as Sentry from './sentry.ts';
  * Plan-checker BLOCKER: any `*-rls.test.ts` whose target table is missing from
  * this set will fail the plan-checker validation step.
  */
+// Phase 65.1: prior placeholder clinic-subs table removed (Phase 29 D-14 dropped it);
+// clinic subscription data lives in public.subscriptions WHERE clinic_id IS NOT NULL.
 export const ORG_SCOPED_TABLES = new Set<string>([
   'organizations',
   'org_members',
   'org_invites',
-  'org_subscriptions',
   'org_settings',
   'org_branding',
   'org_patient_links',

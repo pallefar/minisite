@@ -541,7 +541,8 @@ export async function handleSession(req: Request): Promise<Response> {
   //   (B2B Owner purchasing an org subscription on behalf of a clinic entity).
   //   Consumer flows (web subscription + lifetime) deliberately skip this to avoid
   //   B2C checkout friction; `customer_update.address` is sufficient for consumer
-  //   tax calc. Mirroring the collected tax_id to org_subscriptions.tax_id is
+  //   tax calc. Mirroring the collected tax_id to subscriptions.tax_id (clinic
+  //   rows — where clinic_id IS NOT NULL per Phase 14 + Phase 29 D-14) is
   //   handled in Plan 65-04 via the `checkout.session.completed` webhook event
   //   handler — NOT this Edge Fn.
   //

@@ -1,4 +1,8 @@
 -- Phase 66.5 Plan 01 Task 1 — SEC-01: Enable RLS on 7 RLS-disabled public tables.
+-- Phase 65.1 rewrite (2026-05-27): header descriptions corrected — the originally
+-- expected "Phase 65 drift" was actually planner-vs-archived-schema drift; the
+-- DO/EXCEPTION drift-safety wrapper here remains correct and still guards against
+-- any future undefined_table at apply time.
 --
 -- Source-of-truth: leanshot/.planning/phases/66-consumer-account-security/66-SUPABASE-ADVISORS.json
 -- Advisor link:    https://supabase.com/docs/guides/database/database-linter?lint=0013_rls_disabled_in_public
@@ -22,8 +26,8 @@
 -- Drift-safety (per `[[feedback_phase_close_out_supabase_gotchas]]` + Phase 65 lessons):
 --   - Each `ALTER TABLE` and `CREATE POLICY` is wrapped in a DO-block with
 --     `EXCEPTION WHEN undefined_table THEN ...` so the migration is idempotent
---     against tables that may have been dropped during the Phase 65 / Phase 66
---     `org_subscriptions` drift recovery.
+--     against tables that may have been dropped or renamed in earlier phases
+--     (see [[feedback_planner_vs_archived_schema_drift]] for the Phase 65 lineage).
 --   - `drop policy if exists` BEFORE `create policy` makes the migration replayable.
 --   - `CREATE POLICY IF NOT EXISTS` is NOT used (remote PG rejects it).
 --
