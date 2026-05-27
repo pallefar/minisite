@@ -1,0 +1,326 @@
+Using workdir /Users/karstenhaldan/minisite
+Initialising login role...
+Connecting to remote database...
+Skipping migration 20270725000003a_p46_course_secdef_rpcs_test.sql... (file name must match pattern "<timestamp>_name.sql")
+Do you want to push these migrations to the remote database?
+ • 20290104000001_subscriptions_tax_id.sql
+ • 20290104000002_subscriptions_dunning_state.sql
+ • 20290104000003_dunning_emails_sent.sql
+ • 20290104000004_refunds.sql
+ • 20290104000005_lifecycle_emails_sent.sql
+ • 20290104000006_tax_collection_log.sql
+ • 20290104000007_tax_nexus_thresholds.sql
+ • 20290104000008_tax_nexus_state_revenue_matview.sql
+ • 20290104000009_nexus_alert_log.sql
+ • 20290104000010_refresh_nexus_revenue_rpc.sql
+ • 20290105000001_auth_attempts_log.sql
+ • 20290105000002_mfa_role_requirements.sql
+ • 20290106000001_enable_rls_6_public_tables.sql
+ • 20290106000002_security_definer_view_refactor.sql
+ • 20290106000003_function_search_path_fix.sql
+ • 20290107000001_organizations_is_demo_flag.sql
+ • 20290107000002_utm_landing_defaults.sql
+ • 20290107000003_landing_pages_seed.sql
+
+ [Y/n] y
+Applying migration 20290104000001_subscriptions_tax_id.sql...
+Applying migration 20290104000002_subscriptions_dunning_state.sql...
+Applying migration 20290104000003_dunning_emails_sent.sql...
+Applying migration 20290104000004_refunds.sql...
+Applying migration 20290104000005_lifecycle_emails_sent.sql...
+Applying migration 20290104000006_tax_collection_log.sql...
+Applying migration 20290104000007_tax_nexus_thresholds.sql...
+Applying migration 20290104000008_tax_nexus_state_revenue_matview.sql...
+Applying migration 20290104000009_nexus_alert_log.sql...
+Applying migration 20290104000010_refresh_nexus_revenue_rpc.sql...
+Applying migration 20290105000001_auth_attempts_log.sql...
+Applying migration 20290105000002_mfa_role_requirements.sql...
+Applying migration 20290106000001_enable_rls_6_public_tables.sql...
+NOTICE (00000): policy "email_send_counters_deny_all_authenticated" for relation "public.email_send_counters" does not exist, skipping
+NOTICE (00000): policy "ad_spend_facts_y2026m05_deny_all_authenticated" for relation "public.ad_spend_facts_y2026m05" does not exist, skipping
+NOTICE (00000): policy "ad_spend_facts_y2026m06_deny_all_authenticated" for relation "public.ad_spend_facts_y2026m06" does not exist, skipping
+NOTICE (00000): policy "ad_spend_facts_y2026m07_deny_all_authenticated" for relation "public.ad_spend_facts_y2026m07" does not exist, skipping
+NOTICE (00000): policy "ad_spend_facts_y2026m08_deny_all_authenticated" for relation "public.ad_spend_facts_y2026m08" does not exist, skipping
+NOTICE (00000): policy "paywall_events_deny_all_authenticated" for relation "public.paywall_events" does not exist, skipping
+NOTICE (00000): policy "plan_history_deny_all_authenticated" for relation "public.plan_history" does not exist, skipping
+Applying migration 20290106000002_security_definer_view_refactor.sql...
+NOTICE (00000): public.v_cancellation_offers_roi: security_invoker = on
+NOTICE (00000): public.share_snapshot_view: security_invoker = on
+NOTICE (00000): public.share_snapshot_view: SELECT revoked from anon + authenticated
+NOTICE (00000): public.share_snapshot_view: SELECT granted to service_role
+ERROR: unrecognized parameter "security_invoker" (SQLSTATE 22023)                                                       
+At statement: 4                                                                                                         
+-- ============================================================                                                         
+-- 3. user_activity_daily (matview) — revoke anon/auth SELECT                                                           
+--    Note: matview already had service-role-only grant per its source migration                                        
+--    (20270601000008). Re-applying revoke + grant idempotently to be sure.                                             
+-- ============================================================                                                         
+                                                                                                                        
+do $$                                                                                                                   
+begin                                                                                                                   
+  alter materialized view public.user_activity_daily set (security_invoker = on);                                       
+  raise notice 'public.user_activity_daily: security_invoker = on';                                                     
+exception                                                                                                               
+  when undefined_table then                                                                                             
+    raise notice 'public.user_activity_daily does not exist on remote; skipping (tracking drift)';                      
+  when feature_not_supported then                                                                                       
+    raise notice 'public.user_activity_daily: matview security_invoker unsupported on this PG version; operator action';
+  when wrong_object_type then                                                                                           
+    raise notice 'public.user_activity_daily: unexpected object type; skipping';                                        
+end $$                                                                                                                  
+Try rerunning the command with --debug to troubleshoot the error.
+Using workdir /Users/karstenhaldan/minisite
+Initialising login role...
+Connecting to remote database...
+Skipping migration 20270725000003a_p46_course_secdef_rpcs_test.sql... (file name must match pattern "<timestamp>_name.sql")
+Do you want to push these migrations to the remote database?
+ • 20290106000002_security_definer_view_refactor.sql
+ • 20290106000003_function_search_path_fix.sql
+ • 20290107000001_organizations_is_demo_flag.sql
+ • 20290107000002_utm_landing_defaults.sql
+ • 20290107000003_landing_pages_seed.sql
+
+ [Y/n] y
+Applying migration 20290106000002_security_definer_view_refactor.sql...
+NOTICE (00000): public.v_cancellation_offers_roi: security_invoker = on
+NOTICE (00000): public.share_snapshot_view: security_invoker = on
+NOTICE (00000): public.share_snapshot_view: SELECT revoked from anon + authenticated
+NOTICE (00000): public.share_snapshot_view: SELECT granted to service_role
+NOTICE (00000): public.user_activity_daily: security_invoker apply failed (sqlstate 22023); skipping
+NOTICE (00000): public.user_activity_daily: SELECT revoked from anon + authenticated
+NOTICE (00000): public.user_activity_daily: SELECT granted to service_role
+Applying migration 20290106000003_function_search_path_fix.sql...
+Applying migration 20290107000001_organizations_is_demo_flag.sql...
+Applying migration 20290107000002_utm_landing_defaults.sql...
+NOTICE (00000): policy "utm_landing_defaults_read_authenticated" for relation "public.utm_landing_defaults" does not exist, skipping
+NOTICE (00000): policy "utm_landing_defaults_read_anon" for relation "public.utm_landing_defaults" does not exist, skipping
+NOTICE (00000): policy "utm_landing_defaults_no_direct_write" for relation "public.utm_landing_defaults" does not exist, skipping
+Applying migration 20290107000003_landing_pages_seed.sql...
+ERROR: column "block_tree" of relation "landing_page_revisions" does not exist (SQLSTATE 42703)                                                                                
+At statement: 0                                                                                                                                                                
+-- Phase 68 Plan 01 — Task 3                                                                                                                                                   
+-- LAND-04 — seed 3 audience-specific landing pages:                                                                                                                           
+--   /for-doctors, /for-clinics, /for-coaches.                                                                                                                                 
+--                                                                                                                                                                             
+-- IMPORTANT — schema divergence vs original plan body:                                                                                                                        
+--   The PLAN.md drafted seeds assuming columns (slug, blocks jsonb, seo jsonb,                                                                                                
+--   is_public). The actual `public.landing_pages` schema (per Phase 15                                                                                                        
+--   migration 20261101000002_page_builder_tables.sql) is different:                                                                                                           
+--                                                                                                                                                                             
+--     landing_pages columns:                                                                                                                                                  
+--       id uuid pk, slug text unique, title text, status text ('draft'|'published'),                                                                                          
+--       published_revision_id uuid (deferrable FK to landing_page_revisions),                                                                                                 
+--       seo_title, seo_description, seo_og_image, seo_canonical, seo_schema_type,                                                                                             
+--       created_by, created_at, updated_at.                                                                                                                                   
+--                                                                                                                                                                             
+--     block_tree (jsonb array of page-builder blocks) lives on                                                                                                                
+--     `landing_page_revisions(id, page_id, block_tree, ...)` — NOT on                                                                                                         
+--     landing_pages itself.                                                                                                                                                   
+--                                                                                                                                                                             
+--   Adjustment: this migration inserts (landing_pages row, revision row) pairs                                                                                                
+--   per page and links them via `published_revision_id`. The deferrable FK                                                                                                    
+--   (added in 20261101000002 migration 03 — same family) is `DEFERRABLE                                                                                                       
+--   INITIALLY DEFERRED`, so the insert order page→revision→link works within                                                                                                  
+--   one DO-block transaction.                                                                                                                                                 
+--                                                                                                                                                                             
+-- SEO JSON-LD: schema.org `Service` type with per-audience `audience`                                                                                                         
+-- differentiator. Stored as a separate `seo_schema_type` (top-level type marker)                                                                                              
+-- AND a JSON-LD object via the page-builder renderer's separate path                                                                                                          
+-- (Phase 15 ships `src/lib/page-builder/json-ld.ts`). For now we set                                                                                                          
+-- `seo_schema_type = 'Service'` so the renderer emits Service JSON-LD;                                                                                                        
+-- the detailed audience-differentiator JSON-LD payload is computed at                                                                                                         
+-- render time from the page-builder helper, NOT stored verbatim in the seed.                                                                                                  
+--                                                                                                                                                                             
+-- ${CALENDLY_BOOK_DEMO_URL_PLACEHOLDER} stays as a literal string in the                                                                                                      
+-- block payload — the runtime renderer resolves it from env at render time                                                                                                    
+-- (Phase 70 sets VITE_CALENDLY_BOOK_DEMO_URL).                                                                                                                                
+--                                                                                                                                                                             
+-- Idempotency: wrapped in DO-block; outer `exception when undefined_table`                                                                                                    
+-- handles drift (table may not exist in fresh env). Inner per-slug check                                                                                                      
+-- uses `on conflict (slug) do nothing` so re-runs don't error.                                                                                                                
+                                                                                                                                                                               
+do $$                                                                                                                                                                          
+declare                                                                                                                                                                        
+  -- Page IDs (deterministic so re-runs are idempotent via on-conflict-do-nothing).                                                                                            
+  v_doctor_page_id   uuid;                                                                                                                                                     
+  v_clinic_page_id   uuid;                                                                                                                                                     
+  v_coach_page_id    uuid;                                                                                                                                                     
+                                                                                                                                                                               
+  -- Revision IDs.                                                                                                                                                             
+  v_doctor_rev_id    uuid;                                                                                                                                                     
+  v_clinic_rev_id    uuid;                                                                                                                                                     
+  v_coach_rev_id     uuid;                                                                                                                                                     
+                                                                                                                                                                               
+  -- Block trees (page-builder block schema — hero + feature-grid + cta).                                                                                                      
+  doctor_blocks jsonb := jsonb_build_array(                                                                                                                                    
+    jsonb_build_object(                                                                                                                                                        
+      'type', 'hero',                                                                                                                                                          
+      'headline', 'Read-only patient data — exactly what you need.',                                                                                                           
+      'subhead', 'When your GLP-1 patient shares their LeanShot account, you see the full picture: injection log, weight, symptoms, and adherence — without account creation.',
+      'cta', jsonb_build_object('label', 'See sample report', 'href', '/sample-doctor-report')                                                                                 
+    ),                                                                                                                                                                         
+    jsonb_build_object('type', 'feature-grid', 'features', jsonb_build_array(                                                                                                  
+      jsonb_build_object('icon', 'eye',          'title', 'Read-share',         'body', 'No login. No account. Just a link from your patient.'),                               
+      jsonb_build_object('icon', 'shield-check', 'title', 'HIPAA-aware',        'body', 'Read-only access with clear data scope boundaries.'),                                 
+      jsonb_build_object('icon', 'chart-line',   'title', 'Pharmacology view',  'body', '28d back + 7d projected drug-level curves.')                                          
+    )),                                                                                                                                                                        
+    jsonb_build_object('type', 'cta', 'label', 'Get patient-shared access', 'href', '/auth/doctor-invite')                                                                     
+  );                                                                                                                                                                           
+                                                                                                                                                                               
+  clinic_blocks jsonb := jsonb_build_array(                                                                                                                                    
+    jsonb_build_object(                                                                                                                                                        
+      'type', 'hero',                                                                                                                                                          
+      'headline', 'Multi-patient monitoring built for GLP-1 clinics.',                                                                                                         
+      'subhead', 'Roster, per-patient pricing, HIPAA-BAA, multi-tenant capability. Designed for clinics tracking 50+ patients on GLP-1 / peptide therapy.',                    
+      'cta', jsonb_build_object('label', 'Book a demo', 'href', '${CALENDLY_BOOK_DEMO_URL_PLACEHOLDER}')                                                                       
+    ),                                                                                                                                                                         
+    jsonb_build_object('type', 'feature-grid', 'features', jsonb_build_array(                                                                                                  
+      jsonb_build_object('icon', 'users',        'title', 'Multi-patient roster', 'body', 'See all your patients in one dashboard with alert badges.'),                        
+      jsonb_build_object('icon', 'shield-check', 'title', 'HIPAA-BAA available',  'body', 'Signed BAA + subprocessor list at /subprocessor-list.'),                            
+      jsonb_build_object('icon', 'tag',          'title', 'Per-patient pricing',  'body', 'Pay per active patient; no seat-based gotchas.')                                    
+    )),                                                                                                                                                                        
+    jsonb_build_object('type', 'cta', 'label', 'Book a demo (15 min)', 'href', '${CALENDLY_BOOK_DEMO_URL_PLACEHOLDER}')                                                        
+  );                                                                                                                                                                           
+                                                                                                                                                                               
+  coach_blocks jsonb := jsonb_build_array(                                                                                                                                     
+    jsonb_build_object(                                                                                                                                                        
+      'type', 'hero',                                                                                                                                                          
+      'headline', 'Manage your wellness cohort with one tool.',                                                                                                                
+      'subhead', 'Track your coaching clients on GLP-1 / peptides. See adherence, weight, symptoms, energy. One place. Built-in coaching workflows.',                          
+      'cta', jsonb_build_object('label', 'Start free trial', 'href', '/signup?audience=coach')                                                                                 
+    ),                                                                                                                                                                         
+    jsonb_build_object('type', 'feature-grid', 'features', jsonb_build_array(                                                                                                  
+      jsonb_build_object('icon', 'users',          'title', 'Client roster',   'body', 'Up to 50 clients on the free tier.'),                                                  
+      jsonb_build_object('icon', 'chart-bar',      'title', 'Cohort tracking', 'body', 'Compare progress across your roster, not just individual clients.'),                   
+      jsonb_build_object('icon', 'message-circle', 'title', 'Coach notes',     'body', 'Per-client notes with reminders + check-in cadence.')                                  
+    )),                                                                                                                                                                        
+    jsonb_build_object('type', 'cta', 'label', 'Start your free trial', 'href', '/signup?audience=coach')                                                                      
+  );                                                                                                                                                                           
+                                                                                                                                                                               
+begin                                                                                                                                                                          
+  -- ----------------------------------------------------------------------                                                                                                    
+  -- /for-doctors                                                                                                                                                              
+  -- ----------------------------------------------------------------------                                                                                                    
+  insert into public.landing_pages (                                                                                                                                           
+    slug, title, status,                                                                                                                                                       
+    seo_title, seo_description, seo_schema_type,                                                                                                                               
+    created_at, updated_at                                                                                                                                                     
+  )                                                                                                                                                                            
+  values (                                                                                                                                                                     
+    '/for-doctors',                                                                                                                                                            
+    'LeanShot for Doctors',                                                                                                                                                    
+    'published',                                                                                                                                                               
+    'LeanShot for Doctors — Read-only Patient Data',                                                                                                                           
+    'View your GLP-1 patient''s injection log, weight, and adherence via secure read-share. No account required.',                                                             
+    'Service',                                                                                                                                                                 
+    now(), now()                                                                                                                                                               
+  )                                                                                                                                                                            
+  on conflict (slug) do nothing                                                                                                                                                
+  returning id into v_doctor_page_id;                                                                                                                                          
+                                                                                                                                                                               
+  -- If the page already existed, look up its id so we can still link a revision                                                                                               
+  -- (in case a previous partial run inserted the page but not the revision).                                                                                                  
+  if v_doctor_page_id is null then                                                                                                                                             
+    select id into v_doctor_page_id from public.landing_pages where slug = '/for-doctors';                                                                                     
+  end if;                                                                                                                                                                      
+                                                                                                                                                                               
+  -- Insert revision only if no revision currently exists for this page.                                                                                                       
+  if v_doctor_page_id is not null                                                                                                                                              
+     and not exists (select 1 from public.landing_page_revisions where page_id = v_doctor_page_id) then                                                                        
+    insert into public.landing_page_revisions (page_id, block_tree, created_at)                                                                                                
+    values (v_doctor_page_id, doctor_blocks, now())                                                                                                                            
+    returning id into v_doctor_rev_id;                                                                                                                                         
+                                                                                                                                                                               
+    update public.landing_pages                                                                                                                                                
+      set published_revision_id = v_doctor_rev_id, updated_at = now()                                                                                                          
+    where id = v_doctor_page_id;                                                                                                                                               
+  end if;                                                                                                                                                                      
+                                                                                                                                                                               
+  -- ----------------------------------------------------------------------                                                                                                    
+  -- /for-clinics                                                                                                                                                              
+  -- ----------------------------------------------------------------------                                                                                                    
+  insert into public.landing_pages (                                                                                                                                           
+    slug, title, status,                                                                                                                                                       
+    seo_title, seo_description, seo_schema_type,                                                                                                                               
+    created_at, updated_at                                                                                                                                                     
+  )                                                                                                                                                                            
+  values (                                                                                                                                                                     
+    '/for-clinics',                                                                                                                                                            
+    'LeanShot for Clinics',                                                                                                                                                    
+    'published',                                                                                                                                                               
+    'LeanShot for Clinics — GLP-1 Patient Monitoring',                                                                                                                         
+    'Multi-patient GLP-1 monitoring with HIPAA-BAA + per-patient pricing.',                                                                                                    
+    'Service',                                                                                                                                                                 
+    now(), now()                                                                                                                                                               
+  )                                                                                                                                                                            
+  on conflict (slug) do nothing                                                                                                                                                
+  returning id into v_clinic_page_id;                                                                                                                                          
+                                                                                                                                                                               
+  if v_clinic_page_id is null then                                                                                                                                             
+    select id into v_clinic_page_id from public.landing_pages where slug = '/for-clinics';                                                                                     
+  end if;                                                                                                                                                                      
+                                                                                                                                                                               
+  if v_clinic_page_id is not null                                                                                                                                              
+     and not exists (select 1 from public.landing_page_revisions where page_id = v_clinic_page_id) then                                                                        
+    insert into public.landing_page_revisions (page_id, block_tree, created_at)                                                                                                
+    values (v_clinic_page_id, clinic_blocks, now())                                                                                                                            
+    returning id into v_clinic_rev_id;                                                                                                                                         
+                                                                                                                                                                               
+    update public.landing_pages                                                                                                                                                
+      set published_revision_id = v_clinic_rev_id, updated_at = now()                                                                                                          
+    where id = v_clinic_page_id;                                                                                                                                               
+  end if;                                                                                                                                                                      
+                                                                                                                                                                               
+  -- ----------------------------------------------------------------------                                                                                                    
+  -- /for-coaches                                                                                                                                                              
+  -- ----------------------------------------------------------------------                                                                                                    
+  insert into public.landing_pages (                                                                                                                                           
+    slug, title, status,                                                                                                                                                       
+    seo_title, seo_description, seo_schema_type,                                                                                                                               
+    created_at, updated_at                                                                                                                                                     
+  )                                                                                                                                                                            
+  values (                                                                                                                                                                     
+    '/for-coaches',                                                                                                                                                            
+    'LeanShot for Coaches',                                                                                                                                                    
+    'published',                                                                                                                                                               
+    'LeanShot for Coaches — Wellness Cohort Tracking',                                                                                                                         
+    'Manage your GLP-1 / peptide coaching clients with adherence + cohort tracking.',                                                                                          
+    'Service',                                                                                                                                                                 
+    now(), now()                                                                                                                                                               
+  )                                                                                                                                                                            
+  on conflict (slug) do nothing                                                                                                                                                
+  returning id into v_coach_page_id;                                                                                                                                           
+                                                                                                                                                                               
+  if v_coach_page_id is null then                                                                                                                                              
+    select id into v_coach_page_id from public.landing_pages where slug = '/for-coaches';                                                                                      
+  end if;                                                                                                                                                                      
+                                                                                                                                                                               
+  if v_coach_page_id is not null                                                                                                                                               
+     and not exists (select 1 from public.landing_page_revisions where page_id = v_coach_page_id) then                                                                         
+    insert into public.landing_page_revisions (page_id, block_tree, created_at)                                                                                                
+    values (v_coach_page_id, coach_blocks, now())                                                                                                                              
+    returning id into v_coach_rev_id;                                                                                                                                          
+                                                                                                                                                                               
+    update public.landing_pages                                                                                                                                                
+      set published_revision_id = v_coach_rev_id, updated_at = now()                                                                                                           
+    where id = v_coach_page_id;                                                                                                                                                
+  end if;                                                                                                                                                                      
+                                                                                                                                                                               
+exception when undefined_table then                                                                                                                                            
+  raise notice 'public.landing_pages or public.landing_page_revisions does not exist on this database (drift); skipping audience landing seed';                                
+end $$                                                                                                                                                                         
+Try rerunning the command with --debug to troubleshoot the error.
+Using workdir /Users/karstenhaldan/minisite
+Initialising login role...
+Connecting to remote database...
+Skipping migration 20270725000003a_p46_course_secdef_rpcs_test.sql... (file name must match pattern "<timestamp>_name.sql")
+Do you want to push these migrations to the remote database?
+ • 20290107000003_landing_pages_seed.sql
+
+ [Y/n] y
+Applying migration 20290107000003_landing_pages_seed.sql...
+NOTICE (00000): public.landing_page_revisions.block_tree: column ensured
+Finished supabase db push.
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

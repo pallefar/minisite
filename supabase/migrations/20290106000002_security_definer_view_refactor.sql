@@ -72,17 +72,25 @@ end $$;
 --    (20270601000008). Re-applying revoke + grant idempotently to be sure.
 -- ============================================================
 
+-- Phase 65.1 fix (2026-05-27): `security_invoker = on` on matviews requires
+-- PG ≥ 16 and is a PARSE-TIME error on older PG — escapes the EXCEPTION clause
+-- if written inline. Wrap in EXECUTE so the error surfaces at runtime and the
+-- EXCEPTION block catches it. Service-role-only grant is preserved by the
+-- revoke/grant block below; security_invoker here is belt-and-suspenders on
+-- PG 16+ and a no-op on older versions.
 do $$
 begin
-  alter materialized view public.user_activity_daily set (security_invoker = on);
+  execute 'alter materialized view public.user_activity_daily set (security_invoker = on)';
   raise notice 'public.user_activity_daily: security_invoker = on';
 exception
   when undefined_table then
     raise notice 'public.user_activity_daily does not exist on remote; skipping (tracking drift)';
   when feature_not_supported then
     raise notice 'public.user_activity_daily: matview security_invoker unsupported on this PG version; operator action';
-  when wrong_object_type then
-    raise notice 'public.user_activity_daily: unexpected object type; skipping';
+  when syntax_error then
+    raise notice 'public.user_activity_daily: security_invoker parameter unrecognized (PG < 16); skipping (no-op)';
+  when others then
+    raise notice 'public.user_activity_daily: security_invoker apply failed (sqlstate %); skipping', sqlstate;
 end $$;
 
 do $$

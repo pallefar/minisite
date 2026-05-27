@@ -39,6 +39,19 @@
 -- handles drift (table may not exist in fresh env). Inner per-slug check
 -- uses `on conflict (slug) do nothing` so re-runs don't error.
 
+-- Phase 65.1 fix (2026-05-27): defensive ADD COLUMN IF NOT EXISTS for
+-- landing_page_revisions.block_tree — remote DB has the table but not the column
+-- (planner drift surfaced during Phase 65.1 db push). Inline guard so this
+-- migration can self-heal regardless of remote schema state.
+do $$
+begin
+  alter table public.landing_page_revisions
+    add column if not exists block_tree jsonb not null default '[]'::jsonb;
+  raise notice 'public.landing_page_revisions.block_tree: column ensured';
+exception when undefined_table then
+  raise notice 'public.landing_page_revisions does not exist on remote; skipping column-add (drift)';
+end $$;
+
 do $$
 declare
   -- Page IDs (deterministic so re-runs are idempotent via on-conflict-do-nothing).

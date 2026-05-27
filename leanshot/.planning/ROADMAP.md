@@ -424,6 +424,8 @@ Plans:
 
 ### Phase 65.1: Phase 65 migration replan — `org_subscriptions` → `subscriptions` canonical
 
+**Status:** ✅ COMPLETE 2026-05-27 — all 18 pending migrations applied to remote (P65 + P66 + P66.5 + P68); 0 ERROR-level security advisors; Phase 69.7 unblocked. Bonus inline fixes: Phase 66.5 PG-version drift (matview `security_invoker` EXECUTE-wrapped) + Phase 68 `landing_page_revisions.block_tree` column drift (defensive ADD COLUMN IF NOT EXISTS). See `65.1-SUMMARY.md`.
+
 **Goal**: Rewrite the 2 Phase 65 migrations that target the long-dropped `public.org_subscriptions` table (Phase 29 D-14 dropped it as BREAKING CHANGE; canonical successor is `public.subscriptions WHERE clinic_id IS NOT NULL`). Phase 69.7 Plan 01 Task 3 halted at this drift 2026-05-27. Diagnosed as planner-vs-archived-schema drift (see `feedback_planner_vs_archived_schema_drift` memory). Sweep Phase 65 Edge Fn + downstream consumers for `org_subscription_id` / `org_subscriptions` references and patch to canonical target.
 **Depends on**: Phases 65 CODE-COMPLETE (which it is); Phase 69.7 BLOCKED on this
 **Requirements**: PAY-01..11 (re-validate against rewritten migrations); no new REQ IDs
