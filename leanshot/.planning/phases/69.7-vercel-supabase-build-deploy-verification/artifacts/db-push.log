@@ -1,0 +1,36 @@
+Using workdir /Users/karstenhaldan/minisite
+Initialising login role...
+Connecting to remote database...
+Skipping migration 20270725000003a_p46_course_secdef_rpcs_test.sql... (file name must match pattern "<timestamp>_name.sql")
+Do you want to push these migrations to the remote database?
+ • 20290104000001_org_subscriptions_tax_id.sql
+ • 20290104000002_subscriptions_dunning_state.sql
+ • 20290104000003_dunning_emails_sent.sql
+ • 20290104000004_refunds.sql
+ • 20290104000005_lifecycle_emails_sent.sql
+ • 20290104000006_tax_collection_log.sql
+ • 20290104000007_tax_nexus_thresholds.sql
+ • 20290104000008_tax_nexus_state_revenue_matview.sql
+ • 20290104000009_nexus_alert_log.sql
+ • 20290104000010_refresh_nexus_revenue_rpc.sql
+ • 20290105000001_auth_attempts_log.sql
+ • 20290105000002_mfa_role_requirements.sql
+ • 20290106000001_enable_rls_7_public_tables.sql
+ • 20290106000002_security_definer_view_refactor.sql
+ • 20290106000003_function_search_path_fix.sql
+ • 20290107000001_organizations_is_demo_flag.sql
+ • 20290107000002_utm_landing_defaults.sql
+ • 20290107000003_landing_pages_seed.sql
+
+ [Y/n] y
+Applying migration 20290104000001_org_subscriptions_tax_id.sql...
+ERROR: relation "public.org_subscriptions" does not exist (SQLSTATE 42P01)          
+At statement: 1                                                                     
+-- ---------------------------------------------------------------------------      
+-- 1. Column: org_subscriptions.tax_id                                              
+--    Nullable text — only B2B (clinic) subs collect this; consumer subs leave NULL.
+-- ---------------------------------------------------------------------------      
+                                                                                    
+alter table public.org_subscriptions                                                
+  add column if not exists tax_id text                                              
+Try rerunning the command with --debug to troubleshoot the error.

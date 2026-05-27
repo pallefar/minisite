@@ -422,6 +422,26 @@ Plans:
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
+### Phase 65.1: Phase 65 migration replan — `org_subscriptions` → `subscriptions` canonical
+
+**Goal**: Rewrite the 2 Phase 65 migrations that target the long-dropped `public.org_subscriptions` table (Phase 29 D-14 dropped it as BREAKING CHANGE; canonical successor is `public.subscriptions WHERE clinic_id IS NOT NULL`). Phase 69.7 Plan 01 Task 3 halted at this drift 2026-05-27. Diagnosed as planner-vs-archived-schema drift (see `feedback_planner_vs_archived_schema_drift` memory). Sweep Phase 65 Edge Fn + downstream consumers for `org_subscription_id` / `org_subscriptions` references and patch to canonical target.
+**Depends on**: Phases 65 CODE-COMPLETE (which it is); Phase 69.7 BLOCKED on this
+**Requirements**: PAY-01..11 (re-validate against rewritten migrations); no new REQ IDs
+**Mode**: autonomous (no operator portal action — pure migration + code rewrite)
+**Success Criteria** (what must be TRUE):
+
+  1. `supabase/migrations/20290104000001_org_subscriptions_tax_id.sql` rewritten to `ALTER TABLE public.subscriptions ADD COLUMN tax_id text` with partial index `WHERE clinic_id IS NOT NULL`
+  2. `supabase/migrations/20290104000006_tax_collection_log.sql` FK rewritten: `subscription_id uuid REFERENCES public.subscriptions(id)` (not `org_subscription_id uuid REFERENCES public.org_subscriptions(org_id)`); column rename propagated through the rest of the migration body
+  3. `supabase/migrations/20290106000001_enable_rls_7_public_tables.sql` either dropped `org_subscriptions` RLS block (table doesn't exist) OR confirmed the DO/EXCEPTION guard cleanly no-ops
+  4. Sweep `supabase/functions/{stripe-checkout,stripe-webhook,stripe-dunning-orchestrator,request-refund,lifecycle-trial-ending,lifecycle-win-back,nexus-monitor}/` and `leanshot/src/` for `org_subscription_id` / `org_subscriptions` references — replace with `subscription_id` / `subscriptions` + add `clinic_id IS NOT NULL` filter where the original code intent was clinic-only
+  5. `npx supabase db push --linked` succeeds against ytnsipxxmzgaebkqmokp for all (re-numbered if needed) pending Phase 65 migrations
+  6. Phase 65 vitest + Deno test suites still green after the rewrite
+  7. ROADMAP Phase 69.7 unblocked — re-invoke `/gsd-autonomous --from 69.7 --to 69.7` after this phase ships
+
+**Plans**: 2-3 plans (TBD when planned — likely (1) rewrite the 2 migrations + sweep migration body refs, (2) sweep Edge Fn + src consumers, (3) close-out + push verification)
+
+> No HUMAN-UAT signal — pure schema/code fixup. Roll-up: signals merge into Phase 70 only insofar as Phase 65 PAY-* signals re-validate.
+
 ### Phase 66: Consumer Account Security
 
 **Goal**: Ship consumer-facing MFA / TOTP self-serve (reusing the admin flow from v1.3 Phase 25) and per-IP/per-email sign-in lockout with brute-force PostHog alerting. Closes research HD1 + HD2.

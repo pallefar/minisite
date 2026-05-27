@@ -19,7 +19,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 - `.planning/milestones/v1.3-REQUIREMENTS.md` — archived v1.3 REQ-IDs (continuation source)
 - `.planning/milestones/v1.3-uat-deferred.md` — 33 v1.3 consolidated HUMAN-UAT signals (roll up to Phase 70)
 
-**REQ-ID totals:** 200 active requirements across 19 phases (52-70). Mix of v1.2/v1.3 carry-over REQ-IDs (re-used from archive — they were deferred, not invalidated) and NEW families introduced by v1.4 scope: VENDOR-*, PROTOCOL-*, INSIGHTS-*, LEGAL-*, PAY-*, OPS-*, LAND-*, DS-*, UAT-*, DEBT-*.
+**REQ-ID totals:** 206 active requirements across 20 phases (52-70 + 69.7). Mix of v1.2/v1.3 carry-over REQ-IDs (re-used from archive — they were deferred, not invalidated) and NEW families introduced by v1.4 scope: VENDOR-*, PROTOCOL-*, INSIGHTS-*, LEGAL-*, PAY-*, OPS-*, LAND-*, DS-*, UAT-*, DEBT-*, DEPLOY-*.
 
 **Path picked:** Single consolidated launch-readiness milestone — carry-over first, launch gaps next, design polish + consolidated UAT last. Per `feedback_milestone_uat_deferral_consolidation` forward-looking variant: every phase ships `autonomous: true`; ALL HUMAN-UAT signals roll up to Phase 70.
 
@@ -285,6 +285,17 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 - [ ] **UAT-06**: Multi-signal structure — each individual UAT item is an independently approvable signal (per `feedback_multi_signal_human_verify_checkpoint_pattern`); operator can approve subsets inline + carry browser/device items to milestone close; signals grouped by environment-fixture-shared sets (browser, iOS device, Android device, Stripe test, vendor-OAuth, ops-runbook-drill)
 - [ ] **UAT-07**: Ship rule decided at Phase 70 planning + applied — either (a) ALL signals must pass OR (b) ≥X/Y inline-approved + critical-gate subset must all pass; documented + applied uniformly
 
+### WS20 — Deploy Verification (DEPLOY, 6 REQ-IDs — Phase 69.7)
+
+> Phase 69.7 — end-to-end build + deploy validation before Phase 70 UAT. Inserted mid-run per user direction 2026-05-27 to ensure Supabase + Vercel are building correctly before UAT.
+
+- [ ] **DEPLOY-01**: All 18 pending Supabase migrations (10 Phase 65 + 2 Phase 66 + 3 Phase 66.5 + 3 Phase 68) applied to remote project `ytnsipxxmzgaebkqmokp`; `supabase migration list --linked` shows all entries with non-empty Remote column.
+- [ ] **DEPLOY-02**: `supabase db advisors --linked --type security --level error` returns 0 entries; `supabase db lint --linked --fail-on error` clears RPC body errors.
+- [ ] **DEPLOY-03**: All 10 new Edge Fns deployed via `supabase functions deploy` (stripe-checkout, stripe-webhook, stripe-dunning-orchestrator, request-refund, lifecycle-trial-ending, lifecycle-win-back, nexus-monitor, auth-rate-limit-check, bs-status-poller, demo-org-purge); `GET /functions/v1/<name>/healthz` returns `{"ok":true,...}` for each.
+- [ ] **DEPLOY-04**: 9 pg_cron jobs registered and visible in `cron.job` table: 5 Phase 65 jobs + 1 Phase 66 (auth-attempts retention) + 1 Phase 67 (bs-status-poller) + 1 Phase 68 (demo-org-purge) + 1 additional Phase 66 cron.
+- [ ] **DEPLOY-05**: `npm run build` in `leanshot/` produces clean dist/; `vercel deploy --prebuilt` against staging returns a preview URL; Phase 69 VR baselines captured against the staging URL and committed.
+- [ ] **DEPLOY-06**: Phase 65 operator-gate items confirmed via Stripe API read-back (Stripe Tax active, 3 Win-back coupons present) + `supabase secrets list` (4-5 vendor secrets); DS-01/02/03 CI gates fire on a synthetic PR with intentional violation.
+
 ---
 
 ## Cross-cutting Concerns
@@ -336,7 +347,7 @@ v1_3_archive: .planning/milestones/v1.3-REQUIREMENTS.md
 
 ## Traceability
 
-REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% coverage; no orphans; no duplicates.
+REQ-ID → Phase mapping. 206 REQ-IDs mapped across 20 phases (52-70 + 69.7). 100% coverage; no orphans; no duplicates.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -503,9 +514,14 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | UAT-05 | Phase 70 | Pending |
 | UAT-06 | Phase 70 | Pending |
 | UAT-07 | Phase 70 | Pending |
-
-**Coverage:** 200/200 REQ-IDs mapped across 19 phases. No orphans. No duplicates.
-
+| DEPLOY-01 | Phase 69.7 | Pending |
+| DEPLOY-02 | Phase 69.7 | Pending |
+| DEPLOY-03 | Phase 69.7 | Pending |
+| DEPLOY-04 | Phase 69.7 | Pending |
+| DEPLOY-05 | Phase 69.7 | Pending |
+| DEPLOY-06 | Phase 69.7 | Pending |
 | SEC-01 | Phase 66.5 | Complete (code) |
 | SEC-02 | Phase 66.5 | Complete (code) |
 | SEC-03 | Phase 66.5 | Complete (code) |
+
+**Coverage:** 206/206 REQ-IDs mapped across 20 phases. No orphans. No duplicates.
