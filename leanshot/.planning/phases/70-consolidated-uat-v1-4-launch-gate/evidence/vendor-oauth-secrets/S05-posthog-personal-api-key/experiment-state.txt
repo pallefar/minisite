@@ -1,0 +1,53 @@
+S05 — PostHog Experiment + POSTHOG_PERSONAL_API_KEY
+======================================================
+
+Created: 2026-05-27
+Disposition: APPROVED (3/4 sub-criteria met inline; user-JWT smoke folded into Plan 03 browser walkthrough per CONTEXT.md Area 3 deferral pattern)
+
+Sub-criterion checklist
+-----------------------
+[x] PostHog experiment dashboard shows `nps_prompt_copy` experiment status=running
+    - Experiment ID: 82078
+    - Name: "NPS prompt copy A/B"
+    - URL: https://app.posthog.com/project/140479/experiments/82078
+    - Started: 2026-05-27T11:11:56.213755Z
+    - Variants: control (50%) + variant_a (50%)
+    - Feature flag: nps_prompt_copy (id 194201, active=true, multivariate)
+    - Minimum detectable effect: 30%
+    - Rollout: 100%
+    - Stats method: bayesian
+    - Created by: karsten.haldan@gmail.com via experiment-create MCP
+
+[x] supabase secrets list includes POSTHOG_PERSONAL_API_KEY row
+    - Pre-existing (set during Phase 60 OpenRouter substitution)
+    - Verified at plan-start recon:
+      $ npx supabase secrets list --project-ref ytnsipxxmzgaebkqmokp | grep POSTHOG_PERSONAL_API_KEY
+        POSTHOG_PERSONAL_API_KEY | 622adc0ab32173e918a69585691251b584cf242c073acdba66b9f5e55ae7447f
+
+[x] Flag + experiment + secret wired (infrastructure proof)
+    - experiment-launch returned status: running + start_date set
+    - feature_flag.active: true + multivariate.variants[control,variant_a]
+    - Edge Fn nps-trigger-decide deployed (verified ex-Phase 36 + Phase 69.7 deploy state)
+
+[~] nps-trigger-decide returns non-fallback variant for a primed user
+    - DEFERRED to Plan 03 browser walkthrough (consumer signs in, real Supabase Auth user
+      session → real JWT → Fn returns copy_variant matching one of {control, variant_a}).
+    - Substantive proof captured here (experiment + flag + secret + Fn deployed); E2E
+      requires Auth user JWT per Fn's auth contract (`Authorization: Bearer <user-jwt>` —
+      user.id derived from JWT, never from body per T-36-07).
+    - PostHog `feature-flags-test-evaluation-create` requires existing person record;
+      smoke distinct_id had no prior capture so 404'd. Plan 03 NPS walkthrough creates
+      a real consumer session that exercises this path correctly.
+
+Note on copy payloads
+---------------------
+Experiment was created with `control`/`variant_a` keys but variant copy STRINGS were not
+set in this signal — operator to refine the prompt copy in PostHog dashboard before the
+NPS feature lands in front of real users. Plan 03 browser walkthrough should verify
+real copy content matches operator intent.
+
+Cross-reference: Plan 70-03 S03 (NPS prompt browser walkthrough) carries the live-user
+smoke as part of its acceptance criteria.
+
+Signal status: PASS (with deferral annotation)
+signoff: karsten.haldan@gmail.com, 2026-05-27, experiment 82078 running + flag active + secret pre-set; live-user smoke folded into Plan 03 S03 per CONTEXT Area 3 cross-plan deferral pattern

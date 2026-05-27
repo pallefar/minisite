@@ -672,7 +672,7 @@ Operator: fill checkbox + `signoff:` line as each signal completes. If you stop 
 - [x] **S02** — Vercel `SHARE_TOKEN_SECRET` env — signoff: karsten.haldan@gmail.com, 2026-05-27, production scope, byte-identical to S01 vault value
 - [ ] **S03** — Trustpilot vendor claim (non-critical) — signoff: __________
 - [ ] **S04** — G2 + Capterra vendor claims (non-critical) — signoff: __________
-- [ ] **S05** — PostHog experiment + `POSTHOG_PERSONAL_API_KEY` — signoff: __________
+- [x] **S05** — PostHog experiment + `POSTHOG_PERSONAL_API_KEY` — signoff: karsten.haldan@gmail.com, 2026-05-27, experiment 82078 `nps_prompt_copy` status=running; flag active w/ control+variant_a 50/50; secret pre-set ex-Phase 60; live-user smoke folded into Plan 03 S03
 - [ ] **S06** — Stripe Lifetime product + `STRIPE_PRICE_LIFETIME` — signoff: __________
 - [ ] **S07** — Mux secrets (3) — signoff: __________
 - [ ] **S08** — `STRIPE_COUPON_WB_3MO_50` — signoff: __________
