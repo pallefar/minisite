@@ -1,0 +1,94 @@
+# Phase 69 Plan 69-01 — Design-system CI gates (DS-01, DS-02, DS-03).
+#
+# Three parallel jobs, one per gate. Each fails the PR independently so
+# reviewers see exactly which dimension regressed (token / typography
+# / accent). Tests are co-located with scripts and run as a separate
+# job to catch script-internal regressions on PR.
+#
+# Allow-listing / grandfathering is encoded in each script. See:
+#   - scripts/ci/check-tailwind-tokens.ts          ALLOW_LIST (inline)
+#   - scripts/ci/check-typography-ceiling.baseline.txt
+#   - scripts/ci/check-accent-reserved.baseline.txt
+#   - leanshot/.planning/design-system/accent-reserved-list.md (DS-03 policy doc)
+#
+# Tightening cadence: Phase 69.5 tech-debt sweep migrates files off the
+# baselines. As baselines shrink, the gate's coverage grows automatically.
+
+name: Design system check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── DS-01 — Undefined Tailwind v4 @theme tokens ───────────────────────────
+  tailwind-tokens:
+    name: DS-01 undefined @theme tokens
+    runs-on: ubuntu-latest
+    # CRITICAL: scripts run from git root (not leanshot/). Default working-
+    # directory must NOT be inherited if a shared workflow sets it elsewhere.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Grep undefined Tailwind v4 @theme tokens
+        run: deno run --no-check -A scripts/ci/check-tailwind-tokens.ts
+
+  # ─── DS-02 — Typography ceiling (font-size + font-weight) ──────────────────
+  typography-ceiling:
+    name: DS-02 typography ceiling {11,13,18,28}px × {400,600}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Grep typography-ceiling violations
+        run: deno run --no-check -A scripts/ci/check-typography-ceiling.ts
+
+  # ─── DS-03 — Accent color reserved-surface policy ──────────────────────────
+  accent-reserved:
+    name: DS-03 accent color reserved-list
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Grep accent usage outside reserved surfaces
+        run: deno run --no-check -A scripts/ci/check-accent-reserved.ts
+
+  # ─── Script self-tests (catches CI-gate code regressions) ──────────────────
+  script-tests:
+    name: Design-system CI script tests (Deno)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Run check-tailwind-tokens unit tests
+        run: deno test --no-check --allow-read --allow-write --allow-env scripts/ci/check-tailwind-tokens.test.ts
+      - name: Run check-typography-ceiling unit tests
+        run: deno test --no-check --allow-read --allow-write --allow-env scripts/ci/check-typography-ceiling.test.ts
+      - name: Run check-accent-reserved unit tests
+        run: deno test --no-check --allow-read --allow-write --allow-env scripts/ci/check-accent-reserved.test.ts
