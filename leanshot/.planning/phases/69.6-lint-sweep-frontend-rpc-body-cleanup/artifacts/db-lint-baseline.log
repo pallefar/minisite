@@ -1,0 +1,649 @@
+Using workdir /Users/karstenhaldan/minisite
+Initialising login role...
+Connecting to remote database...
+Linting schema: extensions
+Linting schema: public
+[
+  {
+    "function": "public.plan",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"__tcache__\" does not exist",
+        "statement": {
+          "lineNumber": "24",
+          "text": "EXECUTE"
+        },
+        "query": {
+          "position": "18",
+          "text": "SELECT TRUE FROM __tcache__ WHERE label = 'plan'"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.add_result",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"__tresults___numb_seq\" does not exist",
+        "statement": {
+          "lineNumber": "4",
+          "text": "RETURN"
+        },
+        "query": {
+          "position": "9",
+          "text": "nextval('__tresults___numb_seq')"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public._def_is",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function is(text, integer, text) does not exist",
+        "statement": {
+          "lineNumber": "7",
+          "text": "RETURN"
+        },
+        "query": {
+          "position": "1",
+          "text": "is( $1, $3, $4 )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.compute_weight_trend",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column \"weight_kg\" does not exist",
+        "statement": {
+          "lineNumber": "7",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "8",
+          "text": "select weight_kg                 from public.weights\n  where user_id = p_user_id\n  order by recorded_at desc\n  limit 1"
+        },
+        "hint": "Perhaps you meant to reference the column \"weights.weight_id\".",
+        "sqlState": "42703"
+      }
+    ]
+  },
+  {
+    "function": "public.revoke_membership",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column \"actor_type\" is of type audit_actor_type but expression is of type text",
+        "statement": {
+          "lineNumber": "22",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "255",
+          "text": "insert into public.audit_logs\n    (user_id, user_id_hash, table_name, row_id, action, actor_type, org_id)\n  values (\n    v_uid,\n    encode(digest(v_uid::text, 'sha256'), 'hex'),\n    'memberships',\n    p_membership_id::text,\n    'membership_revoked',\n    case when v_can_revoke_self then 'org_member' else 'org_operator' end,\n    v_membership.org_id\n  )"
+        },
+        "hint": "You will need to rewrite or cast the expression.",
+        "sqlState": "42804"
+      }
+    ]
+  },
+  {
+    "function": "public._prokind",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column \"proisagg\" does not exist",
+        "statement": {
+          "lineNumber": "6",
+          "text": "RETURN"
+        },
+        "query": {
+          "position": "11",
+          "text": "CASE WHEN proisagg THEN 'a' WHEN proiswindow THEN 'w' ELSE 'f' END\n            FROM pg_catalog.pg_proc WHERE oid = p_oid"
+        },
+        "hint": "Perhaps you meant to reference the column \"pg_proc.prolang\".",
+        "sqlState": "42703"
+      }
+    ]
+  },
+  {
+    "function": "public.list_org_members",
+    "issues": [
+      {
+        "level": "error",
+        "message": "structure of query does not match function result type",
+        "statement": {
+          "lineNumber": "13",
+          "text": "RETURN QUERY"
+        },
+        "detail": "Returned type character varying does not match expected type text in column 2.",
+        "sqlState": "42804"
+      }
+    ]
+  },
+  {
+    "function": "public.admin_list_members",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"public.orgs\" does not exist",
+        "statement": {
+          "lineNumber": "25",
+          "text": "RETURN QUERY"
+        },
+        "query": {
+          "position": "428",
+          "text": "with base as (\n    select\n      u.id as user_id,\n      u.email::text as email,\n      u.created_at as signup_date,\n      u.last_sign_in_at as last_active_at,\n      coalesce(u.raw_user_meta_data -\u003e\u003e 'country', null) as country,\n      te.has_active as te_active,\n      te.has_past_due as te_past_due,\n      te.winning_provider as stripe_status_src,\n      (\n        select o.name\n          from public.memberships m\n          join public.orgs o on o.id = m.org_id\n         where m.user_id = u.id and m.revoked_at is null\n         order by m.created_at asc\n         limit 1\n      ) as clinic_name\n    from auth.users u\n    left join public.tier_effective te on te.user_id = u.id\n  ),\n  tiered as (\n    select\n      b.*,\n      case\n        when b.te_active is true then 'paid'\n        when b.te_past_due is true then 'past_due'\n        when b.clinic_name is not null then 'clinic_seat'\n        else 'free'\n      end as derived_tier,\n      case\n        when b.te_active is true then 'active'\n        when b.te_past_due is true then 'past_due'\n        else 'none'\n      end as derived_stripe_status\n    from base b\n  )\n  select\n    t.user_id,\n    t.email,\n    t.derived_tier as tier,\n    t.signup_date,\n    t.last_active_at,\n    t.clinic_name,\n    t.country,\n    t.derived_stripe_status as stripe_status\n  from tiered t\n  where (p_search is null or t.email ilike '%' || p_search || '%')\n    and (p_tier is null or t.derived_tier = p_tier)\n  order by t.signup_date desc, t.user_id asc\n  offset v_offset\n  limit p_size"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.admin_compute_mrr_arr",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"public.orgs\" does not exist",
+        "statement": {
+          "lineNumber": "122",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "328",
+          "text": "select jsonb_agg(\n    jsonb_build_object(\n      'clinic_id', o.id,\n      'clinic_name', o.name,\n      'used', coalesce(mc.member_count, 0),\n      'total', o.seat_count,\n      'series', '[]'::jsonb  -- v1.2: per-clinic seat history deferred; Sparkline gets flat array.\n    ) order by o.name\n  )                             from public.orgs o\n  left join lateral (\n    select count(*) as member_count\n      from public.memberships m\n     where m.org_id = o.id\n       and m.revoked_at is null\n  ) mc on true\n  where exists (\n    select 1 from public.subscriptions s\n     where s.clinic_id = o.id and s.status in ('active','trialing')\n  )"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.admin_get_cohort_retention",
+    "issues": [
+      {
+        "level": "error",
+        "message": "structure of query does not match function result type",
+        "statement": {
+          "lineNumber": "15",
+          "text": "RETURN QUERY"
+        },
+        "detail": "Returned type double precision does not match expected type numeric in column 4.",
+        "sqlState": "42804"
+      }
+    ]
+  },
+  {
+    "function": "public.delete_archived_audit_rows",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column \"created_at\" does not exist",
+        "statement": {
+          "lineNumber": "18",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "39",
+          "text": "delete from public.audit_logs\n  where created_at \u003c p_cutoff"
+        },
+        "sqlState": "42703"
+      }
+    ]
+  },
+  {
+    "function": "public.has_tablespace",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column \"spclocation\" does not exist",
+        "statement": {
+          "lineNumber": "13",
+          "text": "RETURN"
+        },
+        "query": {
+          "position": "160",
+          "text": "ok(\n            EXISTS(\n                SELECT true\n                  FROM pg_catalog.pg_tablespace\n                 WHERE spcname = $1\n                   AND spclocation = $2\n            ), $3\n        )"
+        },
+        "sqlState": "42703"
+      }
+    ]
+  },
+  {
+    "function": "public.send_org_invite",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.log_admin_action(unknown, uuid, jsonb) does not exist",
+        "statement": {
+          "lineNumber": "28",
+          "text": "PERFORM"
+        },
+        "query": {
+          "position": "8",
+          "text": "SELECT public.log_admin_action(\n    'org_invite_sent',\n    p_org_id,\n    jsonb_build_object('invite_id', v_invite_id, 'role', p_role::text)\n  )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.accept_org_invite",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.log_admin_action(unknown, uuid, jsonb) does not exist",
+        "statement": {
+          "lineNumber": "40",
+          "text": "PERFORM"
+        },
+        "query": {
+          "position": "8",
+          "text": "SELECT public.log_admin_action(\n    'org_invite_accepted',\n    v_invite.org_id,\n    jsonb_build_object('invite_id', v_invite.id, 'user_id', v_uid)\n  )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.revoke_org_invite",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.log_admin_action(unknown, uuid, jsonb) does not exist",
+        "statement": {
+          "lineNumber": "36",
+          "text": "PERFORM"
+        },
+        "query": {
+          "position": "8",
+          "text": "SELECT public.log_admin_action(\n    'org_invite_revoked',\n    v_org_id,\n    jsonb_build_object('invite_id', p_invite_id)\n  )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.resolve_clinic_slug",
+    "issues": [
+      {
+        "level": "error",
+        "message": "type \"citext\" does not exist",
+        "statement": {
+          "lineNumber": "57",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "199",
+          "text": "select oi.id, oi.invited_role::text, oi.expires_at\n                                                      from public.org_invites oi\n   where oi.org_id    = v_org_id\n     and oi.email     = v_email::citext\n     and oi.status    = 'pending'\n     and oi.expires_at \u003e now()\n   limit 1"
+        },
+        "sqlState": "42704"
+      }
+    ]
+  },
+  {
+    "function": "public.link_org_patient",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.log_admin_action(unknown, uuid, jsonb) does not exist",
+        "statement": {
+          "lineNumber": "33",
+          "text": "PERFORM"
+        },
+        "query": {
+          "position": "8",
+          "text": "SELECT public.log_admin_action(\n    'org_patient_linked',\n    p_org_id,\n    jsonb_build_object(\n      'link_id', v_link_id,\n      'patient_user_id', p_patient_user_id,\n      'consent_grant_id', p_consent_grant_id\n    )\n  )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.get_clinic_dose_trend_population",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column reference \"org_id\" is ambiguous",
+        "statement": {
+          "lineNumber": "12",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "59",
+          "text": "select role               from public.org_members\n  where org_id = p_org_id and user_id = v_caller_uid"
+        },
+        "detail": "It could refer to either a PL/pgSQL variable or a table column.",
+        "sqlState": "42702"
+      }
+    ]
+  },
+  {
+    "function": "public.rank_org_patients",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"_rank_current_scores\" does not exist",
+        "statement": {
+          "lineNumber": "201",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "1213",
+          "text": "insert into public.audit_logs (\n    user_id,\n    user_id_hash,\n    table_name,\n    row_id,\n    action,\n    actor_type,\n    org_id,\n    metadata,\n    timestamp\n  )\n  values (\n    v_caller_uid,\n    encode(digest(coalesce(v_caller_uid, '00000000-0000-0000-0000-000000000000'::uuid)::text, 'sha256'), 'hex'),\n    'rank_org_patients',\n    p_org_id::text,\n    'rank_computed',\n    'org_system',\n    p_org_id,\n    jsonb_build_object(\n      'patient_count', v_patient_count,\n      'weights_snapshot', jsonb_build_object(\n        'dose_adherence', v_w_dose_adherence,\n        'symptom_severity_per_unit', v_w_symptom_severity,\n        'weight_trend_reversal', v_w_weight_loss,\n        'days_since_injection_max', v_w_days_injection,\n        'streak_break', v_w_streak_break,\n        'source', case when v_weights is null then 'hardcoded_defaults' else 'org_settings' end\n      ),\n      'top_3_score_buckets', (\n        select jsonb_agg(jsonb_build_object('bucket', bucket, 'count', cnt))\n        from (\n          select\n            case\n              when r_score \u003e= 70 then 'high'\n              when r_score \u003e= 30 then 'mid'\n              else 'low'\n            end as bucket,\n            count(*) as cnt\n          from _rank_current_scores\n          group by 1\n          order by cnt desc\n          limit 3\n        ) bc\n      )\n    ),\n    now()\n  )"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.admin_bulk_action_execute",
+    "issues": [
+      {
+        "level": "error",
+        "message": "cannot cast type uuid to bigint",
+        "statement": {
+          "lineNumber": "119",
+          "text": "assignment"
+        },
+        "query": {
+          "position": "266",
+          "text": "v_audit_id := public.log_admin_action(\n      p_action_name    =\u003e v_action_name,\n      p_target_user_id =\u003e v_uid,\n      p_table_name     =\u003e 'profiles',\n      p_row_pk         =\u003e v_uid::text,\n      p_before         =\u003e v_before,\n      p_after          =\u003e v_after\n    )::bigint"
+        },
+        "context": "at assignment to variable \"v_audit_id\" declared on line 8",
+        "sqlState": "42846"
+      }
+    ]
+  },
+  {
+    "function": "public.check_test",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"__tresults___numb_seq\" does not exist",
+        "statement": {
+          "lineNumber": "17",
+          "text": "assignment"
+        },
+        "query": {
+          "position": "18",
+          "text": "tnumb := currval('__tresults___numb_seq')"
+        },
+        "context": "at assignment to variable \"tnumb\" declared on line 3",
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public._currtest",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"__tresults___numb_seq\" does not exist",
+        "statement": {
+          "lineNumber": "3",
+          "text": "RETURN"
+        },
+        "query": {
+          "position": "9",
+          "text": "currval('__tresults___numb_seq')"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.get_cac_summary",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.is_admin(uuid) does not exist",
+        "statement": {
+          "lineNumber": "4",
+          "text": "IF"
+        },
+        "query": {
+          "position": "5",
+          "text": "not public.is_admin(auth.uid())"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.run_ad_etl_gap_detection",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"public.admin_notifications\" does not exist",
+        "statement": {
+          "lineNumber": "32",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "13",
+          "text": "insert into public.admin_notifications (title, body, type)\n      values (\n        format('Ad ETL gap detected — %s', v_network),\n        format(\n          '%s missing %s of %s expected hourly rows for %s. Use Backfill button at /admin/growth/cac to recover.',\n          v_network,\n          v_expected - v_actual,\n          v_expected,\n          v_yesterday\n        ),\n        'ad_etl_gap'\n      )\n      on conflict do nothing"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.row_eq",
+    "issues": [
+      {
+        "level": "error",
+        "message": "operator does not exist: record = integer",
+        "statement": {
+          "lineNumber": "6",
+          "text": "IF"
+        },
+        "query": {
+          "position": "9",
+          "text": "NOT rec IS DISTINCT FROM $2"
+        },
+        "hint": "No operator matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.trigger_ad_etl_backfill",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"public.admin_notifications\" does not exist",
+        "statement": {
+          "lineNumber": "23",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "13",
+          "text": "insert into public.admin_notifications (title, body, type)\n  values (\n    'Backfill triggered',\n    format('Network %s, date %s, by admin %s', p_network, p_date, auth.uid()),\n    'ad_etl_backfill'\n  )\n  on conflict do nothing"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.get_leaderboard_for_user",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column reference \"rank_in_cohort\" is ambiguous",
+        "statement": {
+          "lineNumber": "19",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "8",
+          "text": "select rank_in_cohort                      from public.leaderboard_matview\n   where cohort_id = p_cohort_id and user_id = v_user"
+        },
+        "detail": "It could refer to either a PL/pgSQL variable or a table column.",
+        "sqlState": "42702"
+      }
+    ]
+  },
+  {
+    "function": "public.evaluate_challenge_progress_for_user",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.grant_xp_for_action(uuid, unknown, integer, text) does not exist",
+        "statement": {
+          "lineNumber": "91",
+          "text": "PERFORM"
+        },
+        "query": {
+          "position": "8",
+          "text": "SELECT public.grant_xp_for_action(\n            p_user,\n            'challenge_complete',\n            r.reward_xp,\n            'challenge:' || r.id::text\n          )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.review_funnel_aggregate",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column \"captured_at\" does not exist",
+        "statement": {
+          "lineNumber": "64",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "118",
+          "text": "select count(*)\n                    from public.events_mirror\n  where event_name = 'external_review_clicked'\n    and captured_at \u003e v_cutoff"
+        },
+        "sqlState": "42703"
+      }
+    ]
+  },
+  {
+    "function": "public.toggle_community_reaction",
+    "issues": [
+      {
+        "level": "error",
+        "message": "column reference \"emoji\" is ambiguous",
+        "statement": {
+          "lineNumber": "24",
+          "text": "IF"
+        },
+        "query": {
+          "position": "173",
+          "text": "exists (\n    select 1 from public.community_reactions\n    where user_id     = v_user_id\n      and target_type = p_target_type\n      and target_id   = p_target_id\n      and emoji       = p_emoji\n  )"
+        },
+        "detail": "It could refer to either a PL/pgSQL variable or a table column.",
+        "sqlState": "42702"
+      }
+    ]
+  },
+  {
+    "function": "public.p39_pharma_nps_kill_scan",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"public.review_submissions\" does not exist",
+        "statement": {
+          "lineNumber": "104",
+          "text": "FOR over EXECUTE statement"
+        },
+        "query": {
+          "position": "525",
+          "text": "\n      with assignees as (\n        select ue.variant_id, ue.user_id, ue.created_at as assigned_at\n          from public.user_experiments ue\n          join public.variant_config vc on vc.id = ue.variant_id\n         where ue.surface = 'pharma'\n           and vc.archived_at is null\n      ),\n      variant_rate as (\n        select a.variant_id,\n               count(*) as n,\n               count(*) filter (where rs.rating = 1)::numeric / nullif(count(*), 0)::numeric as one_star_rate\n          from assignees a\n          join public.review_submissions rs\n            on rs.user_id = a.user_id\n           and rs.submitted_at \u003e= now() - interval '7 days'\n         group by a.variant_id\n      ),\n      baseline_rate as (\n        select count(*) filter (where rating = 1)::numeric / nullif(count(*), 0)::numeric as rate\n          from public.review_submissions\n         where submitted_at \u003e= now() - interval '30 days'\n      ),\n      flagged as (\n        select vr.variant_id,\n               vr.one_star_rate,\n               br.rate as baseline_rate\n          from variant_rate vr\n         cross join baseline_rate br\n         where vr.n \u003e= 5\n           and br.rate is not null\n           and br.rate \u003e 0\n           and vr.one_star_rate \u003e 2 * br.rate\n      ),\n      killed as (\n        update public.variant_config vc\n           set archived_at = now()\n          from flagged f\n         where vc.id = f.variant_id\n           and vc.archived_at is null\n        returning vc.id, f.one_star_rate, f.baseline_rate, 'one_star_rate'::text as trigger_kind\n      )\n      select * from killed\n    "
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.get_pharma_experiments",
+    "issues": [
+      {
+        "level": "error",
+        "message": "relation \"public.review_submissions\" does not exist",
+        "statement": {
+          "lineNumber": "67",
+          "text": "RETURN QUERY"
+        },
+        "query": {
+          "position": "1556",
+          "text": "with assignees as (\n      select ue.variant_id, ue.user_id, ue.created_at as assigned_at\n        from public.user_experiments ue\n        join public.variant_config vc on vc.id = ue.variant_id\n       where ue.surface = 'pharma'\n    ),\n    sample as (\n      select a.variant_id,\n             count(distinct a.user_id)::bigint as sample_size\n        from assignees a\n       group by a.variant_id\n    ),\n    variant_nps as (\n      select a.variant_id,\n             100.0 * (\n               count(*) filter (where qnr.score \u003e= 9)::numeric\n               - count(*) filter (where qnr.score \u003c= 6)::numeric\n             ) / nullif(count(*), 0)::numeric as nps\n        from assignees a\n        join public.quarterly_nps_responses qnr\n          on qnr.user_id = a.user_id\n         and qnr.responded_at \u003e= a.assigned_at\n       group by a.variant_id\n    ),\n    baseline_nps as (\n      select 100.0 * (\n               count(*) filter (where score \u003e= 9)::numeric\n               - count(*) filter (where score \u003c= 6)::numeric\n             ) / nullif(count(*), 0)::numeric as nps\n        from public.quarterly_nps_responses\n       where responded_at \u003e= now() - interval '60 days'\n         and responded_at \u003c  now() - interval '30 days'\n    ),\n    one_star_per_user as (\n      select a.variant_id, a.user_id,\n             case when to_regclass('public.review_submissions') is null then null\n                  else (\n                    select count(*) filter (where rs.rating = 1)::numeric\n                         / nullif(count(*), 0)::numeric\n                      from public.review_submissions rs\n                     where rs.user_id = a.user_id\n                       and rs.submitted_at \u003e= a.assigned_at\n                  )\n             end as one_star_rate\n        from assignees a\n    ),\n    one_star_agg as (\n      select variant_id, avg(one_star_rate)::numeric as one_star_rate\n        from one_star_per_user\n       group by variant_id\n    ),\n    baseline_one_star as (\n      select case when to_regclass('public.review_submissions') is null then null\n                  else (\n                    select count(*) filter (where rating = 1)::numeric\n                         / nullif(count(*), 0)::numeric\n                      from public.review_submissions\n                     where submitted_at \u003e= now() - interval '30 days'\n                  )\n             end as rate\n    )\n    select\n      vc.id                                                              as variant_id,\n      coalesce(vc.config-\u003e\u003e'name', 'variant_' || left(vc.id::text, 8))   as variant_name,\n      vc.surface                                                         as surface,\n      vc.cohort_id                                                       as cohort_id,\n      cd.name                                                            as cohort_label,\n      coalesce(s.sample_size, 0::bigint)                                 as sample_size,\n      null::numeric                                                      as paid_rate,\n      null::numeric                                                      as retention_30d_rate,\n      null::numeric                                                      as composite_score,\n      0::numeric                                                         as posterior,\n      null::numeric                                                      as refund_rate_7d,\n      null::numeric                                                      as refund_rate_baseline_30d,\n      vc.warned_at                                                       as warned_at,\n      vc.archived_at                                                     as archived_at,\n      vc.created_at                                                      as created_at,\n      case when bn.nps is null or vn.nps is null then null\n           else vn.nps - bn.nps end                                      as nps_delta,\n      case when bo.rate is null or bo.rate = 0 or osa.one_star_rate is null then null\n           else osa.one_star_rate / bo.rate end                          as one_star_rate_ratio,\n      '{}'::text[]                                                       as safety_categories_in_variant\n    from public.variant_config vc\n    left join public.cohort_definitions cd on cd.id = vc.cohort_id\n    left join sample s on s.variant_id = vc.id\n    left join variant_nps vn on vn.variant_id = vc.id\n    cross join baseline_nps bn\n    left join one_star_agg osa on osa.variant_id = vc.id\n    cross join baseline_one_star bo\n    where vc.surface = 'pharma'\n    order by vc.created_at desc"
+        },
+        "sqlState": "42P01"
+      }
+    ]
+  },
+  {
+    "function": "public.event_rsvp_create",
+    "issues": [
+      {
+        "level": "error",
+        "message": "function public.can_see_community_space(uuid, uuid) does not exist",
+        "statement": {
+          "lineNumber": "23",
+          "text": "IF"
+        },
+        "query": {
+          "position": "104",
+          "text": "not exists (\n    select 1 from public.community_spaces s\n     where s.id = v_event.space_id\n       and public.can_see_community_space(s.id, v_user_id)\n  )"
+        },
+        "hint": "No function matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  },
+  {
+    "function": "public.list_rag_review_queue",
+    "issues": [
+      {
+        "level": "error",
+        "message": "structure of query does not match function result type",
+        "statement": {
+          "lineNumber": "8",
+          "text": "RETURN QUERY"
+        },
+        "detail": "Returned type character varying(255) does not match expected type text in column 7.",
+        "sqlState": "42804"
+      }
+    ]
+  },
+  {
+    "function": "public.rag_acknowledge_budget_cap",
+    "issues": [
+      {
+        "level": "error",
+        "message": "operator does not exist: rag_vendor = text",
+        "statement": {
+          "lineNumber": "15",
+          "text": "SQL statement"
+        },
+        "query": {
+          "position": "73",
+          "text": "select *                  from   public.rag_budget_caps\n  where  vendor = p_vendor\n  for    update"
+        },
+        "hint": "No operator matches the given name and argument types. You might need to add explicit type casts.",
+        "sqlState": "42883"
+      }
+    ]
+  }
+]
+<claude-code-hint v="1" type="plugin" value="supabase@claude-plugins-official" />
+A new version of Supabase CLI is available: v2.101.0 (currently installed v2.98.2)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

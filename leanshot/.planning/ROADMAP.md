@@ -570,6 +570,8 @@ Plans:
 
 ### Phase 69.6: Lint Sweep — frontend + RPC body cleanup
 
+**Status:** ✅ FRONTEND COMPLETE 2026-05-27 — 137 → 0 frontend lint errors (3 commits: e7829b86, b76c0c7d, 1398e06b). TypeScript clean. CI `npm run lint` job now passes. RPC body lint scope reclassified during execution: 35 errors are mostly schema-drift (parallels Phase 65.1 org_subscriptions pattern), NOT mechanical type-mismatches. Deferred to dedicated phase per `69.6-SUMMARY.md`.
+
 **Goal**: Clear the remaining 138 frontend lint errors (predominantly `import-x/order` per-file restructure + ~32 `jsx-a11y/*` per-component DOM judgment) AND the 35 pre-existing RPC body lint errors (character varying vs text type mismatches; missing operator definitions on RAG enums). Pre-launch code-quality polish phase. Recommended before Phase 70 UAT so CI runs clean.
 **Depends on**: Phase 69.7 CODE-COMPLETE (which it is); inherits the 138-error baseline established by same-day cleanup 2026-05-27 (532 → 138 across 6 commits via `npm run lint:fix` + mechanical batches).
 **Requirements**: No new REQ IDs (code-quality cleanup); covers LINT-01..03 implicit success criteria below.
