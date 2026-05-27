@@ -112,7 +112,7 @@ describeIfLive('P30 RLS — clinician_alerts cross-tenant isolation', () => {
 
   // ─── T5a: Cross-tenant UPDATE returns 0 rows affected ───────────────────────
   it('T5a: User A cannot UPDATE clinician_alerts of Org Y', async () => {
-    const { data, error } = await fixture.sessA.client
+    const { data, error: _error } = await fixture.sessA.client
       .from('clinician_alerts')
       .update({ retry_count: 99 })
       .eq('org_id', fixture.orgY)
@@ -126,7 +126,7 @@ describeIfLive('P30 RLS — clinician_alerts cross-tenant isolation', () => {
 
   // ─── T5b: Cross-tenant DELETE returns 0 rows affected ───────────────────────
   it('T5b: User A cannot DELETE clinician_alerts of Org Y', async () => {
-    const { data, error } = await fixture.sessA.client
+    const { data, error: _error } = await fixture.sessA.client
       .from('clinician_alerts')
       .delete()
       .eq('org_id', fixture.orgY)

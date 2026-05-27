@@ -167,6 +167,7 @@ export default function TicketDetailPage({
   }
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- backdrop click-to-close; keyboard equivalent is Escape on the dialog body
     <div
       role="dialog"
       aria-modal="true"

@@ -77,6 +77,14 @@ export default defineConfig([
 
       // Accessibility — non-negotiable per PROJECT.md (D-02)
       ...jsxA11yPlugin.configs.recommended.rules,
+      // Phase 69.6: register project's custom form-control components so the
+      // rule can see through wrapper components like <Input>, <Textarea>, etc.
+      // when validating nested-label associations. Without this list, the rule
+      // can only detect native <input>/<select>/<textarea> children.
+      'jsx-a11y/label-has-associated-control': ['error', {
+        controlComponents: ['Input', 'Textarea', 'Select'],
+        assert: 'either',
+      }],
 
       // Import ordering
       'import-x/order': ['error', {

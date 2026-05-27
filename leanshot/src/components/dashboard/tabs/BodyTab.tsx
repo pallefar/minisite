@@ -418,6 +418,7 @@ export function BodyTab() {
                     </button>
                     {/* Overflow popover */}
                     {isMenuOpen && (
+                      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stopPropagation wrapper; popover content has its own keyboard-navigable buttons
                       <div
                         className="absolute top-8 right-1.5 z-30 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-lg py-1 min-w-[130px]"
                         onClick={(e) => e.stopPropagation()}

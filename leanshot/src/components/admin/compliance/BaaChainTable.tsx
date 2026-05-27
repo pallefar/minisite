@@ -247,6 +247,7 @@ export function BaaChainTable() {
 
       {/* Edit-status modal */}
       {modal.open && (
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- dialog with Escape handler (matches WAI-ARIA dialog pattern)
         <div
           role="dialog"
           aria-modal="true"

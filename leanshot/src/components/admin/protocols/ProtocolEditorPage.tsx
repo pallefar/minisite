@@ -384,10 +384,11 @@ export function ProtocolEditorPage() {
           {/* Compound + audience */}
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+              <label htmlFor="protocol-compound" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
                 Compound
               </label>
               <select
+                id="protocol-compound"
                 value={protocol.compound}
                 onChange={(e) => setProtocol((p) => p ? { ...p, compound: e.target.value } : p)}
                 aria-label="Compound"

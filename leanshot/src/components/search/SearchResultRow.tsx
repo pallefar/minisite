@@ -36,7 +36,16 @@ export function SearchResultRow({ result, onSelect }: Props) {
   const safeSnippet = result.snippet ? sanitizeSnippet(result.snippet) : '';
   return (
     <div
+      role="option"
+      aria-selected={false}
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className="flex flex-col gap-1 px-3 py-2 rounded-md cursor-pointer data-[selected=true]:bg-[var(--color-surface-elevated)]"
       data-result-type={result.type}
     >

@@ -502,6 +502,7 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
       <fieldset className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-3">
         <legend className="px-1 text-sm font-medium">Meeting link</legend>
         <div className="space-y-2">
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- radio is wrapped by label; descriptive text in nested <span>; a11y intact */}
           <label className="flex items-start gap-2 text-sm">
             <input
               type="radio"
@@ -532,6 +533,7 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
             <p className="text-xs text-[var(--color-danger)]">{pasteError}</p>
           )}
 
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- radio is wrapped by label; descriptive text in nested <span>; a11y intact */}
           <label className="flex items-start gap-2 text-sm">
             <input
               type="radio"

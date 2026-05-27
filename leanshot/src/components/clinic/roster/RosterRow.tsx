@@ -181,6 +181,7 @@ export function RosterRow({
             {row.display_name.split(' ')[0]}&apos;s data updated.
           </span>
         )}
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stopPropagation wrapper for ScoreChip; no user-interactive intent on the div itself */}
         <div onClick={(e) => e.stopPropagation()}>
           <ScoreChip
             score={row.score}

@@ -104,10 +104,11 @@ function NewPublicationForm({ currentUserId, onCreated }: NewPublicationFormProp
       </p>
 
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+        <label htmlFor="publication-title" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
           Title
         </label>
         <input
+          id="publication-title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -117,10 +118,11 @@ function NewPublicationForm({ currentUserId, onCreated }: NewPublicationFormProp
       </div>
 
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+        <label htmlFor="publication-slug" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
           Slug
         </label>
         <input
+          id="publication-slug"
           type="text"
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
@@ -381,10 +383,11 @@ export function PublicationEditorPage() {
 
           {/* Abstract */}
           <div className="space-y-1">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+            <label htmlFor="publication-abstract" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
               Abstract
             </label>
             <textarea
+              id="publication-abstract"
               value={publication.abstract ?? ''}
               onChange={(e) =>
                 setPublication((p) => (p ? { ...p, abstract: e.target.value } : p))

@@ -83,6 +83,7 @@ export function ScoreBreakdownPopover({
 
   return (
     // Backdrop
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop click-to-close; keyboard equivalent is Escape on popover
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
       onClick={(e) => {

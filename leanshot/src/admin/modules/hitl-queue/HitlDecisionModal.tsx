@@ -49,10 +49,12 @@ export function HitlDecisionModal({ row, open, onClose, onSubmit }: HitlDecision
   }
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- backdrop click-to-close; keyboard equivalent is Escape on dialog
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--color-surface-overlay,rgba(0,0,0,0.6))] p-4"
       onClick={onClose}
     >
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- stopPropagation wrapper; dialog body has its own keyboard-navigable controls */}
       <div
         role="dialog"
         aria-modal="true"

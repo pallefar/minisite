@@ -150,6 +150,7 @@ export function RosterMobileCard({
           <div className="flex items-start gap-2">
             {/* Checkbox: shown when onToggleSelect is available */}
             {onToggleSelect && (
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- parent card has keyboard handler; this is a child icon-only toggle
               <div
                 role="checkbox"
                 aria-checked={isSelected}
@@ -188,6 +189,7 @@ export function RosterMobileCard({
               {row.display_name}
             </span>
           </div>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stopPropagation wrapper for inner ScoreChip; no user-interactive intent */}
           <div onClick={(e) => e.stopPropagation()}>
             <ScoreChip
               score={row.score}

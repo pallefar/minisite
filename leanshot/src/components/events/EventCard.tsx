@@ -112,6 +112,7 @@ export function EventCard({
 
       {/* RSVP row — stop propagation so a pill click does NOT trigger the
           drill-in (button-inside-button avoidance per a11y rules). */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- stopPropagation wrapper to avoid pill click triggering drill-in; RsvpPills are keyboard-accessible buttons */}
       <div
         className="px-4 pb-4 pt-1"
         onClick={(e) => e.stopPropagation()}
