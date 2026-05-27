@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-27T06:12:34.903Z"
+last_updated: "2026-05-27T06:51:36.750Z"
 progress:
   total_phases: 20
   completed_phases: 12
@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 68 CODE-COMPLETE (2026-05-27) — Audience Landing + Sales Enablement: 3 migrations + 1 Edge Fn + AudienceLandingPage component + middleware UTM resolver + dual sitemap update. LAND-01..08 code-complete. Phase 65 drift still blocks db push. Advancing to Phase 69 (Layout & Design Polish).
+**Status:** Executing Phase 69
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,7 +27,7 @@ progress:
 
 ## Current Position
 
-Phase: 68 (Audience Landing + Sales Enablement) — EXECUTING
+Phase: 69 (Layout & Design Polish) — EXECUTING
 Plan: 1 of 5
 
 - **Phase:** 65 CODE-COMPLETE — Stripe Tax + Payment Resilience: 10 migrations + 7 Fns + 31 email templates + 3 UI surfaces (PaymentFailedBanner / RefundRequestForm / TaxDashboard) + 5 Rule-1 schema drift fixes (subscriptions.id text vs uuid; org_subscriptions PK=org_id; subscriptions.trial_end; subscriptions.id IS Stripe natural PK; 2 unplanned migrations from 65-08 nexus alert log). 173/173 new tests green; cross-Fn Deno sweep 100/100. Remote deploy + operator gates ALL deferred to Phase 70 UAT.
