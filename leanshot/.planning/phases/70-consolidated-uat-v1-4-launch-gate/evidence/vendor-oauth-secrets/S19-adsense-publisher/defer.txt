@@ -1,0 +1,12 @@
+S19 — AdSense publisher (DEFERRED, non-critical)
+==================================================
+
+Deferred: 2026-05-27
+GH issue: https://github.com/pallefar/minisite/issues/7
+Label: v1.4-launch-deferral
+Reason: AdSense approval needs live deployed app with content + 2-4 weeks Google review window; primary ad surface is mobile AdMob (S18 critical). Web AdSense banner is incremental revenue, can ship post-launch. Non-critical per Plan 70-01 disposition.
+
+Method: scripts/uat-defer.sh vendor-oauth-secrets-S19-adsense-publisher '<reason>'
+
+Signal status: DEFER (non-critical; safe to ship without)
+signoff: karsten.haldan@gmail.com, 2026-05-27, defer:adsense-defer-to-post-launch — GH issue #7 opened

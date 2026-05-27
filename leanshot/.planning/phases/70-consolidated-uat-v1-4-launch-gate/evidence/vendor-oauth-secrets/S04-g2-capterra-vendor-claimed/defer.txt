@@ -1,0 +1,12 @@
+S04 — G2 + Capterra vendor profile claims (DEFERRED, non-critical)
+====================================================================
+
+Deferred: 2026-05-27
+GH issue: https://github.com/pallefar/minisite/issues/5
+Label: v1.4-launch-deferral
+Reason: Per-platform business claim takes days; vendor-gated soft fallback renders correctly until claimed. Both G2 and Capterra are independent — each has its own defer state. Non-critical per Plan 70-01 disposition.
+
+Method: scripts/uat-defer.sh vendor-oauth-secrets-S04-g2-capterra-vendor-claimed '<reason>'
+
+Signal status: DEFER (non-critical; safe to ship without)
+signoff: karsten.haldan@gmail.com, 2026-05-27, defer:g2-capterra-defer-to-post-launch — GH issue #5 opened

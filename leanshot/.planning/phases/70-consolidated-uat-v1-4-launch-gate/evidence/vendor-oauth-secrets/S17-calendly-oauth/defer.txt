@@ -1,0 +1,12 @@
+S17 — Calendly OAuth (DEFERRED, non-critical)
+===============================================
+
+Deferred: 2026-05-27
+GH issue: https://github.com/pallefar/minisite/issues/6
+Label: v1.4-launch-deferral
+Reason: Calendly OAuth app registration deferred to post-launch; book-a-call CTA falls back to generic mailto: when integration disconnected. Non-critical per Plan 70-01 disposition.
+
+Method: scripts/uat-defer.sh vendor-oauth-secrets-S17-calendly-oauth '<reason>'
+
+Signal status: DEFER (non-critical; safe to ship without)
+signoff: karsten.haldan@gmail.com, 2026-05-27, defer:calendly-defer-to-post-launch — GH issue #6 opened

@@ -1,0 +1,12 @@
+S03 — Trustpilot vendor profile claim (DEFERRED, non-critical)
+================================================================
+
+Deferred: 2026-05-27
+GH issue: https://github.com/pallefar/minisite/issues/4
+Label: v1.4-launch-deferral
+Reason: Business profile claim takes 5+ business days; vendor-gated soft fallback ("Thanks for the rating!" no-CTA) renders correctly until claimed per Plan 70-01 disposition + Phase 36 vendor-block fallback design.
+
+Method: scripts/uat-defer.sh vendor-oauth-secrets-S03-trustpilot-vendor-claimed '<reason>'
+
+Signal status: DEFER (non-critical; safe to ship without)
+signoff: karsten.haldan@gmail.com, 2026-05-27, defer:trustpilot-defer-to-post-launch — GH issue #4 opened

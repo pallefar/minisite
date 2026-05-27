@@ -670,8 +670,8 @@ Operator: fill checkbox + `signoff:` line as each signal completes. If you stop 
 
 - [x] **S01** — vault `share_token_secret` set — signoff: karsten.haldan@gmail.com, 2026-05-27, vault UUID b7c8eb9d-b872-4c61-ae51-298cbe08df0b
 - [x] **S02** — Vercel `SHARE_TOKEN_SECRET` env — signoff: karsten.haldan@gmail.com, 2026-05-27, production scope, byte-identical to S01 vault value
-- [ ] **S03** — Trustpilot vendor claim (non-critical) — signoff: __________
-- [ ] **S04** — G2 + Capterra vendor claims (non-critical) — signoff: __________
+- [x] **S03** — Trustpilot vendor claim (non-critical) — `defer:trustpilot-defer-to-post-launch` — signoff: karsten.haldan@gmail.com, 2026-05-27, GH issue #4 — vendor-gated soft fallback ships safely
+- [x] **S04** — G2 + Capterra vendor claims (non-critical) — `defer:g2-capterra-defer-to-post-launch` — signoff: karsten.haldan@gmail.com, 2026-05-27, GH issue #5 — vendor-gated soft fallback ships safely
 - [x] **S05** — PostHog experiment + `POSTHOG_PERSONAL_API_KEY` — signoff: karsten.haldan@gmail.com, 2026-05-27, experiment 82078 `nps_prompt_copy` status=running; flag active w/ control+variant_a 50/50; secret pre-set ex-Phase 60; live-user smoke folded into Plan 03 S03
 - [x] **S06** — Stripe Lifetime product + `STRIPE_PRICE_LIFETIME` — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST-mode product `prod_UauqWumnCXMQKm` + price `price_0Tbj1G1xTnHBqsUWKgtlE8FW` ($499); secret + `_LIVE` placeholder + `stripe_price_lookup` row + STRIPE_MODE=test set; switchover runbook at `STRIPE-MODE-SWITCHOVER.md`
 - [ ] **S07** — Mux secrets (3) — signoff: __________
@@ -684,9 +684,9 @@ Operator: fill checkbox + `signoff:` line as each signal completes. If you stop 
 - [ ] **S14** — Apple Dev `APPLE_TEAM_ID` + `APPLE_BUNDLE_ID` — signoff: __________
 - [ ] **S15** — Sign-in-with-Apple `APPLE_CLIENT_SECRET` JWT — signoff: __________
 - [ ] **S16** — Play Developer account + Android signing key — signoff: __________
-- [ ] **S17** — Calendly OAuth (non-critical) — signoff: __________
+- [x] **S17** — Calendly OAuth (non-critical) — `defer:calendly-defer-to-post-launch` — signoff: karsten.haldan@gmail.com, 2026-05-27, GH issue #6 — book-a-call CTA falls back to mailto:
 - [ ] **S18** — AdMob publisher ID + iOS/Android App IDs — signoff: __________
-- [ ] **S19** — AdSense publisher (non-critical) — signoff: __________
+- [x] **S19** — AdSense publisher (non-critical) — `defer:adsense-defer-to-post-launch` — signoff: karsten.haldan@gmail.com, 2026-05-27, GH issue #7 — primary ad surface is mobile AdMob (S18); web AdSense incremental
 - [x] **S20** — `scripts/uat-defer.sh` committed — signoff: karsten.haldan@gmail.com, 2026-05-27, scripts/uat-defer.sh ships + smoke verified via real GH issue (#3 created + closed cleanly)
 - [~] **S21** — evidence dir bootstrap + final secret sweep — signoff: karsten.haldan@gmail.com, 2026-05-27, evidence/ tree (21 subdirs) + recon snapshot captured; **final 17-secret sweep deferred until critical signals all land**
 
