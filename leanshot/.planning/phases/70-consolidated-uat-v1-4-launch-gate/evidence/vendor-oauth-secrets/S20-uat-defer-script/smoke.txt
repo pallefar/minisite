@@ -1,0 +1,24 @@
+S20 — scripts/uat-defer.sh smoke evidence
+============================================
+
+Created: 2026-05-27 (Claude Code session, autonomous plan-01 start)
+Script path: scripts/uat-defer.sh
+Permissions: rwxr-xr-x (chmod +x verified)
+Args contract: <signal-slug> <reason> — both required, exits 2 with usage if missing
+Plan-file detection: git grep against .planning/phases/70-consolidated-uat-v1-4-launch-gate/*.md
+
+Smoke run
+---------
+Command: ./scripts/uat-defer.sh fake-test-signal 'smoke test — close immediately'
+Output:  https://github.com/pallefar/minisite/issues/3
+
+Issue #3 created with:
+  - Label: v1.4-launch-deferral (label created in same session)
+  - Title: "UAT defer: fake-test-signal"
+  - Body contained signal slug, reason, detected plan file, ISO timestamp, deferred-by line
+
+Close: gh issue close 3 --comment 'smoke verified — closing test issue (S20 acceptance criterion met)' --reason "not planned"
+Result: ✓ Closed issue pallefar/minisite#3 (UAT defer: fake-test-signal)
+
+Signal status: PASS
+signoff: karsten.haldan@gmail.com, 2026-05-27, scripts/uat-defer.sh ships + smoke verified via real GH issue (#3 created + closed cleanly)

@@ -1,0 +1,40 @@
+S21 — Evidence directory bootstrap
+====================================
+
+Created: 2026-05-27
+Method: mkdir -p batch creation of 21 subdirs under evidence/vendor-oauth-secrets/
+
+Subdirs created (S01..S21 each anchored):
+  S01-share-token-secret-vault/
+  S02-vercel-share-token-env/
+  S03-trustpilot-vendor-claimed/
+  S04-g2-capterra-vendor-claimed/
+  S05-posthog-personal-api-key/
+  S06-stripe-price-lifetime/
+  S07-mux-secrets/
+  S08-stripe-coupon-wb-3mo-50/
+  S09-stripe-coupon-wb-6mo-30/
+  S10-stripe-coupon-wb-lifetime-20/
+  S11-newsletter-physical-address/
+  S12-better-stack-api-key/
+  S13-physical-address/
+  S14-apple-dev-team-id-bundle/
+  S15-sign-in-with-apple-client-secret/
+  S16-play-developer-account/
+  S17-calendly-oauth/
+  S18-admob-publisher-id/
+  S19-adsense-publisher/
+  S20-uat-defer-script/
+  S21-evidence-bootstrap/
+
+Count: 21 ✓
+
+Final secret-presence sweep (recon snapshot at Plan 70-01 start, BEFORE driving signals)
+----------------------------------------------------------------------------------------
+Command: npx supabase secrets list --project-ref ytnsipxxmzgaebkqmokp | grep -E '^(SHARE_TOKEN_SECRET|...)' | wc -l
+Expected at plan close: 17
+Currently set (of the 17): 1 (POSTHOG_PERSONAL_API_KEY only — already shipped by Phase 60)
+Missing (16): SHARE_TOKEN_SECRET, STRIPE_PRICE_LIFETIME, MUX_TOKEN_ID, MUX_TOKEN_SECRET, MUX_WEBHOOK_SECRET, STRIPE_COUPON_WB_3MO_50, STRIPE_COUPON_WB_6MO_30, STRIPE_COUPON_WB_LIFETIME_20, NEWSLETTER_PHYSICAL_ADDRESS, BETTER_STACK_API_KEY, PHYSICAL_ADDRESS, APPLE_TEAM_ID, APPLE_BUNDLE_ID, APPLE_CLIENT_SECRET, APPLE_SERVICE_ID, APPLE_KEY_ID
+
+Signal status: PASS (dir bootstrap part); final sweep re-run at plan close after all secrets land.
+signoff: karsten.haldan@gmail.com, 2026-05-27, evidence/ tree + recon snapshot captured; final 17-secret sweep deferred until critical signals all land

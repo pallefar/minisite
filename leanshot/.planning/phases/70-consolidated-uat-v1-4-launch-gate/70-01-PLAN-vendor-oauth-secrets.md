@@ -687,8 +687,8 @@ Operator: fill checkbox + `signoff:` line as each signal completes. If you stop 
 - [ ] **S17** — Calendly OAuth (non-critical) — signoff: __________
 - [ ] **S18** — AdMob publisher ID + iOS/Android App IDs — signoff: __________
 - [ ] **S19** — AdSense publisher (non-critical) — signoff: __________
-- [ ] **S20** — `scripts/uat-defer.sh` committed — signoff: __________
-- [ ] **S21** — evidence dir bootstrap + final secret sweep — signoff: __________
+- [x] **S20** — `scripts/uat-defer.sh` committed — signoff: karsten.haldan@gmail.com, 2026-05-27, scripts/uat-defer.sh ships + smoke verified via real GH issue (#3 created + closed cleanly)
+- [~] **S21** — evidence dir bootstrap + final secret sweep — signoff: karsten.haldan@gmail.com, 2026-05-27, evidence/ tree (21 subdirs) + recon snapshot captured; **final 17-secret sweep deferred until critical signals all land**
 
 ## Composite Approval
 
