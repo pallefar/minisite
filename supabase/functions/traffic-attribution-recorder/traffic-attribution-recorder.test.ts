@@ -299,3 +299,127 @@ Deno.test('helper: isAllowedOrigin() allowlist', () => {
   assert(!isAllowedOrigin(null));
   assert(!isAllowedOrigin(''));
 });
+
+// ============================================================================
+// Phase 68 Plan 68-04 — LAND-07: landing_page dimension in PostHog payload
+//
+// Exercises recordTouch() directly (not via the recorder Fn handler) to
+// confirm the new `landing_page` event property + first/last-touch person
+// properties land in the PostHog capture call. Uses the new
+// `setCaptureServerForTest` + `setAdminForTest` seams in
+// `_shared/traffic-attribution.ts` so the test never touches Supabase or
+// the posthog-node client.
+// ============================================================================
+
+import {
+  recordTouch,
+  setAdminForTest,
+  setCaptureServerForTest,
+  resetAdminForTest,
+} from '../_shared/traffic-attribution.ts';
+
+interface CapturedEvent {
+  userId: string;
+  event: string;
+  properties: Record<string, unknown>;
+}
+
+function makeStubAdmin() {
+  // Minimal SupabaseClient-shaped stub. `rpc` resolves both calls:
+  //   - classify_channel_group_with_referrer → 'Paid Search'
+  //   - upsert_traffic_attribution            → no error
+  return {
+    rpc: (name: string) => {
+      if (name === 'classify_channel_group_with_referrer') {
+        return Promise.resolve({ data: 'Paid Search', error: null });
+      }
+      if (name === 'upsert_traffic_attribution') {
+        return Promise.resolve({ data: null, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    },
+  };
+}
+
+Deno.test('LAND-07: recordTouch emits landing_page event property + first/last touch person props', async () => {
+  resetAdminForTest();
+  setAdminForTest(makeStubAdmin());
+
+  const captured: CapturedEvent[] = [];
+  setCaptureServerForTest((args) => {
+    captured.push({
+      userId: args.userId,
+      event: args.event,
+      properties: (args.properties ?? {}) as Record<string, unknown>,
+    });
+  });
+
+  const now = new Date('2026-05-27T12:00:00Z');
+  const result = await recordTouch({
+    anonId: 'anon-land07',
+    utm: { source: 'clinic_outreach', medium: 'email', campaign: 'q2-outreach' },
+    referrer: null,
+    landingPath: '/for-clinics',
+    audience: 'clinic-org',
+    now,
+  });
+
+  assertEquals(result.ok, true);
+  assertEquals(captured.length, 1, 'captureServer must be invoked exactly once');
+
+  const ev = captured[0]!;
+  assertEquals(ev.event, 'traffic_visit');
+  // Event-level dimension — primary fact the funnel-break alerts pivot on.
+  assertEquals(ev.properties.landing_page, '/for-clinics');
+  // The legacy landing_path field must remain (Phase 51 contract).
+  assertEquals(ev.properties.landing_path, '/for-clinics');
+
+  // First-touch person property — pinned via $set_once.
+  const setOnce = ev.properties.$set_once as Record<string, unknown>;
+  assert(setOnce, '$set_once block must be present');
+  assertEquals(setOnce.first_touch_landing_page, '/for-clinics');
+
+  // Last-touch person property — overwritten on every event via $set.
+  const set = ev.properties.$set as Record<string, unknown>;
+  assert(set, '$set block must be present');
+  assertEquals(set.last_touch_landing_page, '/for-clinics');
+
+  // Cleanup: reset both seams so subsequent tests in this file see the real
+  // module-level behavior.
+  setCaptureServerForTest(null);
+  resetAdminForTest();
+});
+
+Deno.test('LAND-07: redacted PHI landing path flows through to landing_page', async () => {
+  resetAdminForTest();
+  setAdminForTest(makeStubAdmin());
+
+  const captured: CapturedEvent[] = [];
+  setCaptureServerForTest((args) => {
+    captured.push({
+      userId: args.userId,
+      event: args.event,
+      properties: (args.properties ?? {}) as Record<string, unknown>,
+    });
+  });
+
+  // The recorder Fn redacts /patient/<id> before calling recordTouch, so the
+  // helper itself sees '/[redacted]'. Confirm the dimension preserves that.
+  const result = await recordTouch({
+    anonId: 'anon-land07-phi',
+    utm: {},
+    referrer: null,
+    landingPath: '/[redacted]',
+    audience: 'consumer',
+    now: new Date('2026-05-27T12:00:00Z'),
+  });
+
+  assertEquals(result.ok, true);
+  const ev = captured[0]!;
+  assertEquals(ev.properties.landing_page, '/[redacted]');
+  const setOnce = ev.properties.$set_once as Record<string, unknown>;
+  assertEquals(setOnce.first_touch_landing_page, '/[redacted]');
+
+  setCaptureServerForTest(null);
+  resetAdminForTest();
+});
