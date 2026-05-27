@@ -478,14 +478,14 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | OPS-08 | Phase 67 | Complete (code) |
 | OPS-09 | Phase 67 | Complete (code) |
 | OPS-10 | Phase 67 | Complete (code) |
-| LAND-01 | Phase 68 | Pending |
-| LAND-02 | Phase 68 | Pending |
-| LAND-03 | Phase 68 | Pending |
-| LAND-04 | Phase 68 | Pending |
-| LAND-05 | Phase 68 | Pending |
-| LAND-06 | Phase 68 | Pending |
-| LAND-07 | Phase 68 | Pending |
-| LAND-08 | Phase 68 | Pending |
+| LAND-01 | Phase 68 | Complete (code) |
+| LAND-02 | Phase 68 | Complete (code) |
+| LAND-03 | Phase 68 | Complete (code) |
+| LAND-04 | Phase 68 | Complete (code) |
+| LAND-05 | Phase 68 | Complete (code) |
+| LAND-06 | Phase 68 | Complete (code) |
+| LAND-07 | Phase 68 | Complete (code) |
+| LAND-08 | Phase 68 | Complete (code) |
 | DS-01 | Phase 69 | Pending |
 | DS-02 | Phase 69 | Pending |
 | DS-03 | Phase 69 | Pending |
