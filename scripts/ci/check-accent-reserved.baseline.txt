@@ -1,0 +1,24 @@
+# Phase 69 Plan 69-01 — DS-03 accent-reserved baseline (12 files).
+# Generated 2026-05-27 by initial-run audit. Each file below contains accent
+# class usage (text-primary, bg-accent, text-success, etc.) outside the
+# reserved-surface filename patterns (see check-accent-reserved.ts
+# RESERVED_FILE_PATTERNS). Phase 69.5 tech-debt sweep evaluates each:
+#   - Move accent usage into a reserved sub-component (e.g. extract a
+#     <CtaButton> from the inline class list), OR
+#   - Replace accent class with a neutral token (text-text, bg-surface), OR
+#   - Add the file to RESERVED_FILE_PATTERNS if it IS a status surface.
+#
+# To shrink: remove a file's line after migrating it. New files acquiring
+# accent usage outside the reserved-surface list will fail the CI gate.
+leanshot/src/admin/modules/helpdesk/HelpdeskInboxPage.tsx
+leanshot/src/admin/modules/helpdesk/SentimentQueuePage.tsx
+leanshot/src/admin/modules/helpdesk/TicketDetailPage.tsx
+leanshot/src/components/AccountSuspended.tsx
+leanshot/src/components/auth/TotpEnrollFlow.tsx
+leanshot/src/components/knowledge/KnowledgeArticleDetailPage.tsx
+leanshot/src/components/knowledge/KnowledgeNotFound.tsx
+leanshot/src/components/knowledge/KnowledgeRootPage.tsx
+leanshot/src/components/knowledge/KnowledgeTopicIndexPage.tsx
+leanshot/src/components/knowledge/SourcesPanel.tsx
+leanshot/src/components/landing/AudienceLandingPage.tsx
+leanshot/src/components/settings/SecuritySettingsPage.tsx
