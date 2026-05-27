@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-27T05:56:40.315Z"
+last_updated: "2026-05-27T06:12:34.903Z"
 progress:
   total_phases: 20
   completed_phases: 12
@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 67 CODE-COMPLETE (2026-05-27) — Operational Runbooks + Observability: 4 runbooks (1235 LOC), 3 k6 scripts + vercel rate-limit, SENTRY_DSN CI guard (135 Fns scanned, 0 stubs), cold-start audit, PostHog funnel seed, bs-status-poller Edge Fn (13 Deno tests). OPS-01..10 code-complete. Operator-run + deploy items deferred to Phase 70. Advancing to Phase 68.
+**Status:** Executing Phase 68
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,7 +27,7 @@ progress:
 
 ## Current Position
 
-Phase: 67 (Operational Runbooks + Observability) — EXECUTING
+Phase: 68 (Audience Landing + Sales Enablement) — EXECUTING
 Plan: 1 of 5
 
 - **Phase:** 65 CODE-COMPLETE — Stripe Tax + Payment Resilience: 10 migrations + 7 Fns + 31 email templates + 3 UI surfaces (PaymentFailedBanner / RefundRequestForm / TaxDashboard) + 5 Rule-1 schema drift fixes (subscriptions.id text vs uuid; org_subscriptions PK=org_id; subscriptions.trial_end; subscriptions.id IS Stripe natural PK; 2 unplanned migrations from 65-08 nexus alert log). 173/173 new tests green; cross-Fn Deno sweep 100/100. Remote deploy + operator gates ALL deferred to Phase 70 UAT.
