@@ -1,0 +1,61 @@
+S06 — Stripe Lifetime product + STRIPE_PRICE_LIFETIME secret + price lookup seed
+====================================================================================
+
+Created: 2026-05-27
+Stripe mode: TEST (per user direction; LIVE flip deferred to post-launch operator gate)
+
+Stripe objects created
+----------------------
+$ stripe products create --name="LeanShot Lifetime" --description="..." -d 'metadata[plan]=lifetime' ...
+  Product ID: prod_UauqWumnCXMQKm
+
+$ stripe prices create --product=prod_UauqWumnCXMQKm --unit-amount=49900 --currency=usd ...
+  Price ID:   price_0Tbj1G1xTnHBqsUWKgtlE8FW
+  Amount:     $499.00 USD (49900 cents)
+  Mode:       TEST
+
+Supabase Function Secrets set
+-----------------------------
+$ npx supabase secrets set --project-ref ytnsipxxmzgaebkqmokp \
+    STRIPE_PRICE_LIFETIME=price_0Tbj1G1xTnHBqsUWKgtlE8FW \
+    STRIPE_PRICE_LIFETIME_LIVE=PENDING_LIVE_FLIP_70_01_S06 \
+    STRIPE_MODE=test
+Finished supabase secrets set.
+
+Both secrets confirmed via `supabase secrets list`:
+   STRIPE_PRICE_LIFETIME              | 71ad1338818c6e65a9f63d02fb4050258ee2f3373f86f0ab71774f40eb78d679
+   STRIPE_PRICE_LIFETIME_LIVE         | 93bda6f71be4c54a5aab673e3f4c1f68d90bd65c8b4718c0fdd0e9d5c36344a5
+   STRIPE_MODE                        | 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+
+stripe_price_lookup row seeded
+------------------------------
+$ INSERT INTO public.stripe_price_lookup (plan_name, stripe_price_id) VALUES ('lifetime', 'price_0Tbj1G1xTnHBqsUWKgtlE8FW') ON CONFLICT (plan_name) DO UPDATE SET stripe_price_id=EXCLUDED.stripe_price_id, updated_at=now() RETURNING ...
+
+Result:
+{
+  "plan_name": "lifetime",
+  "stripe_price_id": "price_0Tbj1G1xTnHBqsUWKgtlE8FW",
+  "updated_at": "2026-05-27 15:06:15.375764+00"
+}
+
+Note: pre-existing rows for `plus_monthly` + `plus_yearly` have EMPTY stripe_price_id — pre-existing tech debt, not in scope for S06 (logged for Phase 70-02 stripe-test plan to address).
+
+Schema drift surfaced + corrected
+---------------------------------
+Plan called for column `key` but actual schema uses `plan_name`. Real columns:
+  - plan_name (text)
+  - stripe_price_id (text)
+  - updated_at (timestamp with time zone)
+Insert retried with correct column name → succeeded.
+
+Switch-over runbook (for live flip)
+------------------------------------
+When ready to launch to live:
+  1. Create live-mode Lifetime product + price in Stripe Dashboard (or via API with sk_live_).
+  2. Capture new live-mode price ID (price_<new>).
+  3. Set: `supabase secrets set STRIPE_PRICE_LIFETIME=<live-price-id> STRIPE_PRICE_LIFETIME_LIVE=<live-price-id> STRIPE_MODE=live`
+  4. Update stripe_price_lookup: `UPDATE public.stripe_price_lookup SET stripe_price_id='<live-price-id>', updated_at=now() WHERE plan_name='lifetime';`
+  5. Verify stripe-checkout Edge Fn returns live checkout sessions (curl smoke against /functions/v1/stripe-checkout with a test user).
+
+Signal status: PASS (test mode)
+signoff: karsten.haldan@gmail.com, 2026-05-27, Lifetime product+price+secret+lookup created in TEST mode (user direction); STRIPE_PRICE_LIFETIME_LIVE placeholder set for switchover; LIVE flip runbook captured

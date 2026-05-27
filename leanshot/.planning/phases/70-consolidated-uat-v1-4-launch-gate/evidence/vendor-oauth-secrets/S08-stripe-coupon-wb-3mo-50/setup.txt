@@ -1,0 +1,38 @@
+S08 — Stripe WINBACK_10 coupon + STRIPE_COUPON_WINBACK_10 secret
+==================================================================
+
+Created: 2026-05-27
+Stripe mode: TEST
+Naming drift: plan called for `STRIPE_COUPON_WB_3MO_50` (50% / 3-month repeating); deployed `lifecycle-win-back` Fn reads `STRIPE_COUPON_WINBACK_10` (10% / once / t30d cadence). Per user direction 2026-05-27, matching deployed Fn naming + semantics (not plan name).
+
+Stripe coupon created
+---------------------
+$ stripe coupons create --id="WINBACK_10" --percent-off=10 --duration=once --name="Win-back 10% off (t30d cadence)" -d 'metadata[phase]=70-01' -d 'metadata[cadence]=t30d'
+  Coupon ID:  WINBACK_10
+  Percent:    10%
+  Duration:   once
+  Cadence:    t30d (consumed by lifecycle-win-back handler.ts:59 `t30d` entry)
+
+Verify via stripe coupons list:
+  WINBACK_50      | 50% | duration=once | name=Win-back 50% off (t90d cadence)
+  WINBACK_25      | 25% | duration=once | name=Win-back 25% off (t60d cadence)
+  WINBACK_10      | 10% | duration=once | name=Win-back 10% off (t30d cadence)
+
+Supabase Function Secrets set
+-----------------------------
+$ supabase secrets set STRIPE_COUPON_WINBACK_10=WINBACK_10 STRIPE_COUPON_WINBACK_10_LIVE=PENDING_LIVE_FLIP_70_01_S08
+Confirmed via list:
+   STRIPE_COUPON_WINBACK_10           | 4d27d9bf6df959fac5c4f0ab8bd331642bf0d6ed8e43938e4ebac68c9f91c135
+   STRIPE_COUPON_WINBACK_10_LIVE      | 1cccf6d47cf18c4152052f39eb51d578daaa687c817307b36d39ce85588cf98d
+
+Switch-over runbook (live flip)
+-------------------------------
+1. Create coupon `WINBACK_10` in Stripe LIVE mode (same params): percent=10, duration=once.
+2. `supabase secrets set STRIPE_COUPON_WINBACK_10=WINBACK_10 STRIPE_COUPON_WINBACK_10_LIVE=WINBACK_10 STRIPE_MODE=live`
+
+Plan drift recorded
+-------------------
+PLAN.md task 01-S08 slug `vendor-oauth-secrets-S08-stripe-coupon-wb-3mo-50` documented in 70-01-PLAN signoff as drift-corrected to WINBACK_10. Future plan iterations should re-slug to `S08-stripe-coupon-winback-10`.
+
+Signal status: PASS (test mode + drift-corrected)
+signoff: karsten.haldan@gmail.com, 2026-05-27, WINBACK_10 coupon created (10% once) + secret set; matches deployed lifecycle-win-back Fn naming (plan WB_3MO_50 was drift; user direction took deployed Fn truth)

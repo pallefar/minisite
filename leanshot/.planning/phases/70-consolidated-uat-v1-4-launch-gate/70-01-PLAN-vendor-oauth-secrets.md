@@ -673,11 +673,11 @@ Operator: fill checkbox + `signoff:` line as each signal completes. If you stop 
 - [ ] **S03** — Trustpilot vendor claim (non-critical) — signoff: __________
 - [ ] **S04** — G2 + Capterra vendor claims (non-critical) — signoff: __________
 - [x] **S05** — PostHog experiment + `POSTHOG_PERSONAL_API_KEY` — signoff: karsten.haldan@gmail.com, 2026-05-27, experiment 82078 `nps_prompt_copy` status=running; flag active w/ control+variant_a 50/50; secret pre-set ex-Phase 60; live-user smoke folded into Plan 03 S03
-- [ ] **S06** — Stripe Lifetime product + `STRIPE_PRICE_LIFETIME` — signoff: __________
+- [x] **S06** — Stripe Lifetime product + `STRIPE_PRICE_LIFETIME` — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST-mode product `prod_UauqWumnCXMQKm` + price `price_0Tbj1G1xTnHBqsUWKgtlE8FW` ($499); secret + `_LIVE` placeholder + `stripe_price_lookup` row + STRIPE_MODE=test set; switchover runbook at `STRIPE-MODE-SWITCHOVER.md`
 - [ ] **S07** — Mux secrets (3) — signoff: __________
-- [ ] **S08** — `STRIPE_COUPON_WB_3MO_50` — signoff: __________
-- [ ] **S09** — `STRIPE_COUPON_WB_6MO_30` — signoff: __________
-- [ ] **S10** — `STRIPE_COUPON_WB_LIFETIME_20` — signoff: __________
+- [x] **S08** — ~~`STRIPE_COUPON_WB_3MO_50`~~ → **`STRIPE_COUPON_WINBACK_10`** (drift-corrected to deployed Fn naming) — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST coupon `WINBACK_10` (10% once, t30d cadence) + secret + `_LIVE` placeholder; matches `lifecycle-win-back` handler.ts:59
+- [x] **S09** — ~~`STRIPE_COUPON_WB_6MO_30`~~ → **`STRIPE_COUPON_WINBACK_25`** (drift-corrected) — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST coupon `WINBACK_25` (25% once, t60d cadence) + secret + `_LIVE` placeholder
+- [x] **S10** — ~~`STRIPE_COUPON_WB_LIFETIME_20`~~ → **`STRIPE_COUPON_WINBACK_50`** (drift-corrected) — signoff: karsten.haldan@gmail.com, 2026-05-27, TEST coupon `WINBACK_50` (50% once, t90d cadence) + secret + `_LIVE` placeholder
 - [ ] **S11** — `NEWSLETTER_PHYSICAL_ADDRESS` — signoff: __________
 - [ ] **S12** — `BETTER_STACK_API_KEY` — signoff: __________
 - [ ] **S13** — `PHYSICAL_ADDRESS` — signoff: __________

@@ -1,0 +1,23 @@
+S10 — Stripe WINBACK_50 coupon + STRIPE_COUPON_WINBACK_50 secret
+==================================================================
+
+Created: 2026-05-27
+Stripe mode: TEST
+Naming drift: plan called for `STRIPE_COUPON_WB_LIFETIME_20`; deployed Fn reads `STRIPE_COUPON_WINBACK_50` (50% once, t90d cadence). Drift corrected to deployed truth per user direction.
+
+Stripe coupon:
+  ID:        WINBACK_50
+  Percent:   50%
+  Duration:  once
+  Cadence:   t90d (handler.ts:61)
+
+Supabase Function Secrets:
+  STRIPE_COUPON_WINBACK_50=WINBACK_50
+  STRIPE_COUPON_WINBACK_50_LIVE=PENDING_LIVE_FLIP_70_01_S10
+
+Confirmed via secrets list:
+   STRIPE_COUPON_WINBACK_50           | cbc6f1be6304327675e5296986d64cc958106790af9fafb6fcc0190c0f2102df
+   STRIPE_COUPON_WINBACK_50_LIVE      | a7145d6e50fc08b1917e6301554ef5676088ed5e01c35e83b7183a1fa1f4b44b
+
+Signal status: PASS (test mode + drift-corrected)
+signoff: karsten.haldan@gmail.com, 2026-05-27, WINBACK_50 coupon created (50% once) + secret set; matches deployed lifecycle-win-back Fn naming
