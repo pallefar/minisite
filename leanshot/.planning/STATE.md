@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Launch Gate
 status: executing
-last_updated: "2026-05-27T05:02:16.289Z"
+last_updated: "2026-05-27T05:56:40.315Z"
 progress:
   total_phases: 20
   completed_phases: 12
@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Phase 66.5 CODE-COMPLETE (2026-05-27) — Supabase Security Advisor Remediation: 3 migrations addressing all 11 ERROR + 16 mutable-search_path advisor findings. Drift-safe DO-block pattern throughout. 1 background executor 529-rescued inline (Task 2 of 66.5-01). All 714 WARN-level findings explicitly deferred to Phase 69.5 with per-category triage. Remote `db push` deferred to Phase 70 (still blocked on Phase 65 `org_subscriptions` drift). SEC-01..03 code-complete. Advancing to Phase 67 (Operational Runbooks + Observability).
+**Status:** Executing Phase 67
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
@@ -27,8 +27,8 @@ progress:
 
 ## Current Position
 
-Phase: 67 (Operational Runbooks + Observability) — NEXT
-Plan: 0 of N (discuss + plan pending)
+Phase: 67 (Operational Runbooks + Observability) — EXECUTING
+Plan: 1 of 5
 
 - **Phase:** 65 CODE-COMPLETE — Stripe Tax + Payment Resilience: 10 migrations + 7 Fns + 31 email templates + 3 UI surfaces (PaymentFailedBanner / RefundRequestForm / TaxDashboard) + 5 Rule-1 schema drift fixes (subscriptions.id text vs uuid; org_subscriptions PK=org_id; subscriptions.trial_end; subscriptions.id IS Stripe natural PK; 2 unplanned migrations from 65-08 nexus alert log). 173/173 new tests green; cross-Fn Deno sweep 100/100. Remote deploy + operator gates ALL deferred to Phase 70 UAT.
 - **Last completed:** Phase 65 close-out 2026-05-27. Tasks 5+6 inline (artifacts). Tasks 1-4 deferred — `db push` blocked at migration 20290104000001 with `org_subscriptions does not exist` despite list-applied (tracking drift). Operator psql intervention needed before Phase 70.
