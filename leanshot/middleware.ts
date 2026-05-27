@@ -1,5 +1,18 @@
 /**
- * Phase 41 Plan 41-03 + Phase 51 Plan 51-02 — Vercel Edge Middleware.
+ * Phase 41 Plan 41-03 + Phase 51 Plan 51-02 + Phase 67 Plan 67-02 — Vercel Edge Middleware.
+ *
+ * FOUR concerns wired into a single edge middleware:
+ *
+ *   (D) Phase 67-02 OPS-03 — per-IP rate-limit on hot public API routes
+ *       In-memory token bucket guarding `/api/lead-capture` (30/min),
+ *       `/api/og/*` (60/min), `/api/affiliate-impression` (10/min). Bucket
+ *       state is per-instance (no Redis/Upstash) which is acceptable for
+ *       v1.4 launch — Vercel Edge typically pins a hot path to a small
+ *       number of regional instances, so the per-IP window holds well
+ *       enough in practice. Upgrade to Upstash/Cloudflare KV in v1.5
+ *       (Phase 70+) for true cross-instance correctness.
+ *       Sends 429 + `Retry-After` when exceeded. Rate-limit is the FIRST
+ *       check in the handler — no CSP / cookie work runs when 429ed.
  *
  * THREE augmentations applied to every HTML response that flows through Vercel:
  *
@@ -54,13 +67,114 @@ import {
 type Config = { matcher: string | string[] };
 
 export const config: Config = {
-  // Global catch-all minus static paths. Covers ALL HTML responses including
-  // /knowledge/* (Phase 60 Plan 60-13 T-60-DOS-1 rate-limit coverage for public hub).
-  // Note: '/knowledge/:path*' would be redundant — the existing regex already
-  // captures /knowledge/* paths because they contain no excluded prefixes.
-  // Documented additive per 60-13 threat register T-60-13-DOS-1.
-  matcher: ['/((?!api|_next/static|assets|favicon).*)'],
+  // Global catch-all minus static paths PLUS the three rate-limit-protected
+  // /api/* routes from Phase 67-02 (OPS-03). The original regex EXCLUDES
+  // /api/* so existing CSP/cookie augmentation never runs on JSON/image
+  // responses; the explicit additions below let the rate-limiter (D) inspect
+  // those requests without changing the CSP/cookie behavior — the handler
+  // early-returns for /api/* after the rate-limit check.
+  matcher: [
+    '/((?!api|_next/static|assets|favicon).*)',
+    '/api/lead-capture',
+    '/api/og/:path*',
+    '/api/affiliate-impression',
+  ],
 };
+
+// =====================================================================
+// (D) Phase 67 Plan 67-02 — In-memory rate-limit token buckets (OPS-03)
+// =====================================================================
+
+/**
+ * Per-IP rate-limit policy. Path matching is PREFIX-based: any incoming
+ * request whose pathname starts with one of these keys is gated.
+ *   - /api/lead-capture           → 30/min   (form submit, low natural volume)
+ *   - /api/og/                    → 60/min   (image render, moderate)
+ *   - /api/affiliate-impression   → 10/min   (pixel, tight gate vs abuse)
+ *
+ * Limits derived from Phase 67 D-04 + expected production traffic mix in
+ * `leanshot/.planning/runbooks/load-test-baseline.md` (Phase 67-02 OPS-02).
+ */
+const RATE_LIMITS: Record<string, { limit: number; windowMs: number }> = {
+  '/api/lead-capture': { limit: 30, windowMs: 60_000 },
+  '/api/og/': { limit: 60, windowMs: 60_000 },
+  '/api/affiliate-impression': { limit: 10, windowMs: 60_000 },
+};
+
+/**
+ * Module-level token-bucket store. Per-Edge-instance — NOT shared across
+ * regions or cold-start replacements. Acceptable for v1.4 launch; upgrade
+ * to Upstash Redis in v1.5 (Phase 70+ tech-debt) for cross-instance
+ * correctness.
+ *
+ * Bucket key shape: `<ip>:<route-prefix>`. Map is unbounded but bounded
+ * IN PRACTICE by the routes × distinct-IPs in any one window; a stale
+ * bucket entry is reset lazily on its next read (resetAt check). No
+ * explicit eviction needed for the 60s window scale.
+ */
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+
+/** Match request path → rate-limit policy. Returns null when not gated. */
+function matchRateLimit(
+  pathname: string,
+): { prefix: string; limit: number; windowMs: number } | null {
+  for (const [prefix, policy] of Object.entries(RATE_LIMITS)) {
+    if (pathname.startsWith(prefix)) {
+      return { prefix, ...policy };
+    }
+  }
+  return null;
+}
+
+/** Best-effort client IP. Honors `x-forwarded-for` first hop. */
+function readClientIp(req: Request): string {
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) {
+    const first = xff.split(',')[0]?.trim();
+    if (first) return first;
+  }
+  return req.headers.get('x-real-ip') ?? 'unknown';
+}
+
+/**
+ * Apply rate-limit + return a 429 response when over-limit. Returns null
+ * when the request should pass through. Side-effects the bucket map.
+ */
+function enforceRateLimit(req: Request, pathname: string): Response | null {
+  const policy = matchRateLimit(pathname);
+  if (!policy) return null;
+
+  const ip = readClientIp(req);
+  const key = `${ip}:${policy.prefix}`;
+  const now = Date.now();
+
+  let bucket = rateLimitBuckets.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    bucket = { count: 0, resetAt: now + policy.windowMs };
+  }
+  bucket.count += 1;
+  rateLimitBuckets.set(key, bucket);
+
+  if (bucket.count > policy.limit) {
+    const retryAfter = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
+    return new Response('Too Many Requests', {
+      status: 429,
+      headers: {
+        'Retry-After': retryAfter.toString(),
+        'X-RateLimit-Limit': policy.limit.toString(),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': Math.ceil(bucket.resetAt / 1000).toString(),
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
+  }
+
+  // Under-limit — fall through. (Could attach X-RateLimit-* observability
+  // headers on the eventual response, but the response object is constructed
+  // inside next() AFTER this function returns; revisit in v1.5 once we have
+  // an explicit X-RateLimit-* contract and can pipe metadata back.)
+  return null;
+}
 
 const CACHE_TTL_MS = 60_000;
 let cache: { hosts: string[]; expiresAt: number } | null = null;
@@ -218,7 +332,35 @@ function buildSetCookie(name: string, value: string, maxAgeSeconds: number): str
 }
 
 export default async function middleware(request: Request): Promise<Response> {
+  // =====================================================================
+  // (D) Phase 67 Plan 67-02 — Rate-limit gate (OPS-03)
+  //
+  // Runs BEFORE next() so we never spawn an Edge Fn invocation / Vercel
+  // function call for a rate-limited request. Returns 429 short-circuit
+  // when over-limit; otherwise falls through.
+  // =====================================================================
+  let pathname = '';
+  try {
+    pathname = new URL(request.url).pathname;
+  } catch {
+    // Malformed URL — skip rate-limit check (the downstream handler will
+    // return its own error). Avoid throwing here so a bad URL never
+    // surfaces a 500 from middleware itself.
+  }
+  if (pathname) {
+    const rateLimitResponse = enforceRateLimit(request, pathname);
+    if (rateLimitResponse) return rateLimitResponse;
+  }
+
   const response = await next();
+
+  // /api/* routes are matched ONLY for rate-limiting (added explicitly to
+  // the matcher in Phase 67-02). Skip the CSP/cookie augmentation below —
+  // those produce JSON/image responses that have no CSP and no cookie
+  // mint requirement.
+  if (pathname.startsWith('/api/')) {
+    return response;
+  }
 
   // =====================================================================
   // (C) TRAFFIC-02 — lt_anon_id cookie mint (Phase 51 Plan 51-02)

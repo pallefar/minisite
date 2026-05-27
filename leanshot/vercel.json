@@ -33,6 +33,24 @@
       ]
     },
     {
+      "source": "/api/lead-capture",
+      "headers": [
+        { "key": "X-RateLimit-Policy", "value": "30/min per-IP (Phase 67-02 OPS-03; enforced by leanshot/middleware.ts)" }
+      ]
+    },
+    {
+      "source": "/api/og/(.*)",
+      "headers": [
+        { "key": "X-RateLimit-Policy", "value": "60/min per-IP (Phase 67-02 OPS-03; enforced by leanshot/middleware.ts)" }
+      ]
+    },
+    {
+      "source": "/api/affiliate-impression",
+      "headers": [
+        { "key": "X-RateLimit-Policy", "value": "10/min per-IP (Phase 67-02 OPS-03; enforced by leanshot/middleware.ts)" }
+      ]
+    },
+    {
       "source": "/.well-known/assetlinks.json",
       "headers": [
         { "key": "Content-Type", "value": "application/json" }
