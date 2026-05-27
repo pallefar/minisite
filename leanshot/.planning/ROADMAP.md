@@ -23,7 +23,8 @@
 - [x] **Phase 62: Insights & Research Engine** — Anonymized aggregate research compilation; k-anonymity (k≥5) + differential privacy; admin dashboard + white-paper pipeline + opt-in blog; feeds RAG
 - [x] **Phase 64: Legal Refresh** — State-privacy (CCPA/CDPA/CPA/CTDPA/UCPA) + policy/ToS audit + accessibility statement + DMCA agent + cookie WCAG 2.2 AA re-audit + grandfathered-notice email (BLOCKER)
 - [x] **Phase 65: Stripe Tax + Payment Resilience** — Stripe Tax enable + automatic_tax + B2B tax_id collection + nexus-monitoring dashboard + 3-email dunning + in-app banner + refund self-service + idempotency burst-retry test + trial-ending/win-back (BLOCKER) — CODE-COMPLETE 2026-05-27; remote-deploy + operator gates deferred to Phase 70 UAT (see 65-CARRY-OVER.md)
-- [ ] **Phase 66: Consumer Account Security** — Consumer-facing MFA/TOTP self-serve + per-IP/per-email sign-in lockout + brute-force PostHog alerting
+- [x] **Phase 66: Consumer Account Security** — Consumer-facing MFA/TOTP self-serve + per-IP/per-email sign-in lockout + brute-force PostHog alerting — CODE-COMPLETE 2026-05-27
+- [ ] **Phase 66.5: Supabase Security Advisor Remediation** — Fix 11 ERROR-level findings (7 RLS-disabled public tables + 2 SECURITY DEFINER views + 2 auth.users-exposing views) + 16 mutable-search_path functions surfaced by `supabase db advisors --linked` audit
 - [ ] **Phase 67: Operational Runbooks + Observability** — Secrets-rotation runbook + DDoS k6 load-test + Vercel rate-limit + SENTRY_DSN Edge-Fn verify + funnel-break alerts + incident-response runbook + backup PITR restore drill
 - [ ] **Phase 68: Audience Landing + Sales Enablement** — /for-doctors + /for-clinics + /for-coaches via page-builder + schema.org Service JSON-LD + demo/sandbox mode for clinic-buyer prospects (synthetic patients + auto-purge)
 - [ ] **Phase 69: Layout & Design Polish** — DS harmonization audit across all v1.1/v1.2/v1.3/v1.4 surfaces; 4-size typography + 2 weights + accent reserved-list + DS primitive adoption + a11y baseline + dark mode parity + responsive sweep
@@ -439,6 +440,24 @@ Plans:
 
 > Signals roll up to Phase 70 — see consolidated UAT phase.
 
+### Phase 66.5: Supabase Security Advisor Remediation
+
+**Goal**: Fix the 11 ERROR-level + 16 mutable-search_path findings surfaced by `npx supabase db advisors --linked --type security` on 2026-05-27. Inserted mid-run between Phase 66 and Phase 67 per user direction.
+**Depends on**: none (independent migrations; can run in parallel with Phase 67 if dispatched)
+**Requirements**: SEC-01, SEC-02, SEC-03 (new — to be added to REQUIREMENTS.md)
+**Success Criteria** (what must be TRUE):
+
+  1. All 7 RLS-disabled public tables (`email_send_counters`, `ad_spend_facts_y2026m{05,06,07,08}`, `paywall_events`, `plan_history`) have RLS enabled + minimal-safe policies (service-role-bypass for write paths; deny-all for direct PostgREST access)
+  2. 2 SECURITY DEFINER views (`v_cancellation_offers_roi`, `share_snapshot_view`) refactored to invoker rights OR explicitly justified + documented
+  3. 2 auth.users-exposing views (`share_snapshot_view`, `user_activity_daily`) refactored to drop auth.users columns OR restricted by RLS
+  4. 16 functions with mutable search_path get `set search_path = public, pg_temp` added
+  5. Re-running `supabase db advisors --linked --type security --level error` returns 0 ERROR findings
+  6. 700+ WARN-level findings explicitly deferred to Phase 69.5 with rationale per category in 66.5-CARRY-OVER.md
+
+**Plans**: 3 plans
+
+> Signals roll up to Phase 70 — see consolidated UAT phase.
+
 ### Phase 67: Operational Runbooks + Observability
 
 **Goal**: Ship the 6 operational runbook + observability items grouped from research HD3+HD4+HD5+HD14+HD15+HD16: secrets-rotation runbook + DDoS k6 load-test + Vercel rate-limit config + SENTRY_DSN Edge-Fn-level verify + funnel-break PostHog alerts + incident-response runbook + backup PITR restore drill.
@@ -645,7 +664,7 @@ Full detail + per-phase plans + decisions: [`.planning/milestones/v1.3-ROADMAP.m
 | 62. Insights & Research Engine | 8/8 | Complete | 6 migrations + 1 Fn deployed; 84 tests green |
 | 64. Legal Refresh | 1/8 | In Progress|  |
 | 65. Stripe Tax + Payment Resilience | 9/10 | In Progress|  |
-| 66. Consumer Account Security | 2/7 | In Progress|  |
+| 66. Consumer Account Security | 6/7 | In Progress|  |
 | 67. Operational Runbooks + Observability | 0/0 | Not started | - |
 | 68. Audience Landing + Sales Enablement | 0/0 | Not started | - |
 | 69. Layout & Design Polish | 0/0 | Not started | - |

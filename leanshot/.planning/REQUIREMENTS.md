@@ -462,12 +462,12 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | PAY-09 | Phase 65 | Complete (code) |
 | PAY-10 | Phase 65 | Complete (code) |
 | PAY-11 | Phase 65 | Complete (code) |
-| AUTH-12 | Phase 66 | Pending |
-| AUTH-13 | Phase 66 | Pending |
-| AUTH-14 | Phase 66 | Pending |
-| AUTH-15 | Phase 66 | Pending |
+| AUTH-12 | Phase 66 | Complete (code) |
+| AUTH-13 | Phase 66 | Complete (code) |
+| AUTH-14 | Phase 66 | Complete (code) |
+| AUTH-15 | Phase 66 | Complete (code) |
 | AUTH-16 | Phase 66 | Complete |
-| AUTH-17 | Phase 66 | Pending |
+| AUTH-17 | Phase 66 | Complete (code) |
 | OPS-01 | Phase 67 | Pending |
 | OPS-02 | Phase 67 | Pending |
 | OPS-03 | Phase 67 | Pending |
