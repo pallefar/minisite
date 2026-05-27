@@ -1,0 +1,59 @@
+Vercel CLI 50.5.0
+Retrieving project…
+> Downloading `preview` Environment Variables for karstens-projects-16afd0e4/leanshot-marketing
+Downloading
+Created .vercel/.env.preview.local file  [330ms]
+
+> Downloading project settings
+Downloaded project settings to ~/minisite/leanshot/.vercel/project.json [0ms]
+pull-exit=0
+
+=== vercel build ===
+Vercel CLI 50.5.0
+WARN! Build not running on Vercel. System environment variables will not be available.
+Error: spawn sh ENOENT
+vercel-build-exit=1
+
+=== vercel deploy (no --prebuilt; let Vercel build remote) ===
+Vercel CLI 50.5.0
+Retrieving project…
+Error: The provided path “~/minisite/leanshot/leanshot” does not exist. To change your Project Settings, go to https://vercel.com/karstens-projects-16afd0e4/leanshot-marketing/settings
+vercel-deploy-exit=1
+
+=== retry vercel deploy from monorepo root ===
+--- has-vercel-link-at-monorepo-root? ---
+  NO .vercel/ at monorepo root
+
+=== retry vercel deploy from monorepo root (.vercel symlinked) ===
+Vercel CLI 50.5.0
+Retrieving project…
+Deploying karstens-projects-16afd0e4/leanshot-marketing
+Error: Request body too large. Limit: 10mb
+vercel-deploy-exit=1
+
+=== vercel deploy --prebuilt ===
+Vercel CLI 50.5.0
+Retrieving project…
+Deploying karstens-projects-16afd0e4/leanshot-marketing
+Uploading [--------------------] (0.0B/16B)
+Uploading [====================] (16.0B/16B)
+Inspect: https://vercel.com/karstens-projects-16afd0e4/leanshot-marketing/C2NvTcpGJ8M1W2nH2LN4Y8YpAdWo [3s]
+Preview: https://leanshot-marketing-b3jsud4ku-karstens-projects-16afd0e4.vercel.app [3s]
+https://leanshot-marketing-b3jsud4ku-karstens-projects-16afd0e4.vercel.appBuilding...
+Error: The specified Root Directory "leanshot" does not exist. Please update your Project Settings.
+deploy-prebuilt-exit=1
+
+=== State after attempts ===
+  npm run build:                  ✅ exit 0 (Vite production bundle clean)
+  vercel build (local):           ✅ exit 0 (after PATH+SHELL workaround for ENOENT)
+  vercel deploy (cloud build):    ❌ 10MB upload cap (source too large)
+  vercel deploy --prebuilt:       ❌ cloud-side rootDirectory mismatch
+
+  Diagnosis: Vercel project settings have rootDirectory='leanshot'
+  but the deploy expects rootDirectory='' (monorepo root). Local project.json
+  matches but cloud doesn't. Operator must edit at:
+    https://vercel.com/karstens-projects-16afd0e4/leanshot-marketing/settings
+  OR push to a git branch + use Vercel git-integration auto-deploy
+  (which respects rootDirectory='leanshot' correctly).
+
+  Deferring staging-URL VR baseline capture to Phase 70 operator.
