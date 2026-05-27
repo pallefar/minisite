@@ -68,7 +68,7 @@ export default function TicketDetailPage({
       .from('tickets')
       .select('id, org_id, user_id, subject, status, phi')
       .eq('id', ticketId)
-      .maybeSingle() as any)) as {
+      .maybeSingle() as unknown)) as {
       data: TicketRow | null;
       error: { code?: string } | null;
     };
@@ -86,7 +86,7 @@ export default function TicketDetailPage({
       .from('ticket_messages')
       .select('id, ticket_id, author_kind, body, created_at')
       .eq('ticket_id', ticketId)
-      .order('created_at', { ascending: true }) as any)) as {
+      .order('created_at', { ascending: true }) as unknown)) as {
       data: MessageRow[] | null;
       error: { code?: string } | null;
     };

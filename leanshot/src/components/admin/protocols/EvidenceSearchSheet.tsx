@@ -170,6 +170,7 @@ export function EvidenceSearchSheet({
         {/* Results list */}
         <div
           role="listbox"
+          tabIndex={-1}
           aria-label="RAG evidence results"
           aria-live="polite"
           aria-busy={loading}

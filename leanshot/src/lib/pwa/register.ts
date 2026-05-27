@@ -17,6 +17,7 @@
  *      callback below: `void updateSW(true)` activates + reloads).
  *   2. window.location.reload() to pick up the new bundle.
  */
+// eslint-disable-next-line import-x/no-unresolved -- virtual:pwa-register is a Vite plugin virtual module (vite-plugin-pwa).
 import { registerSW } from 'virtual:pwa-register';
 import { Capacitor } from '@/lib/native/capacitor-shim';
 

@@ -123,8 +123,11 @@ export function RosterMobileCard({
 
   return (
     <article
-      // Phase 65.1 lint fix: the card is clickable (onClick + keyboard handler);
-      // semantically a button, so we set role="button" to validate aria-pressed.
+      // Phase 65.1 lint fix: card is clickable (onClick + keyboard handler) so
+      // we set role="button" to validate aria-pressed. The `noninteractive-
+      // element-to-interactive-role` warning acknowledges this is unusual but
+      // accepted here — alternative <button> wrapper would break visual layout.
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-to-interactive-role
       role="button"
       tabIndex={0}
       aria-label={`${row.display_name}, score ${row.score}, last dose ${relativeTime(row.last_injection_at)}`}

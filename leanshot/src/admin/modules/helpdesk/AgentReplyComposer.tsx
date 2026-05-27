@@ -63,7 +63,7 @@ export default function AgentReplyComposer({
           via: 'admin',
         }) as unknown as { select: () => { single: () => Promise<unknown> } })
         .select()
-        .single() as any)) as {
+        .single() as unknown)) as {
         data: { id: string } | null;
         error: { code?: string } | null;
       };
@@ -103,7 +103,7 @@ export default function AgentReplyComposer({
           last_agent_message_at: new Date().toISOString(),
           ...(ticketStatus === 'open' ? { status: 'pending' } : {}),
         }) as unknown as { eq: (col: string, val: string) => Promise<unknown> })
-        .eq('id', ticketId) as any);
+        .eq('id', ticketId) as unknown);
 
       // 4. Client-side analytics emit — server-side mirror lands via Edge Fn.
       // Length-only (raw body NEVER captured) per existing helpdesk.ticket.replied
