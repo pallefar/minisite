@@ -1,0 +1,84 @@
+{
+  "_schema": "Phase 67 Plan 67-04 — PostHog funnel-break alert definitions (OPS-05).",
+  "_notes": [
+    "Each entry defines (1) a PostHog Insight of type 'funnel' and (2) a Subscription that triggers a Slack alert when the funnel's overall conversion drops more than `wow_drop_pct_threshold` week-over-week.",
+    "PostHog Insights API: POST /api/projects/{project_id}/insights/ (body has filters + name + description).",
+    "PostHog Subscriptions API: POST /api/projects/{project_id}/subscriptions/ (body links subscription to insight_id + destination + frequency).",
+    "Slack webhook destination is named 'guardrail-slack' and MUST be created in the PostHog UI BEFORE running the seed script (Settings → Data pipeline → Subscriptions → Destinations). The seed script resolves the destination by name.",
+    "Funnel breakdown windows: 7-day conversion window (matches D-06 in 67-CONTEXT.md)."
+  ],
+  "wow_drop_pct_threshold": 20,
+  "destination_name": "guardrail-slack",
+  "frequency": "daily",
+  "funnels": [
+    {
+      "name": "OPS-05 — Activation funnel",
+      "description": "signup_completed → first_dose_logged → 7-day retention (D7 active). Phase 67-04 / OPS-05.",
+      "filters": {
+        "insight": "FUNNELS",
+        "events": [
+          { "id": "signup_completed", "name": "signup_completed", "type": "events", "order": 0 },
+          { "id": "first_dose_logged", "name": "first_dose_logged", "type": "events", "order": 1 },
+          { "id": "d7_active", "name": "d7_active", "type": "events", "order": 2 }
+        ],
+        "date_from": "-14d",
+        "funnel_window_interval": 7,
+        "funnel_window_interval_unit": "day",
+        "funnel_viz_type": "steps",
+        "display": "FunnelViz"
+      },
+      "alert": {
+        "name": "OPS-05 — Activation funnel WoW drop > 20%",
+        "condition_kind": "absolute_decrease",
+        "threshold_pct": 20,
+        "comparison": "week_over_week"
+      }
+    },
+    {
+      "name": "OPS-05 — Payment funnel",
+      "description": "paywall_shown → checkout_started → subscription_created. Phase 67-04 / OPS-05.",
+      "filters": {
+        "insight": "FUNNELS",
+        "events": [
+          { "id": "paywall_shown", "name": "paywall_shown", "type": "events", "order": 0 },
+          { "id": "checkout_started", "name": "checkout_started", "type": "events", "order": 1 },
+          { "id": "subscription_created", "name": "subscription_created", "type": "events", "order": 2 }
+        ],
+        "date_from": "-14d",
+        "funnel_window_interval": 1,
+        "funnel_window_interval_unit": "day",
+        "funnel_viz_type": "steps",
+        "display": "FunnelViz"
+      },
+      "alert": {
+        "name": "OPS-05 — Payment funnel WoW drop > 20%",
+        "condition_kind": "absolute_decrease",
+        "threshold_pct": 20,
+        "comparison": "week_over_week"
+      }
+    },
+    {
+      "name": "OPS-05 — Signup funnel",
+      "description": "landing_viewed → onboarding_started → signup_completed. Phase 67-04 / OPS-05.",
+      "filters": {
+        "insight": "FUNNELS",
+        "events": [
+          { "id": "landing_viewed", "name": "landing_viewed", "type": "events", "order": 0 },
+          { "id": "onboarding_started", "name": "onboarding_started", "type": "events", "order": 1 },
+          { "id": "signup_completed", "name": "signup_completed", "type": "events", "order": 2 }
+        ],
+        "date_from": "-14d",
+        "funnel_window_interval": 1,
+        "funnel_window_interval_unit": "day",
+        "funnel_viz_type": "steps",
+        "display": "FunnelViz"
+      },
+      "alert": {
+        "name": "OPS-05 — Signup funnel WoW drop > 20%",
+        "condition_kind": "absolute_decrease",
+        "threshold_pct": 20,
+        "comparison": "week_over_week"
+      }
+    }
+  ]
+}
