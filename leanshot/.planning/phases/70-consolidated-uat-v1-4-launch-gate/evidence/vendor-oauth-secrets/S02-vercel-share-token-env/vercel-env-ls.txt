@@ -1,0 +1,20 @@
+S02 — Vercel SHARE_TOKEN_SECRET (production)
+==============================================
+
+Created: 2026-05-27
+Method: same value as S01 piped via stdin to `vercel env add` (single bash session)
+Vercel project: leanshot-marketing (prj_vUAbx6chhVpKWnAT9IBFWOLhnYbc) org karstens-projects-16afd0e4
+
+Add
+---
+$ printf '%s' "$VAL" | vercel env add SHARE_TOKEN_SECRET production
+Saving
+Added Environment Variable SHARE_TOKEN_SECRET to Project leanshot-marketing [308ms]
+
+Verify
+------
+$ vercel env ls production | grep SHARE_TOKEN_SECRET
+ SHARE_TOKEN_SECRET         Encrypted                   Production                          4s ago
+
+Signal status: PASS
+signoff: karsten.haldan@gmail.com, 2026-05-27, Vercel env added; value byte-identical to S01 vault entry (single openssl gen, both targets written from same shell variable, unset immediately after)

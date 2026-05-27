@@ -668,8 +668,8 @@ End-of-plan operator action — flip the checkbox row below for each signal as i
 
 Operator: fill checkbox + `signoff:` line as each signal completes. If you stop mid-plan, the next session resumes at the first unchecked box.
 
-- [ ] **S01** — vault `share_token_secret` set — signoff: __________
-- [ ] **S02** — Vercel `SHARE_TOKEN_SECRET` env — signoff: __________
+- [x] **S01** — vault `share_token_secret` set — signoff: karsten.haldan@gmail.com, 2026-05-27, vault UUID b7c8eb9d-b872-4c61-ae51-298cbe08df0b
+- [x] **S02** — Vercel `SHARE_TOKEN_SECRET` env — signoff: karsten.haldan@gmail.com, 2026-05-27, production scope, byte-identical to S01 vault value
 - [ ] **S03** — Trustpilot vendor claim (non-critical) — signoff: __________
 - [ ] **S04** — G2 + Capterra vendor claims (non-critical) — signoff: __________
 - [ ] **S05** — PostHog experiment + `POSTHOG_PERSONAL_API_KEY` — signoff: __________

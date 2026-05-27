@@ -1,0 +1,41 @@
+S01 — share_token_secret vault entry
+======================================
+
+Created: 2026-05-27
+Method: openssl rand -hex 32 → vault.create_secret() via `npx supabase db query --linked`
+Project ref: ytnsipxxmzgaebkqmokp
+Vault secret UUID: b7c8eb9d-b872-4c61-ae51-298cbe08df0b
+
+Generation
+----------
+$ openssl rand -hex 32  # length 64, value REDACTED — never echoed
+Length verified: 64 chars ✓
+
+Insert
+------
+$ npx supabase db query --linked "select vault.create_secret('<REDACTED>', 'share_token_secret', 'Phase 35 share-token signing (HMAC-SHA256)');"
+
+Response (sed-redacted of value before logging):
+{
+  "rows": [
+    {
+      "create_secret": "b7c8eb9d-b872-4c61-ae51-298cbe08df0b"
+    }
+  ]
+}
+
+Verify
+------
+$ npx supabase db query --linked "select name from vault.secrets where name in ('share_token_secret', 'service_role_key') order by name;"
+
+Response:
+{
+  "rows": [
+    { "name": "service_role_key" },
+    { "name": "share_token_secret" }
+  ]
+}
+Expected 2 rows ✓
+
+Signal status: PASS
+signoff: karsten.haldan@gmail.com, 2026-05-27, vault entry created (UUID b7c8eb9d-b872-4c61-ae51-298cbe08df0b); same value piped to Vercel SHARE_TOKEN_SECRET in S02 atomically (single bash session, var unset at end)
