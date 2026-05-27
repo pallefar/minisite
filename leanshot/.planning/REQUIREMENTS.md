@@ -468,16 +468,16 @@ REQ-ID → Phase mapping. 200 REQ-IDs mapped across 19 phases (52-70). 100% cove
 | AUTH-15 | Phase 66 | Complete (code) |
 | AUTH-16 | Phase 66 | Complete |
 | AUTH-17 | Phase 66 | Complete (code) |
-| OPS-01 | Phase 67 | Pending |
-| OPS-02 | Phase 67 | Pending |
-| OPS-03 | Phase 67 | Pending |
-| OPS-04 | Phase 67 | Pending |
-| OPS-05 | Phase 67 | Pending |
-| OPS-06 | Phase 67 | Pending |
-| OPS-07 | Phase 67 | Pending |
-| OPS-08 | Phase 67 | Pending |
-| OPS-09 | Phase 67 | Pending |
-| OPS-10 | Phase 67 | Pending |
+| OPS-01 | Phase 67 | Complete (code) |
+| OPS-02 | Phase 67 | Complete (code) |
+| OPS-03 | Phase 67 | Complete (code) |
+| OPS-04 | Phase 67 | Complete (code) |
+| OPS-05 | Phase 67 | Complete (code) |
+| OPS-06 | Phase 67 | Complete (code) |
+| OPS-07 | Phase 67 | Complete (code) |
+| OPS-08 | Phase 67 | Complete (code) |
+| OPS-09 | Phase 67 | Complete (code) |
+| OPS-10 | Phase 67 | Complete (code) |
 | LAND-01 | Phase 68 | Pending |
 | LAND-02 | Phase 68 | Pending |
 | LAND-03 | Phase 68 | Pending |

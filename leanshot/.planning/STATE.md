@@ -14,7 +14,7 @@ progress:
 
 # Milestone v1.4: Launch Readiness
 
-**Status:** Executing Phase 67
+**Status:** Phase 67 CODE-COMPLETE (2026-05-27) — Operational Runbooks + Observability: 4 runbooks (1235 LOC), 3 k6 scripts + vercel rate-limit, SENTRY_DSN CI guard (135 Fns scanned, 0 stubs), cold-start audit, PostHog funnel seed, bs-status-poller Edge Fn (13 Deno tests). OPS-01..10 code-complete. Operator-run + deploy items deferred to Phase 70. Advancing to Phase 68.
 **Phases:** 52-70 (19 phases)
 **Requirements:** 200 REQ-IDs across 19 workstreams
 **Source documents:**
