@@ -63,9 +63,7 @@ export function UserDetailPage({
         setRoleRequirements(new Map(rows.map((r) => [r.role, r.required])));
       } catch (e) {
         if (!cancelled) {
-          setError(
-            e instanceof Error ? e.message : 'Failed to load role requirements',
-          );
+          setError(e instanceof Error ? e.message : 'Failed to load role requirements');
           setRoleRequirements(new Map());
         }
       }
@@ -82,10 +80,7 @@ export function UserDetailPage({
       data-user-id={userId}
     >
       <header className="mb-6 flex items-center gap-3 flex-wrap">
-        <h1
-          id="user-detail-page-heading"
-          className="text-[18px] font-semibold tracking-tight"
-        >
+        <h1 id="user-detail-page-heading" className="text-[18px] font-semibold tracking-tight">
           {displayName}
         </h1>
         {roleRequirements && (
@@ -111,10 +106,7 @@ export function UserDetailPage({
       </Card>
 
       {error && (
-        <p
-          role="alert"
-          className="mt-4 text-[11px] text-[var(--color-warning)]"
-        >
+        <p role="alert" className="mt-4 text-[11px] text-[var(--color-warning)]">
           {error}
         </p>
       )}

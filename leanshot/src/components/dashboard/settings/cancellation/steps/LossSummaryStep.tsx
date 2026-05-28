@@ -107,7 +107,9 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col items-center gap-2">
           <Flame className="size-5 text-[var(--color-warning)]" aria-hidden />
           <span className="text-[22px] font-semibold text-[var(--color-text)]">{bestStreak}</span>
-          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">{t('settings:cancellation.step3.streak_label')}</span>
+          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">
+            {t('settings:cancellation.step3.streak_label')}
+          </span>
         </div>
 
         {/* Med-level chart preview */}
@@ -124,13 +126,17 @@ export function LossSummaryStep({ reason, onKeep, onClose }: LossSummaryStepProp
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col items-center gap-2">
           <MessageSquare className="size-5 text-[var(--color-primary)]" aria-hidden />
           <span className="text-[22px] font-semibold text-[var(--color-text)]">{aiCount}</span>
-          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">{t('settings:cancellation.step3.coach_label')}</span>
+          <span className="text-[13px] text-[var(--color-text-secondary)] text-center">
+            {t('settings:cancellation.step3.coach_label')}
+          </span>
         </div>
 
         {/* Data export reminder tile */}
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col items-start gap-2">
           <Database className="size-5 text-[var(--color-text-tertiary)]" aria-hidden />
-          <span className="text-[13px] font-semibold text-[var(--color-text)]">{t('settings:cancellation.step3.data_title')}</span>
+          <span className="text-[13px] font-semibold text-[var(--color-text)]">
+            {t('settings:cancellation.step3.data_title')}
+          </span>
           <span className="text-[12px] text-[var(--color-text-secondary)]">
             {t('settings:cancellation.step3.data_body')}
           </span>

@@ -73,7 +73,7 @@ describe('cohort api (Phase 27 Plan 27-02 ADMIN-05)', () => {
     }
   });
 
-  it("(e) isCohortMember returns the RPC boolean", async () => {
+  it('(e) isCohortMember returns the RPC boolean', async () => {
     mockRpc.mockResolvedValue({ data: true, error: null });
     const result = await isCohortMember('user-1', 'cohort-1');
     expect(result).toBe(true);
@@ -83,13 +83,13 @@ describe('cohort api (Phase 27 Plan 27-02 ADMIN-05)', () => {
     });
   });
 
-  it("(f) isCohortMember swallows network errors and returns false", async () => {
+  it('(f) isCohortMember swallows network errors and returns false', async () => {
     mockRpc.mockRejectedValue(new Error('boom'));
     const result = await isCohortMember('user-1', 'cohort-1');
     expect(result).toBe(false);
   });
 
-  it("(g) setCohortStatus calls cohort_set_status with correct params", async () => {
+  it('(g) setCohortStatus calls cohort_set_status with correct params', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
     await setCohortStatus('cohort-1', 'active');
     expect(mockRpc).toHaveBeenCalledWith('cohort_set_status', {
@@ -98,7 +98,7 @@ describe('cohort api (Phase 27 Plan 27-02 ADMIN-05)', () => {
     });
   });
 
-  it("(h) archiveCohort calls cohort_archive RPC", async () => {
+  it('(h) archiveCohort calls cohort_archive RPC', async () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
     await archiveCohort('cohort-1');
     expect(mockRpc).toHaveBeenCalledWith('cohort_archive', {

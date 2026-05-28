@@ -24,25 +24,35 @@ export function LevelProgressCard({ data }: LevelProgressCardProps) {
 
   return (
     <Card span={4} variant="elevated">
-      <CardHeader title={t('patient:card.level_progress.title')} icon={<Trophy className="size-4" aria-hidden />} />
+      <CardHeader
+        title={t('patient:card.level_progress.title')}
+        icon={<Trophy className="size-4" aria-hidden />}
+      />
       <div className="flex flex-col items-center">
         <ProgressRing
           value={data.xpInLevel}
           max={levelRange}
-          label={t('patient:card.level_progress.ring_label', { level: displayLevel, prestige: prestigeLabel })}
+          label={t('patient:card.level_progress.ring_label', {
+            level: displayLevel,
+            prestige: prestigeLabel,
+          })}
           size={88}
         >
           <span className="text-[22px] font-bold text-[var(--color-text)]" aria-hidden>
             {displayLevel}
             {data.prestige > 0 && (
               <span className="text-[11px] font-medium text-[var(--color-text-secondary)]">
-                {' '}P{data.prestige}
+                {' '}
+                P{data.prestige}
               </span>
             )}
           </span>
         </ProgressRing>
         <div className="mt-2 text-sm text-[var(--color-text-secondary)] text-center">
-          {t('patient:card.level_progress.xp_to_next', { xp: data.xpToNext.toLocaleString(), next: data.level + 1 })}
+          {t('patient:card.level_progress.xp_to_next', {
+            xp: data.xpToNext.toLocaleString(),
+            next: data.level + 1,
+          })}
         </div>
       </div>
     </Card>

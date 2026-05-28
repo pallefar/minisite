@@ -44,8 +44,7 @@ vi.mock('@/lib/supabase', () => ({
             maybeSingle: () => Promise.resolve({ data: null, error: null }),
           }),
         }),
-        order: (_col: string, _opts: unknown) =>
-          Promise.resolve({ data: [], error: null }),
+        order: (_col: string, _opts: unknown) => Promise.resolve({ data: [], error: null }),
       }),
     }),
     functions: {
@@ -64,9 +63,7 @@ vi.mock('@/lib/supabase', () => ({
 // Mock page-api so the load-page on-mount effect does not blow up — the
 // PageEditorView tries to load `pageId` from the URL on mount.
 vi.mock('@/lib/page-builder/page-api', async () => {
-  const actual = await vi.importActual<typeof PageApi>(
-    '@/lib/page-builder/page-api',
-  );
+  const actual = await vi.importActual<typeof PageApi>('@/lib/page-builder/page-api');
   return {
     ...actual,
     getPage: vi.fn().mockResolvedValue({
@@ -108,7 +105,6 @@ vi.mock('@/lib/page-builder/page-api', async () => {
     newBlock: actual.newBlock,
   };
 });
-
 
 beforeEach(() => {
   mockInsertSingle.mockReset();

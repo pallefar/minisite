@@ -219,11 +219,7 @@ void hydrate().then(async () => {
   // Function's session DELETE forces a fresh JWT.
   void useStore.getState().fetchUserModerationStatus();
   supabase.auth.onAuthStateChange((event) => {
-    if (
-      event === 'SIGNED_IN' ||
-      event === 'TOKEN_REFRESHED' ||
-      event === 'USER_UPDATED'
-    ) {
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
       void useStore.getState().fetchUserModerationStatus();
     }
   });

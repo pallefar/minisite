@@ -90,7 +90,10 @@ export function ProtocolSummaryCard({ protocolId }: ProtocolSummaryCardProps) {
   if (!data) {
     return (
       <Card variant="flat" padding="md" className="max-w-[480px] w-full">
-        <div className="h-12 animate-pulse bg-[var(--color-surface-elevated)] rounded" aria-label="Loading protocol" />
+        <div
+          className="h-12 animate-pulse bg-[var(--color-surface-elevated)] rounded"
+          aria-label="Loading protocol"
+        />
       </Card>
     );
   }

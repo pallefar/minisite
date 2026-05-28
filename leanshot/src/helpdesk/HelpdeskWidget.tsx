@@ -89,9 +89,7 @@ export function HelpdeskWidget(): JSX.Element {
                   <Button onClick={() => setView({ kind: 'form' })}>
                     Still need help? Create a ticket
                   </Button>
-                  <TicketList
-                    onSelect={(ticketId) => setView({ kind: 'thread', ticketId })}
-                  />
+                  <TicketList onSelect={(ticketId) => setView({ kind: 'thread', ticketId })} />
                 </>
               )}
               {surface === 'marketing' && (
@@ -105,8 +103,8 @@ export function HelpdeskWidget(): JSX.Element {
               )}
               {surface === 'phi' && (
                 <p className="text-xs text-[var(--color-fg-muted)]">
-                  This screen handles protected health information. Use the knowledge base
-                  above, or email{' '}
+                  This screen handles protected health information. Use the knowledge base above, or
+                  email{' '}
                   <a href="mailto:support@app.leanshot.app" className="underline">
                     support@app.leanshot.app
                   </a>{' '}
@@ -116,10 +114,7 @@ export function HelpdeskWidget(): JSX.Element {
             </div>
           )}
           {view.kind === 'article' && (
-            <KBArticleView
-              articleId={view.articleId}
-              onBack={() => setView({ kind: 'home' })}
-            />
+            <KBArticleView articleId={view.articleId} onBack={() => setView({ kind: 'home' })} />
           )}
           {view.kind === 'form' && showTicketSurfaces && (
             <TicketForm

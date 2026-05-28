@@ -52,9 +52,7 @@ export async function fetchSnapshot(token: string): Promise<SnapshotResult> {
   return { ok: false, error: errorCode };
 }
 
-export type RedeemResult =
-  | { ok: true }
-  | { ok: false; error: RedeemError; retryAfterSec?: number };
+export type RedeemResult = { ok: true } | { ok: false; error: RedeemError; retryAfterSec?: number };
 
 export async function redeemShare(token: string, code: string): Promise<RedeemResult> {
   const url = `${FN_BASE}/share/redeem`;

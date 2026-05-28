@@ -53,8 +53,7 @@ export function useLocale(): LocaleFormatters {
           minimumFractionDigits: digits,
           maximumFractionDigits: digits,
         }),
-      currency: (currency = 'USD') =>
-        new Intl.NumberFormat(lng, { style: 'currency', currency }),
+      currency: (currency = 'USD') => new Intl.NumberFormat(lng, { style: 'currency', currency }),
       weight: (unit: 'kilogram' | 'pound') =>
         new Intl.NumberFormat(lng, {
           style: 'unit',

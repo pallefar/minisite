@@ -74,10 +74,7 @@ export function UserBansRoster({ onSelectUser }: UserBansRosterProps) {
     void load();
   }, [load]);
 
-  const filtered = useMemo(
-    () => rows.filter((r) => r.status !== 'active'),
-    [rows],
-  );
+  const filtered = useMemo(() => rows.filter((r) => r.status !== 'active'), [rows]);
 
   return (
     <div className="space-y-4">
@@ -93,9 +90,7 @@ export function UserBansRoster({ onSelectUser }: UserBansRosterProps) {
         />
       </header>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading roster…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading roster…</p>}
 
       {!loading && filtered.length === 0 && (
         <p className="text-sm text-[var(--color-text-secondary)]">
@@ -107,10 +102,18 @@ export function UserBansRoster({ onSelectUser }: UserBansRosterProps) {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">User</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Status</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Expires</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Reason</th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                User
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Status
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Expires
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Reason
+              </th>
               <th className="py-2" />
             </tr>
           </thead>
@@ -121,9 +124,7 @@ export function UserBansRoster({ onSelectUser }: UserBansRosterProps) {
                 className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)]"
               >
                 <td className="py-2">
-                  <div className="font-medium">
-                    {row.display_name ?? row.handle ?? '(no name)'}
-                  </div>
+                  <div className="font-medium">{row.display_name ?? row.handle ?? '(no name)'}</div>
                   <div className="text-xs text-[var(--color-text-secondary)]">
                     {row.email ?? row.user_id.slice(0, 8) + '…'}
                   </div>

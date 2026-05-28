@@ -155,9 +155,7 @@ interface ImpersonationEndArgs {
  *
  * Idempotent at the Edge Fn layer — safe to call even if no impersonation is active.
  */
-export async function endImpersonation({
-  targetUserId,
-}: ImpersonationEndArgs): Promise<void> {
+export async function endImpersonation({ targetUserId }: ImpersonationEndArgs): Promise<void> {
   const { data, error } = await supabase.functions.invoke<{
     ok?: boolean;
     error?: string;

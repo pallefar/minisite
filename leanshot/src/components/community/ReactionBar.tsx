@@ -14,7 +14,7 @@ import { supabase } from '@/lib/supabase';
 
 // ─── Fixed emoji set (D-03) ───────────────────────────────────────────────────
 
-const EMOJIS = ['like','heart','target','fire','clap'] as const;
+const EMOJIS = ['like', 'heart', 'target', 'fire', 'clap'] as const;
 
 const EMOJI_GLYPH: Record<ReactionEmoji, string> = {
   like: '👍',
@@ -64,9 +64,7 @@ export function ReactionBar({
   const baseCounts = countsByEmoji(reactions);
 
   async function handleToggle(emoji: ReactionEmoji) {
-    const myReaction = reactions.find(
-      (r) => r.user_id === currentUserId && r.emoji === emoji,
-    );
+    const myReaction = reactions.find((r) => r.user_id === currentUserId && r.emoji === emoji);
     const willAdd = !myReaction;
     // Apply optimistic delta
     setOptimisticDelta((prev) => ({ ...prev, [emoji]: willAdd ? 'added' : 'removed' }));
@@ -97,19 +95,12 @@ export function ReactionBar({
   }
 
   return (
-    <div
-      className="flex flex-wrap gap-1"
-      role="group"
-      aria-label="Reactions"
-    >
+    <div className="flex flex-wrap gap-1" role="group" aria-label="Reactions">
       {EMOJIS.map((emoji) => {
-        const myReaction = reactions.find(
-          (r) => r.user_id === currentUserId && r.emoji === emoji,
-        );
+        const myReaction = reactions.find((r) => r.user_id === currentUserId && r.emoji === emoji);
         const delta = optimisticDelta[emoji];
         // Apply optimistic delta to active state
-        const isActive =
-          delta === 'added' ? true : delta === 'removed' ? false : !!myReaction;
+        const isActive = delta === 'added' ? true : delta === 'removed' ? false : !!myReaction;
         // Apply optimistic delta to count
         const baseCount = baseCounts[emoji] ?? 0;
         const count =
@@ -134,9 +125,7 @@ export function ReactionBar({
             ].join(' ')}
           >
             <span aria-hidden="true">{EMOJI_GLYPH[emoji]}</span>
-            {count > 0 && (
-              <span className="font-medium tabular-nums">{count}</span>
-            )}
+            {count > 0 && <span className="font-medium tabular-nums">{count}</span>}
           </button>
         );
       })}

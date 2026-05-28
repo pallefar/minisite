@@ -72,10 +72,7 @@ export function AnomalyConfigPage() {
       aria-labelledby="anomaly-config-page-heading"
     >
       <header className="mb-6">
-        <h1
-          id="anomaly-config-page-heading"
-          className="text-xl font-semibold tracking-tight"
-        >
+        <h1 id="anomaly-config-page-heading" className="text-xl font-semibold tracking-tight">
           Funnel anomaly admin
         </h1>
         <p className="text-xs text-[var(--color-text-secondary)] mt-1">

@@ -33,9 +33,7 @@ export interface AnalyticsTriggerDetail {
  * Type guard for the CustomEvent detail — exported so subscribers can
  * validate without duplicating the predicate.
  */
-export function isAnalyticsTriggerDetail(
-  detail: unknown,
-): detail is AnalyticsTriggerDetail {
+export function isAnalyticsTriggerDetail(detail: unknown): detail is AnalyticsTriggerDetail {
   if (!detail || typeof detail !== 'object') return false;
   const d = detail as { name?: unknown };
   return typeof d.name === 'string' && d.name.length > 0;

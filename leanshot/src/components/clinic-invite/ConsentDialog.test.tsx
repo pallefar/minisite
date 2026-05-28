@@ -52,9 +52,7 @@ describe('ConsentDialog — Plan 09-04', () => {
   });
 
   it('renders heading + 10 checkboxes pre-filled from requested_scope', () => {
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     expect(screen.getByRole('heading', { name: /Choose what to share/i })).toBeInTheDocument();
     const checkboxes = screen.getAllByRole('checkbox');
     expect(checkboxes).toHaveLength(10);
@@ -64,9 +62,7 @@ describe('ConsentDialog — Plan 09-04', () => {
   });
 
   it('renders all 10 data-type labels from DATA_TYPE_LABELS', () => {
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     expect(screen.getByText('Injections')).toBeInTheDocument();
     expect(screen.getByText('Body photos')).toBeInTheDocument();
     expect(screen.getByText('Doctor report')).toBeInTheDocument();
@@ -98,9 +94,7 @@ describe('ConsentDialog — Plan 09-04', () => {
   });
 
   it('explicit-exclusion copy from UI-SPEC line 230 is rendered verbatim', () => {
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     expect(
       screen.getByText(
         /AI coach conversations, account settings, and anything you delete are never shared\. This is a LeanShot privacy guarantee\./,
@@ -109,9 +103,7 @@ describe('ConsentDialog — Plan 09-04', () => {
   });
 
   it('renders BAA placeholder banner with role=note + aria-label="Legal review pending"', () => {
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     const banner = screen.getByRole('note', { name: /Legal review pending/i });
     expect(banner).toBeInTheDocument();
     // Marker comment lives in source — not rendered UI:
@@ -119,18 +111,13 @@ describe('ConsentDialog — Plan 09-04', () => {
   });
 
   it('[COUNSEL REVIEW NEEDED] comment marker present in source file', () => {
-    const src = readFileSync(
-      resolve(__dirname, 'ConsentDialog.tsx'),
-      'utf8',
-    );
+    const src = readFileSync(resolve(__dirname, 'ConsentDialog.tsx'), 'utf8');
     expect(src).toMatch(/COUNSEL REVIEW NEEDED/);
   });
 
   it('unchecking a box updates the controlled state', async () => {
     const user = userEvent.setup();
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     const checkboxes = screen.getAllByRole('checkbox');
     expect(checkboxes[0]).toBeChecked();
     await user.click(checkboxes[0]!);
@@ -143,9 +130,7 @@ describe('ConsentDialog — Plan 09-04', () => {
       data: { membership_id: 'm-1', org_id: 'org-1' },
     });
     const user = userEvent.setup();
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     await user.click(screen.getByRole('button', { name: /Accept and join/i }));
     await waitFor(() => expect(mockedAcceptExisting).toHaveBeenCalledTimes(1));
     expect(mockedAcceptExisting).toHaveBeenCalledWith(
@@ -159,7 +144,7 @@ describe('ConsentDialog — Plan 09-04', () => {
     );
   });
 
-  it("Accept (new mode) calls acceptInviteNew", async () => {
+  it('Accept (new mode) calls acceptInviteNew', async () => {
     mockedAcceptNew.mockResolvedValue({
       ok: true,
       data: { membership_id: 'm-2', org_id: 'org-1' },
@@ -173,26 +158,18 @@ describe('ConsentDialog — Plan 09-04', () => {
   it('Accept failure renders inline error message', async () => {
     mockedAcceptExisting.mockResolvedValue({ ok: false, error: 'email_mismatch' });
     const user = userEvent.setup();
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     await user.click(screen.getByRole('button', { name: /Accept and join/i }));
-    await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent(/email_mismatch/i),
-    );
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/email_mismatch/i));
   });
 
   it('Decline opens confirmation modal then calls rejectInvite', async () => {
     mockedReject.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
-    render(
-      <ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />,
-    );
+    render(<ConsentDialog invite={buildInvite()} rawToken="raw-token" mode="existing" />);
     await user.click(screen.getByRole('button', { name: /^Decline$/i }));
     // Confirmation modal opens
-    await waitFor(() =>
-      expect(screen.getByText(/Decline this invitation\?/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Decline this invitation\?/i)).toBeInTheDocument());
     await user.click(screen.getByRole('button', { name: /Decline invitation/i }));
     await waitFor(() => expect(mockedReject).toHaveBeenCalledTimes(1));
     expect(mockedReject).toHaveBeenCalledWith({ invite_token_hash: 'hash-of-raw-token' });

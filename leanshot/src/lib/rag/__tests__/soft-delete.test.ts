@@ -113,10 +113,7 @@ describeIfLive('Phase 50 Plan 50-02 — soft-delete semantics', () => {
   });
 
   it('soft-deleted topic chunks remain in rag_chunks', async () => {
-    const { data, error } = await admin
-      .from('rag_chunks')
-      .select('id')
-      .eq('id', chunkId);
+    const { data, error } = await admin.from('rag_chunks').select('id').eq('id', chunkId);
     expect(error).toBeNull();
     expect((data ?? []).length).toBe(1);
   });
@@ -137,9 +134,7 @@ describeIfLive('Phase 50 Plan 50-02 — soft-delete semantics', () => {
 
   // DEFERRED: retrieval Edge Fn ignores soft-deleted topics. Lands in Plan 50-07.
   // `it.skip` instead of `it.fixme` per [[reference_vitest_skip_fixme]].
-  it.skip(
-    'retrieval Edge Fn placeholder query ignores deleted_at flag [DEFERRED — see Plan 50-07]',
-    () => {
+  it.skip('retrieval Edge Fn placeholder query ignores deleted_at flag [DEFERRED — see Plan 50-07]', () => {
     // Plan 50-07 will assert: retrieval RPC returns 0 rows when the only matching
     // topic has deleted_at != null, even if its rag_chunks are published.
   });

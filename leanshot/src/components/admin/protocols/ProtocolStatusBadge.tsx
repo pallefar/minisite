@@ -17,24 +17,24 @@ import type { BadgeTone } from '@/components/ui/Badge';
 import type { ProtocolReviewState } from '@/types/protocols';
 
 const TONE_MAP: Record<ProtocolReviewState, BadgeTone> = {
-  draft:     'neutral',
+  draft: 'neutral',
   in_review: 'warning',
   published: 'success',
-  archived:  'neutral',
+  archived: 'neutral',
 };
 
 const ARIA_MAP: Record<ProtocolReviewState, string> = {
-  draft:     'Protocol status: draft',
+  draft: 'Protocol status: draft',
   in_review: 'Protocol status: pending review',
   published: 'Protocol status: published',
-  archived:  'Protocol status: archived',
+  archived: 'Protocol status: archived',
 };
 
 const LABEL_MAP: Record<ProtocolReviewState, string> = {
-  draft:     'Draft',
+  draft: 'Draft',
   in_review: 'In review',
   published: 'Published',
-  archived:  'Archived',
+  archived: 'Archived',
 };
 
 export function ProtocolStatusBadge({ status }: { status: ProtocolReviewState }) {

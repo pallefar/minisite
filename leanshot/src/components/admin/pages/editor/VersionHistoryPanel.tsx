@@ -171,7 +171,11 @@ export function VersionHistoryPanel({
           </ul>
         )}
         {status && (
-          <p role="status" aria-live="polite" className="text-[13px] mt-3 text-[var(--color-success)]">
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-[13px] mt-3 text-[var(--color-success)]"
+          >
             {status}
           </p>
         )}
@@ -195,11 +199,7 @@ export function VersionHistoryPanel({
           </p>
         )}
         <div className="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => setConfirmRevisionId(null)}
-            disabled={busy}
-          >
+          <Button variant="secondary" onClick={() => setConfirmRevisionId(null)} disabled={busy}>
             Cancel
           </Button>
           <Button

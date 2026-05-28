@@ -29,10 +29,7 @@ import { supabase } from '@/lib/supabase';
 import { EventCard } from './EventCard';
 import { EventDetailSheet } from './EventDetailSheet';
 
-type UserRsvpMap = Record<
-  string,
-  { status: RsvpStatus; waitlist_position: number | null }
->;
+type UserRsvpMap = Record<string, { status: RsvpStatus; waitlist_position: number | null }>;
 
 export default function EventsTab(): JSX.Element {
   const activeEventId = useStore((s) => s.activeEventId);
@@ -99,10 +96,7 @@ export default function EventsTab(): JSX.Element {
   }, [activeEventId, events]);
 
   const handleRsvpChange = useCallback(
-    (
-      eventId: string,
-      next: { status: RsvpStatus; waitlist_position: number | null },
-    ) => {
+    (eventId: string, next: { status: RsvpStatus; waitlist_position: number | null }) => {
       setUserRsvps((prev) => ({ ...prev, [eventId]: next }));
     },
     [],
@@ -111,9 +105,7 @@ export default function EventsTab(): JSX.Element {
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
       <header className="flex items-baseline justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-text)]">
-          Events
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-text)]">Events</h1>
         {events && events.length > 0 && (
           <span className="text-xs text-[var(--color-text-secondary)]">
             {events.length} upcoming

@@ -76,17 +76,25 @@ describe('CitationPopover', () => {
   // Test 5: loading skeleton shown on mount; ragChunkById called
   it('Test 5: calls ragChunkById and renders skeleton during fetch', async () => {
     let resolveChunk!: (chunk: RagChunkResult | null) => void;
-    mockRagChunkById.mockReturnValue(new Promise((res) => { resolveChunk = res; }));
+    mockRagChunkById.mockReturnValue(
+      new Promise((res) => {
+        resolveChunk = res;
+      }),
+    );
 
     const anchorEl = makeAnchorEl();
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     // While loading, the skeleton (animate-pulse) should be visible
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
     expect(mockRagChunkById).toHaveBeenCalledWith(VALID_CHUNK.chunk_id);
 
     // Clean up — resolve so React doesn't warn on pending updates
-    await act(async () => { resolveChunk(null); });
+    await act(async () => {
+      resolveChunk(null);
+    });
   });
 
   // Test 6: on success, renders source title, TierBadge, verbatim_quote, freshness
@@ -94,7 +102,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(VALID_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       // Source name appears at least once (link + possibly Sheet title)
@@ -123,7 +133,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(STALE_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={STALE_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={STALE_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/May be outdated/i)).toBeInTheDocument();
@@ -135,7 +147,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(RESEARCH_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={RESEARCH_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={RESEARCH_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/LeanShot Research \(k≥5 cohort/)).toBeInTheDocument();
@@ -147,7 +161,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(LONG_QUOTE_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={LONG_QUOTE_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={LONG_QUOTE_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Read full chunk/i)).toBeInTheDocument();
@@ -159,7 +175,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(VALID_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     // The dialog role — could be on the motion.div (desktop) or Sheet inner div
     await waitFor(() => {
@@ -176,9 +194,13 @@ describe('CitationPopover', () => {
     const anchorEl = makeAnchorEl();
     const user = userEvent.setup();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={onClose} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={onClose} />,
+    );
 
-    await waitFor(() => expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1));
+    await waitFor(() =>
+      expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1),
+    );
 
     await user.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -190,9 +212,13 @@ describe('CitationPopover', () => {
     const anchorEl = makeAnchorEl();
     const user = userEvent.setup();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
-    await waitFor(() => expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1));
+    await waitFor(() =>
+      expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1),
+    );
 
     // Get all focusable elements within the dialog
     const dialogs = screen.getAllByRole('dialog');
@@ -221,9 +247,13 @@ describe('CitationPopover', () => {
 
     const onClose = vi.fn();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={onClose} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={onClose} />,
+    );
 
-    await waitFor(() => expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1));
+    await waitFor(() =>
+      expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1),
+    );
 
     // In mobile mode (Sheet), use ESC to close
     const user = userEvent.setup();
@@ -267,7 +297,9 @@ describe('CitationPopover', () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1));
+    await waitFor(() =>
+      expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1),
+    );
 
     // Get the dialog element and fire keydown on it directly
     const dialog = screen.getByRole('dialog');
@@ -285,9 +317,13 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(VALID_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
-    await waitFor(() => expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1));
+    await waitFor(() =>
+      expect(screen.getAllByText('FDA Ozempic Label').length).toBeGreaterThanOrEqual(1),
+    );
 
     expect(mockCaptureRagEventBrowser).toHaveBeenCalledWith('rag_citation_clicked', {
       chunk_id: VALID_CHUNK.chunk_id,
@@ -303,7 +339,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(null);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/Couldn't load source details/i)).toBeInTheDocument();
@@ -331,7 +369,9 @@ describe('CitationPopover', () => {
     mockRagChunkById.mockResolvedValue(VALID_CHUNK);
     const anchorEl = makeAnchorEl();
 
-    render(<CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />);
+    render(
+      <CitationPopover chunkId={VALID_CHUNK.chunk_id} anchorEl={anchorEl} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       // Sheet renders a drag-dismiss dialog with aria-modal

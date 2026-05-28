@@ -66,7 +66,6 @@ vi.mock('@/lib/admin/palette/aal2-step-up', async (importOriginal) => {
   };
 });
 
-
 // ---------------------------------------------------------------------------
 // Build a controllable SupabaseClient stub.
 // ---------------------------------------------------------------------------
@@ -81,9 +80,7 @@ interface ClientStubOpts {
 function buildClient(opts: ClientStubOpts = {}) {
   const {
     hasSession = true,
-    factors = [
-      { id: 'factor-1', factor_type: 'totp', status: 'verified' },
-    ],
+    factors = [{ id: 'factor-1', factor_type: 'totp', status: 'verified' }],
     verifySucceeds = true,
     currentAal = 'aal2',
   } = opts;
@@ -92,22 +89,20 @@ function buildClient(opts: ClientStubOpts = {}) {
     data: { id: 'challenge-1' },
     error: null,
   });
-  const verify = vi.fn().mockResolvedValue(
-    verifySucceeds
-      ? { data: { session: {} }, error: null }
-      : { data: null, error: { message: 'invalid_code', status: 400 } },
-  );
+  const verify = vi
+    .fn()
+    .mockResolvedValue(
+      verifySucceeds
+        ? { data: { session: {} }, error: null }
+        : { data: null, error: { message: 'invalid_code', status: 400 } },
+    );
   const listFactors = vi.fn().mockResolvedValue({
     data: { totp: factors, all: factors },
     error: null,
   });
-  const getAal = vi
-    .fn()
-    .mockResolvedValue({ data: { currentLevel: currentAal }, error: null });
+  const getAal = vi.fn().mockResolvedValue({ data: { currentLevel: currentAal }, error: null });
   const getSession = vi.fn().mockResolvedValue({
-    data: hasSession
-      ? { session: { access_token: 'fake.jwt.token' } }
-      : { session: null },
+    data: hasSession ? { session: { access_token: 'fake.jwt.token' } } : { session: null },
     error: null,
   });
 

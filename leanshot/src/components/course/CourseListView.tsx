@@ -55,7 +55,9 @@ export function CourseListView({
     void (async () => {
       const { data, error } = await supabase
         .from('courses')
-        .select('id, title, slug, description, cover_url, completion_threshold_pct, enforce_completion, created_at, updated_at')
+        .select(
+          'id, title, slug, description, cover_url, completion_threshold_pct, enforce_completion, created_at, updated_at',
+        )
         .order('created_at', { ascending: false });
       if (cancelled) return;
       if (error) {

@@ -92,9 +92,7 @@ export function PhiAccessLogTab() {
               <span className="font-medium text-[var(--color-text)]">Viewed:&nbsp;</span>
               {row.accessed_fields.join(', ')}
             </p>
-            {row.reason && (
-              <p className="text-[var(--color-text-tertiary)] italic">{row.reason}</p>
-            )}
+            {row.reason && <p className="text-[var(--color-text-tertiary)] italic">{row.reason}</p>}
           </div>
         ))}
       </div>
@@ -133,8 +131,8 @@ export function PhiAccessLogTab() {
       {/* HIPAA right-of-accounting-of-disclosures footer */}
       <div className="pt-3 border-t border-[var(--color-border)]">
         <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-          This log records every time a member of your care team accessed your health data.
-          If you believe an entry is incorrect, contact your clinic or email{' '}
+          This log records every time a member of your care team accessed your health data. If you
+          believe an entry is incorrect, contact your clinic or email{' '}
           <a
             href="mailto:support@leanshot.app"
             className="underline underline-offset-2 hover:text-[var(--color-text)] transition-colors"

@@ -187,11 +187,7 @@ export function Sidebar({
               <Icon className="size-5 relative z-10 shrink-0" strokeWidth={active ? 2.2 : 1.8} />
               {!collapsed && (
                 <span
-                  className={cn(
-                    'ms-3 text-[13px] font-medium relative z-10',
-                    fadeCls,
-                    labelHidden,
-                  )}
+                  className={cn('ms-3 text-[13px] font-medium relative z-10', fadeCls, labelHidden)}
                 >
                   {label}
                 </span>
@@ -207,10 +203,7 @@ export function Sidebar({
       </nav>
 
       <div
-        className={cn(
-          'flex flex-col gap-1 w-full',
-          collapsed ? 'items-center' : 'items-stretch',
-        )}
+        className={cn('flex flex-col gap-1 w-full', collapsed ? 'items-center' : 'items-stretch')}
       >
         <button
           onClick={onOpenAI}

@@ -15,10 +15,7 @@
  *       {display_name:'Jane'}}) substitutes the slot in the hero
  */
 import { describe, expect, it } from 'vitest';
-import {
-  getAffiliateTemplates,
-  scaffoldAffiliateTemplate,
-} from '@/lib/page-builder/templates';
+import { getAffiliateTemplates, scaffoldAffiliateTemplate } from '@/lib/page-builder/templates';
 
 function blockTreeJson(blocks: unknown): string {
   return JSON.stringify(blocks);

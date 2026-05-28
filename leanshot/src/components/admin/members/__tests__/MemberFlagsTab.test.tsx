@@ -55,7 +55,9 @@ describe('<MemberFlagsTab /> — Phase 22 Plan 22-06', () => {
     });
 
     render(<MemberFlagsTab userId="u-1" />);
-    await waitFor(() => expect(screen.getByTestId('flag-row-aff_manual_entry')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId('flag-row-aff_manual_entry')).toBeInTheDocument(),
+    );
 
     const overriddenRow = screen.getByTestId('flag-row-aff_manual_entry');
     expect(within(overriddenRow).getByText('Overridden')).toBeInTheDocument();
@@ -74,7 +76,9 @@ describe('<MemberFlagsTab /> — Phase 22 Plan 22-06', () => {
 
     const user = userEvent.setup();
     render(<MemberFlagsTab userId="u-1" />);
-    await waitFor(() => expect(screen.getByTestId('flag-row-aff_manual_entry')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId('flag-row-aff_manual_entry')).toBeInTheDocument(),
+    );
 
     // Toggle On + click save.
     await user.click(screen.getByTestId('flag-on-aff_manual_entry'));
@@ -101,33 +105,33 @@ describe('<MemberFlagsTab /> — Phase 22 Plan 22-06', () => {
       error: null,
     });
     // First overrides fetch = none; second (post-save) = active override.
-    mockOverridesEq
-      .mockResolvedValueOnce({ data: [], error: null })
-      .mockResolvedValue({
-        data: [
-          {
-            flag_key: 'aff_manual_entry',
-            value: true,
-            expires_at: new Date(Date.now() + 86400_000).toISOString(),
-          },
-        ],
-        error: null,
-      });
+    mockOverridesEq.mockResolvedValueOnce({ data: [], error: null }).mockResolvedValue({
+      data: [
+        {
+          flag_key: 'aff_manual_entry',
+          value: true,
+          expires_at: new Date(Date.now() + 86400_000).toISOString(),
+        },
+      ],
+      error: null,
+    });
     mockRpc.mockResolvedValue({ data: null, error: null });
 
     const user = userEvent.setup();
     render(<MemberFlagsTab userId="u-1" />);
-    await waitFor(() => expect(screen.getByTestId('flag-row-aff_manual_entry')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId('flag-row-aff_manual_entry')).toBeInTheDocument(),
+    );
 
     await user.click(screen.getByTestId('flag-on-aff_manual_entry'));
     await user.click(screen.getByTestId('flag-save-aff_manual_entry'));
 
-    await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toMatch(/Override set/i),
-    );
+    await waitFor(() => expect(screen.getByRole('status').textContent).toMatch(/Override set/i));
     // Badge appears after the refetch.
     await waitFor(() =>
-      expect(within(screen.getByTestId('flag-row-aff_manual_entry')).getByText('Overridden')).toBeInTheDocument(),
+      expect(
+        within(screen.getByTestId('flag-row-aff_manual_entry')).getByText('Overridden'),
+      ).toBeInTheDocument(),
     );
   });
 });

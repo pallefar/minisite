@@ -67,8 +67,9 @@ export default function StepUpTotpPage({ onComplete, next: _next }: StepUpTotpPa
         setPhase('error');
       }
     });
-    return () => { cancelled = true; };
-     
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -152,7 +153,10 @@ export default function StepUpTotpPage({ onComplete, next: _next }: StepUpTotpPa
         )}
 
         <form
-          onSubmit={(e) => { e.preventDefault(); void handleVerify(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleVerify();
+          }}
           className="flex flex-col gap-4"
         >
           <div>

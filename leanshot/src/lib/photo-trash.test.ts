@@ -20,8 +20,8 @@ import { softDeletePhoto, restorePhoto, deletePhotoPermanently } from './photo-t
 // available when the vi.mock factory runs (which is hoisted to top of module).
 // ---------------------------------------------------------------------------
 
-const { mockStorageRemove, mockStorageFrom, mockUpdate, mockDelete, mockEq, mockFrom } =
-  vi.hoisted(() => {
+const { mockStorageRemove, mockStorageFrom, mockUpdate, mockDelete, mockEq, mockFrom } = vi.hoisted(
+  () => {
     const mockEq = vi.fn().mockResolvedValue({ error: null });
     const mockUpdate = vi.fn(() => ({ eq: mockEq }));
     const mockDelete = vi.fn(() => ({ eq: mockEq }));
@@ -29,7 +29,8 @@ const { mockStorageRemove, mockStorageFrom, mockUpdate, mockDelete, mockEq, mock
     const mockStorageRemove = vi.fn().mockResolvedValue({ data: null, error: null });
     const mockStorageFrom = vi.fn(() => ({ remove: mockStorageRemove }));
     return { mockStorageRemove, mockStorageFrom, mockUpdate, mockDelete, mockEq, mockFrom };
-  });
+  },
+);
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {

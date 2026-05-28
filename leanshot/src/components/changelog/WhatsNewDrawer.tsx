@@ -90,12 +90,7 @@ function formatPublishedDate(iso: string): string {
   }
 }
 
-export function WhatsNewDrawer({
-  open,
-  entries,
-  onClose,
-  markRead,
-}: WhatsNewDrawerProps) {
+export function WhatsNewDrawer({ open, entries, onClose, markRead }: WhatsNewDrawerProps) {
   const handleGotIt = async (): Promise<void> => {
     await markRead();
     onClose();
@@ -153,14 +148,7 @@ export function WhatsNewDrawer({
  */
 export function WhatsNewDrawerHost({ onClose }: { onClose: () => void }) {
   const { entries, markRead } = useChangelog();
-  return (
-    <WhatsNewDrawer
-      open
-      entries={entries}
-      onClose={onClose}
-      markRead={markRead}
-    />
-  );
+  return <WhatsNewDrawer open entries={entries} onClose={onClose} markRead={markRead} />;
 }
 
 export default WhatsNewDrawer;

@@ -6,13 +6,7 @@
  * T3: Save with invalid JSON shows inline 'Match rule must be valid JSON' error.
  * T4: Delete on fallback row is HIDDEN; delete on non-fallback row triggers Confirm.
  */
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 interface MockCg {
@@ -121,9 +115,7 @@ describe('TrafficTaxonomyPage', () => {
 
     // Sheet renders title (matches editCg.id === undefined branch)
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: /Add channel group/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Add channel group/i })).toBeInTheDocument();
     });
 
     // Label input is empty (no label prefilled for create)
@@ -142,9 +134,7 @@ describe('TrafficTaxonomyPage', () => {
     await waitFor(() => screen.getByText('Paid Search'));
 
     fireEvent.click(screen.getByRole('button', { name: 'Add channel group' }));
-    await waitFor(() =>
-      screen.getByRole('heading', { name: /Add channel group/i }),
-    );
+    await waitFor(() => screen.getByRole('heading', { name: /Add channel group/i }));
 
     // Fill required text fields.
     fireEvent.change(screen.getByLabelText('Channel group label'), {
@@ -159,9 +149,7 @@ describe('TrafficTaxonomyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save rule' }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Match rule must be valid JSON'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Match rule must be valid JSON')).toBeInTheDocument();
     });
 
     // RPC was not called.
@@ -175,9 +163,7 @@ describe('TrafficTaxonomyPage', () => {
     await waitFor(() => screen.getByText('Paid Search'));
 
     // Direct (fallback) row should NOT have a delete button — assert by aria-label.
-    expect(
-      screen.queryByRole('button', { name: 'Delete Direct' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete Direct' })).not.toBeInTheDocument();
 
     // Non-fallback Paid Search row HAS a Delete button.
     const deleteBtn = screen.getByRole('button', { name: 'Delete Paid Search' });
@@ -187,15 +173,11 @@ describe('TrafficTaxonomyPage', () => {
 
     // ConfirmModal renders the title.
     await waitFor(() => {
-      expect(
-        screen.getByText(/Delete this channel group\?/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Delete this channel group\?/i)).toBeInTheDocument();
     });
     // Body copy contains the label.
     expect(
-      screen.getByText(
-        /Visits previously matched to "Paid Search" will reclassify to "Direct"/i,
-      ),
+      screen.getByText(/Visits previously matched to "Paid Search" will reclassify to "Direct"/i),
     ).toBeInTheDocument();
 
     // Click Delete to confirm — RPC fires.

@@ -38,9 +38,7 @@ describe('LandingTemplateCoach', () => {
 
   it('T2: with photo_path set renders <img> with the src', () => {
     render(
-      <LandingTemplateCoach
-        affiliate={{ ...BASE, photo_path: 'https://cdn.example/jane.jpg' }}
-      />,
+      <LandingTemplateCoach affiliate={{ ...BASE, photo_path: 'https://cdn.example/jane.jpg' }} />,
     );
     const img = screen.getByAltText(/jane doe portrait/i);
     expect(img).toBeInTheDocument();

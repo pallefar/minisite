@@ -115,9 +115,7 @@ export function PageExperimentTab({
                 <div className="flex flex-col gap-1">
                   <h3 className="text-base font-bold">{row.variant_name}</h3>
                   {row.cohort_label && (
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                      {row.cohort_label}
-                    </p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{row.cohort_label}</p>
                   )}
                 </div>
                 <BayesianBadge posterior={row.posterior} />
@@ -130,8 +128,7 @@ export function PageExperimentTab({
                   className="rounded-xl border border-[var(--color-warning)] bg-[var(--color-warning-soft)] p-3 text-sm text-[var(--color-text)]"
                 >
                   This variant auto-archives in {daysRemaining} day
-                  {daysRemaining === 1 ? '' : 's'}. Ship a winner or roll back
-                  to control.
+                  {daysRemaining === 1 ? '' : 's'}. Ship a winner or roll back to control.
                 </div>
               )}
 
@@ -141,9 +138,8 @@ export function PageExperimentTab({
                   role="status"
                   className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 text-sm text-[var(--color-text-tertiary)]"
                 >
-                  This variant was auto-archived on{' '}
-                  {formatArchiveDate(row.archived_at!)}. Traffic is back on
-                  control.
+                  This variant was auto-archived on {formatArchiveDate(row.archived_at!)}. Traffic
+                  is back on control.
                 </div>
               )}
 

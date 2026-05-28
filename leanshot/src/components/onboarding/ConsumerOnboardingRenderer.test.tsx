@@ -14,7 +14,10 @@ import { ConsumerOnboardingRenderer, GOAL_OPTIONS } from './ConsumerOnboardingRe
 
 const signInWithMagicLinkMock = vi.fn(async () => ({ error: null }));
 const signInWithOAuthProviderMock = vi.fn(async () => ({ error: null }));
-const getSessionMock = vi.fn(async () => ({ session: { access_token: 'access-token' }, error: null }));
+const getSessionMock = vi.fn(async () => ({
+  session: { access_token: 'access-token' },
+  error: null,
+}));
 let isAppleEnabledFlag = false;
 vi.mock('@/lib/auth', () => ({
   signInWithMagicLink: (email: string) => signInWithMagicLinkMock(email),
@@ -34,18 +37,17 @@ vi.mock('@/lib/anonymous/cookie', () => ({
   ANON_COOKIE_NAME: '_ls_anon',
 }));
 
-let storeState: { signedIn: { user: { id: string } | null } | null; replayDraftEntries?: vi.Mock } = {
-  signedIn: null,
-};
+let storeState: { signedIn: { user: { id: string } | null } | null; replayDraftEntries?: vi.Mock } =
+  {
+    signedIn: null,
+  };
 const useStoreMock = (selector: (s: unknown) => unknown) => selector(storeState);
 (useStoreMock as unknown as { getState: () => unknown }).getState = () => storeState;
 vi.mock('@/lib/store', () => ({
-  useStore: Object.assign(
-    (selector: (s: unknown) => unknown) => useStoreMock(selector),
-    { getState: () => storeState },
-  ),
+  useStore: Object.assign((selector: (s: unknown) => unknown) => useStoreMock(selector), {
+    getState: () => storeState,
+  }),
 }));
-
 
 const getFeatureFlagMock = vi.fn(() => undefined as string | boolean | undefined);
 vi.mock('posthog-js', () => ({
@@ -54,7 +56,6 @@ vi.mock('posthog-js', () => ({
     getFeatureFlag: (...args: unknown[]) => getFeatureFlagMock(...args),
   },
 }));
-
 
 // ──────────────────────────────────────────────────────────────────────────
 // Test scaffolding
@@ -68,11 +69,12 @@ beforeEach(() => {
   storeState = { signedIn: null };
   getFeatureFlagMock.mockReturnValue(undefined);
   readAnonCookieMock.mockReturnValue('COOKIE');
-  fetchMock = vi.fn(async () =>
-    new Response(JSON.stringify({ merged: true, draft_entries: [] }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }),
+  fetchMock = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ merged: true, draft_entries: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
   );
   vi.stubGlobal('fetch', fetchMock);
 });
@@ -243,7 +245,9 @@ describe('ConsumerOnboardingRenderer', () => {
   });
 
   it('T13: getFeatureFlag throws → DEFAULT_STEPS used (safe fallback, no crash)', () => {
-    getFeatureFlagMock.mockImplementation(() => { throw new Error('posthog not ready'); });
+    getFeatureFlagMock.mockImplementation(() => {
+      throw new Error('posthog not ready');
+    });
     expect(() => render(<ConsumerOnboardingRenderer flow={null} />)).not.toThrow();
     // Should still show intro step (first DEFAULT_STEP).
     expect(screen.getByText(/Welcome to LeanShot/i)).toBeTruthy();

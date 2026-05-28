@@ -20,9 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth/totp-shared', async () => {
-  const actual = await vi.importActual<typeof TotpShared>(
-    '@/lib/auth/totp-shared',
-  );
+  const actual = await vi.importActual<typeof TotpShared>('@/lib/auth/totp-shared');
   return {
     ...actual,
     enrollTotp: mocks.enrollTotp,
@@ -41,14 +39,20 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 const FAKE_QR =
   'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>';
 const FAKE_FACTOR_ID = 'factor-uuid-abc';
 const FAKE_CODES = [
-  'ABCD-EFGH-JKMN', 'PQRS-TUVW-XYZ2', 'KMNP-QRST-UVWX', 'BCDE-FGHJ-KMNP',
-  'QRST-UVWX-YZ23', 'CDEF-GHJK-MNPQ', 'RSTU-VWXY-Z234', 'DEFG-HJKM-NPQR',
-  'STUV-WXYZ-2345', 'EFGH-JKMN-PQRS',
+  'ABCD-EFGH-JKMN',
+  'PQRS-TUVW-XYZ2',
+  'KMNP-QRST-UVWX',
+  'BCDE-FGHJ-KMNP',
+  'QRST-UVWX-YZ23',
+  'CDEF-GHJK-MNPQ',
+  'RSTU-VWXY-Z234',
+  'DEFG-HJKM-NPQR',
+  'STUV-WXYZ-2345',
+  'EFGH-JKMN-PQRS',
 ];
 
 function mockEnrollSuccess() {
@@ -101,9 +105,7 @@ describe('<TotpEnrollFlow mode> — copy divergence (UI-SPEC §66-03)', () => {
     await waitFor(() => {
       expect(mocks.enrollTotp).toHaveBeenCalledTimes(1);
     });
-    expect(mocks.enrollTotp).toHaveBeenCalledWith(
-      expect.objectContaining({ issuer: 'LeanShot' }),
-    );
+    expect(mocks.enrollTotp).toHaveBeenCalledWith(expect.objectContaining({ issuer: 'LeanShot' }));
   });
 });
 
@@ -251,9 +253,7 @@ describe('<TotpEnrollFlow> — verify + backup-codes flow', () => {
     expect(onSuccess).not.toHaveBeenCalled();
 
     // Check the box
-    fireEvent.click(
-      screen.getByLabelText('I have saved these backup codes in a safe place'),
-    );
+    fireEvent.click(screen.getByLabelText('I have saved these backup codes in a safe place'));
     expect(confirmBtn.disabled).toBe(false);
 
     // Click I've saved these
@@ -288,9 +288,7 @@ describe('<TotpEnrollFlow> — verify + backup-codes flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /Verify and continue/i }));
     await waitFor(() => screen.getByText('Save your backup codes'));
 
-    fireEvent.click(
-      screen.getByLabelText('I have saved these backup codes in a safe place'),
-    );
+    fireEvent.click(screen.getByLabelText('I have saved these backup codes in a safe place'));
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /I've saved these/i }));
     });

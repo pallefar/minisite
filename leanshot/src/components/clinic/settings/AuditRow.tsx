@@ -66,7 +66,8 @@ export interface AuditRowProps {
 
 export function AuditRow({ event, isExpanded, onToggle }: AuditRowProps) {
   const isDestructive = DESTRUCTIVE_ACTIONS.has(event.action);
-  const actorName = event.actor_display_name ?? (event.actor_type === 'org_system' ? 'System' : 'Unknown member');
+  const actorName =
+    event.actor_display_name ?? (event.actor_type === 'org_system' ? 'System' : 'Unknown member');
   const actionLabel = humanAction(event.action);
 
   return (
@@ -90,13 +91,10 @@ export function AuditRow({ event, isExpanded, onToggle }: AuditRowProps) {
             <span className="ms-1.5 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">
               member
             </span>
-          )}
-          {' '}
+          )}{' '}
           <span
             className={
-              isDestructive
-                ? 'text-[var(--color-danger)]'
-                : 'text-[var(--color-text-secondary)]'
+              isDestructive ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-secondary)]'
             }
           >
             {actionLabel}
@@ -148,7 +146,9 @@ export function AuditRow({ event, isExpanded, onToggle }: AuditRowProps) {
             </div>
             <div className="flex gap-2">
               <dt className="text-[var(--color-text-tertiary)] shrink-0 min-w-[120px]">Time:</dt>
-              <dd className="text-[var(--color-text)]">{new Date(event.created_at).toISOString()}</dd>
+              <dd className="text-[var(--color-text)]">
+                {new Date(event.created_at).toISOString()}
+              </dd>
             </div>
             {event.metadata && Object.keys(event.metadata).length > 0 && (
               <div className="flex gap-2">

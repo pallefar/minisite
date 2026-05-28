@@ -13,7 +13,6 @@
 import type { TierLabel } from '@/lib/community/community-types';
 import { supabase } from '@/lib/supabase';
 
-
 export type { TierLabel };
 
 // ─── Tier label reader ────────────────────────────────────────────────────────

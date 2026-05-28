@@ -17,7 +17,8 @@ const MOCK_CHUNK = {
   topic_tag: 'glp-1',
   slug: 'fda-approval-2023',
   title: 'Tirzepatide FDA Approval 2023',
-  summary: 'Tirzepatide received FDA approval for chronic weight management in adults with obesity.',
+  summary:
+    'Tirzepatide received FDA approval for chronic weight management in adults with obesity.',
   canonical_url: 'https://fda.gov/tirzepatide',
   source_tier: 'A' as const,
   source_id: 'src-001',
@@ -127,7 +128,8 @@ describe('60-13 Task 3: KnowledgeArticleDetailPage', () => {
   it('Test 5: DOMPurify strips img and script from chunk body', async () => {
     // Test sanitizeRagMarkdown directly
     const { sanitizeRagMarkdown } = await import('@/lib/rag/sanitize');
-    const dangerous = '<script>alert("xss")</script><img src="x" onerror="alert(1)"><p>safe content</p>';
+    const dangerous =
+      '<script>alert("xss")</script><img src="x" onerror="alert(1)"><p>safe content</p>';
     const sanitized = sanitizeRagMarkdown(dangerous);
     expect(sanitized).not.toContain('<script>');
     expect(sanitized).not.toContain('<img');
@@ -226,7 +228,8 @@ describe('60-13 Task 3: KnowledgeArticleDetailPage', () => {
 describe('60-13 Task 3: sanitizeRagMarkdown', () => {
   it('allows safe tags: p, a, ul, li, code, strong, em, blockquote, h2, h3, h4', async () => {
     const { sanitizeRagMarkdown } = await import('@/lib/rag/sanitize');
-    const input = '<p>text</p><a href="https://example.com">link</a><ul><li>item</li></ul><code>code</code><strong>bold</strong>';
+    const input =
+      '<p>text</p><a href="https://example.com">link</a><ul><li>item</li></ul><code>code</code><strong>bold</strong>';
     const output = sanitizeRagMarkdown(input);
     expect(output).toContain('<p>text</p>');
     expect(output).toContain('<a');

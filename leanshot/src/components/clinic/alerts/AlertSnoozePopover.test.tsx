@@ -194,10 +194,7 @@ describe('AlertSnoozePopover', () => {
     });
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.stringMatching(/snooze failed/i),
-        'error',
-      );
+      expect(mockToast).toHaveBeenCalledWith(expect.stringMatching(/snooze failed/i), 'error');
       expect(onClose).not.toHaveBeenCalled();
     });
   });

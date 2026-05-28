@@ -189,7 +189,9 @@ describe('PropertyPanel — 5 new block types resolve', () => {
         <PropertyPanel selectedBlockId={'t'} blocks={[block]} onChange={() => {}} />,
       );
       // Heading reflects the type
-      const header = within(container).getByText(new RegExp('^' + type.charAt(0).toUpperCase() + type.slice(1), 'i'));
+      const header = within(container).getByText(
+        new RegExp('^' + type.charAt(0).toUpperCase() + type.slice(1), 'i'),
+      );
       expect(header).toBeTruthy();
       // For the 5 new types the panel must NOT show the placeholder fallback copy.
       expect(container.textContent ?? '').not.toContain('land in a later plan');

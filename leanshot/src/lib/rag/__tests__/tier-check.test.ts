@@ -62,10 +62,13 @@ describeIfLive('Phase 50 Plan 50-01 — rag_chunks invariants', () => {
   });
 
   it('rag_chunk_status enum has 5 expected values', async () => {
-    const { data, error } = await admin.rpc('rag_mtd_spend_by_vendor').then(
-      () => ({ data: null, error: null }),
-      () => ({ data: null, error: null }),
-    ).catch(() => ({ data: null, error: null }));
+    const { data, error } = await admin
+      .rpc('rag_mtd_spend_by_vendor')
+      .then(
+        () => ({ data: null, error: null }),
+        () => ({ data: null, error: null }),
+      )
+      .catch(() => ({ data: null, error: null }));
     // Use direct SQL via supabase-js sql tag — fall back to executing via PostgREST view
     // since pg-meta isn't exposed; instead validate via attempting valid insert of each.
     void data;

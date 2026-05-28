@@ -120,10 +120,7 @@ export function CodeEntryScreen({ token, onSuccess }: Props) {
               )}
             />
             {error && (
-              <p
-                role="alert"
-                className="text-[13px] leading-snug text-[var(--color-danger)] mt-1"
-              >
+              <p role="alert" className="text-[13px] leading-snug text-[var(--color-danger)] mt-1">
                 {ERROR_COPY[error]}
               </p>
             )}

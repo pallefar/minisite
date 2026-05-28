@@ -62,8 +62,8 @@ const PROTOCOL_STEPS = [
 ];
 
 const PATIENT_INJECTIONS = [
-  { week_number: 1, dose_mg: 2.5 },  // matches
-  { week_number: 2, dose_mg: 4.0 },  // differs — triggers warning
+  { week_number: 1, dose_mg: 2.5 }, // matches
+  { week_number: 2, dose_mg: 4.0 }, // differs — triggers warning
 ];
 
 // Build chainable supabase mock

@@ -23,7 +23,9 @@ import {
   subscribeToConsentChange,
 } from '@/lib/consent/consent-event';
 
-function buildDetail(overrides: Partial<ConsentChangeDetail['categories']> = {}): ConsentChangeDetail {
+function buildDetail(
+  overrides: Partial<ConsentChangeDetail['categories']> = {},
+): ConsentChangeDetail {
   return {
     categories: {
       necessary: true,
@@ -80,7 +82,9 @@ describe('consent-event (Phase 41 D-09 foundation)', () => {
 
     // Unsubscribe + dispatch again — handler must NOT fire a second time.
     unsubscribe();
-    window.dispatchEvent(new CustomEvent(CONSENT_CHANGE_EVENT, { detail: buildDetail({ analytics: true }) }));
+    window.dispatchEvent(
+      new CustomEvent(CONSENT_CHANGE_EVENT, { detail: buildDetail({ analytics: true }) }),
+    );
     expect(handler).toHaveBeenCalledTimes(1);
   });
 

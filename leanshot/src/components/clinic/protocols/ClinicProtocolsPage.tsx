@@ -195,7 +195,11 @@ export function ClinicProtocolsPage({ orgId: _orgId }: ClinicProtocolsPageProps)
             className="hidden md:grid grid-cols-[1fr_140px_100px_80px_130px_160px] gap-3 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
           >
             {['Name', 'Compound', 'Audience', 'Version', 'Last Updated', ''].map((h) => (
-              <span key={h} role="columnheader" className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[var(--color-text-tertiary)]">
+              <span
+                key={h}
+                role="columnheader"
+                className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[var(--color-text-tertiary)]"
+              >
                 {h}
               </span>
             ))}
@@ -211,13 +215,19 @@ export function ClinicProtocolsPage({ orgId: _orgId }: ClinicProtocolsPageProps)
               <span role="cell" className="text-[13px] text-[var(--color-text)] font-semibold">
                 {protocol.name}
               </span>
-              <span role="cell" className="text-[13px] text-[var(--color-text-secondary)] capitalize">
+              <span
+                role="cell"
+                className="text-[13px] text-[var(--color-text-secondary)] capitalize"
+              >
                 {protocol.compound}
               </span>
               <span role="cell" className="text-[13px] text-[var(--color-text-secondary)]">
                 {protocol.audience}
               </span>
-              <span role="cell" className="text-[11px] font-mono text-[var(--color-text-secondary)]">
+              <span
+                role="cell"
+                className="text-[11px] font-mono text-[var(--color-text-secondary)]"
+              >
                 v{protocol.version}
               </span>
               <span role="cell" className="text-[11px] text-[var(--color-text-secondary)]">

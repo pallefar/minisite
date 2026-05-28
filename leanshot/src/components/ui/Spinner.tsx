@@ -28,10 +28,10 @@ export interface SpinnerProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const sizeClasses: Record<SpinnerSize, string> = {
-  xs: 'size-3',   // 12px
-  sm: 'size-4',   // 16px
-  md: 'size-5',   // 20px
-  lg: 'size-8',   // 32px
+  xs: 'size-3', // 12px
+  sm: 'size-4', // 16px
+  md: 'size-5', // 20px
+  lg: 'size-8', // 32px
 };
 
 export function Spinner({ size = 'md', label = 'Loading', className, ...rest }: SpinnerProps) {
@@ -39,13 +39,13 @@ export function Spinner({ size = 'md', label = 'Loading', className, ...rest }: 
     <span
       role="status"
       aria-label={label}
-      className={cn('inline-flex items-center justify-center text-[var(--color-text-secondary)]', className)}
+      className={cn(
+        'inline-flex items-center justify-center text-[var(--color-text-secondary)]',
+        className,
+      )}
       {...rest}
     >
-      <Loader2
-        className={cn(sizeClasses[size], 'animate-spin')}
-        aria-hidden
-      />
+      <Loader2 className={cn(sizeClasses[size], 'animate-spin')} aria-hidden />
     </span>
   );
 }

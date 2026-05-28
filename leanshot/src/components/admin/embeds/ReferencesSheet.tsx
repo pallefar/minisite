@@ -23,13 +23,11 @@ export function ReferencesSheet({ open, hostname, onClose }: ReferencesSheetProp
     <Sheet open={open} onClose={onClose} title={`Pages referencing ${hostname}`}>
       <div className="space-y-3 pt-1">
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          Reference scanning ships in v1.4; remove with caution if last-used
-          timestamp is recent.
+          Reference scanning ships in v1.4; remove with caution if last-used timestamp is recent.
         </p>
         <p className="text-[13px] text-[var(--color-text-tertiary)] leading-relaxed">
-          Until then, the &lsquo;References&rsquo; badge in the table reflects the
-          last-used signal from middleware-side hits, not a full JSONB scan of
-          page revisions.
+          Until then, the &lsquo;References&rsquo; badge in the table reflects the last-used signal
+          from middleware-side hits, not a full JSONB scan of page revisions.
         </p>
       </div>
     </Sheet>

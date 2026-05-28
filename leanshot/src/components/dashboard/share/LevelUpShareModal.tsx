@@ -44,9 +44,7 @@ export function LevelUpShareModal({ open, onClose, level }: Props) {
     setMintError(null);
     mintShareToken(level)
       .then((tok) => setShareUrl(buildShareUrl(tok, level)))
-      .catch((e: unknown) =>
-        setMintError(e instanceof Error ? e.message : 'unknown error'),
-      )
+      .catch((e: unknown) => setMintError(e instanceof Error ? e.message : 'unknown error'))
       .finally(() => setLoading(false));
   }, [open, level]);
 
@@ -72,9 +70,7 @@ export function LevelUpShareModal({ open, onClose, level }: Props) {
   return (
     <Modal open={open} onClose={onClose} title={`Share Level ${level}`} size="sm">
       {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">
-          Preparing share link…
-        </p>
+        <p className="text-sm text-[var(--color-text-secondary)]">Preparing share link…</p>
       )}
 
       {mintError && !loading && (
@@ -97,8 +93,7 @@ export function LevelUpShareModal({ open, onClose, level }: Props) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm hover:bg-[var(--color-surface-secondary)] transition-colors"
               >
-                <Twitter size={16} aria-hidden />
-                X / Twitter
+                <Twitter size={16} aria-hidden />X / Twitter
               </a>
             )}
 

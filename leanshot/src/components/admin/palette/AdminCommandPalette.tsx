@@ -39,8 +39,9 @@ export interface AdminCommandPaletteProps {
  */
 function resolvePosthogProbe(): { isFeatureEnabled: (k: string) => boolean | undefined } {
   if (typeof window === 'undefined') return { isFeatureEnabled: () => undefined };
-  const ph = (window as unknown as { posthog?: { isFeatureEnabled?: (k: string) => boolean | undefined } })
-    .posthog;
+  const ph = (
+    window as unknown as { posthog?: { isFeatureEnabled?: (k: string) => boolean | undefined } }
+  ).posthog;
   if (ph && typeof ph.isFeatureEnabled === 'function') {
     return { isFeatureEnabled: ph.isFeatureEnabled.bind(ph) };
   }
@@ -78,11 +79,7 @@ export function AdminCommandPalette({ adminRole }: AdminCommandPaletteProps) {
   }, [open, recentItems, recentLoading]);
 
   const posthog = resolvePosthogProbe();
-  const index: PaletteItem[] = buildPaletteIndex(
-    adminRole,
-    posthog,
-    recentItems ?? [],
-  );
+  const index: PaletteItem[] = buildPaletteIndex(adminRole, posthog, recentItems ?? []);
 
   const modules = index.filter((i) => i.group === 'modules');
   const recents = index.filter((i) => i.group === 'recent');
@@ -123,7 +120,10 @@ export function AdminCommandPalette({ adminRole }: AdminCommandPaletteProps) {
             </Command.Empty>
 
             {modules.length > 0 && (
-              <Command.Group heading="Modules" className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)] px-2 pt-2 pb-1">
+              <Command.Group
+                heading="Modules"
+                className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)] px-2 pt-2 pb-1"
+              >
                 {modules.map((item) => (
                   <Command.Item
                     key={item.id}
@@ -138,7 +138,10 @@ export function AdminCommandPalette({ adminRole }: AdminCommandPaletteProps) {
               </Command.Group>
             )}
 
-            <Command.Group heading="Recent" className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)] px-2 pt-3 pb-1">
+            <Command.Group
+              heading="Recent"
+              className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)] px-2 pt-3 pb-1"
+            >
               {recentLoading && (
                 <div className="px-3 py-2 text-[14px] text-[var(--color-text-secondary)]">
                   Loading recent…
@@ -162,7 +165,10 @@ export function AdminCommandPalette({ adminRole }: AdminCommandPaletteProps) {
             </Command.Group>
 
             {quicks.length > 0 && (
-              <Command.Group heading="Quick Actions" className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)] px-2 pt-3 pb-1">
+              <Command.Group
+                heading="Quick Actions"
+                className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)] px-2 pt-3 pb-1"
+              >
                 {quicks.map((item) => (
                   <Command.Item
                     key={item.id}

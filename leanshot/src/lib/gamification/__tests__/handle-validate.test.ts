@@ -12,11 +12,11 @@ describe('validateHandle (D-13)', () => {
     'curve_runner_22',
     'ABC123',
     'user-with-dashes',
-    'abcdef',            // exactly 6 chars (min)
-    'a'.repeat(24),     // exactly 24 chars (max)
+    'abcdef', // exactly 6 chars (min)
+    'a'.repeat(24), // exactly 24 chars (max)
     'A1-b2_c3',
     'Tracker-9999',
-    '123456',           // all digits, exactly 6
+    '123456', // all digits, exactly 6
     'UPPER-lower-123',
   ];
 
@@ -27,18 +27,18 @@ describe('validateHandle (D-13)', () => {
   // --- Invalid handles ---
   const invalidHandles: Array<[string, string]> = [
     ['', 'empty'],
-    ['     ', 'empty'],        // whitespace-only
-    ['short', 'too_short'],    // 5 chars
+    ['     ', 'empty'], // whitespace-only
+    ['short', 'too_short'], // 5 chars
     ['x'.repeat(25), 'too_long'],
-    ['John Smith', 'invalid_characters'],       // real name with space
-    ['user@example', 'invalid_characters'],     // @ blocked
-    ['café-runner', 'invalid_characters'],      // diacritic blocked
+    ['John Smith', 'invalid_characters'], // real name with space
+    ['user@example', 'invalid_characters'], // @ blocked
+    ['café-runner', 'invalid_characters'], // diacritic blocked
     ['user with spaces', 'invalid_characters'], // spaces blocked
-    ['handle!bang', 'invalid_characters'],      // ! blocked
-    ['handle#hash', 'invalid_characters'],      // # blocked
-    ['naïve-user', 'invalid_characters'],       // diacritic (ï)
-    ['user.name', 'invalid_characters'],        // period blocked
-    ['user+plus', 'invalid_characters'],        // + blocked
+    ['handle!bang', 'invalid_characters'], // ! blocked
+    ['handle#hash', 'invalid_characters'], // # blocked
+    ['naïve-user', 'invalid_characters'], // diacritic (ï)
+    ['user.name', 'invalid_characters'], // period blocked
+    ['user+plus', 'invalid_characters'], // + blocked
   ];
 
   it.each(invalidHandles)('rejects %j with error %s', (h, expectedError) => {

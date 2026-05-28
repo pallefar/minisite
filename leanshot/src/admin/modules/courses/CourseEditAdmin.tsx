@@ -63,9 +63,7 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
       setLoading(true);
       const { data, error } = await supabase
         .from('courses')
-        .select(
-          'title, slug, description, cover_url, completion_threshold_pct, enforce_completion',
-        )
+        .select('title, slug, description, cover_url, completion_threshold_pct, enforce_completion')
         .eq('id', courseId)
         .single();
 
@@ -82,9 +80,7 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
         description: row.description ?? '',
         cover_url: row.cover_url ?? '',
         completion_threshold_pct:
-          typeof row.completion_threshold_pct === 'number'
-            ? row.completion_threshold_pct
-            : 100,
+          typeof row.completion_threshold_pct === 'number' ? row.completion_threshold_pct : 100,
         enforce_completion: row.enforce_completion ?? true,
       });
       setLoading(false);
@@ -127,11 +123,7 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
     };
 
     if (isNew) {
-      const { data, error } = await supabase
-        .from('courses')
-        .insert(payload)
-        .select('id')
-        .single();
+      const { data, error } = await supabase.from('courses').insert(payload).select('id').single();
 
       if (error || !data) {
         toast(`Failed to create course: ${error?.message ?? 'Unknown error'}`, 'error');
@@ -184,7 +176,10 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
       {/* Title */}
       <div>
         <label htmlFor="course-title" className="block text-sm font-medium mb-1">
-          Title <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+          Title{' '}
+          <span aria-hidden="true" className="text-[var(--color-danger)]">
+            *
+          </span>
         </label>
         <Input
           id="course-title"
@@ -206,7 +201,10 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
       {/* Slug */}
       <div>
         <label htmlFor="course-slug" className="block text-sm font-medium mb-1">
-          Slug <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+          Slug{' '}
+          <span aria-hidden="true" className="text-[var(--color-danger)]">
+            *
+          </span>
         </label>
         <Input
           id="course-slug"
@@ -258,10 +256,7 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
 
       {/* Threshold */}
       <div>
-        <label
-          htmlFor="course-threshold"
-          className="block text-sm font-medium mb-1"
-        >
+        <label htmlFor="course-threshold" className="block text-sm font-medium mb-1">
           Completion threshold (%)
         </label>
         <Input
@@ -287,7 +282,8 @@ export function CourseEditAdmin({ courseId, onNavigate }: CourseEditAdminProps) 
           </p>
         )}
         <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-          Percentage of required lessons that must be completed before a certificate is issued (1–100).
+          Percentage of required lessons that must be completed before a certificate is issued
+          (1–100).
         </p>
       </div>
 

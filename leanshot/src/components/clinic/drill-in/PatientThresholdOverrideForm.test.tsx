@@ -221,10 +221,7 @@ describe('PatientThresholdOverrideForm', () => {
     });
 
     // Reset SECDEF must NOT have been called
-    expect(mockRpc).not.toHaveBeenCalledWith(
-      'reset_patient_dose_thresholds',
-      expect.anything(),
-    );
+    expect(mockRpc).not.toHaveBeenCalledWith('reset_patient_dose_thresholds', expect.anything());
   });
 
   it('Test 8: inputs have min/max constraints (N: 1-30, M: 7-90, X: 5-100)', async () => {

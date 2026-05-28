@@ -84,12 +84,20 @@ beforeAll(async () => {
   const emailTarget = `${TEST_SLUG_PREFIX}target@leanshot.test`;
   const password = `Pass1234-${crypto.randomUUID().slice(0, 8)}`;
 
-  const aRes = await admin.auth.admin.createUser({ email: emailAdmin, password, email_confirm: true });
+  const aRes = await admin.auth.admin.createUser({
+    email: emailAdmin,
+    password,
+    email_confirm: true,
+  });
   if (aRes.error) throw aRes.error;
   adminUserId = aRes.data.user!.id;
   createdUserIds.push(adminUserId);
 
-  const tRes = await admin.auth.admin.createUser({ email: emailTarget, password, email_confirm: true });
+  const tRes = await admin.auth.admin.createUser({
+    email: emailTarget,
+    password,
+    email_confirm: true,
+  });
   if (tRes.error) throw tRes.error;
   targetUserId = tRes.data.user!.id;
   createdUserIds.push(targetUserId);
@@ -109,11 +117,19 @@ afterAll(async () => {
   if (!SHOULD_RUN) return;
   // Clean up seeded audit rows first
   if (seededAuditRowId) {
-    try { await admin.from('audit_logs').delete().eq('id', seededAuditRowId); } catch { /* best-effort */ }
+    try {
+      await admin.from('audit_logs').delete().eq('id', seededAuditRowId);
+    } catch {
+      /* best-effort */
+    }
   }
   // Delete test users
   for (const id of createdUserIds) {
-    try { await admin.auth.admin.deleteUser(id); } catch { /* best-effort */ }
+    try {
+      await admin.auth.admin.deleteUser(id);
+    } catch {
+      /* best-effort */
+    }
   }
 }, 30_000);
 
@@ -218,16 +234,17 @@ describeIfLive('Phase 24 D-17 — audit_logs append-only RLS (T-24-03)', () => {
     expect(row!.after_data).toEqual({ admin_role: 'staff' });
 
     // Cleanup
-    await admin.from('audit_logs').delete().eq('id', rowId as string);
+    await admin
+      .from('audit_logs')
+      .delete()
+      .eq('id', rowId as string);
   }, 30_000);
 
   it('T4: is_admin_at_least ordinal comparator — staff satisfies staff only; superadmin satisfies all', async () => {
     // Promote adminUserId to superadmin temporarily
     await admin.from('profiles').update({ admin_role: 'superadmin' }).eq('id', adminUserId);
 
-    const superadminToken = await getUserAccessToken(
-      `${TEST_SLUG_PREFIX}admin@leanshot.test`,
-    );
+    const superadminToken = await getUserAccessToken(`${TEST_SLUG_PREFIX}admin@leanshot.test`);
     const superClient = buildAnonClient(`${TEST_SLUG_PREFIX}super`);
     superClient.auth.setSession({ access_token: superadminToken, refresh_token: 'unused' });
 
@@ -235,7 +252,9 @@ describeIfLive('Phase 24 D-17 — audit_logs append-only RLS (T-24-03)', () => {
     const { data: staffRes } = await superClient.rpc('is_admin_at_least', { min_role: 'staff' });
     expect(staffRes).toBe(true);
     // Superadmin should satisfy 'superadmin'
-    const { data: superRes } = await superClient.rpc('is_admin_at_least', { min_role: 'superadmin' });
+    const { data: superRes } = await superClient.rpc('is_admin_at_least', {
+      min_role: 'superadmin',
+    });
     expect(superRes).toBe(true);
 
     // Demote back to admin for remaining tests
@@ -246,7 +265,9 @@ describeIfLive('Phase 24 D-17 — audit_logs append-only RLS (T-24-03)', () => {
 describe('Phase 24 audit_logs RLS — gating', () => {
   it('runs against live cloud DB when SUPABASE_SERVICE_ROLE_KEY is set', () => {
     if (!SHOULD_RUN) {
-      console.warn('[audit-logs-rls.test] SKIPPED — env vars not set; run against live DB for RLS proofs.');
+      console.warn(
+        '[audit-logs-rls.test] SKIPPED — env vars not set; run against live DB for RLS proofs.',
+      );
     }
     expect(true).toBe(true);
   });

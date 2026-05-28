@@ -12,7 +12,10 @@ describe('parseProtocolShortcodes', () => {
     const result = parseProtocolShortcodes('Just some plain text with no shortcode.');
     expect(result.protocols).toHaveLength(0);
     expect(result.segments).toHaveLength(1);
-    expect(result.segments[0]).toEqual({ type: 'text', value: 'Just some plain text with no shortcode.' });
+    expect(result.segments[0]).toEqual({
+      type: 'text',
+      value: 'Just some plain text with no shortcode.',
+    });
   });
 
   it('Test 2: text with one shortcode → 3 segments (text, protocol, text), protocols length 1, refIndex=1', () => {
@@ -56,6 +59,8 @@ describe('parseProtocolShortcodes', () => {
     expect(result.protocols).toHaveLength(0);
     expect(result.segments).toHaveLength(1);
     expect(result.segments[0]?.type).toBe('text');
-    expect((result.segments[0] as { type: 'text'; value: string }).value).toContain('[protocol:not-a-uuid]');
+    expect((result.segments[0] as { type: 'text'; value: string }).value).toContain(
+      '[protocol:not-a-uuid]',
+    );
   });
 });

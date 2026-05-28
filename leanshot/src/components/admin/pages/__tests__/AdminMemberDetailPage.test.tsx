@@ -165,9 +165,7 @@ describe('<AdminMemberDetailPage /> — Phase 22 Plan 22-06', () => {
     render(<AdminMemberDetailPage userId="u-1" />);
     await screen.findByTestId('member-detail-header');
     await user.click(screen.getByRole('tab', { name: 'Activity' }));
-    await waitFor(() =>
-      expect(screen.getByText(/No activity yet/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/No activity yet/i)).toBeInTheDocument());
   });
 
   it('T5b — switching to Stripe shows "No charges in the last 90 days"', async () => {
@@ -187,8 +185,6 @@ describe('<AdminMemberDetailPage /> — Phase 22 Plan 22-06', () => {
     render(<AdminMemberDetailPage userId="u-1" />);
     await screen.findByTestId('member-detail-header');
     await user.click(screen.getByRole('tab', { name: 'Audit' }));
-    await waitFor(() =>
-      expect(screen.getByText(/No audit entries/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/No audit entries/i)).toBeInTheDocument());
   });
 });

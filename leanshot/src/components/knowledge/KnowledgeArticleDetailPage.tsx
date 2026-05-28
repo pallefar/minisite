@@ -59,7 +59,9 @@ function formatDateYearMonth(iso: string | null | undefined): string {
 }
 
 /** Determine freshness state for the freshness pill. */
-function getFreshnessState(reviewedAt: string | null | undefined): 'outdated' | 'reviewed' | 'fresh' | 'none' {
+function getFreshnessState(
+  reviewedAt: string | null | undefined,
+): 'outdated' | 'reviewed' | 'fresh' | 'none' {
   if (!reviewedAt) return 'none';
   const ageMs = Date.now() - new Date(reviewedAt).getTime();
   const twoYearsMs = 2 * 365.25 * 24 * 60 * 60 * 1000;
@@ -146,7 +148,9 @@ export function KnowledgeArticleDetailPage() {
         if (!cancelled) setChunk(null);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [topic, slug, isInvalidSlug]);
 
   // Loading state
@@ -212,9 +216,7 @@ export function KnowledgeArticleDetailPage() {
             <KnowledgeBreadcrumb topic={topic} slug={slug} chunkTitle={title} />
 
             <header className="space-y-3">
-              <h1 className="text-lg font-semibold text-text leading-snug">
-                {title}
-              </h1>
+              <h1 className="text-lg font-semibold text-text leading-snug">{title}</h1>
 
               {/* Source meta strip */}
               <div className="flex flex-wrap items-center gap-2 text-sm text-text-secondary">
@@ -261,10 +263,7 @@ export function KnowledgeArticleDetailPage() {
                 return segments.map((seg, i) => {
                   if (seg.type === 'protocol') {
                     return (
-                      <div
-                        key={`protocol-${i}-${seg.protocolId}`}
-                        className="my-4 not-prose"
-                      >
+                      <div key={`protocol-${i}-${seg.protocolId}`} className="my-4 not-prose">
                         <ProtocolSummaryCard protocolId={seg.protocolId} />
                       </div>
                     );
@@ -277,8 +276,14 @@ export function KnowledgeArticleDetailPage() {
 
             {/* ── Related articles ──────────────────────────────────── */}
             {related.length > 0 && (
-              <section aria-labelledby="related-heading" className="border-t border-border pt-6 space-y-3">
-                <h2 id="related-heading" className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+              <section
+                aria-labelledby="related-heading"
+                className="border-t border-border pt-6 space-y-3"
+              >
+                <h2
+                  id="related-heading"
+                  className="text-xs font-semibold text-text-secondary uppercase tracking-wide"
+                >
                   Related
                 </h2>
                 <div className="space-y-2">

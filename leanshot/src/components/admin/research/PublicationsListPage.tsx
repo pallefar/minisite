@@ -29,11 +29,11 @@ interface FilterPill {
 }
 
 const FILTER_PILLS: FilterPill[] = [
-  { key: 'all',       label: 'All' },
-  { key: 'draft',     label: 'Draft' },
+  { key: 'all', label: 'All' },
+  { key: 'draft', label: 'Draft' },
   { key: 'in_review', label: 'In Review' },
   { key: 'published', label: 'Published' },
-  { key: 'archived',  label: 'Archived' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ export function PublicationsListPage({ initialStatusFilter }: PublicationsListPa
           setLoading(false);
           return;
         }
-        setPublications(((data as unknown) as ResearchPublication[]) ?? []);
+        setPublications((data as unknown as ResearchPublication[]) ?? []);
         setLoading(false);
       });
 
@@ -193,9 +193,7 @@ export function PublicationsListPage({ initialStatusFilter }: PublicationsListPa
   return (
     <div className="min-w-0">
       {/* Sticky header */}
-      <div
-        className="sticky top-0 bg-[var(--color-surface)] z-10 pb-3 border-b border-[var(--color-border)] mb-4"
-      >
+      <div className="sticky top-0 bg-[var(--color-surface)] z-10 pb-3 border-b border-[var(--color-border)] mb-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <h1 className="text-[18px] font-semibold tracking-tight">Research Publications</h1>
           <Button
@@ -239,9 +237,7 @@ export function PublicationsListPage({ initialStatusFilter }: PublicationsListPa
       )}
 
       {/* Error */}
-      {!loading && error && (
-        <p className="text-[13px] text-[var(--color-danger)]">{error}</p>
-      )}
+      {!loading && error && <p className="text-[13px] text-[var(--color-danger)]">{error}</p>}
 
       {/* Empty state */}
       {!loading && !error && filteredPublications.length === 0 && (
@@ -315,9 +311,7 @@ export function PublicationsListPage({ initialStatusFilter }: PublicationsListPa
                     {/* Created by */}
                     <td className="py-3 pe-4 text-[var(--color-text-secondary)]">
                       {row.created_by ? (
-                        <span className="font-mono text-[11px]">
-                          {row.created_by.slice(0, 8)}…
-                        </span>
+                        <span className="font-mono text-[11px]">{row.created_by.slice(0, 8)}…</span>
                       ) : (
                         <span className="text-[var(--color-text-tertiary)]">—</span>
                       )}
@@ -349,10 +343,7 @@ export function PublicationsListPage({ initialStatusFilter }: PublicationsListPa
         </div>
       )}
 
-      <ResearchKeyboardHelpModal
-        open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-      />
+      <ResearchKeyboardHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

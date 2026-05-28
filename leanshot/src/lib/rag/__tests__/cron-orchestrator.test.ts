@@ -8,20 +8,14 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import {
-  nextScrapeAtFromCadence,
-  type Cadence,
-} from '../scrape/runner-helpers';
+import { nextScrapeAtFromCadence, type Cadence } from '../scrape/runner-helpers';
 
 const REPO_ROOT = resolve(__dirname, '../../../../..');
 const CRON_MIGRATION_PATH = resolve(
   REPO_ROOT,
   'supabase/migrations/20260519000011_rag_scrape_cron.sql',
 );
-const RUNNER_INDEX_PATH = resolve(
-  REPO_ROOT,
-  'supabase/functions/rag-scrape-runner/index.ts',
-);
+const RUNNER_INDEX_PATH = resolve(REPO_ROOT, 'supabase/functions/rag-scrape-runner/index.ts');
 
 describe('Phase 50 Plan 50-04 — cron orchestrator', () => {
   describe('D-09: next_scrape_at computed from cadence', () => {
@@ -61,7 +55,9 @@ describe('Phase 50 Plan 50-04 — cron orchestrator', () => {
 
     it('invokes the rag-scrape-runner Edge Fn URL on the canonical project ref', () => {
       const sql = readFileSync(CRON_MIGRATION_PATH, 'utf-8');
-      expect(sql).toContain('https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/rag-scrape-runner');
+      expect(sql).toContain(
+        'https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/rag-scrape-runner',
+      );
     });
 
     it('reads service-role bearer from vault.decrypted_secrets (NOT a GUC)', () => {

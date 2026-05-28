@@ -21,7 +21,7 @@ export interface RecentItem {
 
 export type PaletteRecentErrorCode =
   | 'not_authenticated' // 28000
-  | 'forbidden'         // 42501 — caller failed is_admin_at_least('admin')
+  | 'forbidden' // 42501 — caller failed is_admin_at_least('admin')
   | 'network'
   | 'unknown';
 

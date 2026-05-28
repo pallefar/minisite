@@ -38,9 +38,9 @@ const describeIfLive = SHOULD_RUN ? describe : describe.skip;
 describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
   let fixture: TwoOrgsTwoUsers;
   let userAClient: SupabaseClient; // owner of orgX
-  let clinicianUserIdX: string;   // a clinician member seeded into orgX for TC3
+  let clinicianUserIdX: string; // a clinician member seeded into orgX for TC3
   let clinicianClientX: SupabaseClient;
-  let secondOwnerUserIdX: string;  // second owner of orgX for TC5
+  let secondOwnerUserIdX: string; // second owner of orgX for TC5
   let admin: SupabaseClient;
 
   beforeAll(async () => {
@@ -115,9 +115,9 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
 
   it('TC1: Owner of Org X CAN change clinician to staff within Org X', async () => {
     const { error } = await userAClient.rpc('change_member_role', {
-      p_org_id:  fixture.orgX,
+      p_org_id: fixture.orgX,
       p_user_id: clinicianUserIdX,
-      p_role:    'staff',
+      p_role: 'staff',
     });
     expect(error).toBeNull();
 
@@ -131,16 +131,18 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
     expect(memberRow?.role).toBe('staff');
 
     // Restore to clinician for subsequent tests
-    await admin.from('org_members').update({ role: 'clinician' })
+    await admin
+      .from('org_members')
+      .update({ role: 'clinician' })
       .eq('org_id', fixture.orgX)
       .eq('user_id', clinicianUserIdX);
   }, 30_000);
 
   it('TC2: Owner of Org X CANNOT change_member_role in Org Y (insufficient_privilege)', async () => {
     const { error } = await userAClient.rpc('change_member_role', {
-      p_org_id:  fixture.orgY,
+      p_org_id: fixture.orgY,
       p_user_id: fixture.userB,
-      p_role:    'staff',
+      p_role: 'staff',
     });
     expect(error).not.toBeNull();
     expect((error as { message: string }).message).toMatch(/insufficient_privilege|caller lacks/);
@@ -148,9 +150,9 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
 
   it('TC3: Clinician of Org X CANNOT change_member_role within Org X (lacks members.role.edit)', async () => {
     const { error } = await clinicianClientX.rpc('change_member_role', {
-      p_org_id:  fixture.orgX,
+      p_org_id: fixture.orgX,
       p_user_id: fixture.userA,
-      p_role:    'staff',
+      p_role: 'staff',
     });
     expect(error).not.toBeNull();
     expect((error as { message: string }).message).toMatch(/insufficient_privilege|caller lacks/);
@@ -158,37 +160,41 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
 
   it('TC4: Owner CANNOT demote themselves when they are the LAST owner (LAST_OWNER_DEMOTE_DENIED)', async () => {
     // Remove secondOwner temporarily so userA is the only owner
-    await admin.from('org_members').delete()
+    await admin
+      .from('org_members')
+      .delete()
       .eq('org_id', fixture.orgX)
       .eq('user_id', secondOwnerUserIdX);
 
     const { error } = await userAClient.rpc('change_member_role', {
-      p_org_id:  fixture.orgX,
+      p_org_id: fixture.orgX,
       p_user_id: fixture.userA,
-      p_role:    'clinician',
+      p_role: 'clinician',
     });
     expect(error).not.toBeNull();
     expect((error as { message: string }).message).toMatch(/LAST_OWNER_DEMOTE_DENIED/);
 
     // Restore secondOwner
     await admin.from('org_members').insert({
-      org_id:  fixture.orgX,
+      org_id: fixture.orgX,
       user_id: secondOwnerUserIdX,
-      role:    'owner',
+      role: 'owner',
     });
   }, 30_000);
 
   it('TC5: Owner CAN demote themselves when a second owner exists', async () => {
     // secondOwnerUserIdX is now restored (owner) so userA can safely demote self
     const { error } = await userAClient.rpc('change_member_role', {
-      p_org_id:  fixture.orgX,
+      p_org_id: fixture.orgX,
       p_user_id: fixture.userA,
-      p_role:    'clinician',
+      p_role: 'clinician',
     });
     expect(error).toBeNull();
 
     // Restore userA to owner for afterAll cleanup
-    await admin.from('org_members').update({ role: 'owner' })
+    await admin
+      .from('org_members')
+      .update({ role: 'owner' })
       .eq('org_id', fixture.orgX)
       .eq('user_id', fixture.userA);
   }, 30_000);
@@ -196,9 +202,9 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
   it('TC6: change_member_role writes audit_logs row with action=org_member.role_changed', async () => {
     // Trigger a role change (clinician → staff)
     const { error } = await userAClient.rpc('change_member_role', {
-      p_org_id:  fixture.orgX,
+      p_org_id: fixture.orgX,
       p_user_id: clinicianUserIdX,
-      p_role:    'staff',
+      p_role: 'staff',
     });
     expect(error).toBeNull();
 
@@ -213,8 +219,7 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
     expect(logErr).toBeNull();
     const relevantLog = (logs ?? []).find(
       (l: { metadata: { org_id?: string; user_id?: string; new_role?: string } }) =>
-        l.metadata?.org_id === fixture.orgX &&
-        l.metadata?.user_id === clinicianUserIdX
+        l.metadata?.org_id === fixture.orgX && l.metadata?.user_id === clinicianUserIdX,
     );
     expect(relevantLog).not.toBeUndefined();
     expect(relevantLog?.metadata?.new_role).toBe('staff');

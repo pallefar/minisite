@@ -66,7 +66,9 @@ export function ResearchIndexPage() {
       }
     }
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const description = 'Evidence-based findings from anonymized, aggregate LeanShot treatment data.';
@@ -77,7 +79,12 @@ export function ResearchIndexPage() {
         <title>LeanShot Research</title>
         <meta name="description" content={description} />
         <link rel="canonical" href={`${CANONICAL_BASE}/research`} />
-        <link rel="alternate" type="application/rss+xml" href="/research/rss.xml" title="LeanShot Research RSS" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          href="/research/rss.xml"
+          title="LeanShot Research RSS"
+        />
         <meta property="og:title" content="LeanShot Research" />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
@@ -94,9 +101,7 @@ export function ResearchIndexPage() {
           >
             LeanShot Research
           </h1>
-          <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
-            {description}
-          </p>
+          <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">{description}</p>
 
           {/* RSS link row */}
           <div className="flex items-center gap-2 mt-3">
@@ -119,7 +124,9 @@ export function ResearchIndexPage() {
               ))}
             </div>
           ) : publications.length === 0 ? (
-            <p className="text-[13px] text-[var(--color-text-secondary)]">No research published yet.</p>
+            <p className="text-[13px] text-[var(--color-text-secondary)]">
+              No research published yet.
+            </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {publications.map((pub: ResearchPublication) => (

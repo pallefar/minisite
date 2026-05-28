@@ -32,9 +32,10 @@ export interface SourcesPanelProps {
   canonicalUrl: string;
 }
 
-function getFreshnessLabel(
-  reviewedAt: string | null | undefined,
-): { label: string; tone: 'warning' | 'neutral' | 'none' } {
+function getFreshnessLabel(reviewedAt: string | null | undefined): {
+  label: string;
+  tone: 'warning' | 'neutral' | 'none';
+} {
   if (!reviewedAt) return { label: '', tone: 'none' };
   const now = Date.now();
   const reviewed = new Date(reviewedAt).getTime();
@@ -53,12 +54,7 @@ function getFreshnessLabel(
   return { label: '', tone: 'none' };
 }
 
-export function SourcesPanel({
-  source,
-  tier,
-  reviewedAt,
-  canonicalUrl,
-}: SourcesPanelProps) {
+export function SourcesPanel({ source, tier, reviewedAt, canonicalUrl }: SourcesPanelProps) {
   const { t } = useTranslation('rag');
   const [mobileOpen, setMobileOpen] = useState(false);
   const freshness = getFreshnessLabel(reviewedAt);
@@ -108,9 +104,7 @@ export function SourcesPanel({
         Read at source ↗
       </a>
 
-      <p className="text-xs text-text-tertiary leading-relaxed">
-        {t('disclaimer')}
-      </p>
+      <p className="text-xs text-text-tertiary leading-relaxed">{t('disclaimer')}</p>
     </div>
   );
 
@@ -125,7 +119,10 @@ export function SourcesPanel({
           className="w-full flex items-center justify-between p-4 text-sm font-semibold text-text-primary"
         >
           Source
-          <span aria-hidden="true" className={mobileOpen ? 'rotate-180 transition-transform' : 'transition-transform'}>
+          <span
+            aria-hidden="true"
+            className={mobileOpen ? 'rotate-180 transition-transform' : 'transition-transform'}
+          >
             ▾
           </span>
         </button>

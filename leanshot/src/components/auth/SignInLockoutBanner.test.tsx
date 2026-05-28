@@ -53,17 +53,13 @@ describe('<SignInLockoutBanner>', () => {
 
   it('T3: returns null when lockout already expired', () => {
     const lockedUntil = new Date('2026-05-27T11:55:00.000Z'); // 5 min in the past
-    const { container } = render(
-      <SignInLockoutBanner lockedUntil={lockedUntil} reason="email" />,
-    );
+    const { container } = render(<SignInLockoutBanner lockedUntil={lockedUntil} reason="email" />);
     expect(container.firstChild).toBeNull();
   });
 
   it('T4: reason="email" vs reason="ip" surface different body copy', () => {
     const lockedUntil = new Date('2026-05-27T12:05:00.000Z');
-    const { unmount } = render(
-      <SignInLockoutBanner lockedUntil={lockedUntil} reason="email" />,
-    );
+    const { unmount } = render(<SignInLockoutBanner lockedUntil={lockedUntil} reason="email" />);
     expect(screen.getByText(/for this account/i)).toBeInTheDocument();
     unmount();
 
@@ -74,11 +70,7 @@ describe('<SignInLockoutBanner>', () => {
   it('T5: magicLinkHref override is honored', () => {
     const lockedUntil = new Date('2026-05-27T12:05:00.000Z');
     render(
-      <SignInLockoutBanner
-        lockedUntil={lockedUntil}
-        reason="email"
-        magicLinkHref="#/auth/magic"
-      />,
+      <SignInLockoutBanner lockedUntil={lockedUntil} reason="email" magicLinkHref="#/auth/magic" />,
     );
     expect(screen.getByRole('link', { name: /magic link/i })).toHaveAttribute(
       'href',

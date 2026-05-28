@@ -49,30 +49,32 @@ function toAnchor(text: string): string {
  * links keeping text, images, blockquote markers, list bullets.
  */
 function stripMarkdownSyntax(markdown: string): string {
-  return markdown
-    // Remove fenced code blocks
-    .replace(/```[\s\S]*?```/g, '')
-    // Remove inline code
-    .replace(/`[^`]+`/g, '')
-    // Remove images ![alt](url)
-    .replace(/!\[.*?\]\(.*?\)/g, '')
-    // Remove links — keep the text
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    // Remove heading markers
-    .replace(/^#{1,6}\s+/gm, '')
-    // Remove blockquote markers
-    .replace(/^>\s*/gm, '')
-    // Remove horizontal rules
-    .replace(/^[-*_]{3,}\s*$/gm, '')
-    // Remove bold/italic markers
-    .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')
-    .replace(/_{1,3}([^_]+)_{1,3}/g, '$1')
-    // Remove list bullets
-    .replace(/^[\s]*[-+*]\s+/gm, '')
-    .replace(/^[\s]*\d+\.\s+/gm, '')
-    // Collapse whitespace
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    markdown
+      // Remove fenced code blocks
+      .replace(/```[\s\S]*?```/g, '')
+      // Remove inline code
+      .replace(/`[^`]+`/g, '')
+      // Remove images ![alt](url)
+      .replace(/!\[.*?\]\(.*?\)/g, '')
+      // Remove links — keep the text
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      // Remove heading markers
+      .replace(/^#{1,6}\s+/gm, '')
+      // Remove blockquote markers
+      .replace(/^>\s*/gm, '')
+      // Remove horizontal rules
+      .replace(/^[-*_]{3,}\s*$/gm, '')
+      // Remove bold/italic markers
+      .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')
+      .replace(/_{1,3}([^_]+)_{1,3}/g, '$1')
+      // Remove list bullets
+      .replace(/^[\s]*[-+*]\s+/gm, '')
+      .replace(/^[\s]*\d+\.\s+/gm, '')
+      // Collapse whitespace
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

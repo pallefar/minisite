@@ -19,7 +19,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 const mockFrom = supabase.from as unknown as ReturnType<typeof vi.fn>;
 const mockRpc = supabase.rpc as unknown as ReturnType<typeof vi.fn>;
 
@@ -89,7 +88,10 @@ describe('setRoleMfaRequirement', () => {
   it('maps "only superadmin" exception to forbidden', async () => {
     mockRpc.mockResolvedValueOnce({
       data: null,
-      error: { code: 'P0001', message: 'forbidden: only superadmin can change MFA role requirements' },
+      error: {
+        code: 'P0001',
+        message: 'forbidden: only superadmin can change MFA role requirements',
+      },
     });
     try {
       await setRoleMfaRequirement('admin', false);

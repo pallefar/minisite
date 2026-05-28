@@ -22,10 +22,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PharmaExperimentRow } from './experiment-types';
-import {
-  PharmaExperimentTab,
-  type PharmaExperimentRowWithVersions,
-} from './PharmaExperimentTab';
+import { PharmaExperimentTab, type PharmaExperimentRowWithVersions } from './PharmaExperimentTab';
 
 function makeRow(
   overrides: Partial<PharmaExperimentRowWithVersions> = {},
@@ -80,9 +77,7 @@ describe('PharmaExperimentTab', () => {
   });
 
   it('(b) Disable click opens Confirm modal with UI-SPEC verbatim copy', () => {
-    const rows = [
-      makeRow({ variant_id: 'pv1', variant_name: 'Tirz V2' }),
-    ];
+    const rows = [makeRow({ variant_id: 'pv1', variant_name: 'Tirz V2' })];
     const { container } = render(
       <PharmaExperimentTab rows={rows} onDisable={onDisable} busyKey={null} />,
     );
@@ -92,7 +87,9 @@ describe('PharmaExperimentTab', () => {
     fireEvent.click(disableBtn);
     // UI-SPEC line 206 copy
     expect(
-      screen.getByText(/Disable pharma variant `Tirz V2`\? All traffic returns to control immediately\./),
+      screen.getByText(
+        /Disable pharma variant `Tirz V2`\? All traffic returns to control immediately\./,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -125,9 +122,7 @@ describe('PharmaExperimentTab', () => {
       <PharmaExperimentTab rows={rows} onDisable={onDisable} busyKey={null} />,
     );
     expect(screen.getByText('Archived V')).toBeInTheDocument();
-    expect(
-      container.querySelector('[data-action="disable-variant"]'),
-    ).toBeNull();
+    expect(container.querySelector('[data-action="disable-variant"]')).toBeNull();
     // Visible "Disabled" badge or marker
     expect(screen.getByText(/Disabled/i)).toBeInTheDocument();
   });

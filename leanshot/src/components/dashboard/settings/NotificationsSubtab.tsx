@@ -197,8 +197,7 @@ export function NotificationsSubtab() {
         .eq('id', userId)
         .maybeSingle();
       if (cancelled) return;
-      const tz =
-        (data as { timezone?: string | null } | null)?.timezone?.trim() || null;
+      const tz = (data as { timezone?: string | null } | null)?.timezone?.trim() || null;
       if (tz) setUserTimezone(tz);
     })();
     return () => {
@@ -331,9 +330,7 @@ export function NotificationsSubtab() {
       }
       setDismissals((rows) =>
         rows.map((r) =>
-          r.user_id === userId && r.category === category
-            ? { ...r, throttle_until: null }
-            : r,
+          r.user_id === userId && r.category === category ? { ...r, throttle_until: null } : r,
         ),
       );
       toast(`${CATEGORY_LABEL[category]} frequency restored`, 'success');
@@ -354,7 +351,6 @@ export function NotificationsSubtab() {
       // Apply to all 3 channel rows so the user_cap_override is consistent
       // (server-side fire-decision reads the row for the FIRING channel).
       for (const ch of CHANNELS) {
-         
         await update({ category, channel: ch, user_cap_override: clamped });
       }
       if (adminCap !== null && parsed > adminCap) {
@@ -424,13 +420,15 @@ export function NotificationsSubtab() {
           column; enforcement is unconditional). */}
       <Card variant="flat" data-testid="quiet-hours-section">
         <div className="flex items-start gap-3">
-          <Clock className="size-4 mt-[2px] shrink-0 text-[var(--color-text-secondary)]" aria-hidden />
+          <Clock
+            className="size-4 mt-[2px] shrink-0 text-[var(--color-text-secondary)]"
+            aria-hidden
+          />
           <div>
             <h3 className="text-[14px] font-semibold">Quiet hours</h3>
             <p className="text-[12px] text-[var(--color-text-secondary)] mt-1">
-              Non-urgent push is paused{' '}
-              <strong>22:00–08:00</strong> in your timezone ({userTimezone}). Urgent
-              clinic alerts always deliver.
+              Non-urgent push is paused <strong>22:00–08:00</strong> in your timezone (
+              {userTimezone}). Urgent clinic alerts always deliver.
             </p>
           </div>
         </div>
@@ -538,8 +536,8 @@ export function NotificationsSubtab() {
       <Card>
         <h3 className="text-[14px] font-semibold mb-2">Frequency caps</h3>
         <p className="text-[12px] text-[var(--color-text-secondary)] mb-3">
-          Lower the per-day cap below the admin default. You can decrease; you can&apos;t
-          exceed the admin default.
+          Lower the per-day cap below the admin default. You can decrease; you can&apos;t exceed the
+          admin default.
         </p>
         <div className="space-y-2">
           {SNOOZEABLE_MATRIX_CATEGORIES.map((cat) => {
@@ -558,8 +556,7 @@ export function NotificationsSubtab() {
                 </div>
               );
             }
-            const currentOverride =
-              settings.get(keyOf(cat, 'in-app'))?.user_cap_override ?? null;
+            const currentOverride = settings.get(keyOf(cat, 'in-app'))?.user_cap_override ?? null;
             return (
               <div
                 key={cat}
@@ -602,8 +599,8 @@ export function NotificationsSubtab() {
       <Card>
         <h3 className="text-[14px] font-semibold mb-2">Email digests</h3>
         <p className="text-[12px] text-[var(--color-text-secondary)] mb-3">
-          Recap of activity in your spaces. Daily and weekly are independent —
-          opt out of one without affecting the other.
+          Recap of activity in your spaces. Daily and weekly are independent — opt out of one
+          without affecting the other.
         </p>
         <div className="space-y-2" data-testid="email-digests-section">
           {DIGEST_CATEGORIES.map((cat) => (

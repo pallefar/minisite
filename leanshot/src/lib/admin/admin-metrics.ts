@@ -71,9 +71,7 @@ interface RpcShape {
   computed_at: string;
 }
 
-export async function fetchMetrics(opts?: {
-  period?: AdminMetricsPeriod;
-}): Promise<AdminMetrics> {
+export async function fetchMetrics(opts?: { period?: AdminMetricsPeriod }): Promise<AdminMetrics> {
   const period = opts?.period ?? '30d';
   const { data, error } = await supabase.rpc('admin_compute_mrr_arr', {
     p_period: period,

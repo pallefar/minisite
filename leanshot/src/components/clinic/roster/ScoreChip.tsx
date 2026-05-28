@@ -52,10 +52,7 @@ export function ScoreChip({ score, breakdown, canViewBreakdown }: ScoreChipProps
 
   if (!canViewBreakdown) {
     return (
-      <span
-        aria-label={`Score ${score} of 100, ${label}`}
-        title={`Score ${score} of 100`}
-      >
+      <span aria-label={`Score ${score} of 100, ${label}`} title={`Score ${score} of 100`}>
         {inner}
       </span>
     );
@@ -88,11 +85,7 @@ export function ScoreChip({ score, breakdown, canViewBreakdown }: ScoreChipProps
         {inner}
       </button>
       {open && (
-        <ScoreBreakdownPopover
-          score={score}
-          breakdown={breakdown}
-          onClose={() => setOpen(false)}
-        />
+        <ScoreBreakdownPopover score={score} breakdown={breakdown} onClose={() => setOpen(false)} />
       )}
     </>
   );

@@ -46,7 +46,7 @@ const CONFIG: Record<ShareRevokedKind, Config> = {
     Icon: XCircle,
     iconClassName: 'text-[var(--color-text-tertiary)]',
     heading: "Couldn't open this share",
-    body: "Something went wrong loading the record. Check your connection, then refresh the page. If the problem continues, ask the patient to send a new share link.",
+    body: 'Something went wrong loading the record. Check your connection, then refresh the page. If the problem continues, ask the patient to send a new share link.',
     action: { label: 'Refresh', onClick: () => window.location.reload() },
   },
 };

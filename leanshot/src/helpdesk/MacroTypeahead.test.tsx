@@ -25,7 +25,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 describe('MacroTypeahead', () => {
   beforeEach(() => {
     macroRowsRef.rows = [];
@@ -61,9 +60,7 @@ describe('MacroTypeahead', () => {
     const onSelect = vi.fn();
     render(<MacroTypeahead query="ref" onSelect={onSelect} onClose={() => {}} />);
 
-    const item = await waitFor(() =>
-      screen.getByRole('option', { name: /refund/i }),
-    );
+    const item = await waitFor(() => screen.getByRole('option', { name: /refund/i }));
     await userEvent.click(item);
     expect(onSelect).toHaveBeenCalledWith('Sorry for the trouble — refund issued.');
   });

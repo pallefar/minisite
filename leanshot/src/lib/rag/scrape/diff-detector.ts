@@ -74,7 +74,7 @@ export function detectNewSections(oldMarkdown: string, newMarkdown: string): boo
 
 export function shouldRequeue(oldText: string, newText: string): boolean {
   if (detectNewSections(oldText, newText)) return true;
-  return computeDiffRatio(oldText, newText) >= 0.20;
+  return computeDiffRatio(oldText, newText) >= 0.2;
 }
 
 export async function computeContentHash(text: string): Promise<string> {

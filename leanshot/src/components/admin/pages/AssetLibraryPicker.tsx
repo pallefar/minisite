@@ -129,11 +129,7 @@ export function AssetLibraryPicker({ open, onClose, onSelect }: AssetLibraryPick
         <p className="text-[13px] text-[var(--color-text-secondary)]">
           Upload images to use across any landing page.
         </p>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-        >
+        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
           Upload image
         </Button>
         <input

@@ -35,7 +35,15 @@ describe('StreakCard (GAME-06 + GAME-03)', () => {
   });
 
   it('renders zero streak without error', () => {
-    render(<StreakCard data={{ ...baseData, streak: { current: 0, longest: 0, lastActionAt: null }, freezeTokens: 0 }} />);
+    render(
+      <StreakCard
+        data={{
+          ...baseData,
+          streak: { current: 0, longest: 0, lastActionAt: null },
+          freezeTokens: 0,
+        }}
+      />,
+    );
     // aria-label on the ring svg contains the full text
     expect(screen.getByRole('img', { name: /0-day streak/i })).toBeInTheDocument();
     expect(screen.getByText(/0 freeze tokens/)).toBeInTheDocument();

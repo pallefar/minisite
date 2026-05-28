@@ -59,10 +59,7 @@ export function LandingTemplateGold({
       : null;
 
   return (
-    <main
-      data-template="gold"
-      className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16"
-    >
+    <main data-template="gold" className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16">
       {/* Premium badge — sanity-assertion target for AFFTIER-06 e2e */}
       <div className="mb-6 inline-flex items-center gap-2 rounded-card border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1 text-sm font-semibold text-[var(--color-text-primary)]">
         <span aria-hidden="true">★</span>
@@ -90,8 +87,8 @@ export function LandingTemplateGold({
             Track your GLP-1 journey with a premium partner.
           </h1>
           <p className="text-lg text-[var(--color-text-secondary)]">
-            Clinical-grade tracking, AI coach, and share-with-doctor reports —
-            backed by {affiliate.display_name}, a verified premium partner.
+            Clinical-grade tracking, AI coach, and share-with-doctor reports — backed by{' '}
+            {affiliate.display_name}, a verified premium partner.
           </p>
           <p className="text-lg text-[var(--color-text-secondary)]">{affiliate.blurb}</p>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">

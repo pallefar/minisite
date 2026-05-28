@@ -101,7 +101,10 @@ export function SoftDeleteCountdownBanner() {
     try {
       const { error } = await supabase.rpc('cancel_account_deletion', { p_token: token });
       if (error) {
-        toast('That cancel link is no longer valid. Try the email link or contact support.', 'error');
+        toast(
+          'That cancel link is no longer valid. Try the email link or contact support.',
+          'error',
+        );
         return;
       }
       toast('Deletion canceled. Welcome back!', 'success');

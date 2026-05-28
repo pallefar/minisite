@@ -36,10 +36,7 @@ export interface UsePhiAccessLogResult {
   refresh: () => void;
 }
 
-export function usePhiAccessLog(
-  offset: number,
-  limit: number = 25,
-): UsePhiAccessLogResult {
+export function usePhiAccessLog(offset: number, limit: number = 25): UsePhiAccessLogResult {
   const [rows, setRows] = useState<PhiAccessRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +55,11 @@ export function usePhiAccessLog(
 
       // RLS policy `phi_access_log_select_own_as_subject` filters to
       // accessed_user_id = auth.uid() — no explicit predicate needed.
-      const { data, count, error: fetchErr } = await supabase
+      const {
+        data,
+        count,
+        error: fetchErr,
+      } = await supabase
         .from('phi_access_log')
         .select('id, accessed_at, actor_user_id, accessed_fields, reason', {
           count: 'exact',
@@ -82,11 +83,7 @@ export function usePhiAccessLog(
       // RLS on profiles allows SELECT of basic fields for authenticated users.
       // Fallback to "Staff member" label if profile not found or query fails.
       const actorIds = [
-        ...new Set(
-          rawRows
-            .map((r) => r.actor_user_id)
-            .filter((id): id is string => id !== null),
-        ),
+        ...new Set(rawRows.map((r) => r.actor_user_id).filter((id): id is string => id !== null)),
       ];
 
       const displayNameMap: Record<string, string> = {};
@@ -115,9 +112,7 @@ export function usePhiAccessLog(
         accessed_fields: r.accessed_fields as string[],
         reason: r.reason as string,
         actor_display_name:
-          r.actor_user_id !== null
-            ? (displayNameMap[r.actor_user_id] ?? 'Staff member')
-            : 'System',
+          r.actor_user_id !== null ? (displayNameMap[r.actor_user_id] ?? 'Staff member') : 'System',
       }));
 
       setRows(resolved);

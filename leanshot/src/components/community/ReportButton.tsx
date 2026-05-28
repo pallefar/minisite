@@ -32,11 +32,7 @@ export interface ReportButtonProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ReportButton({
-  targetType,
-  targetId,
-  className,
-}: ReportButtonProps): JSX.Element {
+export function ReportButton({ targetType, targetId, className }: ReportButtonProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -102,12 +98,7 @@ export function ReportButton({
             disabled={submitting}
           />
           <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setOpen(false)}
-              disabled={submitting}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={submitting}>
               Cancel
             </Button>
             <Button

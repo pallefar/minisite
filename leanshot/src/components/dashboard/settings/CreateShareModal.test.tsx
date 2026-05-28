@@ -68,12 +68,12 @@ describe('CreateShareModal — Plan 08-03 Task 2', () => {
     expect(sevenDay.checked).toBe(true);
 
     // 24h + 30d radios present but unchecked.
-    expect(
-      (screen.getByRole('radio', { name: /^24 hours$/i }) as HTMLInputElement).checked,
-    ).toBe(false);
-    expect(
-      (screen.getByRole('radio', { name: /^30 days$/i }) as HTMLInputElement).checked,
-    ).toBe(false);
+    expect((screen.getByRole('radio', { name: /^24 hours$/i }) as HTMLInputElement).checked).toBe(
+      false,
+    );
+    expect((screen.getByRole('radio', { name: /^30 days$/i }) as HTMLInputElement).checked).toBe(
+      false,
+    );
 
     // Disclosure summary present + collapsed (no `open` attribute on <details>).
     const disclosure = screen.getByText(/What can the doctor see\?/i).closest('details');

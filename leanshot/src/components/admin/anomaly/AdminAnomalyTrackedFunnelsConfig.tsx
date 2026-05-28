@@ -204,10 +204,7 @@ export function AdminAnomalyTrackedFunnelsConfig() {
   return (
     <section aria-labelledby="anomaly-tracked-funnels-heading">
       <header className="mb-4">
-        <h2
-          id="anomaly-tracked-funnels-heading"
-          className="text-lg font-semibold tracking-tight"
-        >
+        <h2 id="anomaly-tracked-funnels-heading" className="text-lg font-semibold tracking-tight">
           Tracked funnels
         </h2>
         <p className="text-xs text-[var(--color-text-secondary)] mt-1">
@@ -232,22 +229,40 @@ export function AdminAnomalyTrackedFunnelsConfig() {
           <table className="w-full text-sm" data-testid="anomaly-tracked-funnels-table">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Event name
                 </th>
-                <th scope="col" className="text-center text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-center text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Enabled
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Lookback (d)
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Sigma
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Created
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -255,7 +270,10 @@ export function AdminAnomalyTrackedFunnelsConfig() {
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-sm text-[var(--color-text-secondary)]">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-6 text-center text-sm text-[var(--color-text-secondary)]"
+                  >
                     No tracked funnels yet. Add one below.
                   </td>
                 </tr>
@@ -268,9 +286,7 @@ export function AdminAnomalyTrackedFunnelsConfig() {
                       className="border-b border-[var(--color-border)] last:border-b-0"
                       data-testid={`funnel-row-${row.funnelId}`}
                     >
-                      <td className="px-4 py-3 align-middle font-mono text-sm">
-                        {row.eventName}
-                      </td>
+                      <td className="px-4 py-3 align-middle font-mono text-sm">{row.eventName}</td>
                       <td className="px-4 py-3 align-middle text-center">
                         <input
                           type="checkbox"

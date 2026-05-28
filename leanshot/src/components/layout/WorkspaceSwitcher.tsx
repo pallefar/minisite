@@ -339,7 +339,12 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
   // Anonymous: render nothing.
   if (authState === 'anon') return null;
 
-  const allRows: { group: 'personal' | Group; rows: ContextRow[]; heading: string; emptyHint: string | null }[] = [
+  const allRows: {
+    group: 'personal' | Group;
+    rows: ContextRow[];
+    heading: string;
+    emptyHint: string | null;
+  }[] = [
     { group: 'personal', rows: [PERSONAL_ROW], heading: 'Personal account', emptyHint: null },
     {
       group: 'memberships',
@@ -400,11 +405,7 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
       {open && (
         <>
           {/* Click-away overlay (no backdrop dim — operator-side affordance). */}
-          <div
-            aria-hidden
-            className="fixed inset-0 z-30"
-            onClick={() => setOpen(false)}
-          />
+          <div aria-hidden className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
           <div
             ref={listboxRef}
             id={listboxId}
@@ -415,12 +416,7 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps) {
             {allRows.map((g) => {
               const headingId = `${listboxId}-${g.group}-heading`;
               return (
-                <div
-                  key={g.group}
-                  role="group"
-                  aria-labelledby={headingId}
-                  className="py-1"
-                >
+                <div key={g.group} role="group" aria-labelledby={headingId} className="py-1">
                   <div
                     id={headingId}
                     className="px-3 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]"

@@ -38,10 +38,7 @@ export function StreaksCard() {
   const { t } = useTranslation('patient');
   const streaks = useStreaks();
   const hasMilestone =
-    streaks.weight >= 30 ||
-    streaks.protein >= 30 ||
-    streaks.supps >= 30 ||
-    streaks.movement >= 30;
+    streaks.weight >= 30 || streaks.protein >= 30 || streaks.supps >= 30 || streaks.movement >= 30;
   return (
     <Card span={12}>
       <CardHeader
@@ -53,13 +50,7 @@ export function StreaksCard() {
         {ROWS.map((r) => {
           const count = streaks[r.key];
           const tier: StreakTier =
-            count < 7
-              ? 'locked'
-              : count >= 90
-                ? 'gold'
-                : count >= 30
-                  ? 'silver'
-                  : 'bronze';
+            count < 7 ? 'locked' : count >= 90 ? 'gold' : count >= 30 ? 'silver' : 'bronze';
           const label = getStreakRowLabel(t, r.key);
           return (
             <div

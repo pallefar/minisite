@@ -37,7 +37,12 @@ describe('SubprocessorList', () => {
       data: {
         captured_at: '2026-05-01T00:00:00Z',
         vendors: [
-          { name: 'Supabase', purpose: 'Database & Auth', baa_status: 'Signed', region: 'us-east-1' },
+          {
+            name: 'Supabase',
+            purpose: 'Database & Auth',
+            baa_status: 'Signed',
+            region: 'us-east-1',
+          },
           { name: 'Vercel', purpose: 'Hosting', baa_status: 'N/A', region: 'Global' },
         ],
       },
@@ -77,9 +82,7 @@ describe('SubprocessorList', () => {
     render(<SubprocessorList />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Unable to load subprocessor list/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Unable to load subprocessor list/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/privacy@leanshot\.app/i)).toBeInTheDocument();
   });

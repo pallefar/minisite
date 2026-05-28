@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/useToast';
 import type { RsvpStatus } from '@/lib/events/event-types';
 import { supabase } from '@/lib/supabase';
 
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface RsvpRow {
@@ -38,8 +37,7 @@ const STATUS_LABEL: Record<RsvpStatus, string> = {
 const STATUS_CLASS: Record<RsvpStatus, string> = {
   going: 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]',
   maybe: 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]',
-  not_going:
-    'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] opacity-70',
+  not_going: 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] opacity-70',
   waitlist:
     'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
 };
@@ -85,9 +83,7 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
           | { handle: string | null; display_name: string | null }[]
           | null;
       };
-      const profile = Array.isArray(row.profile)
-        ? row.profile[0] ?? null
-        : row.profile;
+      const profile = Array.isArray(row.profile) ? (row.profile[0] ?? null) : row.profile;
       return {
         id: row.id,
         user_id: row.user_id,
@@ -116,10 +112,7 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
       return;
     }
     setRemovingId(rsvpId);
-    const { error } = await supabase
-      .from('event_rsvps')
-      .delete()
-      .eq('id', rsvpId);
+    const { error } = await supabase.from('event_rsvps').delete().eq('id', rsvpId);
     if (error) {
       toast(`Failed to remove RSVP: ${error.message}`, 'error');
     } else {
@@ -140,14 +133,10 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
         </p>
       </div>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading attendees…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading attendees…</p>}
 
       {!loading && rows.length === 0 && (
-        <p className="text-sm text-[var(--color-text-secondary)]">
-          No RSVPs yet.
-        </p>
+        <p className="text-sm text-[var(--color-text-secondary)]">No RSVPs yet.</p>
       )}
 
       {!loading && rows.length > 0 && (

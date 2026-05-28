@@ -39,9 +39,8 @@ vi.mock('@/lib/supabase', () => ({
 const TEST_USER_ID = '00000000-0000-0000-0000-0000000000aa';
 
 vi.mock('@/lib/store', () => ({
-  useStore: (
-    selector: (s: { signedIn: { user: { id: string } | null } }) => unknown,
-  ) => selector({ signedIn: { user: { id: TEST_USER_ID } } }),
+  useStore: (selector: (s: { signedIn: { user: { id: string } | null } }) => unknown) =>
+    selector({ signedIn: { user: { id: TEST_USER_ID } } }),
 }));
 
 // ─── Mock useReducedMotion (always false in tests) ─────────────────────────

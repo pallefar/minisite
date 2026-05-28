@@ -102,11 +102,7 @@ export function PreviewPane({ pageSlug }: PreviewPaneProps) {
           style={{ width, maxWidth: width, minHeight: '100%' }}
         >
           {!loaded && (
-            <div
-              data-testid="preview-skeleton"
-              aria-hidden
-              className="absolute inset-0"
-            >
+            <div data-testid="preview-skeleton" aria-hidden className="absolute inset-0">
               <Skeleton className="w-full h-full" />
             </div>
           )}

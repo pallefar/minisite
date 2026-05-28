@@ -21,7 +21,14 @@ import { supabase } from '@/lib/supabase';
 export const RagChunkResultSchema = z.object({
   chunk_id: z.string().uuid(),
   source_name: z.string(),
-  source_type: z.enum(['fda_label', 'peer_reviewed', 'clinical_guideline', 'leanshot_curated', 'leanshot_research', 'community']),
+  source_type: z.enum([
+    'fda_label',
+    'peer_reviewed',
+    'clinical_guideline',
+    'leanshot_curated',
+    'leanshot_research',
+    'community',
+  ]),
   source_tier: z.enum(['A', 'B', 'C']),
   canonical_url: z.string().url(),
   topic_tag: z.string(),
@@ -107,7 +114,9 @@ export interface RagRetrieveArgs {
  * Semantic query against the RAG index.
  * Returns validated array of chunks; returns empty results on any failure.
  */
-export async function ragRetrieve(args: RagRetrieveArgs): Promise<{ results: RagChunkResult[]; count: number }> {
+export async function ragRetrieve(
+  args: RagRetrieveArgs,
+): Promise<{ results: RagChunkResult[]; count: number }> {
   try {
     const { data, error } = await supabase.functions.invoke('rag-retrieve', {
       body: { mode: 'query', ...args },

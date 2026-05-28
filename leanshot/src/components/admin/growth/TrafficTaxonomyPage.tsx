@@ -65,10 +65,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
     setLoading(true);
     setError(null);
     const [{ data: cgData, error: cgErr }, { data: rrData, error: rrErr }] = await Promise.all([
-      supabase
-        .from('channel_groups')
-        .select('*')
-        .order('priority', { ascending: true }),
+      supabase.from('channel_groups').select('*').order('priority', { ascending: true }),
       supabase
         .from('referrer_channel_rules')
         .select('*')
@@ -106,9 +103,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
 
     // T-51-37 mitigation: validate JSON before sending.
     let parsed: Record<string, unknown> = {};
-    const text =
-      editCg.match_rule_text ??
-      JSON.stringify(editCg.match_rule_jsonb ?? {}, null, 2);
+    const text = editCg.match_rule_text ?? JSON.stringify(editCg.match_rule_jsonb ?? {}, null, 2);
     try {
       const candidate = JSON.parse(text) as unknown;
       if (candidate == null || typeof candidate !== 'object' || Array.isArray(candidate)) {
@@ -169,8 +164,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
 
   const doDelete = async () => {
     if (!confirmDelete) return;
-    const rpc =
-      confirmDelete.kind === 'cg' ? 'delete_channel_group' : 'delete_referrer_rule';
+    const rpc = confirmDelete.kind === 'cg' ? 'delete_channel_group' : 'delete_referrer_rule';
     const { error: rpcErr } = await supabase.rpc(rpc, { p_id: confirmDelete.id });
     if (rpcErr) {
       showToast(`Delete failed: ${rpcErr.message}`);
@@ -209,12 +203,11 @@ export const TrafficTaxonomyPage: React.FC = () => {
     <section>
       <h1 className="text-[18px] font-bold mb-1">Channel Taxonomy</h1>
       <p className="text-[11px] text-[var(--color-text-secondary)] mb-6">
-        Rules below classify raw UTM + referrer into channel groups. Edits apply at next matview refresh.
+        Rules below classify raw UTM + referrer into channel groups. Edits apply at next matview
+        refresh.
       </p>
 
-      {loading && cgs == null && rrs == null && (
-        <Skeleton className="h-32 rounded-card mb-4" />
-      )}
+      {loading && cgs == null && rrs == null && <Skeleton className="h-32 rounded-card mb-4" />}
 
       {error && (
         <Card padding="md">
@@ -256,8 +249,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
                     {' · '}
                     <strong>{cg.label}</strong>
                     {' · window '}
-                    <span className="numerals-tabular">{cg.attribution_window_days}</span>
-                    d
+                    <span className="numerals-tabular">{cg.attribution_window_days}</span>d
                     {cg.is_default_fallback && ' (fallback)'}
                   </span>
                   <span className="flex gap-2">
@@ -276,9 +268,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
                         size="sm"
                         leadingIcon={<Trash2 size={12} aria-hidden />}
                         aria-label={`Delete ${cg.label}`}
-                        onClick={() =>
-                          setConfirmDelete({ kind: 'cg', id: cg.id, label: cg.label })
-                        }
+                        onClick={() => setConfirmDelete({ kind: 'cg', id: cg.id, label: cg.label })}
                       >
                         Delete
                       </Button>
@@ -309,7 +299,8 @@ export const TrafficTaxonomyPage: React.FC = () => {
           </div>
           {rrs.length === 0 ? (
             <p className="text-[13px] text-[var(--color-text-secondary)]">
-              No referrer rules configured. Seeded ~80 well-known domains will populate on migration apply.
+              No referrer rules configured. Seeded ~80 well-known domains will populate on migration
+              apply.
             </p>
           ) : (
             <ul>
@@ -383,9 +374,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
               <Input
                 type="number"
                 value={editCg.priority ?? 50}
-                onChange={(e) =>
-                  setEditCg({ ...editCg, priority: Number(e.target.value) })
-                }
+                onChange={(e) => setEditCg({ ...editCg, priority: Number(e.target.value) })}
                 aria-label="Channel group priority"
               />
             </label>
@@ -415,9 +404,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
                 className="w-full p-2 rounded-card border border-[var(--color-border)] text-[13px] font-mono bg-[var(--color-surface)]"
                 rows={6}
                 value={editCg.match_rule_text ?? ''}
-                onChange={(e) =>
-                  setEditCg({ ...editCg, match_rule_text: e.target.value })
-                }
+                onChange={(e) => setEditCg({ ...editCg, match_rule_text: e.target.value })}
                 placeholder='{"utm_medium": ["cpc","ppc"], "utm_source": ["google","bing"]}'
                 aria-label="Match rule JSON"
               />
@@ -456,9 +443,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
               </span>
               <Input
                 value={editRr.referrer_domain ?? ''}
-                onChange={(e) =>
-                  setEditRr({ ...editRr, referrer_domain: e.target.value })
-                }
+                onChange={(e) => setEditRr({ ...editRr, referrer_domain: e.target.value })}
                 placeholder="example.com"
                 aria-label="Referrer domain"
               />
@@ -470,9 +455,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
               <select
                 className="w-full p-2 rounded-card border border-[var(--color-border)] text-[13px] bg-[var(--color-surface)]"
                 value={editRr.channel_group_label ?? 'Referral'}
-                onChange={(e) =>
-                  setEditRr({ ...editRr, channel_group_label: e.target.value })
-                }
+                onChange={(e) => setEditRr({ ...editRr, channel_group_label: e.target.value })}
                 aria-label="Channel group selector"
               >
                 {cgs.map((cg) => (
@@ -489,9 +472,7 @@ export const TrafficTaxonomyPage: React.FC = () => {
               <Input
                 type="number"
                 value={editRr.priority ?? 50}
-                onChange={(e) =>
-                  setEditRr({ ...editRr, priority: Number(e.target.value) })
-                }
+                onChange={(e) => setEditRr({ ...editRr, priority: Number(e.target.value) })}
                 aria-label="Referrer rule priority"
               />
             </label>

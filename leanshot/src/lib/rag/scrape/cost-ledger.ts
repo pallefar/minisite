@@ -66,10 +66,7 @@ export interface MtdStatus {
   status: CostStatus;
 }
 
-export async function getMtdStatus(
-  client: SupabaseClient,
-  vendor: RagVendor,
-): Promise<MtdStatus> {
+export async function getMtdStatus(client: SupabaseClient, vendor: RagVendor): Promise<MtdStatus> {
   const { data, error } = await client.rpc('rag_mtd_spend_by_vendor');
   if (error) {
     throw new Error(`[cost-ledger] rag_mtd_spend_by_vendor RPC failed: ${error.message}`);
@@ -77,12 +74,14 @@ export async function getMtdStatus(
   if (!data || !Array.isArray(data)) {
     throw new Error('[cost-ledger] rag_mtd_spend_by_vendor returned no rows');
   }
-  const row = (data as Array<{
-    vendor: string;
-    mtd_usd: number | string;
-    monthly_cap_usd: number | string;
-    pct_used: number | string;
-  }>).find((r) => r.vendor === vendor);
+  const row = (
+    data as Array<{
+      vendor: string;
+      mtd_usd: number | string;
+      monthly_cap_usd: number | string;
+      pct_used: number | string;
+    }>
+  ).find((r) => r.vendor === vendor);
   if (!row) {
     throw new Error(`[cost-ledger] no rag_budget_caps row for vendor=${vendor}`);
   }
@@ -96,10 +95,7 @@ export async function getMtdStatus(
   return { vendor, pctUsed, mtdUsd, capUsd, status };
 }
 
-export async function gateOrThrow(
-  client: SupabaseClient,
-  vendor: RagVendor,
-): Promise<void> {
+export async function gateOrThrow(client: SupabaseClient, vendor: RagVendor): Promise<void> {
   const s = await getMtdStatus(client, vendor);
   if (s.status === 'capped') {
     throw new CostCapExceededError(vendor, s.mtdUsd, s.capUsd);

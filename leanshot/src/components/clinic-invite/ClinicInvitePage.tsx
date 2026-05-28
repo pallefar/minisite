@@ -193,11 +193,7 @@ export function ClinicInvitePage() {
         {state.kind === 'loading' && <StateA />}
 
         {state.kind === 'state_b' && (
-          <ConsentDialog
-            invite={state.invite}
-            rawToken={tokenRef.current ?? ''}
-            mode="existing"
-          />
+          <ConsentDialog invite={state.invite} rawToken={tokenRef.current ?? ''} mode="existing" />
         )}
 
         {state.kind === 'state_c' && (
@@ -277,7 +273,9 @@ function StateC({
   const [sending, setSending] = useState(false);
   return (
     <Card variant="elevated" padding="lg" className="max-w-[480px] mx-auto">
-      <h1 className="text-[24px] font-bold tracking-tight">{t('clinic:invite.magic_link.signin_title')}</h1>
+      <h1 className="text-[24px] font-bold tracking-tight">
+        {t('clinic:invite.magic_link.signin_title')}
+      </h1>
       <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
         {t('clinic:invite.magic_link.signin_body', { orgName: invite.org.name })}
       </p>

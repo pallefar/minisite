@@ -37,14 +37,7 @@ describe('mintCertToken', () => {
 describe('verifyCertToken', () => {
   it('returns true when all params match the mint call exactly', async () => {
     const token = await mintCertToken(CERT_ID, USER_ID, COURSE_ID, ISSUED_AT, TEST_SECRET);
-    const ok = await verifyCertToken(
-      token,
-      CERT_ID,
-      USER_ID,
-      COURSE_ID,
-      ISSUED_AT,
-      TEST_SECRET,
-    );
+    const ok = await verifyCertToken(token, CERT_ID, USER_ID, COURSE_ID, ISSUED_AT, TEST_SECRET);
     expect(ok).toBe(true);
   });
 

@@ -108,7 +108,10 @@ interface QueryBuilder {
   then: (resolve: (v: unknown) => void) => void;
 }
 
-function buildQuery(result: { data: unknown[] | null; error: { message: string } | null }): QueryBuilder {
+function buildQuery(result: {
+  data: unknown[] | null;
+  error: { message: string } | null;
+}): QueryBuilder {
   const builder: QueryBuilder = {
     select: vi.fn(() => builder),
     is: vi.fn(() => builder),
@@ -175,9 +178,7 @@ describe('ActiveOrganizationsSection', () => {
   });
 
   it('shows inline retry on fetch error', async () => {
-    fromMock.mockReturnValueOnce(
-      buildQuery({ data: null, error: { message: 'connection lost' } }),
-    );
+    fromMock.mockReturnValueOnce(buildQuery({ data: null, error: { message: 'connection lost' } }));
 
     render(<ActiveOrganizationsSection />);
 

@@ -71,32 +71,22 @@ export function RolesTab({ orgId }: RolesTabProps) {
           .eq('org_id', orgId)
           .order('is_system', { ascending: false })
           .order('created_at', { ascending: true }),
-        supabase
-          .from('role_permissions')
-          .select('role_id, permission_key'),
-        supabase
-          .from('memberships')
-          .select('role_id, revoked_at')
-          .eq('org_id', orgId),
+        supabase.from('role_permissions').select('role_id, permission_key'),
+        supabase.from('memberships').select('role_id, revoked_at').eq('org_id', orgId),
       ]);
 
     if (rolesErr) {
-      toast(
-        "Couldn't load roles. Check your connection and try again.",
-        'error',
-      );
+      toast("Couldn't load roles. Check your connection and try again.", 'error');
       setRows([]);
       return;
     }
 
     const permsByRole = new Map<string, PermissionKey[]>();
-    ((rpData ?? []) as { role_id: string; permission_key: PermissionKey }[]).forEach(
-      (r) => {
-        const cur = permsByRole.get(r.role_id) ?? [];
-        cur.push(r.permission_key);
-        permsByRole.set(r.role_id, cur);
-      },
-    );
+    ((rpData ?? []) as { role_id: string; permission_key: PermissionKey }[]).forEach((r) => {
+      const cur = permsByRole.get(r.role_id) ?? [];
+      cur.push(r.permission_key);
+      permsByRole.set(r.role_id, cur);
+    });
 
     const countByRole = new Map<string, number>();
     ((memData ?? []) as { role_id: string; revoked_at: string | null }[])
@@ -127,10 +117,7 @@ export function RolesTab({ orgId }: RolesTabProps) {
         p_role_id: deleteTarget.id,
       });
       if (error) {
-        toast(
-          "Couldn't delete the role. Check your connection and try again.",
-          'error',
-        );
+        toast("Couldn't delete the role. Check your connection and try again.", 'error');
         return;
       }
       const row = Array.isArray(data) ? data[0] : data;
@@ -171,8 +158,7 @@ export function RolesTab({ orgId }: RolesTabProps) {
         <div>
           <h1 className="text-[20px] font-bold tracking-tight">Roles and permissions</h1>
           <p className="text-[13px] text-[var(--color-text-secondary)]">
-            Default roles cover most workspaces. Create custom roles for finer-grained
-            access.
+            Default roles cover most workspaces. Create custom roles for finer-grained access.
           </p>
         </div>
         <Button leadingIcon={<Plus className="size-4" />} onClick={openCreate}>
@@ -250,10 +236,7 @@ export function RolesTab({ orgId }: RolesTabProps) {
                         </p>
                       )}
                     </div>
-                    <IconButton
-                      aria-label={`Edit role ${r.name}`}
-                      onClick={() => openEdit(r)}
-                    >
+                    <IconButton aria-label={`Edit role ${r.name}`} onClick={() => openEdit(r)}>
                       <Edit2 className="size-4" />
                     </IconButton>
                     <IconButton

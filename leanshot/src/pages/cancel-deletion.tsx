@@ -61,7 +61,7 @@ async function callCancelRpc(token: string): Promise<Outcome> {
   } catch (err) {
     // Network / unexpected — log + fall through to unknown so the user
     // sees a friendly generic message instead of a stack trace.
-     
+
     console.warn('[cancel-deletion] RPC call threw', err);
     return { kind: 'unknown' };
   }
@@ -133,7 +133,8 @@ export function CancelDeletionPage() {
       break;
     case 'success':
       heading = 'Deletion canceled. Welcome back!';
-      body = 'Your account is no longer scheduled for deletion. You can return to LeanShot any time.';
+      body =
+        'Your account is no longer scheduled for deletion. You can return to LeanShot any time.';
       action = (
         <Button
           variant="primary"

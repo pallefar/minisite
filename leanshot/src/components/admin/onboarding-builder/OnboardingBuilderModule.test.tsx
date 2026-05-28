@@ -55,10 +55,7 @@ vi.mock('@/components/ui/SortableTreePanel', () => ({
     onReorder: (next: Array<{ id: string }>) => void;
   }) => (
     <div data-testid="mock-sortable-tree-panel">
-      <button
-        data-testid="mock-reorder-trigger"
-        onClick={() => onReorder([...items].reverse())}
-      >
+      <button data-testid="mock-reorder-trigger" onClick={() => onReorder([...items].reverse())}>
         reorder
       </button>
       {items.map((item, i) => (

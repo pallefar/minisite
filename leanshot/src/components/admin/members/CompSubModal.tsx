@@ -17,10 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { useToast } from '@/hooks/useToast';
-import {
-  AdminStripeError,
-  compSubscription,
-} from '@/lib/admin/admin-stripe-actions';
+import { AdminStripeError, compSubscription } from '@/lib/admin/admin-stripe-actions';
 
 export interface CompSubModalProps {
   isOpen: boolean;
@@ -73,10 +70,7 @@ export function CompSubModal({
     setInlineError(null);
     try {
       await compSubscription({ targetUserId, subscriptionId, compDays });
-      toast(
-        `Comped ${compDays} day${compDays === 1 ? '' : 's'} for ${targetUserEmail}`,
-        'success',
-      );
+      toast(`Comped ${compDays} day${compDays === 1 ? '' : 's'} for ${targetUserEmail}`, 'success');
       onSuccess();
       onClose();
     } catch (e) {
@@ -98,8 +92,8 @@ export function CompSubModal({
     <Modal open={isOpen} onClose={close} title="Grant comp" size="sm">
       <div className="space-y-4">
         <p className="text-sm text-[var(--color-text)] leading-relaxed">
-          Extend {targetUserEmail}&apos;s subscription with free access. Stripe will
-          skip the next charge cycle.
+          Extend {targetUserEmail}&apos;s subscription with free access. Stripe will skip the next
+          charge cycle.
         </p>
         <PillGroup segmented aria-label="Comp duration">
           <Pill size="sm" active={preset === '1m'} onClick={() => setPreset('1m')}>

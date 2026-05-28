@@ -14,7 +14,10 @@ export function UnitToggle({ value, onChange }: { value: Units; onChange: (u: Un
     >
       {(['metric', 'imperial'] as const).map((u) => {
         const active = value === u;
-        const label = u === 'metric' ? t('onboarding:unit_toggle.metric') : t('onboarding:unit_toggle.imperial');
+        const label =
+          u === 'metric'
+            ? t('onboarding:unit_toggle.metric')
+            : t('onboarding:unit_toggle.imperial');
         return (
           <button
             key={u}

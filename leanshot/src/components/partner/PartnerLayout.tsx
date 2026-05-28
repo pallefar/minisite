@@ -152,7 +152,11 @@ export default function PartnerLayout({
     return <ForbiddenState />;
   }
 
-  return <PartnerLayoutInner user={user} __testActivePath={__testActivePath}>{children}</PartnerLayoutInner>;
+  return (
+    <PartnerLayoutInner user={user} __testActivePath={__testActivePath}>
+      {children}
+    </PartnerLayoutInner>
+  );
 }
 
 interface PartnerLayoutInnerProps {

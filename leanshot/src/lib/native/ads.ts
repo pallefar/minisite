@@ -5,7 +5,7 @@
 // FIREWALL: This file MUST NEVER import from ./health — enforced by ESLint
 // import-x/no-restricted-paths (Phase 12 D-02 Zone 1). Use assertNoHealthData
 // from ./healthAssert at every ad-parameter entry point (T-56-08).
-import type { BannerAdOptions} from '@capacitor-community/admob';
+import type { BannerAdOptions } from '@capacitor-community/admob';
 import { AdMob, BannerAdSize, BannerAdPosition } from '@capacitor-community/admob';
 import { assertNoHealthData } from './healthAssert';
 

@@ -196,43 +196,35 @@ export const TrafficFunnelsTab: React.FC = () => {
   // 7-day rolling window (matches Plan 51-04 baseline window so anomaly
   // badges line up with the data the operator sees in the chart).
   const today = useMemo(() => isoDate(new Date()), []);
-  const sevenAgo = useMemo(
-    () => isoDate(new Date(Date.now() - 7 * 86_400_000)),
-    [],
-  );
+  const sevenAgo = useMemo(() => isoDate(new Date(Date.now() - 7 * 86_400_000)), []);
 
   // 24h window for anomaly notifications — cron fires hourly so a 24h
   // window captures multiple ticks; dedup_key in cron prevents duplicate
   // payloads for the same (channel_group, audience, stage_pair, date).
-  const anomalySince = useMemo(
-    () => new Date(Date.now() - 24 * 3_600_000).toISOString(),
-    [],
-  );
+  const anomalySince = useMemo(() => new Date(Date.now() - 24 * 3_600_000).toISOString(), []);
 
   const fetchFunnel = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [
-      { data: funnelData, error: rpcErr },
-      { data: anomalyData, error: notifErr },
-    ] = await Promise.all([
-      supabase.rpc('get_traffic_funnel_rollup', {
-        p_org_id: orgFilter,
-        p_start_date: sevenAgo,
-        p_end_date: today,
-        p_audience: audience,
-      }),
-      // admin_notifications is admin-only per P27 RLS (T-51-32). When
-      // clinic_owner role reads, the SELECT returns 0 rows under RLS and
-      // we silently treat that as "no anomalies" — the badge surface
-      // simply doesn't appear, which is the intended behavior since
-      // anomaly internals shouldn't leak across orgs.
-      supabase
-        .from('admin_notifications')
-        .select('payload')
-        .eq('kind', 'traffic_funnel_drop')
-        .gte('created_at', anomalySince),
-    ]);
+    const [{ data: funnelData, error: rpcErr }, { data: anomalyData, error: notifErr }] =
+      await Promise.all([
+        supabase.rpc('get_traffic_funnel_rollup', {
+          p_org_id: orgFilter,
+          p_start_date: sevenAgo,
+          p_end_date: today,
+          p_audience: audience,
+        }),
+        // admin_notifications is admin-only per P27 RLS (T-51-32). When
+        // clinic_owner role reads, the SELECT returns 0 rows under RLS and
+        // we silently treat that as "no anomalies" — the badge surface
+        // simply doesn't appear, which is the intended behavior since
+        // anomaly internals shouldn't leak across orgs.
+        supabase
+          .from('admin_notifications')
+          .select('payload')
+          .eq('kind', 'traffic_funnel_drop')
+          .gte('created_at', anomalySince),
+      ]);
 
     if (rpcErr) {
       if (rpcErr.code === '42501') {
@@ -289,15 +281,10 @@ export const TrafficFunnelsTab: React.FC = () => {
       const rate = in_count > 0 ? out_count / in_count : 0;
       const stageAnomalies = anomalies.filter(
         (a) =>
-          a.audience === audience &&
-          a.stage_in === sp.stage_in &&
-          a.stage_out === sp.stage_out,
+          a.audience === audience && a.stage_in === sp.stage_in && a.stage_out === sp.stage_out,
       );
       const has_anomaly = stageAnomalies.length > 0;
-      const max_sigma = stageAnomalies.reduce(
-        (m, a) => Math.max(m, Math.abs(a.sigmas ?? 0)),
-        0,
-      );
+      const max_sigma = stageAnomalies.reduce((m, a) => Math.max(m, Math.abs(a.sigmas ?? 0)), 0);
       return { ...sp, in_count, out_count, rate, has_anomaly, max_sigma };
     });
   }, [rows, anomalies, audience]);
@@ -393,9 +380,7 @@ export const TrafficFunnelsTab: React.FC = () => {
 
       {/* ── Loading / error / empty / data ───────────────────────────── */}
 
-      {loading && (
-        <Skeleton className="h-64 w-full rounded-card" data-testid="funnel-skeleton" />
-      )}
+      {loading && <Skeleton className="h-64 w-full rounded-card" data-testid="funnel-skeleton" />}
 
       {error && !loading && (
         <Card variant="flat" padding="md">
@@ -423,11 +408,7 @@ export const TrafficFunnelsTab: React.FC = () => {
           />
 
           {/* Per-stage list with rate + drill-in tap + anomaly badge */}
-          <ul
-            className="mt-4 space-y-2"
-            aria-live="polite"
-            aria-label="Funnel stage breakdown"
-          >
+          <ul className="mt-4 space-y-2" aria-live="polite" aria-label="Funnel stage breakdown">
             {stageRows.map((s) => (
               <li
                 key={`${s.stage_in}_${s.stage_out}`}
@@ -447,14 +428,8 @@ export const TrafficFunnelsTab: React.FC = () => {
                   aria-label={`Drill into ${s.label_in} to ${s.label_out} stage`}
                 >
                   {s.label_in} {'→'} {s.label_out}:{' '}
-                  <span className="numerals-tabular">
-                    {(s.rate * 100).toFixed(1)}%
-                  </span>{' '}
-                  {'•'}{' '}
-                  <span className="numerals-tabular">
-                    {s.in_count.toLocaleString()}
-                  </span>{' '}
-                  entered
+                  <span className="numerals-tabular">{(s.rate * 100).toFixed(1)}%</span> {'•'}{' '}
+                  <span className="numerals-tabular">{s.in_count.toLocaleString()}</span> entered
                 </button>
                 {s.has_anomaly && (
                   <Badge
@@ -505,10 +480,7 @@ export const TrafficFunnelsTab: React.FC = () => {
                 </thead>
                 <tbody>
                   {drillRows.map(([cg, vals]) => (
-                    <tr
-                      key={cg}
-                      className="border-b border-[var(--color-border)]"
-                    >
+                    <tr key={cg} className="border-b border-[var(--color-border)]">
                       <td className="py-2 pe-3 font-medium">{cg}</td>
                       <td className="py-2 pe-3 text-right numerals-tabular">
                         {vals.in.toLocaleString()}
@@ -517,9 +489,7 @@ export const TrafficFunnelsTab: React.FC = () => {
                         {vals.out.toLocaleString()}
                       </td>
                       <td className="py-2 text-right numerals-tabular">
-                        {vals.in > 0
-                          ? `${((vals.out / vals.in) * 100).toFixed(1)}%`
-                          : '—'}
+                        {vals.in > 0 ? `${((vals.out / vals.in) * 100).toFixed(1)}%` : '—'}
                       </td>
                     </tr>
                   ))}

@@ -26,17 +26,17 @@ describe('ADMIN_MODULES manifest', () => {
       'reviews',
       'membership',
       'analytics',
-      'anomaly',          // Phase 27 Plan 27-08 addendum — funnel-anomaly admin config
+      'anomaly', // Phase 27 Plan 27-08 addendum — funnel-anomaly admin config
       'ai',
       'helpdesk',
       'billing',
       'settings',
       'audit-log',
-      'clinic-orgs',     // Phase 28 Plan 07 — preview module (full UI in P31)
-      'rag',             // Phase 50 Plan 50-02 — admin-curated RAG knowledge base
-      'i18n-overrides',  // Phase 32 Plan 32-04 — admin hot-patch surface for translations
-      'growth-cac',      // Phase 33 Plan 33-05 — CAC dashboard (ad-spend ETL)
-      'compliance',      // Phase 25 Plan 25-09 — HIPAA vendor BAA + subprocessor admin UI
+      'clinic-orgs', // Phase 28 Plan 07 — preview module (full UI in P31)
+      'rag', // Phase 50 Plan 50-02 — admin-curated RAG knowledge base
+      'i18n-overrides', // Phase 32 Plan 32-04 — admin hot-patch surface for translations
+      'growth-cac', // Phase 33 Plan 33-05 — CAC dashboard (ad-spend ETL)
+      'compliance', // Phase 25 Plan 25-09 — HIPAA vendor BAA + subprocessor admin UI
     ];
     expect(keys).toEqual(expected);
   });
@@ -46,10 +46,7 @@ describe('ADMIN_MODULES manifest', () => {
     const requiredKeys = ['key', 'label', 'route', 'icon', 'lazy', 'flagKey', 'minRole'] as const;
     for (const mod of ADMIN_MODULES) {
       for (const field of requiredKeys) {
-        expect(
-          mod[field],
-          `Module '${mod.key}' is missing field '${field}'`,
-        ).toBeDefined();
+        expect(mod[field], `Module '${mod.key}' is missing field '${field}'`).toBeDefined();
       }
     }
   });

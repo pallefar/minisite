@@ -34,10 +34,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import {
-  requireAal2ForConsumerAction,
-  type Aal2ChallengeOutcome,
-} from '@/lib/auth/aal2-consumer';
+import { requireAal2ForConsumerAction, type Aal2ChallengeOutcome } from '@/lib/auth/aal2-consumer';
 import { listEnrolledFactors, verifyTotpChallenge } from '@/lib/auth/totp-shared';
 import { supabase } from '@/lib/supabase';
 
@@ -76,16 +73,12 @@ export function ChangeEmailForm({ currentEmail, onSent }: ChangeEmailFormProps) 
     setError(null);
     setBusy(true);
     try {
-      const gate = await requireAal2ForConsumerAction(
-        supabase,
-        'change-email',
-        {
-          onChallenge: () =>
-            new Promise<Aal2ChallengeOutcome>((resolve) => {
-              setPending({ purpose: 'change-email', resolve });
-            }),
-        },
-      );
+      const gate = await requireAal2ForConsumerAction(supabase, 'change-email', {
+        onChallenge: () =>
+          new Promise<Aal2ChallengeOutcome>((resolve) => {
+            setPending({ purpose: 'change-email', resolve });
+          }),
+      });
 
       setPending(null);
 
@@ -122,9 +115,7 @@ export function ChangeEmailForm({ currentEmail, onSent }: ChangeEmailFormProps) 
     }
   };
 
-  const handleModalSubmit = async (
-    code: string,
-  ): Promise<{ ok: boolean; reason?: string }> => {
+  const handleModalSubmit = async (code: string): Promise<{ ok: boolean; reason?: string }> => {
     if (!pending) {
       return { ok: false, reason: 'cancelled' };
     }
@@ -134,10 +125,7 @@ export function ChangeEmailForm({ currentEmail, onSent }: ChangeEmailFormProps) 
       pending.resolve({ cancelled: true });
       return { ok: false, reason: 'cancelled' };
     }
-    const result = await verifyTotpChallenge(
-      { factorId: factor.id, code },
-      supabase,
-    );
+    const result = await verifyTotpChallenge({ factorId: factor.id, code }, supabase);
     if (!result.ok) {
       return { ok: false, reason: 'invalid_code' };
     }

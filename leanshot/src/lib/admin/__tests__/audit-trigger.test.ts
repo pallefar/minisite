@@ -84,7 +84,11 @@ beforeAll(async () => {
   userEmail = `${TEST_SLUG_PREFIX}user@leanshot.test`;
   const password = `Pass1234-${crypto.randomUUID().slice(0, 8)}`;
 
-  const uRes = await admin.auth.admin.createUser({ email: userEmail, password, email_confirm: true });
+  const uRes = await admin.auth.admin.createUser({
+    email: userEmail,
+    password,
+    email_confirm: true,
+  });
   if (uRes.error) throw uRes.error;
   userId = uRes.data.user!.id;
   createdUserIds.push(userId);
@@ -105,7 +109,9 @@ afterAll(async () => {
   for (const logId of createdInjectionLogIds) {
     try {
       await admin.from('injections').delete().match({ user_id: userId, log_id: logId });
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
   }
   // Clean Phase 24 audit rows seeded by this test
   try {
@@ -114,9 +120,15 @@ afterAll(async () => {
       .delete()
       .eq('table_name', 'injections')
       .eq('actor_user_id', userId);
-  } catch { /* best-effort */ }
+  } catch {
+    /* best-effort */
+  }
   for (const id of createdUserIds) {
-    try { await admin.auth.admin.deleteUser(id); } catch { /* best-effort */ }
+    try {
+      await admin.auth.admin.deleteUser(id);
+    } catch {
+      /* best-effort */
+    }
   }
 }, 30_000);
 
@@ -172,12 +184,16 @@ describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
     expect(row.after_data).toBeTruthy();
     expect(row.before_data).toBeNull();
     expect(row.row_pk).toBeTruthy(); // injection id or null from trigger
-    expect(beforeCount.count).toBeLessThan((await admin
-      .from('audit_logs')
-      .select('id', { count: 'exact', head: true })
-      .eq('table_name', 'injections')
-      .eq('source', 'trigger')
-      .eq('actor_user_id', userId)).count ?? 0);
+    expect(beforeCount.count).toBeLessThan(
+      (
+        await admin
+          .from('audit_logs')
+          .select('id', { count: 'exact', head: true })
+          .eq('table_name', 'injections')
+          .eq('source', 'trigger')
+          .eq('actor_user_id', userId)
+      ).count ?? 0,
+    );
   }, 30_000);
 
   it('T4: DELETE trigger writes Phase 24 audit row with before_data populated, after_data null', async () => {
@@ -223,22 +239,27 @@ describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
       .eq('actor_user_id', userId);
 
     // Insert with suppress_audit GUC set — requires service_role to run raw SQL
-    await admin.rpc('_test_suppress_audit_insert', {
-      p_user_id: userId,
-      p_log_id: logId,
-    }).then(() => {
-      // This RPC doesn't exist in Phase 24 — test the GUC via direct SQL using
-      // the Supabase db query pattern. For Wave-1 CI, we skip this sub-assertion
-      // and document it as requiring a DB-level test helper RPC in Plan 24-05.
-      // [DEFERRED to Plan 24-05 per integration seam ownership]
-    }).catch(() => {
-      // Expected: RPC not yet defined in Phase 24
-    });
+    await admin
+      .rpc('_test_suppress_audit_insert', {
+        p_user_id: userId,
+        p_log_id: logId,
+      })
+      .then(() => {
+        // This RPC doesn't exist in Phase 24 — test the GUC via direct SQL using
+        // the Supabase db query pattern. For Wave-1 CI, we skip this sub-assertion
+        // and document it as requiring a DB-level test helper RPC in Plan 24-05.
+        // [DEFERRED to Plan 24-05 per integration seam ownership]
+      })
+      .catch(() => {
+        // Expected: RPC not yet defined in Phase 24
+      });
 
     // Fallback: Verify the trigger fires WITHOUT suppress (normal path proven in T3/T4)
     // and document the GUC suppression test as deferred to Plan 24-05.
     // This test verifies the trigger function source text contains the suppress check.
-    const { data: fnSrc } = await admin.rpc('_pg_proc_src', { p_name: 'fn_audit_phi_trigger' }).catch(() => ({ data: null }));
+    const { data: fnSrc } = await admin
+      .rpc('_pg_proc_src', { p_name: 'fn_audit_phi_trigger' })
+      .catch(() => ({ data: null }));
     // If RPC doesn't exist, verify by querying pg_proc directly via service_role
     const { data: procRows } = await admin
       .from('_no_such_table_') // fallback guard

@@ -147,9 +147,8 @@ export function AdoptDiffModal({
     <Modal open={open} onClose={onClose} title="Assignment preview" size="lg" hideClose={false}>
       <div className="space-y-4">
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          Assigning{' '}
-          <span className="font-semibold text-[var(--color-text)]">{protocol.name}</span> to{' '}
-          <span className="font-semibold text-[var(--color-text)]">{patientName}</span>
+          Assigning <span className="font-semibold text-[var(--color-text)]">{protocol.name}</span>{' '}
+          to <span className="font-semibold text-[var(--color-text)]">{patientName}</span>
         </p>
 
         {loading ? (

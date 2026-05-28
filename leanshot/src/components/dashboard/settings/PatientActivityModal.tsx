@@ -165,18 +165,11 @@ export function PatientActivityModal({
   const handleRetry = () => retryRef.current?.();
 
   return (
-    <Modal
-      open
-      onClose={handleClose}
-      title={`Activity from ${orgName}`}
-      size="lg"
-      mobileFullscreen
-    >
+    <Modal open onClose={handleClose} title={`Activity from ${orgName}`} size="lg" mobileFullscreen>
       <div className="space-y-4">
         {/* Subtitle */}
         <p className="text-[13px] text-[var(--color-text-secondary)] leading-snug">
-          Every time someone from this workspace accessed your data. We keep this log for 13
-          months.
+          Every time someone from this workspace accessed your data. We keep this log for 13 months.
         </p>
 
         {/* Tab nav */}
@@ -237,10 +230,7 @@ export function PatientActivityModal({
         ))}
 
         {/* HBNR/WMHMDA defensible footer — always visible (T-10-09-02 + UI-SPEC L318) */}
-        <div
-          className="mt-4 pt-4 border-t border-[var(--color-border)]"
-          data-testid="hbnr-footer"
-        >
+        <div className="mt-4 pt-4 border-t border-[var(--color-border)]" data-testid="hbnr-footer">
           <p className="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
             LeanShot keeps a complete record of every access. If you&apos;d like to request a copy
             or contest an entry, contact {orgName} directly or email{' '}
@@ -257,4 +247,3 @@ export function PatientActivityModal({
     </Modal>
   );
 }
-

@@ -76,9 +76,7 @@ export function FeatureGridBlock({ block }: FeatureGridBlockProps) {
               >
                 {Icon && <Icon aria-hidden className="size-6 text-[var(--color-primary)]" />}
                 {f.title && <h3 className="text-[16px] font-semibold">{f.title}</h3>}
-                {f.body && (
-                  <p className="text-[13px] leading-[1.5] opacity-80">{f.body}</p>
-                )}
+                {f.body && <p className="text-[13px] leading-[1.5] opacity-80">{f.body}</p>}
               </div>
             );
           })}

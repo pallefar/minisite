@@ -42,11 +42,13 @@ describe('ImpersonationBanner (Phase 22 ADMIN-03 / plan 22-09)', () => {
     vi.useRealTimers();
   });
 
-  function activeState(overrides: {
-    secondsRemaining?: number;
-    targetEmail?: string;
-    endImpersonation?: () => Promise<void>;
-  } = {}) {
+  function activeState(
+    overrides: {
+      secondsRemaining?: number;
+      targetEmail?: string;
+      endImpersonation?: () => Promise<void>;
+    } = {},
+  ) {
     return {
       active: true,
       impersonatorId: '11111111-1111-4111-8111-111111111111',

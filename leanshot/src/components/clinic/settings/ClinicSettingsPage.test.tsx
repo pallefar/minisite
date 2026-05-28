@@ -16,9 +16,7 @@ type FromBuilder = {
   is: () => FromBuilder;
   order: () => FromBuilder;
   limit: () => FromBuilder;
-  then?: (
-    onFulfilled: (v: { data: unknown[] | null; error: unknown }) => unknown,
-  ) => unknown;
+  then?: (onFulfilled: (v: { data: unknown[] | null; error: unknown }) => unknown) => unknown;
 };
 const fromResults = new Map<string, { data: unknown[] | null; error: unknown }>();
 function makeFromBuilder(result: { data: unknown[] | null; error: unknown }): FromBuilder {
@@ -38,8 +36,7 @@ function makeFromBuilder(result: { data: unknown[] | null; error: unknown }): Fr
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpcMock(...args),
-    from: (table: string) =>
-      makeFromBuilder(fromResults.get(table) ?? { data: [], error: null }),
+    from: (table: string) => makeFromBuilder(fromResults.get(table) ?? { data: [], error: null }),
     auth: {
       getSession: async () => ({ data: { session: { access_token: 't' } } }),
       getUser: async () => ({ data: { user: { id: 'u-1' } }, error: null }),
@@ -60,15 +57,12 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 vi.mock('@/lib/store', () => ({
-  useStore: Object.assign(
-    () => undefined,
-    {
-      getState: () => ({
-        showToast: vi.fn(),
-        dismissToast: vi.fn(),
-      }),
-    },
-  ),
+  useStore: Object.assign(() => undefined, {
+    getState: () => ({
+      showToast: vi.fn(),
+      dismissToast: vi.fn(),
+    }),
+  }),
 }));
 
 vi.mock('@/lib/clinic-permissions', () => ({
@@ -128,9 +122,7 @@ describe('ClinicSettingsPage', () => {
   it('Test 2 — `/clinic/{slug}/settings/roles` mounts with Roles tab active', async () => {
     setPath('/clinic/demo-clinic/settings/roles');
     render(<ClinicSettingsPage />);
-    await waitFor(() =>
-      expect(screen.getByText('Roles and permissions')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText('Roles and permissions')).toBeInTheDocument());
     const rolesBtn = screen.getByRole('button', { name: /Roles$/ });
     expect(rolesBtn).toHaveAttribute('aria-current', 'page');
   });
@@ -156,8 +148,6 @@ describe('ClinicSettingsPage', () => {
     fromResults.set('organizations', { data: [], error: null });
     setPath('/clinic/missing/settings');
     render(<ClinicSettingsPage />);
-    await waitFor(() =>
-      expect(screen.getByText('Workspace not found')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText('Workspace not found')).toBeInTheDocument());
   });
 });

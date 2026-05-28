@@ -24,7 +24,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 beforeEach(() => {
   vi.clearAllMocks();
 });

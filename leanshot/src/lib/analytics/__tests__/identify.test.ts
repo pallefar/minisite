@@ -19,7 +19,6 @@ vi.mock('posthog-js', () => ({
   },
 }));
 
-
 const mockPosthog = posthog as {
   capture: ReturnType<typeof vi.fn>;
   identify: ReturnType<typeof vi.fn>;

@@ -40,9 +40,7 @@ describe('resolveMfaStatus', () => {
 
 describe('<MfaStatusBadge>', () => {
   it("renders 'MFA on' with success tone when factors > 0", () => {
-    render(
-      <MfaStatusBadge userMfaFactors={1} userRole="admin" roleRequirements={REQ_ADMIN} />,
-    );
+    render(<MfaStatusBadge userMfaFactors={1} userRole="admin" roleRequirements={REQ_ADMIN} />);
     const badge = screen.getByTestId('mfa-status-badge');
     expect(badge.getAttribute('data-state')).toBe('on');
     expect(badge.textContent).toContain('MFA on');
@@ -52,9 +50,7 @@ describe('<MfaStatusBadge>', () => {
   });
 
   it("renders 'MFA required' with warning tone when role-required + factors==0", () => {
-    render(
-      <MfaStatusBadge userMfaFactors={0} userRole="admin" roleRequirements={REQ_ADMIN} />,
-    );
+    render(<MfaStatusBadge userMfaFactors={0} userRole="admin" roleRequirements={REQ_ADMIN} />);
     const badge = screen.getByTestId('mfa-status-badge');
     expect(badge.getAttribute('data-state')).toBe('required-not-enrolled');
     expect(badge.textContent).toContain('MFA required');
@@ -64,9 +60,7 @@ describe('<MfaStatusBadge>', () => {
   });
 
   it("renders 'MFA off' with neutral tone otherwise", () => {
-    render(
-      <MfaStatusBadge userMfaFactors={0} userRole="user" roleRequirements={REQ_ADMIN} />,
-    );
+    render(<MfaStatusBadge userMfaFactors={0} userRole="user" roleRequirements={REQ_ADMIN} />);
     const badge = screen.getByTestId('mfa-status-badge');
     expect(badge.getAttribute('data-state')).toBe('off');
     expect(badge.textContent).toContain('MFA off');
@@ -75,18 +69,14 @@ describe('<MfaStatusBadge>', () => {
     expect(badge.className).toMatch(/color-text-secondary/);
   });
 
-  it("uses aria-label that matches the state for screen readers", () => {
+  it('uses aria-label that matches the state for screen readers', () => {
     const { rerender } = render(
       <MfaStatusBadge userMfaFactors={1} userRole="user" roleRequirements={REQ_ADMIN} />,
     );
     expect(screen.getByLabelText('MFA on')).toBeDefined();
-    rerender(
-      <MfaStatusBadge userMfaFactors={0} userRole="admin" roleRequirements={REQ_ADMIN} />,
-    );
+    rerender(<MfaStatusBadge userMfaFactors={0} userRole="admin" roleRequirements={REQ_ADMIN} />);
     expect(screen.getByLabelText('MFA required but not enrolled')).toBeDefined();
-    rerender(
-      <MfaStatusBadge userMfaFactors={0} userRole="user" roleRequirements={REQ_ADMIN} />,
-    );
+    rerender(<MfaStatusBadge userMfaFactors={0} userRole="user" roleRequirements={REQ_ADMIN} />);
     expect(screen.getByLabelText('MFA off')).toBeDefined();
   });
 });

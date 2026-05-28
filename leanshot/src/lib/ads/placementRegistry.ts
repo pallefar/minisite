@@ -65,9 +65,7 @@ export function rowToPlacementConfig(row: Record<string, unknown>): AdPlacementC
     mode: row.mode as AdServingMode,
     network: (row.network as 'admob' | 'adsense' | null) ?? null,
     freq_cap_per_session:
-      typeof row.freq_cap_per_session === 'number'
-        ? row.freq_cap_per_session
-        : DEFAULT_FREQ_CAP,
+      typeof row.freq_cap_per_session === 'number' ? row.freq_cap_per_session : DEFAULT_FREQ_CAP,
     enabled: typeof row.enabled === 'boolean' ? row.enabled : false,
     ab_variant: typeof row.ab_variant === 'string' ? row.ab_variant : null,
     embed_html: typeof row.embed_html === 'string' ? row.embed_html : null,

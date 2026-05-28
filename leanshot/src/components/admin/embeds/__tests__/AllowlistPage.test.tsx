@@ -23,16 +23,12 @@ vi.mock('@/lib/supabase', () => {
   const profilesBuilder = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn(() =>
-      Promise.resolve({ data: { admin_role: mockAuthRole }, error: null }),
-    ),
+    maybeSingle: vi.fn(() => Promise.resolve({ data: { admin_role: mockAuthRole }, error: null })),
   };
   return {
     supabase: {
       auth: {
-        getUser: vi.fn(() =>
-          Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
-        ),
+        getUser: vi.fn(() => Promise.resolve({ data: { user: { id: 'user-1' } }, error: null })),
       },
       from: (_table: string) => profilesBuilder,
     },
@@ -75,13 +71,9 @@ describe('AllowlistPage', () => {
     mockListHostnames.mockResolvedValue([]);
     await renderPage();
     await waitFor(() => {
-      expect(
-        screen.getByText('No hostnames on the allowlist yet'),
-      ).toBeTruthy();
+      expect(screen.getByText('No hostnames on the allowlist yet')).toBeTruthy();
     });
-    expect(
-      screen.getByText(/Add the first hostname above/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/Add the first hostname above/i)).toBeTruthy();
   });
 
   it('T3: 3 rows renders AllowlistTable + AddHostnameForm', async () => {
@@ -124,9 +116,7 @@ describe('AllowlistPage', () => {
     mockListHostnames.mockRejectedValue(new Error('network failure'));
     await renderPage();
     await waitFor(() => {
-      expect(
-        screen.getByText(/We couldn’t load the allowlist/i),
-      ).toBeTruthy();
+      expect(screen.getByText(/We couldn’t load the allowlist/i)).toBeTruthy();
     });
     expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy();
   });

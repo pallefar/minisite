@@ -335,9 +335,7 @@ const CertVerifyPage = lazy(() => import('@/components/course/CertVerifyPage'));
 // lazy chunk stays OFF the index static graph. Anonymous-OK route; must be
 // checked BEFORE any auth gate in selectView() (T-29-06-01 anti-enumeration).
 // Patient can reach this with no existing account.
-const ConsentAcceptScreen = lazy(() =>
-  import('@/components/auth/ConsentAcceptScreen'),
-);
+const ConsentAcceptScreen = lazy(() => import('@/components/auth/ConsentAcceptScreen'));
 
 // Phase 22 Plan 22-12 (Wave 3 integration) — admin/DSAR/email-prefs lazy chunks.
 //
@@ -520,10 +518,7 @@ function resolvePhase19Route(pathname: string): ResolvedPhase19Route | null {
   // PARTNER — single prefix descriptor (`/partner`).
   for (let i = 0; i < PARTNER_ROUTES.length; i++) {
     const r = PARTNER_ROUTES[i]!;
-    if (
-      r.match === 'prefix' &&
-      (pathname === r.path || pathname.startsWith(`${r.path}/`))
-    ) {
+    if (r.match === 'prefix' && (pathname === r.path || pathname.startsWith(`${r.path}/`))) {
       return {
         Component: PARTNER_LAZIES[i]! as React.LazyExoticComponent<
           React.ComponentType<{ code?: string }>
@@ -541,10 +536,7 @@ function resolvePhase19Route(pathname: string): ResolvedPhase19Route | null {
         >,
       };
     }
-    if (
-      r.match === 'prefix' &&
-      (pathname === r.path || pathname.startsWith(`${r.path}/`))
-    ) {
+    if (r.match === 'prefix' && (pathname === r.path || pathname.startsWith(`${r.path}/`))) {
       return {
         Component: AFFILIATE_APPLY_LAZIES[i]! as React.LazyExoticComponent<
           React.ComponentType<{ code?: string }>
@@ -761,7 +753,12 @@ function pushViewLog(entry: ViewLogEntry): void {
  *
  * Settings BEFORE base `/clinic/` so the more-specific path wins.
  */
-function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; pathname: string }): View {
+function selectView(opts: {
+  user: unknown;
+  signedInUser: unknown;
+  hash: string;
+  pathname: string;
+}): View {
   if (opts.hash.startsWith('#/share/')) return 'share';
   if (opts.hash.startsWith('#/legal/')) return 'legal';
   // Phase 64 Plan 64-07 — /privacy/do-not-sell CPRA opt-out page (LEGAL-07).
@@ -828,10 +825,7 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   if (opts.pathname.match(/^\/clinic\/[^/]+\/patient\/[^/]+$/)) {
     return opts.user ? 'clinic-drill-in' : 'auth';
   }
-  if (
-    opts.pathname.startsWith('/clinic/') &&
-    opts.pathname.includes('/settings')
-  ) {
+  if (opts.pathname.startsWith('/clinic/') && opts.pathname.includes('/settings')) {
     return opts.user ? 'clinic-settings' : 'auth';
   }
   if (opts.pathname.startsWith('/clinic/')) {
@@ -885,10 +879,7 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   // Phase 22 Plan 22-11 — DSAR portal sub-page. Gated on user presence (the
   // RPC requires auth.uid()); selectView routes anon to auth so the user can
   // sign in first, then is bounced back via the existing `?` hash flow.
-  if (
-    opts.pathname === '/settings/privacy/dsar' ||
-    opts.pathname === '/settings/privacy/dsar/'
-  ) {
+  if (opts.pathname === '/settings/privacy/dsar' || opts.pathname === '/settings/privacy/dsar/') {
     return opts.user ? 'dsar' : 'auth';
   }
   if (
@@ -899,10 +890,7 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   }
   // Phase 66 Plan 66-03 — Consumer security settings (`/settings/security`).
   // Auth-gated; renders <SecuritySettingsPage> with consumer MFA enrollment.
-  if (
-    opts.pathname === '/settings/security' ||
-    opts.pathname === '/settings/security/'
-  ) {
+  if (opts.pathname === '/settings/security' || opts.pathname === '/settings/security/') {
     return opts.user ? 'security-settings' : 'auth';
   }
   // Phase 22 Plan 22-05 — /cancel-deletion is anonymous-OK (HMAC token
@@ -922,7 +910,10 @@ function selectView(opts: { user: unknown; signedInUser: unknown; hash: string; 
   // Route them to 'dashboard' so the orgFlow gate can show the org onboarding flow.
   // For anonymous users (is_anonymous=true) and unverified users, fall through to marketing
   // (they should go through the normal consumer onboarding path first).
-  const supabaseUser = opts.signedInUser as { is_anonymous?: boolean; email_confirmed_at?: string | null } | null;
+  const supabaseUser = opts.signedInUser as {
+    is_anonymous?: boolean;
+    email_confirmed_at?: string | null;
+  } | null;
   if (supabaseUser && !supabaseUser.is_anonymous && supabaseUser.email_confirmed_at) {
     return 'dashboard';
   }
@@ -934,7 +925,12 @@ function selectViewLogged(
   hash: string,
   signedInUser?: unknown,
 ): View {
-  const result = selectView({ user, signedInUser: signedInUser ?? null, hash, pathname: window.location.pathname });
+  const result = selectView({
+    user,
+    signedInUser: signedInUser ?? null,
+    hash,
+    pathname: window.location.pathname,
+  });
   pushViewLog({ t: Date.now(), caller, user: Boolean(user), hash, result });
   return result;
 }
@@ -1200,7 +1196,11 @@ export function App() {
           // posthog.reset() must run AFTER sign-out so the current uid's event
           // queue is flushed before the identity is cleared.
           void import('posthog-js').then(({ default: ph }) => {
-            try { ph.reset(); } catch { /* ignore — posthog may not be initialized */ }
+            try {
+              ph.reset();
+            } catch {
+              /* ignore — posthog may not be initialized */
+            }
           });
           // Phase 5 G2 (05-UAT.md gap #2 missing item #2): wipe the prior
           // user's namespaced localStorage residue + revert the adapter to
@@ -1281,9 +1281,7 @@ export function App() {
       const isAnon = signedIn?.user?.is_anonymous;
       const isVerified = signedIn?.verified;
       if (!userId || isAnon || !isVerified) return;
-      void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
-        syncBillingTier(userId),
-      );
+      void import('@/lib/billing-sync').then(({ syncBillingTier }) => syncBillingTier(userId));
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
@@ -1318,9 +1316,7 @@ export function App() {
       const { supabase } = await import('@/lib/supabase');
       const c = supabase.channel(`subscriptions:user_id=eq.${userId}`);
       const onChange = (): void => {
-        void import('@/lib/billing-sync').then(({ syncBillingTier }) =>
-          syncBillingTier(userId),
-        );
+        void import('@/lib/billing-sync').then(({ syncBillingTier }) => syncBillingTier(userId));
       };
       c.on(
         'postgres_changes',
@@ -1453,14 +1449,10 @@ export function App() {
       const platform = detectPlatform();
       if (platform === 'ios' || platform === 'android') {
         const productId =
-          plan === 'plus_monthly'
-            ? 'app.leanshot.plus.monthly'
-            : 'app.leanshot.plus.yearly';
+          plan === 'plus_monthly' ? 'app.leanshot.plus.monthly' : 'app.leanshot.plus.yearly';
         void (async (): Promise<void> => {
           try {
-            const { configureRC, purchaseSubscription } = await import(
-              '@/lib/native/iap'
-            );
+            const { configureRC, purchaseSubscription } = await import('@/lib/native/iap');
             await configureRC(userId);
             const result = await purchaseSubscription(productId);
             if (result.cancelled) return; // sheet dismissed — silent, no toast.
@@ -1468,9 +1460,7 @@ export function App() {
             // local mutation here.
           } catch {
             try {
-              useStore
-                .getState()
-                .showToast("Couldn't complete purchase. Try again.", 'error');
+              useStore.getState().showToast("Couldn't complete purchase. Try again.", 'error');
             } catch {
               /* toast unavailable — noop */
             }
@@ -1484,10 +1474,9 @@ export function App() {
       // Dynamic-import to keep @/lib/supabase off App.tsx's static graph.
       void import('@/lib/supabase').then(async ({ supabase }) => {
         try {
-          const { data, error } = await supabase.functions.invoke(
-            'stripe-checkout/session',
-            { body: { plan } },
-          );
+          const { data, error } = await supabase.functions.invoke('stripe-checkout/session', {
+            body: { plan },
+          });
           if (error || !data?.url) {
             // Match UpgradeCTA's Pitfall 8 discipline — do NOT echo upstream
             // error. Toast (best-effort) so the user knows something failed.
@@ -1606,9 +1595,7 @@ export function App() {
       installPrompt.initializeInstallPromptModule();
       offlineStore.initializeOfflineStore();
       reg.initializePWA(() => {
-        useStore
-          .getState()
-          .showToast('New version available — tap to reload.', 'info', 60_000);
+        useStore.getState().showToast('New version available — tap to reload.', 'info', 60_000);
         // The toast is a passive notification; the user reloads via the
         // browser refresh button (or the Settings drawer's update CTA in a
         // future polish). This avoids coupling Toast to a button-action API
@@ -1871,7 +1858,10 @@ export function App() {
       <>
         {globalOverlays}
         <Suspense fallback={<FullPageLoader />}>
-          <Onboarding onCancel={() => setView('marketing')} onComplete={() => setView('dashboard')} />
+          <Onboarding
+            onCancel={() => setView('marketing')}
+            onComplete={() => setView('dashboard')}
+          />
         </Suspense>
       </>
     );
@@ -2167,10 +2157,7 @@ export function App() {
   // session DELETE forces a fresh JWT). Renders nothing on marketing /
   // onboarding / clinic / admin / auth surfaces — those branches return
   // earlier above.
-  if (
-    userModerationStatus === 'banned' ||
-    userModerationStatus === 'temp_suspended'
-  ) {
+  if (userModerationStatus === 'banned' || userModerationStatus === 'temp_suspended') {
     return (
       <>
         {globalOverlays}
@@ -2272,9 +2259,7 @@ export function App() {
             Loaded only when cancellationOpen=true; chunk includes all step
             sub-components (single Vite chunk per CONTEXT specifics + Pitfall 8).
             onClose clears state so the chunk can be GC'd between sessions. */}
-        {cancellationOpen && (
-          <CancellationModalLazy onClose={() => setCancellationOpen(false)} />
-        )}
+        {cancellationOpen && <CancellationModalLazy onClose={() => setCancellationOpen(false)} />}
         {/* Phase 42 Plan 42-10 (POLISH-12 D-21) — Quarterly NPS in-app fallback
             modal. Mounted ONLY when the eligibility resolver fires the
             QUARTERLY_NPS_SHOW_EVENT (UNCONDITIONAL trigger gated on the SECDEF
@@ -2357,7 +2342,6 @@ export function App() {
       <Suspense fallback={null}>
         <HelpdeskWidget />
       </Suspense>
-
     </>
   );
 }

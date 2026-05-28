@@ -20,11 +20,7 @@ export interface RoleMfaRequirement {
   since: string;
 }
 
-export type RoleMfaConfigErrorCode =
-  | 'not_authenticated'
-  | 'forbidden'
-  | 'network'
-  | 'unknown';
+export type RoleMfaConfigErrorCode = 'not_authenticated' | 'forbidden' | 'network' | 'unknown';
 
 interface SupabasePgError {
   code?: string;
@@ -46,11 +42,7 @@ function mapRpcError(err: SupabasePgError | null | undefined): RoleMfaConfigErro
   const m = err.message ?? '';
   if (m.includes('authentication required')) return 'not_authenticated';
   if (err.code === '28000') return 'not_authenticated';
-  if (
-    err.code === '42501' ||
-    m.includes('only superadmin') ||
-    m.includes('forbidden')
-  ) {
+  if (err.code === '42501' || m.includes('only superadmin') || m.includes('forbidden')) {
     return 'forbidden';
   }
   return 'unknown';
@@ -86,10 +78,7 @@ export async function listRoleMfaRequirements(): Promise<RoleMfaRequirement[]> {
  * SECDEF RPC. Superadmin-only at the DB layer (Pattern S1 dual-layer; the
  * <RoleMfaRequirementTable> also greys the checkbox out for non-superadmins).
  */
-export async function setRoleMfaRequirement(
-  role: string,
-  required: boolean,
-): Promise<void> {
+export async function setRoleMfaRequirement(role: string, required: boolean): Promise<void> {
   try {
     const { error } = await supabase.rpc('set_mfa_role_requirement', {
       p_role: role,

@@ -20,12 +20,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { TierLabel } from '@/lib/community/tier-gate';
-import type {
-  Course,
-  CourseLesson,
-  CourseModule,
-  LessonProgress,
-} from '@/lib/course/course-types';
+import type { Course, CourseLesson, CourseModule, LessonProgress } from '@/lib/course/course-types';
 import { sanitizeCommunityMarkdown } from '@/lib/course/dompurify-config';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
@@ -47,11 +42,7 @@ interface CourseShape {
   lessonsByModule: Record<string, CourseLesson[]>;
 }
 
-export function CourseDetailView({
-  courseId,
-  currentUserId,
-  currentTier,
-}: CourseDetailViewProps) {
+export function CourseDetailView({ courseId, currentUserId, currentTier }: CourseDetailViewProps) {
   const [shape, setShape] = useState<CourseShape | null>(null);
   const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -63,7 +54,8 @@ export function CourseDetailView({
     void (async () => {
       const { data, error } = await supabase
         .from('courses')
-        .select(`
+        .select(
+          `
           id, title, slug, description, cover_url,
           completion_threshold_pct, enforce_completion, created_at, updated_at,
           course_modules(
@@ -75,7 +67,8 @@ export function CourseDetailView({
               created_at, updated_at
             )
           )
-        `)
+        `,
+        )
         .eq('id', courseId)
         .single();
 
@@ -117,7 +110,9 @@ export function CourseDetailView({
     void (async () => {
       const { data, error } = await supabase
         .from('lesson_progress')
-        .select('user_id, lesson_id, course_id, completed_at, last_position_seconds, max_position_reached_seconds, last_seen_at')
+        .select(
+          'user_id, lesson_id, course_id, completed_at, last_position_seconds, max_position_reached_seconds, last_seen_at',
+        )
         .eq('user_id', currentUserId)
         .eq('course_id', courseId);
       if (cancelled) return;
@@ -141,9 +136,7 @@ export function CourseDetailView({
     const allLessons = shape.modules.flatMap((m) => shape.lessonsByModule[m.id] ?? []);
     const total = allLessons.length;
     const completed = allLessons.filter((l) => progress[l.id]?.completed_at).length;
-    const inProgress = allLessons.find(
-      (l) => progress[l.id] && !progress[l.id]?.completed_at,
-    );
+    const inProgress = allLessons.find((l) => progress[l.id] && !progress[l.id]?.completed_at);
     const firstUncompleted = allLessons.find((l) => !progress[l.id]?.completed_at);
     return { total, completed, inProgress, firstUncompleted };
   }, [shape, progress]);
@@ -178,9 +171,7 @@ export function CourseDetailView({
   }
 
   const { course, modules, lessonsByModule } = shape;
-  const descriptionHtml = course.description
-    ? sanitizeCommunityMarkdown(course.description)
-    : null;
+  const descriptionHtml = course.description ? sanitizeCommunityMarkdown(course.description) : null;
   const resumeTarget = summary?.inProgress ?? summary?.firstUncompleted ?? null;
   const ctaLabel = summary && summary.completed > 0 ? 'Resume course' : 'Start course';
 

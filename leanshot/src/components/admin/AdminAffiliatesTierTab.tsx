@@ -170,11 +170,7 @@ export function AdminAffiliatesTierTab() {
                 <code className="text-sm font-mono">{r.referral_code ?? r.id.slice(0, 8)}</code>
                 <Badge
                   tone={
-                    r.tier === 'lifetime'
-                      ? 'success'
-                      : r.tier === 'gold'
-                        ? 'warning'
-                        : 'neutral'
+                    r.tier === 'lifetime' ? 'success' : r.tier === 'gold' ? 'warning' : 'neutral'
                   }
                 >
                   {r.tier}

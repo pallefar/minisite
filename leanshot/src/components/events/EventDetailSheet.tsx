@@ -108,10 +108,7 @@ export function EventDetailSheet({
           {/* Description (sanitized markdown — T-47-41) */}
           {event.description && (
             <div className="prose prose-sm max-w-none text-[var(--color-text)]">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-              >
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                 {sanitizedDescription}
               </ReactMarkdown>
             </div>

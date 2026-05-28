@@ -78,13 +78,7 @@ const ORG_TYPES: Array<{ id: OrgType; label: string }> = [
   { id: 'clinic', label: 'Clinic' },
 ];
 
-export function RuleEditor({
-  adminRole,
-  rule,
-  onCreated,
-  onUpdated,
-  onCancel,
-}: RuleEditorProps) {
+export function RuleEditor({ adminRole, rule, onCreated, onUpdated, onCancel }: RuleEditorProps) {
   const toast = useToast();
   const cohorts = useCohorts();
   const isNew = rule === null;
@@ -131,35 +125,28 @@ export function RuleEditor({
   // ── Toggle helpers ────────────────────────────────────────────────────────
 
   const toggleBucket = (id: string) => {
-    setTenureBuckets((prev) =>
-      prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id],
-    );
+    setTenureBuckets((prev) => (prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]));
   };
 
   const toggleReason = (id: string) => {
-    setReasons((prev) =>
-      prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id],
-    );
+    setReasons((prev) => (prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]));
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
 
   const titleError = title.length > 60 ? 'Title must be 60 characters or fewer.' : '';
   const couponError =
-    offerType === 'discount' && !couponId
-      ? 'Select a coupon for discount offer.'
-      : '';
+    offerType === 'discount' && !couponId ? 'Select a coupon for discount offer.' : '';
   const isValid = title.trim().length > 0 && !titleError && !couponError;
 
   // ── Filter offer types by org type (D-04 clinic-org fork) ─────────────────
 
-  const availableOfferTypes = OFFER_TYPES.filter(
-    (o) => !o.clinicOnly || orgType === 'clinic',
-  );
+  const availableOfferTypes = OFFER_TYPES.filter((o) => !o.clinicOnly || orgType === 'clinic');
 
   // If current offerType is not available (clinic filter), reset to first available
-  const resolvedOfferType: OfferType =
-    availableOfferTypes.some((o) => o.id === offerType) ? offerType : availableOfferTypes[0]!.id;
+  const resolvedOfferType: OfferType = availableOfferTypes.some((o) => o.id === offerType)
+    ? offerType
+    : availableOfferTypes[0]!.id;
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
@@ -174,10 +161,10 @@ export function RuleEditor({
       p_reasons: reasons,
       p_org_type: orgType,
       p_offer_type: resolvedOfferType,
-      p_pause_months: resolvedOfferType === 'pause' ? (parseInt(pauseMonths) || null) : null,
+      p_pause_months: resolvedOfferType === 'pause' ? parseInt(pauseMonths) || null : null,
       p_coupon_id: resolvedOfferType === 'discount' ? couponId || null : null,
       p_extension_days:
-        resolvedOfferType === 'extended_trial' ? (parseInt(extensionDays) || null) : null,
+        resolvedOfferType === 'extended_trial' ? parseInt(extensionDays) || null : null,
       p_downgrade_target: resolvedOfferType === 'downgrade' ? 'price_monthly' : null,
       p_priority: parseInt(priority) || 100,
       p_active: active,
@@ -271,7 +258,10 @@ export function RuleEditor({
       </h3>
 
       {!canWrite && (
-        <div className="rounded p-3 bg-[var(--color-surface-elevated)] text-sm text-[var(--color-text-secondary)]" role="note">
+        <div
+          className="rounded p-3 bg-[var(--color-surface-elevated)] text-sm text-[var(--color-text-secondary)]"
+          role="note"
+        >
           You have read-only access to save-offer rules. Contact a superadmin to make changes.
         </div>
       )}
@@ -279,7 +269,10 @@ export function RuleEditor({
       {/* Rule title */}
       <div>
         <label htmlFor="rule-title" className="block text-sm font-medium mb-1">
-          Rule title <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+          Rule title{' '}
+          <span aria-hidden="true" className="text-[var(--color-danger)]">
+            *
+          </span>
         </label>
         <Input
           id="rule-title"
@@ -311,7 +304,9 @@ export function RuleEditor({
         >
           <option value="">Any cohort</option>
           {cohorts.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
           ))}
         </Select>
       </div>
@@ -362,12 +357,15 @@ export function RuleEditor({
           disabled={fieldDisabled}
         >
           {ORG_TYPES.map((o) => (
-            <option key={o.id} value={o.id}>{o.label}</option>
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
           ))}
         </Select>
         {orgType === 'clinic' && (
           <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-            Clinic orgs see: discount + contact CSM only (no pause, extended trial, or downgrade per D-04).
+            Clinic orgs see: discount + contact CSM only (no pause, extended trial, or downgrade per
+            D-04).
           </p>
         )}
       </div>
@@ -384,7 +382,9 @@ export function RuleEditor({
           disabled={fieldDisabled}
         >
           {availableOfferTypes.map((o) => (
-            <option key={o.id} value={o.id}>{o.label}</option>
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
           ))}
         </Select>
       </div>
@@ -412,7 +412,10 @@ export function RuleEditor({
       {resolvedOfferType === 'discount' && (
         <div>
           <label htmlFor="rule-coupon" className="block text-sm font-medium mb-1">
-            Coupon <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+            Coupon{' '}
+            <span aria-hidden="true" className="text-[var(--color-danger)]">
+              *
+            </span>
           </label>
           <Select
             id="rule-coupon"
@@ -461,7 +464,8 @@ export function RuleEditor({
 
       {resolvedOfferType === 'downgrade' && (
         <div className="rounded p-3 bg-[var(--color-surface-elevated)] text-sm text-[var(--color-text-secondary)]">
-          Downgrade offer: annual plan → monthly (price_monthly). No additional configuration required.
+          Downgrade offer: annual plan → monthly (price_monthly). No additional configuration
+          required.
         </div>
       )}
 

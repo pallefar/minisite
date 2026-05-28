@@ -92,7 +92,9 @@ describe('createProgressSyncer', () => {
     const { client } = makeStubClient();
     const syncer = createProgressSyncer({
       lessonId: LESSON_ID,
-      supabaseClient: client as unknown as Parameters<typeof createProgressSyncer>[0]['supabaseClient'],
+      supabaseClient: client as unknown as Parameters<
+        typeof createProgressSyncer
+      >[0]['supabaseClient'],
     });
 
     syncer.onTimeUpdate(100);
@@ -113,7 +115,9 @@ describe('createProgressSyncer', () => {
     const { client, calls } = makeStubClient();
     const syncer = createProgressSyncer({
       lessonId: LESSON_ID,
-      supabaseClient: client as unknown as Parameters<typeof createProgressSyncer>[0]['supabaseClient'],
+      supabaseClient: client as unknown as Parameters<
+        typeof createProgressSyncer
+      >[0]['supabaseClient'],
     });
 
     syncer.onTimeUpdate(42.7);
@@ -134,7 +138,9 @@ describe('createProgressSyncer', () => {
     const { client } = makeStubClient();
     const syncer = createProgressSyncer({
       lessonId: LESSON_ID,
-      supabaseClient: client as unknown as Parameters<typeof createProgressSyncer>[0]['supabaseClient'],
+      supabaseClient: client as unknown as Parameters<
+        typeof createProgressSyncer
+      >[0]['supabaseClient'],
     });
 
     // 100 updates in rapid succession (simulated tight onTimeUpdate loop).
@@ -154,7 +160,9 @@ describe('createProgressSyncer', () => {
     const { client, calls } = makeStubClient();
     const syncer = createProgressSyncer({
       lessonId: LESSON_ID,
-      supabaseClient: client as unknown as Parameters<typeof createProgressSyncer>[0]['supabaseClient'],
+      supabaseClient: client as unknown as Parameters<
+        typeof createProgressSyncer
+      >[0]['supabaseClient'],
     });
     await syncer.flush();
     expect(calls).toHaveLength(0);

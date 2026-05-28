@@ -89,9 +89,10 @@ export function PatientActivityRow({ row, orgName }: ActivityRowProps) {
   if (isRanking) {
     const metadata = row.metadata ?? {};
     const score = typeof metadata.score === 'number' ? metadata.score : null;
-    const breakdown = typeof metadata.breakdown_snapshot === 'object' && metadata.breakdown_snapshot !== null
-      ? (metadata.breakdown_snapshot as Record<string, unknown>)
-      : {};
+    const breakdown =
+      typeof metadata.breakdown_snapshot === 'object' && metadata.breakdown_snapshot !== null
+        ? (metadata.breakdown_snapshot as Record<string, unknown>)
+        : {};
     const signals = top3Signals(breakdown);
     const detailsId = `ranking-${row.id}-details`;
 

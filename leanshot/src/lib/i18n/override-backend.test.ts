@@ -136,9 +136,7 @@ describe('Plan 32-04 — applyOverrides (basic merge)', () => {
     expect(inst.t('patient:hero.cta.log_weight')).toBe('Log weight');
 
     supabaseMock.__setQueryResponse({
-      data: [
-        { lng: 'en', ns: 'patient', key: 'hero.cta.log_dose', value: 'Inject now' },
-      ],
+      data: [{ lng: 'en', ns: 'patient', key: 'hero.cta.log_dose', value: 'Inject now' }],
       error: null,
     });
     await applyOverrides(inst, 'en', 'patient');

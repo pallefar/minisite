@@ -35,12 +35,42 @@ interface MarketingAsset {
 const ASSETS: MarketingAsset[] = [
   { id: 'logo-svg', path: 'v1/logo.svg', name: 'Logo (SVG)', meta: 'SVG · vector · 4 KB' },
   { id: 'logo-200', path: 'v1/logo-200.png', name: 'Logo 200×200', meta: 'PNG · 200×200 · 18 KB' },
-  { id: 'logo-1200', path: 'v1/logo-1200.png', name: 'Logo 1200×1200', meta: 'PNG · 1200×1200 · 86 KB' },
-  { id: 'banner-728', path: 'v1/banner-728x90.png', name: 'Banner 728×90', meta: 'PNG · 728×90 · 24 KB' },
-  { id: 'banner-300', path: 'v1/banner-300x250.png', name: 'Banner 300×250', meta: 'PNG · 300×250 · 19 KB' },
-  { id: 'banner-1080', path: 'v1/banner-1080x1080.png', name: 'Banner 1080×1080', meta: 'PNG · 1080×1080 · 68 KB' },
-  { id: 'email-template', path: 'v1/swipe-email.txt', name: 'Swipe email copy', meta: 'TXT · 2 KB' },
-  { id: 'social-template', path: 'v1/swipe-social.txt', name: 'Swipe social copy', meta: 'TXT · 1 KB' },
+  {
+    id: 'logo-1200',
+    path: 'v1/logo-1200.png',
+    name: 'Logo 1200×1200',
+    meta: 'PNG · 1200×1200 · 86 KB',
+  },
+  {
+    id: 'banner-728',
+    path: 'v1/banner-728x90.png',
+    name: 'Banner 728×90',
+    meta: 'PNG · 728×90 · 24 KB',
+  },
+  {
+    id: 'banner-300',
+    path: 'v1/banner-300x250.png',
+    name: 'Banner 300×250',
+    meta: 'PNG · 300×250 · 19 KB',
+  },
+  {
+    id: 'banner-1080',
+    path: 'v1/banner-1080x1080.png',
+    name: 'Banner 1080×1080',
+    meta: 'PNG · 1080×1080 · 68 KB',
+  },
+  {
+    id: 'email-template',
+    path: 'v1/swipe-email.txt',
+    name: 'Swipe email copy',
+    meta: 'TXT · 2 KB',
+  },
+  {
+    id: 'social-template',
+    path: 'v1/swipe-social.txt',
+    name: 'Swipe social copy',
+    meta: 'TXT · 1 KB',
+  },
 ];
 
 export function PartnerAssetsPage(): ReactNode {
@@ -51,9 +81,7 @@ export function PartnerAssetsPage(): ReactNode {
     if (downloading) return;
     setDownloading(asset.id);
     try {
-      const res = await supabase.storage
-        .from('marketing-assets')
-        .createSignedUrl(asset.path, 3600);
+      const res = await supabase.storage.from('marketing-assets').createSignedUrl(asset.path, 3600);
       if (res.error || !res.data?.signedUrl) {
         // Plan 19-08 hasn't seeded the bucket yet — surface a friendly message.
         toast('This asset isn’t ready yet — check back in a day or two.', 'info');
@@ -74,7 +102,8 @@ export function PartnerAssetsPage(): ReactNode {
         <header>
           <h1 className="text-[26px] font-semibold text-[var(--color-text)]">Marketing assets</h1>
           <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-            Logos, banners, swipe-copy. Use these in your content; they’re licensed for affiliate use only.
+            Logos, banners, swipe-copy. Use these in your content; they’re licensed for affiliate
+            use only.
           </p>
         </header>
         <Card span={12} padding="lg">
@@ -93,7 +122,8 @@ export function PartnerAssetsPage(): ReactNode {
       <header>
         <h1 className="text-[26px] font-semibold text-[var(--color-text)]">Marketing assets</h1>
         <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-          Logos, banners, swipe-copy. Use these in your content; they’re licensed for affiliate use only.
+          Logos, banners, swipe-copy. Use these in your content; they’re licensed for affiliate use
+          only.
         </p>
       </header>
 

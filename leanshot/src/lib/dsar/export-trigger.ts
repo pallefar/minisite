@@ -23,16 +23,10 @@
  * gate. We do NOT own UI here — keeps this module unit-testable in
  * node env without jsdom.
  */
-import {
-  requireAal2ForConsumerAction,
-  type Aal2ChallengeOutcome,
-} from '@/lib/auth/aal2-consumer';
+import { requireAal2ForConsumerAction, type Aal2ChallengeOutcome } from '@/lib/auth/aal2-consumer';
 import { requestDsarExport } from '@/lib/dsar/dsar-export-client';
 
-export type ExportTriggerErrorCode =
-  | 'aal2_cancelled'
-  | 'aal2_invalid_code'
-  | 'aal2_session_stale';
+export type ExportTriggerErrorCode = 'aal2_cancelled' | 'aal2_invalid_code' | 'aal2_session_stale';
 
 export class ExportTriggerError extends Error {
   code: ExportTriggerErrorCode;
@@ -61,9 +55,7 @@ export interface TriggerDsarExportOpts {
  * on. Propagates `DsarError` from the underlying RPC for non-AAL2
  * failures (e.g. `already_pending`).
  */
-export async function triggerDsarExport(
-  opts?: TriggerDsarExportOpts,
-): Promise<string> {
+export async function triggerDsarExport(opts?: TriggerDsarExportOpts): Promise<string> {
   const gate = await requireAal2ForConsumerAction(undefined, 'export-all-data', {
     onChallenge: opts?.onChallenge,
   });

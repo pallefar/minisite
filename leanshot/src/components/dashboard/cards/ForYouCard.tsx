@@ -148,8 +148,7 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
             'Content-Type': 'application/json',
             // Use the supabase-js access token if present so RLS resolves.
             Authorization: `Bearer ${
-              (typeof window !== 'undefined' &&
-                window.localStorage.getItem('sb-leanshot-auth')) ??
+              (typeof window !== 'undefined' && window.localStorage.getItem('sb-leanshot-auth')) ??
               ''
             }`,
           },
@@ -191,7 +190,9 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
                     ? ''
                     : ' transition-[transform,border-color] hover:-translate-y-[1px]')
                 }
-                aria-label={t('patient:card.for_you.open_rec', { title: rec.title ?? rec.source_id })}
+                aria-label={t('patient:card.for_you.open_rec', {
+                  title: rec.title ?? rec.source_id,
+                })}
               >
                 <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--color-text)]">
                   {rec.title ?? rec.source_id}
@@ -214,7 +215,10 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
         </ul>
       )}
       {fallback && !loading && (
-        <p className="mt-2 text-[11px] text-[var(--color-text-tertiary)]" data-testid="for-you-fallback-notice">
+        <p
+          className="mt-2 text-[11px] text-[var(--color-text-tertiary)]"
+          data-testid="for-you-fallback-notice"
+        >
           {t('patient:card.for_you.fallback_notice')}
         </p>
       )}

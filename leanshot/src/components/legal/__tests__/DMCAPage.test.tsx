@@ -58,7 +58,9 @@ describe('DMCAPage', () => {
     renderDMCAPage();
     // Should mention pending operator action / U.S. Copyright Office / Phase 70
     expect(
-      screen.getByText(/agent registration.*pending|pending.*agent registration|U\.S\. Copyright Office.*pending|pending.*U\.S\. Copyright Office/i),
+      screen.getByText(
+        /agent registration.*pending|pending.*agent registration|U\.S\. Copyright Office.*pending|pending.*U\.S\. Copyright Office/i,
+      ),
     ).toBeInTheDocument();
   });
 });

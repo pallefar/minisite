@@ -92,7 +92,6 @@ export function PaywallGate({ content, children, surface = 'paywall' }: PaywallG
       cancelled = true;
     };
     // surface is intentionally not in deps: the gate is one-shot per mount.
-     
   }, [skipPaywall]);
 
   if (skipPaywall) {

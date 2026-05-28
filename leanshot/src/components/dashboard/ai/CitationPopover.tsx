@@ -26,10 +26,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, ExternalLink, AlertCircle } from 'lucide-react';
-import {
-  useEffect, useRef, useState, useCallback,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 import { TierBadge } from '@/components/admin/rag/TierBadge';
 import { Badge } from '@/components/ui/Badge';
 import { Sheet } from '@/components/ui/Sheet';
@@ -94,9 +91,7 @@ export function CitationPopover({
   const reducedMotion = useReducedMotion();
 
   const [state, setState] = useState<
-    | { status: 'loading' }
-    | { status: 'loaded'; chunk: RagChunkResult }
-    | { status: 'error' }
+    { status: 'loading' } | { status: 'loaded'; chunk: RagChunkResult } | { status: 'error' }
   >({ status: 'loading' });
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -135,7 +130,9 @@ export function CitationPopover({
       });
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [chunkId]);
 
   // Return focus to anchor on close
@@ -251,7 +248,9 @@ export function CitationPopover({
     const { chunk } = state;
     const { display: displayQuote, truncated } = truncateQuote(chunk.verbatim_quote);
     const sanitizedQuote = sanitizeVerbatimQuote(displayQuote);
-    const dateDisplay = chunk.last_reviewed_at ? formatDate(chunk.last_reviewed_at) : formatDate(chunk.scraped_at);
+    const dateDisplay = chunk.last_reviewed_at
+      ? formatDate(chunk.last_reviewed_at)
+      : formatDate(chunk.scraped_at);
 
     return (
       <div className="space-y-3">
@@ -272,7 +271,6 @@ export function CitationPopover({
         {/* Verbatim quote block (DOMPurify-sanitized — T-60-10-XSS-1) */}
         <div
           className="text-[13px] border-l-2 border-[var(--color-primary)] bg-[var(--color-surface-elevated)] px-3 py-2 rounded-r-sm"
-           
           dangerouslySetInnerHTML={{ __html: sanitizedQuote }}
         />
         {truncated && (
@@ -291,11 +289,7 @@ export function CitationPopover({
           <span className="font-mono text-[11px] text-[var(--color-text-secondary)]">
             {t('popover.last_reviewed', { date: dateDisplay })}
           </span>
-          {chunk.stale && (
-            <Badge tone="warning">
-              {t('popover.may_be_outdated')}
-            </Badge>
-          )}
+          {chunk.stale && <Badge tone="warning">{t('popover.may_be_outdated')}</Badge>}
         </div>
 
         {/* LeanShot Research disclosure */}

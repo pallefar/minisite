@@ -61,13 +61,7 @@ function readPageIdFromPath(): string {
 }
 
 function toSeoFields(seo: PageSeoFields): SEOFields {
-  const validTypes = new Set([
-    'WebPage',
-    'Product',
-    'Article',
-    'Service',
-    'Organization',
-  ]);
+  const validTypes = new Set(['WebPage', 'Product', 'Article', 'Service', 'Organization']);
   return {
     seo_title: seo.seo_title,
     seo_description: seo.seo_description,
@@ -109,16 +103,12 @@ export function PageEditorView() {
   // variant" button DOM nodes for focus restoration when the drawer closes.
   const [variantModalOpen, setVariantModalOpen] = useState(false);
   const [trafficSplit, setTrafficSplit] = useState(50);
-  const [variantPublishState, setVariantPublishState] = useState<
-    'idle' | 'publishing' | 'error'
-  >('idle');
+  const [variantPublishState, setVariantPublishState] = useState<'idle' | 'publishing' | 'error'>(
+    'idle',
+  );
   const [blockVariantOpen, setBlockVariantOpen] = useState(false);
-  const [blockVariantTargetId, setBlockVariantTargetId] = useState<string | null>(
-    null,
-  );
-  const addVariantBtnRefs = useRef<Map<string, HTMLButtonElement | null>>(
-    new Map(),
-  );
+  const [blockVariantTargetId, setBlockVariantTargetId] = useState<string | null>(null);
+  const addVariantBtnRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
   // Template scaffold handoff (PAGE-04): TemplatePicker on /admin/pages
   // writes a JSON blob into sessionStorage before navigating here; consume it
@@ -188,7 +178,7 @@ export function PageEditorView() {
       // UI-SPEC error copy.
       setErrorMessage(
         res.error === 'reserved_slug'
-          ? "That slug is reserved. Pick a different one."
+          ? 'That slug is reserved. Pick a different one.'
           : res.error === 'invalid_slug'
             ? 'Slug must be lowercase letters, numbers, and hyphens.'
             : "Couldn't save changes. Check your connection and try again.",
@@ -226,9 +216,7 @@ export function PageEditorView() {
     });
     if (!res.ok) {
       setPublishState('error');
-      setErrorMessage(
-        'Publish failed. Try again, or reload the page if the problem continues.',
-      );
+      setErrorMessage('Publish failed. Try again, or reload the page if the problem continues.');
       return;
     }
     setIsPublished(true);
@@ -276,11 +264,7 @@ export function PageEditorView() {
       // Navigate to the variant editor. The variant uses the same editor
       // surface with the variant id mounted at /admin/pages/{id}/variants/{vid}.
       const variantId = (data as { id: string }).id;
-      window.history.pushState(
-        null,
-        '',
-        `/admin/pages/${pageId}/variants/${variantId}`,
-      );
+      window.history.pushState(null, '', `/admin/pages/${pageId}/variants/${variantId}`);
     } catch (err) {
       console.error(
         '[PageEditorView] publishVariant',
@@ -302,9 +286,7 @@ export function PageEditorView() {
     setBlockVariantOpen(false);
   };
 
-  const handleSaveBlockVariants = async (
-    variantBlocks: BlockNode[],
-  ): Promise<void> => {
+  const handleSaveBlockVariants = async (variantBlocks: BlockNode[]): Promise<void> => {
     // Per <interfaces>: the drawer hands us the variant block list; we
     // persist via the page_variants table (variant_blocks jsonb column).
     // For a brand-new per-block variant set, we create a row + stamp the
@@ -336,9 +318,7 @@ export function PageEditorView() {
         const newVariantSetId = (data as { id: string }).id;
         setBlocks((prev) =>
           prev.map((b) =>
-            b.id === blockVariantTargetId
-              ? { ...b, variant_set_id: newVariantSetId }
-              : b,
+            b.id === blockVariantTargetId ? { ...b, variant_set_id: newVariantSetId } : b,
           ),
         );
       }
@@ -381,20 +361,10 @@ export function PageEditorView() {
           {statusLabel}
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={() => addBlock('hero')}
-            data-testid="add-hero"
-          >
+          <Button variant="ghost" size="md" onClick={() => addBlock('hero')} data-testid="add-hero">
             + Hero
           </Button>
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={() => addBlock('cta')}
-            data-testid="add-cta"
-          >
+          <Button variant="ghost" size="md" onClick={() => addBlock('cta')} data-testid="add-cta">
             + CTA
           </Button>
           <Button
@@ -405,12 +375,7 @@ export function PageEditorView() {
           >
             + Footer
           </Button>
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={() => setSeoOpen(true)}
-            data-testid="open-seo"
-          >
+          <Button variant="ghost" size="md" onClick={() => setSeoOpen(true)} data-testid="open-seo">
             SEO
           </Button>
           <Button
@@ -502,9 +467,7 @@ export function PageEditorView() {
               BlockVariantDrawer for that block. */}
           {blocks.filter((b) => b.parent_id === null).length > 0 && (
             <Card variant="flat" padding="md">
-              <h3 className="text-[13px] font-semibold mb-2 tracking-tight">
-                Per-block A/B
-              </h3>
+              <h3 className="text-[13px] font-semibold mb-2 tracking-tight">Per-block A/B</h3>
               <ul className="flex flex-col gap-1" data-testid="block-variant-list">
                 {blocks
                   .filter((b) => b.parent_id === null)
@@ -551,19 +514,10 @@ export function PageEditorView() {
             </ul>
           </Card>
         )}
-        <PropertyPanel
-          selectedBlockId={selectedId}
-          blocks={blocks}
-          onChange={setBlocks}
-        />
+        <PropertyPanel selectedBlockId={selectedId} blocks={blocks} onChange={setBlocks} />
       </div>
 
-      <Modal
-        open={seoOpen}
-        onClose={() => setSeoOpen(false)}
-        title="SEO settings"
-        size="md"
-      >
+      <Modal open={seoOpen} onClose={() => setSeoOpen(false)} title="SEO settings" size="md">
         <SEOPanel value={seo} onChange={handleSeoChange} />
       </Modal>
 
@@ -599,15 +553,12 @@ export function PageEditorView() {
       >
         <div className="flex flex-col gap-4" data-testid="create-variant-modal">
           <p className="text-[13px] text-[var(--color-text-secondary)]">
-            Create an A/B variant of this page. Visitors will be partitioned at
-            the edge — the canonical page stays live for the control cohort.
+            Create an A/B variant of this page. Visitors will be partitioned at the edge — the
+            canonical page stays live for the control cohort.
           </p>
           <div>
             <p className="text-[13px] font-medium mb-2">Traffic share</p>
-            <TrafficSplitSlider
-              value={trafficSplit}
-              onChange={setTrafficSplit}
-            />
+            <TrafficSplitSlider value={trafficSplit} onChange={setTrafficSplit} />
           </div>
           <div className="flex items-center justify-end gap-2">
             <Button
@@ -642,9 +593,7 @@ export function PageEditorView() {
               open={blockVariantOpen}
               onClose={closeBlockVariantDrawer}
               block={targetBlock}
-              restoreFocusTo={
-                addVariantBtnRefs.current.get(blockVariantTargetId) ?? null
-              }
+              restoreFocusTo={addVariantBtnRefs.current.get(blockVariantTargetId) ?? null}
               onSave={handleSaveBlockVariants}
             />
           );

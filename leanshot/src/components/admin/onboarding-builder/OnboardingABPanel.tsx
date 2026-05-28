@@ -31,7 +31,9 @@ interface Experiment {
   variants: string[];
 }
 
-interface InvokeError { error?: string }
+interface InvokeError {
+  error?: string;
+}
 
 export default function OnboardingABPanel() {
   const toast = useToast();
@@ -75,7 +77,7 @@ export default function OnboardingABPanel() {
             .eq('id', uid)
             .maybeSingle();
           if (!cancelled) {
-            setAdminRole(((prof as { admin_role?: string } | null)?.admin_role) ?? null);
+            setAdminRole((prof as { admin_role?: string } | null)?.admin_role ?? null);
           }
         }
         if (!cancelled) await fetchExperiments();
@@ -132,9 +134,8 @@ export default function OnboardingABPanel() {
       >
         <p className="font-medium">PostHog API key not yet configured.</p>
         <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
-          Plan 34-10 owns the human checkpoint that sets{' '}
-          <code>POSTHOG_PERSONAL_API_KEY</code> and <code>POSTHOG_PROJECT_ID</code> as Supabase
-          Function Secrets.
+          Plan 34-10 owns the human checkpoint that sets <code>POSTHOG_PERSONAL_API_KEY</code> and{' '}
+          <code>POSTHOG_PROJECT_ID</code> as Supabase Function Secrets.
         </p>
       </div>
     );

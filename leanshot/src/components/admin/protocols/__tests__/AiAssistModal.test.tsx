@@ -52,7 +52,6 @@ vi.mock('@/lib/store', () => ({
   useStore_DEPRECATED: undefined,
 }));
 
-
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_PROPS = {
@@ -161,9 +160,12 @@ describe('AiAssistModal', () => {
     expect(applyBtn.getAttribute('aria-busy')).toBe('true');
 
     // Skeleton should be rendered (Skeleton component uses skeleton-shimmer class)
-    await waitFor(() => {
-      const skeletons = document.querySelectorAll('.skeleton-shimmer');
-      expect(skeletons.length).toBeGreaterThan(0);
-    }, { timeout: 100 });
+    await waitFor(
+      () => {
+        const skeletons = document.querySelectorAll('.skeleton-shimmer');
+        expect(skeletons.length).toBeGreaterThan(0);
+      },
+      { timeout: 100 },
+    );
   });
 });

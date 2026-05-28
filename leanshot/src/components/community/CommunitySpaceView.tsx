@@ -41,10 +41,7 @@ export interface CommunitySpaceViewProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function CommunitySpaceView({
-  spaceId,
-  currentUserId,
-}: CommunitySpaceViewProps) {
+export function CommunitySpaceView({ spaceId, currentUserId }: CommunitySpaceViewProps) {
   const [space, setSpace] = useState<CommunitySpace | null | 'not-found'>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
@@ -79,9 +76,7 @@ export function CommunitySpaceView({
   if (space === 'not-found') {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center" role="main">
-        <p className="text-base font-semibold text-[var(--color-text)]">
-          Space not found
-        </p>
+        <p className="text-base font-semibold text-[var(--color-text)]">Space not found</p>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
           This space does not exist or you do not have access.
         </p>
@@ -120,10 +115,7 @@ export function CommunitySpaceView({
           Back
         </button>
         <div className="min-w-0 flex-1">
-          <h1
-            id={spaceNameId}
-            className="text-lg font-bold text-[var(--color-text)] truncate"
-          >
+          <h1 id={spaceNameId} className="text-lg font-bold text-[var(--color-text)] truncate">
             {space.name}
           </h1>
           {space.description && (

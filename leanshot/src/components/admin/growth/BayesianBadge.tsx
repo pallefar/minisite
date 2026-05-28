@@ -20,7 +20,7 @@ export interface BayesianBadgeProps {
 
 export function BayesianBadge({ posterior }: BayesianBadgeProps): React.JSX.Element {
   const pct = Math.round(posterior * 100);
-  if (posterior < 0.80) {
+  if (posterior < 0.8) {
     return <Badge tone="neutral">Insufficient data ({pct}%)</Badge>;
   }
   if (posterior < 0.95) {

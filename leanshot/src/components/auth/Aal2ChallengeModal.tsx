@@ -49,10 +49,7 @@ import { Modal } from '@/components/ui/Modal';
  * caller — including those not directly calling the gate (e.g. preview
  * stories).
  */
-export type Aal2ChallengeModalPurpose =
-  | 'delete-account'
-  | 'export-all-data'
-  | 'change-email';
+export type Aal2ChallengeModalPurpose = 'delete-account' | 'export-all-data' | 'change-email';
 
 export interface Aal2ChallengeModalProps {
   open: boolean;
@@ -93,12 +90,7 @@ function renderError(reason: string | undefined): string {
   return 'Something went wrong. Try again.';
 }
 
-export function Aal2ChallengeModal({
-  open,
-  purpose,
-  onSubmit,
-  onCancel,
-}: Aal2ChallengeModalProps) {
+export function Aal2ChallengeModal({ open, purpose, onSubmit, onCancel }: Aal2ChallengeModalProps) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -191,12 +183,7 @@ export function Aal2ChallengeModal({
           aria-label="6-digit authenticator code"
         />
         <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            disabled={busy}
-          >
+          <Button variant="ghost" size="sm" onClick={handleClose} disabled={busy}>
             Cancel
           </Button>
           <Button

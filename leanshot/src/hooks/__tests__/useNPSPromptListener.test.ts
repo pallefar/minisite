@@ -64,11 +64,8 @@ vi.mock('@/lib/analytics/events', () => ({
   },
 }));
 
-
 function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/^\s*\/\/.*$/gm, '');
+  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 }
 
 describe('analytics-trigger-bus — W4 contract', () => {
@@ -78,9 +75,7 @@ describe('analytics-trigger-bus — W4 contract', () => {
 
   it('isAnalyticsTriggerDetail accepts { name: string }', () => {
     expect(isAnalyticsTriggerDetail({ name: 'x' })).toBe(true);
-    expect(isAnalyticsTriggerDetail({ name: 'x', properties: { a: 1 } })).toBe(
-      true,
-    );
+    expect(isAnalyticsTriggerDetail({ name: 'x', properties: { a: 1 } })).toBe(true);
   });
 
   it('isAnalyticsTriggerDetail rejects invalid detail', () => {
@@ -164,9 +159,7 @@ describe('useNPSPromptListener — Plan 36-03 Task 3', () => {
   it('ignores events with invalid detail (type guard rejection)', async () => {
     renderHook(() => useNPSPromptListener());
     await act(async () => {
-      window.dispatchEvent(
-        new CustomEvent(ANALYTICS_TRIGGER_EVENT, { detail: { name: 123 } }),
-      );
+      window.dispatchEvent(new CustomEvent(ANALYTICS_TRIGGER_EVENT, { detail: { name: 123 } }));
     });
     await new Promise((r) => setTimeout(r, 0));
     expect(mockDecide).not.toHaveBeenCalled();
@@ -231,11 +224,7 @@ describe('useNPSPromptListener — Plan 36-03 Task 3', () => {
   });
 
   it('V13-3 self-check: no rating-aware predicate (rating|nps_score|is_promoter|is_detractor) precedes .request() (comment-stripped)', () => {
-    const filePath = resolve(
-      __dirname,
-      '..',
-      'useNPSPromptListener.tsx',
-    );
+    const filePath = resolve(__dirname, '..', 'useNPSPromptListener.tsx');
     const source = stripComments(readFileSync(filePath, 'utf8'));
     // Match any conditional construct + a rating-identifier within 80 chars
     // ahead of .request(). The plan's grep gate enforces the same invariant

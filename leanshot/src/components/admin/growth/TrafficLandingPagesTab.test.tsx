@@ -73,9 +73,7 @@ beforeEach(() => {
         id: 'admin-1',
         email: 'admin@example.com',
         app_metadata: { role: 'admin' },
-      } as unknown as NonNullable<
-        ReturnType<typeof useStore.getState>['signedIn']
-      >['user'],
+      } as unknown as NonNullable<ReturnType<typeof useStore.getState>['signedIn']>['user'],
       session: null as never,
       verified: true,
     },
@@ -149,11 +147,7 @@ describe('TrafficLandingPagesTab', () => {
   });
 
   it('T3 — clicking the Visits header toggles sort direction', async () => {
-    mockRows = [
-      row('/low', 100, 0, 0),
-      row('/high', 1000, 0, 0),
-      row('/mid', 500, 0, 0),
-    ];
+    mockRows = [row('/low', 100, 0, 0), row('/high', 1000, 0, 0), row('/mid', 500, 0, 0)];
     const { TrafficLandingPagesTab } = await import('./TrafficLandingPagesTab');
     render(<TrafficLandingPagesTab />);
 
@@ -163,9 +157,7 @@ describe('TrafficLandingPagesTab', () => {
     });
 
     const table = screen.getByRole('table');
-    const initialBodyRows = within(table)
-      .getAllByRole('row')
-      .slice(1); // skip header row
+    const initialBodyRows = within(table).getAllByRole('row').slice(1); // skip header row
     expect(initialBodyRows[0].textContent).toMatch(/\/high/);
     expect(initialBodyRows[2].textContent).toMatch(/\/low/);
     // aria-sort: descending on visits column.
@@ -178,9 +170,7 @@ describe('TrafficLandingPagesTab', () => {
     await waitFor(() => {
       expect(visitsHeader.getAttribute('aria-sort')).toBe('ascending');
     });
-    const afterToggleRows = within(table)
-      .getAllByRole('row')
-      .slice(1);
+    const afterToggleRows = within(table).getAllByRole('row').slice(1);
     expect(afterToggleRows[0].textContent).toMatch(/\/low/);
     expect(afterToggleRows[2].textContent).toMatch(/\/high/);
   });

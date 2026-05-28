@@ -108,7 +108,10 @@ vi.mock('@/lib/supabase', () => {
 // Mock framer-motion to avoid animation issues in jsdom
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
+    div: ({
+      children,
+      ...props
+    }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
       <div {...props}>{children}</div>
     ),
   },
@@ -142,23 +145,73 @@ const injectionRows = [
 ];
 
 const weightRows = [
-  { weight_id: 'w-1', weight: 82.5, date: '2026-05-16', body_fat: 22.1, ts: new Date('2026-05-16T08:00:00Z').getTime() },
-  { weight_id: 'w-2', weight: 84.0, date: '2026-05-09', body_fat: null, ts: new Date('2026-05-09T08:00:00Z').getTime() },
+  {
+    weight_id: 'w-1',
+    weight: 82.5,
+    date: '2026-05-16',
+    body_fat: 22.1,
+    ts: new Date('2026-05-16T08:00:00Z').getTime(),
+  },
+  {
+    weight_id: 'w-2',
+    weight: 84.0,
+    date: '2026-05-09',
+    body_fat: null,
+    ts: new Date('2026-05-09T08:00:00Z').getTime(),
+  },
 ];
 
 const mealRows = [
-  { meal_id: 'm-1', name: 'Oatmeal', calories: 350, date: '2026-05-16', ts: new Date('2026-05-16T07:00:00Z').getTime() },
-  { meal_id: 'm-2', name: 'Chicken salad', calories: 450, date: '2026-05-09', ts: new Date('2026-05-09T07:00:00Z').getTime() },
+  {
+    meal_id: 'm-1',
+    name: 'Oatmeal',
+    calories: 350,
+    date: '2026-05-16',
+    ts: new Date('2026-05-16T07:00:00Z').getTime(),
+  },
+  {
+    meal_id: 'm-2',
+    name: 'Chicken salad',
+    calories: 450,
+    date: '2026-05-09',
+    ts: new Date('2026-05-09T07:00:00Z').getTime(),
+  },
 ];
 
 const workoutRows = [
-  { workout_id: 'wo-1', name: 'Morning run', type: 'cardio', minutes: 30, date: '2026-05-15', ts: new Date('2026-05-15T06:00:00Z').getTime() },
-  { workout_id: 'wo-2', name: 'Strength', type: 'resistance', minutes: 45, date: '2026-05-14', ts: new Date('2026-05-14T06:00:00Z').getTime() },
+  {
+    workout_id: 'wo-1',
+    name: 'Morning run',
+    type: 'cardio',
+    minutes: 30,
+    date: '2026-05-15',
+    ts: new Date('2026-05-15T06:00:00Z').getTime(),
+  },
+  {
+    workout_id: 'wo-2',
+    name: 'Strength',
+    type: 'resistance',
+    minutes: 45,
+    date: '2026-05-14',
+    ts: new Date('2026-05-14T06:00:00Z').getTime(),
+  },
 ];
 
 const symptomRows = [
-  { symptom_id: 's-1', symptom: 'nausea', severity: 2, date: '2026-05-16', created_at: new Date('2026-05-16T09:00:00Z').toISOString() },
-  { symptom_id: 's-2', symptom: 'fatigue', severity: 3, date: '2026-05-15', created_at: new Date('2026-05-15T09:00:00Z').toISOString() },
+  {
+    symptom_id: 's-1',
+    symptom: 'nausea',
+    severity: 2,
+    date: '2026-05-16',
+    created_at: new Date('2026-05-16T09:00:00Z').toISOString(),
+  },
+  {
+    symptom_id: 's-2',
+    symptom: 'fatigue',
+    severity: 3,
+    date: '2026-05-15',
+    created_at: new Date('2026-05-15T09:00:00Z').toISOString(),
+  },
 ];
 
 const photoRows = [
@@ -226,9 +279,7 @@ describe('PatientActivityModal', () => {
     }));
 
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     expect(screen.getByTestId('activity-loading')).toBeInTheDocument();
@@ -250,9 +301,7 @@ describe('PatientActivityModal', () => {
     mockPhotosResult = { data: photoRows, error: null };
 
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     await waitFor(() => {
@@ -277,9 +326,7 @@ describe('PatientActivityModal', () => {
     // All mocks return empty arrays (default from beforeEach)
 
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     await waitFor(() => {
@@ -304,9 +351,7 @@ describe('PatientActivityModal', () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     await waitFor(() => {
@@ -330,9 +375,7 @@ describe('PatientActivityModal', () => {
 
   it('calls onClose when Escape key is pressed', async () => {
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     await waitFor(() => {
@@ -352,9 +395,7 @@ describe('PatientActivityModal', () => {
 
   it('exposes role=dialog and aria-modal=true when open=true', async () => {
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     await waitFor(() => {
@@ -369,10 +410,7 @@ describe('PatientActivityModal', () => {
   // -------------------------------------------------------------------------
 
   it('does not use s.user! non-null assertion in source file', () => {
-    const sourcePath = resolve(
-      __dirname,
-      'PatientActivityModal.tsx',
-    );
+    const sourcePath = resolve(__dirname, 'PatientActivityModal.tsx');
     const source = readFileSync(sourcePath, 'utf-8');
     // The Phase 23 ESLint rule blocks \.user! patterns; this belt-and-suspenders
     // assertion catches any slip before lint runs.
@@ -392,9 +430,7 @@ describe('PatientActivityModal', () => {
     mockPhotosResult = { data: [photoRows[0]], error: null };
 
     await act(async () => {
-      render(
-        <PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />,
-      );
+      render(<PatientActivityModal patientId={PATIENT_ID} open={true} onClose={onCloseFn} />);
     });
 
     await waitFor(() => {

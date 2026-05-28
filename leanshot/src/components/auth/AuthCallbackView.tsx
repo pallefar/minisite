@@ -21,17 +21,13 @@ import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
 import { supabase } from '@/lib/supabase';
 
 export default function AuthCallbackView() {
-  const [status, setStatus] = useState<'exchanging' | 'redirecting' | 'error'>(
-    'exchanging',
-  );
+  const [status, setStatus] = useState<'exchanging' | 'redirecting' | 'error'>('exchanging');
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(
-          window.location.href,
-        );
+        const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
         if (cancelled) return;
         if (error || !data?.session?.user) {
           setStatus('error');

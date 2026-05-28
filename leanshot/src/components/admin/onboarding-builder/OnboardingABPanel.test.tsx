@@ -169,9 +169,7 @@ describe('OnboardingABPanel (Plan 34-09 ONBOARD-08)', () => {
     mockInvoke
       .mockResolvedValueOnce({
         data: {
-          experiments: [
-            { id: 7, key: 'onb', name: 'Onb', current_rollout: 50, variants: ['B'] },
-          ],
+          experiments: [{ id: 7, key: 'onb', name: 'Onb', current_rollout: 50, variants: ['B'] }],
         },
         error: null,
       })

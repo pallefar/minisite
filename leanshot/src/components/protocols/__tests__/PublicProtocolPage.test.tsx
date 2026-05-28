@@ -16,7 +16,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const MOCK_PROTOCOL_ROW = {
@@ -29,16 +28,84 @@ const MOCK_PROTOCOL_ROW = {
   base_slug: 'tirzepatide-12-week-titration',
   published_at: '2026-05-01T00:00:00Z',
   steps: [
-    { id: 'step-1', protocol_id: '00000000-0000-0000-0000-000000000061', protocol_version: 1, week: 1, dose_mg: 2.5, frequency: 'weekly', monitoring: ['weight'], notes: null },
-    { id: 'step-2', protocol_id: '00000000-0000-0000-0000-000000000061', protocol_version: 1, week: 2, dose_mg: 5, frequency: 'weekly', monitoring: ['weight', 'glucose'], notes: null },
-    { id: 'step-3', protocol_id: '00000000-0000-0000-0000-000000000061', protocol_version: 1, week: 3, dose_mg: 5, frequency: 'weekly', monitoring: ['weight'], notes: null },
-    { id: 'step-4', protocol_id: '00000000-0000-0000-0000-000000000061', protocol_version: 1, week: 4, dose_mg: 7.5, frequency: 'weekly', monitoring: ['weight', 'bp'], notes: null },
-    { id: 'step-5', protocol_id: '00000000-0000-0000-0000-000000000061', protocol_version: 1, week: 5, dose_mg: 7.5, frequency: 'weekly', monitoring: ['weight'], notes: null },
-    { id: 'step-6', protocol_id: '00000000-0000-0000-0000-000000000061', protocol_version: 1, week: 6, dose_mg: 10, frequency: 'weekly', monitoring: ['weight', 'glucose'], notes: null },
+    {
+      id: 'step-1',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      protocol_version: 1,
+      week: 1,
+      dose_mg: 2.5,
+      frequency: 'weekly',
+      monitoring: ['weight'],
+      notes: null,
+    },
+    {
+      id: 'step-2',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      protocol_version: 1,
+      week: 2,
+      dose_mg: 5,
+      frequency: 'weekly',
+      monitoring: ['weight', 'glucose'],
+      notes: null,
+    },
+    {
+      id: 'step-3',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      protocol_version: 1,
+      week: 3,
+      dose_mg: 5,
+      frequency: 'weekly',
+      monitoring: ['weight'],
+      notes: null,
+    },
+    {
+      id: 'step-4',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      protocol_version: 1,
+      week: 4,
+      dose_mg: 7.5,
+      frequency: 'weekly',
+      monitoring: ['weight', 'bp'],
+      notes: null,
+    },
+    {
+      id: 'step-5',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      protocol_version: 1,
+      week: 5,
+      dose_mg: 7.5,
+      frequency: 'weekly',
+      monitoring: ['weight'],
+      notes: null,
+    },
+    {
+      id: 'step-6',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      protocol_version: 1,
+      week: 6,
+      dose_mg: 10,
+      frequency: 'weekly',
+      monitoring: ['weight', 'glucose'],
+      notes: null,
+    },
   ],
   evidence: [
-    { id: 'ev-1', protocol_id: '00000000-0000-0000-0000-000000000061', step_id: 'step-1', citation_text: 'SURPASS-2 trial: tirzepatide demonstrated superior weight loss.', rag_source_id: null, verbatim_quote: null },
-    { id: 'ev-2', protocol_id: '00000000-0000-0000-0000-000000000061', step_id: 'step-2', citation_text: 'FDA label: starting dose 2.5mg weekly.', rag_source_id: null, verbatim_quote: null },
+    {
+      id: 'ev-1',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      step_id: 'step-1',
+      citation_text: 'SURPASS-2 trial: tirzepatide demonstrated superior weight loss.',
+      rag_source_id: null,
+      verbatim_quote: null,
+    },
+    {
+      id: 'ev-2',
+      protocol_id: '00000000-0000-0000-0000-000000000061',
+      step_id: 'step-2',
+      citation_text: 'FDA label: starting dose 2.5mg weekly.',
+      rag_source_id: null,
+      verbatim_quote: null,
+    },
   ],
 };
 

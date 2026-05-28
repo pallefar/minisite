@@ -8,10 +8,7 @@
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  checkRefundEligibility,
-  requestRefund,
-} from '@/lib/billing/refund-client';
+import { checkRefundEligibility, requestRefund } from '@/lib/billing/refund-client';
 
 vi.mock('@/lib/billing/refund-client', () => ({
   checkRefundEligibility: vi.fn(),
@@ -56,9 +53,7 @@ describe('RefundRequestForm', () => {
     });
     await renderForm();
     await waitFor(() => {
-      expect(
-        screen.getByText(/Your subscription is eligible for refund/i),
-      ).toBeDefined();
+      expect(screen.getByText(/Your subscription is eligible for refund/i)).toBeDefined();
     });
     expect(screen.getByRole('textbox')).toBeDefined();
     expect(screen.getByRole('button', { name: /Request refund/i })).toBeDefined();
@@ -154,9 +149,7 @@ describe('RefundRequestForm', () => {
     await waitFor(() => {
       expect(mockRequest).toHaveBeenCalledWith('Cancelled by mistake');
       expect(screen.getByText(/Your refund of \$19\.99 has been processed/i)).toBeDefined();
-      expect(
-        screen.getByText(/Allow 5-10 business days for funds to appear/i),
-      ).toBeDefined();
+      expect(screen.getByText(/Allow 5-10 business days for funds to appear/i)).toBeDefined();
     });
   });
 

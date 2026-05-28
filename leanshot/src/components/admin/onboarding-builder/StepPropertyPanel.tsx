@@ -271,8 +271,7 @@ function BranchingEditor({
       // Light-weight shape check — full schema enforcement happens at the DB
       // validator (_validate_onboarding_steps).
       const ok = parsed.every(
-        (r) =>
-          r && typeof r === 'object' && r.when && typeof r.when === 'object' && r.goto_step_id,
+        (r) => r && typeof r === 'object' && r.when && typeof r.when === 'object' && r.goto_step_id,
       );
       if (!ok) {
         setParseError(

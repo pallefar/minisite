@@ -56,9 +56,7 @@ describe('PageExperimentTab', () => {
       }),
     ];
     render(<PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
-    expect(
-      screen.getByText(/This variant auto-archives in/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/This variant auto-archives in/)).toBeInTheDocument();
   });
 
   it('(b) 42-day archived banner when archived_at != null with exact UI-SPEC copy', () => {
@@ -84,28 +82,20 @@ describe('PageExperimentTab', () => {
       }),
     ];
     render(<PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
-    expect(
-      screen.queryByText(/This variant auto-archives in/),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/This variant auto-archives in/)).not.toBeInTheDocument();
   });
 
   it('(c) Ship-Winner click with posterior < 0.95 opens ShipWinnerConfirmModal', () => {
     const rows = [makeRow({ variant_id: 'pv-low', posterior: 0.88 })];
-    const { container } = render(
-      <PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />,
-    );
+    const { container } = render(<PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
     const shipBtn = container.querySelector('[data-action="ship-winner"]') as HTMLButtonElement;
     fireEvent.click(shipBtn);
-    expect(
-      screen.getByText('Ship variant below 95% confidence?'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Ship variant below 95% confidence?')).toBeInTheDocument();
   });
 
   it('(c) Ship-Winner click with posterior >= 0.95 calls onShip directly', () => {
     const rows = [makeRow({ variant_id: 'pv-high', posterior: 0.97 })];
-    const { container } = render(
-      <PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />,
-    );
+    const { container } = render(<PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
     const shipBtn = container.querySelector('[data-action="ship-winner"]') as HTMLButtonElement;
     fireEvent.click(shipBtn);
     expect(onShip).toHaveBeenCalledWith('pv-high');
@@ -113,9 +103,7 @@ describe('PageExperimentTab', () => {
 
   it('Ship-Winner button has data-action="ship-winner" attribute', () => {
     const rows = [makeRow()];
-    const { container } = render(
-      <PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />,
-    );
+    const { container } = render(<PageExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
     const shipBtn = container.querySelector('[data-action="ship-winner"]');
     expect(shipBtn).toBeInTheDocument();
   });

@@ -70,10 +70,7 @@ describe('AuditLogModule', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset the mock to return empty by default; each test overrides
-    vi.mocked(
-       
-      (vi as any).importMock,
-    );
+    vi.mocked((vi as any).importMock);
   });
 
   it('T1: renders audit_logs rows with correct column headers (timestamp, actor, action, table)', async () => {
@@ -216,9 +213,12 @@ describe('AuditLogModule', () => {
     render(<AuditLogModule />);
 
     // Wait for first row to appear
-    await waitFor(() => {
-      expect(screen.queryAllByText(/action\.type0/i).length).toBeGreaterThan(0);
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(screen.queryAllByText(/action\.type0/i).length).toBeGreaterThan(0);
+      },
+      { timeout: 5000 },
+    );
 
     // "Load more" should be rendered since 50 = PAGE_SIZE → hasMore = true
     const loadMoreBtn = screen.queryByRole('button', { name: /load more/i });

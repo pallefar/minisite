@@ -44,14 +44,7 @@ describe('WhatsNewDrawer', () => {
   it('Test 1: renders one <article> per entry with title + time + markdown body', () => {
     const onClose = vi.fn();
     const markRead = vi.fn();
-    render(
-      <WhatsNewDrawer
-        open
-        entries={sampleEntries}
-        onClose={onClose}
-        markRead={markRead}
-      />,
-    );
+    render(<WhatsNewDrawer open entries={sampleEntries} onClose={onClose} markRead={markRead} />);
     const articles = document.querySelectorAll('article');
     expect(articles.length).toBe(2);
     expect(screen.getByText('Dark mode, everywhere')).toBeInTheDocument();
@@ -99,14 +92,7 @@ describe('WhatsNewDrawer', () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     const markRead = vi.fn().mockResolvedValue(undefined);
-    render(
-      <WhatsNewDrawer
-        open
-        entries={sampleEntries}
-        onClose={onClose}
-        markRead={markRead}
-      />,
-    );
+    render(<WhatsNewDrawer open entries={sampleEntries} onClose={onClose} markRead={markRead} />);
     const button = screen.getByRole('button', { name: /got it/i });
     await user.click(button);
     expect(markRead).toHaveBeenCalledTimes(1);
@@ -116,10 +102,7 @@ describe('WhatsNewDrawer', () => {
   });
 
   it('Test 6 (lazy): Topbar and App.tsx import WhatsNewDrawer via React.lazy', () => {
-    const topbarSrc = readFileSync(
-      resolve(__dirname, '../layout/Topbar.tsx'),
-      'utf8',
-    );
+    const topbarSrc = readFileSync(resolve(__dirname, '../layout/Topbar.tsx'), 'utf8');
     const appSrc = readFileSync(resolve(__dirname, '../../App.tsx'), 'utf8');
     // At least ONE of {App.tsx, Topbar.tsx} must lazy-load the drawer; the
     // plan recommends App.tsx-mounted to keep the Topbar chunk slim.

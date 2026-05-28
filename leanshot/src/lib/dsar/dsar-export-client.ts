@@ -39,7 +39,10 @@ export interface DsarRequestRow {
 export type DsarErrorCode = 'already_pending' | 'not_authenticated' | 'forbidden' | 'unknown';
 
 export class DsarError extends Error {
-  constructor(public readonly code: DsarErrorCode, message?: string) {
+  constructor(
+    public readonly code: DsarErrorCode,
+    message?: string,
+  ) {
     super(message ?? code);
     this.name = 'DsarError';
   }

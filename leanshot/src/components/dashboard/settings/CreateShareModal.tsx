@@ -47,7 +47,7 @@ const EXPIRY_OPTIONS: Array<{ id: '24h' | '7d' | '30d'; label: string; seconds: 
   { id: '7d', label: '7 days', seconds: 7 * 24 * 60 * 60 },
   { id: '30d', label: '30 days', seconds: 30 * 24 * 60 * 60 },
 ];
-const DEFAULT_EXPIRY: typeof EXPIRY_OPTIONS[number]['id'] = '7d';
+const DEFAULT_EXPIRY: (typeof EXPIRY_OPTIONS)[number]['id'] = '7d';
 
 export function CreateShareModal({ open, onClose, onCreated }: CreateShareModalProps) {
   const toast = useToast();
@@ -116,8 +116,8 @@ export function CreateShareModal({ open, onClose, onCreated }: CreateShareModalP
       {step !== 'success' ? (
         <div className="space-y-4">
           <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
-            Generate a private read-only link for a doctor. They&apos;ll need both the link
-            and a 6-digit code to open it.
+            Generate a private read-only link for a doctor. They&apos;ll need both the link and a
+            6-digit code to open it.
           </p>
 
           <Input
@@ -162,8 +162,8 @@ export function CreateShareModal({ open, onClose, onCreated }: CreateShareModalP
               })}
             </div>
             <p className="text-[12px] text-[var(--color-text-tertiary)] leading-snug">
-              The doctor&apos;s access ends automatically when the share expires. You can
-              also revoke at any time.
+              The doctor&apos;s access ends automatically when the share expires. You can also
+              revoke at any time.
             </p>
           </fieldset>
 
@@ -172,9 +172,9 @@ export function CreateShareModal({ open, onClose, onCreated }: CreateShareModalP
               What can the doctor see?
             </summary>
             <p className="mt-2 text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-              Drug-level chart, your recent injections, symptoms, photos, weight log, and
-              the doctor report. The doctor cannot see AI coach conversations, account
-              settings, or anything you delete.
+              Drug-level chart, your recent injections, symptoms, photos, weight log, and the doctor
+              report. The doctor cannot see AI coach conversations, account settings, or anything
+              you delete.
             </p>
           </details>
 
@@ -199,8 +199,8 @@ export function CreateShareModal({ open, onClose, onCreated }: CreateShareModalP
           <div className="space-y-1">
             <h2 className="text-[18px] font-bold tracking-tight">Share ready</h2>
             <p className="text-[13px] text-[var(--color-text-secondary)] leading-snug">
-              Send the doctor the link and the 6-digit code over different channels (e.g.
-              link by email, code by text). The doctor needs both to open the share.
+              Send the doctor the link and the 6-digit code over different channels (e.g. link by
+              email, code by text). The doctor needs both to open the share.
             </p>
           </div>
 
@@ -252,8 +252,8 @@ export function CreateShareModal({ open, onClose, onCreated }: CreateShareModalP
           </div>
 
           <p className="text-[12px] text-[var(--color-text-tertiary)] leading-snug">
-            The code can be used only once. If the doctor doesn&apos;t open the share in
-            time, you can revoke this share and create a new one.
+            The code can be used only once. If the doctor doesn&apos;t open the share in time, you
+            can revoke this share and create a new one.
           </p>
 
           <div className="flex justify-end pt-2">

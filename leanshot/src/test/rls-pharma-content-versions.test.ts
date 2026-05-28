@@ -90,9 +90,7 @@ describeIfLive(
         .update({ admin_role: 'admin' })
         .eq('id', adminUserId);
       if (roleErr) {
-        await admin
-          .from('profiles')
-          .upsert({ id: adminUserId, admin_role: 'admin' });
+        await admin.from('profiles').upsert({ id: adminUserId, admin_role: 'admin' });
       }
 
       // Seed a pharma_content row that the versions row can FK to.

@@ -33,7 +33,6 @@ vi.mock('@/lib/supabase', () => ({
 
 // ─── Import after mock setup ──────────────────────────────────────────────────
 
-
 // ─── Helper: fluent builder for chained Supabase calls ───────────────────────
 
 function buildChain(result: { data: unknown; error: unknown }) {
@@ -194,10 +193,7 @@ describe('newsletter-api', () => {
 
   // Test 6: locale keys present per UI-SPEC §Copywriting Contract
   it('en/rag.json contains all newsletter copy keys per UI-SPEC §Copywriting Contract', () => {
-    const localePath = resolve(
-      __dirname,
-      '../../../../public/locales/en/rag.json',
-    );
+    const localePath = resolve(__dirname, '../../../../public/locales/en/rag.json');
     const locale = JSON.parse(readFileSync(localePath, 'utf-8')) as Record<string, unknown>;
     const newsletter = locale['newsletter'] as Record<string, unknown>;
 

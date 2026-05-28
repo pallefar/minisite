@@ -103,12 +103,16 @@ describe('<AdminMetricsPage /> — Plan 22-08', () => {
     mockRpc.mockResolvedValue({ data: STAFF_RPC, error: null });
     const user = userEvent.setup();
     render(<AdminMetricsPage />);
-    await waitFor(() => expect(mockRpc).toHaveBeenCalledWith('admin_compute_mrr_arr', { p_period: '30d' }));
+    await waitFor(() =>
+      expect(mockRpc).toHaveBeenCalledWith('admin_compute_mrr_arr', { p_period: '30d' }),
+    );
     mockRpc.mockClear();
     mockRpc.mockResolvedValue({ data: STAFF_RPC, error: null });
     const pill90 = await screen.findByRole('tab', { name: /90d/i });
     await user.click(pill90);
-    await waitFor(() => expect(mockRpc).toHaveBeenCalledWith('admin_compute_mrr_arr', { p_period: '90d' }));
+    await waitFor(() =>
+      expect(mockRpc).toHaveBeenCalledWith('admin_compute_mrr_arr', { p_period: '90d' }),
+    );
   });
 
   it('T3 — main chart container renders with descriptive aria-label', async () => {

@@ -98,16 +98,9 @@ export function ClinicContextBar({ org, className }: ClinicContextBarProps) {
           switcher itself owns the trigger affordance + aria-label; this is
           purely a chrome element so the operator can see which workspace they
           are currently in at a glance even when the dropdown is closed. */}
-      <div
-        data-testid="clinic-context-bar-org"
-        className="flex items-center gap-2.5 min-w-0"
-      >
+      <div data-testid="clinic-context-bar-org" className="flex items-center gap-2.5 min-w-0">
         {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={`${org.name} logo`}
-            className="size-8 rounded-md object-cover"
-          />
+          <img src={logoUrl} alt={`${org.name} logo`} className="size-8 rounded-md object-cover" />
         ) : (
           <span
             aria-hidden
@@ -138,7 +131,12 @@ export function ClinicContextBar({ org, className }: ClinicContextBarProps) {
           {/* aria-live span so screen readers announce count changes */}
           <span aria-live="polite" aria-atomic="true" className="absolute -top-1 -right-1">
             {pendingCount > 0 && (
-              <Badge tone="amber" pulse aria-hidden className="text-[10px] px-1.5 py-0.5 min-w-[18px] justify-center">
+              <Badge
+                tone="amber"
+                pulse
+                aria-hidden
+                className="text-[10px] px-1.5 py-0.5 min-w-[18px] justify-center"
+              >
                 {badgeText}
               </Badge>
             )}

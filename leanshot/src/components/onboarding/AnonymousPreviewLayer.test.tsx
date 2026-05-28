@@ -27,7 +27,6 @@ vi.mock('@/lib/anonymous/cookie', () => ({
   ANON_COOKIE_NAME: '_ls_anon',
 }));
 
-
 // Helper to patch navigator.language for a single test.
 function setLanguage(value: string): void {
   Object.defineProperty(window.navigator, 'language', {
@@ -41,11 +40,12 @@ let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   vi.clearAllMocks();
   readAnonCookieMock.mockReturnValue(null);
-  fetchMock = vi.fn(async () =>
-    new Response(JSON.stringify({ cookie_id: '11111111-1111-4111-8111-111111111111' }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }),
+  fetchMock = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ cookie_id: '11111111-1111-4111-8111-111111111111' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
   );
   vi.stubGlobal('fetch', fetchMock);
 });
@@ -75,11 +75,12 @@ describe('AnonymousPreviewLayer', () => {
   it('T2: warm start POSTs { cookie_id } and does NOT rewrite when ids match', async () => {
     const existing = '22222222-2222-4222-8222-222222222222';
     readAnonCookieMock.mockReturnValue(existing);
-    fetchMock.mockImplementationOnce(async () =>
-      new Response(JSON.stringify({ cookie_id: existing }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }),
+    fetchMock.mockImplementationOnce(
+      async () =>
+        new Response(JSON.stringify({ cookie_id: existing }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
     );
 
     render(

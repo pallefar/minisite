@@ -23,15 +23,11 @@ export interface AddHostnameFormProps {
   onAdded: (hostname: string) => void;
 }
 
-function validate(
-  raw: string,
-  allowlist: ReadonlyArray<{ hostname: string }>,
-): string | null {
+function validate(raw: string, allowlist: ReadonlyArray<{ hostname: string }>): string | null {
   const value = raw.trim();
   if (!value) return 'Hostname is required';
   if (value.includes('://')) return 'Enter hostname only — no protocol';
-  if (value.includes('/') || value.includes('?'))
-    return 'Enter hostname only — no path or query';
+  if (value.includes('/') || value.includes('?')) return 'Enter hostname only — no path or query';
   if (value.includes('*') || value.startsWith('.'))
     return 'Wildcards and leading dots are not supported';
   if (allowlist.some((row) => row.hostname.toLowerCase() === value.toLowerCase()))

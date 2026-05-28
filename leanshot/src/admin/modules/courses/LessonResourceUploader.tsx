@@ -45,10 +45,7 @@ export function LessonResourceUploader({
 
   const handleFile = async (file: File) => {
     if (!COURSE_RESOURCES_MIMES.has(file.type)) {
-      toast(
-        `Unsupported file type: ${file.type || 'unknown'}. Allowed: PDF, MP4, ZIP.`,
-        'error',
-      );
+      toast(`Unsupported file type: ${file.type || 'unknown'}. Allowed: PDF, MP4, ZIP.`, 'error');
       return;
     }
     if (file.size > COURSE_RESOURCES_MAX_BYTES) {
@@ -76,9 +73,10 @@ export function LessonResourceUploader({
 
     if (uploadError) {
       const msg = uploadError.message.toLowerCase();
-      const friendly = msg.includes('forbidden') || msg.includes('not authorized')
-        ? 'Only admins can upload course resources.'
-        : `Upload failed: ${uploadError.message}`;
+      const friendly =
+        msg.includes('forbidden') || msg.includes('not authorized')
+          ? 'Only admins can upload course resources.'
+          : `Upload failed: ${uploadError.message}`;
       toast(friendly, 'error');
       setUploading(false);
       return;
@@ -145,8 +143,8 @@ export function LessonResourceUploader({
         )}
       </div>
       <p className="text-xs text-[var(--color-text-secondary)]">
-        Allowed: PDF · MP4 · ZIP · max{' '}
-        {Math.round(COURSE_RESOURCES_MAX_BYTES / (1024 * 1024))} MB per file.
+        Allowed: PDF · MP4 · ZIP · max {Math.round(COURSE_RESOURCES_MAX_BYTES / (1024 * 1024))} MB
+        per file.
       </p>
     </div>
   );

@@ -62,8 +62,7 @@ async function parseResult<T>(res: Response): Promise<InviteResult<T>> {
   }
 
   if (!res.ok || body.ok === false) {
-    const errCode =
-      typeof body.error === 'string' ? body.error : `http_${res.status}`;
+    const errCode = typeof body.error === 'string' ? body.error : `http_${res.status}`;
     return { ok: false, error: errCode };
   }
 
@@ -164,7 +163,10 @@ export async function previewInvite(token: string): Promise<InviteResult<Preview
 export async function acceptInvite(
   token: string,
   patientEmail: string,
-): Promise<InviteResult<AcceptInviteData> | { ok: false; error: 'magic_link_failed'; invite_accepted: true; redirect_url: string }> {
+): Promise<
+  | InviteResult<AcceptInviteData>
+  | { ok: false; error: 'magic_link_failed'; invite_accepted: true; redirect_url: string }
+> {
   const res = await fetch(`${EDGE_URL}/accept`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -194,8 +196,7 @@ export async function acceptInvite(
   }
 
   if (!res.ok || body.ok === false) {
-    const errCode =
-      typeof body.error === 'string' ? body.error : `http_${res.status}`;
+    const errCode = typeof body.error === 'string' ? body.error : `http_${res.status}`;
     return { ok: false, error: errCode };
   }
 

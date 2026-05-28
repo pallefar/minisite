@@ -16,10 +16,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 // Mock useChangelog ONCE per test by re-importing the Topbar with a fresh
 // vi.doMock so each test controls the return value.
-const renderTopbar = async (override: {
-  hasUnread: boolean;
-  entries?: number;
-}) => {
+const renderTopbar = async (override: { hasUnread: boolean; entries?: number }) => {
   vi.resetModules();
   vi.doMock('@/lib/changelog/changelog-store', () => ({
     useChangelog: () => ({

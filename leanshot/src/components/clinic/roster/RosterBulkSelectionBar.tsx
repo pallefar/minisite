@@ -72,9 +72,7 @@ export function RosterBulkSelectionBar({
       data-testid="bulk-selection-bar"
     >
       {/* Count */}
-      <span className="flex-1 truncate">
-        {count} selected
-      </span>
+      <span className="flex-1 truncate">{count} selected</span>
 
       {/* Clear button */}
       <button

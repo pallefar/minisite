@@ -111,7 +111,9 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
       //    free-preview lessons bypass — anon ok per Plan 46-02).
       const { data: lessonData, error: lessonErr } = await supabase
         .from('course_lessons')
-        .select('id, module_id, title, content_md, order_index, mux_asset_id, mux_playback_id, mux_status, duration_seconds, is_free_preview, is_required, captions_enabled, resources, created_at, updated_at')
+        .select(
+          'id, module_id, title, content_md, order_index, mux_asset_id, mux_playback_id, mux_status, duration_seconds, is_free_preview, is_required, captions_enabled, resources, created_at, updated_at',
+        )
         .eq('id', lessonId)
         .single();
       if (cancelled) return;
@@ -124,7 +126,9 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
       // 2. Per-user progress (single-row, may be absent on first watch).
       const { data: progressData } = await supabase
         .from('lesson_progress')
-        .select('user_id, lesson_id, course_id, completed_at, last_position_seconds, max_position_reached_seconds, last_seen_at')
+        .select(
+          'user_id, lesson_id, course_id, completed_at, last_position_seconds, max_position_reached_seconds, last_seen_at',
+        )
         .eq('lesson_id', lessonId)
         .maybeSingle();
       if (cancelled) return;
@@ -139,13 +143,15 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
         .eq('module_id', (lessonData as CourseLesson).module_id)
         .order('order_index', { ascending: true });
       if (cancelled) return;
-      const lessons = (siblingData as Array<{ id: string; title: string; order_index: number }>) ?? [];
+      const lessons =
+        (siblingData as Array<{ id: string; title: string; order_index: number }>) ?? [];
       const idx = lessons.findIndex((l) => l.id === lessonId);
       setSiblings({
         prev: idx > 0 ? { id: lessons[idx - 1]!.id, title: lessons[idx - 1]!.title } : null,
-        next: idx >= 0 && idx < lessons.length - 1
-          ? { id: lessons[idx + 1]!.id, title: lessons[idx + 1]!.title }
-          : null,
+        next:
+          idx >= 0 && idx < lessons.length - 1
+            ? { id: lessons[idx + 1]!.id, title: lessons[idx + 1]!.title }
+            : null,
       });
     })();
 
@@ -266,7 +272,9 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
     // Reload progress to reflect completed_at.
     const { data: refreshedProgress } = await supabase
       .from('lesson_progress')
-      .select('user_id, lesson_id, course_id, completed_at, last_position_seconds, max_position_reached_seconds, last_seen_at')
+      .select(
+        'user_id, lesson_id, course_id, completed_at, last_position_seconds, max_position_reached_seconds, last_seen_at',
+      )
       .eq('lesson_id', lesson.id)
       .maybeSingle();
     setProgress((refreshedProgress as LessonProgress | null) ?? null);
@@ -331,7 +339,12 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
 
   if (!lesson) {
     return (
-      <div className="p-4 max-w-3xl mx-auto space-y-4" role="status" aria-live="polite" aria-label="Loading lesson">
+      <div
+        className="p-4 max-w-3xl mx-auto space-y-4"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading lesson"
+      >
         <Skeleton className="h-8 w-1/3 rounded" />
         <Skeleton className="aspect-video w-full rounded-xl" />
         <Skeleton className="h-4 w-2/3 rounded" />
@@ -376,13 +389,18 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
           <CheckCircle2 className="size-4" />
           {alreadyComplete ? 'Completed' : completing ? 'Saving…' : 'Mark Complete'}
         </button>
-        {!alreadyComplete && !canComplete && lesson.duration_seconds && lesson.duration_seconds > 0 && (
-          <p className="text-[12px] text-[var(--color-text-secondary)]">
-            Watch at least 95% of the lesson to enable.
-          </p>
-        )}
+        {!alreadyComplete &&
+          !canComplete &&
+          lesson.duration_seconds &&
+          lesson.duration_seconds > 0 && (
+            <p className="text-[12px] text-[var(--color-text-secondary)]">
+              Watch at least 95% of the lesson to enable.
+            </p>
+          )}
         {statusMessage && (
-          <p role="alert" className="text-[12px] text-[var(--color-warning)]">{statusMessage}</p>
+          <p role="alert" className="text-[12px] text-[var(--color-warning)]">
+            {statusMessage}
+          </p>
         )}
       </div>
 
@@ -442,7 +460,9 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
             <ChevronLeft className="size-4" />
             Previous
           </button>
-        ) : <span />}
+        ) : (
+          <span />
+        )}
         {siblings.next ? (
           <button
             type="button"
@@ -453,7 +473,9 @@ export function LessonPlayerView({ lessonId, courseId, currentTier }: LessonPlay
             Next
             <ChevronRight className="size-4" />
           </button>
-        ) : <span />}
+        ) : (
+          <span />
+        )}
       </nav>
     </div>
   );

@@ -86,8 +86,7 @@ vi.mock('@/lib/supabase', () => ({
     from: () => makeBuilder(mockTickets),
     rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
     auth: {
-      getUser: () =>
-        Promise.resolve({ data: { user: { id: 'agent-1' } }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: { id: 'agent-1' } }, error: null }),
     },
     channel: vi.fn(() => ({
       on: vi.fn().mockReturnThis(),
@@ -106,7 +105,9 @@ vi.mock('./TicketDetailPage', () => ({
   default: ({ ticketId, onClose }: { ticketId: string; onClose: () => void }) => (
     <div role="dialog" aria-label="ticket-detail">
       ticket-detail-{ticketId}
-      <button type="button" onClick={onClose}>close-detail</button>
+      <button type="button" onClick={onClose}>
+        close-detail
+      </button>
     </div>
   ),
 }));

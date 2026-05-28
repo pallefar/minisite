@@ -63,10 +63,7 @@ export interface PageAsset {
  * `listPageAssets()` calls can surface it as the default alt for re-use
  * in image property fields.
  */
-export async function uploadPageAsset(
-  file: File,
-  altText: string,
-): Promise<UploadPageAssetResult> {
+export async function uploadPageAsset(file: File, altText: string): Promise<UploadPageAssetResult> {
   if (altText.trim() === '') {
     return { ok: false, error: 'missing_alt' };
   }
@@ -92,9 +89,7 @@ export async function uploadPageAsset(
       // Persist alt-text alongside the object so listPageAssets() can
       // recover it later for re-use.
       metadata: { altText },
-    } as unknown as Parameters<
-      ReturnType<typeof supabase.storage.from>['upload']
-    >[2];
+    } as unknown as Parameters<ReturnType<typeof supabase.storage.from>['upload']>[2];
     const { error } = await supabase.storage
       .from(PAGE_ASSETS_BUCKET)
       .upload(path, file, uploadOpts);

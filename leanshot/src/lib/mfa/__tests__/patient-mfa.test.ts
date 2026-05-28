@@ -41,7 +41,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 const mockGetUser = vi.mocked(supabase.auth.getUser);
 const mockSignInWithOtp = vi.mocked(supabase.auth.signInWithOtp);
 const mockEnroll = vi.mocked(supabase.auth.mfa.enroll);
@@ -161,7 +160,10 @@ describe('requireStepUp', () => {
       data: { user: { id: 'u1', email: 'patient@example.com' } },
       error: null,
     });
-    mockSignInWithOtp.mockResolvedValue({ data: null, error: { name: 'OtpError', message: 'fail' } });
+    mockSignInWithOtp.mockResolvedValue({
+      data: null,
+      error: { name: 'OtpError', message: 'fail' },
+    });
 
     const result = await requireStepUp();
     expect(result.ok).toBe(false);

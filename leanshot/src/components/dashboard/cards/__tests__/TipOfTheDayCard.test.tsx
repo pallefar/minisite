@@ -146,7 +146,10 @@ describe('TipOfTheDayCard', () => {
     // Open source link
     const link = screen.getByRole('link', { name: /Open source/i });
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', `/knowledge/${SEEDED_ROW.topic_tag}/${SEEDED_ROW.topic_slug}`);
+    expect(link).toHaveAttribute(
+      'href',
+      `/knowledge/${SEEDED_ROW.topic_tag}/${SEEDED_ROW.topic_slug}`,
+    );
 
     // Disclaimer
     expect(screen.getByText('Not medical advice — consult your clinician.')).toBeInTheDocument();

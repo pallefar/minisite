@@ -121,9 +121,7 @@ export default function PricingIOS(): ReactElement | null {
         });
       } catch {
         try {
-          useStore
-            .getState()
-            .showToast("Couldn't open the billing portal. Try again.", 'error');
+          useStore.getState().showToast("Couldn't open the billing portal. Try again.", 'error');
         } catch {
           /* toast unavailable — noop */
         }
@@ -135,14 +133,11 @@ export default function PricingIOS(): ReactElement | null {
         aria-label="Clinic billing"
       >
         <div className="flex flex-col items-start gap-3">
-          <Building2
-            aria-hidden
-            className="size-5 text-[var(--color-text-secondary)]"
-          />
+          <Building2 aria-hidden className="size-5 text-[var(--color-text-secondary)]" />
           <h2 className="text-[22px] font-semibold tracking-tight">Clinic billing</h2>
           <p className="text-[16px] text-[var(--color-text-secondary)] leading-snug">
-            Your subscription is managed at leanshot.app. Use the billing portal to update
-            your plan or payment method.
+            Your subscription is managed at leanshot.app. Use the billing portal to update your plan
+            or payment method.
           </p>
         </div>
         <Button variant="secondary" onClick={handleOpenPortal}>
@@ -157,8 +152,7 @@ export default function PricingIOS(): ReactElement | null {
   }
 
   // ─── Non-clinic-owner paywall (D-13) ──────────────────────────────────
-  const selectedPkg =
-    selected === 'monthly' ? offering?.monthlyPackage : offering?.yearlyPackage;
+  const selectedPkg = selected === 'monthly' ? offering?.monthlyPackage : offering?.yearlyPackage;
   const selectedEligible =
     selected === 'monthly' ? eligibility.monthlyEligible : eligibility.yearlyEligible;
   const sdkReady = offering !== null;
@@ -173,9 +167,7 @@ export default function PricingIOS(): ReactElement | null {
       // no local mutation needed here.
     } catch {
       try {
-        useStore
-          .getState()
-          .showToast("Couldn't complete purchase. Try again.", 'error');
+        useStore.getState().showToast("Couldn't complete purchase. Try again.", 'error');
       } catch {
         /* toast unavailable — noop */
       }
@@ -195,9 +187,7 @@ export default function PricingIOS(): ReactElement | null {
       }
     } catch {
       try {
-        useStore
-          .getState()
-          .showToast("Couldn't restore purchases. Try again.", 'error');
+        useStore.getState().showToast("Couldn't restore purchases. Try again.", 'error');
       } catch {
         /* noop */
       }
@@ -257,9 +247,7 @@ export default function PricingIOS(): ReactElement | null {
               <span className="text-[13px] font-semibold uppercase tracking-[0.06em] opacity-70">
                 {tile.label}
               </span>
-              <span className="mt-2 text-[22px] font-semibold">
-                {tile.pkg?.priceString ?? '—'}
-              </span>
+              <span className="mt-2 text-[22px] font-semibold">{tile.pkg?.priceString ?? '—'}</span>
               {tile.savingsBadge && (
                 <span className="mt-1 text-[13px] text-[var(--color-primary)] font-semibold">
                   {tile.savingsBadge}

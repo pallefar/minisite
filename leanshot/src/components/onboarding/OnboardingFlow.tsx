@@ -206,9 +206,7 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
     consumerFlowState.flow &&
     consumerFlowState.flow.config.length > 0
   ) {
-    return (
-      <ConsumerOnboardingRenderer flow={consumerFlowState.flow} onComplete={onComplete} />
-    );
+    return <ConsumerOnboardingRenderer flow={consumerFlowState.flow} onComplete={onComplete} />;
   }
 
   // Consumer / default: fall through to DEFAULT_STEPS render below
@@ -218,8 +216,10 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
 
   const next = (): void => {
     if (step === 0) return; // Step 0 advances exclusively via handleAcknowledge (D-09)
-    if (step === 1 && !draft.name.trim()) return toast(t('onboarding:error.name_required'), 'error');
-    if (step === 2 && !draft.medication) return toast(t('onboarding:error.medication_required'), 'error');
+    if (step === 1 && !draft.name.trim())
+      return toast(t('onboarding:error.name_required'), 'error');
+    if (step === 2 && !draft.medication)
+      return toast(t('onboarding:error.medication_required'), 'error');
     if (step === 3 && !draft.weight) return toast(t('onboarding:error.weight_required'), 'error');
     track('onboarding_step_completed', { step });
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
@@ -310,7 +310,10 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
             } catch (newsletterErr) {
               // Newsletter opt-in failure MUST NOT block onboarding completion.
               // User can opt in via Settings later.
-              console.warn('[OnboardingFlow] newsletter opt-in failed (best-effort):', newsletterErr);
+              console.warn(
+                '[OnboardingFlow] newsletter opt-in failed (best-effort):',
+                newsletterErr,
+              );
               toast(t('common:error.generic'), 'info');
             }
           }
@@ -361,7 +364,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 0 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.disclaimer.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.disclaimer.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.disclaimer.subtitle')}
                       </p>
@@ -402,7 +407,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 2 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.medication.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.medication.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.medication.subtitle')}
                       </p>
@@ -464,7 +471,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 3 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.body.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.body.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.body.subtitle')}
                       </p>
@@ -522,7 +531,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 4 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.goals.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.goals.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.goals.subtitle')}
                       </p>
@@ -566,7 +577,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                 {step === 5 && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.routine.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.routine.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.routine.subtitle')}
                       </p>
@@ -631,7 +644,10 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <SnapshotTile label={t('onboarding:step.snapshot.tile_name')} value={draft.name || '—'} />
+                      <SnapshotTile
+                        label={t('onboarding:step.snapshot.tile_name')}
+                        value={draft.name || '—'}
+                      />
                       <SnapshotTile
                         label={t('onboarding:step.snapshot.tile_medication')}
                         value={draft.medication ? medLabel(draft.medication as MedicationId) : '—'}
@@ -640,7 +656,10 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                         label={t('onboarding:step.snapshot.tile_dose')}
                         value={draft.dose ? `${draft.dose} ${draft.doseUnit}` : '—'}
                       />
-                      <SnapshotTile label={t('onboarding:step.snapshot.tile_started')} value={draft.startDate} />
+                      <SnapshotTile
+                        label={t('onboarding:step.snapshot.tile_started')}
+                        value={draft.startDate}
+                      />
                       <SnapshotTile
                         label={t('onboarding:step.snapshot.tile_weight')}
                         value={draft.weight ? `${draft.weight} ${wU}` : '—'}
@@ -651,7 +670,11 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                       />
                       <SnapshotTile
                         label={t('onboarding:step.snapshot.tile_protein')}
-                        value={draft.protein ? `${draft.protein} g` : t('onboarding:step.snapshot.protein_auto')}
+                        value={
+                          draft.protein
+                            ? `${draft.protein} g`
+                            : t('onboarding:step.snapshot.protein_auto')
+                        }
                       />
                       <SnapshotTile
                         label={t('onboarding:step.snapshot.tile_injection_day')}
@@ -708,7 +731,9 @@ export function OnboardingFlow({ onCancel, onComplete }: OnboardingFlowProps) {
                         "save your data" moment. Anonymous-by-default flow continues if
                         user dismisses; permanent users skip this entirely. */}
                     <div className="rounded-xl bg-[var(--color-primary-soft)] border border-[var(--color-primary)] p-3.5 mt-3">
-                      <p className="text-[13px] font-semibold">{t('onboarding:step.ready.save_title')}</p>
+                      <p className="text-[13px] font-semibold">
+                        {t('onboarding:step.ready.save_title')}
+                      </p>
                       <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5">
                         {t('onboarding:step.ready.save_body')}
                       </p>
@@ -806,7 +831,14 @@ function OrgOnboardingFlowRenderer({
   const toast = useToast();
 
   // Filter to rendered steps (skip flag honoured for non-mandatory types)
-  const SKIPPABLE_TYPES = new Set(['welcome', 'intro_card', 'goals', 'body_stats', 'doctor_invite', 'tour']);
+  const SKIPPABLE_TYPES = new Set([
+    'welcome',
+    'intro_card',
+    'goals',
+    'body_stats',
+    'doctor_invite',
+    'tour',
+  ]);
   const MANDATORY_TYPES = new Set(['medication', 'consent']);
 
   const renderedSteps = steps.filter((s) => {
@@ -941,13 +973,25 @@ function OrgOnboardingFlowRenderer({
                 transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
                 className="absolute inset-0 flex items-center justify-center"
               >
-                {currentStep?.type === 'welcome' && <OnboardWelcome className="w-full max-w-[320px]" />}
-                {currentStep?.type === 'intro_card' && <OnboardSnapshot className="w-full max-w-[320px]" />}
-                {currentStep?.type === 'medication' && <OnboardMedication className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'welcome' && (
+                  <OnboardWelcome className="w-full max-w-[320px]" />
+                )}
+                {currentStep?.type === 'intro_card' && (
+                  <OnboardSnapshot className="w-full max-w-[320px]" />
+                )}
+                {currentStep?.type === 'medication' && (
+                  <OnboardMedication className="w-full max-w-[320px]" />
+                )}
                 {currentStep?.type === 'goals' && <OnboardGoals className="w-full max-w-[320px]" />}
-                {currentStep?.type === 'body_stats' && <OnboardBody className="w-full max-w-[320px]" />}
-                {currentStep?.type === 'consent' && <OnboardReady className="w-full max-w-[320px]" />}
-                {currentStep?.type === 'doctor_invite' && <OnboardRoutine className="w-full max-w-[320px]" />}
+                {currentStep?.type === 'body_stats' && (
+                  <OnboardBody className="w-full max-w-[320px]" />
+                )}
+                {currentStep?.type === 'consent' && (
+                  <OnboardReady className="w-full max-w-[320px]" />
+                )}
+                {currentStep?.type === 'doctor_invite' && (
+                  <OnboardRoutine className="w-full max-w-[320px]" />
+                )}
                 {currentStep?.type === 'tour' && <OnboardReady className="w-full max-w-[320px]" />}
               </motion.div>
             </AnimatePresence>
@@ -967,7 +1011,10 @@ function OrgOnboardingFlowRenderer({
                   <div className="space-y-4">
                     <div>
                       <h1 className="text-[26px] font-bold tracking-tight">
-                        {currentStep.custom?.title ?? t('onboarding:org.welcome_title', { orgName: orgName ?? t('onboarding:org.your_clinic') })}
+                        {currentStep.custom?.title ??
+                          t('onboarding:org.welcome_title', {
+                            orgName: orgName ?? t('onboarding:org.your_clinic'),
+                          })}
                       </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {currentStep.custom?.body ?? t('onboarding:org.welcome_subtitle')}
@@ -1014,7 +1061,9 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'medication' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.medication.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.medication.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.medication.subtitle')}
                       </p>
@@ -1076,7 +1125,9 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'goals' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.goals.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.goals.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.goals.subtitle')}
                       </p>
@@ -1111,7 +1162,9 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'body_stats' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:step.body.title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:step.body.title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:step.body.subtitle')}
                       </p>
@@ -1160,7 +1213,9 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'consent' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:org.consent_title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:org.consent_title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:org.consent_subtitle')}
                       </p>
@@ -1176,7 +1231,9 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'doctor_invite' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:org.doctor_invite_title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:org.doctor_invite_title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:org.doctor_invite_subtitle')}
                       </p>
@@ -1190,7 +1247,9 @@ function OrgOnboardingFlowRenderer({
                 {currentStep?.type === 'tour' && (
                   <div className="space-y-4">
                     <div>
-                      <h1 className="text-[26px] font-bold tracking-tight">{t('onboarding:org.tour_title')}</h1>
+                      <h1 className="text-[26px] font-bold tracking-tight">
+                        {t('onboarding:org.tour_title')}
+                      </h1>
                       <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
                         {t('onboarding:org.tour_subtitle')}
                       </p>

@@ -19,7 +19,6 @@ vi.mock('@/lib/onboarding/activation-hooks', () => ({
   fireActivation: mockFireActivation,
 }));
 
-
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -50,9 +49,7 @@ describe('FirstActionSurface: card rendering', () => {
 
   it('region landmark + aria-label present', () => {
     render(<FirstActionSurface goal="lose-weight" />);
-    expect(
-      screen.getByRole('region', { name: /Choose your first action/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Choose your first action/i })).toBeInTheDocument();
   });
 
   it('recommended card is first in DOM order', () => {

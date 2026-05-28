@@ -233,7 +233,10 @@ describe('ClinicianAlertsPanel', () => {
   it('Test 7: Subscription failure renders inline "Live updates paused" warning', async () => {
     mockFrom.mockReturnValue(makeSupabaseChain([]));
     // Simulate CHANNEL_ERROR by having subscribe callback called with error status
-    mockChannelSubscribe.mockImplementation(function (this: unknown, cb?: (status: string) => void) {
+    mockChannelSubscribe.mockImplementation(function (
+      this: unknown,
+      cb?: (status: string) => void,
+    ) {
       if (cb) cb('CHANNEL_ERROR');
       return this;
     });

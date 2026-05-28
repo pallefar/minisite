@@ -64,7 +64,12 @@ export function CalendarDose({ className }: CalendarDoseProps) {
       <rect x="86" y="10" width="6" height="14" rx="3" fill="var(--color-teal-900)" />
 
       {/* weekday header */}
-      <g fontFamily="var(--font-sans)" fontSize="8" fontWeight="600" fill="var(--color-text-tertiary)">
+      <g
+        fontFamily="var(--font-sans)"
+        fontSize="8"
+        fontWeight="600"
+        fill="var(--color-text-tertiary)"
+      >
         <text x="22" y="52" textAnchor="middle">
           M
         </text>

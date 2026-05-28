@@ -43,10 +43,7 @@ describeIfLive('P28 RLS — org_members cross-tenant isolation', () => {
 
   it('T3: User A cannot SELECT org_members of Org Y', async () => {
     const { orgY, sessA } = fixture;
-    const { data, error } = await sessA.client
-      .from('org_members')
-      .select('id')
-      .eq('org_id', orgY);
+    const { data, error } = await sessA.client.from('org_members').select('id').eq('org_id', orgY);
     expect(error).toBeNull();
     // Cross-tenant SELECT proof: 0 rows returned (RLS predicate filter).
     expect(data ?? []).toHaveLength(0);
@@ -87,7 +84,11 @@ describeIfLive('P28 RLS — org_members cross-tenant isolation', () => {
     await sessA.client.from('org_members').delete().eq('id', orgYMemberRowId);
     // Row must still exist.
     const admin = getAdmin();
-    const { data } = await admin.from('org_members').select('id').eq('id', orgYMemberRowId).single();
+    const { data } = await admin
+      .from('org_members')
+      .select('id')
+      .eq('id', orgYMemberRowId)
+      .single();
     expect(data?.id).toBe(orgYMemberRowId);
   }, 30_000);
 });

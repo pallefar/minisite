@@ -209,9 +209,7 @@ describe('TicketDetailPage', () => {
   it('T2: does NOT call logPhiAccess on re-mount with same ticket+agent (dedupe)', async () => {
     ticketRow = { ...mockTicket, phi: true };
     const { default: TicketDetailPage } = await import('./TicketDetailPage');
-    const { rerender } = render(
-      <TicketDetailPage ticketId="tk-phi-1" onClose={() => {}} />,
-    );
+    const { rerender } = render(<TicketDetailPage ticketId="tk-phi-1" onClose={() => {}} />);
     await waitFor(() => expect(logPhiAccessSpy).toHaveBeenCalledTimes(1));
     // Re-render same instance — should NOT fire again.
     rerender(<TicketDetailPage ticketId="tk-phi-1" onClose={() => {}} />);

@@ -50,9 +50,6 @@ describe('TrafficSplitSlider', () => {
     render(<TrafficSplitSlider value={50} onChange={onChange} />);
     const fifty = screen.getByRole('button', { name: '50%' });
     expect(fifty).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: '20%' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
+    expect(screen.getByRole('button', { name: '20%' })).toHaveAttribute('aria-pressed', 'false');
   });
 });

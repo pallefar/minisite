@@ -11,10 +11,10 @@
 import { Modal } from '@/components/ui/Modal';
 
 const SHORTCUTS = [
-  { key: 'N',          description: 'New protocol' },
-  { key: 'J / K',      description: 'Next / Previous protocol' },
-  { key: 'Shift + ?',  description: 'Show / hide this help' },
-  { key: 'Escape',     description: 'Close current sheet or modal' },
+  { key: 'N', description: 'New protocol' },
+  { key: 'J / K', description: 'Next / Previous protocol' },
+  { key: 'Shift + ?', description: 'Show / hide this help' },
+  { key: 'Escape', description: 'Close current sheet or modal' },
 ] as const;
 
 export interface ProtocolKeyboardHelpModalProps {

@@ -92,12 +92,7 @@ export default function KBSearchTypeahead({
           ES
         </button>
       </div>
-      <ul
-        role="region"
-        aria-live="polite"
-        aria-busy={loading}
-        className="flex flex-col gap-1"
-      >
+      <ul role="region" aria-live="polite" aria-busy={loading} className="flex flex-col gap-1">
         {results.map((r) => (
           <li key={r.id}>
             <button

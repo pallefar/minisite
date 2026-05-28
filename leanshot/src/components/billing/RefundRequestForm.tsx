@@ -110,12 +110,10 @@ export function RefundRequestForm({ onClose }: RefundRequestFormProps) {
   if (view === 'submitted' && result?.ok) {
     return (
       <Card className="p-6 flex flex-col gap-3">
-        <h2 className="text-[18px] font-semibold text-[var(--color-text)]">
-          Refund submitted
-        </h2>
+        <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Refund submitted</h2>
         <p className="text-[13px] font-normal text-[var(--color-text)]">
-          Your refund of {formattedAmount} has been processed. Allow 5-10
-          business days for funds to appear.
+          Your refund of {formattedAmount} has been processed. Allow 5-10 business days for funds to
+          appear.
         </p>
         {onClose && (
           <div>
@@ -132,16 +130,11 @@ export function RefundRequestForm({ onClose }: RefundRequestFormProps) {
   if (eligibility && !eligibility.eligible) {
     return (
       <Card className="p-6 flex flex-col gap-3">
-        <h2 className="text-[18px] font-semibold text-[var(--color-text)]">
-          Refund not available
-        </h2>
+        <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Refund not available</h2>
         <p className="text-[13px] font-normal text-[var(--color-text-secondary)]">
-          Your subscription is outside the 14-day refund window. For help with
-          your account, contact our billing team at{' '}
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="text-[var(--color-primary)] underline"
-          >
+          Your subscription is outside the 14-day refund window. For help with your account, contact
+          our billing team at{' '}
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[var(--color-primary)] underline">
             {SUPPORT_EMAIL}
           </a>
           .
@@ -169,10 +162,7 @@ export function RefundRequestForm({ onClose }: RefundRequestFormProps) {
       ) : (
         <>
           We couldn&apos;t process your refund. Contact{' '}
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="text-[var(--color-primary)] underline"
-          >
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-[var(--color-primary)] underline">
             {SUPPORT_EMAIL}
           </a>{' '}
           and we&apos;ll handle it manually.
@@ -186,12 +176,9 @@ export function RefundRequestForm({ onClose }: RefundRequestFormProps) {
     <>
       <Card className="p-6 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-[18px] font-semibold text-[var(--color-text)]">
-            Request a refund
-          </h2>
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Request a refund</h2>
           <p className="text-[13px] font-normal text-[var(--color-text-secondary)]">
-            Your subscription is eligible for refund — submitted within the
-            14-day window.
+            Your subscription is eligible for refund — submitted within the 14-day window.
           </p>
         </div>
 
@@ -228,11 +215,7 @@ export function RefundRequestForm({ onClose }: RefundRequestFormProps) {
               Keep my subscription
             </Button>
           )}
-          <Button
-            variant="destructive"
-            onClick={() => setConfirmOpen(true)}
-            disabled={submitting}
-          >
+          <Button variant="destructive" onClick={() => setConfirmOpen(true)} disabled={submitting}>
             Request refund
           </Button>
         </div>
@@ -246,16 +229,11 @@ export function RefundRequestForm({ onClose }: RefundRequestFormProps) {
       >
         <div className="flex flex-col gap-4 p-6">
           <p className="text-[13px] font-normal text-[var(--color-text)]">
-            Request a refund? Your subscription will be cancelled immediately
-            and a credit will be issued to your original payment method within
-            5-10 business days.
+            Request a refund? Your subscription will be cancelled immediately and a credit will be
+            issued to your original payment method within 5-10 business days.
           </p>
           <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-            <Button
-              variant="tonal"
-              onClick={() => setConfirmOpen(false)}
-              disabled={submitting}
-            >
+            <Button variant="tonal" onClick={() => setConfirmOpen(false)} disabled={submitting}>
               Keep my subscription
             </Button>
             <Button

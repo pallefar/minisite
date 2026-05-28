@@ -62,9 +62,7 @@ export function HitlDecisionModal({ row, open, onClose, onSubmit }: HitlDecision
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl bg-[var(--color-surface,#fff)] rounded-lg p-6 max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="text-lg font-semibold mb-3">
-          Edit {row.type} suggestion
-        </h2>
+        <h2 className="text-lg font-semibold mb-3">Edit {row.type} suggestion</h2>
 
         <dl className="grid grid-cols-2 gap-2 text-[12px] mb-4 text-[var(--color-text-secondary)]">
           <div>
@@ -88,20 +86,21 @@ export function HitlDecisionModal({ row, open, onClose, onSubmit }: HitlDecision
           />
         </label>
 
-        {isDigest && (row.payload as { actions?: Array<{ id: string; reason: string }> }).actions && (
-          <section className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">Actions (preview)</h3>
-            <ul className="space-y-1">
-              {(row.payload as { actions: Array<{ id: string; reason: string }> }).actions.map(
-                (a, i) => (
-                  <li key={i} className="text-[12px] text-[var(--color-text-secondary)]">
-                    <span className="font-mono">{a.id}</span> — {a.reason}
-                  </li>
-                ),
-              )}
-            </ul>
-          </section>
-        )}
+        {isDigest &&
+          (row.payload as { actions?: Array<{ id: string; reason: string }> }).actions && (
+            <section className="mb-4">
+              <h3 className="text-sm font-semibold mb-2">Actions (preview)</h3>
+              <ul className="space-y-1">
+                {(row.payload as { actions: Array<{ id: string; reason: string }> }).actions.map(
+                  (a, i) => (
+                    <li key={i} className="text-[12px] text-[var(--color-text-secondary)]">
+                      <span className="font-mono">{a.id}</span> — {a.reason}
+                    </li>
+                  ),
+                )}
+              </ul>
+            </section>
+          )}
 
         <div className="flex justify-end gap-2 pt-2 border-t border-[var(--color-border)]">
           <button

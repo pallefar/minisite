@@ -98,7 +98,13 @@ export default function PatientInviteForm({ orgId }: PatientInviteFormProps) {
   return (
     <Card variant="elevated" span={8} className="mt-4">
       <CardHeader title="Invite patient" />
-      <form onSubmit={(e) => { void handleSubmit(e); }} noValidate className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          void handleSubmit(e);
+        }}
+        noValidate
+        className="space-y-4"
+      >
         {/* Email field */}
         <FieldShell
           label="Patient email"

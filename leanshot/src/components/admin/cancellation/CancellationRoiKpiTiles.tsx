@@ -106,7 +106,11 @@ function KpiTile({
   );
 }
 
-export function CancellationRoiKpiTiles({ rows, priorRows, loading }: CancellationRoiKpiTilesProps) {
+export function CancellationRoiKpiTiles({
+  rows,
+  priorRows,
+  loading,
+}: CancellationRoiKpiTilesProps) {
   const kpi = useMemo(() => computeKpi(rows), [rows]);
   const prior = useMemo(() => computeKpi(priorRows), [priorRows]);
 

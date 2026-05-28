@@ -154,7 +154,9 @@ export function PhotoTrashView({ open, onClose }: PhotoTrashViewProps) {
                 <div className="px-2 pb-1 flex flex-col gap-0.5">
                   <p className="text-[12px] font-semibold">{formatShort(photo.date)}</p>
                   <p className="text-[11px] text-[var(--color-warning,#b45309)]">
-                    {days > 0 ? `Auto-deletes in ${days} day${days === 1 ? '' : 's'}` : 'Deletes today'}
+                    {days > 0
+                      ? `Auto-deletes in ${days} day${days === 1 ? '' : 's'}`
+                      : 'Deletes today'}
                   </p>
                 </div>
 

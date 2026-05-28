@@ -78,7 +78,9 @@ export async function fireTouchOnce(opts: FireTouchOptions = {}): Promise<void> 
 
   const w =
     opts.windowOverride ??
-    (typeof window !== 'undefined' ? (window as unknown as FireTouchOptions['windowOverride']) : null);
+    (typeof window !== 'undefined'
+      ? (window as unknown as FireTouchOptions['windowOverride'])
+      : null);
   if (!w) return;
 
   // Cookie source: prefer the override's document; else the global document
@@ -107,7 +109,8 @@ export async function fireTouchOnce(opts: FireTouchOptions = {}): Promise<void> 
   // Resolve recorder URL (Vite env or test override).
   const envUrl = (import.meta as unknown as { env?: { VITE_SUPABASE_URL?: string } }).env
     ?.VITE_SUPABASE_URL;
-  const recorderUrl = opts.recorderUrl ?? (envUrl ? `${envUrl}/functions/v1/traffic-attribution-recorder` : '');
+  const recorderUrl =
+    opts.recorderUrl ?? (envUrl ? `${envUrl}/functions/v1/traffic-attribution-recorder` : '');
   if (!recorderUrl || recorderUrl.startsWith('/functions')) return; // VITE_SUPABASE_URL not configured
 
   // In production lt_anon_id is HttpOnly so anonIdFromCookie is null. Bail

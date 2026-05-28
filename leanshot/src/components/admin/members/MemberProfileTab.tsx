@@ -59,9 +59,7 @@ export function MemberProfileTab({ member }: MemberProfileTabProps) {
             <dt className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
               {r.label}
             </dt>
-            <dd className="text-sm font-mono break-all text-[var(--color-text)]">
-              {r.value}
-            </dd>
+            <dd className="text-sm font-mono break-all text-[var(--color-text)]">{r.value}</dd>
           </div>
         ))}
       </dl>

@@ -99,7 +99,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-   
   delete (window as any).posthog;
 });
 
@@ -110,46 +109,62 @@ describe('RosterTable — sort triggers re-RPC', () => {
   it('clicking Last dose: first click → DESC, second → ASC, third → reverts to score DESC', async () => {
     mockRpcSuccess([makeRow()]);
 
-    render(
-      <RosterTable orgId="org-1" slug="test-clinic" permissionMap={ownerPermMap} />,
-    );
+    render(<RosterTable orgId="org-1" slug="test-clinic" permissionMap={ownerPermMap} />);
 
     await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(1));
 
-    expect(mockRpc).toHaveBeenCalledWith('rank_org_patients', expect.objectContaining({
-      p_sort_column: 'score',
-      p_sort_direction: 'desc',
-    }));
+    expect(mockRpc).toHaveBeenCalledWith(
+      'rank_org_patients',
+      expect.objectContaining({
+        p_sort_column: 'score',
+        p_sort_direction: 'desc',
+      }),
+    );
 
     mockRpc.mockClear();
 
     const lastDoseBtn = screen.getByRole('button', { name: /last dose/i });
 
     // First click: last_injection_at DESC
-    await act(async () => { fireEvent.click(lastDoseBtn); });
+    await act(async () => {
+      fireEvent.click(lastDoseBtn);
+    });
     await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(1));
-    expect(mockRpc).toHaveBeenCalledWith('rank_org_patients', expect.objectContaining({
-      p_sort_column: 'last_injection_at',
-      p_sort_direction: 'desc',
-    }));
+    expect(mockRpc).toHaveBeenCalledWith(
+      'rank_org_patients',
+      expect.objectContaining({
+        p_sort_column: 'last_injection_at',
+        p_sort_direction: 'desc',
+      }),
+    );
     mockRpc.mockClear();
 
     // Second click: toggle to ASC
-    await act(async () => { fireEvent.click(lastDoseBtn); });
+    await act(async () => {
+      fireEvent.click(lastDoseBtn);
+    });
     await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(1));
-    expect(mockRpc).toHaveBeenCalledWith('rank_org_patients', expect.objectContaining({
-      p_sort_column: 'last_injection_at',
-      p_sort_direction: 'asc',
-    }));
+    expect(mockRpc).toHaveBeenCalledWith(
+      'rank_org_patients',
+      expect.objectContaining({
+        p_sort_column: 'last_injection_at',
+        p_sort_direction: 'asc',
+      }),
+    );
     mockRpc.mockClear();
 
     // Third click: revert to score DESC
-    await act(async () => { fireEvent.click(lastDoseBtn); });
+    await act(async () => {
+      fireEvent.click(lastDoseBtn);
+    });
     await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(1));
-    expect(mockRpc).toHaveBeenCalledWith('rank_org_patients', expect.objectContaining({
-      p_sort_column: 'score',
-      p_sort_direction: 'desc',
-    }));
+    expect(mockRpc).toHaveBeenCalledWith(
+      'rank_org_patients',
+      expect.objectContaining({
+        p_sort_column: 'score',
+        p_sort_direction: 'desc',
+      }),
+    );
   });
 });
 
@@ -160,12 +175,14 @@ describe('RosterTable — Realtime signal-column patch', () => {
   it('broadcast payload for injections section: row remains in DOM after signal update', async () => {
     let capturedHandler: ((payload: unknown) => void) | null = null;
 
-    const mockOn = vi.fn().mockImplementation(
-      (_type: string, _filter: unknown, handler: (payload: unknown) => void) => {
-        capturedHandler = handler;
-        return { on: mockOn, subscribe: vi.fn().mockReturnThis() };
-      },
-    );
+    const mockOn = vi
+      .fn()
+      .mockImplementation(
+        (_type: string, _filter: unknown, handler: (payload: unknown) => void) => {
+          capturedHandler = handler;
+          return { on: mockOn, subscribe: vi.fn().mockReturnThis() };
+        },
+      );
     mockChannel.mockReturnValue({ on: mockOn, subscribe: vi.fn().mockReturnThis() });
 
     mockRpcSuccess([makeRow({ user_id: 'user-A', display_name: 'Alice B.' })]);
@@ -210,7 +227,9 @@ describe('RosterTable — threshold-cross toast logic', () => {
     });
 
     const refreshBtn = screen.getByRole('button', { name: /refresh roster/i });
-    await act(async () => { fireEvent.click(refreshBtn); });
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
     await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(2));
 
     // Score crossed 70 upward — toast was fired (mocked), component still renders
@@ -232,7 +251,9 @@ describe('RosterTable — threshold-cross toast logic', () => {
     });
 
     const refreshBtn = screen.getByRole('button', { name: /refresh roster/i });
-    await act(async () => { fireEvent.click(refreshBtn); });
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
     await waitFor(() => expect(mockRpc).toHaveBeenCalledTimes(2));
 
     expect(screen.getByTestId('roster-table-container')).toBeInTheDocument();
@@ -244,23 +265,27 @@ describe('RosterTable — threshold-cross toast logic', () => {
 // ============================================================================
 describe('ScoreChip — permission gating', () => {
   it('canViewBreakdown=false: renders read-only span, no button', () => {
-    render(
-      <ScoreChip score={55} breakdown={{ missed_dose: 20 }} canViewBreakdown={false} />,
-    );
+    render(<ScoreChip score={55} breakdown={{ missed_dose: 20 }} canViewBreakdown={false} />);
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.getByText('55')).toBeInTheDocument();
   });
 
   it('canViewBreakdown=true: renders interactive button with aria-haspopup + opens popover on click', async () => {
     render(
-      <ScoreChip score={55} breakdown={{ missed_dose: 20, symptom_severity: 15 }} canViewBreakdown={true} />,
+      <ScoreChip
+        score={55}
+        breakdown={{ missed_dose: 20, symptom_severity: 15 }}
+        canViewBreakdown={true}
+      />,
     );
 
     const btn = screen.getByRole('button', { name: /score 55/i });
     expect(btn).toHaveAttribute('aria-haspopup', 'true');
     expect(btn).toHaveAttribute('aria-expanded', 'false');
 
-    await act(async () => { fireEvent.click(btn); });
+    await act(async () => {
+      fireEvent.click(btn);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Score breakdown')).toBeInTheDocument();

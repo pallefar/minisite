@@ -55,7 +55,8 @@ export function DpMethodsFooter({ epsilon, cohortSize, suppressedBuckets }: DpMe
         </div>
       </dl>
       <p className="text-[13px] text-[var(--color-text-tertiary)]">
-        Individual data is never included. Cohorts with fewer than 5 participants are suppressed entirely.
+        Individual data is never included. Cohorts with fewer than 5 participants are suppressed
+        entirely.
       </p>
     </aside>
   );

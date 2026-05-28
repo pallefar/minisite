@@ -37,17 +37,7 @@ export const MAX_DEPTH = 8;
 export const MAX_CHILDREN = 50;
 
 /** All ops supported by both the TS translator and the plpgsql validator. */
-export const RULE_OPS = [
-  '=',
-  '!=',
-  '>',
-  '<',
-  '>=',
-  '<=',
-  'in',
-  'is_null',
-  'is_not_null',
-] as const;
+export const RULE_OPS = ['=', '!=', '>', '<', '>=', '<=', 'in', 'is_null', 'is_not_null'] as const;
 
 export type RuleOp = (typeof RULE_OPS)[number];
 

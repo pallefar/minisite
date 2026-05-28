@@ -219,8 +219,8 @@ function RevokeConfirmModal({ row, onClose, onConfirm }: RevokeConfirmModalProps
     <Modal open onClose={close} title={`Revoke membership with ${orgName}?`} size="md">
       <div className="space-y-4">
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          Your data will become invisible to {orgName} within seconds. This cannot be undone,
-          but they can invite you again later.
+          Your data will become invisible to {orgName} within seconds. This cannot be undone, but
+          they can invite you again later.
         </p>
         <Input
           label={`Type ${orgName} to revoke`}
@@ -297,7 +297,9 @@ export function ActiveOrganizationsSection(): React.ReactElement {
         const rolesField = raw.roles;
         return {
           ...(raw as unknown as Membership),
-          organizations: (Array.isArray(orgsField) ? orgsField[0] : orgsField) as Row['organizations'],
+          organizations: (Array.isArray(orgsField)
+            ? orgsField[0]
+            : orgsField) as Row['organizations'],
           roles: (Array.isArray(rolesField) ? rolesField[0] : rolesField) as Row['roles'],
         };
       });
@@ -378,7 +380,10 @@ export function ActiveOrganizationsSection(): React.ReactElement {
     });
     const res = await revokeMembership({ membership_id: row.id });
     if (res.ok) {
-      toastRef.current(`Membership revoked. ${row.organizations.name} no longer has access.`, 'success');
+      toastRef.current(
+        `Membership revoked. ${row.organizations.name} no longer has access.`,
+        'success',
+      );
       // Let the exit animation play, then refetch.
       window.setTimeout(() => {
         void refetch();
@@ -400,9 +405,7 @@ export function ActiveOrganizationsSection(): React.ReactElement {
   };
 
   const handleSaved = (rowId: string, next: ConsentScope) => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === rowId ? { ...r, consent_scope: next } : r)),
-    );
+    setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, consent_scope: next } : r)));
     const orgName = rows.find((r) => r.id === rowId)?.organizations.name ?? '';
     toastRef.current(`Updated. ${orgName} now sees your selected data.`, 'success');
     setEditTarget(null);
@@ -416,8 +419,8 @@ export function ActiveOrganizationsSection(): React.ReactElement {
       <div className="space-y-1">
         <h2 className="text-[18px] font-bold tracking-tight">Active organizations</h2>
         <p className="text-[13px] text-[var(--color-text-secondary)] max-w-[60ch] leading-snug">
-          Clinics and coaches you&apos;ve shared data with. Change what you share or revoke
-          access any time.
+          Clinics and coaches you&apos;ve shared data with. Change what you share or revoke access
+          any time.
         </p>
       </div>
 

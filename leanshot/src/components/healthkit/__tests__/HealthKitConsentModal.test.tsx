@@ -40,9 +40,24 @@ vi.mock('@/hooks/useToast', () => ({
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   motion: {
-    div: ({ children, onClick, className, role, 'aria-modal': ariaModal, 'aria-label': ariaLabel, ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-       
-      <div onClick={onClick} onKeyDown={undefined} className={className} role={role} aria-modal={ariaModal} aria-label={ariaLabel} {...rest}>
+    div: ({
+      children,
+      onClick,
+      className,
+      role,
+      'aria-modal': ariaModal,
+      'aria-label': ariaLabel,
+      ...rest
+    }: React.HTMLAttributes<HTMLDivElement>) => (
+      <div
+        onClick={onClick}
+        onKeyDown={undefined}
+        className={className}
+        role={role}
+        aria-modal={ariaModal}
+        aria-label={ariaLabel}
+        {...rest}
+      >
         {children}
       </div>
     ),
@@ -102,8 +117,9 @@ describe('HealthKitConsentModal', () => {
     it('renders the firewall guarantee with bold "never"', () => {
       renderModal();
       // The guarantee spans multiple inline elements (bold "never"); match the paragraph
-      const matches = screen.getAllByText((_, el) =>
-        el?.tagName === 'P' && !!el?.textContent?.includes('never shared with ad networks'),
+      const matches = screen.getAllByText(
+        (_, el) =>
+          el?.tagName === 'P' && !!el?.textContent?.includes('never shared with ad networks'),
       );
       expect(matches.length).toBeGreaterThanOrEqual(1);
     });
@@ -115,8 +131,12 @@ describe('HealthKitConsentModal', () => {
       expect(screen.getByText('Body weight — imported to your weight log')).toBeDefined();
       expect(screen.getByText('Daily steps — imported to your activity log')).toBeDefined();
       expect(screen.getByText('Sleep duration — imported to your sleep log')).toBeDefined();
-      expect(screen.getByText('Resting heart rate — imported to your health dashboard')).toBeDefined();
-      expect(screen.getByText('Active calories burned — imported to your activity log')).toBeDefined();
+      expect(
+        screen.getByText('Resting heart rate — imported to your health dashboard'),
+      ).toBeDefined();
+      expect(
+        screen.getByText('Active calories burned — imported to your activity log'),
+      ).toBeDefined();
       expect(screen.getByText('Height — used to calculate BMI in your weight log')).toBeDefined();
       // Dietary protein MUST NOT be disclosed (not collected — HIPAA consent accuracy)
       expect(screen.queryByText('Dietary protein — imported to your nutrition log')).toBeNull();
@@ -124,16 +144,12 @@ describe('HealthKitConsentModal', () => {
 
     it('renders the retention disclosure', () => {
       renderModal();
-      expect(
-        screen.getByText(/Imported data is stored in your LeanShot account/),
-      ).toBeDefined();
+      expect(screen.getByText(/Imported data is stored in your LeanShot account/)).toBeDefined();
     });
 
     it('renders the revoke-path disclosure', () => {
       renderModal();
-      expect(
-        screen.getByText(/To disconnect Apple Health, go to Settings/),
-      ).toBeDefined();
+      expect(screen.getByText(/To disconnect Apple Health, go to Settings/)).toBeDefined();
     });
 
     it('renders the acknowledgement checkbox', () => {
@@ -160,7 +176,9 @@ describe('HealthKitConsentModal', () => {
 
     it('CTA is disabled when checkbox is unchecked', () => {
       renderModal();
-      const cta = screen.getByRole('button', { name: /Connect Apple Health/i }) as HTMLButtonElement;
+      const cta = screen.getByRole('button', {
+        name: /Connect Apple Health/i,
+      }) as HTMLButtonElement;
       expect(cta.disabled).toBe(true);
     });
 
@@ -174,7 +192,9 @@ describe('HealthKitConsentModal', () => {
       renderModal();
       const checkbox = screen.getByRole('checkbox');
       fireEvent.click(checkbox);
-      const cta = screen.getByRole('button', { name: /Connect Apple Health/i }) as HTMLButtonElement;
+      const cta = screen.getByRole('button', {
+        name: /Connect Apple Health/i,
+      }) as HTMLButtonElement;
       expect(cta.disabled).toBe(false);
     });
 
@@ -233,9 +253,7 @@ describe('HealthKitConsentModal', () => {
     it('shows unavailable message on web platform', () => {
       mockDetectPlatform.mockReturnValue('web');
       renderModal();
-      expect(
-        screen.getByText('Apple Health sync is only available on iPhone.'),
-      ).toBeDefined();
+      expect(screen.getByText('Apple Health sync is only available on iPhone.')).toBeDefined();
     });
 
     it('does not render consent form on web platform', () => {
@@ -247,9 +265,7 @@ describe('HealthKitConsentModal', () => {
     it('does not render CTA on android platform', () => {
       mockDetectPlatform.mockReturnValue('android');
       renderModal();
-      expect(
-        screen.queryByRole('button', { name: /Connect Apple Health/i }),
-      ).toBeNull();
+      expect(screen.queryByRole('button', { name: /Connect Apple Health/i })).toBeNull();
     });
   });
 

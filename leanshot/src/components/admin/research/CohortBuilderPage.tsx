@@ -47,7 +47,9 @@ function extractCrossTabData(data: Array<Record<string, unknown>>): {
 
   // Assume columns are all keys except 'label'
   const firstRow = data[0];
-  const colKeys = Object.keys(firstRow).filter((k) => k !== 'label' && k !== 'week_label' && k !== 'retained_pct');
+  const colKeys = Object.keys(firstRow).filter(
+    (k) => k !== 'label' && k !== 'week_label' && k !== 'retained_pct',
+  );
 
   const rows = data.map((row) => ({
     label: String(row.label ?? row.week_label ?? 'Unknown'),
@@ -70,12 +72,8 @@ export function CohortBuilderPage() {
     <div className="space-y-6">
       {/* Page heading */}
       <div>
-        <h1 className="text-heading font-semibold text-[var(--color-text)]">
-          Research Dashboard
-        </h1>
-        <h2 className="text-[18px] font-semibold text-[var(--color-text)] mt-1">
-          Cohort Builder
-        </h2>
+        <h1 className="text-heading font-semibold text-[var(--color-text)]">Research Dashboard</h1>
+        <h2 className="text-[18px] font-semibold text-[var(--color-text)] mt-1">Cohort Builder</h2>
       </div>
 
       {/* Filter form */}
@@ -104,10 +102,7 @@ export function CohortBuilderPage() {
 
         {result !== null && !result.suppressed && (
           <div className={`space-y-8 ${animationClass}`}>
-            <RetentionChart
-              data={extractRetentionData(result.data)}
-              epsilon={result.epsilon}
-            />
+            <RetentionChart data={extractRetentionData(result.data)} epsilon={result.epsilon} />
             <CrossTabMatrix
               rows={extractCrossTabData(result.data).rows}
               columns={extractCrossTabData(result.data).columns}

@@ -77,7 +77,9 @@ export function SupplementsTab() {
                     size="sm"
                     onClick={() => toggle(today, s.id)}
                   >
-                    {isTaken ? t('patient:tab.supplements.action_undo') : t('patient:tab.supplements.action_logged')}
+                    {isTaken
+                      ? t('patient:tab.supplements.action_undo')
+                      : t('patient:tab.supplements.action_logged')}
                   </Button>
                   <a
                     href={`https://www.amazon.com/s?k=${s.search}`}
@@ -95,7 +97,10 @@ export function SupplementsTab() {
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.supplements.adherence_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.supplements.adherence_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <SuppChart />
       </Card>
     </div>

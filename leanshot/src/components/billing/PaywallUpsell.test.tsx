@@ -31,7 +31,9 @@ vi.mock('@/hooks/useReducedMotion', () => ({
 
 vi.mock('@/components/ui/Card', () => ({
   Card: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-    <div data-testid="card" {...props}>{children}</div>
+    <div data-testid="card" {...props}>
+      {children}
+    </div>
   ),
 }));
 
@@ -49,12 +51,7 @@ vi.mock('@/components/ui/Button', () => ({
     'aria-label'?: string;
     [key: string]: unknown;
   }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={ariaLabel}
-      {...props}
-    >
+    <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} {...props}>
       {children}
     </button>
   ),
@@ -81,9 +78,7 @@ beforeEach(() => {
 describe('PaywallUpsell', () => {
   async function renderOverlay(props: Record<string, unknown> = {}) {
     const { PaywallUpsell } = await import('./PaywallUpsell');
-    return render(
-      <PaywallUpsell variant="overlay" feature="pharma-forecast" {...props} />,
-    );
+    return render(<PaywallUpsell variant="overlay" feature="pharma-forecast" {...props} />);
   }
 
   it('case 1: default plan — Upgrade click invokes stripe-checkout/session with { plan: plus_monthly }', async () => {
@@ -180,11 +175,7 @@ describe('PaywallUpsell', () => {
   it('case 7: gating_reason=pro_only_resource without resource_name falls back to "This content"', async () => {
     const { PaywallUpsell } = await import('./PaywallUpsell');
     render(
-      <PaywallUpsell
-        variant="overlay"
-        feature="advanced-ai"
-        gating_reason="pro_only_resource"
-      />,
+      <PaywallUpsell variant="overlay" feature="advanced-ai" gating_reason="pro_only_resource" />,
     );
     expect(screen.getByText(/This content is Pro-only/i)).toBeTruthy();
     // resource_type omitted → falls back to "resource"

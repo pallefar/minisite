@@ -34,11 +34,7 @@ export const ANOMALY_Z_THRESHOLD = 3;
  * still guard against it because the same fn runs in JS land where the
  * "stddev" arg can come from anywhere (admin re-compute UI, test fixtures).
  */
-export function computeZScore(
-  observation: number,
-  mean: number,
-  stddev: number,
-): number | null {
+export function computeZScore(observation: number, mean: number, stddev: number): number | null {
   if (!Number.isFinite(observation)) return null;
   if (!Number.isFinite(mean)) return null;
   if (!Number.isFinite(stddev)) return null;

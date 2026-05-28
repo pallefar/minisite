@@ -70,9 +70,7 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
   it('T1: step 1 — renders "Step 1 of 3" heading + charge selector; Continue disabled until selection', async () => {
     const onClose = vi.fn();
     const onSuccess = vi.fn();
-    render(
-      <RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />,
-    );
+    render(<RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />);
 
     expect(screen.getByText(/Step 1 of 3/i)).toBeInTheDocument();
     const continueBtn = screen.getByRole('button', { name: /Continue/i });
@@ -86,9 +84,7 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
   it('T2: step 2 — renders amount + Pill (Full/Half/Custom); Continue disabled when amount > charge.amount', async () => {
     const onClose = vi.fn();
     const onSuccess = vi.fn();
-    render(
-      <RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />,
-    );
+    render(<RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />);
     const select = screen.getByLabelText(/Pick a charge/i);
     await userEvent.selectOptions(select, 'ch_recent');
     await userEvent.click(screen.getByRole('button', { name: /Continue/i }));
@@ -114,9 +110,7 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
   it('T3: step 3 — typed-confirm "REFUND $25.00" enables Submit only on exact match', async () => {
     const onClose = vi.fn();
     const onSuccess = vi.fn();
-    render(
-      <RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />,
-    );
+    render(<RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />);
     await userEvent.selectOptions(screen.getByLabelText(/Pick a charge/i), 'ch_recent');
     await userEvent.click(screen.getByRole('button', { name: /Continue/i }));
     const amountInput = screen.getByLabelText(/Refund amount \(USD\)/i);
@@ -137,12 +131,13 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
   });
 
   it('T4: Submit invokes admin-stripe-action and closes modal on success', async () => {
-    mockInvoke.mockResolvedValue({ data: { refund_id: 're_123', amount_refunded: 2500 }, error: null });
+    mockInvoke.mockResolvedValue({
+      data: { refund_id: 're_123', amount_refunded: 2500 },
+      error: null,
+    });
     const onClose = vi.fn();
     const onSuccess = vi.fn();
-    render(
-      <RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />,
-    );
+    render(<RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />);
     await userEvent.selectOptions(screen.getByLabelText(/Pick a charge/i), 'ch_recent');
     await userEvent.click(screen.getByRole('button', { name: /Continue/i }));
     await userEvent.clear(screen.getByLabelText(/Refund amount \(USD\)/i));
@@ -152,7 +147,10 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
     await userEvent.click(screen.getByRole('button', { name: /^Issue refund$/i }));
 
     await waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
-    const [fnName, options] = mockInvoke.mock.calls[0] as [string, { body: Record<string, unknown> }];
+    const [fnName, options] = mockInvoke.mock.calls[0] as [
+      string,
+      { body: Record<string, unknown> },
+    ];
     expect(fnName).toBe('admin-stripe-action');
     expect(options.body).toMatchObject({
       operation: 'refund',
@@ -169,12 +167,16 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
   });
 
   it('T5: Stripe error renders inline error per UI-SPEC line 680', async () => {
-    mockInvoke.mockResolvedValue({ data: null, error: { message: 'stripe error', context: { body: '{"error":"stripe_charge_already_refunded"}' } } });
+    mockInvoke.mockResolvedValue({
+      data: null,
+      error: {
+        message: 'stripe error',
+        context: { body: '{"error":"stripe_charge_already_refunded"}' },
+      },
+    });
     const onClose = vi.fn();
     const onSuccess = vi.fn();
-    render(
-      <RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />,
-    );
+    render(<RefundModal {...SAMPLE_PROPS} onClose={onClose} onSuccess={onSuccess} />);
     await userEvent.selectOptions(screen.getByLabelText(/Pick a charge/i), 'ch_recent');
     await userEvent.click(screen.getByRole('button', { name: /Continue/i }));
     await userEvent.clear(screen.getByLabelText(/Refund amount \(USD\)/i));
@@ -190,9 +192,7 @@ describe('RefundModal (Phase 22 ADMIN-04)', () => {
   });
 
   it('T6: Back on step 2 returns to step 1 with selection preserved', async () => {
-    render(
-      <RefundModal {...SAMPLE_PROPS} onClose={() => {}} onSuccess={() => {}} />,
-    );
+    render(<RefundModal {...SAMPLE_PROPS} onClose={() => {}} onSuccess={() => {}} />);
     await userEvent.selectOptions(screen.getByLabelText(/Pick a charge/i), 'ch_recent');
     await userEvent.click(screen.getByRole('button', { name: /Continue/i }));
     expect(screen.getByText(/Step 2 of 3/i)).toBeInTheDocument();
@@ -227,13 +227,14 @@ describe('CancelSubModal (Phase 22 ADMIN-04)', () => {
       />,
     );
     expect(
-      screen.getByText(
-        /Cancel user@example\.com's subscription\? They'll keep access until/i,
-      ),
+      screen.getByText(/Cancel user@example\.com's subscription\? They'll keep access until/i),
     ).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Cancel subscription/i }));
     await waitFor(() => expect(mockInvoke).toHaveBeenCalledTimes(1));
-    const [fnName, options] = mockInvoke.mock.calls[0] as [string, { body: Record<string, unknown> }];
+    const [fnName, options] = mockInvoke.mock.calls[0] as [
+      string,
+      { body: Record<string, unknown> },
+    ];
     expect(fnName).toBe('admin-stripe-action');
     expect(options.body).toMatchObject({ operation: 'cancel', subscription_id: 'sub_42' });
     await waitFor(() => expect(onSuccess).toHaveBeenCalled());

@@ -17,13 +17,13 @@ describe('computeLevel (client mirror of Plan 35-01 compute_level SQL fn)', () =
    * These exact values MUST match the Postgres IMMUTABLE function.
    */
   it.each([
-    [0, 1],       // always at least level 1 (clamp)
-    [99, 1],      // below 100 — still level 1
-    [100, 1],     // exactly at level 1 boundary (1²×100=100; compute_level(100)=floor(sqrt(1))=1)
-    [400, 2],     // 2²×100 = 400
-    [2500, 5],    // 5²×100 = 2500
-    [10000, 10],  // 10²×100 = 10000
-    [40000, 20],  // 20²×100 = 40000
+    [0, 1], // always at least level 1 (clamp)
+    [99, 1], // below 100 — still level 1
+    [100, 1], // exactly at level 1 boundary (1²×100=100; compute_level(100)=floor(sqrt(1))=1)
+    [400, 2], // 2²×100 = 400
+    [2500, 5], // 5²×100 = 2500
+    [10000, 10], // 10²×100 = 10000
+    [40000, 20], // 20²×100 = 40000
     [1000000, 100], // 100²×100 = 1000000
   ])('computeLevel(%i) === %i', (xp, expected) => {
     expect(computeLevel(xp)).toBe(expected);
@@ -46,7 +46,7 @@ describe('computePrestige (D-03)', () => {
   });
 
   it('computePrestige is 0 for levels 1-99', () => {
-    expect(computePrestige(0)).toBe(0);    // level 1 → 1/100 = 0
+    expect(computePrestige(0)).toBe(0); // level 1 → 1/100 = 0
     expect(computePrestige(9999)).toBe(0); // level 9 → 9/100 = 0
   });
 });
@@ -57,8 +57,8 @@ describe('xpToNextLevel (UI display helper)', () => {
     // xp=450, level=2, currentLevelStart=400, nextLevelXp=900
     expect(xpToNextLevel(450)).toEqual({
       level: 2,
-      xpInLevel: 50,   // 450 - 400
-      xpToNext: 450,   // 900 - 450
+      xpInLevel: 50, // 450 - 400
+      xpToNext: 450, // 900 - 450
       nextLevelXp: 900, // 3²×100
     });
   });
@@ -67,18 +67,18 @@ describe('xpToNextLevel (UI display helper)', () => {
     // At 0 XP: level 1, started at 0 (clamp), next level starts at 400 (2²×100)
     const result = xpToNextLevel(0);
     expect(result.level).toBe(1);
-    expect(result.xpInLevel).toBe(0);    // 0 - 0 (level 1 starts at 0)
+    expect(result.xpInLevel).toBe(0); // 0 - 0 (level 1 starts at 0)
     expect(result.nextLevelXp).toBe(400); // 2²×100
-    expect(result.xpToNext).toBe(400);   // 400 - 0
+    expect(result.xpToNext).toBe(400); // 400 - 0
   });
 
   it('xpToNextLevel(2500) returns level-5 at boundary', () => {
     // Exactly at level 5 start (5²×100 = 2500)
     const result = xpToNextLevel(2500);
     expect(result.level).toBe(5);
-    expect(result.xpInLevel).toBe(0);      // at the boundary — 0 XP into level 5
+    expect(result.xpInLevel).toBe(0); // at the boundary — 0 XP into level 5
     expect(result.nextLevelXp).toBe(3600); // 6²×100 = 3600
-    expect(result.xpToNext).toBe(1100);    // 3600 - 2500
+    expect(result.xpToNext).toBe(1100); // 3600 - 2500
   });
 });
 

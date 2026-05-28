@@ -22,17 +22,11 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
-import {
-  listHostnames,
-  type AllowlistRow,
-} from '@/lib/admin/iframe-allowlist';
+import { listHostnames, type AllowlistRow } from '@/lib/admin/iframe-allowlist';
 import type { AdminRole } from '@/lib/admin/roles';
 import { supabase } from '@/lib/supabase';
 import { AddHostnameForm } from './AddHostnameForm';
-import {
-  AllowlistTable,
-  type AllowlistTableRow,
-} from './AllowlistTable';
+import { AllowlistTable, type AllowlistTableRow } from './AllowlistTable';
 import { ReferencesSheet } from './ReferencesSheet';
 import { RemoveHostnameConfirm } from './RemoveHostnameConfirm';
 
@@ -64,11 +58,7 @@ function ErrorCard({ onRetry }: { onRetry: () => void }) {
       style={{ backgroundColor: 'var(--color-danger-soft)' }}
     >
       <div className="flex items-start gap-3">
-        <WifiOff
-          aria-hidden
-          size={24}
-          className="text-[var(--color-danger)] shrink-0 mt-0.5"
-        />
+        <WifiOff aria-hidden size={24} className="text-[var(--color-danger)] shrink-0 mt-0.5" />
         <div className="flex-1">
           <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
             We couldn&rsquo;t load the allowlist. Check your connection and try again.
@@ -85,9 +75,7 @@ function ErrorCard({ onRetry }: { onRetry: () => void }) {
 }
 
 export function AllowlistPage() {
-  const [authState, setAuthState] = useState<'loading' | 'superadmin' | 'denied'>(
-    'loading',
-  );
+  const [authState, setAuthState] = useState<'loading' | 'superadmin' | 'denied'>('loading');
   const [fetch, setFetch] = useState<FetchState>({ status: 'loading' });
   const [removeTarget, setRemoveTarget] = useState<AllowlistTableRow | null>(null);
   const [referencesFor, setReferencesFor] = useState<string | null>(null);
@@ -157,15 +145,12 @@ export function AllowlistPage() {
       aria-labelledby="allowlist-page-heading"
     >
       <header className="max-w-6xl">
-        <h1
-          id="allowlist-page-heading"
-          className="text-[26px] font-semibold tracking-tight"
-        >
+        <h1 id="allowlist-page-heading" className="text-[26px] font-semibold tracking-tight">
           Custom iframe allowlist
         </h1>
         <p className="mt-2 text-[16px] text-[var(--color-text-secondary)] leading-relaxed">
-          Hostnames on this list can be embedded via the Custom-iframe block on landing
-          pages and KB articles. Exact-match only — no wildcards or subdomains.
+          Hostnames on this list can be embedded via the Custom-iframe block on landing pages and KB
+          articles. Exact-match only — no wildcards or subdomains.
         </p>
       </header>
 

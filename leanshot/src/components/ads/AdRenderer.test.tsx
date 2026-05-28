@@ -13,8 +13,7 @@ import { AdRenderer } from './AdRenderer';
 // ─── Mock useStore ────────────────────────────────────────────────────────────
 
 vi.mock('@/lib/store', () => ({
-  useStore: (selector: (s: { tier: string }) => unknown) =>
-    selector({ tier: 'free' }),
+  useStore: (selector: (s: { tier: string }) => unknown) => selector({ tier: 'free' }),
 }));
 
 // ─── Mock detectPlatform ──────────────────────────────────────────────────────
@@ -71,8 +70,7 @@ describe('AdRenderer — canShowAds gate', () => {
   it('renders null when tier is paid (mocked to paid)', () => {
     // Override mock for this test only
     vi.doMock('@/lib/store', () => ({
-      useStore: (selector: (s: { tier: string }) => unknown) =>
-        selector({ tier: 'paid' }),
+      useStore: (selector: (s: { tier: string }) => unknown) => selector({ tier: 'paid' }),
     }));
 
     // Re-import inline to get the mocked version

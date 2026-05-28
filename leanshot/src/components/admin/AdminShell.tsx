@@ -102,8 +102,7 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
 
   const visibleModules = useMemo(
     () => ADMIN_MODULES.filter((m) => isModuleVisible(m, adminRole)),
-     
-     
+
     [adminRole],
   );
 
@@ -114,9 +113,7 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
 
   // Determine which module the current path targets.
   const activeModule = ADMIN_MODULES.find(
-    (m) =>
-      pathname === `/admin/${m.route}` ||
-      pathname.startsWith(`/admin/${m.route}/`),
+    (m) => pathname === `/admin/${m.route}` || pathname.startsWith(`/admin/${m.route}/`),
   );
 
   // Determine the content to render.
@@ -125,9 +122,7 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
     // No module matches — render a 404-style placeholder.
     content = (
       <Card variant="flat" padding="lg" className="max-w-md mt-8">
-        <p className="text-sm text-[var(--color-text-secondary)]">
-          Admin module not found.
-        </p>
+        <p className="text-sm text-[var(--color-text-secondary)]">Admin module not found.</p>
       </Card>
     );
   } else if (!isModuleVisible(activeModule, adminRole)) {
@@ -137,7 +132,9 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
     // Authorized — render lazy component.
     const LazyComp = lazyOnce(activeModule.lazy);
     content = (
-      <Suspense fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}>
+      <Suspense
+        fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
+      >
         <LazyComp />
       </Suspense>
     );
@@ -153,8 +150,7 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
         <ul className="flex flex-wrap gap-1 px-4 md:px-6 py-2">
           {visibleModules.map((m) => {
             const isActive =
-              pathname === `/admin/${m.route}` ||
-              pathname.startsWith(`/admin/${m.route}/`);
+              pathname === `/admin/${m.route}` || pathname.startsWith(`/admin/${m.route}/`);
             return (
               <li key={m.key}>
                 <a
@@ -186,8 +182,7 @@ export default function AdminShell({ adminRole, currentPath, navOnly }: AdminShe
         <ul className="flex flex-wrap gap-1 px-4 md:px-6 py-2">
           {visibleModules.map((m) => {
             const isActive =
-              pathname === `/admin/${m.route}` ||
-              pathname.startsWith(`/admin/${m.route}/`);
+              pathname === `/admin/${m.route}` || pathname.startsWith(`/admin/${m.route}/`);
             return (
               <li key={m.key}>
                 <a

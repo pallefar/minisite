@@ -30,10 +30,7 @@ export interface UseTicketChannelResult {
   sendTyping: () => void;
 }
 
-export function useTicketChannel(
-  ticketId: string,
-  currentUserId: string,
-): UseTicketChannelResult {
+export function useTicketChannel(ticketId: string, currentUserId: string): UseTicketChannelResult {
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -50,9 +47,7 @@ export function useTicketChannel(
 
       // Typing broadcast — filter out our own userId (in case broadcast.self leaks).
       channel.on('broadcast', { event: 'typing' }, (payload) => {
-        const userId = String(
-          (payload as { payload?: { userId?: string } }).payload?.userId ?? '',
-        );
+        const userId = String((payload as { payload?: { userId?: string } }).payload?.userId ?? '');
         if (!userId || userId === currentUserId) return;
         setTypingUserIds((prev) => (prev.includes(userId) ? prev : [...prev, userId]));
         const existing = typingTimeouts.current.get(userId);

@@ -158,8 +158,8 @@ export const PaletteAal2Gate = forwardRef<PaletteAal2GateHandle>(
       >
         <div className="space-y-4">
           <p className="text-[14px] text-[var(--color-text-secondary)]">
-            This action requires a fresh second-factor challenge. Enter the 6-digit code
-            from your authenticator app.
+            This action requires a fresh second-factor challenge. Enter the 6-digit code from your
+            authenticator app.
           </p>
           <Input
             ref={inputRef}

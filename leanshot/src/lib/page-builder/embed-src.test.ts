@@ -41,16 +41,12 @@ describe('buildYouTubeSrc', () => {
     expect(src!).toContain('rel=0');
   });
 
-  it.each([
-    'abc"><script>',
-    '../evil',
-    'a b',
-    'a/b',
-    'abc!',
-    '',
-  ])('returns null for hostile videoId %j', (videoId) => {
-    expect(buildYouTubeSrc({ videoId, startSeconds: 0, autoplay: false })).toBeNull();
-  });
+  it.each(['abc"><script>', '../evil', 'a b', 'a/b', 'abc!', ''])(
+    'returns null for hostile videoId %j',
+    (videoId) => {
+      expect(buildYouTubeSrc({ videoId, startSeconds: 0, autoplay: false })).toBeNull();
+    },
+  );
 
   it('returns null for a videoId longer than 20 chars', () => {
     expect(

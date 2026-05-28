@@ -20,9 +20,18 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { SOCIAL_PROOF_OPTOUT_KEY } from './LiveSignupCounter';
 
 const TESTIMONIAL_KEYS = [
-  { quoteKey: 'onboarding:social.testimonial_0_quote', authorKey: 'onboarding:social.testimonial_0_author' },
-  { quoteKey: 'onboarding:social.testimonial_1_quote', authorKey: 'onboarding:social.testimonial_1_author' },
-  { quoteKey: 'onboarding:social.testimonial_2_quote', authorKey: 'onboarding:social.testimonial_2_author' },
+  {
+    quoteKey: 'onboarding:social.testimonial_0_quote',
+    authorKey: 'onboarding:social.testimonial_0_author',
+  },
+  {
+    quoteKey: 'onboarding:social.testimonial_1_quote',
+    authorKey: 'onboarding:social.testimonial_1_author',
+  },
+  {
+    quoteKey: 'onboarding:social.testimonial_2_quote',
+    authorKey: 'onboarding:social.testimonial_2_author',
+  },
 ] as const;
 
 function isOptedOut(): boolean {

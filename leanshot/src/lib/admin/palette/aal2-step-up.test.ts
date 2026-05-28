@@ -19,11 +19,7 @@
  *   T9: requireAal2Fresh throws 'aal2_challenge_failed' on verify failure
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  isAal2Fresh,
-  requireAal2Fresh,
-  AAL2_FRESHNESS_MS,
-} from '@/lib/admin/palette/aal2-step-up';
+import { isAal2Fresh, requireAal2Fresh, AAL2_FRESHNESS_MS } from '@/lib/admin/palette/aal2-step-up';
 import { supabase } from '@/lib/supabase';
 
 const AAL2_LS_KEY = 'leanshot_aal2_last_verified';

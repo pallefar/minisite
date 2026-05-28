@@ -148,9 +148,7 @@ export function StripeConnectOnboardingCard({
               <h2 className="text-[18px] font-semibold text-[var(--color-text)] mb-1">
                 {COPY.pending.heading}
               </h2>
-              <p className="text-[14px] text-[var(--color-text-secondary)]">
-                {COPY.pending.body}
-              </p>
+              <p className="text-[14px] text-[var(--color-text-secondary)]">{COPY.pending.body}</p>
               {error && (
                 <p
                   role="status"
@@ -180,12 +178,7 @@ export function StripeConnectOnboardingCard({
   if (state === 'needs_info') {
     return (
       <div className={transitionClass}>
-        <Card
-          variant="tonal"
-          padding="lg"
-          span={12}
-          className="border-[var(--color-warning)]"
-        >
+        <Card variant="tonal" padding="lg" span={12} className="border-[var(--color-warning)]">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">

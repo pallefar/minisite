@@ -42,11 +42,7 @@ export interface PromoterCtaModalProps {
 
 const FALLBACK_AUTO_DISMISS_MS = 1500;
 
-export function PromoterCtaModal({
-  open,
-  ctaSet,
-  onDismiss,
-}: PromoterCtaModalProps) {
+export function PromoterCtaModal({ open, ctaSet, onDismiss }: PromoterCtaModalProps) {
   const isFallback = ctaSet.length === 0;
 
   // Vendor-gate fallback (D-16) — auto-dismiss after 1500ms when the decision
@@ -72,22 +68,13 @@ export function PromoterCtaModal({
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onDismiss}
-      size="sm"
-      dismissible
-      title="Help others find LeanShot"
-    >
+    <Modal open={open} onClose={onDismiss} size="sm" dismissible title="Help others find LeanShot">
       {isFallback ? (
-        <p className="text-base text-[var(--color-text-secondary)]">
-          Thanks for the rating!
-        </p>
+        <p className="text-base text-[var(--color-text-secondary)]">Thanks for the rating!</p>
       ) : (
         <div className="flex flex-col gap-4">
           <p className="text-base text-[var(--color-text-secondary)]">
-            Takes 30 seconds — would you share your experience on{' '}
-            {DISPLAY_NAMES[ctaSet[0].slug]}?
+            Takes 30 seconds — would you share your experience on {DISPLAY_NAMES[ctaSet[0].slug]}?
           </p>
           <div className="flex flex-col gap-2">
             {ctaSet.map((item) => (

@@ -109,9 +109,7 @@ export function AddTopicSheet({ open, onClose, onCreated }: AddTopicSheetProps) 
         <Select
           label="Cadence"
           value={cadence}
-          onChange={(e) =>
-            setCadence(e.target.value as 'daily' | 'weekly' | 'monthly' | 'manual')
-          }
+          onChange={(e) => setCadence(e.target.value as 'daily' | 'weekly' | 'monthly' | 'manual')}
         >
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>

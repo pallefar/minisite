@@ -54,8 +54,7 @@ function makePageBuilder(): Record<string, unknown> {
     maybeSingle: vi.fn().mockImplementation(() => {
       const found = mockPages.find(
         (p) =>
-          p.slug === filters.slug &&
-          (filters.status === undefined || p.status === filters.status),
+          p.slug === filters.slug && (filters.status === undefined || p.status === filters.status),
       );
       return Promise.resolve({ data: found ?? null, error: null });
     }),
@@ -100,7 +99,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // ─── Import after mock so vi.mock is hoisted correctly ─────────────────────
-
 
 // ─── Fixtures ──────────────────────────────────────────────────────────────
 

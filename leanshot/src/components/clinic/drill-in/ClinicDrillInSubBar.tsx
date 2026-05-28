@@ -89,7 +89,9 @@ export function ClinicDrillInSubBar({
       </Button>
 
       {/* Divider */}
-      <span aria-hidden className="hidden md:inline text-[var(--color-border)] text-lg">|</span>
+      <span aria-hidden className="hidden md:inline text-[var(--color-border)] text-lg">
+        |
+      </span>
 
       {/* Patient identity + metadata */}
       <div className="flex-1 min-w-0">
@@ -100,11 +102,7 @@ export function ClinicDrillInSubBar({
           {patientName}
         </h1>
         <p className="text-[13px] text-[var(--color-text-secondary)] truncate leading-tight">
-          {joinedRelative && (
-            <span>
-              Joined {joinedRelative}&nbsp;&middot;&nbsp;
-            </span>
-          )}
+          {joinedRelative && <span>Joined {joinedRelative}&nbsp;&middot;&nbsp;</span>}
           <span data-testid="drill-in-scope-summary">{scopeSummary}</span>
         </p>
       </div>

@@ -61,9 +61,7 @@ function mapError(raw: unknown): RefundResult {
     'context' in raw &&
     typeof (raw as { context: unknown }).context === 'object'
       ? Number(
-          ((raw as { context: { status?: unknown } }).context.status as
-            | number
-            | undefined) ?? 0,
+          ((raw as { context: { status?: unknown } }).context.status as number | undefined) ?? 0,
         )
       : 0;
 

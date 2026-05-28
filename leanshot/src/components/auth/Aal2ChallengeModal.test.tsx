@@ -46,9 +46,7 @@ describe('Aal2ChallengeModal — subtitle per purpose', () => {
 
       // Title is always the same; subtitle varies per purpose.
       expect(screen.getByText(/confirm your identity/i)).toBeInTheDocument();
-      expect(
-        screen.getByText(new RegExp(c.expect, 'i')),
-      ).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(c.expect, 'i'))).toBeInTheDocument();
     });
   }
 });
@@ -60,17 +58,10 @@ describe('Aal2ChallengeModal — submit + cancel flow', () => {
     const user = userEvent.setup();
 
     render(
-      <Aal2ChallengeModal
-        open
-        purpose="delete-account"
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />,
+      <Aal2ChallengeModal open purpose="delete-account" onSubmit={onSubmit} onCancel={onCancel} />,
     );
 
-    const input = screen.getByLabelText(
-      /6-digit authenticator code/i,
-    ) as HTMLInputElement;
+    const input = screen.getByLabelText(/6-digit authenticator code/i) as HTMLInputElement;
     await user.type(input, '123456');
     expect(input.value).toBe('123456');
 
@@ -89,12 +80,7 @@ describe('Aal2ChallengeModal — submit + cancel flow', () => {
     const user = userEvent.setup();
 
     render(
-      <Aal2ChallengeModal
-        open
-        purpose="export-all-data"
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />,
+      <Aal2ChallengeModal open purpose="export-all-data" onSubmit={onSubmit} onCancel={onCancel} />,
     );
 
     await user.click(screen.getByRole('button', { name: /cancel/i }));
@@ -108,20 +94,13 @@ describe('Aal2ChallengeModal — submit + cancel flow', () => {
     const user = userEvent.setup();
 
     render(
-      <Aal2ChallengeModal
-        open
-        purpose="change-email"
-        onSubmit={onSubmit}
-        onCancel={vi.fn()}
-      />,
+      <Aal2ChallengeModal open purpose="change-email" onSubmit={onSubmit} onCancel={vi.fn()} />,
     );
 
     const confirm = screen.getByRole('button', { name: /confirm/i });
     expect(confirm).toBeDisabled();
 
-    const input = screen.getByLabelText(
-      /6-digit authenticator code/i,
-    ) as HTMLInputElement;
+    const input = screen.getByLabelText(/6-digit authenticator code/i) as HTMLInputElement;
     await user.type(input, '12345');
     expect(confirm).toBeDisabled();
 
@@ -141,9 +120,7 @@ describe('Aal2ChallengeModal — submit + cancel flow', () => {
       />,
     );
 
-    const input = screen.getByLabelText(
-      /6-digit authenticator code/i,
-    ) as HTMLInputElement;
+    const input = screen.getByLabelText(/6-digit authenticator code/i) as HTMLInputElement;
     await user.type(input, 'a1b2-c3 4');
     // Only digits remain.
     expect(input.value).toBe('1234');
@@ -152,24 +129,15 @@ describe('Aal2ChallengeModal — submit + cancel flow', () => {
 
 describe('Aal2ChallengeModal — error states', () => {
   it('invalid code → shows error, clears input, stays open', async () => {
-    const onSubmit = vi
-      .fn()
-      .mockResolvedValue({ ok: false, reason: 'invalid_code' });
+    const onSubmit = vi.fn().mockResolvedValue({ ok: false, reason: 'invalid_code' });
     const onCancel = vi.fn();
     const user = userEvent.setup();
 
     render(
-      <Aal2ChallengeModal
-        open
-        purpose="delete-account"
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />,
+      <Aal2ChallengeModal open purpose="delete-account" onSubmit={onSubmit} onCancel={onCancel} />,
     );
 
-    const input = screen.getByLabelText(
-      /6-digit authenticator code/i,
-    ) as HTMLInputElement;
+    const input = screen.getByLabelText(/6-digit authenticator code/i) as HTMLInputElement;
     await user.type(input, '000000');
     await user.click(screen.getByRole('button', { name: /confirm/i }));
 
@@ -177,9 +145,7 @@ describe('Aal2ChallengeModal — error states', () => {
     expect(onSubmit).toHaveBeenCalledWith('000000');
 
     // Error is visible.
-    expect(
-      await screen.findByText(/didn’t match|did not match/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/didn’t match|did not match/i)).toBeInTheDocument();
 
     // Input was cleared so the user can re-enter without backspacing.
     expect(input.value).toBe('');
@@ -189,28 +155,16 @@ describe('Aal2ChallengeModal — error states', () => {
   });
 
   it('session_stale reason surfaces a sign-in error message', async () => {
-    const onSubmit = vi
-      .fn()
-      .mockResolvedValue({ ok: false, reason: 'session_stale' });
+    const onSubmit = vi.fn().mockResolvedValue({ ok: false, reason: 'session_stale' });
     const user = userEvent.setup();
 
     render(
-      <Aal2ChallengeModal
-        open
-        purpose="change-email"
-        onSubmit={onSubmit}
-        onCancel={vi.fn()}
-      />,
+      <Aal2ChallengeModal open purpose="change-email" onSubmit={onSubmit} onCancel={vi.fn()} />,
     );
 
-    await user.type(
-      screen.getByLabelText(/6-digit authenticator code/i),
-      '111111',
-    );
+    await user.type(screen.getByLabelText(/6-digit authenticator code/i), '111111');
     await user.click(screen.getByRole('button', { name: /confirm/i }));
 
-    expect(
-      await screen.findByText(/session expired|sign in again/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/session expired|sign in again/i)).toBeInTheDocument();
   });
 });

@@ -270,8 +270,8 @@ export function OrgCreateFlow({ onComplete, onCancel }: OrgCreateFlowProps) {
           Workspace created
         </h2>
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          Your workspace is live at <span className="font-semibold">{url}</span>. Invite your
-          first patient to get started.
+          Your workspace is live at <span className="font-semibold">{url}</span>. Invite your first
+          patient to get started.
         </p>
         <div className="flex flex-col-reverse md:flex-row gap-3">
           <Button variant="ghost" onClick={() => complete(false)}>
@@ -363,17 +363,13 @@ export function OrgCreateFlow({ onComplete, onCancel }: OrgCreateFlowProps) {
             data-testid="logo-preview"
           >
             {state.logoPreviewUrl ? (
-               
               <img
                 src={state.logoPreviewUrl}
                 alt="Logo preview"
                 className="size-full object-cover"
               />
             ) : (
-              <ImageIcon
-                className="size-6 text-[var(--color-text-tertiary)]"
-                aria-hidden
-              />
+              <ImageIcon className="size-6 text-[var(--color-text-tertiary)]" aria-hidden />
             )}
           </div>
           <div className="flex flex-col gap-1.5">
@@ -408,12 +404,11 @@ export function OrgCreateFlow({ onComplete, onCancel }: OrgCreateFlowProps) {
             </div>
             <p
               className={`text-[12px] leading-snug ${
-                state.logoError
-                  ? 'text-[var(--color-danger)]'
-                  : 'text-[var(--color-text-tertiary)]'
+                state.logoError ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-tertiary)]'
               }`}
             >
-              {state.logoError ?? "PNG or JPEG, square, up to 2 MB. We'll show a monogram if you skip this."}
+              {state.logoError ??
+                "PNG or JPEG, square, up to 2 MB. We'll show a monogram if you skip this."}
             </p>
           </div>
         </div>

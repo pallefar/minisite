@@ -33,11 +33,7 @@ interface CohortRow {
   created_at: string;
 }
 
-export function CohortPicker({
-  value,
-  onChange,
-  placeholder = 'All users',
-}: CohortPickerProps) {
+export function CohortPicker({ value, onChange, placeholder = 'All users' }: CohortPickerProps) {
   const [rows, setRows] = useState<CohortRow[] | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -55,9 +51,7 @@ export function CohortPicker({
         return;
       }
       // Hide archived from the picker — only draft/active are useful targets.
-      const visible = ((data ?? []) as CohortRow[]).filter(
-        (r) => r.status !== 'archived',
-      );
+      const visible = ((data ?? []) as CohortRow[]).filter((r) => r.status !== 'archived');
       setRows(visible);
     })();
     return () => {

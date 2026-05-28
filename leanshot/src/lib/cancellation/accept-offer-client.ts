@@ -6,9 +6,7 @@
 import { supabase } from '@/lib/supabase';
 import type { AcceptOfferRequest, AcceptOfferResponse } from '@/types/cancellation';
 
-export async function callAcceptOffer(
-  request: AcceptOfferRequest,
-): Promise<AcceptOfferResponse> {
+export async function callAcceptOffer(request: AcceptOfferRequest): Promise<AcceptOfferResponse> {
   const { data: sessionData } = await supabase.auth.getSession();
   const access_token = sessionData.session?.access_token;
   if (!access_token) {

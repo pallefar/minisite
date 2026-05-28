@@ -6,11 +6,7 @@
  * means updating `FIELD_ALLOWLIST` in field-allowlist.ts and re-grepping the
  * 3 plpgsql + 1 TS mirror sites.
  */
-import {
-  FIELD_ALLOWLIST,
-  FIELD_LABEL,
-  type RuleField,
-} from '@/lib/cohort/field-allowlist';
+import { FIELD_ALLOWLIST, FIELD_LABEL, type RuleField } from '@/lib/cohort/field-allowlist';
 
 export interface CohortFieldPickerProps {
   value: RuleField;
@@ -19,11 +15,7 @@ export interface CohortFieldPickerProps {
   ariaLabel?: string;
 }
 
-export function CohortFieldPicker({
-  value,
-  onChange,
-  ariaLabel,
-}: CohortFieldPickerProps) {
+export function CohortFieldPicker({ value, onChange, ariaLabel }: CohortFieldPickerProps) {
   return (
     <select
       aria-label={ariaLabel ?? 'Field'}

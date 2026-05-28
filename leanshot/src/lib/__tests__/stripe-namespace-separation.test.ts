@@ -29,7 +29,12 @@ import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { SHOULD_RUN, cleanupByPrefix, makeSlugPrefix, createTwoOrgsTwoUsers } from './_fixtures/p28-rls-fixture';
+import {
+  SHOULD_RUN,
+  cleanupByPrefix,
+  makeSlugPrefix,
+  createTwoOrgsTwoUsers,
+} from './_fixtures/p28-rls-fixture';
 
 // ─── File-scoped slug prefix (per [[feedback_rls_per_file_slug_prefix]]) ──────
 const TEST_SLUG_PREFIX = makeSlugPrefix(path.basename(__filename));
@@ -70,10 +75,18 @@ describeIfLive('stripe customer namespace separation (ORG-08)', () => {
     // T-29-03-04: clean up test-mode Stripe customers to avoid Dashboard bloat
     if (stripe) {
       if (cusConsumer) {
-        try { await stripe.customers.del(cusConsumer); } catch { /* best-effort */ }
+        try {
+          await stripe.customers.del(cusConsumer);
+        } catch {
+          /* best-effort */
+        }
       }
       if (cusClinic) {
-        try { await stripe.customers.del(cusClinic); } catch { /* best-effort */ }
+        try {
+          await stripe.customers.del(cusClinic);
+        } catch {
+          /* best-effort */
+        }
       }
     }
 
@@ -82,7 +95,10 @@ describeIfLive('stripe customer namespace separation (ORG-08)', () => {
       await adminClient.from('stripe_customers').delete().eq('stripe_customer_id', cusConsumer);
     }
     if (adminClient && cusClinic) {
-      await adminClient.from('clinic_stripe_customers').delete().eq('stripe_customer_id', cusClinic);
+      await adminClient
+        .from('clinic_stripe_customers')
+        .delete()
+        .eq('stripe_customer_id', cusClinic);
     }
 
     // Clean up fixture orgs + users
@@ -93,9 +109,12 @@ describeIfLive('stripe customer namespace separation (ORG-08)', () => {
 
   async function ensureWebCustomer(userId: string, email: string): Promise<string> {
     // Match logic from supabase/functions/stripe-checkout/index.ts ensureWebCustomer
-    const { data: existing } = await (adminClient.from('stripe_customers')
-      .select('stripe_customer_id')
-      .eq('user_id', userId) as { data: { stripe_customer_id: string } | null; error: unknown }).maybeSingle();
+    const { data: existing } = await (
+      adminClient.from('stripe_customers').select('stripe_customer_id').eq('user_id', userId) as {
+        data: { stripe_customer_id: string } | null;
+        error: unknown;
+      }
+    ).maybeSingle();
 
     if ((existing as { stripe_customer_id?: string } | null)?.stripe_customer_id) {
       return (existing as { stripe_customer_id: string }).stripe_customer_id;
@@ -118,9 +137,15 @@ describeIfLive('stripe customer namespace separation (ORG-08)', () => {
 
   async function ensureClinicCustomer(clinicId: string, email: string): Promise<string> {
     // Match logic from supabase/functions/stripe-checkout/index.ts ensureClinicCustomer
-    const { data: existing } = await (adminClient.from('clinic_stripe_customers')
-      .select('stripe_customer_id')
-      .eq('clinic_id', clinicId) as { data: { stripe_customer_id: string } | null; error: unknown }).maybeSingle();
+    const { data: existing } = await (
+      adminClient
+        .from('clinic_stripe_customers')
+        .select('stripe_customer_id')
+        .eq('clinic_id', clinicId) as {
+        data: { stripe_customer_id: string } | null;
+        error: unknown;
+      }
+    ).maybeSingle();
 
     if ((existing as { stripe_customer_id?: string } | null)?.stripe_customer_id) {
       return (existing as { stripe_customer_id: string }).stripe_customer_id;
@@ -176,25 +201,37 @@ describeIfLive('stripe customer namespace separation (ORG-08)', () => {
 
   it('T6: DB rows exist in correct tables with correct stripe_customer_id values', async () => {
     // Consumer row in stripe_customers
-    const { data: consumerRow } = await (adminClient
-      .from('stripe_customers')
-      .select('stripe_customer_id')
-      .eq('user_id', testUserId!) as { data: { stripe_customer_id: string } | null; error: unknown }).maybeSingle();
+    const { data: consumerRow } = await (
+      adminClient
+        .from('stripe_customers')
+        .select('stripe_customer_id')
+        .eq('user_id', testUserId!) as {
+        data: { stripe_customer_id: string } | null;
+        error: unknown;
+      }
+    ).maybeSingle();
 
-    expect((consumerRow as { stripe_customer_id?: string } | null)?.stripe_customer_id).toBe(cusConsumer);
+    expect((consumerRow as { stripe_customer_id?: string } | null)?.stripe_customer_id).toBe(
+      cusConsumer,
+    );
 
     // Clinic row in clinic_stripe_customers
-    const { data: clinicRow } = await (adminClient
-      .from('clinic_stripe_customers')
-      .select('stripe_customer_id')
-      .eq('clinic_id', testOrgId!) as { data: { stripe_customer_id: string } | null; error: unknown }).maybeSingle();
+    const { data: clinicRow } = await (
+      adminClient
+        .from('clinic_stripe_customers')
+        .select('stripe_customer_id')
+        .eq('clinic_id', testOrgId!) as {
+        data: { stripe_customer_id: string } | null;
+        error: unknown;
+      }
+    ).maybeSingle();
 
-    expect((clinicRow as { stripe_customer_id?: string } | null)?.stripe_customer_id).toBe(cusClinic);
+    expect((clinicRow as { stripe_customer_id?: string } | null)?.stripe_customer_id).toBe(
+      cusClinic,
+    );
 
     // The central DB-level invariant: the two IDs are not equal
-    expect(
-      (consumerRow as { stripe_customer_id?: string } | null)?.stripe_customer_id,
-    ).not.toBe(
+    expect((consumerRow as { stripe_customer_id?: string } | null)?.stripe_customer_id).not.toBe(
       (clinicRow as { stripe_customer_id?: string } | null)?.stripe_customer_id,
     );
   });

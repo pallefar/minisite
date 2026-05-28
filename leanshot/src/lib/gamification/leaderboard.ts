@@ -88,10 +88,7 @@ export async function suggestLeaderboardHandle(): Promise<string> {
   const { data, error } = await supabase.rpc('suggest_leaderboard_handle');
 
   if (error || typeof data !== 'string') {
-    throw new LeaderboardApiError(
-      'suggest_failed',
-      error?.message ?? 'failed to suggest handle',
-    );
+    throw new LeaderboardApiError('suggest_failed', error?.message ?? 'failed to suggest handle');
   }
   return data;
 }

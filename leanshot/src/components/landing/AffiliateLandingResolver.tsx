@@ -79,9 +79,7 @@ function NotFoundView(): ReactElement {
   );
 }
 
-export function AffiliateLandingResolver({
-  code,
-}: AffiliateLandingResolverProps): ReactElement {
+export function AffiliateLandingResolver({ code }: AffiliateLandingResolverProps): ReactElement {
   // Phase 32 Plan 32-07 (I18N-01) — affiliate landing pages are SEO-indexable;
   // emit hreflang for EN + ES variants.
   useHreflangTags();

@@ -50,7 +50,14 @@ export function ActivityRings({ className, staticOnly }: ActivityRingsProps) {
         className={motion ? 'animate-orbit-slow' : undefined}
         style={{ transformOrigin: '44px 44px' }}
       >
-        <circle cx="44" cy="44" r="36" stroke="var(--color-rose)" strokeOpacity="0.15" strokeWidth="8" />
+        <circle
+          cx="44"
+          cy="44"
+          r="36"
+          stroke="var(--color-rose)"
+          strokeOpacity="0.15"
+          strokeWidth="8"
+        />
         <circle
           cx="44"
           cy="44"
@@ -65,7 +72,14 @@ export function ActivityRings({ className, staticOnly }: ActivityRingsProps) {
       </g>
 
       {/* Exercise ring (middle) */}
-      <circle cx="44" cy="44" r="25" stroke="var(--color-teal-200)" strokeOpacity="0.18" strokeWidth="8" />
+      <circle
+        cx="44"
+        cy="44"
+        r="25"
+        stroke="var(--color-teal-200)"
+        strokeOpacity="0.18"
+        strokeWidth="8"
+      />
       <circle
         cx="44"
         cy="44"
@@ -79,7 +93,14 @@ export function ActivityRings({ className, staticOnly }: ActivityRingsProps) {
       />
 
       {/* Stand ring (inner) */}
-      <circle cx="44" cy="44" r="14" stroke="var(--color-sky)" strokeOpacity="0.18" strokeWidth="8" />
+      <circle
+        cx="44"
+        cy="44"
+        r="14"
+        stroke="var(--color-sky)"
+        strokeOpacity="0.18"
+        strokeWidth="8"
+      />
       <circle
         cx="44"
         cy="44"

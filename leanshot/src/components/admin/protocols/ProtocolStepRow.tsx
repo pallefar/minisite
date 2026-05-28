@@ -25,17 +25,17 @@ import { Button } from '@/components/ui/Button';
 import type { ProtocolStep, ProtocolEvidence, ProtocolMonitoringKey } from '@/types/protocols';
 
 const MONITORING_OPTIONS: { key: ProtocolMonitoringKey; label: string }[] = [
-  { key: 'weight',      label: 'Weight' },
-  { key: 'glucose',     label: 'Glucose' },
-  { key: 'bp',          label: 'BP' },
-  { key: 'mood',        label: 'Mood' },
+  { key: 'weight', label: 'Weight' },
+  { key: 'glucose', label: 'Glucose' },
+  { key: 'bp', label: 'BP' },
+  { key: 'mood', label: 'Mood' },
   { key: 'gi-symptoms', label: 'GI Symptoms' },
 ];
 
 const FREQUENCY_OPTIONS = [
-  { value: 'daily',       label: 'Daily' },
-  { value: 'weekly',      label: 'Weekly' },
-  { value: 'bi-weekly',   label: 'Bi-weekly' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'bi-weekly', label: 'Bi-weekly' },
   { value: 'custom-cron', label: 'Custom cron' },
 ] as const;
 
@@ -63,9 +63,7 @@ export function ProtocolStepRow({
 
   const handleMonitoringToggle = (key: ProtocolMonitoringKey) => {
     const current = step.monitoring;
-    const next = current.includes(key)
-      ? current.filter((k) => k !== key)
-      : [...current, key];
+    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
     onChange({ monitoring: next });
   };
 
@@ -100,7 +98,9 @@ export function ProtocolStepRow({
             className="h-8 px-2 text-[13px] border border-[var(--color-border)] rounded-pill bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] appearance-none"
           >
             {FREQUENCY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
           {step.frequency === 'custom-cron' && (
@@ -149,9 +149,7 @@ export function ProtocolStepRow({
             aria-label={`Cite evidence for week ${step.week}`}
           >
             Cite
-            {evidenceCount > 0 && (
-              <span className="ms-1 text-[11px]">({evidenceCount})</span>
-            )}
+            {evidenceCount > 0 && <span className="ms-1 text-[11px]">({evidenceCount})</span>}
           </Button>
         </td>
 

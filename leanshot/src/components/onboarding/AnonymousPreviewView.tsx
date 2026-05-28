@@ -37,15 +37,24 @@ export function AnonymousPreviewView() {
 
         <ul className="mb-10 space-y-2 text-left text-[14px] text-[var(--color-text-muted)]">
           <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 inline-block size-1.5 rounded-full bg-[var(--color-primary)]" />
+            <span
+              aria-hidden
+              className="mt-1 inline-block size-1.5 rounded-full bg-[var(--color-primary)]"
+            />
             {t('onboarding:preview.feature_drug_level')}
           </li>
           <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 inline-block size-1.5 rounded-full bg-[var(--color-primary)]" />
+            <span
+              aria-hidden
+              className="mt-1 inline-block size-1.5 rounded-full bg-[var(--color-primary)]"
+            />
             {t('onboarding:preview.feature_rotation')}
           </li>
           <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 inline-block size-1.5 rounded-full bg-[var(--color-primary)]" />
+            <span
+              aria-hidden
+              className="mt-1 inline-block size-1.5 rounded-full bg-[var(--color-primary)]"
+            />
             {t('onboarding:preview.feature_report')}
           </li>
         </ul>

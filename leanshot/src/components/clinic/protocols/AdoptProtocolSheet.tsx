@@ -58,8 +58,8 @@ export function AdoptProtocolSheet({ open, onClose, orgId, protocol }: AdoptProt
           {protocol && (
             <p className="text-[13px] text-[var(--color-text-secondary)]">
               Adopting{' '}
-              <span className="font-semibold text-[var(--color-text)]">{protocol.name}</span>{' '}
-              (v{protocol.version})
+              <span className="font-semibold text-[var(--color-text)]">{protocol.name}</span> (v
+              {protocol.version})
             </p>
           )}
 

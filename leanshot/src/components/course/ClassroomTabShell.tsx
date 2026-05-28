@@ -56,12 +56,7 @@ export default function ClassroomTabShell() {
   }, [currentUserId]);
 
   const fallback = (
-    <div
-      className="p-4 space-y-3"
-      role="status"
-      aria-live="polite"
-      aria-label="Loading classroom"
-    >
+    <div className="p-4 space-y-3" role="status" aria-live="polite" aria-label="Loading classroom">
       <Skeleton className="h-24 w-full rounded-xl" />
       <Skeleton className="h-24 w-full rounded-xl" />
     </div>

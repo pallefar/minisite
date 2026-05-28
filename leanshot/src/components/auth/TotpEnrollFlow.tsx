@@ -330,8 +330,8 @@ export default function TotpEnrollFlow({ mode, onSuccess, onCancel }: TotpEnroll
             aria-label="I have saved these backup codes in a safe place"
           />
           <span className="text-sm">
-            I have saved these backup codes in a safe place. I understand they cannot be
-            displayed again.
+            I have saved these backup codes in a safe place. I understand they cannot be displayed
+            again.
           </span>
         </label>
 

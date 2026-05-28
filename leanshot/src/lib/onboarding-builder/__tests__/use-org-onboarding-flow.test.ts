@@ -129,7 +129,11 @@ describe('useOrgOnboardingFlow', () => {
     const testOrgId = 'org-001';
     const testOrgName = 'Acme Health';
     const testSteps = [
-      { id: 'w1', type: 'welcome', custom: { title: 'Welcome to Acme Health', body: 'Start here.' } },
+      {
+        id: 'w1',
+        type: 'welcome',
+        custom: { title: 'Welcome to Acme Health', body: 'Start here.' },
+      },
       { id: 'm1', type: 'medication' },
       { id: 'c1', type: 'consent' },
     ];

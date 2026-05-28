@@ -42,7 +42,7 @@ describe('StepPalette (Plan 34-08)', () => {
 });
 
 describe('createStepOfType (Plan 34-08)', () => {
-  it("text step gets a field-defaulted node without options", () => {
+  it('text step gets a field-defaulted node without options', () => {
     const step = createStepOfType('text');
     expect(step.type).toBe('text');
     expect(typeof step.id).toBe('string');
@@ -51,19 +51,19 @@ describe('createStepOfType (Plan 34-08)', () => {
     expect(step.options).toBeUndefined();
   });
 
-  it("single-select step has options: [] (defaulted for the type)", () => {
+  it('single-select step has options: [] (defaulted for the type)', () => {
     const step = createStepOfType('single-select');
     expect(step.type).toBe('single-select');
     expect(step.options).toEqual([]);
     expect(step.field).toEqual({ key: '', required: false });
   });
 
-  it("multi-select step has options: []", () => {
+  it('multi-select step has options: []', () => {
     const step = createStepOfType('multi-select');
     expect(step.options).toEqual([]);
   });
 
-  it("custom-component step has no field metadata", () => {
+  it('custom-component step has no field metadata', () => {
     const step = createStepOfType('custom-component');
     expect(step.type).toBe('custom-component');
     expect(step.field).toBeUndefined();

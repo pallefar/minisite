@@ -208,8 +208,7 @@ export function CommunityCommentComposer({
           .select('display_name')
           .eq('id', currentUserId)
           .single();
-        displayName = (profileData as { display_name: string | null } | null)
-          ?.display_name ?? '';
+        displayName = (profileData as { display_name: string | null } | null)?.display_name ?? '';
       }
 
       // Resolve @mentions → upsert community_comment_mentions (D-14)
@@ -232,24 +231,21 @@ export function CommunityCommentComposer({
 
           // Fire mention notification (D-14 fan-out)
           if (accessToken) {
-            await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-community`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${accessToken}`,
-                },
-                body: JSON.stringify({
-                  kind: 'mention',
-                  target_type: 'comment',
-                  target_id: newCommentId,
-                  space_id: spaceId,
-                  mentioned_by_user_id: currentUserId,
-                  mentioned_by_name: displayName,
-                }),
+            await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-community`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`,
               },
-            ).catch(() => {
+              body: JSON.stringify({
+                kind: 'mention',
+                target_type: 'comment',
+                target_id: newCommentId,
+                space_id: spaceId,
+                mentioned_by_user_id: currentUserId,
+                mentioned_by_name: displayName,
+              }),
+            }).catch(() => {
               // Notification is best-effort; comment is already saved
             });
           }
@@ -258,24 +254,21 @@ export function CommunityCommentComposer({
 
       // Fire reply notification (D-14 fan-out — notify-community skips self-reply per Plan 44-05)
       if (!editingComment && accessToken) {
-        await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-community`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              kind: 'reply',
-              post_id: postId,
-              comment_id: newCommentId,
-              space_id: spaceId,
-              commenter_user_id: currentUserId,
-              commenter_name: displayName,
-            }),
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-community`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
           },
-        ).catch(() => {
+          body: JSON.stringify({
+            kind: 'reply',
+            post_id: postId,
+            comment_id: newCommentId,
+            space_id: spaceId,
+            commenter_user_id: currentUserId,
+            commenter_name: displayName,
+          }),
+        }).catch(() => {
           // Notification is best-effort; comment is already saved
         });
       }
@@ -338,10 +331,7 @@ export function CommunityCommentComposer({
       </div>
 
       {/* Character counter */}
-      <div
-        className={`text-xs text-right ${charCountClass}`}
-        aria-live="polite"
-      >
+      <div className={`text-xs text-right ${charCountClass}`} aria-live="polite">
         {body.length} / {MAX_BODY_LEN}
         {isOverLimit && ' — too long'}
       </div>

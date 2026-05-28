@@ -27,9 +27,7 @@ import { useStore } from './store';
  * @param supabaseClient - The supabase-js client singleton (or a mock in tests).
  * @returns The unsubscribe function from onAuthStateChange (for cleanup if needed).
  */
-export function wireAuthInvalidation(
-  supabaseClient: Pick<SupabaseClient, 'auth'>,
-): () => void {
+export function wireAuthInvalidation(supabaseClient: Pick<SupabaseClient, 'auth'>): () => void {
   const { data } = supabaseClient.auth.onAuthStateChange((event) => {
     if (event === 'USER_UPDATED') {
       // Invalidate the org slice — Plan 06 RouteOrgGuard will re-resolve.

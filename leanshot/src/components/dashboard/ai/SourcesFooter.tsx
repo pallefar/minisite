@@ -82,10 +82,11 @@ export function SourcesFooter({ citations }: SourcesFooterProps) {
         )}
       >
         {t('sources_footer.label', { count: citations.length })}
-        {expanded
-          ? <ChevronUp className="size-3.5" aria-hidden />
-          : <ChevronDown className="size-3.5" aria-hidden />
-        }
+        {expanded ? (
+          <ChevronUp className="size-3.5" aria-hidden />
+        ) : (
+          <ChevronDown className="size-3.5" aria-hidden />
+        )}
       </button>
 
       {/* Expandable citation list */}

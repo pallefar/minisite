@@ -80,8 +80,8 @@ function RagTelemetryPage() {
       <header>
         <h1 className="text-xl font-semibold tracking-tight">Telemetry · last 7 days</h1>
         <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-          Placeholder columns (RAG hits, tip impressions/clicks, newsletter inclusions)
-          return 0 until Plan 50-08 wires server-side event capture.
+          Placeholder columns (RAG hits, tip impressions/clicks, newsletter inclusions) return 0
+          until Plan 50-08 wires server-side event capture.
         </p>
       </header>
       <div className="overflow-x-auto">
@@ -105,9 +105,13 @@ function RagTelemetryPage() {
                 <td className="py-2 pe-4">{r.tag}</td>
                 <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.docs_ingested}</td>
                 <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.rag_hits_7d}</td>
-                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tip_impressions_7d}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">
+                  {r.tip_impressions_7d}
+                </td>
                 <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tip_clicks_7d}</td>
-                <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.newsletter_inclusions_7d}</td>
+                <td className="py-2 pe-4 text-end font-mono tabular-nums">
+                  {r.newsletter_inclusions_7d}
+                </td>
                 <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tier_a_count}</td>
                 <td className="py-2 pe-4 text-end font-mono tabular-nums">{r.tier_b_count}</td>
                 <td className="py-2 text-end font-mono tabular-nums">{r.tier_c_count}</td>
@@ -135,12 +139,12 @@ interface SubRoute {
 }
 
 const SUB_ROUTES: readonly SubRoute[] = [
-  { key: 'topics',    label: 'Topics',    path: 'topics',    Component: RagTopicsPage },
-  { key: 'sources',   label: 'Sources',   path: 'sources',   Component: RagSourcesPage },
+  { key: 'topics', label: 'Topics', path: 'topics', Component: RagTopicsPage },
+  { key: 'sources', label: 'Sources', path: 'sources', Component: RagSourcesPage },
   { key: 'federated', label: 'Federated', path: 'federated', Component: FederatedSourcesPage },
-  { key: 'queue',     label: 'Queue',     path: 'queue',     Component: RagQueuePage },
+  { key: 'queue', label: 'Queue', path: 'queue', Component: RagQueuePage },
   { key: 'telemetry', label: 'Telemetry', path: 'telemetry', Component: RagTelemetryPage },
-  { key: 'cost',      label: 'Cost',      path: 'cost',      Component: RagCostPage },
+  { key: 'cost', label: 'Cost', path: 'cost', Component: RagCostPage },
 ] as const;
 
 const DEFAULT_PATH = 'topics';
@@ -171,10 +175,7 @@ export default function RagLayout() {
   return (
     <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
       {/* Left sub-nav */}
-      <nav
-        aria-label="Knowledge Base sections"
-        className="lg:sticky lg:top-4 lg:self-start"
-      >
+      <nav aria-label="Knowledge Base sections" className="lg:sticky lg:top-4 lg:self-start">
         <ul className="flex flex-wrap lg:flex-col gap-1">
           {SUB_ROUTES.map((r) => {
             const isActive = active.key === r.key;
@@ -200,9 +201,7 @@ export default function RagLayout() {
       {/* Content area — UI-SPEC §A1 container rule */}
       <main className="max-w-screen-xl">
         <Suspense
-          fallback={
-            <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
-          }
+          fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
         >
           <Active />
         </Suspense>

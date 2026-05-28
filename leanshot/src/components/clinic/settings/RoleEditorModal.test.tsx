@@ -19,15 +19,12 @@ vi.mock('@/lib/supabase', () => ({
 
 const showToastMock = vi.fn();
 vi.mock('@/lib/store', () => ({
-  useStore: Object.assign(
-    () => undefined,
-    {
-      getState: () => ({
-        showToast: (...args: unknown[]) => showToastMock(...args),
-        dismissToast: vi.fn(),
-      }),
-    },
-  ),
+  useStore: Object.assign(() => undefined, {
+    getState: () => ({
+      showToast: (...args: unknown[]) => showToastMock(...args),
+      dismissToast: vi.fn(),
+    }),
+  }),
 }));
 
 describe('RoleEditorModal', () => {
@@ -42,13 +39,7 @@ describe('RoleEditorModal', () => {
 
   it('Test 20 — renders all 10 PERMISSION_KEYS in order with verbatim UI-SPEC labels', () => {
     render(
-      <RoleEditorModal
-        open
-        onClose={() => {}}
-        mode="create"
-        orgId="org-1"
-        onSaved={() => {}}
-      />,
+      <RoleEditorModal open onClose={() => {}} mode="create" orgId="org-1" onSaved={() => {}} />,
     );
     expect(PERMISSION_KEYS).toHaveLength(10);
     // Each key has a checkbox with aria-label matching the UI-SPEC label.
@@ -66,36 +57,20 @@ describe('RoleEditorModal', () => {
 
   it('Test 20b — description text from UI-SPEC verbatim', () => {
     render(
-      <RoleEditorModal
-        open
-        onClose={() => {}}
-        mode="create"
-        orgId="org-1"
-        onSaved={() => {}}
-      />,
+      <RoleEditorModal open onClose={() => {}} mode="create" orgId="org-1" onSaved={() => {}} />,
     );
-    expect(
-      screen.getByText('See workspace name, members, and patient roster'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('See workspace name, members, and patient roster')).toBeInTheDocument();
     expect(screen.getByText('See who accessed what, and when')).toBeInTheDocument();
   });
 
   it('Test 19 — name shorter than 2 chars surfaces inline error on submit', async () => {
     render(
-      <RoleEditorModal
-        open
-        onClose={() => {}}
-        mode="create"
-        orgId="org-1"
-        onSaved={() => {}}
-      />,
+      <RoleEditorModal open onClose={() => {}} mode="create" orgId="org-1" onSaved={() => {}} />,
     );
     const submit = screen.getByRole('button', { name: 'Create role' });
     fireEvent.click(submit);
     await waitFor(() => {
-      expect(
-        screen.getByText('Role name must be at least 2 characters.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Role name must be at least 2 characters.')).toBeInTheDocument();
     });
     expect(rpcMock).not.toHaveBeenCalled();
   });
@@ -105,22 +80,12 @@ describe('RoleEditorModal', () => {
     const onSaved = vi.fn();
     const onClose = vi.fn();
     render(
-      <RoleEditorModal
-        open
-        onClose={onClose}
-        mode="create"
-        orgId="org-1"
-        onSaved={onSaved}
-      />,
+      <RoleEditorModal open onClose={onClose} mode="create" orgId="org-1" onSaved={onSaved} />,
     );
     const nameInput = screen.getByLabelText('Role name');
     fireEvent.change(nameInput, { target: { value: 'Triage' } });
-    fireEvent.click(
-      screen.getByRole('checkbox', { name: 'View patient data' }),
-    );
-    fireEvent.click(
-      screen.getByRole('checkbox', { name: 'View audit log' }),
-    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'View patient data' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'View audit log' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Create role' }));
 
@@ -159,25 +124,18 @@ describe('RoleEditorModal', () => {
         onSaved={onSaved}
       />,
     );
-    expect((screen.getByLabelText('Role name') as HTMLInputElement).value).toBe(
-      'Triage',
-    );
+    expect((screen.getByLabelText('Role name') as HTMLInputElement).value).toBe('Triage');
     expect(
-      (screen.getByRole('checkbox', { name: 'View patient data' }) as HTMLInputElement)
-        .checked,
+      (screen.getByRole('checkbox', { name: 'View patient data' }) as HTMLInputElement).checked,
     ).toBe(true);
     expect(
-      (screen.getByRole('checkbox', { name: 'View audit log' }) as HTMLInputElement)
-        .checked,
+      (screen.getByRole('checkbox', { name: 'View audit log' }) as HTMLInputElement).checked,
     ).toBe(true);
     expect(
-      (screen.getByRole('checkbox', { name: 'Edit workspace' }) as HTMLInputElement)
-        .checked,
+      (screen.getByRole('checkbox', { name: 'Edit workspace' }) as HTMLInputElement).checked,
     ).toBe(false);
 
-    fireEvent.click(
-      screen.getByRole('checkbox', { name: 'View audit log' }),
-    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'View audit log' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
@@ -194,13 +152,7 @@ describe('RoleEditorModal', () => {
 
   it('Test name longer than 40 chars surfaces inline error on submit', async () => {
     render(
-      <RoleEditorModal
-        open
-        onClose={() => {}}
-        mode="create"
-        orgId="org-1"
-        onSaved={() => {}}
-      />,
+      <RoleEditorModal open onClose={() => {}} mode="create" orgId="org-1" onSaved={() => {}} />,
     );
     const nameInput = screen.getByLabelText('Role name') as HTMLInputElement;
     // maxLength prevents typing past 40, so test by setting value programmatically.
@@ -220,22 +172,17 @@ describe('RoleEditorModal', () => {
       }),
     );
     render(
-      <RoleEditorModal
-        open
-        onClose={() => {}}
-        mode="create"
-        orgId="org-1"
-        onSaved={() => {}}
-      />,
+      <RoleEditorModal open onClose={() => {}} mode="create" orgId="org-1" onSaved={() => {}} />,
     );
     fireEvent.change(screen.getByLabelText('Role name'), {
       target: { value: 'Triage' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Create role' }));
     await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Create role' }),
-      ).toHaveAttribute('aria-busy', 'true');
+      expect(screen.getByRole('button', { name: 'Create role' })).toHaveAttribute(
+        'aria-busy',
+        'true',
+      );
     });
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
     resolveRpc({ data: { role_id: 'x' }, error: null });
@@ -249,13 +196,7 @@ describe('RoleEditorModal', () => {
     });
     const onClose = vi.fn();
     render(
-      <RoleEditorModal
-        open
-        onClose={onClose}
-        mode="create"
-        orgId="org-1"
-        onSaved={() => {}}
-      />,
+      <RoleEditorModal open onClose={onClose} mode="create" orgId="org-1" onSaved={() => {}} />,
     );
     fireEvent.change(screen.getByLabelText('Role name'), {
       target: { value: 'Triage' },

@@ -208,19 +208,10 @@ export function PatientThresholdOverrideForm({
 
           {/* Action buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              loading={isSaving}
-              aria-busy={isSaving}
-            >
+            <Button variant="primary" onClick={handleSave} loading={isSaving} aria-busy={isSaving}>
               Save patient thresholds
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => setResetModalOpen(true)}
-              disabled={isSaving}
-            >
+            <Button variant="secondary" onClick={() => setResetModalOpen(true)} disabled={isSaving}>
               Reset to clinic defaults
             </Button>
           </div>

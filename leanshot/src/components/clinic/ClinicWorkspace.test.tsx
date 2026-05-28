@@ -46,9 +46,7 @@ vi.mock('@/lib/supabase', () => {
       channel: vi.fn().mockReturnValue(mockChannelReturn),
       removeChannel: vi.fn(),
       auth: {
-        getSession: vi
-          .fn()
-          .mockResolvedValue({ data: { session: { user: { id: 'u-1' } } } }),
+        getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'u-1' } } } }),
       },
     },
   };
@@ -109,9 +107,7 @@ describe('ClinicWorkspace — loading + hydrated', () => {
     expect(screen.getAllByText(TEST_ORG.name).length).toBeGreaterThanOrEqual(2);
     // Phase 10: RosterTable renders instead of Phase 9 empty shell. With rpc
     // mocked to return [] the roster shows empty state (no patients yet).
-    await waitFor(() =>
-      expect(screen.getByText(/No patients yet/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/No patients yet/i)).toBeInTheDocument());
     // Invite patient CTA (now in roster section header, not empty state)
     expect(screen.getByRole('button', { name: /Invite patient/i })).toBeInTheDocument();
     // Plan 09-08 — real WorkspaceSwitcher mounted in the ContextBar.

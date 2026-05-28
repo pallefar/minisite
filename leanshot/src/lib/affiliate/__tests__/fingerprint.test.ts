@@ -40,7 +40,12 @@ describe('@/lib/affiliate/fingerprint', () => {
   });
 
   it('T1: returns a string when ThumbmarkJS resolves with { thumbmark } object', async () => {
-    mockGet.mockResolvedValueOnce({ thumbmark: 'fp-hash-abc123', components: {}, info: {}, version: '1.9.0' });
+    mockGet.mockResolvedValueOnce({
+      thumbmark: 'fp-hash-abc123',
+      components: {},
+      info: {},
+      version: '1.9.0',
+    });
     const { getFingerprint } = await import('@/lib/affiliate/fingerprint');
     const fp = await getFingerprint();
     expect(fp).toBe('fp-hash-abc123');
@@ -58,7 +63,12 @@ describe('@/lib/affiliate/fingerprint', () => {
   });
 
   it('T3: cached result returned on second call (mock invoked exactly once)', async () => {
-    mockGet.mockResolvedValueOnce({ thumbmark: 'fp-cached-zzz', components: {}, info: {}, version: '1.9.0' });
+    mockGet.mockResolvedValueOnce({
+      thumbmark: 'fp-cached-zzz',
+      components: {},
+      info: {},
+      version: '1.9.0',
+    });
     const { getFingerprint } = await import('@/lib/affiliate/fingerprint');
     const fp1 = await getFingerprint();
     const fp2 = await getFingerprint();

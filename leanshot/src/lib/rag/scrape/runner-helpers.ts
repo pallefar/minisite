@@ -15,10 +15,7 @@
 
 export type Cadence = 'daily' | 'weekly' | 'monthly' | 'manual';
 
-export function nextScrapeAtFromCadence(
-  cadence: Cadence,
-  now: Date = new Date(),
-): string | null {
+export function nextScrapeAtFromCadence(cadence: Cadence, now: Date = new Date()): string | null {
   switch (cadence) {
     case 'daily':
       return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();

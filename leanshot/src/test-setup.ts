@@ -44,17 +44,22 @@ Object.defineProperty(window, 'matchMedia', {
 //      they are unaffected by this global setup.
 
 function loadLocale(lang: string, ns: string): Record<string, unknown> {
-  const filePath = resolve(
-    __dirname,
-    '../public/locales',
-    lang,
-    `${ns}.json`,
-  );
+  const filePath = resolve(__dirname, '../public/locales', lang, `${ns}.json`);
   return JSON.parse(readFileSync(filePath, 'utf8')) as Record<string, unknown>;
 }
 
 // Phase 60 Plan 60-10: 'rag' namespace added for RAG citation UI components.
-const NAMESPACES = ['common', 'nav', 'admin', 'onboarding', 'patient', 'settings', 'kb', 'clinic', 'rag'] as const;
+const NAMESPACES = [
+  'common',
+  'nav',
+  'admin',
+  'onboarding',
+  'patient',
+  'settings',
+  'kb',
+  'clinic',
+  'rag',
+] as const;
 
 const enResources: Record<string, Record<string, unknown>> = {};
 const esResources: Record<string, Record<string, unknown>> = {};
@@ -69,18 +74,16 @@ for (const ns of NAMESPACES) {
 // test that calls i18next.init() directly on the singleton).
 const i18nForTests = i18next.createInstance();
 
-i18nForTests
-  .use(initReactI18next)
-  .init({
-    lng: 'en',
-    fallbackLng: 'en',
-    supportedLngs: ['en', 'es'],
-    ns: NAMESPACES,
-    defaultNS: 'common',
-    resources: {
-      en: enResources,
-      es: esResources,
-    },
-    interpolation: { escapeValue: false },
-    react: { useSuspense: false },
-  });
+i18nForTests.use(initReactI18next).init({
+  lng: 'en',
+  fallbackLng: 'en',
+  supportedLngs: ['en', 'es'],
+  ns: NAMESPACES,
+  defaultNS: 'common',
+  resources: {
+    en: enResources,
+    es: esResources,
+  },
+  interpolation: { escapeValue: false },
+  react: { useSuspense: false },
+});

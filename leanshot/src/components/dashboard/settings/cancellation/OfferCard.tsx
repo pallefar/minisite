@@ -126,7 +126,10 @@ export function OfferCard({
   const detailsStrip = getDetailsStrip(offerConfig, pauseMonths);
 
   const hasStacking =
-    stacking !== null && stacking !== undefined && stacking.capped_pct < stacking.existing_pct + (offerConfig.type === 'discount' ? offerConfig.percent_off : 0);
+    stacking !== null &&
+    stacking !== undefined &&
+    stacking.capped_pct <
+      stacking.existing_pct + (offerConfig.type === 'discount' ? offerConfig.percent_off : 0);
 
   return (
     <div
@@ -141,14 +144,10 @@ export function OfferCard({
       </div>
 
       {/* Headline */}
-      <h3 className="text-[16px] font-semibold text-[var(--color-text)] mb-2">
-        {headline}
-      </h3>
+      <h3 className="text-[16px] font-semibold text-[var(--color-text)] mb-2">{headline}</h3>
 
       {/* Body copy */}
-      <p className="text-[13px] text-[var(--color-text-secondary)] mb-4">
-        {body}
-      </p>
+      <p className="text-[13px] text-[var(--color-text-secondary)] mb-4">{body}</p>
 
       {/* Pause controls (only for pause offer) */}
       {offerConfig.type === 'pause' && (

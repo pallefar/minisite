@@ -93,9 +93,7 @@ describe('<AdminCohortsPage /> — Plan 22-08', () => {
     mockRpc.mockResolvedValue({ data: SAMPLE_ROWS, error: null });
     render(<AdminCohortsPage />);
     await waitFor(() =>
-      expect(
-        screen.getByRole('heading', { name: /Cohort retention/i }),
-      ).toBeInTheDocument(),
+      expect(screen.getByRole('heading', { name: /Cohort retention/i })).toBeInTheDocument(),
     );
   });
 

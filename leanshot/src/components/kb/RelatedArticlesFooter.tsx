@@ -58,16 +58,13 @@ export function RelatedArticlesFooter({
 
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke(
-          'recommend-next-best-action',
-          {
-            body: {
-              user_id: userId,
-              surface: 'kb_footer',
-              exclude_content_id: currentKbId,
-            },
+        const { data, error } = await supabase.functions.invoke('recommend-next-best-action', {
+          body: {
+            user_id: userId,
+            surface: 'kb_footer',
+            exclude_content_id: currentKbId,
           },
-        );
+        });
         if (cancelled) return;
         if (error) throw error;
         const payload = (data ?? {}) as { recommendations?: RelatedArticle[] };
@@ -101,9 +98,7 @@ export function RelatedArticlesFooter({
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${
-            (typeof window !== 'undefined' &&
-              window.localStorage.getItem('sb-leanshot-auth')) ??
-            ''
+            (typeof window !== 'undefined' && window.localStorage.getItem('sb-leanshot-auth')) ?? ''
           }`,
         },
         body: JSON.stringify({

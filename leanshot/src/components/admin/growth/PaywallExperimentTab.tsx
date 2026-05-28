@@ -104,8 +104,8 @@ export function PaywallExperimentTab({
     <div className="flex flex-col gap-3">
       {/* D-01 composite explainer header (UI-SPEC composite-score callout) */}
       <p className="text-sm text-[var(--color-text-secondary)]">
-        Composite: paid_rate × 30d_retention = score (control baseline shown
-        per row when available).
+        Composite: paid_rate × 30d_retention = score (control baseline shown per row when
+        available).
       </p>
 
       {rows.map((row) => {
@@ -123,9 +123,7 @@ export function PaywallExperimentTab({
                 <div className="flex flex-col gap-1">
                   <h3 className="text-base font-bold">{row.variant_name}</h3>
                   {row.cohort_label && (
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                      {row.cohort_label}
-                    </p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{row.cohort_label}</p>
                   )}
                 </div>
                 <BayesianBadge posterior={row.posterior} />
@@ -145,9 +143,7 @@ export function PaywallExperimentTab({
                 {row.refund_rate_7d !== null && (
                   <span>
                     <span className="text-[var(--color-text-secondary)]">Refund 7d: </span>
-                    <span className="font-bold tabular-nums">
-                      {formatPct(row.refund_rate_7d)}
-                    </span>
+                    <span className="font-bold tabular-nums">{formatPct(row.refund_rate_7d)}</span>
                   </span>
                 )}
               </div>
@@ -157,8 +153,7 @@ export function PaywallExperimentTab({
                   role="status"
                   className="rounded-xl border border-[var(--color-danger)] bg-[var(--color-danger-soft)] p-3 text-sm text-[var(--color-text)]"
                 >
-                  Refund rate exceeded 2× control baseline. Variant disabled —
-                  traffic on control.
+                  Refund rate exceeded 2× control baseline. Variant disabled — traffic on control.
                 </div>
               )}
 

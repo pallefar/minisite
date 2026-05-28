@@ -131,7 +131,7 @@ export const TrafficChannelsTab: React.FC = () => {
       }
       setRows(null);
     } else {
-      setRows(((data ?? []) as ChannelRow[]));
+      setRows((data ?? []) as ChannelRow[]);
     }
     setLoading(false);
   }, [orgFilter, dateBounds.start, dateBounds.end, touchMode]);
@@ -178,9 +178,8 @@ export const TrafficChannelsTab: React.FC = () => {
     // Compute aggregated CAC = sum(ad_spend_usd) / sum(activations) per channel.
     const result = Array.from(m.values()).map((agg) => ({
       ...agg,
-      cac_to_activation: agg.activations > 0 && agg.ad_spend_usd > 0
-        ? agg.ad_spend_usd / agg.activations
-        : null,
+      cac_to_activation:
+        agg.activations > 0 && agg.ad_spend_usd > 0 ? agg.ad_spend_usd / agg.activations : null,
     }));
     return result.sort((a, b) => b.visits - a.visits);
   }, [rows]);
@@ -206,41 +205,21 @@ export const TrafficChannelsTab: React.FC = () => {
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           <PillGroup segmented aria-label="Date range">
-            <Pill
-              size="sm"
-              active={dateRange === 'today'}
-              onClick={() => setDateRange('today')}
-            >
+            <Pill size="sm" active={dateRange === 'today'} onClick={() => setDateRange('today')}>
               Today
             </Pill>
-            <Pill
-              size="sm"
-              active={dateRange === '7d'}
-              onClick={() => setDateRange('7d')}
-            >
+            <Pill size="sm" active={dateRange === '7d'} onClick={() => setDateRange('7d')}>
               7d
             </Pill>
-            <Pill
-              size="sm"
-              active={dateRange === '30d'}
-              onClick={() => setDateRange('30d')}
-            >
+            <Pill size="sm" active={dateRange === '30d'} onClick={() => setDateRange('30d')}>
               30d
             </Pill>
           </PillGroup>
           <PillGroup segmented aria-label="Touch attribution mode">
-            <Pill
-              size="sm"
-              active={touchMode === 'first'}
-              onClick={() => setTouchMode('first')}
-            >
+            <Pill size="sm" active={touchMode === 'first'} onClick={() => setTouchMode('first')}>
               First-touch
             </Pill>
-            <Pill
-              size="sm"
-              active={touchMode === 'last'}
-              onClick={() => setTouchMode('last')}
-            >
+            <Pill size="sm" active={touchMode === 'last'} onClick={() => setTouchMode('last')}>
               Last-touch
             </Pill>
           </PillGroup>
@@ -336,9 +315,7 @@ export const TrafficChannelsTab: React.FC = () => {
                       {r.d30_retained_count.toLocaleString()}
                     </td>
                     <td className="py-2 pe-3 text-end numerals-tabular">
-                      {r.cac_to_activation != null
-                        ? `$${r.cac_to_activation.toFixed(2)}`
-                        : '—'}
+                      {r.cac_to_activation != null ? `$${r.cac_to_activation.toFixed(2)}` : '—'}
                     </td>
                     <td className="py-2 text-end">
                       <ChevronRight

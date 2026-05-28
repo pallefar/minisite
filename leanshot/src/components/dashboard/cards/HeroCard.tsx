@@ -47,7 +47,8 @@ export function HeroCard() {
   if (!u) return null;
 
   const wU = u.units === 'metric' ? 'kg' : 'lb';
-  const direction = lost >= 0 ? t('patient:card.hero.direction_lost') : t('patient:card.hero.direction_gained');
+  const direction =
+    lost >= 0 ? t('patient:card.hero.direction_lost') : t('patient:card.hero.direction_gained');
   const weeks = Math.floor((Date.now() - new Date(u.startDate).getTime()) / (7 * 86_400_000));
 
   let phase: string;
@@ -108,7 +109,10 @@ export function HeroCard() {
       <div className="relative z-10 px-6 md:px-7 mt-5 flex flex-wrap gap-x-6 gap-y-3">
         <Stat label={t('patient:card.hero.stat_goal')} value={`${Math.round(countGoal)}%`} />
         <Divider />
-        <Stat label={t('patient:card.hero.stat_injections')} value={Math.round(countShots).toString()} />
+        <Stat
+          label={t('patient:card.hero.stat_injections')}
+          value={Math.round(countShots).toString()}
+        />
         <Divider />
         <Stat
           label={t('patient:card.hero.stat_protein_today')}

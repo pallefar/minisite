@@ -48,17 +48,36 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
   const wDelta = left?.weight != null && right?.weight != null ? right.weight - left.weight : null;
 
   return (
-    <Modal open={open} onClose={onClose} title={t('patient:modal.photo_compare.title')} size="lg" mobileFullscreen>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('patient:modal.photo_compare.title')}
+      size="lg"
+      mobileFullscreen
+    >
       <p className="text-[13px] text-[var(--color-text-secondary)] mb-3">
         {t('patient:modal.photo_compare.subtitle')}
       </p>
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <Side photo={left ?? null} side={t('patient:modal.photo_compare.side_before')} units={wU} tapPrompt={t('patient:modal.photo_compare.tap_prompt')} />
-        <Side photo={right ?? null} side={t('patient:modal.photo_compare.side_after')} units={wU} tapPrompt={t('patient:modal.photo_compare.tap_prompt')} />
+        <Side
+          photo={left ?? null}
+          side={t('patient:modal.photo_compare.side_before')}
+          units={wU}
+          tapPrompt={t('patient:modal.photo_compare.tap_prompt')}
+        />
+        <Side
+          photo={right ?? null}
+          side={t('patient:modal.photo_compare.side_after')}
+          units={wU}
+          tapPrompt={t('patient:modal.photo_compare.tap_prompt')}
+        />
       </div>
       {left && right && (
         <div className="rounded-2xl bg-[var(--color-primary-soft)] border border-[var(--color-primary-soft)] p-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center mb-4">
-          <DeltaStat label={t('patient:modal.photo_compare.days_apart')} value={Math.abs(days ?? 0).toString()} />
+          <DeltaStat
+            label={t('patient:modal.photo_compare.days_apart')}
+            value={Math.abs(days ?? 0).toString()}
+          />
           {wDelta != null && (
             <DeltaStat
               label={t('patient:modal.photo_compare.weight_delta')}
@@ -73,7 +92,9 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
           )}
         </div>
       )}
-      <p className="text-[13px] font-semibold mb-2">{t('patient:modal.photo_compare.choose_label')}</p>
+      <p className="text-[13px] font-semibold mb-2">
+        {t('patient:modal.photo_compare.choose_label')}
+      </p>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
         {photos.map((p, i) => {
           const selected = sel.includes(i);
@@ -106,7 +127,17 @@ export function PhotoCompareModal({ open, onClose }: { open: boolean; onClose: (
   );
 }
 
-function Side({ photo, side, units, tapPrompt }: { photo: Photo | null; side: string; units: string; tapPrompt: string }) {
+function Side({
+  photo,
+  side,
+  units,
+  tapPrompt,
+}: {
+  photo: Photo | null;
+  side: string;
+  units: string;
+  tapPrompt: string;
+}) {
   return (
     <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] overflow-hidden">
       {photo ? (

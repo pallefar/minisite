@@ -92,15 +92,17 @@ vi.mock('@/lib/store', () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeSample(overrides: {
-  dataType?: string;
-  value?: number;
-  unit?: string;
-  startDate?: string;
-  endDate?: string;
-  sourceName?: string;
-  sourceId?: string;
-} = {}) {
+function makeSample(
+  overrides: {
+    dataType?: string;
+    value?: number;
+    unit?: string;
+    startDate?: string;
+    endDate?: string;
+    sourceName?: string;
+    sourceId?: string;
+  } = {},
+) {
   return {
     dataType: 'weight',
     value: 80,
@@ -237,11 +239,17 @@ describe('readHealthSamples', () => {
   it('calls Health.readSamples on iOS with limit:500 (T-55-03-03 cap)', async () => {
     const sample = makeSample();
     vi.mocked(Health.readSamples).mockResolvedValueOnce({ samples: [sample] });
-    const result = await readHealthSamples('weight', new Date('2026-05-01'), new Date('2026-05-25'));
-    expect(Health.readSamples).toHaveBeenCalledWith(expect.objectContaining({
-      dataType: 'weight',
-      limit: 500,
-    }));
+    const result = await readHealthSamples(
+      'weight',
+      new Date('2026-05-01'),
+      new Date('2026-05-25'),
+    );
+    expect(Health.readSamples).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataType: 'weight',
+        limit: 500,
+      }),
+    );
     expect(result).toHaveLength(1);
   });
 });
@@ -274,7 +282,9 @@ describe('syncNow — import mapping', () => {
     } as never);
     vi.mocked(supabase.rpc).mockReset();
     vi.mocked(supabase.rpc).mockResolvedValue({ error: null } as never);
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({ data: { user: { id: 'user-123' } } } as never);
+    vi.mocked(supabase.auth.getUser).mockResolvedValue({
+      data: { user: { id: 'user-123' } },
+    } as never);
     vi.mocked(Health.readSamples).mockReset();
     vi.mocked(Health.readSamples).mockResolvedValue({ samples: [] });
     vi.mocked(useStore.getState).mockReturnValue({ bulkSetSteps: vi.fn() } as never);
@@ -283,13 +293,21 @@ describe('syncNow — import mapping', () => {
   it('returns empty summary on non-iOS (platform guard)', async () => {
     vi.mocked(detectPlatform).mockReturnValue('web');
     const summary = await syncNow(START, END);
-    expect(summary).toEqual({ weight: 0, steps: 0, sleep: 0, heartRate: 0, calories: 0, height: 0 });
+    expect(summary).toEqual({
+      weight: 0,
+      steps: 0,
+      sleep: 0,
+      heartRate: 0,
+      calories: 0,
+      height: 0,
+    });
     expect(Health.readSamples).not.toHaveBeenCalled();
   });
 
   it('weight sample → public.weights upsert with hk_source=apple_health', async () => {
     vi.mocked(Health.readSamples).mockImplementation(async (opts) => {
-      if (opts.dataType === 'weight') return { samples: [makeSample({ dataType: 'weight', value: 82.5 })] };
+      if (opts.dataType === 'weight')
+        return { samples: [makeSample({ dataType: 'weight', value: 82.5 })] };
       return { samples: [] };
     });
 
@@ -299,7 +317,11 @@ describe('syncNow — import mapping', () => {
         if (table === 'weights') capturedArgs = args;
         return { error: null };
       });
-      return { upsert, update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })), select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })) } as never;
+      return {
+        upsert,
+        update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
+        select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })),
+      } as never;
     });
 
     const summary = await syncNow(START, END);
@@ -326,9 +348,7 @@ describe('syncNow — import mapping', () => {
 
     const summary = await syncNow(START, END);
     expect(summary.steps).toBe(1);
-    expect(mockBulkSetSteps).toHaveBeenCalledWith(
-      expect.objectContaining({ '2026-05-25': 8000 }),
-    );
+    expect(mockBulkSetSteps).toHaveBeenCalledWith(expect.objectContaining({ '2026-05-25': 8000 }));
     const fromCalls = vi.mocked(supabase.from).mock.calls.map((c) => c[0]);
     expect(fromCalls).not.toContain('steps');
   });
@@ -347,7 +367,11 @@ describe('syncNow — import mapping', () => {
         if (table === 'sleep') sleepPayload = args[0];
         return { error: null };
       });
-      return { upsert, update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })), select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })) } as never;
+      return {
+        upsert,
+        update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
+        select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })),
+      } as never;
     });
 
     const summary = await syncNow(START, END);
@@ -369,7 +393,11 @@ describe('syncNow — import mapping', () => {
         if (table === 'workouts') workoutPayload = args[0];
         return { error: null };
       });
-      return { upsert, update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })), select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })) } as never;
+      return {
+        upsert,
+        update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
+        select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })),
+      } as never;
     });
 
     const summary = await syncNow(START, END);
@@ -395,7 +423,11 @@ describe('syncNow — import mapping', () => {
         if (table === 'workouts') calPayload = args[0];
         return { error: null };
       });
-      return { upsert, update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })), select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })) } as never;
+      return {
+        upsert,
+        update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
+        select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })),
+      } as never;
     });
 
     const summary = await syncNow(START, END);
@@ -437,7 +469,11 @@ describe('syncNow — import mapping', () => {
         }
         return { error: null };
       });
-      return { upsert, update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })), select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })) } as never;
+      return {
+        upsert,
+        update: vi.fn(() => ({ eq: vi.fn(async () => ({ error: null })) })),
+        select: vi.fn(() => ({ maybeSingle: vi.fn(async () => ({ data: null, error: null })) })),
+      } as never;
     });
 
     await syncNow(START, END);
@@ -451,12 +487,18 @@ describe('syncNow — import mapping', () => {
   it('calls log_phi_access and upsert_healthkit_state RPCs after sync', async () => {
     vi.mocked(Health.readSamples).mockResolvedValue({ samples: [] });
     await syncNow(START, END);
-    expect(supabase.rpc).toHaveBeenCalledWith('log_phi_access', expect.objectContaining({
-      p_reason: 'healthkit_sync',
-    }));
-    expect(supabase.rpc).toHaveBeenCalledWith('upsert_healthkit_state', expect.objectContaining({
-      p_enabled: true,
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'log_phi_access',
+      expect.objectContaining({
+        p_reason: 'healthkit_sync',
+      }),
+    );
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'upsert_healthkit_state',
+      expect.objectContaining({
+        p_enabled: true,
+      }),
+    );
   });
 });
 
@@ -493,9 +535,12 @@ describe('revokeAccess', () => {
     vi.mocked(supabase.rpc).mockReset();
     vi.mocked(supabase.rpc).mockResolvedValue({ error: null } as never);
     await revokeAccess();
-    expect(supabase.rpc).toHaveBeenCalledWith('upsert_healthkit_state', expect.objectContaining({
-      p_enabled: false,
-    }));
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'upsert_healthkit_state',
+      expect.objectContaining({
+        p_enabled: false,
+      }),
+    );
   });
 });
 
@@ -507,7 +552,9 @@ describe('purgeImportedData', () => {
   it('calls purge_healthkit_imports RPC with the current user id (HEALTH-07)', async () => {
     vi.mocked(supabase.rpc).mockReset();
     vi.mocked(supabase.rpc).mockResolvedValue({ error: null } as never);
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({ data: { user: { id: 'user-123' } } } as never);
+    vi.mocked(supabase.auth.getUser).mockResolvedValue({
+      data: { user: { id: 'user-123' } },
+    } as never);
     await purgeImportedData();
     expect(supabase.rpc).toHaveBeenCalledWith('purge_healthkit_imports', { p_user_id: 'user-123' });
   });

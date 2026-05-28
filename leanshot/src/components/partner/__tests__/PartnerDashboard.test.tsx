@@ -87,12 +87,10 @@ vi.mock('@/components/partner/StripeConnectOnboardingCard', () => {
 // ── Mock the store ──────────────────────────────────────────────────────────
 
 interface MockSignedIn {
-  user:
-    | {
-        id: string;
-        app_metadata?: { role?: string };
-      }
-    | null;
+  user: {
+    id: string;
+    app_metadata?: { role?: string };
+  } | null;
 }
 let mockSignedIn: MockSignedIn | null = null;
 
@@ -202,9 +200,7 @@ describe('PartnerLayout role gate', () => {
       </PartnerLayout>,
     );
 
-    expect(
-      screen.getByText(/This area is for approved affiliates only/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/This area is for approved affiliates only/i)).toBeTruthy();
     // None of the fetchers should have been invoked.
     expect(fetchAffiliateProfileMock).not.toHaveBeenCalled();
     expect(fetchAffiliateStatsMock).not.toHaveBeenCalled();

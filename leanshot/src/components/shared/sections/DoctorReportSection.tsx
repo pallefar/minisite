@@ -32,7 +32,14 @@ function buildDoctorReportSnapshot(data: NonNullable<SnapshotData['doctor_report
   return {
     user_id: '',
     patient_first_name: '',
-    injections: [] as Array<{ log_id: string; timestamp: string; medication: string; dose: number; unit: string; site: string }>,
+    injections: [] as Array<{
+      log_id: string;
+      timestamp: string;
+      medication: string;
+      dose: number;
+      unit: string;
+      site: string;
+    }>,
     weights: [] as Array<{ id: string; timestamp: string; weight_kg: number }>,
     symptoms: [] as Array<{ id: string; timestamp: string; symptom: string; severity: number }>,
     photos: [] as Array<{ id: string; timestamp: string; signed_url: string }>,
@@ -40,7 +47,11 @@ function buildDoctorReportSnapshot(data: NonNullable<SnapshotData['doctor_report
   };
 }
 
-export function DoctorReportSection({ data, viewerMode: _viewerMode, onMount }: DoctorReportSectionProps) {
+export function DoctorReportSection({
+  data,
+  viewerMode: _viewerMode,
+  onMount,
+}: DoctorReportSectionProps) {
   const firedRef = useRef(false);
 
   useEffect(() => {
@@ -48,7 +59,7 @@ export function DoctorReportSection({ data, viewerMode: _viewerMode, onMount }: 
       firedRef.current = true;
       onMount('doctor_report');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -56,7 +67,9 @@ export function DoctorReportSection({ data, viewerMode: _viewerMode, onMount }: 
       <h2 className="text-[18px] font-semibold">Doctor report</h2>
       <Card padding="md">
         {data == null ? (
-          <p className="text-[13px] text-[var(--color-text-tertiary)]">No doctor report available.</p>
+          <p className="text-[13px] text-[var(--color-text-tertiary)]">
+            No doctor report available.
+          </p>
         ) : (
           <Suspense fallback={<Skeleton className="h-32 w-full" />}>
             <DoctorReport

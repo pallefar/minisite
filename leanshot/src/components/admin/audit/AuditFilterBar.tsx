@@ -79,9 +79,12 @@ export function AdminAuditFilterBar({ value, onChange, onClear }: AdminAuditFilt
   };
 
   // Cleanup on unmount
-  useEffect(() => () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
 
   const handleField =
     (field: keyof AdminAuditFilters) =>

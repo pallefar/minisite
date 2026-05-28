@@ -48,7 +48,9 @@ import { useClinicSnapshot } from './use-clinic-snapshot';
 
 // Phase 30 Plan 04: PatientThresholdOverrideForm — lazy-loaded (Dose thresholds tab).
 const PatientThresholdOverrideForm = lazy(() =>
-  import('./PatientThresholdOverrideForm').then((m) => ({ default: m.PatientThresholdOverrideForm })),
+  import('./PatientThresholdOverrideForm').then((m) => ({
+    default: m.PatientThresholdOverrideForm,
+  })),
 );
 
 // ---------------------------------------------------------------------------
@@ -94,9 +96,7 @@ function getRosterStateKey(orgId: string): string {
 // Scope summary helper
 // ---------------------------------------------------------------------------
 
-function buildScopeSummary(
-  consentScope: Record<string, boolean> | undefined,
-): string {
+function buildScopeSummary(consentScope: Record<string, boolean> | undefined): string {
   if (!consentScope) return 'Sharing data';
   const total = 10; // canonical data type count per D-03
   const active = Object.values(consentScope).filter(Boolean).length;
@@ -147,7 +147,9 @@ function useOrgBySlug(slug: string | null): {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, slug, name, description, website_url, logo_storage_path, created_by, created_at')
+        .select(
+          'id, slug, name, description, website_url, logo_storage_path, created_by, created_at',
+        )
         .eq('slug', slug)
         .maybeSingle();
       if (error) {
@@ -195,7 +197,9 @@ function useMemberRole(orgId: string | null): OrgMemberRole {
         setRole((data as { role: OrgMemberRole } | null)?.role ?? null);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [orgId]);
 
   return role;
@@ -211,7 +215,10 @@ interface PatientThresholds {
   variance_pct_x: number;
 }
 
-function usePatientOverride(orgId: string | null, patientId: string | null): PatientThresholds | null {
+function usePatientOverride(
+  orgId: string | null,
+  patientId: string | null,
+): PatientThresholds | null {
   const [override, setOverride] = useState<PatientThresholds | null>(null);
 
   useEffect(() => {
@@ -228,7 +235,9 @@ function usePatientOverride(orgId: string | null, patientId: string | null): Pat
         setOverride((data as { thresholds: PatientThresholds } | null)?.thresholds ?? null);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [orgId, patientId]);
 
   return override;
@@ -253,7 +262,13 @@ export function ClinicDrillInPage() {
 
   const orgId = orgState.kind === 'hydrated' ? orgState.org.id : null;
 
-  const { snapshot, loading: snapshotLoading, error, refresh, lastFetchedAt } = useClinicSnapshot({
+  const {
+    snapshot,
+    loading: snapshotLoading,
+    error,
+    refresh,
+    lastFetchedAt,
+  } = useClinicSnapshot({
     orgId,
     patientId,
   });
@@ -288,9 +303,7 @@ export function ClinicDrillInPage() {
   // Handle 401/403 errors from useClinicSnapshot.
   useEffect(() => {
     if (!error) return;
-    const firstName = snapshot?.display_name
-      ? getFirstName(snapshot.display_name)
-      : 'Patient';
+    const firstName = snapshot?.display_name ? getFirstName(snapshot.display_name) : 'Patient';
 
     if (error.status === 401 && !redirectedRef.current) {
       redirectedRef.current = true;
@@ -394,10 +407,7 @@ export function ClinicDrillInPage() {
 
   if (orgState.kind === 'loading' || (snapshotLoading && !snapshot)) {
     return (
-      <div
-        className="min-h-screen bg-[var(--color-bg)]"
-        data-testid="drill-in-loading"
-      >
+      <div className="min-h-screen bg-[var(--color-bg)]" data-testid="drill-in-loading">
         <header className="sticky top-0 z-20 flex items-center gap-3 px-4 md:px-6 h-14 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95">
           <Skeleton className="size-8 rounded-md" />
           <Skeleton className="h-4 w-40" />
@@ -451,19 +461,11 @@ export function ClinicDrillInPage() {
       <div className="min-h-screen bg-[var(--color-bg)]" data-testid="drill-in-snapshot-error">
         <ClinicContextBar org={orgState.org} />
         <div className="flex items-center gap-3 px-4 md:px-6 h-14 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            aria-label="Back to roster"
-          >
+          <Button variant="ghost" size="sm" onClick={handleBack} aria-label="Back to roster">
             ← Roster
           </Button>
         </div>
-        <div
-          role="alert"
-          className="max-w-3xl mx-auto p-6 text-center space-y-4"
-        >
+        <div role="alert" className="max-w-3xl mx-auto p-6 text-center space-y-4">
           <p className="text-[14px] text-[var(--color-text-secondary)]">
             Couldn&apos;t load this patient&apos;s data. Check your connection and try again.
           </p>
@@ -539,7 +541,11 @@ export function ClinicDrillInPage() {
       <main className="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
         {/* Dose thresholds tab — admin/staff only (W13 role gate) */}
         {canSeeDoseThresholdsTab && drillTab === 'dose-thresholds' && orgId && patientId ? (
-          <Suspense fallback={<div className="h-32 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" />}>
+          <Suspense
+            fallback={
+              <div className="h-32 animate-pulse rounded-lg bg-[var(--color-surface-elevated)]" />
+            }
+          >
             <PatientThresholdOverrideForm
               orgId={orgId}
               patientUserId={patientId}

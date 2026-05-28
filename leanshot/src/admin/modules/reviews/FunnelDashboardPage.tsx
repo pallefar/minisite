@@ -39,20 +39,23 @@ export default function FunnelDashboardPage(): React.JSX.Element {
   const [data, setData] = useState<FunnelRow | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchAggregate = useCallback(async (days: number): Promise<void> => {
-    setLoading(true);
-    const { data: rpcData, error } = await supabase.rpc('review_funnel_aggregate', {
-      p_window_days: days,
-    });
-    setLoading(false);
-    if (error) {
-      toast(`Could not load funnel: ${error.message}`, 'error');
-      setData(null);
-      return;
-    }
-    const rows = (rpcData ?? []) as FunnelRow[];
-    setData(rows[0] ?? null);
-  }, [toast]);
+  const fetchAggregate = useCallback(
+    async (days: number): Promise<void> => {
+      setLoading(true);
+      const { data: rpcData, error } = await supabase.rpc('review_funnel_aggregate', {
+        p_window_days: days,
+      });
+      setLoading(false);
+      if (error) {
+        toast(`Could not load funnel: ${error.message}`, 'error');
+        setData(null);
+        return;
+      }
+      const rows = (rpcData ?? []) as FunnelRow[];
+      setData(rows[0] ?? null);
+    },
+    [toast],
+  );
 
   useEffect(() => {
     void fetchAggregate(windowDays);
@@ -152,16 +155,16 @@ export default function FunnelDashboardPage(): React.JSX.Element {
               <h2 className="font-semibold">Funnel</h2>
               <ul className="flex flex-wrap gap-4 text-[13px] text-[var(--color-text-secondary)]">
                 <li>
-                  <span className="font-mono font-semibold">{data.prompts_shown}</span>{' '}
-                  Prompts shown
+                  <span className="font-mono font-semibold">{data.prompts_shown}</span> Prompts
+                  shown
                 </li>
                 <li>
-                  <span className="font-mono font-semibold">{data.rated_internal}</span>{' '}
-                  Rated internally
+                  <span className="font-mono font-semibold">{data.rated_internal}</span> Rated
+                  internally
                 </li>
                 <li>
-                  <span className="font-mono font-semibold">{data.external_clicked}</span>{' '}
-                  Clicked external CTA
+                  <span className="font-mono font-semibold">{data.external_clicked}</span> Clicked
+                  external CTA
                 </li>
               </ul>
             </header>

@@ -60,14 +60,10 @@ export function CoursesListAdmin({ onNavigate }: CoursesListAdminProps) {
         </button>
       </div>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading courses…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading courses…</p>}
 
       {error && (
-        <p className="text-sm text-[var(--color-danger)]">
-          Failed to load courses: {error}
-        </p>
+        <p className="text-sm text-[var(--color-danger)]">Failed to load courses: {error}</p>
       )}
 
       {!loading && !error && rows.length === 0 && (

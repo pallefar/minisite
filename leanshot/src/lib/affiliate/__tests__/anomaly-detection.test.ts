@@ -13,11 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  ANOMALY_Z_THRESHOLD,
-  computeZScore,
-  isAnomalyFlagged,
-} from '../anomaly-detection';
+import { ANOMALY_Z_THRESHOLD, computeZScore, isAnomalyFlagged } from '../anomaly-detection';
 
 describe('ANOMALY_Z_THRESHOLD', () => {
   it('is 3 (D-09 lock — admin-review tab + Edge Fn must read this same const)', () => {

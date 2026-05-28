@@ -75,7 +75,6 @@ vi.mock('@/lib/onboarding-builder/use-org-onboarding-flow', () => ({
 
 // ─── Import after mocks ──────────────────────────────────────────────────────
 
-
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('NewsletterOptInStep', () => {
@@ -102,12 +101,7 @@ describe('NewsletterOptInStep', () => {
   it('checking the box calls onChange with true', () => {
     const onChange = vi.fn();
     render(
-      <NewsletterOptInStep
-        checked={false}
-        onChange={onChange}
-        onNext={vi.fn()}
-        onBack={vi.fn()}
-      />,
+      <NewsletterOptInStep checked={false} onChange={onChange} onNext={vi.fn()} onBack={vi.fn()} />,
     );
 
     const checkbox = screen.getByRole('checkbox');
@@ -120,12 +114,7 @@ describe('NewsletterOptInStep', () => {
   it('skipping (Next without checking) calls onNext with checked=false state', () => {
     const onNext = vi.fn();
     render(
-      <NewsletterOptInStep
-        checked={false}
-        onChange={vi.fn()}
-        onNext={onNext}
-        onBack={vi.fn()}
-      />,
+      <NewsletterOptInStep checked={false} onChange={vi.fn()} onNext={onNext} onBack={vi.fn()} />,
     );
 
     const continueButton = screen.getByRole('button', { name: /common:action.continue/i });
@@ -138,12 +127,7 @@ describe('NewsletterOptInStep', () => {
   // Test 4: Checkbox has aria-describedby pointing to sublabel id
   it('checkbox has aria-describedby pointing to "newsletter-opt-in-desc"', () => {
     render(
-      <NewsletterOptInStep
-        checked={false}
-        onChange={vi.fn()}
-        onNext={vi.fn()}
-        onBack={vi.fn()}
-      />,
+      <NewsletterOptInStep checked={false} onChange={vi.fn()} onNext={vi.fn()} onBack={vi.fn()} />,
     );
 
     const checkbox = screen.getByRole('checkbox');
@@ -157,12 +141,7 @@ describe('NewsletterOptInStep', () => {
   // Test 5: Label copy matches t('rag:newsletter.onboarding_label')
   it('label text renders from t("rag:newsletter.onboarding_label")', () => {
     render(
-      <NewsletterOptInStep
-        checked={false}
-        onChange={vi.fn()}
-        onNext={vi.fn()}
-        onBack={vi.fn()}
-      />,
+      <NewsletterOptInStep checked={false} onChange={vi.fn()} onNext={vi.fn()} onBack={vi.fn()} />,
     );
 
     expect(screen.getByText('rag:newsletter.onboarding_label')).toBeInTheDocument();
@@ -205,10 +184,7 @@ describe('NewsletterOptInStep', () => {
   it('STEP ORDER: newsletter step (step 7) is between snapshot (step 6) and ready (step 8)', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    const src = readFileSync(
-      resolve(__dirname, '../OnboardingFlow.tsx'),
-      'utf-8',
-    );
+    const src = readFileSync(resolve(__dirname, '../OnboardingFlow.tsx'), 'utf-8');
 
     // Newsletter step should be referenced in OnboardingFlow
     expect(src).toMatch(/NewsletterOptInStep/);

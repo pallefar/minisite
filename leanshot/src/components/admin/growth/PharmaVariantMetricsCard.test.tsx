@@ -52,11 +52,7 @@ describe('PharmaVariantMetricsCard', () => {
 
   it('(c) renders Sparkline only when trend_series.length > 0', () => {
     const { container, rerender } = render(
-      <PharmaVariantMetricsCard
-        nps_delta={1}
-        one_star_rate_ratio={1}
-        conversion_uplift_pct={1}
-      />,
+      <PharmaVariantMetricsCard nps_delta={1} one_star_rate_ratio={1} conversion_uplift_pct={1} />,
     );
     expect(container.querySelector('svg')).toBeNull();
 
@@ -98,11 +94,7 @@ describe('PharmaVariantMetricsCard', () => {
 
   it('(e) no teal accent on the card (UI-SPEC line 132)', () => {
     const { container } = render(
-      <PharmaVariantMetricsCard
-        nps_delta={0}
-        one_star_rate_ratio={1}
-        conversion_uplift_pct={0}
-      />,
+      <PharmaVariantMetricsCard nps_delta={0} one_star_rate_ratio={1} conversion_uplift_pct={0} />,
     );
     const html = container.innerHTML;
     expect(html).not.toMatch(/--color-accent/);

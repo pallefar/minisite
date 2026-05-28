@@ -69,7 +69,7 @@ export function watchComplicationData(
   // daysUntilNext = ((injectionDay - today.getDay() + 7) % 7) || 7
   // The `|| 7` handles the "today is the injection day" case — next occurrence
   // is 7 days from now, not 0 (which would be "today" and would break).
-  const daysUntilNext = ((user.injectionDay - today.getDay() + 7) % 7) || 7;
+  const daysUntilNext = (user.injectionDay - today.getDay() + 7) % 7 || 7;
   const nextDoseDate_d = new Date(today);
   nextDoseDate_d.setDate(nextDoseDate_d.getDate() + daysUntilNext);
   const nextDoseDate = nextDoseDate_d.toISOString().slice(0, 10);

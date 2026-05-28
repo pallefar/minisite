@@ -162,9 +162,7 @@ describe('ActiveSharesSection — Plan 08-03', () => {
     await waitFor(() => screen.getByText(SHARE_A.label));
 
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole('button', { name: `Revoke share for ${SHARE_A.label}` }),
-    );
+    await user.click(screen.getByRole('button', { name: `Revoke share for ${SHARE_A.label}` }));
 
     // Modal title + body + buttons match UI-SPEC verbatim.
     expect(screen.getByText(/Revoke this share\?/i)).toBeInTheDocument();
@@ -173,9 +171,7 @@ describe('ActiveSharesSection — Plan 08-03', () => {
         /The doctor's open page will return an error within seconds and the share link will stop working\./i,
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /^Revoke share$/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Revoke share$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Keep share$/i })).toBeInTheDocument();
   });
 
@@ -186,9 +182,7 @@ describe('ActiveSharesSection — Plan 08-03', () => {
     await waitFor(() => screen.getByText(SHARE_A.label));
 
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole('button', { name: `Revoke share for ${SHARE_A.label}` }),
-    );
+    await user.click(screen.getByRole('button', { name: `Revoke share for ${SHARE_A.label}` }));
 
     const revokeBtn = screen.getByRole('button', { name: /^Revoke share$/i });
     expect(revokeBtn).toBeDisabled();

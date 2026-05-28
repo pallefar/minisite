@@ -66,10 +66,7 @@ function mapPgError(err: PgError | null | undefined): string {
   return 'network';
 }
 
-async function callRpc<T>(
-  fn: string,
-  params: Record<string, unknown>,
-): Promise<Result<T | null>> {
+async function callRpc<T>(fn: string, params: Record<string, unknown>): Promise<Result<T | null>> {
   try {
     const { data, error } = await supabase.rpc(fn, params);
     if (error) {
@@ -205,7 +202,7 @@ export async function sendInvite(p: {
     const res = await fetch(`${base}/functions/v1/clinic-invite/send`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -260,9 +257,7 @@ export async function sendInviteViaRpc(p: {
 }
 
 export const cancelInvite = (p: { invite_id: string }) =>
-  callRpc<null>('cancel_invite', { p_invite_id: p.invite_id }) as Promise<
-    Result<null, GenericErr>
-  >;
+  callRpc<null>('cancel_invite', { p_invite_id: p.invite_id }) as Promise<Result<null, GenericErr>>;
 
 export async function acceptInviteExisting(p: {
   invite_token_hash: string;
@@ -402,7 +397,9 @@ const ORG_LOGO_EXT: Record<string, string> = {
 export async function uploadOrgLogo(
   orgId: string,
   file: File,
-): Promise<{ ok: true; path: string } | { ok: false; error: 'file_too_large' | 'invalid_mime' | 'network' }> {
+): Promise<
+  { ok: true; path: string } | { ok: false; error: 'file_too_large' | 'invalid_mime' | 'network' }
+> {
   if (file.size > ORG_LOGO_MAX_BYTES) {
     return { ok: false, error: 'file_too_large' };
   }

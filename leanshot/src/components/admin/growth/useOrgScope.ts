@@ -23,9 +23,7 @@ import { useStore } from '@/lib/store';
 
 export function useOrgScope(): string | null {
   return useStore((s) => {
-    const meta = s.signedIn?.user?.app_metadata as
-      | { role?: string; org_id?: string }
-      | undefined;
+    const meta = s.signedIn?.user?.app_metadata as { role?: string; org_id?: string } | undefined;
     return meta?.role === 'clinic_owner' ? (meta?.org_id ?? null) : null;
   });
 }

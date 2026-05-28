@@ -14,13 +14,7 @@
  *   - Backfill routes through trigger_ad_etl_backfill SECDEF RPC (T-33-05-02 mitigation)
  *   - Zero new UI primitives — Card, Badge, Button, Sheet, Skeleton, EmptyState reused.
  */
-import {
-  AlertTriangle,
-  CheckCircle,
-  Download,
-  RefreshCw,
-  TrendingUp,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle, Download, RefreshCw, TrendingUp } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -392,7 +386,8 @@ export function CACDashboardPage() {
   const creativeRows = useMemo<{ top5: CreativeRow[]; bottom5: CreativeRow[] }>(() => {
     if (!cacRows || !selectedNetwork || !selectedCampaign) return { top5: [], bottom5: [] };
     const filtered = cacRows.filter(
-      (r) => r.network === selectedNetwork && (r.campaign_id ?? '(no campaign)') === selectedCampaign,
+      (r) =>
+        r.network === selectedNetwork && (r.campaign_id ?? '(no campaign)') === selectedCampaign,
     );
     const map = new Map<string, { spend: number; conversions: number }>();
     for (const row of filtered) {
@@ -496,9 +491,7 @@ export function CACDashboardPage() {
             ? NETWORKS.map((n) => (
                 <Skeleton key={n} className="h-20 flex-1 min-w-[200px] rounded-card" />
               ))
-            : NETWORKS.map((n) => (
-                <HealthCard key={n} network={n} health={healthMap.get(n)} />
-              ))}
+            : NETWORKS.map((n) => <HealthCard key={n} network={n} health={healthMap.get(n)} />)}
         </div>
       </section>
 
@@ -510,7 +503,9 @@ export function CACDashboardPage() {
               title="Gaps detected"
               icon={<AlertTriangle size={16} aria-hidden />}
               action={
-                <Badge tone="warning">{gapRows.length} gap{gapRows.length === 1 ? '' : 's'}</Badge>
+                <Badge tone="warning">
+                  {gapRows.length} gap{gapRows.length === 1 ? '' : 's'}
+                </Badge>
               }
             />
             <ul className="space-y-2">
@@ -593,9 +588,7 @@ export function CACDashboardPage() {
                 <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)] mb-1 capitalize">
                   {ns.network}
                 </div>
-                <div className="text-[24px] font-bold numerals-tabular">
-                  {formatUsd(ns.cac)}
-                </div>
+                <div className="text-[24px] font-bold numerals-tabular">{formatUsd(ns.cac)}</div>
                 <div className="text-[11px] font-medium text-[var(--color-text-secondary)] mt-1">
                   CAC (7d)
                 </div>
@@ -643,8 +636,7 @@ export function CACDashboardPage() {
                       aria-label={`View creatives for campaign ${cr.campaign_id}`}
                       onClick={() => openCreativeDrawer(cr.campaign_id)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ')
-                          openCreativeDrawer(cr.campaign_id);
+                        if (e.key === 'Enter' || e.key === ' ') openCreativeDrawer(cr.campaign_id);
                       }}
                     >
                       <td className="py-2 pe-3 font-medium truncate max-w-[160px]">
@@ -675,7 +667,11 @@ export function CACDashboardPage() {
             </button>
 
             {creativeRows.top5.length === 0 && creativeRows.bottom5.length === 0 ? (
-              <EmptyState inline title="No creative data" body="No ad-level data for this campaign." />
+              <EmptyState
+                inline
+                title="No creative data"
+                body="No ad-level data for this campaign."
+              />
             ) : (
               <div className="space-y-4">
                 <div>

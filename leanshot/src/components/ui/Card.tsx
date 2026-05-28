@@ -36,8 +36,7 @@ const variantClasses: Record<CardVariant, string> = {
     'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow)] hover:-translate-y-[2px] hover:border-[var(--color-primary-soft)] transition-[transform,box-shadow,border-color] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]',
   tonal:
     'bg-[var(--color-primary-soft)] border border-[var(--color-primary-soft)] text-[var(--color-text)]',
-  footer:
-    'bg-[var(--color-surface-elevated)] border-t border-[var(--color-border)] rounded-t-none',
+  footer: 'bg-[var(--color-surface-elevated)] border-t border-[var(--color-border)] rounded-t-none',
 };
 
 const paddingClasses: Record<NonNullable<CardProps['padding']>, string> = {

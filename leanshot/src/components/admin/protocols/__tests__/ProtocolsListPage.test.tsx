@@ -128,10 +128,7 @@ describe('ProtocolsListPage', () => {
     await waitFor(() => {
       const badges = screen
         .getAllByRole('generic')
-        .filter(
-          (el) =>
-            el.getAttribute('aria-label')?.startsWith('Protocol status:') ?? false,
-        );
+        .filter((el) => el.getAttribute('aria-label')?.startsWith('Protocol status:') ?? false);
       expect(badges.length).toBeGreaterThanOrEqual(3);
     });
   });
@@ -151,7 +148,9 @@ describe('ProtocolsListPage', () => {
 
     // Click the Published filter pill
     const pills = screen.getAllByRole('button');
-    const publishedPill = pills.find((btn) => btn.textContent?.trim() === 'Published' && btn.hasAttribute('aria-pressed'));
+    const publishedPill = pills.find(
+      (btn) => btn.textContent?.trim() === 'Published' && btn.hasAttribute('aria-pressed'),
+    );
     expect(publishedPill).toBeTruthy();
     fireEvent.click(publishedPill!);
 

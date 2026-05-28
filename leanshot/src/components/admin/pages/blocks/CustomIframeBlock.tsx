@@ -120,9 +120,7 @@ export function CustomIframeBlock({ block }: CustomIframeBlockProps): JSX.Elemen
   }, []);
 
   const wrapperClassName =
-    backgroundToneClass(tone) +
-    ' w-full px-6 ' +
-    (hideOnMobile ? 'hidden md:block ' : '');
+    backgroundToneClass(tone) + ' w-full px-6 ' + (hideOnMobile ? 'hidden md:block ' : '');
 
   const innerWrapperClassName = widthMode ? '' : 'max-w-[900px] mx-auto';
 
@@ -134,31 +132,33 @@ export function CustomIframeBlock({ block }: CustomIframeBlockProps): JSX.Elemen
       <div className={innerWrapperClassName + ' max-w-3xl mx-auto'}>
         {allowlist === null ? (
           <Skeleton className="w-full" style={{ minHeight: 400 }} />
-        ) : (() => {
-          const err = classifyError(embedUrl, allowlist);
-          if (err) return renderInlineError(err);
-          const validated = validateCustomIframeUrl(embedUrl, allowlist);
-          if (!validated) {
-            // Should not happen — classifyError ran above — but fail closed.
-            return renderInlineError({ kind: 'allowlist', hostname: 'unknown' });
-          }
-          const content: CustomIframeContent = { embedUrl, iframeTitle, widthMode };
-          const titleAttr =
-            typeof content.iframeTitle === 'string' && content.iframeTitle.length >= 3
-              ? content.iframeTitle
-              : EMBED_IFRAME_TITLES.custom_iframe;
-          return (
-            <ConsentGatedEmbed
-              provider="custom_iframe"
-              categories={['marketing']}
-              minHeight={400}
-              // D-16 FIXED sandbox literal — admin cannot override via block.content.
-              sandbox="allow-scripts allow-same-origin"
-              title={titleAttr}
-              src={validated}
-            />
-          );
-        })()}
+        ) : (
+          (() => {
+            const err = classifyError(embedUrl, allowlist);
+            if (err) return renderInlineError(err);
+            const validated = validateCustomIframeUrl(embedUrl, allowlist);
+            if (!validated) {
+              // Should not happen — classifyError ran above — but fail closed.
+              return renderInlineError({ kind: 'allowlist', hostname: 'unknown' });
+            }
+            const content: CustomIframeContent = { embedUrl, iframeTitle, widthMode };
+            const titleAttr =
+              typeof content.iframeTitle === 'string' && content.iframeTitle.length >= 3
+                ? content.iframeTitle
+                : EMBED_IFRAME_TITLES.custom_iframe;
+            return (
+              <ConsentGatedEmbed
+                provider="custom_iframe"
+                categories={['marketing']}
+                minHeight={400}
+                // D-16 FIXED sandbox literal — admin cannot override via block.content.
+                sandbox="allow-scripts allow-same-origin"
+                title={titleAttr}
+                src={validated}
+              />
+            );
+          })()
+        )}
       </div>
     </section>
   );

@@ -24,14 +24,8 @@ import {
 // Repo root = three levels up from leanshot/src/lib/rag/__tests__/ (we are
 // inside the leanshot subdir of the minisite monorepo).
 const REPO_ROOT = resolve(__dirname, '../../../../..');
-const RUNNER_INDEX_PATH = resolve(
-  REPO_ROOT,
-  'supabase/functions/rag-scrape-runner/index.ts',
-);
-const FIRECRAWL_PATH = resolve(
-  REPO_ROOT,
-  'supabase/functions/rag-scrape-runner/firecrawl.ts',
-);
+const RUNNER_INDEX_PATH = resolve(REPO_ROOT, 'supabase/functions/rag-scrape-runner/index.ts');
+const FIRECRAWL_PATH = resolve(REPO_ROOT, 'supabase/functions/rag-scrape-runner/firecrawl.ts');
 
 function readRunnerIndex(): string {
   return readFileSync(RUNNER_INDEX_PATH, 'utf-8');
@@ -134,9 +128,7 @@ describe('Phase 50 Plan 50-04 — rag-scrape-runner', () => {
 
     it('throws after 3 failed attempts with the last error', async () => {
       const sleeps: number[] = [];
-      const op = vi
-        .fn<() => Promise<string>>()
-        .mockRejectedValue(new Error('always-fails'));
+      const op = vi.fn<() => Promise<string>>().mockRejectedValue(new Error('always-fails'));
       await expect(
         retryWithBackoff(op, {
           sleep: async (ms) => {

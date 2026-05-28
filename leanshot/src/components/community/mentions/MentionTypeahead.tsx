@@ -100,9 +100,13 @@ export default function MentionTypeahead({
     : items;
 
   // Apply Fuse fuzzy re-ranking when we have a fuse instance.
-  const visible = fuse && debouncedQuery.length > 0
-    ? fuse.search(debouncedQuery).map((r) => r.item).filter((u) => !excludeUserIds?.includes(u.id))
-    : filtered;
+  const visible =
+    fuse && debouncedQuery.length > 0
+      ? fuse
+          .search(debouncedQuery)
+          .map((r) => r.item)
+          .filter((u) => !excludeUserIds?.includes(u.id))
+      : filtered;
 
   if (visible.length === 0) return null;
 

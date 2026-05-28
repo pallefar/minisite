@@ -36,10 +36,7 @@ import {
 import { DeleteAccountModal } from '@/components/dashboard/settings/DeleteAccountModal';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
-import {
-  requireAal2ForConsumerAction,
-  type Aal2ChallengeOutcome,
-} from '@/lib/auth/aal2-consumer';
+import { requireAal2ForConsumerAction, type Aal2ChallengeOutcome } from '@/lib/auth/aal2-consumer';
 import { verifyTotpChallenge, listEnrolledFactors } from '@/lib/auth/totp-shared';
 import { supabase } from '@/lib/supabase';
 
@@ -124,9 +121,7 @@ export function DangerZone({ initialShowDelete }: DangerZoneProps = {}) {
    * needs to surface `{ ok, reason }` to the modal; we obtain that by
    * pre-flighting the verify.
    */
-  const handleModalSubmit = async (
-    code: string,
-  ): Promise<{ ok: boolean; reason?: string }> => {
+  const handleModalSubmit = async (code: string): Promise<{ ok: boolean; reason?: string }> => {
     if (!pending) {
       return { ok: false, reason: 'cancelled' };
     }
@@ -142,10 +137,7 @@ export function DangerZone({ initialShowDelete }: DangerZoneProps = {}) {
         pending.resolve({ cancelled: true });
         return { ok: false, reason: 'cancelled' };
       }
-      const result = await verifyTotpChallenge(
-        { factorId: factor.id, code },
-        supabase,
-      );
+      const result = await verifyTotpChallenge({ factorId: factor.id, code }, supabase);
       if (!result.ok) {
         // Leave the modal open + show error; do NOT resolve the gate
         // yet (the user can re-enter the code).
@@ -174,17 +166,12 @@ export function DangerZone({ initialShowDelete }: DangerZoneProps = {}) {
       className="rounded-card border border-[var(--color-border)] bg-[var(--color-surface)] p-5 md:p-6 space-y-4"
     >
       <header className="flex items-start gap-3">
-        <ShieldAlert
-          className="size-5 text-[var(--color-danger)] shrink-0"
-          aria-hidden
-        />
+        <ShieldAlert className="size-5 text-[var(--color-danger)] shrink-0" aria-hidden />
         <div className="flex-1">
-          <h3 className="text-[18px] font-semibold tracking-tight">
-            Danger zone
-          </h3>
+          <h3 className="text-[18px] font-semibold tracking-tight">Danger zone</h3>
           <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
-            Permanently delete your LeanShot account and all associated data.
-            This action cannot be undone after the 7-day grace window.
+            Permanently delete your LeanShot account and all associated data. This action cannot be
+            undone after the 7-day grace window.
           </p>
         </div>
       </header>
@@ -203,10 +190,7 @@ export function DangerZone({ initialShowDelete }: DangerZoneProps = {}) {
         </Button>
       </div>
 
-      <DeleteAccountModal
-        open={showDelete}
-        onClose={() => setShowDelete(false)}
-      />
+      <DeleteAccountModal open={showDelete} onClose={() => setShowDelete(false)} />
 
       <Aal2ChallengeModal
         open={pending !== null}

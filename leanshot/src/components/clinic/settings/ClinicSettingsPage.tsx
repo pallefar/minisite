@@ -23,7 +23,16 @@
  * wrappers + ClinicContextBar. Until they merge, this page renders a
  * minimal context header inline (workspace name + the standard tab nav).
  */
-import { Building2, History, ListOrdered, Loader2, Palette, Shield, Stethoscope, Users } from 'lucide-react';
+import {
+  Building2,
+  History,
+  ListOrdered,
+  Loader2,
+  Palette,
+  Shield,
+  Stethoscope,
+  Users,
+} from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -42,9 +51,7 @@ import { WorkspaceTab } from './WorkspaceTab';
 
 // Phase 31 Plan 31-05 — lazy-mount BrandingTab + OnboardingTab to keep
 // clinic-settings chunk under the 50 kB gz ceiling.
-const BrandingTab = lazy(() =>
-  import('./BrandingTab').then((m) => ({ default: m.BrandingTab })),
-);
+const BrandingTab = lazy(() => import('./BrandingTab').then((m) => ({ default: m.BrandingTab })));
 const OnboardingTab = lazy(() =>
   import('./OnboardingTab').then((m) => ({ default: m.OnboardingTab })),
 );
@@ -127,7 +134,7 @@ export function ClinicSettingsPage() {
   const isOwner = currentOrgRole === 'owner';
   const permMap: Record<string, boolean | null> = {
     'audit_log.read': canReadAuditLog,
-    'org_role.admin': isOwner,  // key 'org_role.admin' preserved — owned by Plan 31-05
+    'org_role.admin': isOwner, // key 'org_role.admin' preserved — owned by Plan 31-05
     // Phase 31 Plan 31-05 — permission gates for new tabs (12-key matrix from 31-01)
     'branding.edit': surfaceCheck('branding.edit'),
     'onboarding.edit': surfaceCheck('onboarding.edit'),
@@ -152,9 +159,7 @@ export function ClinicSettingsPage() {
     setNotFound(false);
     const { data, error } = await supabase
       .from('organizations')
-      .select(
-        'id, slug, name, description, website_url, logo_storage_path, created_by, created_at',
-      )
+      .select('id, slug, name, description, website_url, logo_storage_path, created_by, created_at')
       .eq('slug', slug)
       .limit(1);
     if (error || !data || data.length === 0) {
@@ -216,8 +221,7 @@ export function ClinicSettingsPage() {
         <Card variant="flat">
           <h1 className="text-[18px] font-bold mb-2">Workspace not found</h1>
           <p className="text-[13px] text-[var(--color-text-secondary)]">
-            The workspace you&apos;re looking for doesn&apos;t exist or you
-            don&apos;t have access.
+            The workspace you&apos;re looking for doesn&apos;t exist or you don&apos;t have access.
           </p>
         </Card>
       </main>
@@ -247,27 +251,29 @@ export function ClinicSettingsPage() {
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-5 md:py-8 flex flex-col md:flex-row gap-5 md:gap-8">
         <nav className="md:w-52 shrink-0" aria-label="Settings sections">
           <ul className="flex md:flex-col gap-1 overflow-x-auto scrollbar-none -mx-2 md:mx-0 px-2">
-            {NAV.filter(({ visibleWhen }) => !visibleWhen || visibleWhen(permMap)).map(({ id, label, Icon }) => {
-              const active = route.tab === id;
-              return (
-                <li key={id} className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => switchTab(id)}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'inline-flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-start text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
-                      active
-                        ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
-                        : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text)]',
-                    )}
-                  >
-                    <Icon className="size-4" strokeWidth={active ? 2.2 : 1.8} />
-                    {label}
-                  </button>
-                </li>
-              );
-            })}
+            {NAV.filter(({ visibleWhen }) => !visibleWhen || visibleWhen(permMap)).map(
+              ({ id, label, Icon }) => {
+                const active = route.tab === id;
+                return (
+                  <li key={id} className="shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => switchTab(id)}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn(
+                        'inline-flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-start text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        active
+                          ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
+                          : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text)]',
+                      )}
+                    >
+                      <Icon className="size-4" strokeWidth={active ? 2.2 : 1.8} />
+                      {label}
+                    </button>
+                  </li>
+                );
+              },
+            )}
           </ul>
         </nav>
 
@@ -275,9 +281,7 @@ export function ClinicSettingsPage() {
           {route.tab === 'workspace' && (
             <WorkspaceTab org={org} onOrgUpdated={(next) => setOrg(next)} />
           )}
-          {route.tab === 'members' && (
-            <MembersTab orgId={org.id} roles={roles} />
-          )}
+          {route.tab === 'members' && <MembersTab orgId={org.id} roles={roles} />}
           {route.tab === 'roles' && <RolesTab orgId={org.id} />}
           {route.tab === 'audit' && canReadAuditLog && <AuditTab orgId={org.id} />}
           {route.tab === 'clinical' && isOwner && (

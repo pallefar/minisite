@@ -16,11 +16,7 @@
 
 export const HANDLE_REGEX = /^[a-zA-Z0-9_-]{6,24}$/;
 
-export type HandleValidationError =
-  | 'too_short'
-  | 'too_long'
-  | 'invalid_characters'
-  | 'empty';
+export type HandleValidationError = 'too_short' | 'too_long' | 'invalid_characters' | 'empty';
 
 export interface HandleValidationOk {
   readonly ok: true;

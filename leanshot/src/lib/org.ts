@@ -78,16 +78,8 @@ const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<string>> = {
     'admin.gamification.freeze_tokens.grant',
     'admin.gamification.cohorts.enable_leaderboard',
   ]),
-  clinician: new Set([
-    'members.list',
-    'roster.view',
-    'alerts.ack',
-    'alerts.snooze',
-  ]),
-  staff: new Set([
-    'members.list',
-    'roster.view',
-  ]),
+  clinician: new Set(['members.list', 'roster.view', 'alerts.ack', 'alerts.snooze']),
+  staff: new Set(['members.list', 'roster.view']),
 };
 
 // ---------------------------------------------------------------------------

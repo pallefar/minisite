@@ -67,7 +67,10 @@ describe('parseCitations', () => {
     const result2 = parseCitations('This [citation needed] is not parsed.');
     expect(result2.citations).toHaveLength(0);
     expect(result2.segments).toHaveLength(1);
-    expect(result2.segments[0]).toEqual({ type: 'text', text: 'This [citation needed] is not parsed.' });
+    expect(result2.segments[0]).toEqual({
+      type: 'text',
+      text: 'This [citation needed] is not parsed.',
+    });
   });
 
   // Test 11: parseCitations is pure — no React imports
@@ -116,6 +119,10 @@ describe('parseCitations', () => {
     const text = `Ends with a citation [${UUID_A}]`;
     const result = parseCitations(text);
 
-    expect(result.segments[result.segments.length - 1]).toMatchObject({ type: 'citation', chunkId: UUID_A, refIndex: 1 });
+    expect(result.segments[result.segments.length - 1]).toMatchObject({
+      type: 'citation',
+      chunkId: UUID_A,
+      refIndex: 1,
+    });
   });
 });

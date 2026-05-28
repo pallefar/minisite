@@ -111,6 +111,8 @@ describe('useRagTranslation hook', () => {
   it('RAG_REFUSAL_KIND_TO_KEY maps all three kinds to string keys', () => {
     expect(RAG_REFUSAL_KIND_TO_KEY.pharma_02).toBe('refusal.pharma_02');
     expect(RAG_REFUSAL_KIND_TO_KEY.out_of_corpus).toBe('refusal.out_of_corpus');
-    expect(RAG_REFUSAL_KIND_TO_KEY.citation_validation_failed).toBe('refusal.citation_validation_failed');
+    expect(RAG_REFUSAL_KIND_TO_KEY.citation_validation_failed).toBe(
+      'refusal.citation_validation_failed',
+    );
   });
 });

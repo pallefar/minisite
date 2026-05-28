@@ -47,11 +47,7 @@ interface SupabaseRpcError {
   details?: string;
 }
 
-type CohortRpcName =
-  | 'cohort_define'
-  | 'cohort_set_status'
-  | 'cohort_archive'
-  | 'cohort_is_member';
+type CohortRpcName = 'cohort_define' | 'cohort_set_status' | 'cohort_archive' | 'cohort_is_member';
 
 function mapRpcError(err: SupabaseRpcError | null | undefined): CohortApiErrorCode {
   if (!err) return 'unknown';
@@ -102,10 +98,7 @@ export interface DefineCohortResult {
   cohortId: string;
 }
 
-export async function defineCohort(
-  name: string,
-  rule: RuleNode,
-): Promise<DefineCohortResult> {
+export async function defineCohort(name: string, rule: RuleNode): Promise<DefineCohortResult> {
   // Client-side fail-fast: malformed trees never hit the network.
   const parsed = ruleTreeSchema.safeParse(rule);
   if (!parsed.success) {
@@ -127,10 +120,7 @@ export async function defineCohort(
 
 export type CohortStatus = 'draft' | 'active' | 'archived';
 
-export async function setCohortStatus(
-  cohortId: string,
-  status: CohortStatus,
-): Promise<void> {
+export async function setCohortStatus(cohortId: string, status: CohortStatus): Promise<void> {
   await callCohortRpc<void>('cohort_set_status', {
     p_cohort_id: cohortId,
     p_status: status,
@@ -148,10 +138,7 @@ export async function archiveCohort(cohortId: string): Promise<void> {
  * Throws ONLY on explicit `not_staff` violations (which should never happen
  * since cohort_is_member is granted to authenticated).
  */
-export async function isCohortMember(
-  userId: string,
-  cohortId: string,
-): Promise<boolean> {
+export async function isCohortMember(userId: string, cohortId: string): Promise<boolean> {
   try {
     const result = await callCohortRpc<boolean>('cohort_is_member', {
       p_user_id: userId,

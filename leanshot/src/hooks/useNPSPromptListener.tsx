@@ -40,10 +40,7 @@ import { NPSPromptModal } from '@/components/nps/NPSPromptModal';
 import { PromoterCtaModal } from '@/components/nps/PromoterCtaModal';
 import { useNativeReviewTrigger } from '@/hooks/useNativeReviewTrigger';
 import { EVENTS } from '@/lib/analytics/events';
-import {
-  ANALYTICS_TRIGGER_EVENT,
-  isAnalyticsTriggerDetail,
-} from '@/lib/nps/analytics-trigger-bus';
+import { ANALYTICS_TRIGGER_EVENT, isAnalyticsTriggerDetail } from '@/lib/nps/analytics-trigger-bus';
 import { decideNpsTrigger, type DecideResponse } from '@/lib/nps/decide-client';
 
 type EventsRegistry = Record<string, { nps_trigger_eligible?: true } | undefined>;
@@ -127,9 +124,7 @@ export function NPSPromptListenerHost(): React.ReactElement | null {
 
   // Step 2 — promoter branch (4-5★) → external CTA opt-in (W9 cta_set).
   if (rating >= 4) {
-    return (
-      <PromoterCtaModal open ctaSet={decision.cta_set} onDismiss={reset} />
-    );
+    return <PromoterCtaModal open ctaSet={decision.cta_set} onDismiss={reset} />;
   }
 
   // Step 3 — non-promoter branch (1-3★) → open-text feedback → ticket.

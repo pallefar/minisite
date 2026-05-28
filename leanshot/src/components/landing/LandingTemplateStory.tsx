@@ -41,10 +41,7 @@ export function LandingTemplateStory({ affiliate }: LandingTemplateProps): React
       : 'LeanShot helped me track every shot, side effect, and milestone in one place.';
 
   return (
-    <main
-      data-template="story"
-      className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16"
-    >
+    <main data-template="story" className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16">
       {/* Hero — testimonial-forward */}
       <section className="text-center max-w-3xl mx-auto">
         <blockquote className="text-4xl font-[var(--font-display)] italic text-[var(--color-text-primary)] leading-snug">

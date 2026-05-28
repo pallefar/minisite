@@ -94,10 +94,8 @@ async function subscribeBroadcast(
   const channel = (supabase.channel(topic, { config: { private: true } }) as any)
     .on('broadcast', { event: 'INSERT' }, (payload: BroadcastChangePayload) => onChange(payload))
     .on('broadcast', { event: 'UPDATE' }, (payload: BroadcastChangePayload) => onChange(payload))
-    .on(
-      'broadcast',
-      { event: 'DELETE' },
-      (payload: BroadcastChangePayload) => onChange(payload),
+    .on('broadcast', { event: 'DELETE' }, (payload: BroadcastChangePayload) =>
+      onChange(payload),
     ) as ChannelLike;
 
   await channel.subscribe();

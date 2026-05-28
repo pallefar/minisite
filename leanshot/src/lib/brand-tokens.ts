@@ -113,7 +113,7 @@ const RADIUS_MAP: Record<NonNullable<BrandTokens['radius_scale']>, string> = {
  */
 export function parseClinicSlug(pathname: string): string | null {
   const match = pathname.match(/^\/clinic\/([^/]+)/);
-  return match ? match[1] ?? null : null;
+  return match ? (match[1] ?? null) : null;
 }
 
 // ---------------------------------------------------------------------------

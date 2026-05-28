@@ -204,11 +204,7 @@ export default function AuditLogModule() {
       {error && !loading && (
         <Card variant="flat" padding="sm">
           <p className="text-[13px] text-[var(--color-danger)] mb-2">{error}</p>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => void loadRows(filters, null, false)}
-          >
+          <Button variant="secondary" size="sm" onClick={() => void loadRows(filters, null, false)}>
             Retry
           </Button>
         </Card>
@@ -272,9 +268,7 @@ export default function AuditLogModule() {
 
                 {/* Source + expand indicator */}
                 <span className="flex items-center justify-end gap-2 text-[11px] text-[var(--color-text-tertiary)]">
-                  <span
-                    className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[var(--color-surface-elevated)] border border-[var(--color-border)]"
-                  >
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[var(--color-surface-elevated)] border border-[var(--color-border)]">
                     {row.source ?? '—'}
                   </span>
                   <span

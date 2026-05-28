@@ -24,11 +24,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { AuditFilterBar, DEFAULT_FILTER_STATE } from './AuditFilterBar';
 import { AuditRow } from './AuditRow';
-import {
-  useAuditEvents,
-  type TimeRangePreset,
-  type CustomRange,
-} from './use-audit-events';
+import { useAuditEvents, type TimeRangePreset, type CustomRange } from './use-audit-events';
 
 const RETENTION_DISMISSED_KEY = 'clinic_audit_retention_dismissed';
 const PAGE_SIZE = 50;
@@ -210,9 +206,7 @@ export function AuditTab({ orgId }: AuditTabProps) {
               </>
             ) : (
               <>
-                <p className="text-[18px] font-semibold text-[var(--color-text)]">
-                  No events yet
-                </p>
+                <p className="text-[18px] font-semibold text-[var(--color-text)]">No events yet</p>
                 <p className="text-[13px] text-[var(--color-text-secondary)]">
                   Operator activity in this workspace will appear here.
                 </p>

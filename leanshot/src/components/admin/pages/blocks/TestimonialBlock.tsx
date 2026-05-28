@@ -56,12 +56,11 @@ export function TestimonialBlock({ block }: TestimonialBlockProps) {
         )}
         <div className="flex flex-col gap-8">
           {quotes.map((q, i) => {
-            const hasPhoto = !!q.authorPhotoUrl && !!q.authorPhotoAlt && q.authorPhotoAlt.trim() !== '';
+            const hasPhoto =
+              !!q.authorPhotoUrl && !!q.authorPhotoAlt && q.authorPhotoAlt.trim() !== '';
             return (
               <figure key={i} className="flex flex-col gap-3">
-                <blockquote
-                  className="block-testimonial__quote font-[Fraunces,Georgia,serif] italic text-[22px] leading-[1.4] m-0"
-                >
+                <blockquote className="block-testimonial__quote font-[Fraunces,Georgia,serif] italic text-[22px] leading-[1.4] m-0">
                   {q.quote ?? ''}
                 </blockquote>
                 <figcaption className="flex items-center gap-3 text-[13px] font-semibold">

@@ -31,9 +31,7 @@ export function PartnerLinksPage(): ReactNode {
   const userIdAsId = profile.id; // affiliate.id — used as Storage path prefix
   const [template, setTemplate] = useState<TemplateChoice>('coach');
 
-  const referralUrl = profile.referral_code
-    ? `${REFERRAL_ROOT}${profile.referral_code}`
-    : '';
+  const referralUrl = profile.referral_code ? `${REFERRAL_ROOT}${profile.referral_code}` : '';
 
   const onCopy = async (): Promise<void> => {
     if (!referralUrl) return;
@@ -57,7 +55,9 @@ export function PartnerLinksPage(): ReactNode {
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         {/* Left: referral URL + copy */}
         <Card span={6} padding="lg">
-          <h2 className="text-[14px] font-semibold text-[var(--color-text)] mb-3">Copy your link</h2>
+          <h2 className="text-[14px] font-semibold text-[var(--color-text)] mb-3">
+            Copy your link
+          </h2>
           <div
             className="font-mono text-[15px] bg-[var(--color-surface-elevated)] border border-[var(--color-border)] rounded-card px-3 py-3 mb-4 break-all select-all"
             data-testid="referral-url"

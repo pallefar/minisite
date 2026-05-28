@@ -57,10 +57,7 @@ export function WorkspaceTab({ org, onOrgUpdated }: WorkspaceTabProps) {
         p_name: name.trim(),
       });
       if (error) {
-        toast(
-          "Couldn't save changes. Check your connection and try again.",
-          'error',
-        );
+        toast("Couldn't save changes. Check your connection and try again.", 'error');
         return;
       }
       toast('Workspace updated.', 'success');
@@ -80,10 +77,7 @@ export function WorkspaceTab({ org, onOrgUpdated }: WorkspaceTabProps) {
     try {
       const { error } = await supabase.rpc('delete_org', { p_org_id: org.id });
       if (error) {
-        toast(
-          "Couldn't delete the workspace. Check your connection and try again.",
-          'error',
-        );
+        toast("Couldn't delete the workspace. Check your connection and try again.", 'error');
         return;
       }
       toast('Workspace deleted.', 'success');
@@ -100,8 +94,7 @@ export function WorkspaceTab({ org, onOrgUpdated }: WorkspaceTabProps) {
       <header>
         <h1 className="text-[20px] font-bold tracking-tight">Workspace settings</h1>
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          Update your workspace name, URL, and logo. Patients see these changes
-          immediately.
+          Update your workspace name, URL, and logo. Patients see these changes immediately.
         </p>
       </header>
 
@@ -165,9 +158,8 @@ export function WorkspaceTab({ org, onOrgUpdated }: WorkspaceTabProps) {
           </h2>
           <Card variant="flat">
             <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
-              Deleting the workspace removes all members and ends all access
-              immediately. Patients keep their personal data. This cannot be
-              undone.
+              Deleting the workspace removes all members and ends all access immediately. Patients
+              keep their personal data. This cannot be undone.
             </p>
             <div className="mt-3">
               <Button
@@ -197,8 +189,8 @@ export function WorkspaceTab({ org, onOrgUpdated }: WorkspaceTabProps) {
       >
         <div className="space-y-4">
           <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-            All members will lose access immediately. Patients keep their
-            personal data. This cannot be undone.
+            All members will lose access immediately. Patients keep their personal data. This cannot
+            be undone.
           </p>
           <Input
             label={`Type ${org.slug} to delete`}
@@ -209,11 +201,7 @@ export function WorkspaceTab({ org, onOrgUpdated }: WorkspaceTabProps) {
             aria-label="Type workspace slug to confirm deletion"
           />
           <div className="flex gap-2 justify-end">
-            <Button
-              variant="ghost"
-              onClick={() => setDeleteOpen(false)}
-              disabled={deleteBusy}
-            >
+            <Button variant="ghost" onClick={() => setDeleteOpen(false)} disabled={deleteBusy}>
               Keep workspace
             </Button>
             <Button

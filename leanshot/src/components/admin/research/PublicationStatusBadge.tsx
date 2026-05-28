@@ -17,24 +17,24 @@ import type { BadgeTone } from '@/components/ui/Badge';
 import type { ResearchPublicationStatus } from '@/types/research';
 
 const TONE_MAP: Record<ResearchPublicationStatus, BadgeTone> = {
-  draft:     'neutral',
+  draft: 'neutral',
   in_review: 'warning',
   published: 'success',
-  archived:  'neutral',
+  archived: 'neutral',
 };
 
 const ARIA_MAP: Record<ResearchPublicationStatus, string> = {
-  draft:     'Publication status: draft',
+  draft: 'Publication status: draft',
   in_review: 'Publication status: pending review',
   published: 'Publication status: published',
-  archived:  'Publication status: archived',
+  archived: 'Publication status: archived',
 };
 
 const LABEL_MAP: Record<ResearchPublicationStatus, string> = {
-  draft:     'Draft',
+  draft: 'Draft',
   in_review: 'In Review',
   published: 'Published',
-  archived:  'Archived',
+  archived: 'Archived',
 };
 
 export function PublicationStatusBadge({ status }: { status: ResearchPublicationStatus }) {

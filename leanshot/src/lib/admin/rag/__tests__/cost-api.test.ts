@@ -12,12 +12,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { supabase } from '@/lib/supabase';
-import {
-  CostApiError,
-  acknowledgeBudgetCap,
-  fetchBudgetCaps,
-  fetchCostRollup,
-} from '../cost-api';
+import { CostApiError, acknowledgeBudgetCap, fetchBudgetCaps, fetchCostRollup } from '../cost-api';
 
 // vi.mock is hoisted — factory must use vi.fn() without referencing outer vars
 vi.mock('@/lib/supabase', () => ({
@@ -34,10 +29,7 @@ vi.mock('@/lib/supabase', () => ({
 // Helpers
 // ---------------------------------------------------------------------------
 
-function mockInvoke(
-  data: unknown | null,
-  error: unknown | null = null,
-) {
+function mockInvoke(data: unknown | null, error: unknown | null = null) {
   (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
     data,
     error,
@@ -134,33 +126,33 @@ describe('fetchCostRollup', () => {
   it('throws CostApiError with kind=forbidden on 403', async () => {
     mockInvoke(null, { message: 'forbidden', status: 403 });
 
-    await expect(
-      fetchCostRollup({ vendors: ['cohere_rerank'] }),
-    ).rejects.toMatchObject({ kind: 'forbidden' });
+    await expect(fetchCostRollup({ vendors: ['cohere_rerank'] })).rejects.toMatchObject({
+      kind: 'forbidden',
+    });
   });
 
   it('throws CostApiError with kind=invalid_vendor on 400', async () => {
     mockInvoke(null, { message: 'invalid_vendor', status: 400 });
 
-    await expect(
-      fetchCostRollup({ vendors: ['cohere_rerank'] }),
-    ).rejects.toMatchObject({ kind: 'invalid_vendor' });
+    await expect(fetchCostRollup({ vendors: ['cohere_rerank'] })).rejects.toMatchObject({
+      kind: 'invalid_vendor',
+    });
   });
 
   it('throws CostApiError with kind=upstream_rate_limited on 429', async () => {
     mockInvoke(null, { message: 'upstream_rate_limited', status: 429 });
 
-    await expect(
-      fetchCostRollup({ vendors: ['firecrawl'] }),
-    ).rejects.toMatchObject({ kind: 'upstream_rate_limited' });
+    await expect(fetchCostRollup({ vendors: ['firecrawl'] })).rejects.toMatchObject({
+      kind: 'upstream_rate_limited',
+    });
   });
 
   it('throws CostApiError with kind=unknown on unexpected error', async () => {
     mockInvoke(null, { message: 'internal error', status: 500 });
 
-    await expect(
-      fetchCostRollup({ vendors: ['firecrawl'] }),
-    ).rejects.toMatchObject({ kind: 'unknown' });
+    await expect(fetchCostRollup({ vendors: ['firecrawl'] })).rejects.toMatchObject({
+      kind: 'unknown',
+    });
   });
 });
 
@@ -189,9 +181,7 @@ describe('acknowledgeBudgetCap', () => {
   it('throws CostApiError when RPC returns error', async () => {
     mockRpc(null, { message: 'forbidden', code: '42501' });
 
-    await expect(acknowledgeBudgetCap('cohere_rerank')).rejects.toBeInstanceOf(
-      CostApiError,
-    );
+    await expect(acknowledgeBudgetCap('cohere_rerank')).rejects.toBeInstanceOf(CostApiError);
   });
 });
 

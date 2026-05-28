@@ -115,9 +115,7 @@ describe('OrgCreateFlow — Step 1', () => {
     const slugInput = screen.getByLabelText(/Workspace URL/i);
     await userEvent.type(slugInput, 'acme');
     await userEvent.tab();
-    expect(
-      await screen.findByText('That URL is already taken. Try another.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('That URL is already taken. Try another.')).toBeInTheDocument();
   });
 
   it('disables Create workspace until name + slug pass', async () => {
@@ -187,9 +185,7 @@ describe('OrgCreateFlow — Submit flow', () => {
     const submitBtn = screen.getByRole('button', { name: /create workspace/i });
     await waitFor(() => expect(submitBtn).toBeEnabled());
     await userEvent.click(submitBtn);
-    expect(
-      await screen.findByText('That URL is already taken. Try another.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('That URL is already taken. Try another.')).toBeInTheDocument();
     // Form state preserved — name still in input
     expect((screen.getByLabelText(/Workspace name/i) as HTMLInputElement).value).toBe('Acme');
   });

@@ -105,7 +105,10 @@ export async function executeBulkAction(
  * existing RLS-scoped query and builds the CSV via Blob + anchor click
  * (same pattern as BulkExportCSVFlow.tsx).
  */
-export function buildAndDownloadCsv(rows: Record<string, unknown>[], filenamePrefix = 'members'): void {
+export function buildAndDownloadCsv(
+  rows: Record<string, unknown>[],
+  filenamePrefix = 'members',
+): void {
   if (rows.length === 0) return;
   const cols = Array.from(
     rows.reduce<Set<string>>((acc, r) => {

@@ -32,8 +32,7 @@ export function useDmInboxRealtime(
           table: 'direct_messages',
           filter: `recipient_user_id=eq.${userId}`,
         },
-        (payload) =>
-          onNewMessage(payload.new as { thread_id: string; sender_user_id: string }),
+        (payload) => onNewMessage(payload.new as { thread_id: string; sender_user_id: string }),
       )
       .subscribe((status: string) => {
         if (status === 'CHANNEL_ERROR') {

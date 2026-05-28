@@ -141,13 +141,13 @@ export function useAuditEvents({
     const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
 
     if (countResult.error) {
-      setError('Couldn\'t load audit events. Check your connection and try again.');
+      setError("Couldn't load audit events. Check your connection and try again.");
       setLoading(false);
       return;
     }
 
     if (dataResult.error) {
-      setError('Couldn\'t load audit events. Check your connection and try again.');
+      setError("Couldn't load audit events. Check your connection and try again.");
       setLoading(false);
       return;
     }

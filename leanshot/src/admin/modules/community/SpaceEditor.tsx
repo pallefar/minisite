@@ -103,21 +103,19 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
       setLeaderboardEnabled(!next);
       toast(`Failed to update leaderboard: ${error.message}`, 'error');
     } else {
-      toast(
-        next ? 'Leaderboard enabled for this space.' : 'Leaderboard disabled.',
-        'success',
-      );
+      toast(next ? 'Leaderboard enabled for this space.' : 'Leaderboard disabled.', 'success');
     }
     setLeaderboardBusy(false);
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
 
-  const nameError = name.trim().length === 0
-    ? 'Space name is required.'
-    : name.length > 80
-    ? 'Name must be 80 characters or fewer.'
-    : '';
+  const nameError =
+    name.trim().length === 0
+      ? 'Space name is required.'
+      : name.length > 80
+        ? 'Name must be 80 characters or fewer.'
+        : '';
 
   const isValid = !nameError;
 
@@ -150,10 +148,7 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
       toast(`Space "${payload.name}" created.`, 'success');
       onSaved((data as { id: string }).id);
     } else {
-      const { error } = await supabase
-        .from('community_spaces')
-        .update(payload)
-        .eq('id', spaceId!);
+      const { error } = await supabase.from('community_spaces').update(payload).eq('id', spaceId!);
 
       if (error) {
         toast(`Failed to update space: ${error.message}`, 'error');
@@ -171,21 +166,20 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
-    return (
-      <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading space…</div>
-    );
+    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading space…</div>;
   }
 
   return (
     <div className="space-y-5 p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] max-w-lg">
-      <h3 className="text-base font-semibold">
-        {isNew ? 'New community space' : `Edit space`}
-      </h3>
+      <h3 className="text-base font-semibold">{isNew ? 'New community space' : `Edit space`}</h3>
 
       {/* Space name */}
       <div>
         <label htmlFor="space-name" className="block text-sm font-medium mb-1">
-          Name <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+          Name{' '}
+          <span aria-hidden="true" className="text-[var(--color-danger)]">
+            *
+          </span>
         </label>
         <Input
           id="space-name"
@@ -234,7 +228,9 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
           className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-60"
         >
           {MIN_TIER_OPTIONS.map((o) => (
-            <option key={o.id} value={o.id}>{o.label}</option>
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>
@@ -262,8 +258,8 @@ export function SpaceEditor({ spaceId, onSaved }: SpaceEditorProps) {
           <div>
             <p className="text-sm font-medium">Enable leaderboard for this space</p>
             <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-              When enabled, members who opted in to the leaderboard see ranks +
-              points within this space. Toggle persists via{' '}
+              When enabled, members who opted in to the leaderboard see ranks + points within this
+              space. Toggle persists via{' '}
               <code className="font-mono text-[10px]">admin_toggle_space_leaderboard</code>.
             </p>
           </div>

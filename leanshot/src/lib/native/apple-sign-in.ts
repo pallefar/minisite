@@ -65,9 +65,9 @@ export async function signInWithAppleNative(): Promise<{ error: { message: strin
     const result = await SignInWithApple.authorize({
       clientId: 'app.leanshot.ios',
       redirectURI: '',
-      scopes: 'name',             // IN-01: email excluded (app never reads it; avoids relay-email prompt)
+      scopes: 'name', // IN-01: email excluded (app never reads it; avoids relay-email prompt)
       state: crypto.randomUUID(),
-      nonce: hashedNonce,         // Apple signs SHA256(rawNonce) into the JWT
+      nonce: hashedNonce, // Apple signs SHA256(rawNonce) into the JWT
     });
 
     // identityToken is required by the Apple response type; guard against
@@ -82,13 +82,12 @@ export async function signInWithAppleNative(): Promise<{ error: { message: strin
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'apple',
       token: identityToken,
-      nonce: rawNonce,            // CR-01: GoTrue hashes this and compares to the JWT nonce claim
+      nonce: rawNonce, // CR-01: GoTrue hashes this and compares to the JWT nonce claim
     });
 
     return { error: error ? { message: error.message } : null };
   } catch (err) {
-    const message =
-      err instanceof Error && err.message ? err.message : 'apple_native_failed';
+    const message = err instanceof Error && err.message ? err.message : 'apple_native_failed';
     return { error: { message } };
   }
 }

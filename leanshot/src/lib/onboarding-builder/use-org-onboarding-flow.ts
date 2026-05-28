@@ -145,7 +145,10 @@ export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
 
         if (orgError) {
           // RLS recursion or other error — continue without org name (best-effort)
-          console.warn('[useOrgOnboardingFlow] organizations SELECT failed (continuing without org name):', orgError.message);
+          console.warn(
+            '[useOrgOnboardingFlow] organizations SELECT failed (continuing without org name):',
+            orgError.message,
+          );
         } else {
           orgName = orgData?.name ?? null;
         }
@@ -161,7 +164,10 @@ export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
         if (cancelled) return;
 
         if (flowError) {
-          console.warn('[useOrgOnboardingFlow] org_onboarding_flows SELECT failed:', flowError.message);
+          console.warn(
+            '[useOrgOnboardingFlow] org_onboarding_flows SELECT failed:',
+            flowError.message,
+          );
           setState(CONSUMER_STATE);
           return;
         }
@@ -194,8 +200,8 @@ export function useOrgOnboardingFlow(): OrgOnboardingFlowState {
     return () => {
       cancelled = true;
     };
-  // Re-run when signedInUser changes (e.g., INITIAL_SESSION fires after mount)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Re-run when signedInUser changes (e.g., INITIAL_SESSION fires after mount)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedInUser?.id]);
 
   return state;

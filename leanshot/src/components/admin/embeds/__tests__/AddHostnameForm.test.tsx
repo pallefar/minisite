@@ -51,12 +51,7 @@ describe('AddHostnameForm', () => {
   ) {
     const { AddHostnameForm } = await import('../AddHostnameForm');
     const onAdded = overrides.onAdded ?? vi.fn();
-    render(
-      <AddHostnameForm
-        allowlist={overrides.allowlist ?? []}
-        onAdded={onAdded}
-      />,
-    );
+    render(<AddHostnameForm allowlist={overrides.allowlist ?? []} onAdded={onAdded} />);
     return { onAdded };
   }
 
@@ -94,27 +89,21 @@ describe('AddHostnameForm', () => {
     await setup();
     fireEvent.change(getInput(), { target: { value: '*.example.com' } });
     fireEvent.click(getSubmit());
-    expect(
-      await screen.findByText(/wildcards and leading dots are not supported/i),
-    ).toBeTruthy();
+    expect(await screen.findByText(/wildcards and leading dots are not supported/i)).toBeTruthy();
   });
 
   it('T5: leading dot shows wildcard error', async () => {
     await setup();
     fireEvent.change(getInput(), { target: { value: '.example.com' } });
     fireEvent.click(getSubmit());
-    expect(
-      await screen.findByText(/wildcards and leading dots are not supported/i),
-    ).toBeTruthy();
+    expect(await screen.findByText(/wildcards and leading dots are not supported/i)).toBeTruthy();
   });
 
   it('T6: duplicate shows "[hostname] is already on the allowlist"', async () => {
     await setup({ allowlist: [{ hostname: 'meet.example.com' }] });
     fireEvent.change(getInput(), { target: { value: 'meet.example.com' } });
     fireEvent.click(getSubmit());
-    expect(
-      await screen.findByText('meet.example.com is already on the allowlist'),
-    ).toBeTruthy();
+    expect(await screen.findByText('meet.example.com is already on the allowlist')).toBeTruthy();
   });
 
   it('T7: valid input calls addHostname + onAdded + clears + toast success', async () => {
@@ -131,10 +120,7 @@ describe('AddHostnameForm', () => {
       expect(onAdded).toHaveBeenCalledWith('meet.example.com');
     });
     expect(getInput().value).toBe('');
-    expect(mockShowToast).toHaveBeenCalledWith(
-      'Added meet.example.com to allowlist',
-      'success',
-    );
+    expect(mockShowToast).toHaveBeenCalledWith('Added meet.example.com to allowlist', 'success');
   });
 
   it('T8: 42501 server error shows "Only superadmins can add hostnames"', async () => {
@@ -142,8 +128,6 @@ describe('AddHostnameForm', () => {
     await setup();
     fireEvent.change(getInput(), { target: { value: 'meet.example.com' } });
     fireEvent.click(getSubmit());
-    expect(
-      await screen.findByText('Only superadmins can add hostnames'),
-    ).toBeTruthy();
+    expect(await screen.findByText('Only superadmins can add hostnames')).toBeTruthy();
   });
 });

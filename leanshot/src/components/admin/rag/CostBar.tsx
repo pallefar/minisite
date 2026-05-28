@@ -37,10 +37,7 @@ export function CostBar({ mtdUsd, capUsd }: CostBarProps) {
         aria-label={label}
         className="h-1 rounded-pill bg-[var(--color-surface-elevated)] overflow-hidden"
       >
-        <div
-          className="h-full rounded-pill"
-          style={{ width: `${pct}%`, backgroundColor: color }}
-        />
+        <div className="h-full rounded-pill" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
       <p className="mt-1 text-xs font-mono tabular-nums text-[var(--color-text-secondary)]">
         ${mtdUsd.toFixed(2)} of ${capUsd.toFixed(2)} MTD · {pct.toFixed(0)}%

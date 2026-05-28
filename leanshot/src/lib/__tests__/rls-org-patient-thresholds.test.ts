@@ -46,13 +46,17 @@ describeIfLive('P30 RLS — org_patient_thresholds cross-tenant isolation', () =
 
     // Seed an org_patient_links row for Org Y (required by FK before threshold insert)
     // User B (patient) is linked to Org Y by User B (acting as admin for test seeding)
-    const { error: linkYErr } = await admin.from('org_patient_links').insert({
-      org_id: fixture.orgY,
-      patient_user_id: fixture.userB,
-      linked_by: fixture.userB,
-      linked_at: new Date().toISOString(),
-      consent_grant_id: null,
-    }).select('org_id').single();
+    const { error: linkYErr } = await admin
+      .from('org_patient_links')
+      .insert({
+        org_id: fixture.orgY,
+        patient_user_id: fixture.userB,
+        linked_by: fixture.userB,
+        linked_at: new Date().toISOString(),
+        consent_grant_id: null,
+      })
+      .select('org_id')
+      .single();
 
     // Link may already exist; ignore conflict errors
     if (linkYErr && !linkYErr.message.includes('duplicate')) {
@@ -61,14 +65,12 @@ describeIfLive('P30 RLS — org_patient_thresholds cross-tenant isolation', () =
     }
 
     // Seed 1 threshold in Org Y (User B's org) via service-role bypass
-    const { error: threshYErr } = await admin
-      .from('org_patient_thresholds')
-      .insert({
-        org_id: fixture.orgY,
-        patient_user_id: fixture.userB,
-        thresholds: DEFAULT_THRESHOLDS,
-        set_by: fixture.userB,
-      });
+    const { error: threshYErr } = await admin.from('org_patient_thresholds').insert({
+      org_id: fixture.orgY,
+      patient_user_id: fixture.userB,
+      thresholds: DEFAULT_THRESHOLDS,
+      set_by: fixture.userB,
+    });
 
     if (!threshYErr) {
       orgYThresholdExists = true;
@@ -77,27 +79,29 @@ describeIfLive('P30 RLS — org_patient_thresholds cross-tenant isolation', () =
     }
 
     // Seed an org_patient_links row for Org X (User A linked to Org X)
-    const { error: linkXErr } = await admin.from('org_patient_links').insert({
-      org_id: fixture.orgX,
-      patient_user_id: fixture.userA,
-      linked_by: fixture.userA,
-      linked_at: new Date().toISOString(),
-      consent_grant_id: null,
-    }).select('org_id').single();
+    const { error: linkXErr } = await admin
+      .from('org_patient_links')
+      .insert({
+        org_id: fixture.orgX,
+        patient_user_id: fixture.userA,
+        linked_by: fixture.userA,
+        linked_at: new Date().toISOString(),
+        consent_grant_id: null,
+      })
+      .select('org_id')
+      .single();
 
     if (linkXErr && !linkXErr.message.includes('duplicate')) {
       console.warn(`Seed Org X link warning: ${linkXErr.message}`);
     }
 
     // Seed 1 threshold in Org X (User A's org) for T3b
-    const { error: threshXErr } = await admin
-      .from('org_patient_thresholds')
-      .insert({
-        org_id: fixture.orgX,
-        patient_user_id: fixture.userA,
-        thresholds: DEFAULT_THRESHOLDS,
-        set_by: fixture.userA,
-      });
+    const { error: threshXErr } = await admin.from('org_patient_thresholds').insert({
+      org_id: fixture.orgX,
+      patient_user_id: fixture.userA,
+      thresholds: DEFAULT_THRESHOLDS,
+      set_by: fixture.userA,
+    });
 
     if (!threshXErr) {
       orgXThresholdExists = true;
@@ -123,14 +127,12 @@ describeIfLive('P30 RLS — org_patient_thresholds cross-tenant isolation', () =
 
   // ─── T4: Cross-tenant INSERT returns error (no INSERT policy) ───────────────
   it('T4: User A cannot INSERT into org_patient_thresholds of Org Y', async () => {
-    const { error } = await fixture.sessA.client
-      .from('org_patient_thresholds')
-      .insert({
-        org_id: fixture.orgY,
-        patient_user_id: fixture.userB,
-        thresholds: { missed_doses_n: 3, window_days_m: 21, variance_pct_x: 30 },
-        set_by: fixture.userA,
-      });
+    const { error } = await fixture.sessA.client.from('org_patient_thresholds').insert({
+      org_id: fixture.orgY,
+      patient_user_id: fixture.userB,
+      thresholds: { missed_doses_n: 3, window_days_m: 21, variance_pct_x: 30 },
+      set_by: fixture.userA,
+    });
 
     expect(error).not.toBeNull();
   });

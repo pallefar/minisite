@@ -116,10 +116,9 @@ export default function ClinicBillingCard({ orgId, orgSlug }: ClinicBillingCardP
         }
 
         // Fetch active patient count via SECDEF RPC (D-01).
-        const { data: countData, error: countError } = await supabase.rpc(
-          'count_active_patients',
-          { p_org_id: orgId },
-        );
+        const { data: countData, error: countError } = await supabase.rpc('count_active_patients', {
+          p_org_id: orgId,
+        });
 
         if (countError) {
           // Non-fatal — count may be 0 if function fails; log + continue.
@@ -128,9 +127,7 @@ export default function ClinicBillingCard({ orgId, orgSlug }: ClinicBillingCardP
 
         if (!cancelled) {
           setSubscription(subData as ClinicSubscriptionRow | null);
-          setActivePatientCount(
-            typeof countData === 'number' ? countData : null,
-          );
+          setActivePatientCount(typeof countData === 'number' ? countData : null);
           setLoading(false);
         }
       } catch (err) {
@@ -159,7 +156,9 @@ export default function ClinicBillingCard({ orgId, orgSlug }: ClinicBillingCardP
     void (async () => {
       try {
         // Ensure auth token is fresh before subscribing (Phase 9 Pitfall #2).
-        await supabase.realtime.setAuth((await supabase.auth.getSession()).data.session?.access_token ?? null);
+        await supabase.realtime.setAuth(
+          (await supabase.auth.getSession()).data.session?.access_token ?? null,
+        );
 
         const channelName = await channelNameFor(orgId, 'subscriptions');
         if (cancelled) return;
@@ -213,11 +212,7 @@ export default function ClinicBillingCard({ orgId, orgSlug }: ClinicBillingCardP
     return (
       <Card variant="elevated" span={8}>
         <CardHeader title="Clinic Billing" />
-        <EmptyState
-          title="Billing unavailable"
-          body={error}
-          inline
-        />
+        <EmptyState title="Billing unavailable" body={error} inline />
       </Card>
     );
   }
@@ -269,7 +264,10 @@ export default function ClinicBillingCard({ orgId, orgSlug }: ClinicBillingCardP
               <span className="text-[13px] font-medium text-[var(--color-text-secondary)] min-w-[120px]">
                 Active patients
               </span>
-              <span className="text-[14px] text-[var(--color-text)]" data-testid="billing-active-count">
+              <span
+                className="text-[14px] text-[var(--color-text)]"
+                data-testid="billing-active-count"
+              >
                 {activePatientCount !== null ? activePatientCount : '—'}
               </span>
             </div>

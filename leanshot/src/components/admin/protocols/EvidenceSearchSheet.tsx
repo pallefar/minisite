@@ -185,9 +185,7 @@ export function EvidenceSearchSheet({
             </div>
           )}
 
-          {!loading && error && (
-            <p className="text-[13px] text-[var(--color-danger)]">{error}</p>
-          )}
+          {!loading && error && <p className="text-[13px] text-[var(--color-danger)]">{error}</p>}
 
           {!loading && !error && results.length === 0 && query && (
             <EmptyState

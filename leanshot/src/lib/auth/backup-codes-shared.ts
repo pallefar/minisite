@@ -85,10 +85,7 @@ function constantTimeEqual(a: string, b: string): boolean {
  * Caller is responsible for the single-use enforcement (DELETE / UPDATE
  * used_at = now()); this helper performs hash-equality ONLY.
  */
-export async function verifyBackupCode(
-  plaintext: string,
-  hexHash: string,
-): Promise<boolean> {
+export async function verifyBackupCode(plaintext: string, hexHash: string): Promise<boolean> {
   const computed = await hashBackupCode(plaintext);
   return constantTimeEqual(computed, hexHash);
 }

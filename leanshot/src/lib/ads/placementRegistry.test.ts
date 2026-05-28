@@ -115,8 +115,7 @@ describe('fetchPlacements — fail-safe returns [] on error', () => {
     vi.doMock('@/lib/supabase', () => ({
       supabase: {
         from: () => ({
-          select: () =>
-            Promise.resolve({ data: null, error: new Error('network failure') }),
+          select: () => Promise.resolve({ data: null, error: new Error('network failure') }),
         }),
       },
     }));

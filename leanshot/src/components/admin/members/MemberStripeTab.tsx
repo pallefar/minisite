@@ -25,7 +25,11 @@ export interface MemberStripeTabProps {
   onOpenRefund?: (charge: RefundCharge) => void;
 }
 
-export function MemberStripeTab({ userId: _userId, charges = [], onOpenRefund }: MemberStripeTabProps) {
+export function MemberStripeTab({
+  userId: _userId,
+  charges = [],
+  onOpenRefund,
+}: MemberStripeTabProps) {
   if (charges.length === 0) {
     return (
       <Card variant="flat" padding="lg" data-testid="member-stripe-tab">
@@ -39,7 +43,12 @@ export function MemberStripeTab({ userId: _userId, charges = [], onOpenRefund }:
   }
 
   return (
-    <Card variant="default" padding="none" className="overflow-x-auto" data-testid="member-stripe-tab">
+    <Card
+      variant="default"
+      padding="none"
+      className="overflow-x-auto"
+      data-testid="member-stripe-tab"
+    >
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--color-border)]">
@@ -62,7 +71,9 @@ export function MemberStripeTab({ userId: _userId, charges = [], onOpenRefund }:
               </td>
               <td className="px-4 py-3 text-sm tabular-nums">${(row.amount / 100).toFixed(2)}</td>
               <td className="px-4 py-3 text-xs">paid</td>
-              <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{row.descriptor}</td>
+              <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">
+                {row.descriptor}
+              </td>
               <td className="px-4 py-3 text-end">
                 <Button
                   size="sm"

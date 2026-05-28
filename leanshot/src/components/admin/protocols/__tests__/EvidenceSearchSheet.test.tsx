@@ -39,9 +39,24 @@ vi.mock('@/lib/supabase', () => ({
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const MOCK_CHUNKS = [
-  { chunk_id: 'c1', title: 'Tirzepatide dosing study', text: 'Week 1: 2.5mg starting dose...', tier: 'A' as const },
-  { chunk_id: 'c2', title: 'GLP-1 monitoring protocol', text: 'Monitor glucose weekly for first 4 weeks...', tier: 'B' as const },
-  { chunk_id: 'c3', title: 'Safety review data', text: 'GI side effects observed in 30% of patients...', tier: 'C' as const },
+  {
+    chunk_id: 'c1',
+    title: 'Tirzepatide dosing study',
+    text: 'Week 1: 2.5mg starting dose...',
+    tier: 'A' as const,
+  },
+  {
+    chunk_id: 'c2',
+    title: 'GLP-1 monitoring protocol',
+    text: 'Monitor glucose weekly for first 4 weeks...',
+    tier: 'B' as const,
+  },
+  {
+    chunk_id: 'c3',
+    title: 'Safety review data',
+    text: 'GI side effects observed in 30% of patients...',
+    tier: 'C' as const,
+  },
 ];
 
 describe('EvidenceSearchSheet', () => {

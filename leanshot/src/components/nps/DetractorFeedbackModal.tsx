@@ -37,10 +37,7 @@ export interface DetractorFeedbackModalProps {
   onDismiss: () => void;
 }
 
-export function DetractorFeedbackModal({
-  open,
-  onDismiss,
-}: DetractorFeedbackModalProps) {
+export function DetractorFeedbackModal({ open, onDismiss }: DetractorFeedbackModalProps) {
   const [value, setValue] = useState('');
   const [view, setView] = useState<ViewState>('form');
   const [loading, setLoading] = useState(false);
@@ -80,11 +77,7 @@ export function DetractorFeedbackModal({
     >
       {view === 'success' ? (
         <div className="flex flex-col items-center gap-4 py-4">
-          <Check
-            size={32}
-            className="text-[var(--color-success)]"
-            aria-hidden
-          />
+          <Check size={32} className="text-[var(--color-success)]" aria-hidden />
           <h2 className="text-2xl font-display">Thanks — we&apos;ll be in touch</h2>
           <p className="text-base text-[var(--color-text-secondary)] text-center">
             We&apos;ve created a support ticket. You&apos;ll hear from us within 24 hours.

@@ -33,7 +33,12 @@ export interface PhotosSectionProps {
   onMount?: (name: string) => void;
 }
 
-export function PhotosSection({ data, viewerMode: _viewerMode, orgId: _orgId, onMount }: PhotosSectionProps) {
+export function PhotosSection({
+  data,
+  viewerMode: _viewerMode,
+  orgId: _orgId,
+  onMount,
+}: PhotosSectionProps) {
   const firedRef = useRef(false);
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function PhotosSection({ data, viewerMode: _viewerMode, orgId: _orgId, on
       firedRef.current = true;
       onMount('photos');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

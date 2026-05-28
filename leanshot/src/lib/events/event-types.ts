@@ -47,7 +47,7 @@ export interface Event {
   title: string;
   description: string | null;
   start_at: string; // ISO timestamptz
-  end_at: string;   // ISO timestamptz
+  end_at: string; // ISO timestamptz
   capacity: number;
   cover_url: string | null;
   zoom_managed: boolean;

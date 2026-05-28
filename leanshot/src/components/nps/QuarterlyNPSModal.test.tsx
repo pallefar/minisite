@@ -115,9 +115,7 @@ describe('<QuarterlyNPSModal /> — Plan 42-10 Task 1', () => {
 
   it('Modal T1: renders 5 star buttons + textarea + Submit + Skip', () => {
     const onClose = vi.fn();
-    render(
-      <QuarterlyNPSModal open onClose={onClose} nonce="n-1" quarter="2026-Q2" />,
-    );
+    render(<QuarterlyNPSModal open onClose={onClose} nonce="n-1" quarter="2026-Q2" />);
     // 5 stars with aria-label "Rate N star(s)".
     for (let i = 1; i <= 5; i++) {
       expect(

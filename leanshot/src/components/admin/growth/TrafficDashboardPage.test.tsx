@@ -64,9 +64,7 @@ describe('TrafficDashboardPage shell', () => {
       screen.getByRole('heading', { level: 1, name: /Traffic & Conversion/i }),
     ).toBeInTheDocument();
     // Default-admin subtitle copy
-    expect(
-      screen.getByText('Multi-channel acquisition + funnel intelligence'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Multi-channel acquisition + funnel intelligence')).toBeInTheDocument();
   });
 
   it('T2: renders 5 PillGroup tabs in correct order with role=tablist', async () => {
@@ -108,11 +106,7 @@ describe('TrafficDashboardPage shell', () => {
       expect(funnelsPill).toHaveAttribute('aria-pressed', 'true');
     });
     expect(channelsPill).toHaveAttribute('aria-pressed', 'false');
-    expect(pushSpy).toHaveBeenCalledWith(
-      null,
-      '',
-      '/admin/growth/traffic/funnels',
-    );
+    expect(pushSpy).toHaveBeenCalledWith(null, '', '/admin/growth/traffic/funnels');
   });
 
   it('T4: initial render reads window.location.pathname — realtime path → Real-time tab active', async () => {
@@ -141,9 +135,7 @@ describe('TrafficDashboardPage shell', () => {
     const { TrafficDashboardPage } = await import('./TrafficDashboardPage');
     render(<TrafficDashboardPage />);
 
-    expect(
-      screen.getByText('Traffic & Conversion — Acme Clinic'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Traffic & Conversion — Acme Clinic')).toBeInTheDocument();
     // Default-admin subtitle should NOT be present.
     expect(
       screen.queryByText('Multi-channel acquisition + funnel intelligence'),

@@ -80,7 +80,8 @@ export function MedicationTab() {
     .reduce((s, c) => s + (c.amount || 0), 0);
 
   const submitInjection = (): void => {
-    if (!injForm.datetime) return toast(t('patient:tab.medication.toast_datetime_required'), 'error');
+    if (!injForm.datetime)
+      return toast(t('patient:tab.medication.toast_datetime_required'), 'error');
     addInjection(injForm as Injection);
     toast(t('patient:tab.medication.toast_injection_logged'));
     setInjForm({
@@ -94,21 +95,35 @@ export function MedicationTab() {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
-      <StatTile label={t('patient:tab.medication.stat_current_dose')} value={user.dose} unit={user.doseUnit} />
+      <StatTile
+        label={t('patient:tab.medication.stat_current_dose')}
+        value={user.dose}
+        unit={user.doseUnit}
+      />
       <StatTile
         label={t('patient:tab.medication.stat_last_shot')}
         value={lastInjDays != null ? lastInjDays : '—'}
         unit={lastInjDays != null ? t('patient:tab.medication.stat_last_shot_unit') : ''}
       />
-      <StatTile label={t('patient:tab.medication.stat_total_injections')} value={injections.length} />
-      <StatTile label={t('patient:tab.medication.stat_doses_remaining')} value={totalRemaining > 0 ? totalRemaining : '—'} />
+      <StatTile
+        label={t('patient:tab.medication.stat_total_injections')}
+        value={injections.length}
+      />
+      <StatTile
+        label={t('patient:tab.medication.stat_doses_remaining')}
+        value={totalRemaining > 0 ? totalRemaining : '—'}
+      />
 
       {/* Hero: full-width medication-level chart */}
       <Card span={12}>
         <CardHeader
           title={t('patient:tab.medication.chart_title')}
           icon={<ChartLine className="size-4" />}
-          action={<Badge tone="info">{t('patient:tab.medication.half_life_badge', { days: halfLifeDays })}</Badge>}
+          action={
+            <Badge tone="info">
+              {t('patient:tab.medication.half_life_badge', { days: halfLifeDays })}
+            </Badge>
+          }
         />
         <MedLevelChart height={300} />
         <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
@@ -237,8 +252,13 @@ export function MedicationTab() {
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-bold truncate">{v.name || `Vial ${i + 1}`}</p>
                     <p className="text-[12px] text-[var(--color-text-secondary)] numerals-tabular">
-                      {t('patient:tab.medication.vial_doses_of', { remaining, total: v.dosesPerVial })}
-                      {expDays != null ? ` · ${t('patient:tab.medication.vial_expires', { days: expDays })}` : ''}
+                      {t('patient:tab.medication.vial_doses_of', {
+                        remaining,
+                        total: v.dosesPerVial,
+                      })}
+                      {expDays != null
+                        ? ` · ${t('patient:tab.medication.vial_expires', { days: expDays })}`
+                        : ''}
                     </p>
                     <div className="flex gap-2 mt-2">
                       <Button
@@ -267,39 +287,44 @@ export function MedicationTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.medication.titration_title')} icon={<TrendingUp className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.medication.titration_title')}
+          icon={<TrendingUp className="size-4" />}
+        />
         {titList ? (
           <div className="flex gap-4 items-start">
             <CalendarDose className="w-24 shrink-0" />
             <div className="flex-1 space-y-1.5">
-            {titList.map((step) => {
-              const wks = step.w.split('–');
-              const start = parseInt(wks[0] ?? '0') || 0;
-              const end = wks[1] ? parseInt(wks[1]) : 999;
-              const isCurrent = weeks >= start && weeks <= end;
-              return (
-                <div
-                  key={step.d + step.w}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-2xl border',
-                    isCurrent
-                      ? 'bg-[var(--color-primary-soft)] border-[var(--color-primary)]'
-                      : 'bg-[var(--color-surface-elevated)] border-[var(--color-border)]',
-                  )}
-                >
-                  <span className="font-bold text-[14px] min-w-[60px]">{step.d}</span>
-                  <span className="flex-1 text-[12px] text-[var(--color-text-secondary)]">
-                    <strong className="text-[var(--color-text)]">{t('patient:tab.medication.titration_week', { week: step.w })}</strong>
-                    {step.n ? ` — ${step.n}` : ''}
-                  </span>
-                  {isCurrent && (
-                    <Badge tone="info" pulse>
-                      {t('patient:tab.medication.titration_you')}
-                    </Badge>
-                  )}
-                </div>
-              );
-            })}
+              {titList.map((step) => {
+                const wks = step.w.split('–');
+                const start = parseInt(wks[0] ?? '0') || 0;
+                const end = wks[1] ? parseInt(wks[1]) : 999;
+                const isCurrent = weeks >= start && weeks <= end;
+                return (
+                  <div
+                    key={step.d + step.w}
+                    className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-2xl border',
+                      isCurrent
+                        ? 'bg-[var(--color-primary-soft)] border-[var(--color-primary)]'
+                        : 'bg-[var(--color-surface-elevated)] border-[var(--color-border)]',
+                    )}
+                  >
+                    <span className="font-bold text-[14px] min-w-[60px]">{step.d}</span>
+                    <span className="flex-1 text-[12px] text-[var(--color-text-secondary)]">
+                      <strong className="text-[var(--color-text)]">
+                        {t('patient:tab.medication.titration_week', { week: step.w })}
+                      </strong>
+                      {step.n ? ` — ${step.n}` : ''}
+                    </span>
+                    {isCurrent && (
+                      <Badge tone="info" pulse>
+                        {t('patient:tab.medication.titration_you')}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -310,7 +335,10 @@ export function MedicationTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.medication.recent_title')} icon={<ListChecks className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.medication.recent_title')}
+          icon={<ListChecks className="size-4" />}
+        />
         {injections.length === 0 ? (
           <EmptyState
             inline
@@ -323,61 +351,74 @@ export function MedicationTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_date')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_dose')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_site')}</th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_date')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_dose')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_site')}
+                  </th>
                   <th className="px-1" aria-hidden></th>
                 </tr>
               </thead>
               <tbody>
                 {injections.slice(0, 8).map((i, idx) => {
-                    // Phase 61 Plan 07 — Expected/Logged deviation row (PROTOCOL-07).
-                    // Non-destructive: only annotates; never overwrites logged data.
-                    // Only show when: active assignment exists, currentStep exists,
-                    // logged dose differs from expected, and dose is in 'mg' units.
-                    const expectedMg = activeAssignment?.currentStep?.dose_mg ?? null;
-                    const loggedMg = i.unit === 'mg' ? parseFloat(i.dose) : null;
-                    const showDeviation =
-                      expectedMg !== null &&
-                      loggedMg !== null &&
-                      !isNaN(loggedMg) &&
-                      Math.abs(expectedMg - loggedMg) > Number.EPSILON;
-                    const deviationPct =
-                      showDeviation && expectedMg !== 0
-                        ? Math.abs(expectedMg - loggedMg!) / expectedMg
-                        : 0;
-                    const loggedClass =
-                      deviationPct > 0.2
-                        ? 'text-[var(--color-warning)]'
-                        : 'text-[var(--color-text-secondary)]';
-                    return (
-                      <tr key={idx} className="border-t border-[var(--color-border)]">
-                        <td className="py-2 px-1">{formatShort(i.datetime)}</td>
-                        <td className="py-2 px-1">
-                          <span className="font-bold numerals-tabular">{i.dose} {i.unit}</span>
-                          {showDeviation && (
-                            <div className="text-[11px] text-[var(--color-text-secondary)] mt-0.5">
-                              Expected: <span className="font-mono tabular-nums">{expectedMg}mg</span>
-                              <span className="mx-1 text-[var(--color-text-tertiary)]">•</span>
-                              Logged: <span className={cn('font-mono tabular-nums', loggedClass)}>{loggedMg}mg</span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-2 px-1 text-[var(--color-text-secondary)]">
-                          {siteShort(i.site ?? '—')}
-                        </td>
-                        <td className="py-2 px-1 text-end">
-                          <button
-                            onClick={() => removeInjection(idx)}
-                            aria-label={t('patient:tab.medication.aria_delete_injection', { date: formatShort(i.datetime) })}
-                            className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
-                          >
-                            <X className="size-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  // Phase 61 Plan 07 — Expected/Logged deviation row (PROTOCOL-07).
+                  // Non-destructive: only annotates; never overwrites logged data.
+                  // Only show when: active assignment exists, currentStep exists,
+                  // logged dose differs from expected, and dose is in 'mg' units.
+                  const expectedMg = activeAssignment?.currentStep?.dose_mg ?? null;
+                  const loggedMg = i.unit === 'mg' ? parseFloat(i.dose) : null;
+                  const showDeviation =
+                    expectedMg !== null &&
+                    loggedMg !== null &&
+                    !isNaN(loggedMg) &&
+                    Math.abs(expectedMg - loggedMg) > Number.EPSILON;
+                  const deviationPct =
+                    showDeviation && expectedMg !== 0
+                      ? Math.abs(expectedMg - loggedMg!) / expectedMg
+                      : 0;
+                  const loggedClass =
+                    deviationPct > 0.2
+                      ? 'text-[var(--color-warning)]'
+                      : 'text-[var(--color-text-secondary)]';
+                  return (
+                    <tr key={idx} className="border-t border-[var(--color-border)]">
+                      <td className="py-2 px-1">{formatShort(i.datetime)}</td>
+                      <td className="py-2 px-1">
+                        <span className="font-bold numerals-tabular">
+                          {i.dose} {i.unit}
+                        </span>
+                        {showDeviation && (
+                          <div className="text-[11px] text-[var(--color-text-secondary)] mt-0.5">
+                            Expected: <span className="font-mono tabular-nums">{expectedMg}mg</span>
+                            <span className="mx-1 text-[var(--color-text-tertiary)]">•</span>
+                            Logged:{' '}
+                            <span className={cn('font-mono tabular-nums', loggedClass)}>
+                              {loggedMg}mg
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2 px-1 text-[var(--color-text-secondary)]">
+                        {siteShort(i.site ?? '—')}
+                      </td>
+                      <td className="py-2 px-1 text-end">
+                        <button
+                          onClick={() => removeInjection(idx)}
+                          aria-label={t('patient:tab.medication.aria_delete_injection', {
+                            date: formatShort(i.datetime),
+                          })}
+                          className="size-7 rounded-md text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-elevated)] inline-flex items-center justify-center"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -400,13 +441,22 @@ export function MedicationTab() {
           }
         />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
-          <CostTile label={t('patient:tab.medication.cost_total')} value={`$${totalSpent.toFixed(0)}`} />
+          <CostTile
+            label={t('patient:tab.medication.cost_total')}
+            value={`$${totalSpent.toFixed(0)}`}
+          />
           <CostTile
             label={t('patient:tab.medication.cost_per_dose')}
             value={`$${injections.length > 0 ? (totalSpent / injections.length).toFixed(0) : '0'}`}
           />
-          <CostTile label={t('patient:tab.medication.cost_last_30')} value={`$${monthly.toFixed(0)}`} />
-          <CostTile label={t('patient:tab.medication.cost_annual')} value={`$${(monthly * 12).toFixed(0)}`} />
+          <CostTile
+            label={t('patient:tab.medication.cost_last_30')}
+            value={`$${monthly.toFixed(0)}`}
+          />
+          <CostTile
+            label={t('patient:tab.medication.cost_annual')}
+            value={`$${(monthly * 12).toFixed(0)}`}
+          />
         </div>
         {costs.length === 0 ? (
           <EmptyState
@@ -429,10 +479,18 @@ export function MedicationTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_date')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_type')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_amount')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.medication.col_notes')}</th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_date')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_type')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_amount')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.medication.col_notes')}
+                  </th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -513,7 +571,12 @@ function VialModal({ open, onClose, onAdd }: VialModalProps) {
   });
   const toast = useToast();
   return (
-    <Modal open={open} onClose={onClose} title={t('patient:tab.medication.action_add_vial')} mobileFullscreen>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('patient:tab.medication.action_add_vial')}
+      mobileFullscreen
+    >
       <div className="space-y-3">
         <Input
           label={t('patient:tab.medication.vial_label')}
@@ -554,7 +617,8 @@ function VialModal({ open, onClose, onAdd }: VialModalProps) {
         <Button
           block
           onClick={() => {
-            if (!draft.dosesPerVial) return toast(t('patient:tab.medication.vial_doses_required'), 'error');
+            if (!draft.dosesPerVial)
+              return toast(t('patient:tab.medication.vial_doses_required'), 'error');
             onAdd(draft);
           }}
         >
@@ -580,7 +644,12 @@ function CostModal({ open, onClose, onAdd }: CostModalProps) {
   });
   const toast = useToast();
   return (
-    <Modal open={open} onClose={onClose} title={t('patient:tab.medication.action_add_expense')} mobileFullscreen>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('patient:tab.medication.action_add_expense')}
+      mobileFullscreen
+    >
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <Input
@@ -620,7 +689,8 @@ function CostModal({ open, onClose, onAdd }: CostModalProps) {
         <Button
           block
           onClick={() => {
-            if (!draft.date || !draft.amount) return toast(t('patient:tab.medication.cost_date_amount_required'), 'error');
+            if (!draft.date || !draft.amount)
+              return toast(t('patient:tab.medication.cost_date_amount_required'), 'error');
             onAdd(draft);
           }}
         >

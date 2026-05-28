@@ -42,7 +42,9 @@ describe('RemoveHostnameConfirm', () => {
     mockDismissToast.mockReset();
   });
 
-  async function renderConfirm(overrides: { inUse?: boolean; onClose?: () => void; onRemoved?: () => void } = {}) {
+  async function renderConfirm(
+    overrides: { inUse?: boolean; onClose?: () => void; onRemoved?: () => void } = {},
+  ) {
     const { RemoveHostnameConfirm } = await import('../RemoveHostnameConfirm');
     const onClose = overrides.onClose ?? vi.fn();
     const onRemoved = overrides.onRemoved ?? vi.fn();
@@ -65,9 +67,7 @@ describe('RemoveHostnameConfirm', () => {
     expect(
       screen.getAllByText(/Remove meet\.example\.com from allowlist\?/i).length,
     ).toBeGreaterThan(0);
-    expect(
-      screen.getByText(/This hostname is not in use on any page/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/This hostname is not in use on any page/i)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Remove hostname' })).toBeTruthy();
   });
 

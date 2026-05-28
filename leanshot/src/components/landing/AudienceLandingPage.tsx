@@ -177,9 +177,7 @@ function HeroBlockView({ block }: { block: HeroBlock }): ReactElement {
           {block.headline ?? ''}
         </h1>
         {block.subhead ? (
-          <p className="text-lg text-text-on-hero-muted max-w-2xl mx-auto">
-            {block.subhead}
-          </p>
+          <p className="text-lg text-text-on-hero-muted max-w-2xl mx-auto">{block.subhead}</p>
         ) : null}
         {block.cta ? (
           href ? (
@@ -216,9 +214,7 @@ function FeatureGridBlockView({ block }: { block: FeatureGridBlock }): ReactElem
               key={i}
               className="rounded-xl border border-border bg-surface-elevated p-6 space-y-2"
             >
-              <h2 className="text-lg font-semibold text-text leading-snug">
-                {f.title ?? ''}
-              </h2>
+              <h2 className="text-lg font-semibold text-text leading-snug">{f.title ?? ''}</h2>
               <p className="text-sm text-text-secondary">{f.body ?? ''}</p>
             </li>
           ))}
@@ -408,12 +404,8 @@ export interface AudienceLandingPageProps {
   slugOverride?: string;
 }
 
-export function AudienceLandingPage({
-  slugOverride,
-}: AudienceLandingPageProps = {}): ReactElement {
-  const slug =
-    slugOverride ??
-    (typeof window !== 'undefined' ? window.location.pathname : '/');
+export function AudienceLandingPage({ slugOverride }: AudienceLandingPageProps = {}): ReactElement {
+  const slug = slugOverride ?? (typeof window !== 'undefined' ? window.location.pathname : '/');
 
   const [state, setState] = useState<FetchResult>({ status: 'loading', page: null });
 
@@ -430,7 +422,7 @@ export function AudienceLandingPage({
     })().catch((err: unknown) => {
       if (cancelled) return;
       // Soft-fail: log and render 404 rather than crashing the route.
-       
+
       console.error('[audience-landing] fetch failed', err);
       setState({ status: 'not_found', page: null });
     });
@@ -460,9 +452,7 @@ export function AudienceLandingPage({
         <meta property="og:type" content="website" />
         <script type="application/ld+json">{jsonLd}</script>
       </Helmet>
-      <main>
-        {page.blocks.map((block, i) => renderBlock(block, i))}
-      </main>
+      <main>{page.blocks.map((block, i) => renderBlock(block, i))}</main>
     </>
   );
 }

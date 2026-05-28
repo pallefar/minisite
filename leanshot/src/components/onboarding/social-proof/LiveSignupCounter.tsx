@@ -81,7 +81,11 @@ export function LiveSignupCounter() {
     );
   }
   return (
-    <p data-testid="live-signup-counter" aria-live="polite" className="text-sm text-[var(--color-text-muted)]">
+    <p
+      data-testid="live-signup-counter"
+      aria-live="polite"
+      className="text-sm text-[var(--color-text-muted)]"
+    >
       {t('onboarding:social.signups_this_week', { count })}
     </p>
   );

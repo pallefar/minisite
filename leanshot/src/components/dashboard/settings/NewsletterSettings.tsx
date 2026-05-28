@@ -158,9 +158,7 @@ export function NewsletterSettings() {
       {/* Topic-tag multi-select — visible when opted in */}
       {draftOptedIn && (
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-[var(--color-text-secondary)]">
-            Topics
-          </p>
+          <p className="text-sm font-semibold text-[var(--color-text-secondary)]">Topics</p>
           <PillGroup>
             {FALLBACK_TOPIC_TAGS.map((tag) => (
               <Pill
@@ -202,9 +200,7 @@ export function NewsletterSettings() {
       </Button>
 
       {/* Inline error — not a toast per plan (saves context below the button) */}
-      {saveError && (
-        <p className="text-sm text-[var(--color-danger)]">{saveError}</p>
-      )}
+      {saveError && <p className="text-sm text-[var(--color-danger)]">{saveError}</p>}
     </div>
   );
 }

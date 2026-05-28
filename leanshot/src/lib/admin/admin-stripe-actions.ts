@@ -25,11 +25,11 @@ import { supabase } from '@/lib/supabase';
 // ─── Discriminated error ────────────────────────────────────────────────────
 
 export type AdminStripeErrorCode =
-  | 'stripe'        // Stripe rejected — see stripeCode for the specific Stripe error
-  | 'forbidden'     // 403 — is_staff gate refused
-  | 'unauthorized'  // 401 — invalid/missing bearer
-  | 'invalid'       // 400 — invalid body
-  | 'network'       // fetch error
+  | 'stripe' // Stripe rejected — see stripeCode for the specific Stripe error
+  | 'forbidden' // 403 — is_staff gate refused
+  | 'unauthorized' // 401 — invalid/missing bearer
+  | 'invalid' // 400 — invalid body
+  | 'network' // fetch error
   | 'unknown';
 
 export class AdminStripeError extends Error {
@@ -69,8 +69,7 @@ export async function refundCharge(input: RefundChargeInput): Promise<RefundChar
     },
     (data) => ({
       refundId: (data as { refund_id?: string | null }).refund_id ?? null,
-      amountRefunded:
-        (data as { amount_refunded?: number }).amount_refunded ?? input.amountCents,
+      amountRefunded: (data as { amount_refunded?: number }).amount_refunded ?? input.amountCents,
     }),
   );
 }
@@ -131,7 +130,9 @@ async function invokeAdminStripeAction<T>(
 ): Promise<T> {
   let res: FunctionInvokeResult;
   try {
-    res = (await supabase.functions.invoke('admin-stripe-action', { body })) as FunctionInvokeResult;
+    res = (await supabase.functions.invoke('admin-stripe-action', {
+      body,
+    })) as FunctionInvokeResult;
   } catch (cause) {
     throw new AdminStripeError('network', undefined, { cause });
   }

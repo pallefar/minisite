@@ -91,9 +91,7 @@ describe('FederatedSourceRow — last_sync_at display', () => {
   });
 
   it('shows "Never synced" when last_sync_at is null', () => {
-    render(
-      <FederatedSourceRow {...defaultProps} source={makeSource({ last_sync_at: null })} />,
-    );
+    render(<FederatedSourceRow {...defaultProps} source={makeSource({ last_sync_at: null })} />);
 
     const liveRegion = screen.getByRole('status');
     expect(liveRegion).toHaveTextContent(/never synced/i);
@@ -120,12 +118,7 @@ describe('FederatedSourceRow — last_error pill', () => {
 
   it('truncates error message to 80 chars', () => {
     const longError = 'A'.repeat(100);
-    render(
-      <FederatedSourceRow
-        {...defaultProps}
-        source={makeSource({ last_error: longError })}
-      />,
-    );
+    render(<FederatedSourceRow {...defaultProps} source={makeSource({ last_error: longError })} />);
 
     // "Last error: " = 12 chars, truncated message = 80 chars + "…" = 81 → total 93
     const pill = screen.getByText(/A+…/);

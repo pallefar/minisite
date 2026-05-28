@@ -204,9 +204,7 @@ export function GrandfatheredPricesPage() {
           <select
             id="gf-cohort"
             value={createForm.cohort_id}
-            onChange={(e) =>
-              setCreateForm((s) => ({ ...s, cohort_id: e.target.value }))
-            }
+            onChange={(e) => setCreateForm((s) => ({ ...s, cohort_id: e.target.value }))}
             className="h-10 px-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
             required
           >
@@ -227,9 +225,7 @@ export function GrandfatheredPricesPage() {
             type="text"
             pattern="^price_[A-Za-z0-9]+$"
             value={createForm.stripe_price_id}
-            onChange={(e) =>
-              setCreateForm((s) => ({ ...s, stripe_price_id: e.target.value }))
-            }
+            onChange={(e) => setCreateForm((s) => ({ ...s, stripe_price_id: e.target.value }))}
             placeholder="price_…"
             className="h-10 px-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
             required
@@ -243,9 +239,7 @@ export function GrandfatheredPricesPage() {
             id="gf-from"
             type="datetime-local"
             value={createForm.effective_from}
-            onChange={(e) =>
-              setCreateForm((s) => ({ ...s, effective_from: e.target.value }))
-            }
+            onChange={(e) => setCreateForm((s) => ({ ...s, effective_from: e.target.value }))}
             className="h-10 px-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
             required
           />
@@ -258,9 +252,7 @@ export function GrandfatheredPricesPage() {
             id="gf-until"
             type="datetime-local"
             value={createForm.effective_until}
-            onChange={(e) =>
-              setCreateForm((s) => ({ ...s, effective_until: e.target.value }))
-            }
+            onChange={(e) => setCreateForm((s) => ({ ...s, effective_until: e.target.value }))}
             className="h-10 px-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-elevated)]"
           />
         </div>
@@ -272,9 +264,7 @@ export function GrandfatheredPricesPage() {
         </button>
       </form>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>}
 
       {/* Rows table */}
       <table className="w-full text-sm">

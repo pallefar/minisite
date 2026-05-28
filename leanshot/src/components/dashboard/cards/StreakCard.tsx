@@ -20,7 +20,10 @@ export function StreakCard({ data }: StreakCardProps) {
 
   return (
     <Card span={4} variant="elevated">
-      <CardHeader title={t('patient:card.streak.title')} icon={<Flame className="size-4" aria-hidden />} />
+      <CardHeader
+        title={t('patient:card.streak.title')}
+        icon={<Flame className="size-4" aria-hidden />}
+      />
       <div className="flex items-center gap-4">
         <ProgressRing
           value={data.streak.current}

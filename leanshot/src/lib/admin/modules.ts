@@ -81,9 +81,7 @@ export interface AdminModule {
  */
 function placeholderFor(shipsIn: string): () => Promise<{ default: ComponentType }> {
   return async () => {
-    const { default: PlaceholderModule } = await import(
-      '@/components/admin/PlaceholderModule'
-    );
+    const { default: PlaceholderModule } = await import('@/components/admin/PlaceholderModule');
     // Return a new component that passes the pre-baked shipsIn prop.
     // The wrapper is a plain function, not JSX — avoids needing this to be .tsx.
     const Wrapper: ComponentType = () =>

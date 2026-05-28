@@ -28,8 +28,8 @@ export default function CohortsPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Cohorts</h1>
         <p className="text-sm text-[var(--color-text-secondary)]">
-          Define reusable audience segments for paywalls, recommendations,
-          challenges, and saves. Cohort membership is rebuilt every 15 minutes.
+          Define reusable audience segments for paywalls, recommendations, challenges, and saves.
+          Cohort membership is rebuilt every 15 minutes.
         </p>
       </header>
       <AdminCohortBuilder onSaved={handleSaved} />

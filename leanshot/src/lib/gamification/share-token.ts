@@ -15,16 +15,13 @@ export async function mintShareToken(level: number): Promise<string> {
     p_level: level,
   });
   if (error || typeof data !== 'string') {
-    throw new Error(
-      'share_token_mint_failed: ' + (error?.message ?? 'unexpected null'),
-    );
+    throw new Error('share_token_mint_failed: ' + (error?.message ?? 'unexpected null'));
   }
   return data;
 }
 
 export function buildShareUrl(token: string, _level: number): string {
-  const baseUrl =
-    import.meta.env.VITE_LEANSHOT_MARKETING_URL ?? 'https://leanshot.app';
+  const baseUrl = import.meta.env.VITE_LEANSHOT_MARKETING_URL ?? 'https://leanshot.app';
   // Append cache-bust ?v=<unix_ts> so each share yields a unique Twitter card key.
   return `${baseUrl}/share/level/${encodeURIComponent(token)}?v=${Date.now()}`;
 }

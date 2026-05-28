@@ -78,7 +78,9 @@ describe('ConsentGatedEmbed HOC (Phase 41 41-05 Task 1)', () => {
     // No iframe in placeholder state.
     expect(document.querySelector('iframe')).toBeNull();
     // Placeholder card heading present (calendly fallback not used here; per-provider copy).
-    expect(screen.getByText(/Enable analytics and marketing cookies to view this YouTube video/i)).toBeTruthy();
+    expect(
+      screen.getByText(/Enable analytics and marketing cookies to view this YouTube video/i),
+    ).toBeTruthy();
   });
 
   it('Test 2 (State 1 → State 2/3 on consent grant event): iframe appears with opacity-0, onLoad → opacity-1', () => {
@@ -201,9 +203,7 @@ describe('ConsentGatedEmbed HOC (Phase 41 41-05 Task 1)', () => {
   });
 
   it('Test 7 (EmbedPlaceholderCard copy — calendly heading verbatim + Manage preferences link)', () => {
-    render(
-      <EmbedPlaceholderCard provider="calendly" categories={['functional', 'analytics']} />,
-    );
+    render(<EmbedPlaceholderCard provider="calendly" categories={['functional', 'analytics']} />);
 
     expect(
       screen.getByText('Enable functional and analytics cookies to view this Calendly meeting'),

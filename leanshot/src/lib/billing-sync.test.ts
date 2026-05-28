@@ -44,7 +44,10 @@ const FUTURE = '2099-01-01T00:00:00Z';
 const PAST = '2000-01-01T00:00:00Z';
 const USER_ID = 'user-test-123';
 
-function mockQuery(data: Record<string, string | null> | null, error: { message: string } | null = null) {
+function mockQuery(
+  data: Record<string, string | null> | null,
+  error: { message: string } | null = null,
+) {
   mockMaybeSingle.mockResolvedValueOnce({ data, error });
 }
 
@@ -91,9 +94,7 @@ describe('syncBillingTier', () => {
     await syncBillingTier(USER_ID);
 
     expect(mockSetTier).toHaveBeenCalledOnce();
-    expect(mockSetTier).toHaveBeenCalledWith(
-      expect.objectContaining({ tier: 'past_due' }),
-    );
+    expect(mockSetTier).toHaveBeenCalledWith(expect.objectContaining({ tier: 'past_due' }));
   });
 
   it('case 3: canceled row with past period_end → setTier called with tier=free', async () => {
@@ -108,9 +109,7 @@ describe('syncBillingTier', () => {
     await syncBillingTier(USER_ID);
 
     expect(mockSetTier).toHaveBeenCalledOnce();
-    expect(mockSetTier).toHaveBeenCalledWith(
-      expect.objectContaining({ tier: 'free' }),
-    );
+    expect(mockSetTier).toHaveBeenCalledWith(expect.objectContaining({ tier: 'free' }));
   });
 
   it('case 4: no row (data: null, error: null) → setTier called with tier=free and all nulls', async () => {
@@ -137,10 +136,7 @@ describe('syncBillingTier', () => {
 
     expect(mockSetTier).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledOnce();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[billing-sync] subscriptions query failed',
-      'boom',
-    );
+    expect(consoleSpy).toHaveBeenCalledWith('[billing-sync] subscriptions query failed', 'boom');
   });
 
   it('case 6: syncBillingTier never rejects — all paths resolve', async () => {

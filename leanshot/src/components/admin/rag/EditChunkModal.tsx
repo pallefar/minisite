@@ -41,11 +41,12 @@ export function EditChunkModal({ open, chunk, onClose, onSave }: EditChunkModalP
     setSummary(chunk.summary);
     setQuoteBlocksJson(JSON.stringify(chunk.quote_blocks, null, 2));
     setParseError(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chunk.id]);
 
   const summaryError = summary.length > MAX_SUMMARY ? 'Summary too long (max 2000)' : null;
-  const sizeError = quoteBlocksJson.length > MAX_QUOTE_JSON ? 'Quote blocks JSON too large (max 16KB)' : null;
+  const sizeError =
+    quoteBlocksJson.length > MAX_QUOTE_JSON ? 'Quote blocks JSON too large (max 16KB)' : null;
 
   const handleJsonChange = (val: string) => {
     setQuoteBlocksJson(val);
@@ -96,9 +97,7 @@ export function EditChunkModal({ open, chunk, onClose, onSave }: EditChunkModalP
             className="w-full p-3 text-[13px] border border-[var(--color-border)] rounded-card bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] resize-y"
             aria-label="Chunk summary"
           />
-          {summaryError && (
-            <p className="text-[11px] text-[var(--color-danger)]">{summaryError}</p>
-          )}
+          {summaryError && <p className="text-[11px] text-[var(--color-danger)]">{summaryError}</p>}
         </div>
 
         <div className="space-y-1">
@@ -116,12 +115,8 @@ export function EditChunkModal({ open, chunk, onClose, onSave }: EditChunkModalP
             className="w-full p-3 text-[13px] font-mono border border-[var(--color-border)] rounded-card bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] resize-y"
             aria-label="Quote blocks JSON"
           />
-          {parseError && (
-            <p className="text-[11px] text-[var(--color-danger)]">{parseError}</p>
-          )}
-          {sizeError && (
-            <p className="text-[11px] text-[var(--color-danger)]">{sizeError}</p>
-          )}
+          {parseError && <p className="text-[11px] text-[var(--color-danger)]">{parseError}</p>}
+          {sizeError && <p className="text-[11px] text-[var(--color-danger)]">{sizeError}</p>}
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-2">

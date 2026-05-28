@@ -45,8 +45,7 @@ function makePendingDigestRow(overrides: Partial<MockRow> = {}): MockRow {
     user_id: 'user-1',
     org_id: null,
     payload: {
-      narrative:
-        'You had a steady week — three injections logged, weight trending down by 0.4 kg.',
+      narrative: 'You had a steady week — three injections logged, weight trending down by 0.4 kg.',
       actions: [
         { id: 'log_weight', reason: 'Keep your daily weight trend going.' },
         { id: 'read_kb', reason: 'Learn about plateau strategies.' },
@@ -167,7 +166,9 @@ describe('HitlQueuePage', () => {
     fireEvent.click(approveBtn);
 
     await waitFor(() => {
-      expect(mockRpcCalls.some((c) => c.fn === 'hitl_decide' && c.args.decision === 'approved')).toBe(true);
+      expect(
+        mockRpcCalls.some((c) => c.fn === 'hitl_decide' && c.args.decision === 'approved'),
+      ).toBe(true);
     });
     expect(
       mockInvokeCalls.some(
@@ -209,10 +210,9 @@ describe('HitlQueuePage', () => {
     expect((textarea as HTMLTextAreaElement).value).toMatch(/steady week/i);
     fireEvent.change(textarea, { target: { value: 'A revised narrative for QA.' } });
 
-    const saveBtn = within(textarea.closest('[role="dialog"]') as HTMLElement).getByRole(
-      'button',
-      { name: /save|approve/i },
-    );
+    const saveBtn = within(textarea.closest('[role="dialog"]') as HTMLElement).getByRole('button', {
+      name: /save|approve/i,
+    });
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
@@ -270,9 +270,7 @@ describe('HitlQueuePage', () => {
     });
     // One bulk approved RPC call (not three).
     expect(
-      mockRpcCalls.filter(
-        (c) => c.fn === 'hitl_decide' && c.args.decision === 'approved',
-      ).length,
+      mockRpcCalls.filter((c) => c.fn === 'hitl_decide' && c.args.decision === 'approved').length,
     ).toBe(1);
   });
 

@@ -42,7 +42,11 @@ export function useOrgSettingsRealtime({
       try {
         topic = await channelNameFor(orgId, 'settings');
       } catch (err) {
-        console.warn('[use-org-settings-realtime] Failed to compute HMAC channel name for org', orgId, err);
+        console.warn(
+          '[use-org-settings-realtime] Failed to compute HMAC channel name for org',
+          orgId,
+          err,
+        );
         return;
       }
 

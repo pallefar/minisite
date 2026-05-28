@@ -57,13 +57,15 @@ export function LeaderboardCard({
   if (!cohortId) return null;
 
   // D-12: one-time opt-in nudge after level 5, single-shot
-  const showNudge =
-    data.level >= NUDGE_THRESHOLD_LEVEL && !hasOptedIn && !nudgeDismissed;
+  const showNudge = data.level >= NUDGE_THRESHOLD_LEVEL && !hasOptedIn && !nudgeDismissed;
 
   if (showNudge) {
     return (
       <Card span={8} variant="interactive">
-        <CardHeader title={t('patient:card.leaderboard.nudge_title')} icon={<Users className="size-4" aria-hidden />} />
+        <CardHeader
+          title={t('patient:card.leaderboard.nudge_title')}
+          icon={<Users className="size-4" aria-hidden />}
+        />
         <p className="text-sm text-[var(--color-text-secondary)]">
           {t('patient:card.leaderboard.nudge_body', { level: data.level })}
         </p>
@@ -91,15 +93,24 @@ export function LeaderboardCard({
 
   return (
     <Card span={8} variant="elevated">
-      <CardHeader title={t('patient:card.leaderboard.title')} icon={<Trophy className="size-4" aria-hidden />} />
+      <CardHeader
+        title={t('patient:card.leaderboard.title')}
+        icon={<Trophy className="size-4" aria-hidden />}
+      />
       {loading && (
-        <div className="text-sm text-[var(--color-text-secondary)]">{t('patient:card.leaderboard.loading')}</div>
+        <div className="text-sm text-[var(--color-text-secondary)]">
+          {t('patient:card.leaderboard.loading')}
+        </div>
       )}
       {error && (
-        <div className="text-sm text-[var(--color-error)]">{t('patient:card.leaderboard.error')}</div>
+        <div className="text-sm text-[var(--color-error)]">
+          {t('patient:card.leaderboard.error')}
+        </div>
       )}
       {!loading && !error && rows.length === 0 && (
-        <div className="text-sm text-[var(--color-text-secondary)]">{t('patient:card.leaderboard.empty')}</div>
+        <div className="text-sm text-[var(--color-text-secondary)]">
+          {t('patient:card.leaderboard.empty')}
+        </div>
       )}
       {rows.length > 0 && (
         <ol className="mt-2 space-y-1">
@@ -107,9 +118,7 @@ export function LeaderboardCard({
             <li
               key={`${r.rank_in_cohort}-${r.handle}`}
               className={
-                r.is_self
-                  ? 'font-semibold text-[var(--color-primary)]'
-                  : 'text-[var(--color-text)]'
+                r.is_self ? 'font-semibold text-[var(--color-primary)]' : 'text-[var(--color-text)]'
               }
             >
               <span className="inline-block w-8 text-right text-[var(--color-text-secondary)]">

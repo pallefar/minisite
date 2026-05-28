@@ -29,10 +29,7 @@ export interface CommunityPostMediaStripProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function CommunityPostMediaStrip({
-  post,
-  mediaSignedUrls,
-}: CommunityPostMediaStripProps) {
+export function CommunityPostMediaStrip({ post, mediaSignedUrls }: CommunityPostMediaStripProps) {
   const [showPlayer, setShowPlayer] = useState(false);
 
   const hasImages = post.community_post_media.length > 0;

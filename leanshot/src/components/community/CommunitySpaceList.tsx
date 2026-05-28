@@ -35,10 +35,7 @@ export interface CommunitySpaceListProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function CommunitySpaceList({
-  currentTier,
-  onSelectSpace,
-}: CommunitySpaceListProps) {
+export function CommunitySpaceList({ currentTier, onSelectSpace }: CommunitySpaceListProps) {
   const [spaces, setSpaces] = useState<SpaceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +71,11 @@ export function CommunitySpaceList({
 
   if (loading) {
     return (
-      <div className="p-6 text-sm text-[var(--color-text-secondary)]" role="status" aria-live="polite">
+      <div
+        className="p-6 text-sm text-[var(--color-text-secondary)]"
+        role="status"
+        aria-live="polite"
+      >
         Loading spaces…
       </div>
     );
@@ -97,18 +98,14 @@ export function CommunitySpaceList({
   }
 
   return (
-    <div
-      className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3"
-      aria-label="Community spaces"
-    >
+    <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Community spaces">
       {spaces.map((space) => {
         const canAccess = canAccessSpace(space.min_tier, currentTier);
 
         if (!canAccess) {
           // D-08: locked card — show name + lock icon + upgrade CTA.
           // Do NOT render description body.
-          const upgradeLabel =
-            space.min_tier === 'lifetime' ? 'Lifetime' : 'Pro';
+          const upgradeLabel = space.min_tier === 'lifetime' ? 'Lifetime' : 'Pro';
 
           return (
             <div
@@ -150,9 +147,7 @@ export function CommunitySpaceList({
             className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-left transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
             aria-label={`Open space: ${space.name}`}
           >
-            <p className="text-sm font-semibold text-[var(--color-text)]">
-              {space.name}
-            </p>
+            <p className="text-sm font-semibold text-[var(--color-text)]">{space.name}</p>
             {space.description && (
               <p className="mt-1 line-clamp-2 text-xs text-[var(--color-text-secondary)]">
                 {space.description}

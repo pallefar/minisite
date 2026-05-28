@@ -103,7 +103,10 @@ export function MoodTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.mood.sleep_title')} icon={<BedDouble className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.mood.sleep_title')}
+          icon={<BedDouble className="size-4" />}
+        />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -144,11 +147,17 @@ export function MoodTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.mood.mood_chart_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.mood.mood_chart_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <MoodChart />
       </Card>
       <Card span={6}>
-        <CardHeader title={t('patient:tab.mood.sleep_chart_title')} icon={<BedDouble className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.mood.sleep_chart_title')}
+          icon={<BedDouble className="size-4" />}
+        />
         <SleepChart />
       </Card>
     </div>

@@ -153,11 +153,7 @@ export function PartnerDashboard(): ReactNode {
         {loading || !stats ? (
           <>
             {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="lg:col-span-3 md:col-span-6 col-span-12"
-                aria-hidden
-              >
+              <div key={i} className="lg:col-span-3 md:col-span-6 col-span-12" aria-hidden>
                 <Skeleton className="h-32 w-full rounded-card" />
               </div>
             ))}
@@ -181,10 +177,7 @@ export function PartnerDashboard(): ReactNode {
             <PartnerKpiCard
               label="Commissions · 30d"
               value={stats.commissionsCents30d}
-              deltaPct={pctDelta(
-                stats.commissionsCents30d,
-                stats.commissionsCentsPrev30d,
-              )}
+              deltaPct={pctDelta(stats.commissionsCents30d, stats.commissionsCentsPrev30d)}
               icon={<Coins className="size-4" />}
               format="currency"
             />

@@ -66,9 +66,7 @@ export async function initI18n(): Promise<void> {
       react: { useSuspense: true, bindI18n: 'languageChanged loaded' },
       saveMissing: true,
       missingKeyNoValueFallbackToKey: false,
-      parseMissingKeyHandler: import.meta.env.DEV
-        ? (key: string) => `[MISSING:${key}]`
-        : undefined,
+      parseMissingKeyHandler: import.meta.env.DEV ? (key: string) => `[MISSING:${key}]` : undefined,
     });
 
   installMissingKeyHandler(i18next);

@@ -41,14 +41,13 @@ function simulateHook(
   // Sort: desc nulls last (null timestamps sort to the END)
   const sorted = [...rows].sort((a, b) => {
     if (a.last_active_at === null && b.last_active_at === null) return 0;
-    if (a.last_active_at === null) return 1;  // a goes after b (nulls last)
+    if (a.last_active_at === null) return 1; // a goes after b (nulls last)
     if (b.last_active_at === null) return -1; // b goes after a (nulls last)
     return b.last_active_at.localeCompare(a.last_active_at); // desc
   });
   const orgIds = sorted.map((r) => r.org_id);
 
-  const existingAppMeta =
-    (claims['app_metadata'] as Record<string, unknown> | undefined) ?? {};
+  const existingAppMeta = (claims['app_metadata'] as Record<string, unknown> | undefined) ?? {};
   const newClaims = {
     ...claims,
     app_metadata: {
@@ -255,9 +254,7 @@ describe('app_metadata merging', () => {
     const orgA = 'aaa00000-0000-0000-0000-000000000001';
     const claims = { sub: 'user-1' }; // no app_metadata key
 
-    const result = simulateHook('user-1', claims, [
-      { org_id: orgA, last_active_at: null },
-    ]);
+    const result = simulateHook('user-1', claims, [{ org_id: orgA, last_active_at: null }]);
     expect(result.claims).toHaveProperty('app_metadata');
     const appMeta = result.claims['app_metadata'] as { org_ids: string[] };
     expect(appMeta.org_ids).toEqual([orgA]);

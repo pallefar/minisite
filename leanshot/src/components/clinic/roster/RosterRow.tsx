@@ -210,23 +210,11 @@ export function RosterRow({
       {/* Weight trend */}
       <td role="gridcell" className="px-3 py-3.5">
         {row.weight_trend_arrow === 'up' ? (
-          <ArrowUp
-            size={16}
-            className="text-[var(--color-sage)]"
-            aria-label="Trending up"
-          />
+          <ArrowUp size={16} className="text-[var(--color-sage)]" aria-label="Trending up" />
         ) : row.weight_trend_arrow === 'down' ? (
-          <ArrowDown
-            size={16}
-            className="text-[var(--color-warning)]"
-            aria-label="Trending down"
-          />
+          <ArrowDown size={16} className="text-[var(--color-warning)]" aria-label="Trending down" />
         ) : (
-          <Minus
-            size={16}
-            className="text-[var(--color-text-tertiary)]"
-            aria-label="No trend"
-          />
+          <Minus size={16} className="text-[var(--color-text-tertiary)]" aria-label="No trend" />
         )}
       </td>
 
@@ -239,10 +227,7 @@ export function RosterRow({
       </td>
 
       {/* Days since injection */}
-      <td
-        role="gridcell"
-        className="px-3 py-3.5 text-[13px] numerals-tabular"
-      >
+      <td role="gridcell" className="px-3 py-3.5 text-[13px] numerals-tabular">
         {daysSinceWarning ? (
           <span className="inline-flex items-center gap-1 text-[var(--color-warning)]">
             <AlertCircle size={14} aria-hidden />
@@ -256,17 +241,9 @@ export function RosterRow({
       {/* Missed-dose flag */}
       <td role="gridcell" className="px-3 pe-4 py-3.5">
         {row.missed_dose_flag ? (
-          <AlertCircle
-            size={16}
-            className="text-[var(--color-warning)]"
-            aria-label="Missed dose"
-          />
+          <AlertCircle size={16} className="text-[var(--color-warning)]" aria-label="Missed dose" />
         ) : (
-          <Minus
-            size={16}
-            className="text-[var(--color-text-tertiary)]"
-            aria-label="On schedule"
-          />
+          <Minus size={16} className="text-[var(--color-text-tertiary)]" aria-label="On schedule" />
         )}
       </td>
     </tr>

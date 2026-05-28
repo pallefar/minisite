@@ -25,9 +25,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PromoterCtaModal } from '../PromoterCtaModal';
 
 // --- Mock decide-client ---------------------------------------------------
-const mockLogCtaClick = vi.fn<(slug: string) => Promise<void>>(() =>
-  Promise.resolve(),
-);
+const mockLogCtaClick = vi.fn<(slug: string) => Promise<void>>(() => Promise.resolve());
 vi.mock('@/lib/nps/decide-client', () => ({
   logCtaClick: (slug: string) => mockLogCtaClick(slug),
 }));
@@ -35,11 +33,8 @@ vi.mock('@/lib/nps/decide-client', () => ({
 // --- Mock window.open -----------------------------------------------------
 const mockOpen = vi.fn();
 
-
 function stripComments(src: string): string {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/^\s*\/\/.*$/gm, '');
+  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 }
 
 describe('<PromoterCtaModal /> — Plan 36-03 Task 2 (W9 embedded url_pattern)', () => {
@@ -136,9 +131,7 @@ describe('<PromoterCtaModal /> — Plan 36-03 Task 2 (W9 embedded url_pattern)',
     const { container } = render(
       <PromoterCtaModal
         open
-        ctaSet={[
-          { slug: 'trustpilot', url_pattern: 'https://x.example/' },
-        ]}
+        ctaSet={[{ slug: 'trustpilot', url_pattern: 'https://x.example/' }]}
         onDismiss={vi.fn()}
       />,
     );
@@ -152,9 +145,7 @@ describe('<PromoterCtaModal /> — Plan 36-03 Task 2 (W9 embedded url_pattern)',
     render(
       <PromoterCtaModal
         open
-        ctaSet={[
-          { slug: 'trustpilot', url_pattern: 'https://x.example/' },
-        ]}
+        ctaSet={[{ slug: 'trustpilot', url_pattern: 'https://x.example/' }]}
         onDismiss={onDismiss}
       />,
     );
@@ -169,9 +160,7 @@ describe('<PromoterCtaModal /> — Plan 36-03 Task 2 (W9 embedded url_pattern)',
     render(
       <PromoterCtaModal
         open
-        ctaSet={[
-          { slug: 'trustpilot', url_pattern: 'https://x.example/' },
-        ]}
+        ctaSet={[{ slug: 'trustpilot', url_pattern: 'https://x.example/' }]}
         onDismiss={onDismiss}
       />,
     );

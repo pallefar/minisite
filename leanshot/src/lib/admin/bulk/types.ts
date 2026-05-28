@@ -11,12 +11,7 @@
  *     ships the polling UI that displays job progress.
  */
 
-export type BulkActionType =
-  | 'csv_export'
-  | 'tag'
-  | 'comp_plan'
-  | 'ban'
-  | 'force_password_reset';
+export type BulkActionType = 'csv_export' | 'tag' | 'comp_plan' | 'ban' | 'force_password_reset';
 
 /** Union of reversible action types — undo tokens are only minted for these. */
 export type ReversibleBulkActionType = 'ban' | 'comp_plan' | 'tag';

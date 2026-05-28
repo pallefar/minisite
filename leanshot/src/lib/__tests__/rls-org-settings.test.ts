@@ -58,7 +58,11 @@ describeIfLive('P28 RLS — org_settings cross-tenant isolation', () => {
       .eq('org_id', orgY);
     // Verify Org Y settings unchanged via admin.
     const admin = getAdmin();
-    const { data } = await admin.from('org_settings').select('default_timezone').eq('org_id', orgY).single();
+    const { data } = await admin
+      .from('org_settings')
+      .select('default_timezone')
+      .eq('org_id', orgY)
+      .single();
     expect(data?.default_timezone).toBe('UTC'); // unchanged from default
   }, 30_000);
 

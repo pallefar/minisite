@@ -35,7 +35,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-
 const ORG_ID = 'org-test-456';
 
 describe('ClinicDoseTrendThresholdsForm', () => {

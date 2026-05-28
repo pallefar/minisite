@@ -25,14 +25,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getContentTier, _clearTierCacheForTest } from './get-content-tier';
 
 const fromMock = vi.fn();
-const supabaseGetSessionMock = vi.fn<() => Promise<{ data: { session: { user: { id: string } } | null } }>>();
+const supabaseGetSessionMock =
+  vi.fn<() => Promise<{ data: { session: { user: { id: string } } | null } }>>();
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: { getSession: () => supabaseGetSessionMock() },
     from: (table: string) => fromMock(table),
   },
 }));
-
 
 function buildFromChain(result: { data: { has_active: boolean } | null; error: unknown }) {
   return {
@@ -62,7 +62,9 @@ describe('getContentTier', () => {
   });
 
   it("T2: returns 'free' when tier_effective.has_active=false (trialing or non-paying)", async () => {
-    supabaseGetSessionMock.mockResolvedValue({ data: { session: { user: { id: 'user-trial-1' } } } });
+    supabaseGetSessionMock.mockResolvedValue({
+      data: { session: { user: { id: 'user-trial-1' } } },
+    });
     fromMock.mockReturnValue(buildFromChain({ data: { has_active: false }, error: null }));
     await expect(getContentTier()).resolves.toBe('free');
   });
@@ -82,13 +84,17 @@ describe('getContentTier', () => {
   it("T5: Lifetime user resolves has_active=true → 'pro' (Phase 43 contract: NO tier-string match)", async () => {
     // Lifetime is encoded as has_active=true in tier_effective; legacy string-match
     // on tier='paid' would have missed this. The plan-mandated path reads has_active only.
-    supabaseGetSessionMock.mockResolvedValue({ data: { session: { user: { id: 'user-lifetime-1' } } } });
+    supabaseGetSessionMock.mockResolvedValue({
+      data: { session: { user: { id: 'user-lifetime-1' } } },
+    });
     fromMock.mockReturnValue(buildFromChain({ data: { has_active: true }, error: null }));
     await expect(getContentTier()).resolves.toBe('pro');
   });
 
-  it("T6: cache hit on second call avoids second supabase query", async () => {
-    supabaseGetSessionMock.mockResolvedValue({ data: { session: { user: { id: 'user-cache-1' } } } });
+  it('T6: cache hit on second call avoids second supabase query', async () => {
+    supabaseGetSessionMock.mockResolvedValue({
+      data: { session: { user: { id: 'user-cache-1' } } },
+    });
     fromMock.mockReturnValue(buildFromChain({ data: { has_active: true }, error: null }));
     await expect(getContentTier()).resolves.toBe('pro');
     expect(fromMock).toHaveBeenCalledTimes(1);

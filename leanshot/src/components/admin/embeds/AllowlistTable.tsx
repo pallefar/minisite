@@ -132,11 +132,7 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
       <table className="w-full text-left text-[14px]">
         <thead className="bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]">
           <tr>
-            <th
-              scope="col"
-              aria-sort={ariaSortFor('hostname')}
-              className="px-4 py-3 font-semibold"
-            >
+            <th scope="col" aria-sort={ariaSortFor('hostname')} className="px-4 py-3 font-semibold">
               <button
                 type="button"
                 onClick={() => toggleSort('hostname')}
@@ -197,7 +193,10 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
             const unused = !inUse;
             return (
               <tr key={row.id} className="bg-[var(--color-surface)]">
-                <th scope="row" className="px-4 py-3 font-mono text-[13px] font-normal text-[var(--color-text)]">
+                <th
+                  scope="row"
+                  className="px-4 py-3 font-mono text-[13px] font-normal text-[var(--color-text)]"
+                >
                   <span className="inline-flex items-center gap-2">
                     {row.hostname}
                     <IconButton

@@ -23,17 +23,10 @@ export function KnowledgeTierBadge({ tier }: KnowledgeTierBadgeProps) {
   const { t } = useTranslation('rag');
 
   const ariaLabel =
-    tier === 'A'
-      ? t('tier.A.aria')
-      : tier === 'B'
-        ? t('tier.B.aria')
-        : t('tier.C.aria');
+    tier === 'A' ? t('tier.A.aria') : tier === 'B' ? t('tier.B.aria') : t('tier.C.aria');
 
   return (
-    <Badge
-      tone="neutral"
-      aria-label={ariaLabel}
-    >
+    <Badge tone="neutral" aria-label={ariaLabel}>
       {t(`tier.${tier}.label`)}
     </Badge>
   );

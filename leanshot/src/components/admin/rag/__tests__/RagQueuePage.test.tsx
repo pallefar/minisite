@@ -66,7 +66,11 @@ beforeEach(() => {
 describe('RagQueuePage', () => {
   it('Test 1: on mount calls ragListReviewQueue once', async () => {
     let resolve: (val: unknown) => void = () => {};
-    mockListQueue.mockReturnValueOnce(new Promise((r) => { resolve = r; }));
+    mockListQueue.mockReturnValueOnce(
+      new Promise((r) => {
+        resolve = r;
+      }),
+    );
     render(<RagQueuePage />);
     expect(mockListQueue).toHaveBeenCalledTimes(1);
     await act(async () => {
@@ -99,8 +103,7 @@ describe('RagQueuePage', () => {
     });
     const allButtons = screen.getAllByRole('button');
     const tierBPill = allButtons.find(
-      (btn) =>
-        btn.textContent?.trim() === 'Tier B' && btn.hasAttribute('aria-pressed'),
+      (btn) => btn.textContent?.trim() === 'Tier B' && btn.hasAttribute('aria-pressed'),
     );
     expect(tierBPill).toBeTruthy();
     mockListQueue.mockResolvedValueOnce({ data: [], error: null });
@@ -213,9 +216,7 @@ describe('RagQueuePage', () => {
     });
     render(<RagQueuePage />);
     await waitFor(() => {
-      expect(
-        screen.getByText('Failed to load queue. Refresh to try again.'),
-      ).toBeTruthy();
+      expect(screen.getByText('Failed to load queue. Refresh to try again.')).toBeTruthy();
     });
   });
 });

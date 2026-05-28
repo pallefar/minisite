@@ -44,9 +44,7 @@ type ResolverResponse = VariantPayload | VendorUnconfigured;
 
 function isVendorUnconfigured(d: unknown): d is VendorUnconfigured {
   return (
-    typeof d === 'object' &&
-    d !== null &&
-    (d as VendorUnconfigured).error === 'vendor_unconfigured'
+    typeof d === 'object' && d !== null && (d as VendorUnconfigured).error === 'vendor_unconfigured'
   );
 }
 

@@ -26,20 +26,20 @@ export type ProtocolMonitoringKey = 'weight' | 'glucose' | 'bp' | 'mood' | 'gi-s
  * base_slug stores the slug WITHOUT '-vN'; slug is computed as base_slug + '-v' + version.
  */
 export interface Protocol {
-  id: string;            // uuid
-  version: number;       // int, monotonic per id
+  id: string; // uuid
+  version: number; // int, monotonic per id
   name: string;
   compound: string;
-  audience: string[];    // ['B2C', 'clinic'] subset
-  base_slug: string;     // slug WITHOUT version suffix (for /protocols/<slug> public route)
-  slug: string;          // computed: base_slug + '-v' + version
+  audience: string[]; // ['B2C', 'clinic'] subset
+  base_slug: string; // slug WITHOUT version suffix (for /protocols/<slug> public route)
+  slug: string; // computed: base_slug + '-v' + version
   review_state: ProtocolReviewState;
   created_by: string | null;
   reviewed_by: string | null;
-  published_at: string | null;  // ISO timestamptz
+  published_at: string | null; // ISO timestamptz
   reviewed_at: string | null;
   created_at: string;
-  updated_at: string;           // ISO timestamptz; set by tg_set_updated_at trigger
+  updated_at: string; // ISO timestamptz; set by tg_set_updated_at trigger
 }
 
 /**
@@ -53,7 +53,7 @@ export interface ProtocolStep {
   week: number;
   dose_mg: number;
   frequency: ProtocolFrequency;
-  cron_string: string | null;  // populated only when frequency='custom-cron'
+  cron_string: string | null; // populated only when frequency='custom-cron'
   monitoring: ProtocolMonitoringKey[];
 }
 
@@ -65,9 +65,9 @@ export interface ProtocolStep {
 export interface ProtocolEvidence {
   id: string;
   protocol_id: string;
-  step_id: string;             // NOT NULL — step-level granularity mandatory
+  step_id: string; // NOT NULL — step-level granularity mandatory
   citation_text: string;
-  rag_source_id: string;       // references rag-curated chunk
+  rag_source_id: string; // references rag-curated chunk
   verbatim_quote: string;
   created_at: string;
 }
@@ -117,7 +117,7 @@ export interface AdminAiAssistLogRow {
  * protocol_id is null when suggesting for a brand-new draft (no DB row yet).
  */
 export interface AiAssistRequest {
-  protocol_id: string | null;  // null = new draft, no row yet
+  protocol_id: string | null; // null = new draft, no row yet
   step_week: number;
   compound: string;
   prior_steps_context: string;

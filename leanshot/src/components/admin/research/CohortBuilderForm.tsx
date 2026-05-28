@@ -66,28 +66,22 @@ export interface CohortBuilderFormProps {
 
 // --- Constants ---
 
-const COMPOUND_OPTIONS = [
-  'tirzepatide',
-  'semaglutide',
-  'liraglutide',
-  'dulaglutide',
-  'exenatide',
-];
+const COMPOUND_OPTIONS = ['tirzepatide', 'semaglutide', 'liraglutide', 'dulaglutide', 'exenatide'];
 
 const AUDIENCE_OPTIONS = ['B2C', 'clinic', 'both'];
 
 const TENURE_OPTIONS: Array<{ value: NonNullable<TenureBucket>; label: string }> = [
-  { value: '<3m',  label: 'Under 3 months' },
+  { value: '<3m', label: 'Under 3 months' },
   { value: '3-6m', label: '3–6 months' },
   { value: '6-12m', label: '6–12 months' },
   { value: '12m+', label: '12+ months' },
 ];
 
 const OUTCOME_OPTIONS: Array<{ value: OutcomeMetric; label: string }> = [
-  { value: 'weight_change',     label: 'Weight Change' },
-  { value: 'dose_adherence',    label: 'Dose Adherence' },
-  { value: 'retention_30d',     label: '30-Day Retention' },
-  { value: 'symptom_severity',  label: 'Symptom Severity' },
+  { value: 'weight_change', label: 'Weight Change' },
+  { value: 'dose_adherence', label: 'Dose Adherence' },
+  { value: 'retention_30d', label: '30-Day Retention' },
+  { value: 'symptom_severity', label: 'Symptom Severity' },
 ];
 
 // --- Pure helper (also exported for logic-only tests) ---
@@ -154,9 +148,7 @@ export function CohortBuilderForm({ onResult, onLoading }: CohortBuilderFormProp
 
   // Toggle audience selection
   const toggleAudience = (seg: string) => {
-    setAudience((prev) =>
-      prev.includes(seg) ? prev.filter((a) => a !== seg) : [...prev, seg],
-    );
+    setAudience((prev) => (prev.includes(seg) ? prev.filter((a) => a !== seg) : [...prev, seg]));
   };
 
   // Run Cohort

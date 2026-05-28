@@ -170,7 +170,11 @@ describe('DsarPortalPage state-residency extension (Phase 64 LEGAL-03)', () => {
     mockInsert.mockResolvedValue({
       data: [
         { id: newRequestId, state_residency: 'VA', request_type: 'deletion' },
-        { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd', state_residency: 'VA', request_type: 'access' },
+        {
+          id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+          state_residency: 'VA',
+          request_type: 'access',
+        },
       ],
       error: null,
     });
@@ -210,7 +214,11 @@ describe('DsarPortalPage state-residency extension (Phase 64 LEGAL-03)', () => {
     expect(Array.isArray(insertCall)).toBe(true);
     expect(insertCall).toHaveLength(2);
 
-    const rows = insertCall as Array<{ state_residency: string; request_type: string; user_id: string }>;
+    const rows = insertCall as Array<{
+      state_residency: string;
+      request_type: string;
+      user_id: string;
+    }>;
     expect(rows.every((r) => r.state_residency === 'VA')).toBe(true);
     expect(rows.every((r) => r.user_id === mockUserId)).toBe(true);
     const types = rows.map((r) => r.request_type).sort();

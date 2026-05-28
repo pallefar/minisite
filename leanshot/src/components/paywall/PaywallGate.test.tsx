@@ -36,7 +36,6 @@ vi.mock('@/lib/pharma/phaCheck', () => ({
   },
 }));
 
-
 describe('PaywallGate', () => {
   beforeEach(() => {
     trackingConsentMock.mockReset();

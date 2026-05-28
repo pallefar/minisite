@@ -135,10 +135,7 @@ export function MemberFlagsTab({ userId }: MemberFlagsTabProps) {
     }
   };
 
-  const sortedFlags = useMemo(
-    () => [...flags].sort((a, b) => a.key.localeCompare(b.key)),
-    [flags],
-  );
+  const sortedFlags = useMemo(() => [...flags].sort((a, b) => a.key.localeCompare(b.key)), [flags]);
 
   return (
     <Card variant="default" padding="lg" data-testid="member-flags-tab">

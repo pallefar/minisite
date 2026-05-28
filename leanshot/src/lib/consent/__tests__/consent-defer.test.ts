@@ -22,7 +22,6 @@ vi.mock('@/components/consent/consent-config', () => ({
   initCookieConsent: () => initCookieConsentSpy(),
 }));
 
-
 describe('consent-defer (Phase 22 GDPR-01 Pattern 4 bundle gate)', () => {
   let rICSpy: ReturnType<typeof vi.fn>;
   let setTimeoutSpy: ReturnType<typeof vi.spyOn>;
@@ -37,8 +36,9 @@ describe('consent-defer (Phase 22 GDPR-01 Pattern 4 bundle gate)', () => {
       cb({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline);
       return 1 as unknown as number;
     });
-    (globalThis as unknown as { requestIdleCallback?: typeof window.requestIdleCallback }).requestIdleCallback =
-      rICSpy as unknown as typeof window.requestIdleCallback;
+    (
+      globalThis as unknown as { requestIdleCallback?: typeof window.requestIdleCallback }
+    ).requestIdleCallback = rICSpy as unknown as typeof window.requestIdleCallback;
     setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
   });
 

@@ -96,7 +96,10 @@ export function NutritionTab() {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <Card span={12}>
-        <CardHeader title={t('patient:tab.nutrition.targets_title')} icon={<Target className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.nutrition.targets_title')}
+          icon={<Target className="size-4" />}
+        />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Macro
             label={t('patient:tab.nutrition.macro_protein')}
@@ -149,7 +152,9 @@ export function NutritionTab() {
             loading={aiBusy}
             onClick={aiEstimate}
           >
-            {aiBusy ? t('patient:tab.nutrition.ai_estimating') : t('patient:tab.nutrition.action_ai_estimate')}
+            {aiBusy
+              ? t('patient:tab.nutrition.ai_estimating')
+              : t('patient:tab.nutrition.action_ai_estimate')}
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -201,7 +206,10 @@ export function NutritionTab() {
       </Card>
 
       <Card span={5}>
-        <CardHeader title={t('patient:tab.nutrition.water_noise_title')} icon={<Droplet className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.nutrition.water_noise_title')}
+          icon={<Droplet className="size-4" />}
+        />
         <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] mb-2">
           {t('patient:tab.nutrition.water_label')}
         </p>
@@ -253,7 +261,10 @@ export function NutritionTab() {
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.nutrition.meals_title')} icon={<ListChecks className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.nutrition.meals_title')}
+          icon={<ListChecks className="size-4" />}
+        />
         {todayMeals.length === 0 ? (
           <EmptyState
             inline
@@ -266,11 +277,21 @@ export function NutritionTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_meal')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_cal')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_pro')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_fib')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.nutrition.col_hunger_sat')}</th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.nutrition.col_meal')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.nutrition.col_cal')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.nutrition.col_pro')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.nutrition.col_fib')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.nutrition.col_hunger_sat')}
+                  </th>
                   <th aria-hidden></th>
                 </tr>
               </thead>
@@ -305,11 +326,17 @@ export function NutritionTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.nutrition.protein_chart_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.nutrition.protein_chart_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <ProteinChart />
       </Card>
       <Card span={6}>
-        <CardHeader title={t('patient:tab.nutrition.noise_chart_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.nutrition.noise_chart_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <NoiseChart />
       </Card>
     </div>

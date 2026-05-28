@@ -8,11 +8,7 @@
  * - Empty distinctId throws before factory() is invoked
  */
 import { describe, it, expect, vi } from 'vitest';
-import {
-  type PostHogClientLike,
-  captureRagEvent,
-  scrubPhi,
-} from '../posthog-server';
+import { type PostHogClientLike, captureRagEvent, scrubPhi } from '../posthog-server';
 
 function makeMockClient(): {
   client: PostHogClientLike;
@@ -133,9 +129,7 @@ describe('captureRagEvent', () => {
 
   it('does NOT invoke factory when distinctId is empty (fail fast)', async () => {
     const factory = vi.fn();
-    await expect(
-      captureRagEvent('', 'rag_tip_impression', {}, factory),
-    ).rejects.toThrow();
+    await expect(captureRagEvent('', 'rag_tip_impression', {}, factory)).rejects.toThrow();
     expect(factory).not.toHaveBeenCalled();
   });
 

@@ -116,10 +116,7 @@ export function AffiliateApplyForm() {
       });
 
       if (error) {
-        toast(
-          "Couldn't send your application. Check your connection and try again.",
-          'error',
-        );
+        toast("Couldn't send your application. Check your connection and try again.", 'error');
         return;
       }
       if (data && data.ok) {
@@ -130,15 +127,9 @@ export function AffiliateApplyForm() {
         return;
       }
       // Unexpected response shape → treat as transient error.
-      toast(
-        "Couldn't send your application. Check your connection and try again.",
-        'error',
-      );
+      toast("Couldn't send your application. Check your connection and try again.", 'error');
     } catch {
-      toast(
-        "Couldn't send your application. Check your connection and try again.",
-        'error',
-      );
+      toast("Couldn't send your application. Check your connection and try again.", 'error');
     } finally {
       setSubmitting(false);
     }
@@ -181,16 +172,13 @@ export function AffiliateApplyForm() {
             id="apply-form-subhead"
             className="text-base text-[var(--color-text-secondary)] leading-relaxed"
           >
-            Earn $10 for every paid LeanShot subscription that comes from your audience.
-            Manual review in 3-5 business days.
+            Earn $10 for every paid LeanShot subscription that comes from your audience. Manual
+            review in 3-5 business days.
           </p>
         </header>
 
         {/* Honeypot — hidden from humans + screen readers; bots fill it. */}
-        <div
-          aria-hidden="true"
-          className="absolute -left-[9999px] w-px h-px overflow-hidden"
-        >
+        <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
           <label>
             Website (do not fill)
             <input
@@ -243,8 +231,7 @@ export function AffiliateApplyForm() {
           value={audienceSize}
           onChange={(e) => {
             setAudienceSize(e.target.value);
-            if (errors.audience_size)
-              setErrors((prev) => ({ ...prev, audience_size: undefined }));
+            if (errors.audience_size) setErrors((prev) => ({ ...prev, audience_size: undefined }));
           }}
           error={errors.audience_size}
           disabled={submitting}

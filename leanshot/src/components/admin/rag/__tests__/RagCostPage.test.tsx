@@ -49,24 +49,105 @@ vi.mock('@/hooks/useToast', () => ({
 // ---------------------------------------------------------------------------
 
 const ALL_ROLLUPS = [
-  { vendor: 'firecrawl', mtd_usd: 5.5, sparkline_7d: [1, 2, 3, 4, 5, 6, 7], last_day_with_data: '2026-05-22' },
-  { vendor: 'openai_embed', mtd_usd: 12.0, sparkline_7d: [2, 3, 4, 5, 6, 7, 8], last_day_with_data: '2026-05-22' },
-  { vendor: 'anthropic_summary', mtd_usd: 18.0, sparkline_7d: [3, 4, 5, 6, 7, 8, 9], last_day_with_data: '2026-05-22' },
-  { vendor: 'cohere_rerank', mtd_usd: 3.68, sparkline_7d: [0, 0, 0, 1, 2, 3, 0], last_day_with_data: '2026-05-21' },
-  { vendor: 'jina_rerank', mtd_usd: 1.2, sparkline_7d: [0, 0, 0, 0, 0, 1, 2], last_day_with_data: '2026-05-21' },
-  { vendor: 'federated_fetch', mtd_usd: 0.5, sparkline_7d: [0, 0, 0, 0, 0, 0, 1], last_day_with_data: '2026-05-20' },
-  { vendor: 'coach_synthesis_per_day', mtd_usd: 8.0, sparkline_7d: [1, 1, 1, 1, 1, 1, 1], last_day_with_data: '2026-05-22' },
-  { vendor: 'tip_of_day_per_day', mtd_usd: 2.5, sparkline_7d: [0, 0, 1, 0, 1, 0, 1], last_day_with_data: '2026-05-22' },
-  { vendor: 'newsletter_per_week', mtd_usd: 1.0, sparkline_7d: [0, 0, 0, 0, 0, 0, 1], last_day_with_data: '2026-05-17' },
+  {
+    vendor: 'firecrawl',
+    mtd_usd: 5.5,
+    sparkline_7d: [1, 2, 3, 4, 5, 6, 7],
+    last_day_with_data: '2026-05-22',
+  },
+  {
+    vendor: 'openai_embed',
+    mtd_usd: 12.0,
+    sparkline_7d: [2, 3, 4, 5, 6, 7, 8],
+    last_day_with_data: '2026-05-22',
+  },
+  {
+    vendor: 'anthropic_summary',
+    mtd_usd: 18.0,
+    sparkline_7d: [3, 4, 5, 6, 7, 8, 9],
+    last_day_with_data: '2026-05-22',
+  },
+  {
+    vendor: 'cohere_rerank',
+    mtd_usd: 3.68,
+    sparkline_7d: [0, 0, 0, 1, 2, 3, 0],
+    last_day_with_data: '2026-05-21',
+  },
+  {
+    vendor: 'jina_rerank',
+    mtd_usd: 1.2,
+    sparkline_7d: [0, 0, 0, 0, 0, 1, 2],
+    last_day_with_data: '2026-05-21',
+  },
+  {
+    vendor: 'federated_fetch',
+    mtd_usd: 0.5,
+    sparkline_7d: [0, 0, 0, 0, 0, 0, 1],
+    last_day_with_data: '2026-05-20',
+  },
+  {
+    vendor: 'coach_synthesis_per_day',
+    mtd_usd: 8.0,
+    sparkline_7d: [1, 1, 1, 1, 1, 1, 1],
+    last_day_with_data: '2026-05-22',
+  },
+  {
+    vendor: 'tip_of_day_per_day',
+    mtd_usd: 2.5,
+    sparkline_7d: [0, 0, 1, 0, 1, 0, 1],
+    last_day_with_data: '2026-05-22',
+  },
+  {
+    vendor: 'newsletter_per_week',
+    mtd_usd: 1.0,
+    sparkline_7d: [0, 0, 0, 0, 0, 0, 1],
+    last_day_with_data: '2026-05-17',
+  },
 ];
 
 const ALL_CAPS = [
-  { vendor: 'firecrawl', cap_usd: 50, mtd_spend_usd: 5.5, last_acknowledged_at: null, source_pause_state: false },
-  { vendor: 'openai_embed', cap_usd: 30, mtd_spend_usd: 12.0, last_acknowledged_at: null, source_pause_state: false },
-  { vendor: 'anthropic_summary', cap_usd: 50, mtd_spend_usd: 18.0, last_acknowledged_at: null, source_pause_state: false },
-  { vendor: 'cohere_rerank', cap_usd: 20, mtd_spend_usd: 3.68, last_acknowledged_at: null, source_pause_state: false },
-  { vendor: 'jina_rerank', cap_usd: 10, mtd_spend_usd: 1.2, last_acknowledged_at: null, source_pause_state: false },
-  { vendor: 'federated_fetch', cap_usd: 5, mtd_spend_usd: 0.5, last_acknowledged_at: null, source_pause_state: false },
+  {
+    vendor: 'firecrawl',
+    cap_usd: 50,
+    mtd_spend_usd: 5.5,
+    last_acknowledged_at: null,
+    source_pause_state: false,
+  },
+  {
+    vendor: 'openai_embed',
+    cap_usd: 30,
+    mtd_spend_usd: 12.0,
+    last_acknowledged_at: null,
+    source_pause_state: false,
+  },
+  {
+    vendor: 'anthropic_summary',
+    cap_usd: 50,
+    mtd_spend_usd: 18.0,
+    last_acknowledged_at: null,
+    source_pause_state: false,
+  },
+  {
+    vendor: 'cohere_rerank',
+    cap_usd: 20,
+    mtd_spend_usd: 3.68,
+    last_acknowledged_at: null,
+    source_pause_state: false,
+  },
+  {
+    vendor: 'jina_rerank',
+    cap_usd: 10,
+    mtd_spend_usd: 1.2,
+    last_acknowledged_at: null,
+    source_pause_state: false,
+  },
+  {
+    vendor: 'federated_fetch',
+    cap_usd: 5,
+    mtd_spend_usd: 0.5,
+    last_acknowledged_at: null,
+    source_pause_state: false,
+  },
 ];
 
 // Caps where cohere_rerank is at 100%
@@ -129,9 +210,7 @@ describe('render', () => {
 describe('empty data card', () => {
   it("renders '—' placeholder when mtd_usd=0 and no last_day_with_data", async () => {
     const emptyRollups = ALL_ROLLUPS.map((r) =>
-      r.vendor === 'firecrawl'
-        ? { ...r, mtd_usd: 0, last_day_with_data: null }
-        : r,
+      r.vendor === 'firecrawl' ? { ...r, mtd_usd: 0, last_day_with_data: null } : r,
     );
     (fetchCostRollup as ReturnType<typeof vi.fn>).mockResolvedValue(emptyRollups);
 
@@ -247,9 +326,7 @@ describe('acknowledge flow', () => {
 
 describe('error state', () => {
   it('shows verbatim error copy when fetchCostRollup fails', async () => {
-    (fetchCostRollup as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('network error'),
-    );
+    (fetchCostRollup as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network error'));
 
     render(<RagCostPage />);
 
@@ -262,9 +339,7 @@ describe('error state', () => {
   });
 
   it('error element has role="status"', async () => {
-    (fetchCostRollup as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('network error'),
-    );
+    (fetchCostRollup as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network error'));
 
     render(<RagCostPage />);
 

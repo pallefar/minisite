@@ -130,7 +130,15 @@ export function PenInjector({ className }: PenInjectorProps) {
 
       {/* base */}
       <rect x="20" y="197" width="40" height="14" rx="3" fill="var(--color-teal-700)" />
-      <line x1="24" y1="200" x2="56" y2="200" stroke="var(--color-teal-300)" strokeWidth="0.8" opacity="0.6" />
+      <line
+        x1="24"
+        y1="200"
+        x2="56"
+        y2="200"
+        stroke="var(--color-teal-300)"
+        strokeWidth="0.8"
+        opacity="0.6"
+      />
       <line x1="24" y1="208" x2="56" y2="208" stroke="rgba(255,255,255,0.18)" strokeWidth="0.6" />
 
       {/* button */}

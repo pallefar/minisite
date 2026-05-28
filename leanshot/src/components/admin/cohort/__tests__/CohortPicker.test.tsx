@@ -69,7 +69,9 @@ describe('CohortPicker (Phase 36 Plan 36-04 Task 1 — Pitfall 5 fix)', () => {
 
   it('exposes a "clear selection" affordance that resets value to null', async () => {
     mockOrder.mockResolvedValue({
-      data: [{ id: 'c1', name: 'Solo users', status: 'active', created_at: '2026-01-01T00:00:00Z' }],
+      data: [
+        { id: 'c1', name: 'Solo users', status: 'active', created_at: '2026-01-01T00:00:00Z' },
+      ],
       error: null,
     });
 

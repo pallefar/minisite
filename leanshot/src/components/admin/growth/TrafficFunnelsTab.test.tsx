@@ -46,9 +46,7 @@ vi.mock('@/lib/supabase', () => {
     const builder: {
       eq: (col: string, val: unknown) => typeof builder;
       gte: (col: string, val: unknown) => typeof builder;
-      then: (
-        resolve: (v: { data: typeof mockNotifPayloads; error: null }) => void,
-      ) => void;
+      then: (resolve: (v: { data: typeof mockNotifPayloads; error: null }) => void) => void;
     } = {
       eq: () => builder,
       gte: () => builder,
@@ -230,9 +228,7 @@ describe('TrafficFunnelsTab', () => {
     render(<TrafficFunnelsTab />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Below 7-day baseline by 2\.4σ/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Below 7-day baseline by 2\.4σ/)).toBeInTheDocument();
     });
   });
 
@@ -250,9 +246,7 @@ describe('TrafficFunnelsTab', () => {
     // Sheet renders a heading-style title prop; the drill-in body lists
     // channel rows. Assert both presence + the per-channel rows we seeded.
     await waitFor(() => {
-      expect(
-        screen.getByText(/Top 5 channels — Consumer cohort/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Top 5 channels — Consumer cohort/i)).toBeInTheDocument();
     });
     // Both channel rows from CONSUMER_ROWS at the visit→signup stage:
     expect(screen.getByText('organic_search')).toBeInTheDocument();

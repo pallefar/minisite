@@ -66,8 +66,9 @@ export function LeaderboardsSubtab() {
 
       const entries: CohortEntry[] = (rows ?? []).map((r) => {
         const optin = (
-          r.leaderboard_optin as Array<{ user_id: string; handle: string; active: boolean }>
-          | undefined
+          r.leaderboard_optin as
+            | Array<{ user_id: string; handle: string; active: boolean }>
+            | undefined
         )?.find((o) => o.user_id === userId);
         return {
           id: r.id as string,

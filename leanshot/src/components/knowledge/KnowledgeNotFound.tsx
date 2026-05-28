@@ -20,10 +20,7 @@ export function KnowledgeNotFound() {
         <p className="text-sm text-text-secondary mb-6">
           The page you are looking for does not exist or has been removed.
         </p>
-        <Link
-          to="/"
-          className="text-sm text-accent hover:underline"
-        >
+        <Link to="/" className="text-sm text-accent hover:underline">
           ← Back to Knowledge Base
         </Link>
       </div>

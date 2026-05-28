@@ -11,8 +11,7 @@ import { Button } from '@/components/ui/Button';
 import type { ScreenProps } from './types';
 
 export function Screen6({ config, onNext, onBack, onDismiss, stepLabel }: ScreenProps) {
-  const headline =
-    (config?.final_cta_headline as string | undefined) ?? 'Ready to keep going?';
+  const headline = (config?.final_cta_headline as string | undefined) ?? 'Ready to keep going?';
   const body =
     (config?.final_cta_body as string | undefined) ??
     'Start your subscription and pick up where your trial left off — no data lost.';

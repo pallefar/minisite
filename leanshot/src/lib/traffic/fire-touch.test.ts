@@ -36,9 +36,7 @@ describe('fireTouchOnce', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const callArgs = fetchMock.mock.calls[0];
     expect(callArgs).toBeDefined();
-    expect(callArgs![0]).toBe(
-      'https://test.supabase.co/functions/v1/traffic-attribution-recorder',
-    );
+    expect(callArgs![0]).toBe('https://test.supabase.co/functions/v1/traffic-attribution-recorder');
     const init = callArgs![1] as RequestInit;
     expect(init.method).toBe('POST');
     expect(init.credentials).toBe('include');

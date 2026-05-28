@@ -74,9 +74,7 @@ export type DownloadResourceResult =
  * @param path — storage object key, e.g. `lesson_<uuid>/<filename>.pdf`
  *               (path layout established by Plan 46-09 LessonResourceUploader).
  */
-export async function downloadResourceSignedUrl(
-  path: string,
-): Promise<DownloadResourceResult> {
+export async function downloadResourceSignedUrl(path: string): Promise<DownloadResourceResult> {
   try {
     const { data, error } = await supabase.storage
       .from(COURSE_RESOURCES_BUCKET)

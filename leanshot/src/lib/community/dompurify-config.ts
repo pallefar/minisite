@@ -22,8 +22,22 @@ import type { CommunityPost } from '@/lib/community/community-types';
 // ─── Allowlist (D-10 markdown subset: no inline images) ───────────────────────
 
 const COMMUNITY_ALLOWED_TAGS = [
-  'h2', 'h3', 'h4', 'p', 'strong', 'em', 'b', 'i',
-  'ul', 'ol', 'li', 'a', 'code', 'pre', 'blockquote', 'br',
+  'h2',
+  'h3',
+  'h4',
+  'p',
+  'strong',
+  'em',
+  'b',
+  'i',
+  'ul',
+  'ol',
+  'li',
+  'a',
+  'code',
+  'pre',
+  'blockquote',
+  'br',
 ];
 
 // ─── DOMPurify hook ───────────────────────────────────────────────────────────

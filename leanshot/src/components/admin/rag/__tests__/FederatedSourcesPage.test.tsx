@@ -167,10 +167,7 @@ describe('FederatedSourcesPage — toggle interaction', () => {
     });
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.stringContaining('PubMed'),
-        'success',
-      );
+      expect(mockToast).toHaveBeenCalledWith(expect.stringContaining('PubMed'), 'success');
     });
   });
 
@@ -190,10 +187,7 @@ describe('FederatedSourcesPage — toggle interaction', () => {
     });
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.stringContaining('Failed'),
-        'error',
-      );
+      expect(mockToast).toHaveBeenCalledWith(expect.stringContaining('Failed'), 'error');
     });
 
     // Row should revert: pubmed was disabled initially, should still be disabled
@@ -228,7 +222,10 @@ describe('FederatedSourcesPage — Pull history button (Option D: disabled)', ()
 
     const pullButtons = screen.getAllByText(/pull full history/i);
     pullButtons.forEach((btn) => {
-      expect(btn.closest('button')).toHaveAttribute('title', expect.stringContaining('Coming soon'));
+      expect(btn.closest('button')).toHaveAttribute(
+        'title',
+        expect.stringContaining('Coming soon'),
+      );
     });
   });
 });
@@ -241,9 +238,7 @@ describe('FederatedSourcesPage — page header', () => {
     render(<FederatedSourcesPage />);
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: /federated sources/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /federated sources/i })).toBeInTheDocument();
     });
   });
 });

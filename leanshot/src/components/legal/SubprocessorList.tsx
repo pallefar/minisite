@@ -96,10 +96,7 @@ export function SubprocessorList() {
     return (
       <p role="alert" className="text-[13px] text-[var(--color-danger)]">
         Unable to load subprocessor list. Email{' '}
-        <a
-          href="mailto:privacy@leanshot.app"
-          className="underline decoration-1 underline-offset-2"
-        >
+        <a href="mailto:privacy@leanshot.app" className="underline decoration-1 underline-offset-2">
           privacy@leanshot.app
         </a>{' '}
         for the latest list.
@@ -127,10 +124,7 @@ export function SubprocessorList() {
           </thead>
           <tbody>
             {vendors.map((v, i) => (
-              <tr
-                key={i}
-                className="border-b border-[var(--color-border)] last:border-0"
-              >
+              <tr key={i} className="border-b border-[var(--color-border)] last:border-0">
                 <td className="px-4 py-2 font-semibold">{v.name}</td>
                 <td className="px-4 py-2 text-[var(--color-text-secondary)]">{v.purpose}</td>
                 <td className="px-4 py-2 text-[var(--color-text-secondary)]">{v.baa_status}</td>

@@ -22,7 +22,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 describe('logPhiAccess', () => {
   const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 

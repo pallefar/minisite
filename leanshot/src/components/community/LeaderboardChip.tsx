@@ -121,9 +121,7 @@ export function LeaderboardChip({
   if (rows.length === 0) {
     return (
       <Card variant="flat" padding="sm">
-        <p className="text-sm text-[var(--color-text-secondary)]">
-          No leaderboard data yet.
-        </p>
+        <p className="text-sm text-[var(--color-text-secondary)]">No leaderboard data yet.</p>
       </Card>
     );
   }
@@ -136,15 +134,9 @@ export function LeaderboardChip({
         <Trophy className="size-4 text-[var(--color-primary)]" aria-hidden />
         <span className="text-sm font-semibold text-[var(--color-text)]">Leaderboard</span>
       </div>
-      <ol
-        className="space-y-1 text-sm tabular-nums"
-        aria-label="Top community members"
-      >
+      <ol className="space-y-1 text-sm tabular-nums" aria-label="Top community members">
         {visibleRows.map((row) => (
-          <li
-            key={`${row.rank_in_space}-${row.handle}`}
-            className="flex items-center gap-2"
-          >
+          <li key={`${row.rank_in_space}-${row.handle}`} className="flex items-center gap-2">
             <span className="text-[var(--color-text-secondary)] w-6 text-right">
               {row.rank_in_space}
             </span>

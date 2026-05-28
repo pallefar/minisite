@@ -35,7 +35,9 @@ interface FunnelTabProps {
   flowId: string | null;
 }
 
-interface InvokeError { error?: string }
+interface InvokeError {
+  error?: string;
+}
 
 export default function OnboardingFunnelTab({ flowId }: FunnelTabProps) {
   const [steps, setSteps] = useState<StepRow[] | null>(null);
@@ -87,8 +89,8 @@ export default function OnboardingFunnelTab({ flowId }: FunnelTabProps) {
       >
         <p className="font-medium">PostHog Insights not yet configured.</p>
         <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
-          Funnel analytics ship once Plan 34-10&apos;s vendor checkpoint completes
-          (sets <code>POSTHOG_PERSONAL_API_KEY</code> + <code>POSTHOG_PROJECT_ID</code>).
+          Funnel analytics ship once Plan 34-10&apos;s vendor checkpoint completes (sets{' '}
+          <code>POSTHOG_PERSONAL_API_KEY</code> + <code>POSTHOG_PROJECT_ID</code>).
         </p>
       </div>
     );

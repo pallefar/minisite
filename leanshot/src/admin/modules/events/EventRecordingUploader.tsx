@@ -30,31 +30,24 @@ export interface EventRecordingUploaderProps {
 // the practical browser PUT ceiling. Mux SDK takes maxFileSize in KB.
 const MAX_FILE_SIZE_KB = 8 * 1024 * 1024;
 
-export function EventRecordingUploader({
-  eventId,
-  onUploaded,
-}: EventRecordingUploaderProps) {
+export function EventRecordingUploader({ eventId, onUploaded }: EventRecordingUploaderProps) {
   const toast = useToast();
   const uploadIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function resolveUploadEndpoint(): Promise<string> {
-    const { data, error: fnError } = await supabase.functions.invoke(
-      'mux-create-upload',
-      {
-        body: { kind: 'event-recording', event_id: eventId },
-      },
-    );
+    const { data, error: fnError } = await supabase.functions.invoke('mux-create-upload', {
+      body: { kind: 'event-recording', event_id: eventId },
+    });
 
     if (fnError) {
-      const status =
-        (fnError as { context?: { status?: number } }).context?.status ?? 0;
+      const status = (fnError as { context?: { status?: number } }).context?.status ?? 0;
       const msg =
         status === 403
           ? 'Only staff can upload event recordings.'
           : status === 404
-          ? 'Event not found.'
-          : `Upload setup failed: ${fnError.message}`;
+            ? 'Event not found.'
+            : `Upload setup failed: ${fnError.message}`;
       setError(msg);
       toast(msg, 'error');
       throw new Error('endpoint_fail');
@@ -77,10 +70,9 @@ export function EventRecordingUploader({
       <div>
         <h2 className="text-base font-semibold">Upload event recording</h2>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Upload the post-event video. Mux will transcode automatically. If this
-          event has an attached course module, the recording will be converted
-          to a lesson under that module; otherwise it will be attached to the
-          event row directly as a standalone Mux asset.
+          Upload the post-event video. Mux will transcode automatically. If this event has an
+          attached course module, the recording will be converted to a lesson under that module;
+          otherwise it will be attached to the event row directly as a standalone Mux asset.
         </p>
       </div>
 

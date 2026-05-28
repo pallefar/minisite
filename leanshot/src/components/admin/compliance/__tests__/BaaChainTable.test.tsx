@@ -178,7 +178,12 @@ describe('BaaChainTable', () => {
     // After the RPC, the second fetch returns updated data.
     const UPDATED_ROWS = SEED_ROWS.map((r) =>
       r.vendor_name === 'Supabase'
-        ? { ...r, status: 'signed', baa_signed_at: '2026-01-01T00:00:00Z', baa_expiry_at: '2027-01-01T00:00:00Z' }
+        ? {
+            ...r,
+            status: 'signed',
+            baa_signed_at: '2026-01-01T00:00:00Z',
+            baa_expiry_at: '2027-01-01T00:00:00Z',
+          }
         : r,
     );
 

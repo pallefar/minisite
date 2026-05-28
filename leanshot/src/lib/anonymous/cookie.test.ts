@@ -15,12 +15,7 @@
  */
 
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  ANON_COOKIE_NAME,
-  clearAnonCookie,
-  readAnonCookie,
-  writeAnonCookie,
-} from './cookie';
+import { ANON_COOKIE_NAME, clearAnonCookie, readAnonCookie, writeAnonCookie } from './cookie';
 
 function resetCookies(): void {
   // Expire ALL cookies currently set on document for a clean slate.

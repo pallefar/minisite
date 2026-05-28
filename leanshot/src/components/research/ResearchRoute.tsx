@@ -64,10 +64,7 @@ export default function ResearchRoute() {
             </Suspense>
           }
         />
-        <Route
-          path=":slug"
-          element={<ResearchArticleWrapper />}
-        />
+        <Route path=":slug" element={<ResearchArticleWrapper />} />
         <Route path="*" element={<ResearchNotFound />} />
       </Routes>
     </BrowserRouter>

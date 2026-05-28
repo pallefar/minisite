@@ -116,7 +116,6 @@ export function BaaChainTable() {
 
   useEffect(() => {
     void loadRows();
-     
   }, []);
 
   // Move focus to close button when modal opens.
@@ -195,11 +194,21 @@ export function BaaChainTable() {
           <table className="min-w-full text-sm">
             <thead className="bg-[var(--color-surface)] text-start text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
               <tr>
-                <th scope="col" className="px-4 py-3">Vendor</th>
-                <th scope="col" className="px-4 py-3">Status</th>
-                <th scope="col" className="px-4 py-3">Signed</th>
-                <th scope="col" className="px-4 py-3">Expires</th>
-                <th scope="col" className="px-4 py-3 text-end">Cost/mo</th>
+                <th scope="col" className="px-4 py-3">
+                  Vendor
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Signed
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Expires
+                </th>
+                <th scope="col" className="px-4 py-3 text-end">
+                  Cost/mo
+                </th>
                 <th scope="col" className="px-4 py-3">
                   <span className="sr-only">Actions</span>
                 </th>

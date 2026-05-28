@@ -23,9 +23,18 @@ import { describe, expect, it } from 'vitest';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const GIT_ROOT = resolve(__dirname, '../../../../../');
-const M1 = readFileSync(resolve(GIT_ROOT, 'supabase/migrations/20281201000001_phase60_kb_tables.sql'), 'utf8');
-const M2 = readFileSync(resolve(GIT_ROOT, 'supabase/migrations/20281201000002_phase60_secdef_rpcs.sql'), 'utf8');
-const M3 = readFileSync(resolve(GIT_ROOT, 'supabase/migrations/20281201000003_phase60_push_categories.sql'), 'utf8');
+const M1 = readFileSync(
+  resolve(GIT_ROOT, 'supabase/migrations/20281201000001_phase60_kb_tables.sql'),
+  'utf8',
+);
+const M2 = readFileSync(
+  resolve(GIT_ROOT, 'supabase/migrations/20281201000002_phase60_secdef_rpcs.sql'),
+  'utf8',
+);
+const M3 = readFileSync(
+  resolve(GIT_ROOT, 'supabase/migrations/20281201000003_phase60_push_categories.sql'),
+  'utf8',
+);
 
 /**
  * Strip SQL line-prefix comments (lines starting with --) so negative grep
@@ -45,7 +54,6 @@ function countMatches(pattern: RegExp, text: string): number {
 }
 
 describe('Phase 60 data layer migrations', () => {
-
   // ---------------------------------------------------------------------------
   // Migration 1: 20281201000001_phase60_kb_tables.sql
   // ---------------------------------------------------------------------------
@@ -156,7 +164,9 @@ describe('Phase 60 data layer migrations', () => {
   });
 
   it('20281201000003 seeds notification_category_config with research_tips defaults', () => {
-    expect(M3).toMatch(/insert\s+into\s+public\.notification_category_config[\s\S]*?'research_tips'/i);
+    expect(M3).toMatch(
+      /insert\s+into\s+public\.notification_category_config[\s\S]*?'research_tips'/i,
+    );
     expect(M3).toMatch(/on\s+conflict\s+\(\s*category\s*\)\s+do\s+nothing/i);
     // daily_cap=1
     expect(M3).toMatch(/'research_tips',\s*1,/);

@@ -39,11 +39,15 @@ export function BulkJobProgress({ jobId, onComplete, onError }: BulkJobProgressP
   }, [status, rowsCompleted, rowsTotal, errorLog, onComplete, onError]);
 
   const caption =
-    status === 'loading' ? 'Connecting to job…'
-      : status === 'pending' ? 'Waiting in queue…'
-      : status === 'running' ? `Processing ${rowsCompleted} of ${rowsTotal} users…`
-      : status === 'completed' ? `Completed ${rowsCompleted} of ${rowsTotal} users.`
-      : `Failed after ${rowsCompleted} of ${rowsTotal} users.`;
+    status === 'loading'
+      ? 'Connecting to job…'
+      : status === 'pending'
+        ? 'Waiting in queue…'
+        : status === 'running'
+          ? `Processing ${rowsCompleted} of ${rowsTotal} users…`
+          : status === 'completed'
+            ? `Completed ${rowsCompleted} of ${rowsTotal} users.`
+            : `Failed after ${rowsCompleted} of ${rowsTotal} users.`;
 
   return (
     <div className="space-y-3">
@@ -69,7 +73,9 @@ export function BulkJobProgress({ jobId, onComplete, onError }: BulkJobProgressP
           <ul className="mt-2 space-y-1 max-h-40 overflow-y-auto">
             {errorLog.slice(0, 50).map((entry, i) => (
               <li key={i} className="font-mono text-[12px]">
-                {entry.user_id ? `${entry.user_id.slice(0, 8)}…` : `chunk@${entry.chunk_offset ?? '?'}`}
+                {entry.user_id
+                  ? `${entry.user_id.slice(0, 8)}…`
+                  : `chunk@${entry.chunk_offset ?? '?'}`}
                 {': '}
                 {entry.error_message ?? entry.error_code ?? 'unknown error'}
               </li>

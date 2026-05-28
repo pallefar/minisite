@@ -19,7 +19,6 @@ vi.mock('@/lib/consent/consent-defer', () => ({
   scheduleConsentInit: () => scheduleConsentInitSpy(),
 }));
 
-
 describe('CookieConsentBootstrap (Phase 22 GDPR-01)', () => {
   beforeEach(() => {
     scheduleConsentInitSpy.mockReset();

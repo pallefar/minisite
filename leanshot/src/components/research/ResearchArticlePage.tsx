@@ -102,17 +102,19 @@ export function ResearchArticlePage({ slug }: ResearchArticlePageProps) {
     setPublication(undefined);
     setMarkdownBody('');
 
-    void Promise.all([fetchResearchBySlug(slug), fetchResearchMarkdown(slug)]).then(
-      ([pub, md]) => {
+    void Promise.all([fetchResearchBySlug(slug), fetchResearchMarkdown(slug)])
+      .then(([pub, md]) => {
         if (cancelled) return;
         setPublication(pub);
         setMarkdownBody(md);
-      },
-    ).catch(() => {
-      if (!cancelled) setPublication(null);
-    });
+      })
+      .catch(() => {
+        if (!cancelled) setPublication(null);
+      });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   // Loading state
@@ -160,7 +162,10 @@ export function ResearchArticlePage({ slug }: ResearchArticlePageProps) {
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex items-center gap-2 text-[13px] text-[var(--color-text-secondary)]">
             <li>
-              <a href="/research" className="text-[var(--color-primary)] hover:underline underline-offset-4">
+              <a
+                href="/research"
+                className="text-[var(--color-primary)] hover:underline underline-offset-4"
+              >
                 Research
               </a>
             </li>
@@ -182,12 +187,19 @@ export function ResearchArticlePage({ slug }: ResearchArticlePageProps) {
                 {formatDate(publication.published_at)}
               </span>
             )}
-            <span aria-hidden="true" className="text-[11px] text-[var(--color-text-tertiary)]">·</span>
+            <span aria-hidden="true" className="text-[11px] text-[var(--color-text-tertiary)]">
+              ·
+            </span>
             <span className="text-[11px] text-[var(--color-text-secondary)]">
               LeanShot Research
             </span>
-            <span aria-hidden="true" className="text-[11px] text-[var(--color-text-tertiary)]">·</span>
-            <span className="text-[11px] font-mono text-[var(--color-text-tertiary)]" title="DOI-style citation">
+            <span aria-hidden="true" className="text-[11px] text-[var(--color-text-tertiary)]">
+              ·
+            </span>
+            <span
+              className="text-[11px] font-mono text-[var(--color-text-tertiary)]"
+              title="DOI-style citation"
+            >
               leanshot/research/{publication.slug}/{formatDateIso(publication.published_at)}
             </span>
           </div>
@@ -199,9 +211,7 @@ export function ResearchArticlePage({ slug }: ResearchArticlePageProps) {
           aria-label="Research article body"
         >
           {sanitizedBody ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {sanitizedBody}
-            </ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizedBody}</ReactMarkdown>
           ) : (
             <p className="text-[13px] text-[var(--color-text-secondary)]">
               Full paper content loading…

@@ -74,11 +74,8 @@ function typeBadgeClass(type: HitlRow['type']): string {
 function payloadPreview(row: HitlRow): ReactNode {
   const p = row.payload as { narrative?: string; title?: string; subject?: string };
   // Digest narrative → first 120 chars. Recommender → title. Win-back → subject.
-  const text =
-    p.narrative ?? p.title ?? p.subject ?? JSON.stringify(row.payload).slice(0, 120);
-  return (
-    <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-2">{text}</p>
-  );
+  const text = p.narrative ?? p.title ?? p.subject ?? JSON.stringify(row.payload).slice(0, 120);
+  return <p className="text-[13px] text-[var(--color-text-secondary)] line-clamp-2">{text}</p>;
 }
 
 export function HitlQueueRow({

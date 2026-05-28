@@ -122,11 +122,7 @@ export function AuditCustomRangeModal({
         </div>
 
         {err && (
-          <p
-            id="audit-range-error"
-            role="alert"
-            className="text-[12px] text-[var(--color-danger)]"
-          >
+          <p id="audit-range-error" role="alert" className="text-[12px] text-[var(--color-danger)]">
             {err}
           </p>
         )}

@@ -21,12 +21,7 @@
  * lifetime cap / "you'll see this again in N days".
  */
 import { Star } from 'lucide-react';
-import {
-  useCallback,
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-} from 'react';
+import { useCallback, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -51,12 +46,7 @@ export interface NPSPromptModalProps {
 
 const STAR_VALUES: readonly NPSRating[] = [1, 2, 3, 4, 5] as const;
 
-export function NPSPromptModal({
-  open,
-  copyVariant,
-  onRate,
-  onDismiss,
-}: NPSPromptModalProps) {
+export function NPSPromptModal({ open, copyVariant, onRate, onDismiss }: NPSPromptModalProps) {
   // copyVariant is part of the public API for future A/B copy lookup; reference
   // it so `noUnusedParameters` does not fail. The Wave 2 decide payload always
   // includes it even if not yet branched on the client.
@@ -72,35 +62,36 @@ export function NPSPromptModal({
   }, []);
 
   const onKeyDown = useCallback(
-    (idx: number) => (e: ReactKeyboardEvent<HTMLButtonElement>): void => {
-      switch (e.key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
-          e.preventDefault();
-          focusStar(idx + 1);
-          return;
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          e.preventDefault();
-          focusStar(idx - 1);
-          return;
-        case 'Home':
-          e.preventDefault();
-          focusStar(0);
-          return;
-        case 'End':
-          e.preventDefault();
-          focusStar(STAR_VALUES.length - 1);
-          return;
-        case ' ':
-        case 'Enter':
-          e.preventDefault();
-          setValue(STAR_VALUES[idx]);
-          return;
-        default:
-          return;
-      }
-    },
+    (idx: number) =>
+      (e: ReactKeyboardEvent<HTMLButtonElement>): void => {
+        switch (e.key) {
+          case 'ArrowRight':
+          case 'ArrowDown':
+            e.preventDefault();
+            focusStar(idx + 1);
+            return;
+          case 'ArrowLeft':
+          case 'ArrowUp':
+            e.preventDefault();
+            focusStar(idx - 1);
+            return;
+          case 'Home':
+            e.preventDefault();
+            focusStar(0);
+            return;
+          case 'End':
+            e.preventDefault();
+            focusStar(STAR_VALUES.length - 1);
+            return;
+          case ' ':
+          case 'Enter':
+            e.preventDefault();
+            setValue(STAR_VALUES[idx]);
+            return;
+          default:
+            return;
+        }
+      },
     [focusStar],
   );
 
@@ -153,22 +144,14 @@ export function NPSPromptModal({
                   !reduced && 'transition-colors duration-200',
                 )}
               >
-                <Star
-                  size={28}
-                  fill={filled ? 'currentColor' : 'none'}
-                  aria-hidden
-                />
+                <Star size={28} fill={filled ? 'currentColor' : 'none'} aria-hidden />
               </button>
             );
           })}
         </div>
 
         <div className="flex justify-end pt-2">
-          <Button
-            variant="primary"
-            disabled={value === null}
-            onClick={handleSubmit}
-          >
+          <Button variant="primary" disabled={value === null} onClick={handleSubmit}>
             Submit rating
           </Button>
         </div>

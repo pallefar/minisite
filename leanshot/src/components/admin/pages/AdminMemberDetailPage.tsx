@@ -327,9 +327,7 @@ export function AdminMemberDetailPage({ userId }: AdminMemberDetailPageProps = {
         <MemberDetailContent userId={id} />
       ) : (
         <Card variant="flat" padding="lg">
-          <p className="text-sm text-[var(--color-text-secondary)]">
-            No member id supplied.
-          </p>
+          <p className="text-sm text-[var(--color-text-secondary)]">No member id supplied.</p>
         </Card>
       )}
     </AdminLayout>

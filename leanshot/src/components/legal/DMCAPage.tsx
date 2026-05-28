@@ -53,7 +53,9 @@ export function DMCAPage() {
           </p>
           <address className="not-italic text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-xl p-4 text-[13px]">
             <p>
-              <strong className="text-[var(--color-text)]">[Agent Name — pending registration]</strong>
+              <strong className="text-[var(--color-text)]">
+                [Agent Name — pending registration]
+              </strong>
             </p>
             <p>LeanShot</p>
             <p>[Address — pending registration]</p>
@@ -75,37 +77,42 @@ export function DMCAPage() {
             How to submit a takedown notice
           </h2>
           <p>
-            To submit a DMCA takedown notice under 17 U.S.C. § 512(c)(3), your written
-            communication must include all of the following:
+            To submit a DMCA takedown notice under 17 U.S.C. § 512(c)(3), your written communication
+            must include all of the following:
           </p>
           <ol className="list-decimal ps-5 space-y-2 text-[var(--color-text-secondary)]">
             <li>
-              <strong className="text-[var(--color-text)]">Identification of the copyrighted work.</strong>{' '}
+              <strong className="text-[var(--color-text)]">
+                Identification of the copyrighted work.
+              </strong>{' '}
               A description of the copyrighted work you claim has been infringed, or if multiple
               works are covered, a representative list.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Identification of infringing material.</strong>{' '}
+              <strong className="text-[var(--color-text)]">
+                Identification of infringing material.
+              </strong>{' '}
               A description of the material you claim is infringing, with enough detail for us to
               locate it — including the URL or specific location on LeanShot.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Your contact information.</strong>{' '}
-              Your name, mailing address, telephone number, and email address.
+              <strong className="text-[var(--color-text)]">Your contact information.</strong> Your
+              name, mailing address, telephone number, and email address.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Good-faith statement.</strong>{' '}
-              A statement that you have a good-faith belief that use of the material in the manner
+              <strong className="text-[var(--color-text)]">Good-faith statement.</strong> A
+              statement that you have a good-faith belief that use of the material in the manner
               complained of is not authorized by the copyright owner, its agent, or the law.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Accuracy statement.</strong>{' '}
-              A statement, made under penalty of perjury, that the information in your
-              notification is accurate and that you are the copyright owner or authorized to act
-              on the owner&rsquo;s behalf.
+              <strong className="text-[var(--color-text)]">Accuracy statement.</strong> A statement,
+              made under penalty of perjury, that the information in your notification is accurate
+              and that you are the copyright owner or authorized to act on the owner&rsquo;s behalf.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Physical or electronic signature.</strong>{' '}
+              <strong className="text-[var(--color-text)]">
+                Physical or electronic signature.
+              </strong>{' '}
               Your physical or electronic signature (typing your full legal name constitutes an
               electronic signature).
             </li>
@@ -128,29 +135,33 @@ export function DMCAPage() {
             Counter-notice procedure
           </h2>
           <p>
-            If you believe your content was removed or disabled by mistake or misidentification,
-            you may submit a counter-notice under 17 U.S.C. § 512(g). Your written counter-notice
-            must include:
+            If you believe your content was removed or disabled by mistake or misidentification, you
+            may submit a counter-notice under 17 U.S.C. § 512(g). Your written counter-notice must
+            include:
           </p>
           <ol className="list-decimal ps-5 space-y-2 text-[var(--color-text-secondary)]">
             <li>
-              <strong className="text-[var(--color-text)]">Identification of removed material.</strong>{' '}
+              <strong className="text-[var(--color-text)]">
+                Identification of removed material.
+              </strong>{' '}
               A description of the material that was removed and where it appeared before removal,
               with enough detail for us to locate it.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Good-faith statement.</strong>{' '}
-              A statement under penalty of perjury that you have a good-faith belief the material
-              was removed or disabled as a result of mistake or misidentification.
+              <strong className="text-[var(--color-text)]">Good-faith statement.</strong> A
+              statement under penalty of perjury that you have a good-faith belief the material was
+              removed or disabled as a result of mistake or misidentification.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Consent to jurisdiction.</strong>{' '}
-              Your name, address, telephone number, and a statement consenting to the jurisdiction
-              of the Federal District Court for the judicial district where your address is located
-              (or, if outside the US, any judicial district in which LeanShot may be found).
+              <strong className="text-[var(--color-text)]">Consent to jurisdiction.</strong> Your
+              name, address, telephone number, and a statement consenting to the jurisdiction of the
+              Federal District Court for the judicial district where your address is located (or, if
+              outside the US, any judicial district in which LeanShot may be found).
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Physical or electronic signature.</strong>{' '}
+              <strong className="text-[var(--color-text)]">
+                Physical or electronic signature.
+              </strong>{' '}
               Your physical or electronic signature.
             </li>
           </ol>
@@ -163,8 +174,8 @@ export function DMCAPage() {
               abuse@leanshot.app
             </a>
             . Upon receipt of a valid counter-notice we will restore the removed content within
-            10–14 business days unless the original complainant notifies us they have filed a
-            court action.
+            10–14 business days unless the original complainant notifies us they have filed a court
+            action.
           </p>
         </section>
 
@@ -174,10 +185,9 @@ export function DMCAPage() {
             Safe-harbor disclaimer
           </h2>
           <p>
-            LeanShot operates as a service provider within the meaning of the DMCA § 512
-            safe-harbor provisions. We do not monitor user-generated content for copyright
-            infringement, but we respond to valid notices of alleged infringement as described
-            above.
+            LeanShot operates as a service provider within the meaning of the DMCA § 512 safe-harbor
+            provisions. We do not monitor user-generated content for copyright infringement, but we
+            respond to valid notices of alleged infringement as described above.
           </p>
           <p>
             Per § 512(i), LeanShot reserves the right to terminate the accounts of users who are

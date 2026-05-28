@@ -80,13 +80,9 @@ function CommentRow({
   const isDeleted = comment.deleted_at !== null;
 
   // T-44-05: sanitize body at render trust boundary (D-15 tombstone handling).
-  const sanitizedBody = isDeleted
-    ? '<em>[deleted]</em>'
-    : sanitizeCommunityMarkdown(comment.body);
+  const sanitizedBody = isDeleted ? '<em>[deleted]</em>' : sanitizeCommunityMarkdown(comment.body);
 
-  const displayName = comment.author_id
-    ? `User ${comment.author_id.slice(0, 8)}`
-    : 'Unknown';
+  const displayName = comment.author_id ? `User ${comment.author_id.slice(0, 8)}` : 'Unknown';
 
   const commentReactions = reactions.filter(
     (r) => r.target_type === 'comment' && r.target_id === comment.id,
@@ -105,10 +101,7 @@ function CommentRow({
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-medium text-[var(--color-text)]">{displayName}</span>
-            <time
-              dateTime={comment.created_at}
-              className="text-xs text-[var(--color-fg-muted)]"
-            >
+            <time dateTime={comment.created_at} className="text-xs text-[var(--color-fg-muted)]">
               {relativeTime(comment.created_at)}
             </time>
             {comment.edited_at && !isDeleted && (
@@ -184,7 +177,9 @@ export function CommunityCommentThread({
     void (async () => {
       const { data } = await supabase
         .from('community_comments')
-        .select('id, post_id, space_id, parent_comment_id, author_id, body, created_at, edited_at, deleted_at')
+        .select(
+          'id, post_id, space_id, parent_comment_id, author_id, body, created_at, edited_at, deleted_at',
+        )
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
@@ -231,9 +226,7 @@ export function CommunityCommentThread({
             />
           ))}
           {comments.length === 0 && (
-            <li className="text-xs text-[var(--color-fg-muted)] py-2 italic">
-              No comments yet.
-            </li>
+            <li className="text-xs text-[var(--color-fg-muted)] py-2 italic">No comments yet.</li>
           )}
         </ul>
       )}

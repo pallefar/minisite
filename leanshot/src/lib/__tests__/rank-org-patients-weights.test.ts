@@ -50,19 +50,13 @@ describeIfLive('P30 — rank_org_patients weighted scoring invariants', () => {
     const admin = getAdmin();
 
     // Ensure ranking_weights IS NULL for Org X (use Phase 10 defaults for test 1)
-    await admin
-      .from('org_settings')
-      .update({ ranking_weights: null })
-      .eq('org_id', fixture.orgX);
+    await admin.from('org_settings').update({ ranking_weights: null }).eq('org_id', fixture.orgX);
   }, 120_000);
 
   afterAll(async () => {
     // Reset ranking_weights to null after tests
     const admin = getAdmin();
-    await admin
-      .from('org_settings')
-      .update({ ranking_weights: null })
-      .eq('org_id', fixture.orgX);
+    await admin.from('org_settings').update({ ranking_weights: null }).eq('org_id', fixture.orgX);
 
     await cleanupByPrefix(TEST_SLUG_PREFIX);
   });

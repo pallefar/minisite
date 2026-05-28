@@ -52,10 +52,7 @@ export function PartnerActivityFeed({ rows }: PartnerActivityFeedProps): ReactNo
           {rows.map((row) => {
             const meta = STATUS_TONES[row.status];
             return (
-              <li
-                key={row.id}
-                className="grid grid-cols-12 gap-2 py-2 text-sm items-center"
-              >
+              <li key={row.id} className="grid grid-cols-12 gap-2 py-2 text-sm items-center">
                 <span className="col-span-3 text-[var(--color-text-secondary)]">
                   {formatDate(row.created_at)}
                 </span>

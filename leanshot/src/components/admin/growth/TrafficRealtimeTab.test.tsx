@@ -29,12 +29,54 @@ vi.mock('@/lib/store', () => ({
 }));
 
 const sampleRows = [
-  { channel_group: 'Paid Search', audience: 'consumer', visits: 120, signups: 14, activations: 5, paids: 1 },
-  { channel_group: 'Organic Search', audience: 'consumer', visits: 80, signups: 9, activations: 3, paids: 0 },
-  { channel_group: 'Direct', audience: 'consumer', visits: 60, signups: 6, activations: 2, paids: 0 },
-  { channel_group: 'Email', audience: 'consumer', visits: 40, signups: 4, activations: 1, paids: 0 },
-  { channel_group: 'Affiliate', audience: 'consumer', visits: 20, signups: 2, activations: 0, paids: 0 },
-  { channel_group: 'Referral', audience: 'consumer', visits: 5, signups: 0, activations: 0, paids: 0 },
+  {
+    channel_group: 'Paid Search',
+    audience: 'consumer',
+    visits: 120,
+    signups: 14,
+    activations: 5,
+    paids: 1,
+  },
+  {
+    channel_group: 'Organic Search',
+    audience: 'consumer',
+    visits: 80,
+    signups: 9,
+    activations: 3,
+    paids: 0,
+  },
+  {
+    channel_group: 'Direct',
+    audience: 'consumer',
+    visits: 60,
+    signups: 6,
+    activations: 2,
+    paids: 0,
+  },
+  {
+    channel_group: 'Email',
+    audience: 'consumer',
+    visits: 40,
+    signups: 4,
+    activations: 1,
+    paids: 0,
+  },
+  {
+    channel_group: 'Affiliate',
+    audience: 'consumer',
+    visits: 20,
+    signups: 2,
+    activations: 0,
+    paids: 0,
+  },
+  {
+    channel_group: 'Referral',
+    audience: 'consumer',
+    visits: 5,
+    signups: 0,
+    activations: 0,
+    paids: 0,
+  },
 ];
 
 beforeEach(() => {
@@ -124,10 +166,7 @@ describe('TrafficRealtimeTab', () => {
     });
 
     // Initially fresh (just fetched).
-    expect(screen.getByTestId('realtime-pip')).toHaveAttribute(
-      'data-freshness',
-      'fresh',
-    );
+    expect(screen.getByTestId('realtime-pip')).toHaveAttribute('data-freshness', 'fresh');
 
     // Advance 10m30s, draining the 30s freshness tick + any polling that
     // would have fired (but document is hidden so it doesn't).
@@ -136,10 +175,7 @@ describe('TrafficRealtimeTab', () => {
       for (let i = 0; i < 10; i++) await Promise.resolve();
     });
 
-    expect(screen.getByTestId('realtime-pip')).toHaveAttribute(
-      'data-freshness',
-      'stale',
-    );
+    expect(screen.getByTestId('realtime-pip')).toHaveAttribute('data-freshness', 'stale');
 
     // Sanity: Refresh now button is wired (no error thrown).
     fireEvent.click(screen.getByRole('button', { name: 'Refresh now' }));

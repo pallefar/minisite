@@ -27,7 +27,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 const FAKE_AUTHENTICATED = { data: { user: { id: 'user-uuid-123' } } };
 const FAKE_ANONYMOUS = { data: { user: null } };
 

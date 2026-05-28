@@ -35,10 +35,9 @@ export function AccessibilityPage() {
           <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Our commitment</h2>
           <p>
             LeanShot is committed to making our web application accessible to everyone, including
-            people with disabilities. Our conformance target is{' '}
-            <strong>WCAG 2.2 Level AA</strong> as established by the World Wide Web Consortium
-            (W3C). We audit our UI against these guidelines on a continuous basis as new features
-            ship.
+            people with disabilities. Our conformance target is <strong>WCAG 2.2 Level AA</strong>{' '}
+            as established by the World Wide Web Consortium (W3C). We audit our UI against these
+            guidelines on a continuous basis as new features ship.
           </p>
         </section>
 
@@ -57,9 +56,7 @@ export function AccessibilityPage() {
 
         {/* 3. Conformance status */}
         <section className="space-y-3">
-          <h2 className="text-[18px] font-semibold text-[var(--color-text)]">
-            Conformance status
-          </h2>
+          <h2 className="text-[18px] font-semibold text-[var(--color-text)]">Conformance status</h2>
           <p>We aim to conform with WCAG 2.2 Level AA across all patient-facing surfaces.</p>
           <ul className="list-disc ps-5 space-y-1.5 text-[var(--color-text-secondary)]">
             <li>
@@ -68,19 +65,18 @@ export function AccessibilityPage() {
             </li>
             <li>
               <strong className="text-[var(--color-text)]">Screen-reader labels.</strong> All
-              non-text content and icon-only buttons carry descriptive{' '}
-              <code>aria-label</code> attributes.
+              non-text content and icon-only buttons carry descriptive <code>aria-label</code>{' '}
+              attributes.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Color contrast.</strong> Text meets
-              WCAG 2.2 AA contrast ratios (4.5:1 for body, 3:1 for large text) in both light
-              and dark themes.
+              <strong className="text-[var(--color-text)]">Color contrast.</strong> Text meets WCAG
+              2.2 AA contrast ratios (4.5:1 for body, 3:1 for large text) in both light and dark
+              themes.
             </li>
             <li>
-              <strong className="text-[var(--color-text)]">Reduced motion.</strong> Animations
-              are suppressed when the user&rsquo;s OS has{' '}
-              <code>prefers-reduced-motion: reduce</code> set, via{' '}
-              <code>useReducedMotion()</code> hook and CSS media queries.
+              <strong className="text-[var(--color-text)]">Reduced motion.</strong> Animations are
+              suppressed when the user&rsquo;s OS has <code>prefers-reduced-motion: reduce</code>{' '}
+              set, via <code>useReducedMotion()</code> hook and CSS media queries.
             </li>
           </ul>
         </section>
@@ -105,9 +101,9 @@ export function AccessibilityPage() {
           </h2>
           <p>
             When you report an accessibility issue, we commit to a{' '}
-            <strong>30-day response SLA</strong>. Critical barriers that prevent core
-            functionality (logging an injection, viewing your dashboard) will be escalated for
-            immediate remediation.
+            <strong>30-day response SLA</strong>. Critical barriers that prevent core functionality
+            (logging an injection, viewing your dashboard) will be escalated for immediate
+            remediation.
           </p>
         </section>
 

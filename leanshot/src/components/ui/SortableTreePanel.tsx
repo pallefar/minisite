@@ -169,13 +169,7 @@ interface SortableItemProps {
   render: (isDragging: boolean) => ReactNode;
 }
 
-function SortableItem({
-  id,
-  disabled,
-  reducedMotion,
-  ariaLabel,
-  render,
-}: SortableItemProps) {
+function SortableItem({ id, disabled, reducedMotion, ariaLabel, render }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     disabled,

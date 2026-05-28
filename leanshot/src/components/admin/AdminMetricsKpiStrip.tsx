@@ -77,10 +77,7 @@ export function AdminMetricsKpiStrip({
         {churnAnim.toFixed(1)}
         <span className="ms-1 text-[12px] font-medium text-[var(--color-text-secondary)]">%</span>
       </KpiTile>
-      <KpiTile
-        label="Clinic seat utilization"
-        ariaLabelledValue={`${clinicSeatCount} seats`}
-      >
+      <KpiTile label="Clinic seat utilization" ariaLabelledValue={`${clinicSeatCount} seats`}>
         <span className="inline-flex items-baseline gap-2">
           {Math.round(seatsAnim)}
           <Sparkline

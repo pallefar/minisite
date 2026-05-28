@@ -229,7 +229,16 @@ export default function KBEditorPage(): React.JSX.Element {
     }
     await fetchArticles();
     await loadArticle(current.id);
-  }, [current, canPublish, editTitle, editBody, editTitleEs, editBodyEs, fetchArticles, loadArticle]);
+  }, [
+    current,
+    canPublish,
+    editTitle,
+    editBody,
+    editTitleEs,
+    editBodyEs,
+    fetchArticles,
+    loadArticle,
+  ]);
 
   // ─── Preview-source selection ─────────────────────────────────────────────
   const previewBody = editLocale === 'en' ? editBody : editBodyEs;
@@ -302,9 +311,7 @@ export default function KBEditorPage(): React.JSX.Element {
         )}
         <ul className="flex flex-col gap-1 overflow-y-auto">
           {articles.length === 0 ? (
-            <li className="text-xs text-[var(--color-text-secondary)]">
-              No articles yet
-            </li>
+            <li className="text-xs text-[var(--color-text-secondary)]">No articles yet</li>
           ) : (
             articles.map((a) => (
               <li key={a.id}>
@@ -338,9 +345,7 @@ export default function KBEditorPage(): React.JSX.Element {
           <>
             {/* Locale toggle */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[var(--color-text-secondary)]">
-                Locale:
-              </span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Locale:</span>
               <button
                 type="button"
                 aria-pressed={editLocale === 'en'}
@@ -397,10 +402,7 @@ export default function KBEditorPage(): React.JSX.Element {
               <div className="flex flex-col gap-1 text-xs">
                 <span>Preview</span>
                 <div className="prose prose-sm max-w-none p-2 border border-[var(--color-border)] rounded min-h-[200px]">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                  >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                     {sanitizedPreview}
                   </ReactMarkdown>
                 </div>
@@ -434,9 +436,7 @@ export default function KBEditorPage(): React.JSX.Element {
             <div className="mt-4">
               <h3 className="text-xs font-semibold mb-2">Version history</h3>
               {versions.length === 0 ? (
-                <p className="text-xs text-[var(--color-text-secondary)]">
-                  No prior versions
-                </p>
+                <p className="text-xs text-[var(--color-text-secondary)]">No prior versions</p>
               ) : (
                 <ul className="flex flex-col gap-1">
                   {versions.map((v) => (

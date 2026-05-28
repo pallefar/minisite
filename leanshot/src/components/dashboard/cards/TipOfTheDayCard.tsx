@@ -119,9 +119,7 @@ export function TipOfTheDayCard() {
   if (loading) {
     return (
       <Card variant="elevated" span={4} data-testid="tip-of-day-skeleton">
-        <Skeleton
-          className={`h-28 w-full ${reducedMotion ? '' : 'animate-pulse'}`}
-        />
+        <Skeleton className={`h-28 w-full ${reducedMotion ? '' : 'animate-pulse'}`} />
       </Card>
     );
   }

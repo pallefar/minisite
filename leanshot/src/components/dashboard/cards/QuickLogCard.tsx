@@ -9,7 +9,15 @@ interface QuickLogCardProps {
   onOpenAI: () => void;
 }
 
-type ActionId = 'injection' | 'weight' | 'meal' | 'symptom' | 'mood' | 'stack' | 'workout' | 'ask_ai';
+type ActionId =
+  | 'injection'
+  | 'weight'
+  | 'meal'
+  | 'symptom'
+  | 'mood'
+  | 'stack'
+  | 'workout'
+  | 'ask_ai';
 
 const ACTIONS: { id: ActionId; Icon: typeof Syringe; tab?: TabId; ai?: boolean }[] = [
   { id: 'injection', Icon: Syringe, tab: 'medication' },

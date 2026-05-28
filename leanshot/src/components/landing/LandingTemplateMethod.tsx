@@ -30,10 +30,7 @@ export function LandingTemplateMethod({ affiliate }: LandingTemplateProps): Reac
   const signupHref = `/signup?aff=${encodeURIComponent(affiliate.referral_code)}`;
 
   return (
-    <main
-      data-template="method"
-      className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16"
-    >
+    <main data-template="method" className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16">
       {/* Hero — bullet list, no above-fold photo */}
       <section className="max-w-3xl">
         <h1 className="text-4xl font-semibold text-[var(--color-text-primary)] mb-8 leading-tight">

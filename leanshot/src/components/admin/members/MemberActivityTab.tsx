@@ -76,17 +76,31 @@ export function MemberActivityTab({ userId }: MemberActivityTabProps) {
   }
 
   return (
-    <Card variant="default" padding="none" className="overflow-x-auto" data-testid="member-activity-tab">
+    <Card
+      variant="default"
+      padding="none"
+      className="overflow-x-auto"
+      data-testid="member-activity-tab"
+    >
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[var(--color-border)]">
-            <th scope="col" className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
+            <th
+              scope="col"
+              className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
+            >
               When
             </th>
-            <th scope="col" className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
+            <th
+              scope="col"
+              className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
+            >
               Action
             </th>
-            <th scope="col" className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
+            <th
+              scope="col"
+              className="text-start px-4 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)]"
+            >
               Target
             </th>
           </tr>

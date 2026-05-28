@@ -43,12 +43,14 @@ const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
   { key: 'archived', label: 'Archived' },
 ];
 
-const STATUS_BADGE: Record<CohortStatus, { tone: 'neutral' | 'success' | 'warning'; label: string }> =
-  {
-    draft: { tone: 'warning', label: 'Draft' },
-    active: { tone: 'success', label: 'Active' },
-    archived: { tone: 'neutral', label: 'Archived' },
-  };
+const STATUS_BADGE: Record<
+  CohortStatus,
+  { tone: 'neutral' | 'success' | 'warning'; label: string }
+> = {
+  draft: { tone: 'warning', label: 'Draft' },
+  active: { tone: 'success', label: 'Active' },
+  archived: { tone: 'neutral', label: 'Archived' },
+};
 
 function formatDate(iso: string): string {
   try {
@@ -154,9 +156,7 @@ export function AdminCohortList() {
 
   const archive = async (row: CohortRow) => {
     if (
-      !window.confirm(
-        `Archive cohort "${row.name}"? It will be excluded from the next rebuild.`,
-      )
+      !window.confirm(`Archive cohort "${row.name}"? It will be excluded from the next rebuild.`)
     ) {
       return;
     }
@@ -237,9 +237,7 @@ export function AdminCohortList() {
                   Created {formatDate(row.created_at)}
                 </span>
               </div>
-              <Badge tone={STATUS_BADGE[row.status].tone}>
-                {STATUS_BADGE[row.status].label}
-              </Badge>
+              <Badge tone={STATUS_BADGE[row.status].tone}>{STATUS_BADGE[row.status].label}</Badge>
               <div className="ms-auto flex gap-2">
                 {row.status === 'draft' && (
                   <Button

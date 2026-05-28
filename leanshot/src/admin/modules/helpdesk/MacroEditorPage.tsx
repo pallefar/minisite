@@ -147,10 +147,9 @@ export default function MacroEditorPage(): React.JSX.Element {
     async (id: string) => {
       if (!canMutate) return;
       setBusy(true);
-      const { error } = (await supabase
-        .from('agent_macros')
-        .delete()
-        .eq('id', id)) as { error: { message: string } | null };
+      const { error } = (await supabase.from('agent_macros').delete().eq('id', id)) as {
+        error: { message: string } | null;
+      };
       setBusy(false);
       setPendingDelete(null);
       if (error) {
@@ -247,9 +246,7 @@ export default function MacroEditorPage(): React.JSX.Element {
 
       <ul className="flex flex-col gap-2">
         {macros.length === 0 && !editingId ? (
-          <li className="text-xs text-[var(--color-text-secondary)]">
-            No macros yet
-          </li>
+          <li className="text-xs text-[var(--color-text-secondary)]">No macros yet</li>
         ) : (
           macros.map((m) => (
             <li

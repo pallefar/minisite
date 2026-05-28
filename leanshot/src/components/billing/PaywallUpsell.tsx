@@ -103,10 +103,9 @@ export function PaywallUpsell({
 
   const handleUpgrade = async (): Promise<void> => {
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'stripe-checkout/session',
-        { body: { plan } },
-      );
+      const { data, error } = await supabase.functions.invoke('stripe-checkout/session', {
+        body: { plan },
+      });
       if (error || !data?.url) {
         // Pattern G / Pitfall 8: do NOT echo upstream error message to UI.
         console.error('[PaywallUpsell] checkout invoke failed', error?.message ?? 'no-url');
@@ -127,11 +126,7 @@ export function PaywallUpsell({
           (reduced ? '' : ' transition-opacity duration-200')
         }
       >
-        <Card
-          variant="tonal"
-          padding="md"
-          className="max-w-xs w-full text-center shadow-lg"
-        >
+        <Card variant="tonal" padding="md" className="max-w-xs w-full text-center shadow-lg">
           <p className="text-[15px] font-bold text-[var(--color-text)] mb-1">{title}</p>
           <p className="text-[12px] text-[var(--color-text-secondary)] mb-4">{subline}</p>
           <Button

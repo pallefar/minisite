@@ -40,7 +40,9 @@ export default function SettingsModule({ adminRole }: SettingsModuleProps) {
       if (error || !data) return;
       const totp = data.totp ?? [];
       setMfaStatus({ enrolled: totp.length > 0, factorCount: totp.length });
-    })().catch(() => { /* best-effort */ });
+    })().catch(() => {
+      /* best-effort */
+    });
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -63,7 +65,9 @@ export default function SettingsModule({ adminRole }: SettingsModuleProps) {
   // Self-reset 2FA (superadmin-only)
   // ---------------------------------------------------------------------------
   async function handleSelfReset() {
-    if (!confirm('This will remove your 2FA factor and send you a new enrollment email. Continue?')) {
+    if (
+      !confirm('This will remove your 2FA factor and send you a new enrollment email. Continue?')
+    ) {
       return;
     }
     setResetPending(true);
@@ -99,12 +103,16 @@ export default function SettingsModule({ adminRole }: SettingsModuleProps) {
             <div className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-green-500" aria-hidden="true" />
               <p className="text-sm text-[var(--color-text)]">
-                2FA active — {mfaStatus.factorCount} TOTP factor{mfaStatus.factorCount !== 1 ? 's' : ''} enrolled
+                2FA active — {mfaStatus.factorCount} TOTP factor
+                {mfaStatus.factorCount !== 1 ? 's' : ''} enrolled
               </p>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-yellow-500" aria-hidden="true" />
+              <span
+                className="inline-block w-2 h-2 rounded-full bg-yellow-500"
+                aria-hidden="true"
+              />
               <p className="text-sm text-[var(--color-text-secondary)]">
                 2FA not enrolled — you will be prompted to set it up on next access.
               </p>
@@ -113,7 +121,9 @@ export default function SettingsModule({ adminRole }: SettingsModuleProps) {
         </div>
 
         {errorMsg && (
-          <p className="text-sm text-[var(--color-error,red)] mb-3" role="alert">{errorMsg}</p>
+          <p className="text-sm text-[var(--color-error,red)] mb-3" role="alert">
+            {errorMsg}
+          </p>
         )}
 
         {/* Regenerate backup codes */}
@@ -122,7 +132,9 @@ export default function SettingsModule({ adminRole }: SettingsModuleProps) {
             <button
               type="button"
               disabled={regenerating}
-              onClick={() => { void handleRegenerate(); }}
+              onClick={() => {
+                void handleRegenerate();
+              }}
               className="text-sm font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
               aria-busy={regenerating}
             >
@@ -157,13 +169,15 @@ export default function SettingsModule({ adminRole }: SettingsModuleProps) {
         {isSuperadmin && mfaStatus?.enrolled && !resetDone && (
           <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
             <p className="text-xs text-[var(--color-text-secondary)] mb-2">
-              <strong>Danger zone (superadmin only):</strong> Reset your own 2FA. You will be
-              logged out and emailed a new enrollment link. Every reset is audit-logged.
+              <strong>Danger zone (superadmin only):</strong> Reset your own 2FA. You will be logged
+              out and emailed a new enrollment link. Every reset is audit-logged.
             </p>
             <button
               type="button"
               disabled={resetPending}
-              onClick={() => { void handleSelfReset(); }}
+              onClick={() => {
+                void handleSelfReset();
+              }}
               className="text-sm font-semibold text-red-500 hover:underline disabled:opacity-50"
               aria-busy={resetPending}
             >

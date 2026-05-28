@@ -144,7 +144,8 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
       if (form.reward_badge_id.trim()) payload.reward_badge_id = form.reward_badge_id.trim();
       const ft = parseInt(form.reward_freeze_tokens, 10);
       if (!isNaN(ft) && ft > 0) payload.reward_freeze_tokens = ft;
-      if (form.reward_combo_badge_id.trim()) payload.reward_combo_badge_id = form.reward_combo_badge_id.trim();
+      if (form.reward_combo_badge_id.trim())
+        payload.reward_combo_badge_id = form.reward_combo_badge_id.trim();
 
       if (form.variants.length > 0) {
         payload.variants = form.variants.map((v: VariantDraft) => ({
@@ -198,14 +199,17 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
             className="px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
           />
           {titleError && (
-            <p className="text-xs text-[var(--color-error)]" role="alert">{titleError}</p>
+            <p className="text-xs text-[var(--color-error)]" role="alert">
+              {titleError}
+            </p>
           )}
         </div>
 
         {/* Framing */}
         <div className="flex flex-col gap-1">
           <label htmlFor="challenge-framing" className="text-sm font-medium">
-            Framing <span className="text-[var(--color-text-secondary)] font-normal">(default copy)</span>
+            Framing{' '}
+            <span className="text-[var(--color-text-secondary)] font-normal">(default copy)</span>
           </label>
           <textarea
             id="challenge-framing"
@@ -227,10 +231,7 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
               id="challenge-type"
               value={form.challenge_type}
               onChange={(e) =>
-                updateField(
-                  'challenge_type',
-                  e.target.value as FormState['challenge_type'],
-                )
+                updateField('challenge_type', e.target.value as FormState['challenge_type'])
               }
               aria-label="Challenge type"
               className="px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
@@ -268,10 +269,7 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
               id="challenge-action-type"
               value={form.action_type}
               onChange={(e) =>
-                updateField(
-                  'action_type',
-                  e.target.value as FormState['action_type'],
-                )
+                updateField('action_type', e.target.value as FormState['action_type'])
               }
               aria-label="Action type"
               className="px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
@@ -293,9 +291,7 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
           <select
             id="challenge-duration"
             value={form.duration}
-            onChange={(e) =>
-              updateField('duration', e.target.value as FormState['duration'])
-            }
+            onChange={(e) => updateField('duration', e.target.value as FormState['duration'])}
             className="px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
           >
             <option value="week">Week</option>
@@ -339,9 +335,7 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
           <select
             id="challenge-status"
             value={form.status}
-            onChange={(e) =>
-              updateField('status', e.target.value as FormState['status'])
-            }
+            onChange={(e) => updateField('status', e.target.value as FormState['status'])}
             className="px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
           >
             <option value="draft">Draft</option>
@@ -440,10 +434,7 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
                   </button>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label
-                    htmlFor={`variant-framing-${index}`}
-                    className="text-sm font-medium"
-                  >
+                  <label htmlFor={`variant-framing-${index}`} className="text-sm font-medium">
                     Variant framing
                   </label>
                   <textarea
@@ -455,11 +446,11 @@ export default function ChallengeForm({ onSaved }: ChallengeFormProps) {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label
-                    htmlFor={`variant-threshold-${index}`}
-                    className="text-sm font-medium"
-                  >
-                    Threshold override <span className="text-[var(--color-text-secondary)] font-normal">(optional)</span>
+                  <label htmlFor={`variant-threshold-${index}`} className="text-sm font-medium">
+                    Threshold override{' '}
+                    <span className="text-[var(--color-text-secondary)] font-normal">
+                      (optional)
+                    </span>
                   </label>
                   <input
                     id={`variant-threshold-${index}`}

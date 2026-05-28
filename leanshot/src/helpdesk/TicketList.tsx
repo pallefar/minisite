@@ -49,9 +49,7 @@ export default function TicketList({ onSelect }: TicketListProps): JSX.Element {
 
   if (tickets.length === 0) {
     return (
-      <p className="text-xs text-[var(--color-fg-muted)] p-2">
-        You have no open tickets yet.
-      </p>
+      <p className="text-xs text-[var(--color-fg-muted)] p-2">You have no open tickets yet.</p>
     );
   }
 

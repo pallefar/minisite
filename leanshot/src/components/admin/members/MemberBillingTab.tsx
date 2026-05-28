@@ -144,8 +144,8 @@ export function MemberBillingTab({ userId, onOpenCancel, onOpenComp }: MemberBil
       <Card variant="default" padding="lg">
         <h3 className="text-sm font-semibold mb-3">Payment method</h3>
         <p className="text-sm text-[var(--color-text-secondary)]">
-          Payment method details are managed in Stripe Customer Portal —
-          per-user PM readout lands in plan 22-07.
+          Payment method details are managed in Stripe Customer Portal — per-user PM readout lands
+          in plan 22-07.
         </p>
       </Card>
     </div>

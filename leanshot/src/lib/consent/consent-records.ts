@@ -89,10 +89,7 @@ export async function upsertConsentRecord(snap: CookieConsentSnapshot): Promise<
       // navigator.userAgent capped at 500 chars to fit any reasonable text column
       // (ip_inet stays NULL — server-side capture deferred to Edge Function
       //  variant; client cannot read its own IP without an extra round-trip).
-      user_agent:
-        typeof navigator !== 'undefined'
-          ? navigator.userAgent.slice(0, 500)
-          : null,
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
       country_code: readGeoCountry(),
       // recorded_at defaulted server-side via DEFAULT now()
     };

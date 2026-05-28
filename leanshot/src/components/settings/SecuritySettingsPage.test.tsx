@@ -19,9 +19,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth/totp-shared', async () => {
-  const actual = await vi.importActual<typeof TotpShared>(
-    '@/lib/auth/totp-shared',
-  );
+  const actual = await vi.importActual<typeof TotpShared>('@/lib/auth/totp-shared');
   return {
     ...actual,
     listEnrolledFactors: mocks.listEnrolledFactors,
@@ -38,7 +36,6 @@ vi.mock('@/components/auth/TotpEnrollFlow', () => ({
     </div>
   ),
 }));
-
 
 beforeEach(() => {
   mocks.listEnrolledFactors.mockReset();

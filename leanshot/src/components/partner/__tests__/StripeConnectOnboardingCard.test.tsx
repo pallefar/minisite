@@ -57,9 +57,7 @@ describe('StripeConnectOnboardingCard', () => {
 
   // ── T2 ──
   it("T2 — state='pending' → heading + 'Start onboarding' CTA", () => {
-    render(
-      <StripeConnectOnboardingCard state="pending" requirements={[]} disabledReason={null} />,
-    );
+    render(<StripeConnectOnboardingCard state="pending" requirements={[]} disabledReason={null} />);
     expect(screen.getByText(/Complete tax onboarding to receive payouts/)).toBeTruthy();
     expect(screen.getByRole('button', { name: /Start onboarding/i })).toBeTruthy();
   });
@@ -96,9 +94,7 @@ describe('StripeConnectOnboardingCard', () => {
 
   // ── T5 ──
   it('T5 — CTA click → POST /stripe-connect-onboard + url opened in new tab', async () => {
-    render(
-      <StripeConnectOnboardingCard state="pending" requirements={[]} disabledReason={null} />,
-    );
+    render(<StripeConnectOnboardingCard state="pending" requirements={[]} disabledReason={null} />);
     const btn = screen.getByRole('button', { name: /Start onboarding/i });
     fireEvent.click(btn);
 

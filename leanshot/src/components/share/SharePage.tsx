@@ -111,9 +111,7 @@ interface Props {
 
 /** Extract the share token from a hash route like `#/share/<token>`. */
 function tokenFromHash(): string {
-  return typeof window !== 'undefined'
-    ? window.location.hash.replace(/^#\/share\//, '')
-    : '';
+  return typeof window !== 'undefined' ? window.location.hash.replace(/^#\/share\//, '') : '';
 }
 
 export function SharePage({ token: tokenProp }: Props = {}) {

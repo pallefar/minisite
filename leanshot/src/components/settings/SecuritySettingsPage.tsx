@@ -17,11 +17,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import TotpEnrollFlow from '@/components/auth/TotpEnrollFlow';
 import { Card, CardHeader } from '@/components/ui/Card';
-import {
-  listEnrolledFactors,
-  unenrollFactor,
-  type MfaFactor,
-} from '@/lib/auth/totp-shared';
+import { listEnrolledFactors, unenrollFactor, type MfaFactor } from '@/lib/auth/totp-shared';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
@@ -138,8 +134,8 @@ export default function SecuritySettingsPage() {
               <Card variant="flat" padding="lg">
                 <CardHeader title="Active sessions" />
                 <p className="text-sm text-text-secondary">
-                  Session management is coming in a future release. Sign out from individual
-                  devices using the device&apos;s own browser controls for now.
+                  Session management is coming in a future release. Sign out from individual devices
+                  using the device&apos;s own browser controls for now.
                 </p>
               </Card>
             </section>
@@ -194,8 +190,8 @@ function MfaEnrolledPanel({ factor, onReEnroll }: MfaEnrolledPanelProps) {
             Re-enroll 2FA?
           </p>
           <p className="text-sm text-text-secondary mb-3">
-            This removes your current authenticator factor and any existing backup codes. You
-            will need to scan a new QR code and save a fresh set of backup codes.
+            This removes your current authenticator factor and any existing backup codes. You will
+            need to scan a new QR code and save a fresh set of backup codes.
           </p>
           <div className="flex flex-wrap gap-3">
             <button

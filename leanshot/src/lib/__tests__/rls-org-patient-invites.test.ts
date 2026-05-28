@@ -150,10 +150,7 @@ describeIfLive('P29 RLS — org_patient_invites cross-tenant isolation', () => {
     if (!orgYInviteId) return;
     const { orgY, sessA } = fixture;
 
-    const { error } = await sessA.client
-      .from('org_patient_invites')
-      .delete()
-      .eq('org_id', orgY);
+    const { error } = await sessA.client.from('org_patient_invites').delete().eq('org_id', orgY);
 
     // DELETE with RLS filter = 0 matching rows is not an error
     expect(error).toBeNull();

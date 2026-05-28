@@ -116,9 +116,7 @@ export function PartnerTierProgress({ affiliateId }: PartnerTierProgressProps): 
               />
             </div>
             <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-              {remaining > 0
-                ? `${remaining} more to Gold`
-                : 'Promotion pending — refresh shortly.'}
+              {remaining > 0 ? `${remaining} more to Gold` : 'Promotion pending — refresh shortly.'}
             </p>
           </div>
         )}
@@ -131,9 +129,7 @@ export function PartnerTierProgress({ affiliateId }: PartnerTierProgressProps): 
           <AlertCircle aria-hidden className="w-4 h-4 mt-0.5 text-[var(--color-warning)]" />
           <div>
             <strong>Account frozen — pending review.</strong>
-            {data.freezeReason !== null && (
-              <p className="text-sm mt-1">{data.freezeReason}</p>
-            )}
+            {data.freezeReason !== null && <p className="text-sm mt-1">{data.freezeReason}</p>}
             <p className="text-sm mt-1">
               <a href="mailto:partners@leanshot.app" className="underline">
                 Appeal

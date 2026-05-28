@@ -23,12 +23,7 @@ export interface BlockTreePanelProps {
   onChange: (blocks: BlockNode[]) => void;
 }
 
-export function BlockTreePanel({
-  blocks,
-  selectedId,
-  onSelect,
-  onChange,
-}: BlockTreePanelProps) {
+export function BlockTreePanel({ blocks, selectedId, onSelect, onChange }: BlockTreePanelProps) {
   const rootBlocks = blocks.filter((b) => b.parent_id === null);
 
   const handleReorder = (nextRoot: BlockNode[]): void => {
@@ -36,9 +31,7 @@ export function BlockTreePanel({
     // non-root blocks, then renumber `order` to keep it contiguous 0..n.
     // Equivalent to reorderBlocks(blocks, active.id, over.id) for flat trees.
     const nonRoot = blocks.filter((b) => b.parent_id !== null);
-    onChange(
-      [...nextRoot, ...nonRoot].map((b, i) => (b.order === i ? b : { ...b, order: i })),
-    );
+    onChange([...nextRoot, ...nonRoot].map((b, i) => (b.order === i ? b : { ...b, order: i })));
   };
 
   return (
@@ -55,11 +48,7 @@ export function BlockTreePanel({
           onReorder={handleReorder}
           announceItemLabel={(b) => labelForType(b.type)}
           renderItem={(b, _index, _isDragging) => (
-            <BlockTreeItemBody
-              block={b}
-              selected={selectedId === b.id}
-              onSelect={onSelect}
-            />
+            <BlockTreeItemBody block={b} selected={selectedId === b.id} onSelect={onSelect} />
           )}
         />
       )}

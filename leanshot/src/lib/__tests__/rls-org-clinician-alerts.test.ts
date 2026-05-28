@@ -97,16 +97,14 @@ describeIfLive('P30 RLS — clinician_alerts cross-tenant isolation', () => {
   // ─── T4: Cross-tenant INSERT returns error (no INSERT policy) ───────────────
   it('T4: User A cannot INSERT into clinician_alerts of Org Y', async () => {
     const debounceKey = `dose_adherence:${fixture.userB}:${new Date().toISOString().slice(0, 10)}-t4insert`;
-    const { error } = await fixture.sessA.client
-      .from('clinician_alerts')
-      .insert({
-        org_id: fixture.orgY,
-        patient_user_id: fixture.userB,
-        alert_type: 'dose_adherence',
-        severity: 1,
-        threshold_snapshot: { missed_doses_n: 2, window_days_m: 14 },
-        debounce_key: debounceKey,
-      });
+    const { error } = await fixture.sessA.client.from('clinician_alerts').insert({
+      org_id: fixture.orgY,
+      patient_user_id: fixture.userB,
+      alert_type: 'dose_adherence',
+      severity: 1,
+      threshold_snapshot: { missed_doses_n: 2, window_days_m: 14 },
+      debounce_key: debounceKey,
+    });
 
     expect(error).not.toBeNull();
   });

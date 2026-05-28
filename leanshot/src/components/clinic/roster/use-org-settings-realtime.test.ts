@@ -20,12 +20,12 @@ const mocks = vi.hoisted(() => {
     if (callback) statusCallback = callback;
     return mockChannelObj;
   });
-  const mockOn = vi.fn().mockImplementation(
-    (_event: string, _filter: unknown, handler: (payload: unknown) => void) => {
+  const mockOn = vi
+    .fn()
+    .mockImplementation((_event: string, _filter: unknown, handler: (payload: unknown) => void) => {
       payloadHandler = handler;
       return mockChannelObj;
-    },
-  );
+    });
 
   const mockChannelObj = {
     on: mockOn,

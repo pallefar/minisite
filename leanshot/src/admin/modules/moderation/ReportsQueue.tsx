@@ -16,11 +16,7 @@
  *   Resolve  → resolve_report RPC
  */
 import { useCallback, useEffect, useState } from 'react';
-import type {
-  ModerationReport,
-  ReportStatus,
-  ReportTargetType,
-} from '@/lib/moderation/types';
+import type { ModerationReport, ReportStatus, ReportTargetType } from '@/lib/moderation/types';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { dismissReport, resolveReport, triageReport } from './api';
@@ -82,10 +78,7 @@ export function ReportsQueue({ mode }: ReportsQueueProps) {
     void load();
   }, [load]);
 
-  const handleAction = async (
-    fn: () => Promise<void>,
-    successMsg: string,
-  ): Promise<void> => {
+  const handleAction = async (fn: () => Promise<void>, successMsg: string): Promise<void> => {
     try {
       await fn();
       showToast(successMsg, 'success');
@@ -160,9 +153,7 @@ export function ReportsQueue({ mode }: ReportsQueueProps) {
         </div>
       )}
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading reports…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading reports…</p>}
 
       {!loading && rows.length === 0 && !error && (
         <p className="text-sm text-[var(--color-text-secondary)]">No reports match.</p>

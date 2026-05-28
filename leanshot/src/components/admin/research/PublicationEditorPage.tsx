@@ -87,7 +87,10 @@ function NewPublicationForm({ currentUserId, onCreated }: NewPublicationFormProp
         .single();
 
       if (error) {
-        showToast(error.message ?? 'Publication could not be saved. Check your connection and try again.', 'error');
+        showToast(
+          error.message ?? 'Publication could not be saved. Check your connection and try again.',
+          'error',
+        );
         return;
       }
       onCreated((data as { id: string }).id);
@@ -104,7 +107,10 @@ function NewPublicationForm({ currentUserId, onCreated }: NewPublicationFormProp
       </p>
 
       <div className="space-y-2">
-        <label htmlFor="publication-title" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+        <label
+          htmlFor="publication-title"
+          className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]"
+        >
           Title
         </label>
         <input
@@ -118,7 +124,10 @@ function NewPublicationForm({ currentUserId, onCreated }: NewPublicationFormProp
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="publication-slug" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+        <label
+          htmlFor="publication-slug"
+          className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]"
+        >
           Slug
         </label>
         <input
@@ -231,7 +240,9 @@ export function PublicationEditorPage() {
       showToast('Draft saved.', 'success');
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : 'Publication could not be saved. Check your connection and try again.',
+        err instanceof Error
+          ? err.message
+          : 'Publication could not be saved. Check your connection and try again.',
         'error',
       );
     } finally {
@@ -265,10 +276,7 @@ export function PublicationEditorPage() {
         p_publication_id: publication.id,
       });
       if (rpcError) {
-        if (
-          rpcError.message?.includes('SELF_REVIEW_REJECTED') ||
-          rpcError.code === '42501'
-        ) {
+        if (rpcError.message?.includes('SELF_REVIEW_REJECTED') || rpcError.code === '42501') {
           showToast('Another admin must review this publication before publish.', 'error');
           return;
         }
@@ -363,12 +371,13 @@ export function PublicationEditorPage() {
 
       {/* Two-column editor grid */}
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-
         {/* Left: markdown editor */}
         <div className="space-y-3">
           {/* Markdown path display */}
           <p className="text-[13px] font-mono text-[var(--color-text-secondary)] truncate">
-            {publication.markdown_path || <span className="italic text-[var(--color-text-tertiary)]">No markdown path set</span>}
+            {publication.markdown_path || (
+              <span className="italic text-[var(--color-text-tertiary)]">No markdown path set</span>
+            )}
           </p>
 
           {/* Markdown textarea */}
@@ -383,15 +392,16 @@ export function PublicationEditorPage() {
 
           {/* Abstract */}
           <div className="space-y-1">
-            <label htmlFor="publication-abstract" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+            <label
+              htmlFor="publication-abstract"
+              className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]"
+            >
               Abstract
             </label>
             <textarea
               id="publication-abstract"
               value={publication.abstract ?? ''}
-              onChange={(e) =>
-                setPublication((p) => (p ? { ...p, abstract: e.target.value } : p))
-              }
+              onChange={(e) => setPublication((p) => (p ? { ...p, abstract: e.target.value } : p))}
               onBlur={() => void handleSaveDraft()}
               aria-label="Abstract"
               placeholder="Brief summary for the public index page..."
@@ -525,11 +535,7 @@ export function PublicationEditorPage() {
           This will remove it from the public research hub. You can restore it later.
         </p>
         <div className="flex items-center gap-2 justify-end">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setArchiveModalOpen(false)}
-          >
+          <Button size="sm" variant="secondary" onClick={() => setArchiveModalOpen(false)}>
             Cancel
           </Button>
           <Button

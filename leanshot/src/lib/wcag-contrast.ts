@@ -35,9 +35,7 @@ export function parseOklch(s: string): { L: number; C: number; H: number } | nul
   // Tight regex matching both `oklch(L C H)` and `oklch(L C H / A)` forms.
   const match = s
     .trim()
-    .match(
-      /^oklch\s*\(\s*(\d+\.?\d*%?)\s+(\d*\.?\d+)\s+(\d+\.?\d*)\s*(?:\/\s*[\d.]+%?)?\s*\)$/,
-    );
+    .match(/^oklch\s*\(\s*(\d+\.?\d*%?)\s+(\d*\.?\d+)\s+(\d+\.?\d*)\s*(?:\/\s*[\d.]+%?)?\s*\)$/);
 
   if (!match) return null;
 

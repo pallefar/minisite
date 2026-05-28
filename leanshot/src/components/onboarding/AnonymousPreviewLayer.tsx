@@ -90,10 +90,8 @@ interface CreateAnonSessionResponse {
 
 async function bootstrapAnonCookie(): Promise<string | null> {
   const url =
-    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
-    'https://placeholder.invalid';
-  const anonKey =
-    (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? 'placeholder';
+    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? 'https://placeholder.invalid';
+  const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? 'placeholder';
 
   const existing = readAnonCookie();
   const body = existing ? JSON.stringify({ cookie_id: existing }) : JSON.stringify({});

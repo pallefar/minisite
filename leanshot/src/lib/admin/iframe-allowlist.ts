@@ -30,9 +30,7 @@ export interface AllowlistRow {
  * (see Plan 41-02 table migration), but this wrapper is intended for the
  * admin surface — typed result + ordered for table display.
  */
-export async function listHostnames(
-  client: SupabaseClient,
-): Promise<AllowlistRow[]> {
+export async function listHostnames(client: SupabaseClient): Promise<AllowlistRow[]> {
   const { data, error } = await client
     .from('iframe_allowlist')
     .select('id, hostname, added_by_user_id, added_at, last_used_at')
@@ -62,10 +60,7 @@ export async function addHostname(
  * Raises 22023 on null id; PostgREST returns success even when the row
  * already doesn't exist (DELETE is naturally idempotent).
  */
-export async function removeHostname(
-  client: SupabaseClient,
-  id: string,
-): Promise<void> {
+export async function removeHostname(client: SupabaseClient, id: string): Promise<void> {
   const { error } = await client.rpc('remove_iframe_allowlist_hostname', {
     p_id: id,
   });

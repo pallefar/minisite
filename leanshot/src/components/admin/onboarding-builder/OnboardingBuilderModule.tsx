@@ -80,7 +80,8 @@ export default function OnboardingBuilderModule() {
             .select('admin_role')
             .eq('id', user.id)
             .maybeSingle();
-          if (!cancelled) setAdminRole(((prof as { admin_role?: string } | null)?.admin_role) ?? null);
+          if (!cancelled)
+            setAdminRole((prof as { admin_role?: string } | null)?.admin_role ?? null);
         }
 
         const { data: flow } = await supabase

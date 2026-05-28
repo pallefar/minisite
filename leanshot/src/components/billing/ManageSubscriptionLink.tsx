@@ -26,10 +26,9 @@ export function ManageSubscriptionLink() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: invokeErr } = await supabase.functions.invoke(
-        'stripe-checkout/portal',
-        { body: {} },
-      );
+      const { data, error: invokeErr } = await supabase.functions.invoke('stripe-checkout/portal', {
+        body: {},
+      });
       if (invokeErr || !data?.url) {
         throw new Error('no-url');
       }
@@ -51,9 +50,7 @@ export function ManageSubscriptionLink() {
           aria-hidden="true"
         />
         <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-semibold text-[var(--color-text)]">
-            Manage subscription
-          </p>
+          <p className="text-[14px] font-semibold text-[var(--color-text)]">Manage subscription</p>
           <p className="text-[12px] text-[var(--color-text-secondary)]">
             Update card, change plan, or cancel.
           </p>

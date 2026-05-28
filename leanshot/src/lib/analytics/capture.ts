@@ -19,7 +19,7 @@ export function capture<K extends EventName>(name: K, payload: PayloadOf<K>): vo
   if ((def as { phi: boolean }).phi === true) {
     const msg = `[analytics] PHI event "${String(name)}" cannot be captured from browser. Route through Edge Function (_shared/posthog-server.ts).`;
     if (import.meta.env.DEV) throw new Error(msg);
-     
+
     console.warn(msg);
     return;
   }

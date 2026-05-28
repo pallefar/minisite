@@ -86,10 +86,7 @@ export function RefundModal({
   const [busy, setBusy] = useState(false);
   const [inlineError, setInlineError] = useState<string | null>(null);
 
-  const charge = useMemo(
-    () => charges.find((c) => c.id === chargeId) ?? null,
-    [charges, chargeId],
-  );
+  const charge = useMemo(() => charges.find((c) => c.id === chargeId) ?? null, [charges, chargeId]);
 
   const amountCents = useMemo(() => {
     const n = Number.parseFloat(amountDollars);
@@ -167,10 +164,7 @@ export function RefundModal({
         amountCents,
         reason: reason.trim() || undefined,
       });
-      toast(
-        `Refund of $${(amountCents / 100).toFixed(2)} issued to ${targetUserEmail}`,
-        'success',
-      );
+      toast(`Refund of $${(amountCents / 100).toFixed(2)} issued to ${targetUserEmail}`, 'success');
       onSuccess(result.refundId);
       reset();
       onClose();
@@ -224,8 +218,8 @@ export function RefundModal({
         {step === 2 && charge && (
           <>
             <p className="text-sm text-[var(--color-text-secondary)]">
-              Refunding charge <span className="font-mono text-xs">{charge.id}</span> —
-              original amount ${(charge.amount / 100).toFixed(2)}.
+              Refunding charge <span className="font-mono text-xs">{charge.id}</span> — original
+              amount ${(charge.amount / 100).toFixed(2)}.
             </p>
             <PillGroup segmented aria-label="Refund amount preset">
               <Pill size="sm" active={pill === 'full'} onClick={() => onPickPill('full')}>
@@ -269,8 +263,7 @@ export function RefundModal({
         {step === 3 && charge && (
           <>
             <p className="text-sm text-[var(--color-text)] leading-relaxed">
-              You are about to refund{' '}
-              <strong>${(amountCents / 100).toFixed(2)}</strong> to{' '}
+              You are about to refund <strong>${(amountCents / 100).toFixed(2)}</strong> to{' '}
               <strong>{targetUserEmail}</strong>.
             </p>
             <Input
@@ -284,10 +277,7 @@ export function RefundModal({
               disabled={busy}
             />
             {inlineError && (
-              <p
-                role="alert"
-                className="text-sm text-[var(--color-danger)] leading-relaxed"
-              >
+              <p role="alert" className="text-sm text-[var(--color-danger)] leading-relaxed">
                 {inlineError}
               </p>
             )}

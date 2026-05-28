@@ -116,9 +116,7 @@ describe('useHasPermission', () => {
 
   it('Test 7 — passes correct RPC arguments', async () => {
     rpcMock.mockResolvedValue({ data: true, error: null });
-    const { result } = renderHook(() =>
-      useHasPermission('org-XYZ', 'patient_data.read'),
-    );
+    const { result } = renderHook(() => useHasPermission('org-XYZ', 'patient_data.read'));
     await waitFor(() => expect(result.current).toBe(true));
     expect(rpcMock).toHaveBeenCalledWith('has_permission', {
       p_user_id: 'user-1',

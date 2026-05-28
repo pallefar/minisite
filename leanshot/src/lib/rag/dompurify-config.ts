@@ -28,8 +28,28 @@ const RAG_VERBATIM_ALLOWED_TAGS = ['strong', 'em', 'b', 'i', 'br'];
 // (DOMPurify strips anything NOT in ALLOWED_TAGS anyway, but FORBID_TAGS
 // makes the intent visible for code review + audit purposes).
 const RAG_VERBATIM_FORBID_TAGS = [
-  'a', 'img', 'iframe', 'script', 'style', 'object', 'embed', 'base', 'form',
-  'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote',
+  'a',
+  'img',
+  'iframe',
+  'script',
+  'style',
+  'object',
+  'embed',
+  'base',
+  'form',
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'ul',
+  'ol',
+  'li',
+  'code',
+  'pre',
+  'blockquote',
 ];
 
 // ─── Public API ───────────────────────────────────────────────────────────────

@@ -64,23 +64,27 @@ export function makeDedupedId(source: string, datetime: string): string {
   const input = `${source}:${datetime}`;
   const bytes = new Uint8Array(16);
   // DNS namespace bytes
-  const ns = [0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8];
+  const ns = [
+    0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8,
+  ];
   // Seed bytes with namespace
   for (let i = 0; i < 16; i++) bytes[i] = ns[i];
   // XOR with UTF-16 encoded input bytes
   for (let i = 0; i < input.length; i++) {
     const code = input.charCodeAt(i);
-    bytes[i % 16] ^= (code & 0xff);
-    bytes[(i + 1) % 16] ^= ((code >> 8) & 0xff);
+    bytes[i % 16] ^= code & 0xff;
+    bytes[(i + 1) % 16] ^= (code >> 8) & 0xff;
     // Mix step: rotate + XOR
     const carry = bytes[(i + 2) % 16];
-    bytes[(i + 2) % 16] = (carry << 3 | carry >> 5) ^ bytes[i % 16];
+    bytes[(i + 2) % 16] = ((carry << 3) | (carry >> 5)) ^ bytes[i % 16];
   }
   // Apply v5 variant bits (RFC 4122 §4.3)
   bytes[6] = (bytes[6] & 0x0f) | 0x50; // version = 5
   bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant = 10xx
 
-  const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+  const hex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
   return [
     hex.slice(0, 8),
     hex.slice(8, 12),

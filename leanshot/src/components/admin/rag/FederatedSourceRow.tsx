@@ -65,11 +65,7 @@ export interface FederatedSourceRowProps {
   isPullBusy: boolean;
 }
 
-export function FederatedSourceRow({
-  source,
-  onToggle,
-  isToggleBusy,
-}: FederatedSourceRowProps) {
+export function FederatedSourceRow({ source, onToggle, isToggleBusy }: FederatedSourceRowProps) {
   const meta = SOURCE_META[source.name];
   const relativeTime = formatRelative(source.last_sync_at);
 
@@ -80,12 +76,9 @@ export function FederatedSourceRow({
   return (
     <Card variant="default">
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-6">
-
         {/* Left: source identity */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-[18px] font-semibold leading-tight truncate">
-            {meta.display_name}
-          </h3>
+          <h3 className="text-[18px] font-semibold leading-tight truncate">{meta.display_name}</h3>
           <p className="mt-0.5 text-[13px] text-[var(--color-text-secondary)]">
             {meta.sync_cadence_label}
           </p>

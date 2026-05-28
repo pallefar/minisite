@@ -109,10 +109,7 @@ export function useSessionReplayPhiGuard(): void {
   // Re-evaluate on browser history navigation (covers /auth/* callback URLs)
   useEffect(() => {
     function onLocationChange(): void {
-      const decision = isPhiRoute(
-        useStore.getState().currentTab,
-        window.location.pathname,
-      );
+      const decision = isPhiRoute(useStore.getState().currentTab, window.location.pathname);
       void applyDecision(decision);
     }
     window.addEventListener('popstate', onLocationChange);

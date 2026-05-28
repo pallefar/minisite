@@ -68,9 +68,7 @@ export function UpgradeCTA() {
     <Card>
       <div className="space-y-3">
         <div>
-          <p className="text-[14px] font-semibold text-[var(--color-text)]">
-            Upgrade to Plus
-          </p>
+          <p className="text-[14px] font-semibold text-[var(--color-text)]">Upgrade to Plus</p>
           <p className="text-[12px] text-[var(--color-text-secondary)]">
             Unlock 7-day forecast + advanced AI coach.
           </p>

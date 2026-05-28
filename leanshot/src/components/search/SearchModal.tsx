@@ -81,7 +81,9 @@ export function SearchModal({ onClose }: Props) {
         <Command.List className="max-h-[60vh] overflow-y-auto p-2">
           {loading && (
             <Command.Loading>
-              <div className="px-3 py-2 text-[13px] text-[var(--color-text-secondary)]">Searching…</div>
+              <div className="px-3 py-2 text-[13px] text-[var(--color-text-secondary)]">
+                Searching…
+              </div>
             </Command.Loading>
           )}
           <Command.Empty>

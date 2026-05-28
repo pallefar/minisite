@@ -98,40 +98,19 @@ beforeEach(() => {
 
 describe('AdoptProtocolSheet', () => {
   it('Test 1: renders sheet title when open=true', () => {
-    render(
-      <AdoptProtocolSheet
-        open={true}
-        onClose={vi.fn()}
-        orgId="org-1"
-        protocol={PROTOCOL}
-      />,
-    );
+    render(<AdoptProtocolSheet open={true} onClose={vi.fn()} orgId="org-1" protocol={PROTOCOL} />);
     expect(screen.getByText('Adopt Protocol')).toBeTruthy();
   });
 
   it('Test 2: "Preview assignment" button is disabled initially', () => {
-    render(
-      <AdoptProtocolSheet
-        open={true}
-        onClose={vi.fn()}
-        orgId="org-1"
-        protocol={PROTOCOL}
-      />,
-    );
+    render(<AdoptProtocolSheet open={true} onClose={vi.fn()} orgId="org-1" protocol={PROTOCOL} />);
     const previewBtn = screen.getByRole('button', { name: /preview assignment/i });
     expect(previewBtn).toBeDisabled();
   });
 
   it('Test 3: selecting a patient enables "Preview assignment" button', async () => {
     const user = userEvent.setup();
-    render(
-      <AdoptProtocolSheet
-        open={true}
-        onClose={vi.fn()}
-        orgId="org-1"
-        protocol={PROTOCOL}
-      />,
-    );
+    render(<AdoptProtocolSheet open={true} onClose={vi.fn()} orgId="org-1" protocol={PROTOCOL} />);
 
     await act(async () => {
       await user.click(screen.getByTestId('patient-picker-stub'));
@@ -143,14 +122,7 @@ describe('AdoptProtocolSheet', () => {
 
   it('Test 4: clicking Preview opens AdoptDiffModal (title "Assignment preview" visible)', async () => {
     const user = userEvent.setup();
-    render(
-      <AdoptProtocolSheet
-        open={true}
-        onClose={vi.fn()}
-        orgId="org-1"
-        protocol={PROTOCOL}
-      />,
-    );
+    render(<AdoptProtocolSheet open={true} onClose={vi.fn()} orgId="org-1" protocol={PROTOCOL} />);
 
     // Select a patient first
     await act(async () => {
@@ -168,14 +140,7 @@ describe('AdoptProtocolSheet', () => {
   });
 
   it('Test 5: sheet does not render content when open=false', () => {
-    render(
-      <AdoptProtocolSheet
-        open={false}
-        onClose={vi.fn()}
-        orgId="org-1"
-        protocol={PROTOCOL}
-      />,
-    );
+    render(<AdoptProtocolSheet open={false} onClose={vi.fn()} orgId="org-1" protocol={PROTOCOL} />);
     expect(screen.queryByText('Adopt Protocol')).toBeNull();
   });
 });

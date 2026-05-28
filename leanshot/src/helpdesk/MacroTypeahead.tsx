@@ -68,9 +68,7 @@ export default function MacroTypeahead({
   if (macros === null) return null;
   if (macros.length === 0) return null;
 
-  const visible = fuse && query.length > 0
-    ? fuse.search(query).map((r) => r.item)
-    : macros;
+  const visible = fuse && query.length > 0 ? fuse.search(query).map((r) => r.item) : macros;
 
   if (visible.length === 0) return null;
 

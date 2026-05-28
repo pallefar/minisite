@@ -175,9 +175,7 @@ describe('watchComplicationData — nextSite (WATCH-06)', () => {
   it('returns the first SITES-order site not used in last 7 days', () => {
     const user = makeUser();
     // abdomen-ul used 1 day ago (recent, < 7 days)
-    const injections = [
-      makeInjection('2026-05-24T10:00:00.000Z', 'abdomen-ul'),
-    ];
+    const injections = [makeInjection('2026-05-24T10:00:00.000Z', 'abdomen-ul')];
     const state = makeState(user, injections);
     const result = watchComplicationData(state, TODAY);
     // abdomen-ul is recent; next in SITES order is abdomen-ur
@@ -186,9 +184,20 @@ describe('watchComplicationData — nextSite (WATCH-06)', () => {
 
   it('returns null when all SITES used in last 7 days', () => {
     const user = makeUser();
-    const sites = ['abdomen-ul', 'abdomen-ur', 'abdomen-ll', 'abdomen-lr', 'thigh-l', 'thigh-r', 'arm-l', 'arm-r'] as const;
+    const sites = [
+      'abdomen-ul',
+      'abdomen-ur',
+      'abdomen-ll',
+      'abdomen-lr',
+      'thigh-l',
+      'thigh-r',
+      'arm-l',
+      'arm-r',
+    ] as const;
     // All sites used in last 2 days
-    const injections = sites.map((s, i) => makeInjection(`2026-05-2${i < 5 ? 3 : 4}T10:00:00.000Z`, s));
+    const injections = sites.map((s, i) =>
+      makeInjection(`2026-05-2${i < 5 ? 3 : 4}T10:00:00.000Z`, s),
+    );
     const state = makeState(user, injections);
     const result = watchComplicationData(state, TODAY);
     // All sites are recent — no empty slot
@@ -213,9 +222,7 @@ describe('watchComplicationData — medication + lastDose (WATCH-05)', () => {
 
   it('returns lastDose from the newest injection as "<dose> <unit>"', () => {
     const user = makeUser({ dose: '1.0', doseUnit: 'mg' });
-    const injections = [
-      makeInjection('2026-05-24T10:00:00.000Z'),
-    ];
+    const injections = [makeInjection('2026-05-24T10:00:00.000Z')];
     // Override dose/unit on injection to make it explicit
     injections[0].dose = '1.0';
     injections[0].unit = 'mg';

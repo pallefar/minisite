@@ -149,9 +149,7 @@ export function ClinicDoseTrendThresholdsForm({
       <div className="space-y-4">
         {/* Header */}
         <div>
-          <h2 className="text-[16px] font-semibold text-[var(--color-text)]">
-            Alert thresholds
-          </h2>
+          <h2 className="text-[16px] font-semibold text-[var(--color-text)]">Alert thresholds</h2>
           <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
             Alerts fire when a patient misses more doses than the threshold within the observation
             window, or when injection interval variance exceeds the set percentage.

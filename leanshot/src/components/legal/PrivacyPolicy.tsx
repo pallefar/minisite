@@ -44,11 +44,10 @@ export function PrivacyPolicy() {
           aria-label="Policy update notice"
         >
           <p className="text-[13px] text-[var(--color-text)]">
-            <strong>Last updated:</strong> {LAST_UPDATED} ·{' '}
-            <strong>What changed:</strong> Added state-specific privacy disclosures for
-            California, Virginia, Colorado, Connecticut, and Utah residents. Updated subprocessor
-            list to include OpenRouter, Cohere, Mux, Stripe Connect, Sentry, and the pgvector
-            recommender. New Do Not Sell or Share opt-out page.
+            <strong>Last updated:</strong> {LAST_UPDATED} · <strong>What changed:</strong> Added
+            state-specific privacy disclosures for California, Virginia, Colorado, Connecticut, and
+            Utah residents. Updated subprocessor list to include OpenRouter, Cohere, Mux, Stripe
+            Connect, Sentry, and the pgvector recommender. New Do Not Sell or Share opt-out page.
           </p>
           <p className="text-[11px] text-[var(--color-text-secondary)]">
             <a
@@ -306,9 +305,9 @@ export function PrivacyPolicy() {
             </li>
             <li>
               <strong className="text-[var(--color-text)]">Delete your account.</strong> Settings →
-              Privacy → Delete account → type DELETE MY ACCOUNT to confirm. A 7-day undo window
-              is available via an HMAC-signed cancel link emailed to you at the time of deletion
-              (and an in-app banner). After 7 days the deletion is irreversible by design.
+              Privacy → Delete account → type DELETE MY ACCOUNT to confirm. A 7-day undo window is
+              available via an HMAC-signed cancel link emailed to you at the time of deletion (and
+              an in-app banner). After 7 days the deletion is irreversible by design.
             </li>
             <li>
               <strong className="text-[var(--color-text)]">Correct your data.</strong> Every entry
@@ -401,14 +400,15 @@ export function PrivacyPolicy() {
             <h3 className="text-[13px] font-semibold text-[var(--color-text)]">Your rights</h3>
             <p className="text-[13px] text-[var(--color-text-secondary)]">
               The California Consumer Privacy Act (CCPA) and the California Privacy Rights Act
-              (CPRA) grant California residents the following rights over their personal information:
+              (CPRA) grant California residents the following rights over their personal
+              information:
             </p>
             <ul className="list-disc ps-5 space-y-1.5 text-[13px] text-[var(--color-text-secondary)]">
               <li>
-                <strong className="text-[var(--color-text)]">Right to know.</strong> You may
-                request disclosure of the categories and specific pieces of personal information we
-                have collected about you, the sources, our business or commercial purposes for
-                collecting it, and the categories of third parties with whom we share it.
+                <strong className="text-[var(--color-text)]">Right to know.</strong> You may request
+                disclosure of the categories and specific pieces of personal information we have
+                collected about you, the sources, our business or commercial purposes for collecting
+                it, and the categories of third parties with whom we share it.
               </li>
               <li>
                 <strong className="text-[var(--color-text)]">Right to delete.</strong> You may
@@ -524,17 +524,15 @@ export function PrivacyPolicy() {
                 inaccuracies in your personal data.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain
-                a copy of your personal data in a portable, readily usable format where technically
+                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain a
+                copy of your personal data in a portable, readily usable format where technically
                 feasible.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">
-                  Right to opt out.
-                </strong>{' '}
-                Opt out of the processing of your personal data for purposes of targeted advertising,
-                sale of personal data, or profiling in furtherance of decisions producing legal or
-                similarly significant effects.
+                <strong className="text-[var(--color-text)]">Right to opt out.</strong> Opt out of
+                the processing of your personal data for purposes of targeted advertising, sale of
+                personal data, or profiling in furtherance of decisions producing legal or similarly
+                significant effects.
               </li>
             </ul>
           </div>
@@ -609,14 +607,12 @@ export function PrivacyPolicy() {
                 inaccuracies in your personal data.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain
-                a copy of your personal data in a portable, readily usable format.
+                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain a
+                copy of your personal data in a portable, readily usable format.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">
-                  Right to opt out.
-                </strong>{' '}
-                Opt out of targeted advertising, sale, or profiling that produces legal or similarly
+                <strong className="text-[var(--color-text)]">Right to opt out.</strong> Opt out of
+                targeted advertising, sale, or profiling that produces legal or similarly
                 significant effects.
               </li>
               <li>
@@ -692,14 +688,12 @@ export function PrivacyPolicy() {
                 inaccuracies in your personal data.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain
-                a copy of your personal data in a portable, readily usable format.
+                <strong className="text-[var(--color-text)]">Right to portability.</strong> Obtain a
+                copy of your personal data in a portable, readily usable format.
               </li>
               <li>
-                <strong className="text-[var(--color-text)]">
-                  Right to opt out.
-                </strong>{' '}
-                Opt out of targeted advertising, sale, or profiling with significant effects.
+                <strong className="text-[var(--color-text)]">Right to opt out.</strong> Opt out of
+                targeted advertising, sale, or profiling with significant effects.
               </li>
               <li>
                 <strong className="text-[var(--color-text)]">Universal opt-out signals.</strong>{' '}
@@ -745,10 +739,7 @@ export function PrivacyPolicy() {
         </section>
 
         {/* § Utah (UCPA) */}
-        <section
-          id="utah"
-          className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4"
-        >
+        <section id="utah" className="mt-12 pt-8 border-t border-[var(--color-border)] space-y-4">
           <h2 className="text-[18px] font-semibold">Utah (UCPA)</h2>
           <em className="block text-[13px] text-[var(--color-text-secondary)]">
             This addendum is in draft pending legal counsel review (Phase 70 UAT).
@@ -777,9 +768,9 @@ export function PrivacyPolicy() {
               </li>
             </ul>
             <p className="text-[13px] text-[var(--color-text-secondary)] italic">
-              Note: The UCPA does not grant rights to correction or data portability. If you are
-              a Utah resident seeking to correct data, you may do so directly within the LeanShot
-              app — every entry is editable from the surface that created it.
+              Note: The UCPA does not grant rights to correction or data portability. If you are a
+              Utah resident seeking to correct data, you may do so directly within the LeanShot app
+              — every entry is editable from the surface that created it.
             </p>
           </div>
 
@@ -837,11 +828,10 @@ export function PrivacyPolicy() {
                   (CDPA), Colorado (CPA), Connecticut (CTDPA), and Utah (UCPA) residents.
                 </li>
                 <li>
-                  Replaced static subprocessor list with live-fetched{' '}
-                  <code>SubprocessorList</code> component drawing from the Phase 25
-                  subprocessor-diff snapshot pipeline. Current vendors include: Supabase, Vercel,
-                  Anthropic/Moonshot, Sentry, PostHog, Mux, Stripe Connect, OpenRouter, Cohere,
-                  Resend.
+                  Replaced static subprocessor list with live-fetched <code>SubprocessorList</code>{' '}
+                  component drawing from the Phase 25 subprocessor-diff snapshot pipeline. Current
+                  vendors include: Supabase, Vercel, Anthropic/Moonshot, Sentry, PostHog, Mux,
+                  Stripe Connect, OpenRouter, Cohere, Resend.
                 </li>
                 <li>
                   Launched new{' '}

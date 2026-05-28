@@ -26,7 +26,14 @@ import type { BulkActionType } from '@/lib/admin/bulk/types';
 import { cn } from '@/lib/helpers';
 import { MemberRowActions } from './MemberRowActions';
 
-type SortColumn = 'email' | 'tier' | 'signup_date' | 'last_active_at' | 'clinic_name' | 'country' | 'stripe_status';
+type SortColumn =
+  | 'email'
+  | 'tier'
+  | 'signup_date'
+  | 'last_active_at'
+  | 'clinic_name'
+  | 'country'
+  | 'stripe_status';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface SortState {
@@ -44,7 +51,10 @@ const COLUMN_HEADERS: { key: SortColumn; label: string; align?: 'left' | 'right'
   { key: 'stripe_status', label: 'Stripe' },
 ];
 
-function tierBadge(tier: string): { tone: 'neutral' | 'success' | 'info' | 'warning'; label: string } {
+function tierBadge(tier: string): {
+  tone: 'neutral' | 'success' | 'info' | 'warning';
+  label: string;
+} {
   switch (tier) {
     case 'paid':
       return { tone: 'success', label: 'Paid' };
@@ -58,7 +68,10 @@ function tierBadge(tier: string): { tone: 'neutral' | 'success' | 'info' | 'warn
   }
 }
 
-function stripeBadge(status: string): { tone: 'success' | 'warning' | 'neutral' | 'danger'; label: string } {
+function stripeBadge(status: string): {
+  tone: 'success' | 'warning' | 'neutral' | 'danger';
+  label: string;
+} {
   switch (status) {
     case 'active':
       return { tone: 'success', label: 'Active' };
@@ -109,9 +122,11 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
   // Phase 27 Plan 27-01 — bulk-action selection state (additive — does not
   // change Phase 22 row-open / sort / mobile-card behavior).
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [undoInfo, setUndoInfo] = useState<
-    { undoToken: string; count: number; actionType: BulkActionType } | null
-  >(null);
+  const [undoInfo, setUndoInfo] = useState<{
+    undoToken: string;
+    count: number;
+    actionType: BulkActionType;
+  } | null>(null);
 
   const toggleRow = (id: string) => {
     setSelectedIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
@@ -129,13 +144,12 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
 
   const sampleNames = useMemo(() => {
     if (!rows) return [] as string[];
-    return selectedIds
-      .slice(0, 3)
-      .map((id) => rows.find((r) => r.user_id === id)?.email ?? id);
+    return selectedIds.slice(0, 3).map((id) => rows.find((r) => r.user_id === id)?.email ?? id);
   }, [rows, selectedIds]);
 
   const visibleIds = useMemo(() => (rows ?? []).map((r) => r.user_id), [rows]);
-  const allOnPageSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+  const allOnPageSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
   const someOnPageSelected = visibleIds.some((id) => selectedIds.includes(id));
 
   const sortedRows = useMemo(() => {
@@ -215,11 +229,7 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
         <table className="w-full text-sm" data-testid="members-table">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th
-                scope="col"
-                className="w-10 px-3 py-3"
-                aria-label="Select all on page"
-              >
+              <th scope="col" className="w-10 px-3 py-3" aria-label="Select all on page">
                 <input
                   type="checkbox"
                   ref={(el) => {
@@ -259,10 +269,7 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
                           <ArrowDown className="size-3" aria-hidden />
                         )
                       ) : (
-                        <ArrowUpDown
-                          className="size-3 opacity-40"
-                          aria-hidden
-                        />
+                        <ArrowUpDown className="size-3 opacity-40" aria-hidden />
                       )}
                     </button>
                   </th>
@@ -297,11 +304,8 @@ export function MembersTable({ rows, isLoading, onImpersonate, onRowOpen }: Memb
                     selectedIds.includes(row.user_id) && 'bg-[var(--color-surface-elevated)]',
                   )}
                 >
-                  { }
-                  <td
-                    className="w-10 px-3 py-3 align-middle"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  {}
+                  <td className="w-10 px-3 py-3 align-middle" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(row.user_id)}

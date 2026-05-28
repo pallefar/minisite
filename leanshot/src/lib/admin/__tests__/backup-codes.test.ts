@@ -90,12 +90,20 @@ beforeAll(async () => {
   nonOwnerEmail = `${TEST_SLUG_PREFIX}other@leanshot.test`;
   const password = `Pass1234-${crypto.randomUUID().slice(0, 8)}`;
 
-  const ownerRes = await admin.auth.admin.createUser({ email: ownerEmail, password, email_confirm: true });
+  const ownerRes = await admin.auth.admin.createUser({
+    email: ownerEmail,
+    password,
+    email_confirm: true,
+  });
   if (ownerRes.error) throw ownerRes.error;
   ownerUserId = ownerRes.data.user!.id;
   createdUserIds.push(ownerUserId);
 
-  const otherRes = await admin.auth.admin.createUser({ email: nonOwnerEmail, password, email_confirm: true });
+  const otherRes = await admin.auth.admin.createUser({
+    email: nonOwnerEmail,
+    password,
+    email_confirm: true,
+  });
   if (otherRes.error) throw otherRes.error;
   nonOwnerUserId = otherRes.data.user!.id;
   createdUserIds.push(nonOwnerUserId);
@@ -110,9 +118,15 @@ afterAll(async () => {
   // Clean backup codes for test users
   try {
     await admin.from('admin_backup_codes').delete().in('user_id', createdUserIds);
-  } catch { /* best-effort */ }
+  } catch {
+    /* best-effort */
+  }
   for (const id of createdUserIds) {
-    try { await admin.auth.admin.deleteUser(id); } catch { /* best-effort */ }
+    try {
+      await admin.auth.admin.deleteUser(id);
+    } catch {
+      /* best-effort */
+    }
   }
 }, 30_000);
 
@@ -187,7 +201,7 @@ describeIfLive('Phase 24 D-08 — admin_backup_codes single-use + RLS', () => {
     expect(usedCodes).toHaveLength(1);
   }, 30_000);
 
-  it('T7: non-owner user CANNOT select another user\'s backup codes (RLS deny)', async () => {
+  it("T7: non-owner user CANNOT select another user's backup codes (RLS deny)", async () => {
     const nonOwnerToken = await getUserAccessToken(nonOwnerEmail);
     const nonOwnerClient = buildAnonClient(`${TEST_SLUG_PREFIX}nonowner`);
     nonOwnerClient.auth.setSession({ access_token: nonOwnerToken, refresh_token: 'unused' });

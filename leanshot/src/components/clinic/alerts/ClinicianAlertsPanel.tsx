@@ -38,21 +38,31 @@ import { useClinicianAlertsRealtime } from './use-clinician-alerts-realtime';
 
 function statusToTone(status: ClinicianAlert['status']): BadgeTone {
   switch (status) {
-    case 'pending': return 'amber'; // NOT 'warning' — per UI-SPEC §Color
-    case 'snoozed': return 'neutral';
-    case 'acknowledged': return 'success';
-    case 'auto_resolved': return 'success';
-    case 'delivery_failed': return 'danger';
+    case 'pending':
+      return 'amber'; // NOT 'warning' — per UI-SPEC §Color
+    case 'snoozed':
+      return 'neutral';
+    case 'acknowledged':
+      return 'success';
+    case 'auto_resolved':
+      return 'success';
+    case 'delivery_failed':
+      return 'danger';
   }
 }
 
 function statusLabel(status: ClinicianAlert['status']): string {
   switch (status) {
-    case 'pending': return 'Pending';
-    case 'snoozed': return 'Snoozed';
-    case 'acknowledged': return 'Acknowledged';
-    case 'auto_resolved': return 'Auto-resolved';
-    case 'delivery_failed': return 'Delivery failed';
+    case 'pending':
+      return 'Pending';
+    case 'snoozed':
+      return 'Snoozed';
+    case 'acknowledged':
+      return 'Acknowledged';
+    case 'auto_resolved':
+      return 'Auto-resolved';
+    case 'delivery_failed':
+      return 'Delivery failed';
   }
 }
 
@@ -140,12 +150,7 @@ function AlertRow({ alert, orgSlug, onAcknowledge, onSnoozeOpen, isNew = false }
         </a>
         {isPending && (
           <>
-            <Button
-              variant="primary"
-              size="sm"
-              loading={acking}
-              onClick={() => void handleAck()}
-            >
+            <Button variant="primary" size="sm" loading={acking} onClick={() => void handleAck()}>
               Acknowledge
             </Button>
             <Button
@@ -262,12 +267,7 @@ export function ClinicianAlertsPanel({
   const { pending, snoozed, resolved } = groupByStatus(alertsQuery.data);
 
   const panelBody = (
-    <div
-      ref={panelRef}
-      role="region"
-      aria-label="Clinician alerts"
-      className="flex flex-col gap-3"
-    >
+    <div ref={panelRef} role="region" aria-label="Clinician alerts" className="flex flex-col gap-3">
       {/* Subscription failure warning */}
       {!isSubscribed && alertsQuery.data.length >= 0 && !alertsQuery.isLoading && (
         <div
@@ -294,13 +294,17 @@ export function ClinicianAlertsPanel({
       )}
 
       {/* Empty state */}
-      {!alertsQuery.isLoading && !alertsQuery.error && pending.length === 0 && snoozed.length === 0 && !showResolved && (
-        <EmptyState
-          inline
-          title="No active alerts"
-          body="Your patients are within the configured thresholds. Check back after the nightly scan."
-        />
-      )}
+      {!alertsQuery.isLoading &&
+        !alertsQuery.error &&
+        pending.length === 0 &&
+        snoozed.length === 0 &&
+        !showResolved && (
+          <EmptyState
+            inline
+            title="No active alerts"
+            body="Your patients are within the configured thresholds. Check back after the nightly scan."
+          />
+        )}
 
       {/* Pending alerts (topmost, amber-soft background) */}
       {pending.length > 0 && (

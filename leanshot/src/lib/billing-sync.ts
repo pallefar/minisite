@@ -79,8 +79,10 @@ export async function syncBillingTier(userId: string): Promise<void> {
   // default to is_paused=false so the banner never renders for un-paused users.
   // Error path already returns above — if we reach here, data may still be null
   // (no subscription row), which also maps to is_paused=false.
-  useStore.getState().setPauseState(
-    Boolean((data as { is_paused?: boolean } | null)?.is_paused ?? false),
-    ((data as { paused_until?: string | null } | null)?.paused_until as string | null) ?? null,
-  );
+  useStore
+    .getState()
+    .setPauseState(
+      Boolean((data as { is_paused?: boolean } | null)?.is_paused ?? false),
+      ((data as { paused_until?: string | null } | null)?.paused_until as string | null) ?? null,
+    );
 }

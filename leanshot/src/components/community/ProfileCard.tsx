@@ -89,11 +89,7 @@ const TIER_TONE: Record<TierLabel, 'neutral' | 'info' | 'success' | 'warning'> =
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ProfileCard({
-  profile,
-  currentUserId,
-  onMessage,
-}: ProfileCardProps): JSX.Element {
+export function ProfileCard({ profile, currentUserId, onMessage }: ProfileCardProps): JSX.Element {
   const displayName = profile.display_name ?? profile.handle ?? `User ${profile.id.slice(0, 8)}`;
   const handle = profile.handle ?? null;
   const isSelf = profile.id === currentUserId;

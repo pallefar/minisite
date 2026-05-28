@@ -60,7 +60,9 @@ export function PublishButton({
       <button
         type="button"
         disabled={disabled || publishing}
-        onClick={() => { void handleClick(); }}
+        onClick={() => {
+          void handleClick();
+        }}
         aria-busy={publishing}
         className="text-sm font-semibold text-[var(--color-primary)] hover:underline disabled:opacity-50"
       >

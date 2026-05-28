@@ -103,18 +103,17 @@ export function StreakBadge({ tier, className }: StreakBadgeProps) {
         </defs>
         {/* dimmed outer ring */}
         <circle cx="40" cy="40" r="34" fill="var(--color-border-strong)" />
-        <circle
-          cx="40"
-          cy="40"
-          r="33"
-          fill="none"
-          stroke="var(--color-border)"
-          strokeWidth="0.4"
-        />
+        <circle cx="40" cy="40" r="33" fill="none" stroke="var(--color-border)" strokeWidth="0.4" />
         {/* face */}
         <circle cx="40" cy="40" r="28" fill="url(#sb-locked-face)" />
         {/* padlock glyph */}
-        <g transform="translate(40 40)" stroke="var(--color-text-tertiary)" strokeWidth="2" strokeLinecap="round" fill="none">
+        <g
+          transform="translate(40 40)"
+          stroke="var(--color-text-tertiary)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+        >
           <rect
             x="-7"
             y="-1"
@@ -229,14 +228,7 @@ export function StreakBadge({ tier, className }: StreakBadgeProps) {
           stroke="var(--color-text-on-hero)"
           strokeWidth="1.4"
         />
-        <circle
-          cx="0"
-          cy="0"
-          r="9"
-          fill="none"
-          stroke="rgba(255,255,255,0.35)"
-          strokeWidth="0.6"
-        />
+        <circle cx="0" cy="0" r="9" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.6" />
         <text
           x="0"
           y="3.5"

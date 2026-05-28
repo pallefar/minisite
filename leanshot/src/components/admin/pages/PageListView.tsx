@@ -43,10 +43,7 @@ export function PageListView() {
 
   const handleScaffold = (blocks: BlockNode[]): void => {
     try {
-      sessionStorage.setItem(
-        SCAFFOLD_STORAGE_KEY,
-        JSON.stringify({ blocks }),
-      );
+      sessionStorage.setItem(SCAFFOLD_STORAGE_KEY, JSON.stringify({ blocks }));
     } catch {
       // Best-effort — private-mode browsers fall through to an empty editor.
     }
@@ -70,10 +67,7 @@ export function PageListView() {
 
       {errorMessage && (
         <Card variant="flat" padding="md" className="mb-4">
-          <p
-            role="alert"
-            className="text-[13px] text-[var(--color-destructive)]"
-          >
+          <p role="alert" className="text-[13px] text-[var(--color-destructive)]">
             {errorMessage}
           </p>
         </Card>

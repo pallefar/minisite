@@ -50,8 +50,7 @@ describe('computeWcagContrast', () => {
     // lum1=0.6^2.2≈0.3317, lum2=0.5^2.2≈0.2176
     // ratio=(0.3317+0.05)/(0.2176+0.05)=(0.3817/0.2676)≈1.43
     expect(result).toBeLessThan(4.5);
-    const expected =
-      (Math.pow(0.6, 2.2) + 0.05) / (Math.pow(0.5, 2.2) + 0.05);
+    const expected = (Math.pow(0.6, 2.2) + 0.05) / (Math.pow(0.5, 2.2) + 0.05);
     expect(Math.abs(result - expected)).toBeLessThan(TOLERANCE);
   });
 
@@ -73,8 +72,7 @@ describe('computeWcagContrast', () => {
     // lum1=0.55^2.2≈0.2704, lum2=0.7^2.2≈0.4508
     // ratio=(0.4508+0.05)/(0.2704+0.05)=(0.5008/0.3204)≈1.56
     expect(result).toBeLessThan(3.0);
-    const expected =
-      (Math.pow(0.7, 2.2) + 0.05) / (Math.pow(0.55, 2.2) + 0.05);
+    const expected = (Math.pow(0.7, 2.2) + 0.05) / (Math.pow(0.55, 2.2) + 0.05);
     expect(Math.abs(result - expected)).toBeLessThan(TOLERANCE);
   });
 

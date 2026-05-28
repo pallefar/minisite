@@ -31,9 +31,7 @@ import type { DirectoryProfile } from './ProfileCard';
 
 // ─── Lazy ProfileCard (community-directory chunk per 45-07b vite config) ─────
 
-const ProfileCard = lazy(() =>
-  import('./ProfileCard').then((m) => ({ default: m.ProfileCard })),
-);
+const ProfileCard = lazy(() => import('./ProfileCard').then((m) => ({ default: m.ProfileCard })));
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

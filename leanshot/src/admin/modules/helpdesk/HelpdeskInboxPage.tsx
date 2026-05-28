@@ -104,9 +104,11 @@ export default function HelpdeskInboxPage(): React.JSX.Element {
         );
       }
       if (sentimentOnly) {
-        q = (
-          q as unknown as { not: (col: string, op: string, val: null) => typeof q }
-        ).not('sentiment_alert_fired_at', 'is', null);
+        q = (q as unknown as { not: (col: string, op: string, val: null) => typeof q }).not(
+          'sentiment_alert_fired_at',
+          'is',
+          null,
+        );
       }
 
       q = (
@@ -268,10 +270,7 @@ export default function HelpdeskInboxPage(): React.JSX.Element {
       )}
 
       {openTicketId ? (
-        <TicketDetailPage
-          ticketId={openTicketId}
-          onClose={() => setOpenTicketId(null)}
-        />
+        <TicketDetailPage ticketId={openTicketId} onClose={() => setOpenTicketId(null)} />
       ) : null}
     </div>
   );

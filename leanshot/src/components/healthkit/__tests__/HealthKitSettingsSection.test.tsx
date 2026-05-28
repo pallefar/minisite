@@ -56,9 +56,24 @@ vi.mock('@/hooks/useConfirm', () => ({
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   motion: {
-    div: ({ children, onClick, className, role, 'aria-modal': ariaModal, 'aria-label': ariaLabel, ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-       
-      <div onClick={onClick} onKeyDown={undefined} className={className} role={role} aria-modal={ariaModal} aria-label={ariaLabel} {...rest}>
+    div: ({
+      children,
+      onClick,
+      className,
+      role,
+      'aria-modal': ariaModal,
+      'aria-label': ariaLabel,
+      ...rest
+    }: React.HTMLAttributes<HTMLDivElement>) => (
+      <div
+        onClick={onClick}
+        onKeyDown={undefined}
+        className={className}
+        role={role}
+        aria-modal={ariaModal}
+        aria-label={ariaLabel}
+        {...rest}
+      >
         {children}
       </div>
     ),
@@ -172,9 +187,7 @@ describe('HealthKitSettingsSection', () => {
     it('renders "Revoke HealthKit access" destructive button', async () => {
       renderSection();
       await waitFor(() => {
-        expect(
-          screen.getByRole('button', { name: /Revoke HealthKit access/i }),
-        ).toBeDefined();
+        expect(screen.getByRole('button', { name: /Revoke HealthKit access/i })).toBeDefined();
       });
     });
 
@@ -262,7 +275,9 @@ describe('HealthKitSettingsSection', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: /Revoke HealthKit access/i }));
       await waitFor(() =>
-        expect(screen.getByRole('button', { name: /Delete imported Apple Health data/i })).toBeDefined(),
+        expect(
+          screen.getByRole('button', { name: /Delete imported Apple Health data/i }),
+        ).toBeDefined(),
       );
       fireEvent.click(screen.getByRole('button', { name: /Delete imported Apple Health data/i }));
       await waitFor(() => {
@@ -287,7 +302,9 @@ describe('HealthKitSettingsSection', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: /Revoke HealthKit access/i }));
       await waitFor(() =>
-        expect(screen.getByRole('button', { name: /Delete imported Apple Health data/i })).toBeDefined(),
+        expect(
+          screen.getByRole('button', { name: /Delete imported Apple Health data/i }),
+        ).toBeDefined(),
       );
       fireEvent.click(screen.getByRole('button', { name: /Delete imported Apple Health data/i }));
       await waitFor(() => {
@@ -316,9 +333,7 @@ describe('HealthKitSettingsSection', () => {
       mockDetectPlatform.mockReturnValue('web');
       renderSection();
       await waitFor(() => {
-        expect(
-          screen.getByText('Apple Health sync is only available on iPhone.'),
-        ).toBeDefined();
+        expect(screen.getByText('Apple Health sync is only available on iPhone.')).toBeDefined();
       });
     });
 

@@ -90,9 +90,7 @@ describe('DoNotSellPage', () => {
     });
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/allow 24 hours for propagation/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/allow 24 hours for propagation/i)).toBeInTheDocument();
     });
     // Confirmation email copy
     expect(screen.getByText(/confirmation email sent to/i)).toBeInTheDocument();
@@ -145,9 +143,7 @@ describe('DoNotSellPage', () => {
 
     // Modal should be visible with verbatim copy from UI-SPEC §Copywriting
     await waitFor(() => {
-      expect(
-        screen.getByText(/submit this opt-out request\?/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/submit this opt-out request\?/i)).toBeInTheDocument();
     });
     // The "you can change your mind" text is split across a paragraph + link element,
     // so use a function matcher on the containing paragraph

@@ -64,7 +64,9 @@ export function EditConsentScopeModal({
   onSaved,
   onClose,
 }: EditConsentScopeModalProps): React.ReactElement {
-  const [scope, setScope] = useState<ConsentScope>(() => buildInitialScope(membership.consent_scope));
+  const [scope, setScope] = useState<ConsentScope>(() =>
+    buildInitialScope(membership.consent_scope),
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,7 +116,10 @@ export function EditConsentScopeModal({
             const meta = DATA_TYPE_LABELS[key];
             const checked = scope[key];
             return (
-              <li key={key} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3">
+              <li
+                key={key}
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3"
+              >
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"

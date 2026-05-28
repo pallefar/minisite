@@ -33,7 +33,9 @@ vi.mock('@/hooks/useReducedMotion', () => ({
 // Mock Card and Button to avoid full design system in unit tests
 vi.mock('@/components/ui/Card', () => ({
   Card: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-    <div data-testid="card" {...props}>{children}</div>
+    <div data-testid="card" {...props}>
+      {children}
+    </div>
   ),
 }));
 
@@ -82,8 +84,8 @@ beforeEach(() => {
   mockUseReducedMotion.mockReturnValue(false);
   // ManageSubscriptionLink doesn't read tier — but useStore may be called
   // by child Card; mock with selector passthrough
-  mockUseStore.mockImplementation(
-    (selector: (s: { tier: 'paid' }) => unknown) => selector({ tier: 'paid' }),
+  mockUseStore.mockImplementation((selector: (s: { tier: 'paid' }) => unknown) =>
+    selector({ tier: 'paid' }),
   );
 });
 

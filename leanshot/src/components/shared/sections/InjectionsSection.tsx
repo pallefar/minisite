@@ -20,7 +20,11 @@ export interface InjectionsSectionProps {
   onMount?: (name: string) => void;
 }
 
-export function InjectionsSection({ data, viewerMode: _viewerMode, onMount }: InjectionsSectionProps) {
+export function InjectionsSection({
+  data,
+  viewerMode: _viewerMode,
+  onMount,
+}: InjectionsSectionProps) {
   const firedRef = useRef(false);
 
   useEffect(() => {
@@ -28,7 +32,7 @@ export function InjectionsSection({ data, viewerMode: _viewerMode, onMount }: In
       firedRef.current = true;
       onMount('injections');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -45,9 +49,7 @@ export function InjectionsSection({ data, viewerMode: _viewerMode, onMount }: In
                 className="flex items-center justify-between gap-3 py-1.5 border-b border-[var(--color-border)] last:border-b-0"
               >
                 <span>{formatShort(i.created_at)}</span>
-                <span className="font-bold numerals-tabular">
-                  {i.dose_mg} mg
-                </span>
+                <span className="font-bold numerals-tabular">{i.dose_mg} mg</span>
                 <span className="text-[var(--color-text-secondary)]">{i.site || '—'}</span>
               </li>
             ))}

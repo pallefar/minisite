@@ -28,14 +28,13 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
   // PWA lazy chunk (no impact on HomeTab's chunk size).
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      import('@/lib/pwa/install-prompt'),
-      import('@/hooks/useInstallPrompt'),
-    ]).then(([ip, hook]) => {
-      if (cancelled) return;
-      ip.recordDashboardVisit();
-      hook.notifyInstallPromptTick();
-    });
+    void Promise.all([import('@/lib/pwa/install-prompt'), import('@/hooks/useInstallPrompt')]).then(
+      ([ip, hook]) => {
+        if (cancelled) return;
+        ip.recordDashboardVisit();
+        hook.notifyInstallPromptTick();
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -100,7 +99,10 @@ export function HomeTab({ onOpenAI }: { onOpenAI: () => void }) {
       </Suspense>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.home.insight_title')} icon={<Lightbulb className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.home.insight_title')}
+          icon={<Lightbulb className="size-4" />}
+        />
         {insight ? (
           <div className="rounded-2xl bg-[var(--color-info-soft)] border border-[var(--color-info-soft)] px-4 py-3.5 flex gap-3">
             <span className="size-9 rounded-xl bg-[var(--color-info)] text-white inline-flex items-center justify-center shrink-0">

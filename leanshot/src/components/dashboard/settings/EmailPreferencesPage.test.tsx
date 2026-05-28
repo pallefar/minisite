@@ -65,7 +65,6 @@ vi.mock('@/hooks/useToast', () => ({
 
 // ─── Imports under test (after mocks are wired) ───────────────────────────────
 
-
 // ─── Setup ────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
@@ -130,9 +129,7 @@ describe('EmailPreferencesPage (Phase 22 ON-03)', () => {
     expect(body.categories).toHaveProperty('retention');
     expect(body.categories).toHaveProperty('weekly_digest');
     expect(body.categories).toHaveProperty('affiliate');
-    await waitFor(() =>
-      expect(toastSpy).toHaveBeenCalledWith('Preferences saved', 'success'),
-    );
+    await waitFor(() => expect(toastSpy).toHaveBeenCalledWith('Preferences saved', 'success'));
   });
 
   it('Test 6: Save error → "Couldn\'t save. Try again." toast', async () => {

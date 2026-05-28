@@ -72,18 +72,15 @@ export function ImpersonationBanner() {
       className="sticky top-0 z-[60] flex h-12 items-center justify-between gap-3 bg-[var(--color-danger)] px-4 text-white"
     >
       <div className="flex min-w-0 items-center gap-2 text-sm">
-        <UserCog
-          data-testid="impersonation-icon"
-          aria-hidden
-          className="size-4 shrink-0"
-        />
+        <UserCog data-testid="impersonation-icon" aria-hidden className="size-4 shrink-0" />
         <span className="truncate">
-          Impersonating <span className="font-semibold">{targetEmail ?? 'user'}</span> · Read-only
-          ·{' '}
+          Impersonating <span className="font-semibold">{targetEmail ?? 'user'}</span> · Read-only ·{' '}
           <span
             data-testid="impersonation-countdown"
             aria-live="off"
-            className={shouldPulse ? 'animate-pulse font-mono tabular-nums' : 'font-mono tabular-nums'}
+            className={
+              shouldPulse ? 'animate-pulse font-mono tabular-nums' : 'font-mono tabular-nums'
+            }
           >
             {countdownText}
           </span>{' '}

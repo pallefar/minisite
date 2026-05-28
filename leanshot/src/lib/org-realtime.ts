@@ -52,15 +52,20 @@ async function _getSecretBuffer(): Promise<ArrayBuffer> {
   if (_cachedSecretBuffer !== null) return _cachedSecretBuffer;
 
   const { data, error } = await supabase.rpc('get_realtime_channel_keying');
-  if (error) throw new Error(`org-realtime: get_realtime_channel_keying RPC failed: ${error.message}`);
+  if (error)
+    throw new Error(`org-realtime: get_realtime_channel_keying RPC failed: ${error.message}`);
   if (!data || typeof data !== 'string') {
-    throw new Error('org-realtime: get_realtime_channel_keying returned no data (Vault secret missing?)');
+    throw new Error(
+      'org-realtime: get_realtime_channel_keying returned no data (Vault secret missing?)',
+    );
   }
 
   // Decode 64-char hex string → 32-byte Uint8Array → ArrayBuffer.
   const hex = data as string;
   if (hex.length !== 64) {
-    throw new Error(`org-realtime: unexpected secret length ${hex.length} (expected 64 hex chars = 32 bytes)`);
+    throw new Error(
+      `org-realtime: unexpected secret length ${hex.length} (expected 64 hex chars = 32 bytes)`,
+    );
   }
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < bytes.length; i++) {
@@ -105,7 +110,9 @@ export async function channelNameFor(orgId: string, table: string): Promise<stri
   const signature = await crypto.subtle.sign('HMAC', key, input);
 
   // Encode the full 32-byte HMAC as lowercase hex, then take first 8 chars.
-  const hex = Array.from(new Uint8Array(signature), (b) => b.toString(16).padStart(2, '0')).join('');
+  const hex = Array.from(new Uint8Array(signature), (b) => b.toString(16).padStart(2, '0')).join(
+    '',
+  );
   return `org-${hex.slice(0, 8)}-${table}`;
 }
 

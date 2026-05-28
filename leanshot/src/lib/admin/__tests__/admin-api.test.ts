@@ -11,11 +11,7 @@
  *   - Other Supabase errors surface as AdminApiError(code: 'unknown').
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  AdminApiError,
-  listMembers,
-  setFeatureFlagOverride,
-} from '@/lib/admin/admin-api';
+import { AdminApiError, listMembers, setFeatureFlagOverride } from '@/lib/admin/admin-api';
 
 const mockRpc = vi.fn();
 

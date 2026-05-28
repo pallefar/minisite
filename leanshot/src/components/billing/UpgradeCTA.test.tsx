@@ -33,7 +33,9 @@ vi.mock('@/hooks/useReducedMotion', () => ({
 
 vi.mock('@/components/ui/Card', () => ({
   Card: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-    <div data-testid="card" {...props}>{children}</div>
+    <div data-testid="card" {...props}>
+      {children}
+    </div>
   ),
 }));
 

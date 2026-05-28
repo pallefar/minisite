@@ -17,10 +17,7 @@ import { cleanup, render, screen, waitFor, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  useWorkspaceJwtPropagation,
-  ClinicWorkspaceSwitcherJwtOverlay,
-} from './WorkspaceSwitcher';
+import { useWorkspaceJwtPropagation, ClinicWorkspaceSwitcherJwtOverlay } from './WorkspaceSwitcher';
 
 // ---------------------------------------------------------------------------
 // Supabase mock — use vi.hoisted to avoid hoisting-before-initialization error
@@ -97,9 +94,12 @@ describe('T1 — hook: propagated=true when claim arrives within 600ms', () => {
     expect(result.current.needsRetry).toBe(false);
 
     // Wait for the async tick to resolve.
-    await waitFor(() => {
-      expect(result.current.propagated).toBe(true);
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(result.current.propagated).toBe(true);
+      },
+      { timeout: 3000 },
+    );
 
     expect(result.current.needsRetry).toBe(false);
   });
@@ -251,9 +251,12 @@ describe('T7 — overlay: renders nothing once propagated', () => {
 
     // Initially spinner may appear (before first async poll).
     // Wait for it to disappear once propagated.
-    await waitFor(() => {
-      expect(screen.queryByTestId('ws-jwt-spinner')).toBeNull();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId('ws-jwt-spinner')).toBeNull();
+      },
+      { timeout: 3000 },
+    );
 
     expect(screen.queryByTestId('ws-retry')).toBeNull();
   });

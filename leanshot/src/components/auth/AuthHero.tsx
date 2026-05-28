@@ -44,8 +44,8 @@ export function AuthHero() {
           <span className="font-display font-light italic text-white/90">One place.</span>
         </h1>
         <p className="mt-[22px] text-base leading-[1.55] opacity-80">
-          Track doses, body metrics, food, activity, and mood — then share a clean picture with
-          your doctor or coach.
+          Track doses, body metrics, food, activity, and mood — then share a clean picture with your
+          doctor or coach.
         </p>
 
         {/* Trust strip */}

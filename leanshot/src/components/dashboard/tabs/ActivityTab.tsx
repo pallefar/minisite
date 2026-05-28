@@ -121,12 +121,21 @@ export function ActivityTab() {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <StatTile label={t('patient:tab.activity.stat_workouts_wk')} value={weekly.length} />
-      <StatTile label={t('patient:tab.activity.stat_steps_today')} value={(steps[today] ?? 0).toLocaleString()} />
-      <StatTile label={t('patient:tab.activity.stat_volume_min')} value={weekly.reduce((s, w) => s + (w.minutes || 0), 0)} />
+      <StatTile
+        label={t('patient:tab.activity.stat_steps_today')}
+        value={(steps[today] ?? 0).toLocaleString()}
+      />
+      <StatTile
+        label={t('patient:tab.activity.stat_volume_min')}
+        value={weekly.reduce((s, w) => s + (w.minutes || 0), 0)}
+      />
       <StatTile label={t('patient:tab.activity.stat_total_sessions')} value={workouts.length} />
 
       <Card span={7}>
-        <CardHeader title={t('patient:tab.activity.log_title')} icon={<Activity className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.activity.log_title')}
+          icon={<Activity className="size-4" />}
+        />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -184,7 +193,10 @@ export function ActivityTab() {
       </Card>
 
       <Card span={5}>
-        <CardHeader title={t('patient:tab.activity.steps_title')} icon={<Footprints className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.activity.steps_title')}
+          icon={<Footprints className="size-4" />}
+        />
         <div className="space-y-3">
           <div className="flex items-center gap-4 rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] p-3">
             <ActivityRings className="w-20 shrink-0" staticOnly />
@@ -222,7 +234,9 @@ export function ActivityTab() {
             <div className="flex items-start gap-3 mb-3">
               <ConnectData className="w-24 shrink-0" />
               <div>
-                <p className="text-[13px] font-bold">{t('patient:tab.activity.health_import_title')}</p>
+                <p className="text-[13px] font-bold">
+                  {t('patient:tab.activity.health_import_title')}
+                </p>
                 <p className="text-[11px] text-[var(--color-text-secondary)] leading-snug">
                   {t('patient:tab.activity.health_import_body')}
                 </p>
@@ -248,7 +262,10 @@ export function ActivityTab() {
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.activity.history_title')} icon={<ListChecks className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.activity.history_title')}
+          icon={<ListChecks className="size-4" />}
+        />
         {workouts.length === 0 ? (
           <EmptyState
             inline
@@ -260,11 +277,21 @@ export function ActivityTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_date')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_type')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_name')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_min')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.activity.col_rpe')}</th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.activity.col_date')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.activity.col_type')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.activity.col_name')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.activity.col_min')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.activity.col_rpe')}
+                  </th>
                   <th aria-hidden></th>
                 </tr>
               </thead>

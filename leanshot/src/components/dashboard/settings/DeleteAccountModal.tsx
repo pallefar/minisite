@@ -76,7 +76,7 @@ async function sendDeletionScheduledEmail(userId: string): Promise<void> {
   } catch (err) {
     // Swallow — the email is non-critical; deletion already scheduled.
     // Logging via console.warn (project convention — no global logger).
-     
+
     console.warn(
       '[DeleteAccountModal] deletion_scheduled email invoke failed (deletion still scheduled)',
       err,

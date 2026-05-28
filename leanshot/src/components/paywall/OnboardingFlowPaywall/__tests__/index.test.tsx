@@ -30,7 +30,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 describe('OnboardingFlowPaywall', () => {
   beforeEach(() => {
     trackingConsentMock.mockReset();
@@ -58,9 +57,7 @@ describe('OnboardingFlowPaywall', () => {
 
   it('renders null when consent=false (Hard Constraint #6)', async () => {
     trackingConsentMock.mockReturnValue(false);
-    const { container } = render(
-      <OnboardingFlowPaywall open={true} onClose={() => undefined} />,
-    );
+    const { container } = render(<OnboardingFlowPaywall open={true} onClose={() => undefined} />);
     await new Promise((r) => setTimeout(r, 20));
     expect(container.querySelector('[role="dialog"]')).toBeNull();
     expect(invokeMock).not.toHaveBeenCalled();
@@ -73,9 +70,7 @@ describe('OnboardingFlowPaywall', () => {
     await waitFor(() => {
       expect(screen.getByText(/Step 1 of 6/i)).toBeTruthy();
     });
-    const dots = screen
-      .getByTestId('paywall-progress-dots')
-      .querySelectorAll('[data-dot]');
+    const dots = screen.getByTestId('paywall-progress-dots').querySelectorAll('[data-dot]');
     expect(dots.length).toBe(6);
   });
 

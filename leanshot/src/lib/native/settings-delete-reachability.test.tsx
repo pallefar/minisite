@@ -43,7 +43,9 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: () => ({
       update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-      select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+      select: () => ({
+        eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),
+      }),
     }),
     functions: {
       invoke: vi.fn(async () => ({ data: { ok: true }, error: null })),
@@ -117,7 +119,6 @@ function seedSignedInUser() {
       units: 'metric',
       locale: 'en',
       timezone: 'UTC',
-       
     } as any,
     signedIn: {
       user: {
@@ -182,9 +183,7 @@ describe('MOBILE-08 — SettingsPage account-deletion reachability at 375px', ()
 
   async function renderSettingsAndGoToPrivacy() {
     // Lazy import after store is seeded.
-    const { SettingsPage } = await import(
-      '@/components/dashboard/settings/SettingsPage'
-    );
+    const { SettingsPage } = await import('@/components/dashboard/settings/SettingsPage');
     const user = userEvent.setup();
     render(<SettingsPage open={true} onClose={() => {}} />);
 
@@ -222,9 +221,9 @@ describe('MOBILE-08 — SettingsPage account-deletion reachability at 375px', ()
     const user = await renderSettingsAndGoToPrivacy();
 
     // requireStepUp is mocked to return ok=true → modal should open.
-    const deleteBtn = screen.getAllByRole('button', { name: /Delete account/ }).find(
-      (b) => b.tagName === 'BUTTON' && !b.hasAttribute('disabled'),
-    );
+    const deleteBtn = screen
+      .getAllByRole('button', { name: /Delete account/ })
+      .find((b) => b.tagName === 'BUTTON' && !b.hasAttribute('disabled'));
     expect(deleteBtn).toBeDefined();
     await user.click(deleteBtn!);
 
@@ -243,9 +242,9 @@ describe('MOBILE-08 — SettingsPage account-deletion reachability at 375px', ()
   it('DeleteAccountModal is reachable (role=dialog visible)', async () => {
     const user = await renderSettingsAndGoToPrivacy();
 
-    const deleteBtn = screen.getAllByRole('button', { name: /Delete account/ }).find(
-      (b) => b.tagName === 'BUTTON' && !b.hasAttribute('disabled'),
-    );
+    const deleteBtn = screen
+      .getAllByRole('button', { name: /Delete account/ })
+      .find((b) => b.tagName === 'BUTTON' && !b.hasAttribute('disabled'));
     await user.click(deleteBtn!);
 
     await waitFor(() => {

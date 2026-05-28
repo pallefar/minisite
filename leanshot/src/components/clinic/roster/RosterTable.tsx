@@ -49,7 +49,14 @@ import { useRosterSelection } from './use-roster-selection';
 const PAGE_SIZE = 50;
 const REFRESH_INTERVAL_MS = 30_000;
 
-type SortColumn = 'score' | 'display_name' | 'last_injection_at' | 'weight_trend_arrow' | 'recent_symptom_severity' | 'days_since_injection' | 'missed_dose_flag';
+type SortColumn =
+  | 'score'
+  | 'display_name'
+  | 'last_injection_at'
+  | 'weight_trend_arrow'
+  | 'recent_symptom_severity'
+  | 'days_since_injection'
+  | 'missed_dose_flag';
 type SortDirection = 'asc' | 'desc';
 
 interface SortState {
@@ -261,7 +268,7 @@ export function RosterTable({
     return `${diffMin}m ago`;
   })();
 
-  const showRefreshedHint = lastFetchedAt && (Date.now() - lastFetchedAt.getTime()) > 30_000;
+  const showRefreshedHint = lastFetchedAt && Date.now() - lastFetchedAt.getTime() > 30_000;
 
   const handleManualRefresh = () => {
     fetchStartRef.current = performance.now();
@@ -281,7 +288,9 @@ export function RosterTable({
   // ---- Column header sort icon --------------------------------------------
   const SortIcon = ({ col }: { col: SortColumn }) => {
     if (sort.column !== col) {
-      return <ArrowUpDown size={14} className="text-[var(--color-text-tertiary)] ms-1" aria-hidden />;
+      return (
+        <ArrowUpDown size={14} className="text-[var(--color-text-tertiary)] ms-1" aria-hidden />
+      );
     }
     return sort.direction === 'desc' ? (
       <ArrowDown size={14} className="text-[var(--color-primary)] ms-1" aria-hidden />
@@ -331,9 +340,10 @@ export function RosterTable({
     );
   }
 
-  const sortedSuffix = sort.column !== 'score' || sort.direction !== 'desc'
-    ? ` · sorted by ${COLUMN_LABELS[sort.column]} ${sort.direction}`
-    : '';
+  const sortedSuffix =
+    sort.column !== 'score' || sort.direction !== 'desc'
+      ? ` · sorted by ${COLUMN_LABELS[sort.column]} ${sort.direction}`
+      : '';
 
   return (
     <div data-testid="roster-table-container">
@@ -382,11 +392,7 @@ export function RosterTable({
 
       {/* Desktop table (hidden on mobile) */}
       <div className="hidden md:block overflow-x-auto" data-testid="roster-table-desktop">
-        <table
-          role="grid"
-          className="w-full text-start"
-          aria-label="Patient roster"
-        >
+        <table role="grid" className="w-full text-start" aria-label="Patient roster">
           <thead>
             <tr role="row" className="border-b border-[var(--color-border)]">
               {/* Header checkbox: select all visible */}
@@ -414,8 +420,8 @@ export function RosterTable({
                       allVisibleSelected
                         ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
                         : headerIndeterminate
-                        ? 'bg-[var(--color-primary)]/50 border-[var(--color-primary)]'
-                        : 'border-[var(--color-border)]',
+                          ? 'bg-[var(--color-primary)]/50 border-[var(--color-primary)]'
+                          : 'border-[var(--color-border)]',
                     )}
                     aria-hidden
                   >

@@ -33,7 +33,17 @@ import { OverrideEditor } from './OverrideEditor';
 import { PublishButton } from './PublishButton';
 
 const LANGUAGES = ['', 'en', 'es'] as const;
-const NAMESPACES = ['', 'common', 'nav', 'admin', 'clinic', 'kb', 'onboarding', 'patient', 'settings'] as const;
+const NAMESPACES = [
+  '',
+  'common',
+  'nav',
+  'admin',
+  'clinic',
+  'kb',
+  'onboarding',
+  'patient',
+  'settings',
+] as const;
 
 export default function LocaleOverridesModule() {
   const { t } = useTranslation('admin');
@@ -91,7 +101,10 @@ export default function LocaleOverridesModule() {
           {t('i18n_overrides.title', 'Locale Overrides')}
         </h1>
         <p className="text-sm text-[var(--color-text-secondary)]">
-          {t('i18n_overrides.subtitle', 'Hot-patch translations per-org or globally without redeploying.')}
+          {t(
+            'i18n_overrides.subtitle',
+            'Hot-patch translations per-org or globally without redeploying.',
+          )}
         </p>
       </header>
 
@@ -160,7 +173,9 @@ export default function LocaleOverridesModule() {
       </Card>
 
       {error && (
-        <p role="alert" className="text-sm text-[var(--color-error,red)]">{error}</p>
+        <p role="alert" className="text-sm text-[var(--color-error,red)]">
+          {error}
+        </p>
       )}
 
       {editing && (
@@ -209,7 +224,9 @@ export default function LocaleOverridesModule() {
                     <td className="py-2 pe-3 font-mono text-xs">{row.ns}</td>
                     <td className="py-2 pe-3 font-mono text-xs">{row.key}</td>
                     {/* Plain text only — see T-32-04-01 mitigation in module header */}
-                    <td className="py-2 pe-3 max-w-xs truncate" title={row.value}>{row.value}</td>
+                    <td className="py-2 pe-3 max-w-xs truncate" title={row.value}>
+                      {row.value}
+                    </td>
                     <td className="py-2 pe-3 text-xs">
                       {row.org_id
                         ? t('i18n_overrides.org_scope', 'Org')
@@ -234,12 +251,16 @@ export default function LocaleOverridesModule() {
                           lng={row.lng}
                           ns={row.ns}
                           orgId={row.org_id}
-                          onPublished={() => { void refresh(); }}
+                          onPublished={() => {
+                            void refresh();
+                          }}
                         />
                       )}
                       <button
                         type="button"
-                        onClick={() => { void handleDelete(row.id); }}
+                        onClick={() => {
+                          void handleDelete(row.id);
+                        }}
                         className="text-xs font-semibold text-red-500 hover:underline"
                       >
                         {t('i18n_overrides.delete_button', 'Delete')}

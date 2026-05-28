@@ -43,9 +43,7 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpcMock(...args),
     from: (tableName: string) =>
-      makeFromBuilder(
-        fromResults.get(tableName) ?? { data: [], error: null },
-      ),
+      makeFromBuilder(fromResults.get(tableName) ?? { data: [], error: null }),
     auth: {
       getSession: async () => ({ data: { session: { access_token: 't' } } }),
       getUser: async () => ({ data: { user: { id: 'u-self' } }, error: null }),
@@ -75,15 +73,12 @@ vi.mock('@/lib/supabase', () => ({
 
 const showToastMock = vi.fn();
 vi.mock('@/lib/store', () => ({
-  useStore: Object.assign(
-    () => undefined,
-    {
-      getState: () => ({
-        showToast: (...args: unknown[]) => showToastMock(...args),
-        dismissToast: vi.fn(),
-      }),
-    },
-  ),
+  useStore: Object.assign(() => undefined, {
+    getState: () => ({
+      showToast: (...args: unknown[]) => showToastMock(...args),
+      dismissToast: vi.fn(),
+    }),
+  }),
 }));
 
 const ROLES: Role[] = [
@@ -289,9 +284,7 @@ describe('MembersTab', () => {
     render(<MembersTab orgId="org-1" roles={ROLES} />);
     await waitFor(() => expect(screen.getByText('dave@example.com')).toBeInTheDocument());
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Re-send invitation to dave@example.com' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Re-send invitation to dave@example.com' }));
     expect(showToastMock).toHaveBeenCalledWith('Invitation re-sent.', 'success');
   });
 
@@ -377,9 +370,7 @@ describe('MembersTab', () => {
         p_role_id: 'role-viewonly',
       }),
     );
-    await waitFor(() =>
-      expect(showToastMock).toHaveBeenCalledWith('Role updated.', 'success'),
-    );
+    await waitFor(() => expect(showToastMock).toHaveBeenCalledWith('Role updated.', 'success'));
   });
 
   it('Test 7 — empty members → empty state copy', async () => {
@@ -388,9 +379,7 @@ describe('MembersTab', () => {
     fromResults.set('invites', { data: [], error: null });
     render(<MembersTab orgId="org-1" roles={ROLES} />);
     await waitFor(() =>
-      expect(
-        screen.getByText('No patients have accepted yet.'),
-      ).toBeInTheDocument(),
+      expect(screen.getByText('No patients have accepted yet.')).toBeInTheDocument(),
     );
     expect(screen.getByText('No pending invitations.')).toBeInTheDocument();
   });

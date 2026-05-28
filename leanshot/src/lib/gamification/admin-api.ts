@@ -64,9 +64,7 @@ export interface CreateChallengePayload {
  * Admin-only: SECDEF re-checks profiles.admin_role server-side.
  * Returns the new challenge's UUID.
  */
-export async function createWeeklyChallenge(
-  payload: CreateChallengePayload,
-): Promise<string> {
+export async function createWeeklyChallenge(payload: CreateChallengePayload): Promise<string> {
   const { data, error } = await supabase.rpc('create_weekly_challenge', {
     p_payload: payload as unknown as Record<string, unknown>,
   });

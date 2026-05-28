@@ -43,7 +43,10 @@ import type { OrgContext, OrgRole } from '@/types/org';
 
 type ResolveSlugResult =
   | { state: 'member'; org_summary: { id: string; slug: string; name: string; role: OrgRole } }
-  | { state: 'pending_invite'; invite_summary: { invite_id: string; role: OrgRole; expires_at: string } }
+  | {
+      state: 'pending_invite';
+      invite_summary: { invite_id: string; role: OrgRole; expires_at: string };
+    }
   | { state: 'not_found' };
 
 // ---------------------------------------------------------------------------
@@ -88,7 +91,13 @@ interface OrgInviteAcceptanceProps {
   onAccepted: () => void;
 }
 
-function OrgInviteAcceptance({ inviteId, role, expiresAt, slug, onAccepted }: OrgInviteAcceptanceProps): ReactElement {
+function OrgInviteAcceptance({
+  inviteId,
+  role,
+  expiresAt,
+  slug,
+  onAccepted,
+}: OrgInviteAcceptanceProps): ReactElement {
   const [accepting, setAccepting] = useState(false);
   const [declined, setDeclined] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -231,11 +240,7 @@ export interface RouteOrgGuardProps {
   currentPath?: string;
 }
 
-export function RouteOrgGuard({
-  slug,
-  children,
-  currentPath,
-}: RouteOrgGuardProps): ReactElement {
+export function RouteOrgGuard({ slug, children, currentPath }: RouteOrgGuardProps): ReactElement {
   const [result, setResult] = useState<ResolveSlugResult | null>(null);
   const resolvedOrgId = result?.state === 'member' ? result.org_summary.id : null;
   const path = currentPath ?? (typeof window !== 'undefined' ? window.location.pathname : '');

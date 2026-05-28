@@ -83,10 +83,8 @@ describe('Phase 50 Plan 50-04 — diff-detector', () => {
 
     it('returns false at <20% diff and no new sections', () => {
       // Change one token in 20-token text (~5% diff).
-      const old =
-        'a b c d e f g h i j k l m n o p q r s t';
-      const next =
-        'a b c d e f g h i j k l m n o p q r s TYPOFIX';
+      const old = 'a b c d e f g h i j k l m n o p q r s t';
+      const next = 'a b c d e f g h i j k l m n o p q r s TYPOFIX';
       expect(shouldRequeue(old, next)).toBe(false);
     });
 

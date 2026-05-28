@@ -31,10 +31,10 @@ const describeIfLive = SHOULD_RUN ? describe : describe.skip;
 
 describeIfLive('P29 count_active_patients — D-01 invariants', () => {
   let fixture: TwoOrgsTwoUsers;
-  let patient1Id: string;  // active: 1 injection (recent)
-  let patient2Id: string;  // active: weight + mood (recent)
-  let patient3Id: string;  // inactive: ai_message 40 days ago
-  let patient4Id: string;  // linked but unlinked_at set
+  let patient1Id: string; // active: 1 injection (recent)
+  let patient2Id: string; // active: weight + mood (recent)
+  let patient3Id: string; // inactive: ai_message 40 days ago
+  let patient4Id: string; // linked but unlinked_at set
 
   beforeAll(async () => {
     fixture = await createTwoOrgsTwoUsers(TEST_SLUG_PREFIX);
@@ -47,35 +47,63 @@ describeIfLive('P29 count_active_patients — D-01 invariants', () => {
     const email4 = `${TEST_SLUG_PREFIX}-p4@leanshot.test`;
 
     const { data: p1Data, error: p1Err } = await admin.auth.admin.createUser({
-      email: email1, email_confirm: true, password: `P29-${crypto.randomUUID()}`,
+      email: email1,
+      email_confirm: true,
+      password: `P29-${crypto.randomUUID()}`,
     });
     if (p1Err || !p1Data.user) throw new Error(`createUser p1 failed: ${p1Err?.message}`);
     patient1Id = p1Data.user.id;
 
     const { data: p2Data, error: p2Err } = await admin.auth.admin.createUser({
-      email: email2, email_confirm: true, password: `P29-${crypto.randomUUID()}`,
+      email: email2,
+      email_confirm: true,
+      password: `P29-${crypto.randomUUID()}`,
     });
     if (p2Err || !p2Data.user) throw new Error(`createUser p2 failed: ${p2Err?.message}`);
     patient2Id = p2Data.user.id;
 
     const { data: p3Data, error: p3Err } = await admin.auth.admin.createUser({
-      email: email3, email_confirm: true, password: `P29-${crypto.randomUUID()}`,
+      email: email3,
+      email_confirm: true,
+      password: `P29-${crypto.randomUUID()}`,
     });
     if (p3Err || !p3Data.user) throw new Error(`createUser p3 failed: ${p3Err?.message}`);
     patient3Id = p3Data.user.id;
 
     const { data: p4Data, error: p4Err } = await admin.auth.admin.createUser({
-      email: email4, email_confirm: true, password: `P29-${crypto.randomUUID()}`,
+      email: email4,
+      email_confirm: true,
+      password: `P29-${crypto.randomUUID()}`,
     });
     if (p4Err || !p4Data.user) throw new Error(`createUser p4 failed: ${p4Err?.message}`);
     patient4Id = p4Data.user.id;
 
     // Link all 4 patients to Org X via org_patient_links
     const { error: linkErr } = await admin.from('org_patient_links').insert([
-      { org_id: fixture.orgX, patient_user_id: patient1Id, linked_by: fixture.userA, unlinked_at: null },
-      { org_id: fixture.orgX, patient_user_id: patient2Id, linked_by: fixture.userA, unlinked_at: null },
-      { org_id: fixture.orgX, patient_user_id: patient3Id, linked_by: fixture.userA, unlinked_at: null },
-      { org_id: fixture.orgX, patient_user_id: patient4Id, linked_by: fixture.userA, unlinked_at: null },
+      {
+        org_id: fixture.orgX,
+        patient_user_id: patient1Id,
+        linked_by: fixture.userA,
+        unlinked_at: null,
+      },
+      {
+        org_id: fixture.orgX,
+        patient_user_id: patient2Id,
+        linked_by: fixture.userA,
+        unlinked_at: null,
+      },
+      {
+        org_id: fixture.orgX,
+        patient_user_id: patient3Id,
+        linked_by: fixture.userA,
+        unlinked_at: null,
+      },
+      {
+        org_id: fixture.orgX,
+        patient_user_id: patient4Id,
+        linked_by: fixture.userA,
+        unlinked_at: null,
+      },
     ]);
     if (linkErr) throw new Error(`org_patient_links insert failed: ${linkErr.message}`);
 
@@ -221,9 +249,7 @@ describeIfLive('P29 count_active_patients — D-01 invariants', () => {
     // The error message or code should contain 'forbidden' or '42501'
     const errorStr = JSON.stringify(error);
     expect(
-      errorStr.includes('42501') ||
-        errorStr.includes('forbidden') ||
-        errorStr.includes('PGRST')
+      errorStr.includes('42501') || errorStr.includes('forbidden') || errorStr.includes('PGRST'),
     ).toBe(true);
     expect(data).toBeNull();
   }, 30_000);

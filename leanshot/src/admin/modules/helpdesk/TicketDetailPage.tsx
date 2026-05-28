@@ -63,7 +63,7 @@ export default function TicketDetailPage({
   const reload = useCallback(async () => {
     setLoading(true);
     // ticket
-     
+
     const tRes = (await (supabase
       .from('tickets')
       .select('id, org_id, user_id, subject, status, phi')
@@ -81,7 +81,7 @@ export default function TicketDetailPage({
     setTicket(tRes.data);
 
     // thread
-     
+
     const mRes = (await (supabase
       .from('ticket_messages')
       .select('id, ticket_id, author_kind, body, created_at')
@@ -91,10 +91,7 @@ export default function TicketDetailPage({
       error: { code?: string } | null;
     };
     if (mRes.error) {
-      console.warn(
-        '[helpdesk/detail] messages-load-failed',
-        mRes.error?.code ?? 'unknown',
-      );
+      console.warn('[helpdesk/detail] messages-load-failed', mRes.error?.code ?? 'unknown');
     } else {
       setMessages(mRes.data ?? []);
     }
@@ -189,9 +186,7 @@ export default function TicketDetailPage({
             >
               ✕
             </button>
-            <h2 className="text-base font-semibold truncate">
-              {ticket?.subject ?? 'Ticket'}
-            </h2>
+            <h2 className="text-base font-semibold truncate">{ticket?.subject ?? 'Ticket'}</h2>
             {ticket?.phi ? (
               <span className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-pill bg-warning/20 text-warning">
                 PHI
@@ -247,9 +242,7 @@ export default function TicketDetailPage({
                   >
                     <header className="text-xs text-[var(--color-text-secondary)] mb-1 flex justify-between">
                       <span className="font-semibold">{m.author_kind}</span>
-                      <time dateTime={m.created_at}>
-                        {new Date(m.created_at).toLocaleString()}
-                      </time>
+                      <time dateTime={m.created_at}>{new Date(m.created_at).toLocaleString()}</time>
                     </header>
                     <pre className="whitespace-pre-wrap text-sm font-sans">{m.body}</pre>
                   </article>
@@ -259,10 +252,7 @@ export default function TicketDetailPage({
 
             {/* Side pane (right) — AI suggestion + composer */}
             <aside className="flex flex-col gap-3 min-w-0">
-              <AiSuggestionPane
-                ticketId={ticketId}
-                onInsertDraft={(text) => setDraft(text)}
-              />
+              <AiSuggestionPane ticketId={ticketId} onInsertDraft={(text) => setDraft(text)} />
               <AgentReplyComposer
                 ticketId={ticketId}
                 ticketSubject={ticket.subject}

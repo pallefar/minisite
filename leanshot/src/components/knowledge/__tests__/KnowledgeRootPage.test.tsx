@@ -53,7 +53,6 @@ describe('60-13 Task 1 Test 5: KnowledgeRoute renders without crashing', () => {
 // ─── Task 2 Tests 6-8 ────────────────────────────────────────────────────────
 
 describe('60-13 Task 2: KnowledgeRootPage', () => {
-
   it('Test 6: renders Fraunces italic H1 Knowledge Base with text-heading class', async () => {
     renderKnowledgeRoot();
 

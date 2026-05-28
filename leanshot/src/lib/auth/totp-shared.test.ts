@@ -17,10 +17,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  hashBackupCode,
-  verifyBackupCode,
-} from '@/lib/auth/backup-codes-shared';
+import { hashBackupCode, verifyBackupCode } from '@/lib/auth/backup-codes-shared';
 import {
   enrollTotp,
   generateBackupCodes,
@@ -98,10 +95,7 @@ describe('enrollTotp', () => {
       error: null,
     });
 
-    const result = await enrollTotp(
-      { issuer: 'LeanShot', friendlyName: 'Authenticator' },
-      client,
-    );
+    const result = await enrollTotp({ issuer: 'LeanShot', friendlyName: 'Authenticator' }, client);
 
     expect(mfa.enroll).toHaveBeenCalledWith({
       factorType: 'totp',
@@ -131,10 +125,7 @@ describe('verifyTotpChallenge', () => {
       error: null,
     });
 
-    const result = await verifyTotpChallenge(
-      { factorId: 'factor-1', code: '123456' },
-      client,
-    );
+    const result = await verifyTotpChallenge({ factorId: 'factor-1', code: '123456' }, client);
 
     expect(mfa.challenge).toHaveBeenCalledWith({ factorId: 'factor-1' });
     expect(mfa.verify).toHaveBeenCalledWith({
@@ -152,10 +143,7 @@ describe('verifyTotpChallenge', () => {
       error: { message: 'factor_not_found', status: 404 },
     });
 
-    const result = await verifyTotpChallenge(
-      { factorId: 'bad-factor', code: '000000' },
-      client,
-    );
+    const result = await verifyTotpChallenge({ factorId: 'bad-factor', code: '000000' }, client);
 
     expect(result.ok).toBe(false);
     expect(result.aal).toBeNull();
@@ -173,10 +161,7 @@ describe('verifyTotpChallenge', () => {
       error: { message: 'invalid_code', status: 400 },
     });
 
-    const result = await verifyTotpChallenge(
-      { factorId: 'factor-1', code: '000000' },
-      client,
-    );
+    const result = await verifyTotpChallenge({ factorId: 'factor-1', code: '000000' }, client);
 
     expect(result.ok).toBe(false);
     expect(result.aal).toBeNull();

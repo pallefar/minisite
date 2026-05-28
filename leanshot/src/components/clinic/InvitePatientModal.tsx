@@ -124,15 +124,12 @@ export function InvitePatientModal({
     return (
       <Modal open={open} onClose={onClose} title="Invite a patient" size="lg" mobileFullscreen>
         <div className="space-y-5" data-testid="invite-sent-state">
-          <h3
-            id={headingId}
-            className="text-[20px] font-bold text-[var(--color-text)]"
-          >
+          <h3 id={headingId} className="text-[20px] font-bold text-[var(--color-text)]">
             Invitation sent
           </h3>
           <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-            We sent an invitation to {sentEmail}. They&apos;ll appear in Members → Pending once
-            they accept. The invitation expires in 7 days.
+            We sent an invitation to {sentEmail}. They&apos;ll appear in Members → Pending once they
+            accept. The invitation expires in 7 days.
           </p>
           <div className="flex flex-col-reverse md:flex-row gap-2 md:justify-end pt-3">
             <Button variant="ghost" onClick={handleInviteAnother}>
@@ -152,8 +149,7 @@ export function InvitePatientModal({
     <Modal open={open} onClose={onClose} title="Invite a patient" size="lg" mobileFullscreen>
       <form onSubmit={handleSubmit} className="space-y-5">
         <p className="text-[13px] text-[var(--color-text-secondary)] leading-snug">
-          Send a private invitation by email. The patient chooses what to share with your
-          workspace.
+          Send a private invitation by email. The patient chooses what to share with your workspace.
         </p>
 
         <Input
@@ -177,8 +173,8 @@ export function InvitePatientModal({
             What would you like access to?
           </legend>
           <p className="text-[12px] text-[var(--color-text-secondary)] leading-snug">
-            Pre-check what your workspace typically needs. The patient sees these as suggestions
-            and can change them before accepting.
+            Pre-check what your workspace typically needs. The patient sees these as suggestions and
+            can change them before accepting.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             {DATA_TYPE_KEYS.map((k) => {

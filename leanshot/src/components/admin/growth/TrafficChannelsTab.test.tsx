@@ -168,14 +168,10 @@ describe('TrafficChannelsTab', () => {
     render(<TrafficChannelsTab />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Permission denied — admin role required'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Permission denied — admin role required')).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByRole('button', { name: 'Retry channel rollup' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry channel rollup' })).toBeInTheDocument();
   });
 
   it('Test 3 — drill-in opens Sheet with sparkline + paid-channel deep-link', async () => {
@@ -210,16 +206,12 @@ describe('TrafficChannelsTab', () => {
     });
 
     // Sparkline rendered with aria-label
-    expect(
-      screen.getByLabelText('Retention curve for Paid Search'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Retention curve for Paid Search')).toBeInTheDocument();
 
     // Paid-channel deep-link present and points at growth/cac with channel q-param
     const deepLink = screen.getByRole('link', { name: /View ad-spend detail/i });
     expect(deepLink).toBeInTheDocument();
-    expect(deepLink.getAttribute('href')).toBe(
-      '/admin/growth/cac?channel=Paid%20Search',
-    );
+    expect(deepLink.getAttribute('href')).toBe('/admin/growth/cac?channel=Paid%20Search');
 
     // Bucket digits visible (D1 18 • D7 15 …)
     expect(screen.getByText(/D1 18.*D7 15.*D14 12.*D30 9.*D60 6/)).toBeInTheDocument();
@@ -250,9 +242,7 @@ describe('TrafficChannelsTab', () => {
     });
 
     // Deep-link MUST NOT be present for non-paid channels.
-    expect(
-      screen.queryByRole('link', { name: /View ad-spend detail/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /View ad-spend detail/i })).not.toBeInTheDocument();
   });
 
   it('Test 5 — touchMode toggle changes the row set (D-02 / B4 revision iter-1)', async () => {

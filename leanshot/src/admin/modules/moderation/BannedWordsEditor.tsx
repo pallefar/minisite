@@ -123,9 +123,7 @@ export function BannedWordsEditor() {
           );
         } while (cursor !== null);
       }
-      setSweepProgress(
-        `Sweep complete · ${totalProcessed} rows scanned · ${totalMatches} matches`,
-      );
+      setSweepProgress(`Sweep complete · ${totalProcessed} rows scanned · ${totalMatches} matches`);
       showToast('Sweep complete.', 'success');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Sweep failed';
@@ -153,16 +151,15 @@ export function BannedWordsEditor() {
       </header>
 
       {sweepProgress && (
-        <p
-          role="status"
-          aria-live="polite"
-          className="text-xs text-[var(--color-text-secondary)]"
-        >
+        <p role="status" aria-live="polite" className="text-xs text-[var(--color-text-secondary)]">
           {sweepProgress}
         </p>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-3 rounded-md border border-[var(--color-border)] p-4">
+      <form
+        onSubmit={onSubmit}
+        className="space-y-3 rounded-md border border-[var(--color-border)] p-4"
+      >
         <h3 className="text-sm font-semibold">
           {editingId ? 'Edit banned word' : 'Add banned word'}
         </h3>
@@ -224,9 +221,15 @@ export function BannedWordsEditor() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Word</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Severity</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Added</th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Word
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Severity
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Added
+              </th>
               <th className="py-2" />
             </tr>
           </thead>

@@ -87,13 +87,13 @@ export type AnyStepType = OrgStepType | ConsumerStepType;
  * Drives the StepPalette chip labels (Plan 34-08).
  */
 export const CONSUMER_STEP_TYPE_LABELS: Record<ConsumerStepType, string> = {
-  'text': 'Text input',
+  text: 'Text input',
   'single-select': 'Single select',
   'multi-select': 'Multi-select',
-  'scale': 'Scale',
-  'weight': 'Weight',
-  'date': 'Date',
-  'nps': 'NPS',
+  scale: 'Scale',
+  weight: 'Weight',
+  date: 'Date',
+  nps: 'NPS',
   'custom-component': 'Custom component',
 };
 

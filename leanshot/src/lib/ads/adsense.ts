@@ -13,8 +13,7 @@
  */
 
 const ADSENSE_SCRIPT_ID = 'adsense-script';
-const ADSENSE_SCRIPT_URL =
-  'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+const ADSENSE_SCRIPT_URL = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
 
 // ─── injectAdSenseScript ─────────────────────────────────────────────────────
 

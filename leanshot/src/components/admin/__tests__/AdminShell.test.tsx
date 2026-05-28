@@ -89,7 +89,9 @@ describe('AdminShell', () => {
 
     // The module content area should show NotAuthorizedCard, not the AI placeholder
     await waitFor(() => {
-      expect(screen.getByText(/This area is for admins only|not authorized|do not have access/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/This area is for admins only|not authorized|do not have access/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -130,9 +132,7 @@ describe('AdminShell', () => {
       },
     });
 
-    render(
-      <AdminShell adminRole="admin" currentPath="/admin/growth/experiments" />,
-    );
+    render(<AdminShell adminRole="admin" currentPath="/admin/growth/experiments" />);
 
     // Confirm the lazy chunk resolves — once the Suspense boundary settles,
     // ExperimentDashboardPage renders its 3-Pill tab nav. The `experiment-tab-content`

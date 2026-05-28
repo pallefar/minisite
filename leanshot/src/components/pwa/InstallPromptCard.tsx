@@ -27,11 +27,7 @@ export function InstallPromptCard() {
           Install LeanShot on this device for faster access and a native, app-like experience.
         </p>
         <div className="flex gap-2 justify-end">
-          <Button
-            variant="ghost"
-            onClick={later}
-            data-testid="install-prompt-later"
-          >
+          <Button variant="ghost" onClick={later} data-testid="install-prompt-later">
             Maybe later
           </Button>
           <Button

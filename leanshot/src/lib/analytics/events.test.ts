@@ -38,28 +38,21 @@ describe('events.ts — canonical event registry', () => {
 
   it('Test 2: each payload field is a zod schema (instanceof z.ZodType)', () => {
     for (const [key, def] of Object.entries(EVENTS)) {
-      expect(
-        def.payload,
-        `Event ${key} payload is not a ZodType instance`,
-      ).toBeInstanceOf(z.ZodType);
+      expect(def.payload, `Event ${key} payload is not a ZodType instance`).toBeInstanceOf(
+        z.ZodType,
+      );
     }
   });
 
   it('Test 3: every non-PHI event has phi === false', () => {
     for (const [key, def] of Object.entries(EVENTS)) {
-      expect(
-        def.phi,
-        `Non-PHI event ${key} has phi !== false`,
-      ).toBe(false);
+      expect(def.phi, `Non-PHI event ${key} has phi !== false`).toBe(false);
     }
   });
 
   it('Test 3b: every PHI event in events.phi.ts has phi === true', () => {
     for (const [key, def] of Object.entries(PHI_EVENTS)) {
-      expect(
-        def.phi,
-        `PHI event ${key} has phi !== true`,
-      ).toBe(true);
+      expect(def.phi, `PHI event ${key} has phi !== true`).toBe(true);
     }
   });
 
@@ -80,10 +73,9 @@ describe('events.ts — canonical event registry', () => {
   it('Test 5: TAXO-06 reconciliation marker present in events.ts header', () => {
     const eventsPath = join(__dirname, 'events.ts');
     const source = readFileSync(eventsPath, 'utf8');
-    expect(
-      source,
-      'TAXO-06 reconciliation: string not found in events.ts header',
-    ).toContain('TAXO-06 reconciliation:');
+    expect(source, 'TAXO-06 reconciliation: string not found in events.ts header').toContain(
+      'TAXO-06 reconciliation:',
+    );
   });
 
   it('Seed set: EVENTS contains at least 8 events', () => {

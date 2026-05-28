@@ -62,26 +62,14 @@ afterEach(() => {
 describe('PartnerCustomizeForm', () => {
   // ── T1 ──
   it("T1 — selectedTemplate='story' → testimonial_quote VISIBLE", () => {
-    render(
-      <PartnerCustomizeForm
-        userId={USER_ID}
-        selectedTemplate="story"
-        initial={INITIAL}
-      />,
-    );
+    render(<PartnerCustomizeForm userId={USER_ID} selectedTemplate="story" initial={INITIAL} />);
     // Story template surfaces the pull-quote textarea
     expect(screen.queryByLabelText(/Pull-quote/i)).toBeTruthy();
   });
 
   // ── T2 ──
   it("T2 — selectedTemplate='coach' → testimonial_quote HIDDEN", () => {
-    render(
-      <PartnerCustomizeForm
-        userId={USER_ID}
-        selectedTemplate="coach"
-        initial={INITIAL}
-      />,
-    );
+    render(<PartnerCustomizeForm userId={USER_ID} selectedTemplate="coach" initial={INITIAL} />);
     expect(screen.queryByLabelText(/Pull-quote/i)).toBeNull();
   });
 

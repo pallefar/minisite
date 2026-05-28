@@ -109,9 +109,7 @@ function Dropdown({ id, label, options, value, allLabel, onSelect, headingLabel 
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
-  const selectedLabel = value
-    ? (options.find((o) => o.value === value)?.label ?? value)
-    : allLabel;
+  const selectedLabel = value ? (options.find((o) => o.value === value)?.label ?? value) : allLabel;
 
   return (
     <div ref={ref} className="relative">
@@ -246,20 +244,17 @@ export function AuditFilterBar({ orgId, value, onChange, onClear }: AuditFilterB
   }));
 
   // Debounced PostHog event after filter change
-  const fireFilterEvent = useCallback(
-    (filterType: string, next: FilterState): void => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        posthog.capture(CLINIC_EVENTS.AUDIT_FILTER_APPLIED, {
-          filter_type: filterType,
-          has_member_filter: next.memberFilter !== null,
-          has_action_filter: next.actionFilter !== null,
-          has_time_filter: next.timeRangeFilter !== '7d' || next.customRange !== null,
-        });
-      }, 200);
-    },
-    [],
-  );
+  const fireFilterEvent = useCallback((filterType: string, next: FilterState): void => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      posthog.capture(CLINIC_EVENTS.AUDIT_FILTER_APPLIED, {
+        filter_type: filterType,
+        has_member_filter: next.memberFilter !== null,
+        has_action_filter: next.actionFilter !== null,
+        has_time_filter: next.timeRangeFilter !== '7d' || next.customRange !== null,
+      });
+    }, 200);
+  }, []);
 
   const handleMemberChange = (v: string | null): void => {
     const next = { ...value, memberFilter: v };

@@ -147,9 +147,7 @@ export function DsarPortalPage() {
   };
 
   const handleCheckboxChange = (rt: RequestType, checked: boolean) => {
-    setSelectedRequestTypes((prev) =>
-      checked ? [...prev, rt] : prev.filter((t) => t !== rt),
-    );
+    setSelectedRequestTypes((prev) => (checked ? [...prev, rt] : prev.filter((t) => t !== rt)));
   };
 
   // ── Lane A: Load history ───────────────────────────────────────────────────
@@ -300,7 +298,8 @@ export function DsarPortalPage() {
 
       // Surface the first inserted row as the result card.
       const insertedRows = data as Array<{ id: string }> | null;
-      const firstRow = Array.isArray(insertedRows) && insertedRows.length > 0 ? insertedRows[0] : null;
+      const firstRow =
+        Array.isArray(insertedRows) && insertedRows.length > 0 ? insertedRows[0] : null;
       if (firstRow) {
         setStateRequestResult({
           id: firstRow.id as string,
@@ -336,19 +335,15 @@ export function DsarPortalPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   // Available request types for currently selected state
-  const availableRequestTypes =
-    stateResidency ? getRequestTypesForState(stateResidency) : [];
+  const availableRequestTypes = stateResidency ? getRequestTypesForState(stateResidency) : [];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-6">
-
       {/* ── Hero card (Lane A — GDPR data export) ──────────────────────────── */}
       <Card padding="lg">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span
-              className="size-10 rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] inline-flex items-center justify-center"
-            >
+            <span className="size-10 rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] inline-flex items-center justify-center">
               <ShieldCheck className="size-5" aria-hidden />
             </span>
             <h1 className="text-[18px] font-semibold tracking-tight">Your data</h1>
@@ -541,11 +536,7 @@ export function DsarPortalPage() {
             hours, up to 30 days. You can request another export later.
           </p>
           <div className="flex gap-2 justify-end">
-            <Button
-              variant="ghost"
-              onClick={() => setConfirmOpen(false)}
-              disabled={submitting}
-            >
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={submitting}>
               Not now
             </Button>
             <Button

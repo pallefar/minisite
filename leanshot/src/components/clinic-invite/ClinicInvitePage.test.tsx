@@ -93,9 +93,7 @@ describe('ClinicInvitePage — Plan 09-04', () => {
         }),
     ) as unknown as typeof fetch;
     render(<ClinicInvitePage />);
-    expect(
-      screen.getByRole('heading', { name: /Opening invitation…/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Opening invitation…/i })).toBeInTheDocument();
     // Cleanup the suspended fetch so the unmount doesn't leak.
     resolveFetch({
       ok: true,

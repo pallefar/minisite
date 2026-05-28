@@ -34,7 +34,6 @@ vi.mock('@/lib/store', () => ({
   useStore: <T,>(selector: (s: unknown) => T): T => selector(storeState.current),
 }));
 
-
 beforeEach(() => {
   rpcMock.mockReset().mockResolvedValue({ data: [], error: null });
   storeState.current = {
@@ -69,7 +68,10 @@ describe('SearchModal (Plan 49-09)', () => {
       await vi.advanceTimersByTimeAsync(350);
     });
     await waitFor(() => expect(rpcMock).toHaveBeenCalledTimes(1));
-    expect(rpcMock).toHaveBeenCalledWith('search_content', expect.objectContaining({ p_query: 'abc' }));
+    expect(rpcMock).toHaveBeenCalledWith(
+      'search_content',
+      expect.objectContaining({ p_query: 'abc' }),
+    );
   });
 
   it('coalesces rapid typing into a single RPC call (300ms debounce window)', async () => {
@@ -89,7 +91,10 @@ describe('SearchModal (Plan 49-09)', () => {
       await vi.advanceTimersByTimeAsync(350);
     });
     await waitFor(() => expect(rpcMock).toHaveBeenCalledTimes(1));
-    expect(rpcMock).toHaveBeenCalledWith('search_content', expect.objectContaining({ p_query: 'abcde' }));
+    expect(rpcMock).toHaveBeenCalledWith(
+      'search_content',
+      expect.objectContaining({ p_query: 'abcde' }),
+    );
   });
 
   it('groups results by type into Posts / Lessons / Events sections', async () => {

@@ -33,10 +33,7 @@ function daysUntil(expiryAt: string): number {
 function computeBanner(vendors: VendorExpiry[]): BannerInfo | null {
   const expired = vendors.filter((v) => v.status === 'expired');
   const criticalVendors = vendors.filter(
-    (v) =>
-      v.status === 'signed' &&
-      v.baa_expiry_at !== null &&
-      daysUntil(v.baa_expiry_at) < 14,
+    (v) => v.status === 'signed' && v.baa_expiry_at !== null && daysUntil(v.baa_expiry_at) < 14,
   );
   const orangeVendors = vendors.filter(
     (v) =>
@@ -61,30 +58,36 @@ function computeBanner(vendors: VendorExpiry[]): BannerInfo | null {
     };
   }
   if (criticalVendors.length > 0) {
-    const names = criticalVendors.map((v) => {
-      const d = daysUntil(v.baa_expiry_at!);
-      return `${v.vendor_name} (${d}d)`;
-    }).join(', ');
+    const names = criticalVendors
+      .map((v) => {
+        const d = daysUntil(v.baa_expiry_at!);
+        return `${v.vendor_name} (${d}d)`;
+      })
+      .join(', ');
     return {
       severity: 'red',
       message: `CRITICAL: BAA expiring in <14 days for ${names}.`,
     };
   }
   if (orangeVendors.length > 0) {
-    const names = orangeVendors.map((v) => {
-      const d = daysUntil(v.baa_expiry_at!);
-      return `${v.vendor_name} (${d}d)`;
-    }).join(', ');
+    const names = orangeVendors
+      .map((v) => {
+        const d = daysUntil(v.baa_expiry_at!);
+        return `${v.vendor_name} (${d}d)`;
+      })
+      .join(', ');
     return {
       severity: 'orange',
       message: `BAA renewal due in 14–29 days for ${names}.`,
     };
   }
   if (amberVendors.length > 0) {
-    const names = amberVendors.map((v) => {
-      const d = daysUntil(v.baa_expiry_at!);
-      return `${v.vendor_name} (${d}d)`;
-    }).join(', ');
+    const names = amberVendors
+      .map((v) => {
+        const d = daysUntil(v.baa_expiry_at!);
+        return `${v.vendor_name} (${d}d)`;
+      })
+      .join(', ');
     return {
       severity: 'amber',
       message: `BAA renewal approaching (30–60 days) for ${names}.`,
@@ -123,7 +126,9 @@ export function ExpiryBanner() {
     }
 
     void fetch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading || banner === null) return null;

@@ -34,7 +34,6 @@ vi.mock('@/lib/legal/data-categories', () => ({
   ],
 }));
 
-
 describe('PrivacyPolicy state addendums', () => {
   beforeEach(() => {
     vi.clearAllMocks();

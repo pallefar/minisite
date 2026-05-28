@@ -13,16 +13,13 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { BlockType } from '@/lib/page-builder/block-schema';
-import {
-  validateCustomIframeUrl,
-  buildCustomIframeIframeHtml,
-} from '@/lib/page-builder/embed-src';
+import { validateCustomIframeUrl, buildCustomIframeIframeHtml } from '@/lib/page-builder/embed-src';
 
 describe('Phase 41 — validateCustomIframeUrl', () => {
   it('T1: returns the URL on exact-host match; rejects subdomain expansion', () => {
-    expect(
-      validateCustomIframeUrl('https://meet.example.org/foo', ['meet.example.org']),
-    ).toBe('https://meet.example.org/foo');
+    expect(validateCustomIframeUrl('https://meet.example.org/foo', ['meet.example.org'])).toBe(
+      'https://meet.example.org/foo',
+    );
 
     // D-15 — exact match only; allowlist 'meet.example.org' MUST NOT
     // permit 'sub.meet.example.org'.
@@ -32,15 +29,11 @@ describe('Phase 41 — validateCustomIframeUrl', () => {
   });
 
   it('T2: rejects look-alike hostnames (calendly.com.evil.com)', () => {
-    expect(
-      validateCustomIframeUrl('https://calendly.com.evil.com', ['calendly.com']),
-    ).toBeNull();
+    expect(validateCustomIframeUrl('https://calendly.com.evil.com', ['calendly.com'])).toBeNull();
   });
 
   it('T3: requires HTTPS', () => {
-    expect(
-      validateCustomIframeUrl('http://meet.example.org', ['meet.example.org']),
-    ).toBeNull();
+    expect(validateCustomIframeUrl('http://meet.example.org', ['meet.example.org'])).toBeNull();
   });
 
   it('T4: returns null for empty / non-string / unparseable input', () => {

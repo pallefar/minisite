@@ -36,9 +36,7 @@ describe('RefusalCard', () => {
   it('Test 9: citation_validation_failed renders G5 copy', () => {
     render(<RefusalCard kind="citation_validation_failed" />);
 
-    expect(
-      screen.getByText(/I'm not confident in the supporting evidence/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/I'm not confident in the supporting evidence/)).toBeInTheDocument();
   });
 
   // Test 10: pharma_02 uses AlertTriangle + does NOT render disclaimer
@@ -46,18 +44,14 @@ describe('RefusalCard', () => {
     render(<RefusalCard kind="pharma_02" />);
 
     // Disclaimer line should NOT appear for pharma_02
-    expect(
-      screen.queryByText(/Not medical advice/),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Not medical advice/)).not.toBeInTheDocument();
   });
 
   // Test 10b: out_of_corpus DOES render disclaimer (not pharma_02)
   it('Test 10b: out_of_corpus DOES render the disclaimer', () => {
     render(<RefusalCard kind="out_of_corpus" />);
 
-    expect(
-      screen.getByText(/Not medical advice/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Not medical advice/)).toBeInTheDocument();
   });
 
   // Test 11: NO [N] markers anywhere in RefusalCard output (UI-SPEC invariant 2)

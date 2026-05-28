@@ -31,13 +31,15 @@ vi.mock('@/hooks/useReducedMotion', () => ({
 // Mock listHostnames so tests don't hit Supabase.
 let mockHostnames: string[] = [];
 vi.mock('@/lib/admin/iframe-allowlist', () => ({
-  listHostnames: vi.fn(async () => mockHostnames.map((h) => ({
-    id: `mock-${h}`,
-    hostname: h,
-    added_by_user_id: null,
-    added_at: new Date().toISOString(),
-    last_used_at: null,
-  }))),
+  listHostnames: vi.fn(async () =>
+    mockHostnames.map((h) => ({
+      id: `mock-${h}`,
+      hostname: h,
+      added_by_user_id: null,
+      added_at: new Date().toISOString(),
+      last_used_at: null,
+    })),
+  ),
 }));
 
 // Mock supabase client so the iframe-allowlist module doesn't blow up.
@@ -149,7 +151,7 @@ describe('CustomIframeBlock (Phase 41 41-05 Task 2)', () => {
   it('Test 5: PROPERTY_CONFIGS["custom_iframe"] has embedUrl/iframeTitle/widthMode', () => {
     const entry = PROPERTY_CONFIGS.custom_iframe;
     expect(entry).toBeTruthy();
-    const keys = (entry!.contentFields).map((f) => f.key);
+    const keys = entry!.contentFields.map((f) => f.key);
     expect(keys).toEqual(['embedUrl', 'iframeTitle', 'widthMode']);
     const widthMode = entry!.contentFields.find((f) => f.key === 'widthMode');
     expect(widthMode?.kind).toBe('boolean');

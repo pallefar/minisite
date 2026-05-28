@@ -11,11 +11,11 @@
 import { Modal } from '@/components/ui/Modal';
 
 const SHORTCUTS = [
-  { key: 'J / K',     description: 'Next / Previous publication' },
-  { key: 'N',         description: 'New publication' },
-  { key: 'Enter',     description: 'Open highlighted publication' },
+  { key: 'J / K', description: 'Next / Previous publication' },
+  { key: 'N', description: 'New publication' },
+  { key: 'Enter', description: 'Open highlighted publication' },
   { key: 'Shift + ?', description: 'Show / hide this help' },
-  { key: 'Escape',    description: 'Close current sheet or modal' },
+  { key: 'Escape', description: 'Close current sheet or modal' },
 ] as const;
 
 export interface ResearchKeyboardHelpModalProps {

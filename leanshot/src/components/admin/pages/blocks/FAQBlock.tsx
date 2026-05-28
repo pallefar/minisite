@@ -65,10 +65,7 @@ export function FAQBlock({ block }: FAQBlockProps) {
             const panelId = `faq-${block.id}-${i}`;
             const isOpen = openIndex === i;
             return (
-              <div
-                key={i}
-                className="block-faq__item border-b border-[var(--color-border)]"
-              >
+              <div key={i} className="block-faq__item border-b border-[var(--color-border)]">
                 <button
                   type="button"
                   aria-expanded={isOpen}

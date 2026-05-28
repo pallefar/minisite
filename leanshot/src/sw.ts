@@ -31,8 +31,7 @@ precacheAndRoute(self.__WB_MANIFEST);
 // /rest/v1/clinic_invites, /rest/v1/profiles, etc.) are NOT listed and
 // therefore pass through to the network on every request.
 registerRoute(
-  ({ url }) =>
-    /\/rest\/v1\/(kb_articles|changelog_entries|status_components)/.test(url.pathname),
+  ({ url }) => /\/rest\/v1\/(kb_articles|changelog_entries|status_components)/.test(url.pathname),
   new NetworkFirst({
     cacheName: 'public-api-cache',
     networkTimeoutSeconds: 3,
@@ -100,21 +99,19 @@ self.addEventListener('notificationclick', (event) => {
   const data = event.notification.data as { deeplink?: string } | undefined;
   const url = data?.deeplink ?? '/';
   event.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clients) => {
-        for (const c of clients) {
-          // Match by trailing path so e.g. https://app.leanshot.app/dashboard
-          // matches a stored deeplink of '/dashboard'.
-          if (c.url.endsWith(url) && 'focus' in c) {
-            return c.focus();
-          }
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const c of clients) {
+        // Match by trailing path so e.g. https://app.leanshot.app/dashboard
+        // matches a stored deeplink of '/dashboard'.
+        if (c.url.endsWith(url) && 'focus' in c) {
+          return c.focus();
         }
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(url);
-        }
-        return undefined;
-      }),
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(url);
+      }
+      return undefined;
+    }),
   );
 });
 

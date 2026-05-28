@@ -28,7 +28,10 @@ export interface VariantGridProps {
   flagId: string;
 }
 
-interface InvokeError { error?: string; ok?: boolean }
+interface InvokeError {
+  error?: string;
+  ok?: boolean;
+}
 
 export default function VariantGrid({ byVariant, flagId }: VariantGridProps): React.JSX.Element {
   const toast = useToast();

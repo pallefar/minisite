@@ -136,11 +136,7 @@ function buildNestedMap(rows: OverrideRow[]): Record<string, unknown> {
  * Fetch + merge a single (lng, ns) pair. Exposed for unit tests; called from
  * the 'loaded' event listener and the Realtime postgres_changes handler.
  */
-export async function applyOverrides(
-  i18n: I18nType,
-  lng: string,
-  ns: string,
-): Promise<void> {
+export async function applyOverrides(i18n: I18nType, lng: string, ns: string): Promise<void> {
   const rows = await fetchOverrides(lng, ns);
   if (!rows.length) return;
   const bundle = buildNestedMap(rows);

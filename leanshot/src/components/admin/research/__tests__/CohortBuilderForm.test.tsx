@@ -39,7 +39,14 @@ describe('CohortBuilderForm', () => {
       }
       if (fn === 'compile_research_cohort') {
         return Promise.resolve({
-          data: { suppressed: false, cohort_size: 47, epsilon: 1.0, suppressed_buckets: 0, metric: 'weight_change', data: [] },
+          data: {
+            suppressed: false,
+            cohort_size: 47,
+            epsilon: 1.0,
+            suppressed_buckets: 0,
+            metric: 'weight_change',
+            data: [],
+          },
           error: null,
         });
       }

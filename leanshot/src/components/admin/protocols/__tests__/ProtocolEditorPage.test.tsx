@@ -185,7 +185,6 @@ function makeStep(week: number): ProtocolStep {
   };
 }
 
-
 describe('ProtocolEditorPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -270,10 +269,7 @@ describe('ProtocolEditorPage', () => {
 
     await waitFor(() => {
       // Toast shows undo copy
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.stringContaining('Week 2 removed'),
-        'info',
-      );
+      expect(mockShowToast).toHaveBeenCalledWith(expect.stringContaining('Week 2 removed'), 'info');
     });
 
     // No confirm modal appeared (undo via toast, not modal)

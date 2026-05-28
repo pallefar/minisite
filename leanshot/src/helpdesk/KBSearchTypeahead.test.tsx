@@ -26,7 +26,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 describe('KBSearchTypeahead', () => {
   beforeEach(() => {
     trackMock.mockReset();
@@ -87,9 +86,7 @@ describe('KBSearchTypeahead', () => {
 
   it('clicking a result fires onSelectArticle + helpdesk.kb_article.viewed', async () => {
     rpcMock.mockResolvedValueOnce({
-      data: [
-        { id: 'a-1', slug: 'first', title: 'First article', locale: 'en', rank: 0.2 },
-      ],
+      data: [{ id: 'a-1', slug: 'first', title: 'First article', locale: 'en', rank: 0.2 }],
       error: null,
     });
     const onSelectArticle = vi.fn();

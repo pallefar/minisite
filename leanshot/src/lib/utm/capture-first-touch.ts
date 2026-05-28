@@ -60,8 +60,7 @@ export function captureFirstTouchUtm(): void {
     // Emit cookie. URLSearchParams.get already URL-decoded the value;
     // write it back as-is so the round-trip preserves the operator's
     // intended UTM source string for the variant-resolver lookup.
-    document.cookie =
-      `${COOKIE_KEY}=${value}; Path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax; Secure`;
+    document.cookie = `${COOKIE_KEY}=${value}; Path=/; max-age=${MAX_AGE_SECONDS}; SameSite=Lax; Secure`;
   } catch {
     /* fail-soft; cookie write is non-critical */
   }

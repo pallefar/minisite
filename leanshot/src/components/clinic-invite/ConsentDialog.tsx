@@ -34,12 +34,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Confirm';
-import {
-  acceptInviteExisting,
-  acceptInviteNew,
-  hashInviteToken,
-  rejectInvite,
-} from '@/lib/clinic';
+import { acceptInviteExisting, acceptInviteNew, hashInviteToken, rejectInvite } from '@/lib/clinic';
 import { DATA_TYPE_KEYS, DATA_TYPE_LABELS, type ConsentScope } from '@/types/clinic';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -92,7 +87,9 @@ export function ConsentDialog({
   onDeclined,
 }: ConsentDialogProps) {
   const { t } = useTranslation(['clinic', 'common']);
-  const [scope, setScope] = useState<ConsentScope>(() => initScopeFromRequested(invite.requested_scope));
+  const [scope, setScope] = useState<ConsentScope>(() =>
+    initScopeFromRequested(invite.requested_scope),
+  );
   const [state, setState] = useState<ViewState>({ kind: 'editing' });
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
@@ -130,7 +127,10 @@ export function ConsentDialog({
         setState({ kind: 'declined' });
         onDeclined?.();
       } else {
-        setState({ kind: 'error', message: result.error || t('clinic:invite.consent.error_decline') });
+        setState({
+          kind: 'error',
+          message: result.error || t('clinic:invite.consent.error_decline'),
+        });
       }
     } catch {
       setState({
@@ -146,12 +146,16 @@ export function ConsentDialog({
   if (state.kind === 'accepted') {
     return (
       <Card variant="elevated" padding="lg" className="max-w-[640px] mx-auto">
-        <h1 className="text-[24px] font-bold tracking-tight">{t('clinic:invite.consent.accepted_title')}</h1>
+        <h1 className="text-[24px] font-bold tracking-tight">
+          {t('clinic:invite.consent.accepted_title')}
+        </h1>
         <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
           {t('clinic:invite.consent.accepted_body', { orgName: invite.org.name })}
         </p>
         <div className="mt-5 flex gap-2">
-          <Button variant="primary" onClick={() => (window.location.href = '/')}>{t('clinic:invite.action.go_to_account')}</Button>
+          <Button variant="primary" onClick={() => (window.location.href = '/')}>
+            {t('clinic:invite.action.go_to_account')}
+          </Button>
           <Button
             variant="ghost"
             onClick={() => (window.location.href = '/#/settings/organizations')}
@@ -176,7 +180,9 @@ export function ConsentDialog({
           {t('clinic:invite.consent.declined_body')}
         </p>
         <div className="mt-5">
-          <Button variant="primary" onClick={() => (window.location.href = '/')}>{t('clinic:invite.action.done')}</Button>
+          <Button variant="primary" onClick={() => (window.location.href = '/')}>
+            {t('clinic:invite.action.done')}
+          </Button>
         </div>
       </Card>
     );
@@ -192,9 +198,14 @@ export function ConsentDialog({
       <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
         {t('clinic:invite.consent.from_label', { orgName: invite.org.name })}
       </p>
-      <h1 className="mt-1 text-[26px] font-bold tracking-tight">{t('clinic:invite.consent.title')}</h1>
+      <h1 className="mt-1 text-[26px] font-bold tracking-tight">
+        {t('clinic:invite.consent.title')}
+      </h1>
       <p className="mt-2 text-[14px] text-[var(--color-text-secondary)]">
-        {t('clinic:invite.consent.body', { operatorName: invite.operator_first_name, orgName: invite.org.name })}
+        {t('clinic:invite.consent.body', {
+          operatorName: invite.operator_first_name,
+          orgName: invite.org.name,
+        })}
       </p>
 
       {/* What you're sharing */}
@@ -203,7 +214,11 @@ export function ConsentDialog({
         <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
           {t('clinic:invite.consent.sharing_hint', { orgName: invite.org.name })}
         </p>
-        <ul className="mt-4 flex flex-col gap-2" role="group" aria-label={t('clinic:invite.consent.checkboxes_label')}>
+        <ul
+          className="mt-4 flex flex-col gap-2"
+          role="group"
+          aria-label={t('clinic:invite.consent.checkboxes_label')}
+        >
           {DATA_TYPE_KEYS.map((k) => {
             const meta = DATA_TYPE_LABELS[k];
             return (
@@ -239,7 +254,9 @@ export function ConsentDialog({
 
       {/* What the org can do */}
       <section className="mt-6">
-        <h2 className="text-[15px] font-semibold">{t('clinic:invite.consent.org_can_title', { orgName: invite.org.name })}</h2>
+        <h2 className="text-[15px] font-semibold">
+          {t('clinic:invite.consent.org_can_title', { orgName: invite.org.name })}
+        </h2>
         <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
           {t('clinic:invite.consent.org_can_body')}
         </p>
@@ -267,11 +284,7 @@ export function ConsentDialog({
       )}
 
       <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-        <Button
-          variant="ghost"
-          onClick={() => setShowDeclineConfirm(true)}
-          disabled={submitting}
-        >
+        <Button variant="ghost" onClick={() => setShowDeclineConfirm(true)} disabled={submitting}>
           {t('clinic:invite.consent.decline')}
         </Button>
         <Button variant="primary" onClick={submitAccept} loading={submitting}>

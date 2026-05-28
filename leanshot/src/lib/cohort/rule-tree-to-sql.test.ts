@@ -74,7 +74,7 @@ describe('rule-tree-to-sql (Phase 27 Plan 27-02)', () => {
     expect(out.nextOffset).toBe(4);
   });
 
-  it("(f) SQL injection probe: value=\"'; DROP TABLE--\" ends up in params, not SQL", () => {
+  it('(f) SQL injection probe: value="\'; DROP TABLE--" ends up in params, not SQL', () => {
     const malicious = "'; DROP TABLE profiles; --";
     const out = ruleTreeToSql({ field: 'tier', op: '=', value: malicious });
     expect(out.sql).toBe('p.tier = $1');
@@ -108,7 +108,7 @@ describe('rule-tree-to-sql (Phase 27 Plan 27-02)', () => {
       const sql = ruleTreeToLiteralSql({ field: 'tier', op: '=', value: malicious });
       // The dangerous quote is `\'`-escaped inside an E'...' literal, so it
       // CANNOT terminate the string and inject SQL.
-      expect(sql.startsWith('p.tier = E\'')).toBe(true);
+      expect(sql.startsWith("p.tier = E'")).toBe(true);
       expect(sql.endsWith("'")).toBe(true);
       expect(sql).toContain("\\';");
       // Reconstruct what postgres would parse: drop the wrapping E'...' and
@@ -160,9 +160,7 @@ describe('rule-tree-to-sql (Phase 27 Plan 27-02)', () => {
           },
         ],
       });
-      expect(sql).toBe(
-        "(p.tier = E'free' AND (p.country = E'US' OR p.country = E'CA'))",
-      );
+      expect(sql).toBe("(p.tier = E'free' AND (p.country = E'US' OR p.country = E'CA'))");
     });
 
     it('rejects non-finite numbers', () => {

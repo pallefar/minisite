@@ -24,7 +24,7 @@ export function WeightsSection({ data, viewerMode: _viewerMode, onMount }: Weigh
       firedRef.current = true;
       onMount('weights');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -44,9 +44,7 @@ export function WeightsSection({ data, viewerMode: _viewerMode, onMount }: Weigh
                   className="flex items-center justify-between gap-3 py-1.5 border-b border-[var(--color-border)] last:border-b-0"
                 >
                   <span>{formatShort(w.recorded_at)}</span>
-                  <span className="font-bold numerals-tabular">
-                    {w.weight_kg.toFixed(1)} kg
-                  </span>
+                  <span className="font-bold numerals-tabular">{w.weight_kg.toFixed(1)} kg</span>
                 </li>
               ))}
           </ul>

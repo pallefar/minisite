@@ -53,25 +53,22 @@ export default function AgentReplyComposer({
     setError(null);
     try {
       // 1. INSERT ticket_messages row.
-       
-      const insertRes = (await ((supabase
-        .from('ticket_messages')
-        .insert({
+
+      const insertRes = (await ((
+        supabase.from('ticket_messages').insert({
           ticket_id: ticketId,
           author_kind: 'agent',
           body,
           via: 'admin',
-        }) as unknown as { select: () => { single: () => Promise<unknown> } })
+        }) as unknown as { select: () => { single: () => Promise<unknown> } }
+      )
         .select()
         .single() as unknown)) as {
         data: { id: string } | null;
         error: { code?: string } | null;
       };
       if (insertRes.error || !insertRes.data?.id) {
-        console.warn(
-          '[helpdesk/agent-reply] insert-failed',
-          insertRes.error?.code ?? 'unknown',
-        );
+        console.warn('[helpdesk/agent-reply] insert-failed', insertRes.error?.code ?? 'unknown');
         setError('Could not save reply.');
         setSending(false);
         return;
@@ -96,14 +93,13 @@ export default function AgentReplyComposer({
       }
 
       // 3. UPDATE tickets — bump last_agent_message_at + flip open→pending.
-       
-      await ((supabase
-        .from('tickets')
-        .update({
+
+      await ((
+        supabase.from('tickets').update({
           last_agent_message_at: new Date().toISOString(),
           ...(ticketStatus === 'open' ? { status: 'pending' } : {}),
-        }) as unknown as { eq: (col: string, val: string) => Promise<unknown> })
-        .eq('id', ticketId) as unknown);
+        }) as unknown as { eq: (col: string, val: string) => Promise<unknown> }
+      ).eq('id', ticketId) as unknown);
 
       // 4. Client-side analytics emit — server-side mirror lands via Edge Fn.
       // Length-only (raw body NEVER captured) per existing helpdesk.ticket.replied
@@ -116,10 +112,7 @@ export default function AgentReplyComposer({
       onDraftChange('');
       onSent();
     } catch (e) {
-      console.warn(
-        '[helpdesk/agent-reply] threw',
-        e instanceof Error ? e.name : 'unknown',
-      );
+      console.warn('[helpdesk/agent-reply] threw', e instanceof Error ? e.name : 'unknown');
       setError('Could not send reply.');
     } finally {
       setSending(false);

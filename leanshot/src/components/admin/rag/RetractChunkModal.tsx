@@ -44,7 +44,8 @@ export function RetractChunkModal({ open, onClose, onRetract }: RetractChunkModa
     <Modal open={open} onClose={onClose} title="Retract this chunk?" size="sm" hideClose>
       <div className="space-y-4">
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          Chunk removes from RAG retrieval immediately. Already-sent newsletter inclusions stay sent. Action is logged.
+          Chunk removes from RAG retrieval immediately. Already-sent newsletter inclusions stay
+          sent. Action is logged.
         </p>
 
         <div className="space-y-1">

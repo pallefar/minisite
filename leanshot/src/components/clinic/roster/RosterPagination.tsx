@@ -38,9 +38,7 @@ export function RosterPagination({
           disabled={isFirst}
           onClick={onPrevious}
           aria-label={
-            isFirst
-              ? 'Previous page (disabled, you\'re on the first page)'
-              : 'Previous page'
+            isFirst ? "Previous page (disabled, you're on the first page)" : 'Previous page'
           }
         >
           Previous

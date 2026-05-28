@@ -27,7 +27,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-
 function setCookie(value: string | null): void {
   if (value === null) {
     Object.defineProperty(document, 'cookie', {

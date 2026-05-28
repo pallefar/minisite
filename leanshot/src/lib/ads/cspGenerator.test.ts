@@ -22,10 +22,7 @@ describe('filterBlocklisted', () => {
     ];
     const block = ['wegovy.com'];
     const result = filterBlocklisted(allow, block);
-    expect(result.map((r) => r.hostname)).toEqual([
-      'googlesyndication.com',
-      'doubleclick.net',
-    ]);
+    expect(result.map((r) => r.hostname)).toEqual(['googlesyndication.com', 'doubleclick.net']);
   });
 
   it('applies case-insensitive hostname matching', () => {
@@ -39,9 +36,7 @@ describe('filterBlocklisted', () => {
   });
 
   it('returns the full list when blocklist is empty', () => {
-    const allow = [
-      { hostname: 'googlesyndication.com', directive: 'script-src' as const },
-    ];
+    const allow = [{ hostname: 'googlesyndication.com', directive: 'script-src' as const }];
     const result = filterBlocklisted(allow, []);
     expect(result).toHaveLength(1);
   });
@@ -58,43 +53,23 @@ describe('filterBlocklisted', () => {
 
 describe('appendAdNetworkHosts', () => {
   it('appends https://<host> to script-src directive', () => {
-    const result = appendAdNetworkHosts(
-      BASE_CSP,
-      ['googlesyndication.com'],
-      [],
-    );
-    expect(result).toContain(
-      "script-src 'self' 'unsafe-inline' https://googlesyndication.com;",
-    );
+    const result = appendAdNetworkHosts(BASE_CSP, ['googlesyndication.com'], []);
+    expect(result).toContain("script-src 'self' 'unsafe-inline' https://googlesyndication.com;");
   });
 
   it('appends https://<host> to connect-src directive', () => {
     const result = appendAdNetworkHosts(BASE_CSP, [], ['doubleclick.net']);
-    expect(result).toContain(
-      "connect-src 'self' https://api.example.com https://doubleclick.net;",
-    );
+    expect(result).toContain("connect-src 'self' https://api.example.com https://doubleclick.net;");
   });
 
   it('appends to both script-src and connect-src simultaneously', () => {
-    const result = appendAdNetworkHosts(
-      BASE_CSP,
-      ['googlesyndication.com'],
-      ['doubleclick.net'],
-    );
-    expect(result).toContain(
-      "script-src 'self' 'unsafe-inline' https://googlesyndication.com;",
-    );
-    expect(result).toContain(
-      "connect-src 'self' https://api.example.com https://doubleclick.net;",
-    );
+    const result = appendAdNetworkHosts(BASE_CSP, ['googlesyndication.com'], ['doubleclick.net']);
+    expect(result).toContain("script-src 'self' 'unsafe-inline' https://googlesyndication.com;");
+    expect(result).toContain("connect-src 'self' https://api.example.com https://doubleclick.net;");
   });
 
   it('does NOT modify frame-src or other directives', () => {
-    const result = appendAdNetworkHosts(
-      BASE_CSP,
-      ['googlesyndication.com'],
-      ['doubleclick.net'],
-    );
+    const result = appendAdNetworkHosts(BASE_CSP, ['googlesyndication.com'], ['doubleclick.net']);
     expect(result).toContain("frame-src 'self';");
     expect(result).toContain("img-src 'self' data:;");
   });
@@ -118,9 +93,7 @@ describe('appendAdNetworkHosts', () => {
     ];
     const blockHosts = ['wegovy.com'];
     const filtered = filterBlocklisted(allowRows, blockHosts);
-    const scriptHosts = filtered
-      .filter((r) => r.directive === 'script-src')
-      .map((r) => r.hostname);
+    const scriptHosts = filtered.filter((r) => r.directive === 'script-src').map((r) => r.hostname);
     const connectHosts = filtered
       .filter((r) => r.directive === 'connect-src')
       .map((r) => r.hostname);

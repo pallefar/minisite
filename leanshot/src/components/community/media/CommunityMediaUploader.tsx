@@ -49,20 +49,17 @@ export function CommunityMediaUploader({
       data: { session },
     } = await supabase.auth.getSession();
 
-    const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mux-create-upload`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token ?? ''}`,
-        },
-        body: JSON.stringify({ post_id: postId }),
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mux-create-upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token ?? ''}`,
       },
-    );
+      body: JSON.stringify({ post_id: postId }),
+    });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { error?: string };
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
       onError(
         err.error === 'VIDEO_TIER_REQUIRED'
           ? 'Video upload requires a Pro or Lifetime membership.'
@@ -71,7 +68,7 @@ export function CommunityMediaUploader({
       throw new Error('endpoint_fail');
     }
 
-    const { url, upload_id } = await res.json() as { url: string; upload_id: string };
+    const { url, upload_id } = (await res.json()) as { url: string; upload_id: string };
     uploadIdRef.current = upload_id;
     return url;
   }

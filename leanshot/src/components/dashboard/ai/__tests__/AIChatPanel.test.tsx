@@ -70,7 +70,9 @@ const TEST_USER = {
 const UUID_A = 'a1b2c3d4-e5f6-7890-abcd-ef0123456789';
 const UUID_B = 'b2c3d4e5-f6a7-8901-bcde-f01234567890';
 
-function seedHistory(messages: Array<{ role: 'user' | 'assistant'; content: string; hasDataReference?: boolean }>) {
+function seedHistory(
+  messages: Array<{ role: 'user' | 'assistant'; content: string; hasDataReference?: boolean }>,
+) {
   useStore.setState({
     user: TEST_USER as Parameters<typeof useStore.getState>['0']['user'],
     aiHistory: messages,
@@ -99,9 +101,7 @@ beforeEach(() => {
 describe('AIChatPanel — citation augmentation', () => {
   // Test 1: existing messages WITHOUT citations render via existing Bubble path (regression-safe)
   it('Test 1: messages without citations render as plain text (regression-safe)', () => {
-    seedHistory([
-      { role: 'assistant', content: 'Hello! How can I help you today?' },
-    ]);
+    seedHistory([{ role: 'assistant', content: 'Hello! How can I help you today?' }]);
 
     render(<AIChatPanel open onClose={vi.fn()} />);
 
@@ -126,9 +126,7 @@ describe('AIChatPanel — citation augmentation', () => {
 
   // Test 3: clicking [1] marker opens CitationPopover
   it('Test 3: clicking the [1] marker triggers CitationPopover mount', async () => {
-    seedHistory([
-      { role: 'assistant', content: `See this reference. [${UUID_A}]` },
-    ]);
+    seedHistory([{ role: 'assistant', content: `See this reference. [${UUID_A}]` }]);
 
     render(<AIChatPanel open onClose={vi.fn()} />);
 
@@ -161,9 +159,7 @@ describe('AIChatPanel — citation augmentation', () => {
 
   // Test 5: [[REFUSAL:out_of_corpus]] renders RefusalCard kind=out_of_corpus
   it('Test 5: [[REFUSAL:out_of_corpus]] renders out_of_corpus RefusalCard', () => {
-    seedHistory([
-      { role: 'assistant', content: '[[REFUSAL:out_of_corpus]]' },
-    ]);
+    seedHistory([{ role: 'assistant', content: '[[REFUSAL:out_of_corpus]]' }]);
 
     render(<AIChatPanel open onClose={vi.fn()} />);
 
@@ -172,9 +168,7 @@ describe('AIChatPanel — citation augmentation', () => {
 
   // Test 6: [[REFUSAL:citation_validation_failed]] renders correct RefusalCard
   it('Test 6: [[REFUSAL:citation_validation_failed]] renders citation_validation_failed RefusalCard', () => {
-    seedHistory([
-      { role: 'assistant', content: '[[REFUSAL:citation_validation_failed]]' },
-    ]);
+    seedHistory([{ role: 'assistant', content: '[[REFUSAL:citation_validation_failed]]' }]);
 
     render(<AIChatPanel open onClose={vi.fn()} />);
 
@@ -207,9 +201,7 @@ describe('AIChatPanel — citation augmentation', () => {
 
   // Test 8: user messages render via existing right-aligned Bubble path
   it('Test 8: user messages render via existing right-aligned Bubble (no citation rendering)', () => {
-    seedHistory([
-      { role: 'user', content: `This is my question with [${UUID_A}] in it.` },
-    ]);
+    seedHistory([{ role: 'user', content: `This is my question with [${UUID_A}] in it.` }]);
 
     render(<AIChatPanel open onClose={vi.fn()} />);
 

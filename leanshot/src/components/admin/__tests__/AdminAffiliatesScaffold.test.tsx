@@ -103,9 +103,7 @@ describe('<AdminAffiliatesScaffold /> — Plan 19-05', () => {
 
     render(<AdminAffiliatesScaffold />);
     await waitFor(() =>
-      expect(
-        screen.getByRole('heading', { name: /Affiliate applications/i }),
-      ).toBeInTheDocument(),
+      expect(screen.getByRole('heading', { name: /Affiliate applications/i })).toBeInTheDocument(),
     );
     expect(mockAffiliatesLimit).toHaveBeenCalledWith(50);
 
@@ -156,9 +154,7 @@ describe('<AdminAffiliatesScaffold /> — Plan 19-05', () => {
     mockAffiliatesLimit.mockResolvedValue({ data: [], error: null });
 
     render(<AdminAffiliatesScaffold />);
-    await waitFor(() =>
-      expect(screen.getByText(/No applications yet/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/No applications yet/i)).toBeInTheDocument());
     expect(screen.queryByTestId('affiliate-applications-table')).not.toBeInTheDocument();
   });
 

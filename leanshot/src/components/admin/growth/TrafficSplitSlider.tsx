@@ -26,11 +26,7 @@ export function TrafficSplitSlider({
 }: TrafficSplitSliderProps): React.JSX.Element {
   return (
     <div className="flex flex-col gap-3">
-      <div
-        className="flex items-center gap-3"
-        role="group"
-        aria-label="Variant traffic share"
-      >
+      <div className="flex items-center gap-3" role="group" aria-label="Variant traffic share">
         <input
           type="range"
           min={0}
@@ -41,18 +37,11 @@ export function TrafficSplitSlider({
           className="flex-1 accent-[var(--color-primary)]"
           aria-label="Variant traffic share"
         />
-        <span className="text-sm font-bold tabular-nums w-12 text-right">
-          {value}%
-        </span>
+        <span className="text-sm font-bold tabular-nums w-12 text-right">{value}%</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {PRESETS.map((p) => (
-          <Pill
-            key={p}
-            size="sm"
-            active={value === p}
-            onClick={() => onChange(p)}
-          >
+          <Pill key={p} size="sm" active={value === p} onClick={() => onChange(p)}>
             {p}%
           </Pill>
         ))}

@@ -234,7 +234,9 @@ describe('D-07 pause guards — store logging actions', () => {
     });
 
     it('addMeasurement: throws PausedSubscriptionError', () => {
-      expect(() => useStore.getState().addMeasurement(MEASUREMENT)).toThrow(PausedSubscriptionError);
+      expect(() => useStore.getState().addMeasurement(MEASUREMENT)).toThrow(
+        PausedSubscriptionError,
+      );
       expect(useStore.getState().measurements).toHaveLength(0);
     });
 

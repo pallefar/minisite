@@ -101,16 +101,12 @@ export function DoNotSellPage() {
         }),
       });
       if (!res.ok) {
-        setErrorMsg(
-          'Try again — if the problem persists, email privacy@leanshot.app',
-        );
+        setErrorMsg('Try again — if the problem persists, email privacy@leanshot.app');
       } else {
         setSubmitted(true);
       }
     } catch {
-      setErrorMsg(
-        'Try again — if the problem persists, email privacy@leanshot.app',
-      );
+      setErrorMsg('Try again — if the problem persists, email privacy@leanshot.app');
     } finally {
       setLoading(false);
     }
@@ -257,11 +253,7 @@ export function DoNotSellPage() {
           >
             Submit opt-out request
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => window.history.back()}
-          >
+          <Button type="button" variant="secondary" onClick={() => window.history.back()}>
             Keep my information as-is
           </Button>
         </div>
@@ -286,19 +278,16 @@ export function DoNotSellPage() {
             . Allow 24 hours for propagation across our systems.
           </p>
           <div className="flex gap-3 justify-end pt-1">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setModalOpen(false)}
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={() => setModalOpen(false)}>
               Keep my information as-is
             </Button>
             <Button
               type="button"
               variant="destructive"
               size="sm"
-              onClick={() => { void handleConfirm(); }}
+              onClick={() => {
+                void handleConfirm();
+              }}
             >
               Submit opt-out request
             </Button>

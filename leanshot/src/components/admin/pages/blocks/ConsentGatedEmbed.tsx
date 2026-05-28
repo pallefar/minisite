@@ -20,7 +20,11 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { subscribeToConsentChange } from '@/lib/consent/consent-event';
-import { EmbedPlaceholderCard, type ConsentCategory, type EmbedProvider } from './EmbedPlaceholderCard';
+import {
+  EmbedPlaceholderCard,
+  type ConsentCategory,
+  type EmbedProvider,
+} from './EmbedPlaceholderCard';
 
 export interface ConsentGatedEmbedProps {
   provider: EmbedProvider;
@@ -118,9 +122,7 @@ export function ConsentGatedEmbed({
       className="relative overflow-hidden"
       style={wrapperStyle}
     >
-      {phase === 'loading' && (
-        <Skeleton className="absolute inset-0 w-full h-full" />
-      )}
+      {phase === 'loading' && <Skeleton className="absolute inset-0 w-full h-full" />}
       <iframe
         src={src}
         title={title}

@@ -39,9 +39,7 @@ export function CalendlyBlock({ block }: CalendlyBlockProps) {
   return (
     <section
       className={
-        backgroundToneClass(tone) +
-        ' w-full px-6 ' +
-        (hideOnMobile ? 'hidden md:block ' : '')
+        backgroundToneClass(tone) + ' w-full px-6 ' + (hideOnMobile ? 'hidden md:block ' : '')
       }
       style={{ paddingTop: paddingForDensity(density), paddingBottom: paddingForDensity(density) }}
     >

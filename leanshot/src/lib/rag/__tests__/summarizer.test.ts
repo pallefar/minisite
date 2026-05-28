@@ -31,10 +31,13 @@ vi.mock('../../../../../supabase/functions/_shared/sentry.ts', () => ({
   sentryCapture: vi.fn(),
 }));
 
-vi.mock('../../../../../supabase/functions/_shared/pharma-02-carveout.ts', async (importOriginal) => {
-  // Use actual implementation — pharma-02-carveout.ts has no npm: deps
-  return await importOriginal();
-});
+vi.mock(
+  '../../../../../supabase/functions/_shared/pharma-02-carveout.ts',
+  async (importOriginal) => {
+    // Use actual implementation — pharma-02-carveout.ts has no npm: deps
+    return await importOriginal();
+  },
+);
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Gold-set fixture loader
@@ -55,14 +58,15 @@ function loadGoldSet(): GoldSetEntry[] {
   // process.cwd() in Vitest = leanshot/ (project root)
   // gold-set is at minisite/tests/eval/phase60/gold-set.jsonl = ../tests/...
   const goldSetPath = path.resolve(process.cwd(), '../tests/eval/phase60/gold-set.jsonl');
-  const lines = fs.readFileSync(goldSetPath, 'utf-8').split('\n').filter((l) => l.trim());
+  const lines = fs
+    .readFileSync(goldSetPath, 'utf-8')
+    .split('\n')
+    .filter((l) => l.trim());
   return lines.map((l) => JSON.parse(l) as GoldSetEntry);
 }
 
 const goldSet = loadGoldSet().filter((e) => e.bucket === 'quoted_vs_paraphrase');
-const goldSetNonEn = goldSet.filter(
-  (e) => e.source_language && e.source_language !== 'en',
-);
+const goldSetNonEn = goldSet.filter((e) => e.source_language && e.source_language !== 'en');
 
 // Assert fixture availability (plan requirement: fail if 0 rows)
 if (goldSet.length === 0) {
@@ -126,11 +130,12 @@ describe('buildPrompt', () => {
       canonicalUrl: 'https://example.com',
       scrapedAt: '2026-05-26T10:00:00Z',
     });
-    const lines = prompt.split('\n').map((l) => l.trim()).filter(Boolean);
+    const lines = prompt
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
     const lastLine = lines[lines.length - 1];
-    expect(lastLine).toBe(
-      'Respond ONLY with JSON. No prose, no markdown fences, no preamble.',
-    );
+    expect(lastLine).toBe('Respond ONLY with JSON. No prose, no markdown fences, no preamble.');
   });
 
   it('contains D-17 verbatim quote contract instruction', () => {
@@ -206,9 +211,7 @@ describe('isValidSummaryResponse', () => {
   });
 
   it('accepts empty quote_blocks array', () => {
-    expect(
-      isValidSummaryResponse({ summary: 'Summary only', quote_blocks: [] }),
-    ).toBe(true);
+    expect(isValidSummaryResponse({ summary: 'Summary only', quote_blocks: [] })).toBe(true);
   });
 
   it('accepts quote_blocks with optional gloss field', () => {
@@ -248,9 +251,7 @@ describe('isValidSummaryResponse', () => {
   });
 
   it('rejects empty summary string', () => {
-    expect(
-      isValidSummaryResponse({ summary: '', quote_blocks: [] }),
-    ).toBe(false);
+    expect(isValidSummaryResponse({ summary: '', quote_blocks: [] })).toBe(false);
   });
 
   it('rejects empty quote string in quote_blocks', () => {
@@ -313,7 +314,10 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
     });
     globalThis.fetch = fetchSpy;
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'test-key', baseUrl: 'https://test-router.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'test-key',
+      baseUrl: 'https://test-router.example.com/v1',
+    });
     await summarizer.summarize('test prompt');
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -345,7 +349,10 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
     });
     globalThis.fetch = fetchSpy;
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'test-key', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'test-key',
+      baseUrl: 'https://x.example.com/v1',
+    });
     const result = await summarizer.summarize('prompt');
     const sentBody = JSON.parse(fetchSpy.mock.calls[0][1].body);
     expect(sentBody.model).toBe('anthropic/claude-haiku-4.5');
@@ -358,13 +365,25 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        choices: [{ message: { content: JSON.stringify({ summary: 'Test summary', quote_blocks: [{ quote: 'q', kind: 'dose' }] }) } }],
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                summary: 'Test summary',
+                quote_blocks: [{ quote: 'q', kind: 'dose' }],
+              }),
+            },
+          },
+        ],
         usage: { prompt_tokens: 100, completion_tokens: 50 },
       }),
       text: async () => '',
     });
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'k', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'k',
+      baseUrl: 'https://x.example.com/v1',
+    });
     const result = await summarizer.summarize('prompt');
     expect(result.inputTokens).toBe(100);
     expect(result.outputTokens).toBe(50);
@@ -382,7 +401,10 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
       text: async () => '',
     });
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'k', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'k',
+      baseUrl: 'https://x.example.com/v1',
+    });
     const result = await summarizer.summarize('prompt');
     expect((result.json as { error: string }).error).toBe('unparseable_model_response');
   });
@@ -399,14 +421,19 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          choices: [{ message: { content: JSON.stringify({ summary: 'retry ok', quote_blocks: [] }) } }],
+          choices: [
+            { message: { content: JSON.stringify({ summary: 'retry ok', quote_blocks: [] }) } },
+          ],
           usage: { prompt_tokens: 10, completion_tokens: 5 },
         }),
         text: async () => '',
       };
     });
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'k', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'k',
+      baseUrl: 'https://x.example.com/v1',
+    });
     const resultPromise = summarizer.summarize('prompt');
     await vi.advanceTimersByTimeAsync(1500); // past 1s delay
     const result = await resultPromise;
@@ -424,9 +451,14 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
       json: async () => ({}),
     });
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'k', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'k',
+      baseUrl: 'https://x.example.com/v1',
+    });
     let caught: unknown = null;
-    const resultPromise = summarizer.summarize('prompt').catch((err) => { caught = err; });
+    const resultPromise = summarizer.summarize('prompt').catch((err) => {
+      caught = err;
+    });
     // Advance past all 3 retry delays (1s + 3s + 9s = 13s)
     await vi.advanceTimersByTimeAsync(15000);
     await resultPromise;
@@ -443,7 +475,10 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
       json: async () => ({}),
     });
 
-    const summarizer = new AnthropicSummarizer({ apiKey: 'k', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'k',
+      baseUrl: 'https://x.example.com/v1',
+    });
     const result = await summarizer.healthCheck();
     expect(result.ok).toBe(false);
     expect(result.reason).toBeDefined();
@@ -462,7 +497,10 @@ describe('AnthropicSummarizer (OpenRouter HTTP client)', () => {
     const sensitivePrompt = 'PATIENT_PII_DATA: John Smith DOB 1980-01-01 diagnosis diabetes';
 
     vi.useFakeTimers();
-    const summarizer = new AnthropicSummarizer({ apiKey: 'k', baseUrl: 'https://x.example.com/v1' });
+    const summarizer = new AnthropicSummarizer({
+      apiKey: 'k',
+      baseUrl: 'https://x.example.com/v1',
+    });
     const resultPromise = summarizer.summarize(sensitivePrompt).catch(() => null);
     await vi.advanceTimersByTimeAsync(15000);
     await resultPromise;
@@ -504,9 +542,7 @@ describe('gold-set quoted_vs_paraphrase', () => {
     },
   );
 
-  it.each(
-    goldSetNonEn.map((e) => ({ name: e.id, entry: e })),
-  )(
+  it.each(goldSetNonEn.map((e) => ({ name: e.id, entry: e })))(
     'D-05: non-English gold-set entry $name requires gloss on all expected quote_blocks',
     ({ entry }) => {
       for (const block of entry.expected_quote_blocks) {
@@ -548,9 +584,8 @@ describe('gold-set quoted_vs_paraphrase', () => {
 
 describe('PHARMA-02 carveout contract', () => {
   it('assertNoPharma02DoseQuotes returns {ok:false, offending} for gated topic + dose kind', async () => {
-    const { assertNoPharma02DoseQuotes, PHARMA_02_GATED_TOPIC_TAGS } = await import(
-      '../../../../../supabase/functions/_shared/pharma-02-carveout.ts'
-    );
+    const { assertNoPharma02DoseQuotes, PHARMA_02_GATED_TOPIC_TAGS } =
+      await import('../../../../../supabase/functions/_shared/pharma-02-carveout.ts');
 
     // Use the first gated tag
     const gatedTag = PHARMA_02_GATED_TOPIC_TAGS[0];
@@ -565,9 +600,8 @@ describe('PHARMA-02 carveout contract', () => {
   });
 
   it('assertNoPharma02DoseQuotes returns {ok:true} for non-gated topic with dose kind', async () => {
-    const { assertNoPharma02DoseQuotes } = await import(
-      '../../../../../supabase/functions/_shared/pharma-02-carveout.ts'
-    );
+    const { assertNoPharma02DoseQuotes } =
+      await import('../../../../../supabase/functions/_shared/pharma-02-carveout.ts');
     const result = assertNoPharma02DoseQuotes('some-non-gated-topic', [
       { quote: 'The dose is 2.5 mg', kind: 'dose' },
     ]);
@@ -575,9 +609,8 @@ describe('PHARMA-02 carveout contract', () => {
   });
 
   it('assertNoPharma02DoseQuotes returns {ok:true} for gated topic with non-dose kinds', async () => {
-    const { assertNoPharma02DoseQuotes, PHARMA_02_GATED_TOPIC_TAGS } = await import(
-      '../../../../../supabase/functions/_shared/pharma-02-carveout.ts'
-    );
+    const { assertNoPharma02DoseQuotes, PHARMA_02_GATED_TOPIC_TAGS } =
+      await import('../../../../../supabase/functions/_shared/pharma-02-carveout.ts');
     const gatedTag = PHARMA_02_GATED_TOPIC_TAGS[0];
     const result = assertNoPharma02DoseQuotes(gatedTag, [
       { quote: 'Contraindicated in MEN2', kind: 'contraindication' },

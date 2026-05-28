@@ -55,7 +55,9 @@ export function KnowledgeRootPage() {
 
   // Newsletter signup state
   const [email, setEmail] = useState('');
-  const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [subscribeStatus, setSubscribeStatus] = useState<
+    'idle' | 'submitting' | 'success' | 'error'
+  >('idle');
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +75,9 @@ export function KnowledgeRootPage() {
       }
     }
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleSubscribe(e: React.FormEvent) {
@@ -172,14 +176,10 @@ export function KnowledgeRootPage() {
               <h2 className="text-lg font-semibold text-text leading-snug line-clamp-2">
                 {featured.title ?? featured.summary.split('\n')[0]}
               </h2>
-              <p className="text-sm text-text-secondary line-clamp-2">
-                {featured.summary}
-              </p>
+              <p className="text-sm text-text-secondary line-clamp-2">{featured.summary}</p>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-text-tertiary">
-                  {featured.source
-                    ? (featured.source as { name: string }).name
-                    : 'Unknown source'}
+                  {featured.source ? (featured.source as { name: string }).name : 'Unknown source'}
                 </span>
                 {featured.slug && (
                   <button
@@ -196,11 +196,11 @@ export function KnowledgeRootPage() {
         )}
 
         {/* ── Newsletter signup ────────────────────────────────────── */}
-        <section aria-labelledby="newsletter-heading" className="rounded-xl border border-border bg-surface p-6">
-          <h2
-            id="newsletter-heading"
-            className="text-lg font-semibold text-text mb-1"
-          >
+        <section
+          aria-labelledby="newsletter-heading"
+          className="rounded-xl border border-border bg-surface p-6"
+        >
+          <h2 id="newsletter-heading" className="text-lg font-semibold text-text mb-1">
             Get the weekly research digest
           </h2>
           <p className="text-sm text-text-secondary mb-4">
@@ -245,9 +245,7 @@ export function KnowledgeRootPage() {
 
         {/* ── FDA/DSHEA disclaimer footer ──────────────────────────── */}
         <footer className="border-t border-border pt-6">
-          <p className="text-xs text-text-tertiary leading-relaxed">
-            {t('fda_off_label_full')}
-          </p>
+          <p className="text-xs text-text-tertiary leading-relaxed">{t('fda_off_label_full')}</p>
         </footer>
       </main>
     </>

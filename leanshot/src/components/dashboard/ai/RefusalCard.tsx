@@ -61,18 +61,11 @@ export function RefusalCard({ kind }: RefusalCardProps) {
   return (
     <Card variant="flat" padding="sm">
       <div className="flex items-start gap-3">
-        <Icon
-          className={cn('size-4 shrink-0 mt-0.5', iconClass)}
-          aria-hidden
-        />
+        <Icon className={cn('size-4 shrink-0 mt-0.5', iconClass)} aria-hidden />
         <div className="space-y-1.5 min-w-0">
-          <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-            {refusalText}
-          </p>
+          <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{refusalText}</p>
           {showDisclaimer && (
-            <p className="text-[11px] text-[var(--color-text-tertiary)]">
-              {t('disclaimer')}
-            </p>
+            <p className="text-[11px] text-[var(--color-text-tertiary)]">{t('disclaimer')}</p>
           )}
         </div>
       </div>

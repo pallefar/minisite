@@ -92,9 +92,7 @@ export default function AdminEventsLayout() {
   return (
     <div className="admin-events-module space-y-6">
       <Suspense
-        fallback={
-          <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
-        }
+        fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
       >
         {view.type === 'list' && <EventListPage onNavigate={navigate} />}
 

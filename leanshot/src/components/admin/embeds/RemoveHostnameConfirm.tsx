@@ -66,8 +66,8 @@ export function RemoveHostnameConfirm({
     <Modal open={open} onClose={onClose} title={title} size="sm" hideClose>
       {unused ? (
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          This hostname is not in use on any page. Removing it stops future embeds —
-          existing pages are unaffected because no page references it.
+          This hostname is not in use on any page. Removing it stops future embeds — existing pages
+          are unaffected because no page references it.
         </p>
       ) : (
         <div
@@ -77,10 +77,10 @@ export function RemoveHostnameConfirm({
             color: 'var(--color-text)',
           }}
         >
-          This hostname is currently in use on at least one page. Removing it
-          will break those embeds — visitors will see a &lsquo;Hostname not on
-          allowlist&rsquo; error on those pages. Confirm only if you have already
-          updated those pages. (Exact reference count ships in v1.4.)
+          This hostname is currently in use on at least one page. Removing it will break those
+          embeds — visitors will see a &lsquo;Hostname not on allowlist&rsquo; error on those pages.
+          Confirm only if you have already updated those pages. (Exact reference count ships in
+          v1.4.)
         </div>
       )}
       <div className="mt-5 flex justify-end gap-2">

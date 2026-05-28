@@ -40,7 +40,10 @@ interface SupabaseError {
   code?: string;
 }
 
-function makeBuilder(rows: ChangelogRow[] | { last_seen_published_at: string | null } | null, err: SupabaseError | null = null) {
+function makeBuilder(
+  rows: ChangelogRow[] | { last_seen_published_at: string | null } | null,
+  err: SupabaseError | null = null,
+) {
   // chainable thenable to match supabase-js typing
   const result = { data: rows, error: err };
   const builder = {

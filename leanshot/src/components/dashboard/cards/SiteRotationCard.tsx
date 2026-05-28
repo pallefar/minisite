@@ -51,7 +51,10 @@ export function SiteRotationCard() {
         <SiteRotation status={status} className="w-[140px]" />
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-2 text-[11px] text-[var(--color-text-secondary)]">
-        <Legend color="var(--color-warning)" label={t('patient:card.site_rotation.legend_recent')} />
+        <Legend
+          color="var(--color-warning)"
+          label={t('patient:card.site_rotation.legend_recent')}
+        />
         <Legend color="var(--color-amber)" label={t('patient:card.site_rotation.legend_older')} />
         <Legend color="var(--color-success)" label={t('patient:card.site_rotation.legend_next')} />
       </div>

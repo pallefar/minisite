@@ -44,7 +44,14 @@ import { Screen6 } from './Screen6';
 // D-14: SCREENS fixed at exactly 6 in this order. Plan verify gates the
 // presence of this literal declaration via grep -c "^const SCREENS =
 // \['value-pillar-1'" so the literal MUST start at column 0 unchanged.
-const SCREENS = ['value-pillar-1', 'value-pillar-2', 'value-pillar-3', 'social-proof', 'pricing', 'final-CTA'] as const;
+const SCREENS = [
+  'value-pillar-1',
+  'value-pillar-2',
+  'value-pillar-3',
+  'social-proof',
+  'pricing',
+  'final-CTA',
+] as const;
 export { SCREENS };
 export type ScreenKey = (typeof SCREENS)[number];
 
@@ -159,11 +166,7 @@ export function OnboardingFlowPaywall({ open, onClose }: OnboardingFlowPaywallPr
         </div>
 
         {dismissing ? (
-          <Card
-            variant="flat"
-            padding="md"
-            data-testid="dismiss-confirm-card"
-          >
+          <Card variant="flat" padding="md" data-testid="dismiss-confirm-card">
             <h3 className="text-xl font-bold text-[var(--color-text)]">
               Skip the rest of your trial preview?
             </h3>

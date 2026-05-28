@@ -56,9 +56,7 @@ export default function TrendsDashboardPage(): React.JSX.Element {
   const fetchRows = useCallback(async () => {
     setLoading(true);
     setErr(null);
-    const fromDate = isoSliceDate(
-      new Date(Date.now() - rangeDays * 86_400_000),
-    );
+    const fromDate = isoSliceDate(new Date(Date.now() - rangeDays * 86_400_000));
     const { data, error } = (await supabase
       .from('helpdesk_tag_volume_view')
       .select('tag_name, bucket_day, ticket_count')
@@ -87,14 +85,9 @@ export default function TrendsDashboardPage(): React.JSX.Element {
     // Total per tag.
     const totalByTag = new Map<string, number>();
     for (const r of rows) {
-      totalByTag.set(
-        r.tag_name,
-        (totalByTag.get(r.tag_name) ?? 0) + r.ticket_count,
-      );
+      totalByTag.set(r.tag_name, (totalByTag.get(r.tag_name) ?? 0) + r.ticket_count);
     }
-    const sortedTags = [...totalByTag.entries()].sort(
-      (a, b) => b[1] - a[1],
-    );
+    const sortedTags = [...totalByTag.entries()].sort((a, b) => b[1] - a[1]);
     const topN = sortedTags.slice(0, TOP_N).map(([t]) => t);
     const topSet = new Set(topN);
 
@@ -163,11 +156,7 @@ export default function TrendsDashboardPage(): React.JSX.Element {
             Per-tag ticket volume over the last {rangeDays} days
           </p>
         </div>
-        <div
-          role="radiogroup"
-          aria-label="Date range"
-          className="flex items-center gap-1"
-        >
+        <div role="radiogroup" aria-label="Date range" className="flex items-center gap-1">
           <button
             type="button"
             aria-pressed={rangeDays === 7}
@@ -226,9 +215,7 @@ export default function TrendsDashboardPage(): React.JSX.Element {
           />
           {/* sr-only fallback for assistive tech. */}
           <table className="sr-only">
-            <caption>
-              Helpdesk ticket volume by tag and day for the last {rangeDays} days
-            </caption>
+            <caption>Helpdesk ticket volume by tag and day for the last {rangeDays} days</caption>
             <thead>
               <tr>
                 <th scope="col">Date</th>

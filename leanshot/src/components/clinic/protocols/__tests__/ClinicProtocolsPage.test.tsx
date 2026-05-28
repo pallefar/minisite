@@ -62,8 +62,18 @@ const makeProtocol = (overrides = {}) => ({
   ...overrides,
 });
 
-const PROTO_1 = makeProtocol({ id: 'proto-1', name: 'Tirzepatide 12-Week Titration', compound: 'tirzepatide', audience: 'clinic' });
-const PROTO_2 = makeProtocol({ id: 'proto-2', name: 'Retatrutide 16-Week Stack', compound: 'retatrutide', audience: 'B2C' });
+const PROTO_1 = makeProtocol({
+  id: 'proto-1',
+  name: 'Tirzepatide 12-Week Titration',
+  compound: 'tirzepatide',
+  audience: 'clinic',
+});
+const PROTO_2 = makeProtocol({
+  id: 'proto-2',
+  name: 'Retatrutide 16-Week Stack',
+  compound: 'retatrutide',
+  audience: 'B2C',
+});
 
 // Build a chainable supabase mock
 function makeChain(result: unknown) {

@@ -152,9 +152,7 @@ export const PRICING_PAGE_BLOCKS: BlockNode[] = [
  * compliance (StoreKit/Play Billing on native; Stripe Checkout on web) under
  * the SAME slug + the SAME SEO surface.
  */
-export async function getPricingComponent(
-  platform: Platform,
-): Promise<ComponentType | null> {
+export async function getPricingComponent(platform: Platform): Promise<ComponentType | null> {
   if (platform === 'ios' || platform === 'android') {
     const m = await import('@/components/PricingIOS');
     return m.default;

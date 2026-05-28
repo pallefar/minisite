@@ -20,9 +20,7 @@ export function backgroundToneClass(tone: NonNullable<BlockStyle['backgroundTone
   }
 }
 
-export function paddingForDensity(
-  density: NonNullable<BlockStyle['spacingDensity']>,
-): string {
+export function paddingForDensity(density: NonNullable<BlockStyle['spacingDensity']>): string {
   switch (density) {
     case 'compact':
       return '48px';

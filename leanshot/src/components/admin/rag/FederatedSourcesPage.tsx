@@ -101,11 +101,7 @@ export default function FederatedSourcesPage() {
 
   if (err) {
     return (
-      <EmptyState
-        title="Failed to load federated sources"
-        body="Refresh to try again."
-        inline
-      />
+      <EmptyState title="Failed to load federated sources" body="Refresh to try again." inline />
     );
   }
 

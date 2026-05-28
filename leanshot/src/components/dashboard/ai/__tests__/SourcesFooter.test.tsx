@@ -112,7 +112,9 @@ describe('SourcesFooter', () => {
     fireEvent.click(btn); // expand — fires telemetry
 
     expect(mockCaptureRagEventBrowser).toHaveBeenCalledTimes(1);
-    expect(mockCaptureRagEventBrowser).toHaveBeenCalledWith('rag_sources_footer_expanded', { count: 3 });
+    expect(mockCaptureRagEventBrowser).toHaveBeenCalledWith('rag_sources_footer_expanded', {
+      count: 3,
+    });
 
     fireEvent.click(btn); // collapse — no telemetry
     expect(mockCaptureRagEventBrowser).toHaveBeenCalledTimes(1);

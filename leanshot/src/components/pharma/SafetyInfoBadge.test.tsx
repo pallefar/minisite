@@ -15,7 +15,7 @@ describe('SafetyInfoBadge', () => {
     expect(screen.getByText('Safety info — always free')).toBeTruthy();
   });
 
-  it("uses the sage success tone (--color-success-soft bg + --color-success text), NOT teal accent", () => {
+  it('uses the sage success tone (--color-success-soft bg + --color-success text), NOT teal accent', () => {
     const { container } = render(<SafetyInfoBadge category="contraindication-alert" />);
     const badge = container.querySelector('span');
     expect(badge).toBeTruthy();

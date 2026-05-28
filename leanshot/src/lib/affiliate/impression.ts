@@ -92,8 +92,8 @@ export async function recordImpression(affiliateId: string): Promise<void> {
   if (!affiliateId || typeof affiliateId !== 'string') return;
 
   try {
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent ?? '' : '';
-    const referer = typeof document !== 'undefined' ? document.referrer ?? '' : '';
+    const ua = typeof navigator !== 'undefined' ? (navigator.userAgent ?? '') : '';
+    const referer = typeof document !== 'undefined' ? (document.referrer ?? '') : '';
     const ua_hash = await hashUserAgent(ua);
 
     await fetch(impressionEndpoint(), {

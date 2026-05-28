@@ -241,10 +241,18 @@ export function AuditLogViewer() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">When</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Actor</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Action</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Target</th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                When
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Actor
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Action
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Target
+              </th>
               <th className="py-2" />
             </tr>
           </thead>
@@ -253,9 +261,7 @@ export function AuditLogViewer() {
               const expanded = expandedId === row.id;
               return (
                 <Fragment key={row.id}>
-                  <tr
-                    className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)]"
-                  >
+                  <tr className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)]">
                     <td className="py-2 text-xs text-[var(--color-text-secondary)]">
                       {new Date(row.created_at).toLocaleString()}
                     </td>

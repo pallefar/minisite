@@ -65,7 +65,6 @@ vi.mock('posthog-js', () => ({
 
 // ─── Imports under test (after mocks are wired) ───────────────────────────────
 
-
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const ORG_ID = '00000000-0000-0000-0000-000000000001';
@@ -102,7 +101,7 @@ const RANKING_ROW = {
   actor_role: null,
 };
 
-function defaultHookResult(rows: typeof OPERATOR_ROW[] = [OPERATOR_ROW]) {
+function defaultHookResult(rows: (typeof OPERATOR_ROW)[] = [OPERATOR_ROW]) {
   return {
     rows,
     loading: false,
@@ -126,13 +125,7 @@ describe('PatientActivityModal', () => {
   });
 
   it('Test 1: renders modal with org name in title', () => {
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     expect(screen.getByRole('dialog')).toBeTruthy();
     expect(screen.getByText(`Activity from ${ORG_NAME}`)).toBeTruthy();
@@ -141,13 +134,7 @@ describe('PatientActivityModal', () => {
   // ─── Test 2: Two tabs; defaults to Operator views ─────────────────────────
 
   it('Test 2: tab nav has Operator views + Ranking events; defaults to Operator views', () => {
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeTruthy();
@@ -175,13 +162,7 @@ describe('PatientActivityModal', () => {
       return defaultHookResult([]);
     });
 
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     // Operator views tab should show actor row
     await waitFor(() => {
@@ -192,7 +173,7 @@ describe('PatientActivityModal', () => {
     // Switch to Ranking events tab
     mockUsePatientActivity.mockImplementation((opts: { tab: ActivityTab }) => {
       if (opts.tab === 'ranking_events') {
-        return defaultHookResult([RANKING_ROW] as unknown as typeof OPERATOR_ROW[]);
+        return defaultHookResult([RANKING_ROW] as unknown as (typeof OPERATOR_ROW)[]);
       }
       return defaultHookResult([]);
     });
@@ -212,18 +193,12 @@ describe('PatientActivityModal', () => {
 
     mockUsePatientActivity.mockImplementation((opts: { tab: ActivityTab }) => {
       if (opts.tab === 'ranking_events') {
-        return defaultHookResult([RANKING_ROW] as unknown as typeof OPERATOR_ROW[]);
+        return defaultHookResult([RANKING_ROW] as unknown as (typeof OPERATOR_ROW)[]);
       }
       return defaultHookResult([]);
     });
 
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     // Switch to ranking events tab
     await user.click(screen.getByRole('tab', { name: 'Ranking events' }));
@@ -252,13 +227,7 @@ describe('PatientActivityModal', () => {
   it('Test 5: shows empty state when API returns 0 rows', () => {
     mockUsePatientActivity.mockReturnValue(defaultHookResult([]));
 
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     expect(screen.getByText('No views from this workspace yet.')).toBeTruthy();
   });
@@ -283,13 +252,7 @@ describe('PatientActivityModal', () => {
       refresh: vi.fn(),
     });
 
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     // Pagination footer should appear with total > 25
     await waitFor(() => {
@@ -305,9 +268,7 @@ describe('PatientActivityModal', () => {
 
     // Hook should be called with offset=25
     await waitFor(() => {
-      expect(mockUsePatientActivity).toHaveBeenCalledWith(
-        expect.objectContaining({ offset: 25 }),
-      );
+      expect(mockUsePatientActivity).toHaveBeenCalledWith(expect.objectContaining({ offset: 25 }));
     });
   });
 
@@ -348,18 +309,12 @@ describe('PatientActivityModal', () => {
 
     mockUsePatientActivity.mockImplementation((opts: { tab: ActivityTab }) => {
       if (opts.tab === 'ranking_events') {
-        return defaultHookResult([RANKING_ROW] as unknown as typeof OPERATOR_ROW[]);
+        return defaultHookResult([RANKING_ROW] as unknown as (typeof OPERATOR_ROW)[]);
       }
       return defaultHookResult([OPERATOR_ROW]);
     });
 
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     // Switch tabs to trigger any possible telemetry
     await user.click(screen.getByRole('tab', { name: 'Ranking events' }));
@@ -376,18 +331,12 @@ describe('PatientActivityModal', () => {
 
     mockUsePatientActivity.mockImplementation((opts: { tab: ActivityTab }) => {
       if (opts.tab === 'ranking_events') {
-        return defaultHookResult([RANKING_ROW] as unknown as typeof OPERATOR_ROW[]);
+        return defaultHookResult([RANKING_ROW] as unknown as (typeof OPERATOR_ROW)[]);
       }
       return defaultHookResult([OPERATOR_ROW]);
     });
 
-    render(
-      <PatientActivityModal
-        orgId={ORG_ID}
-        orgName={ORG_NAME}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<PatientActivityModal orgId={ORG_ID} orgName={ORG_NAME} onClose={vi.fn()} />);
 
     // Footer visible on Operator views tab (default)
     const footer = screen.getByTestId('hbnr-footer');
@@ -403,4 +352,3 @@ describe('PatientActivityModal', () => {
     );
   });
 });
-

@@ -50,11 +50,7 @@ export function CourseSidebar({
   onLessonClick,
 }: CourseSidebarProps) {
   if (modules.length === 0) {
-    return (
-      <p className="text-[13px] text-[var(--color-text-secondary)] italic">
-        No modules yet.
-      </p>
-    );
+    return <p className="text-[13px] text-[var(--color-text-secondary)] italic">No modules yet.</p>;
   }
 
   return (
@@ -68,8 +64,9 @@ export function CourseSidebar({
             </h3>
             <ul className="space-y-1">
               {lessons.map((lesson) => {
-                const completed = progressByLesson[lesson.id]?.completed_at !== null
-                  && progressByLesson[lesson.id]?.completed_at !== undefined;
+                const completed =
+                  progressByLesson[lesson.id]?.completed_at !== null &&
+                  progressByLesson[lesson.id]?.completed_at !== undefined;
                 const locked = !lesson.is_free_preview && currentTier === 'free';
                 const active = activeLessonId === lesson.id;
                 return (

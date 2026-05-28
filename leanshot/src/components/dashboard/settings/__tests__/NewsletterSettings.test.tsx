@@ -32,8 +32,9 @@ vi.mock('@/lib/rag/newsletter-api', () => ({
 }));
 
 vi.mock('@/lib/store', () => ({
-  useStore: vi.fn((selector: (s: { signedIn: { user: { id: string } } | null; toast: null }) => unknown) =>
-    selector({ signedIn: { user: { id: 'user-test-1' } }, toast: null }),
+  useStore: vi.fn(
+    (selector: (s: { signedIn: { user: { id: string } } | null; toast: null }) => unknown) =>
+      selector({ signedIn: { user: { id: 'user-test-1' } }, toast: null }),
   ),
 }));
 
@@ -52,7 +53,6 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // ─── Import after mocks ──────────────────────────────────────────────────────
-
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -122,7 +122,11 @@ describe('NewsletterSettings', () => {
 
   // Test 4: Save button calls setNewsletterOptIn with optedIn=true + topicTags
   it('Save button calls setNewsletterOptIn with optedIn=true and topicTags', async () => {
-    mockSetOptIn.mockResolvedValue({ ...defaultSubscription, opted_in: true, topic_tags: ['glp-1'] });
+    mockSetOptIn.mockResolvedValue({
+      ...defaultSubscription,
+      opted_in: true,
+      topic_tags: ['glp-1'],
+    });
     render(<NewsletterSettings />);
     await waitFor(() => screen.getByRole('switch'));
 
@@ -139,9 +143,7 @@ describe('NewsletterSettings', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(mockSetOptIn).toHaveBeenCalledWith(
-        expect.objectContaining({ optedIn: true }),
-      );
+      expect(mockSetOptIn).toHaveBeenCalledWith(expect.objectContaining({ optedIn: true }));
     });
   });
 
@@ -159,9 +161,7 @@ describe('NewsletterSettings', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(mockSetOptIn).toHaveBeenCalledWith(
-        expect.objectContaining({ optedIn: false }),
-      );
+      expect(mockSetOptIn).toHaveBeenCalledWith(expect.objectContaining({ optedIn: false }));
       // Should not include topicTags when toggling off
       const call = mockSetOptIn.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(call.topicTags).toBeUndefined();

@@ -26,13 +26,7 @@ beforeEach(() => {
 
 describe('RejectReasonSheet', () => {
   it('Test 1: renders 6 pills with the correct labels', () => {
-    render(
-      <RejectReasonSheet
-        open={true}
-        onClose={vi.fn()}
-        onSelect={vi.fn()}
-      />,
-    );
+    render(<RejectReasonSheet open={true} onClose={vi.fn()} onSelect={vi.fn()} />);
     // Verbatim labels per UI-SPEC §Copywriting Contract
     expect(screen.getByText('Off-topic')).toBeTruthy();
     expect(screen.getByText('Factually wrong')).toBeTruthy();
@@ -72,18 +66,14 @@ describe('RejectReasonSheet', () => {
   it('Test 4: clicking a pill calls onSelect with the correct RejectReason and closes', () => {
     const onSelect = vi.fn();
     const onClose = vi.fn();
-    render(
-      <RejectReasonSheet open={true} onClose={onClose} onSelect={onSelect} />,
-    );
+    render(<RejectReasonSheet open={true} onClose={onClose} onSelect={onSelect} />);
     fireEvent.click(screen.getByText('Off-topic'));
     expect(onSelect).toHaveBeenCalledWith('off-topic');
     expect(onClose).toHaveBeenCalled();
   });
 
   it('Test 5: danger-toned pills are Factually wrong, Off-label, Safety concern', () => {
-    render(
-      <RejectReasonSheet open={true} onClose={vi.fn()} onSelect={vi.fn()} />,
-    );
+    render(<RejectReasonSheet open={true} onClose={vi.fn()} onSelect={vi.fn()} />);
     // Find pill buttons by text, check for danger class
     const factuallyWrong = screen.getByText('Factually wrong');
     const offLabel = screen.getByText('Off-label');
@@ -135,14 +125,7 @@ describe('EditChunkModal', () => {
   };
 
   it('Test 8: renders Modal with title "Edit chunk", summary textarea, quote_blocks JSON textarea', () => {
-    render(
-      <EditChunkModal
-        open={true}
-        chunk={chunk}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    render(<EditChunkModal open={true} chunk={chunk} onClose={vi.fn()} onSave={vi.fn()} />);
     expect(screen.getByRole('dialog')).toBeTruthy();
     expect(screen.getByText('Edit chunk')).toBeTruthy();
     // Two textareas: summary + quote_blocks JSON
@@ -157,14 +140,7 @@ describe('EditChunkModal', () => {
   });
 
   it('Test 9: invalid JSON in quote_blocks shows error and disables Save', () => {
-    render(
-      <EditChunkModal
-        open={true}
-        chunk={chunk}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    render(<EditChunkModal open={true} chunk={chunk} onClose={vi.fn()} onSave={vi.fn()} />);
     const textareas = screen.getAllByRole('textbox');
     const jsonArea = textareas.find((t) => t.getAttribute('aria-label') === 'Quote blocks JSON')!;
     fireEvent.change(jsonArea, { target: { value: '{invalid json' } });
@@ -176,29 +152,13 @@ describe('EditChunkModal', () => {
 
   it('Test 10: valid JSON + click Save calls onSave', () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    render(
-      <EditChunkModal
-        open={true}
-        chunk={chunk}
-        onClose={vi.fn()}
-        onSave={onSave}
-      />,
-    );
+    render(<EditChunkModal open={true} chunk={chunk} onClose={vi.fn()} onSave={onSave} />);
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ summary: 'Initial summary' }),
-    );
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Initial summary' }));
   });
 
   it('Test 11: summary > 2000 chars disables Save with error message', () => {
-    render(
-      <EditChunkModal
-        open={true}
-        chunk={chunk}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    render(<EditChunkModal open={true} chunk={chunk} onClose={vi.fn()} onSave={vi.fn()} />);
     const textareas = screen.getAllByRole('textbox');
     const summaryArea = textareas.find((t) => t.getAttribute('aria-label') === 'Chunk summary')!;
     fireEvent.change(summaryArea, { target: { value: 'x'.repeat(2001) } });
@@ -208,14 +168,7 @@ describe('EditChunkModal', () => {
   });
 
   it('Test 12: quote_blocks JSON > 16KB disables Save with error message', () => {
-    render(
-      <EditChunkModal
-        open={true}
-        chunk={chunk}
-        onClose={vi.fn()}
-        onSave={vi.fn()}
-      />,
-    );
+    render(<EditChunkModal open={true} chunk={chunk} onClose={vi.fn()} onSave={vi.fn()} />);
     // Build a valid JSON array > 16KB
     const bigJson = JSON.stringify(
       Array.from({ length: 500 }, () => ({
@@ -240,9 +193,7 @@ describe('EditChunkModal', () => {
 
 describe('RetractChunkModal', () => {
   it('Test 13: title, verbatim body copy, Keep chunk + Retract chunk buttons', () => {
-    render(
-      <RetractChunkModal open={true} onClose={vi.fn()} onRetract={vi.fn()} />,
-    );
+    render(<RetractChunkModal open={true} onClose={vi.fn()} onRetract={vi.fn()} />);
     expect(screen.getByText('Retract this chunk?')).toBeTruthy();
     expect(
       screen.getByText(
@@ -255,9 +206,7 @@ describe('RetractChunkModal', () => {
 
   it('Test 14: Retract button disabled until at least 1 non-whitespace char in reason', () => {
     const onRetract = vi.fn();
-    render(
-      <RetractChunkModal open={true} onClose={vi.fn()} onRetract={onRetract} />,
-    );
+    render(<RetractChunkModal open={true} onClose={vi.fn()} onRetract={onRetract} />);
     const retractBtn = screen.getByRole('button', { name: /retract chunk/i });
     expect(retractBtn).toHaveAttribute('disabled');
 

@@ -89,7 +89,8 @@ describe('chunker', () => {
 
   it('targets 512 tokens per chunk and never exceeds 1.5× target', () => {
     // Generate text that would produce multiple chunks
-    const longSentence = 'This is a fairly long sentence about tirzepatide dosing information for GLP-1 patients. ';
+    const longSentence =
+      'This is a fairly long sentence about tirzepatide dosing information for GLP-1 patients. ';
     const markdown = longSentence.repeat(200);
     const chunks = chunkBySentences(markdown, 512, 64);
     expect(chunks.length).toBeGreaterThan(0);
@@ -99,8 +100,10 @@ describe('chunker', () => {
   });
 
   it('preserves at least 1 sentence of overlap between consecutive chunks', () => {
-    const sentences = Array.from({ length: 60 }, (_, i) =>
-      `Sentence number ${i + 1} about GLP-1 therapy and tirzepatide dose escalation protocols.`,
+    const sentences = Array.from(
+      { length: 60 },
+      (_, i) =>
+        `Sentence number ${i + 1} about GLP-1 therapy and tirzepatide dose escalation protocols.`,
     );
     const markdown = sentences.join(' ');
     const chunks = chunkBySentences(markdown, 100, 30);
@@ -130,8 +133,9 @@ describe('chunker', () => {
 
   it('caps at maxChunks()=50 even for huge inputs', () => {
     // Generate 5000 sentences
-    const sentences = Array.from({ length: 5000 }, (_, i) =>
-      `This is sentence number ${i + 1} about GLP-1 therapy protocols.`,
+    const sentences = Array.from(
+      { length: 5000 },
+      (_, i) => `This is sentence number ${i + 1} about GLP-1 therapy protocols.`,
     );
     const markdown = sentences.join(' ');
     const chunks = chunkBySentences(markdown, 512, 64);
@@ -146,7 +150,8 @@ describe('chunker', () => {
   });
 
   it('each chunk has tokens > 0 for non-empty input', () => {
-    const markdown = 'Semaglutide starts at 0.25 mg weekly. It is titrated monthly. The max dose is 2.4 mg.';
+    const markdown =
+      'Semaglutide starts at 0.25 mg weekly. It is titrated monthly. The max dose is 2.4 mg.';
     const chunks = chunkBySentences(markdown, 512, 64);
     expect(chunks.length).toBeGreaterThan(0);
     for (const chunk of chunks) {

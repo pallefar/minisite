@@ -38,12 +38,8 @@ export interface PharmaVersionListProps {
   versions: PharmaContentVersion[];
 }
 
-export function PharmaVersionList({
-  versions,
-}: PharmaVersionListProps): React.JSX.Element {
-  const sorted = [...versions].sort(
-    (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
-  );
+export function PharmaVersionList({ versions }: PharmaVersionListProps): React.JSX.Element {
+  const sorted = [...versions].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
 
   return (
     <Card variant="flat" padding="md">
@@ -77,9 +73,7 @@ export function PharmaVersionList({
                 </span>
                 <span role="cell">
                   {v.clinical_signoff_at && v.clinical_signoff_name ? (
-                    <Badge tone="success">
-                      Reviewed by {v.clinical_signoff_name}
-                    </Badge>
+                    <Badge tone="success">Reviewed by {v.clinical_signoff_name}</Badge>
                   ) : (
                     <Badge tone="warning">Pending sign-off</Badge>
                   )}

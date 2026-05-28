@@ -107,8 +107,7 @@ function compile(specs: BlockSpec[]): BlockNode[] {
 
   return specs.map((spec, i) => {
     const id = idByKey.get(spec.key ?? `__idx_${i}`)!;
-    const parent_id =
-      spec.parentKey === undefined ? null : (idByKey.get(spec.parentKey) ?? null);
+    const parent_id = spec.parentKey === undefined ? null : (idByKey.get(spec.parentKey) ?? null);
     const order = orderByParent.get(parent_id) ?? 0;
     orderByParent.set(parent_id, order + 1);
     return {
@@ -627,7 +626,8 @@ export const TEMPLATES: Record<TemplateId, Template> = {
   coach: {
     id: 'coach',
     name: 'The coach',
-    description: 'Photo-forward hero + Calendly CTA. Best when your audience already knows your face.',
+    description:
+      'Photo-forward hero + Calendly CTA. Best when your audience already knows your face.',
     thumbnail: '/assets/page-templates/affiliate-coach.webp',
     seoSchemaType: 'WebPage',
     category: 'affiliate',
@@ -636,7 +636,8 @@ export const TEMPLATES: Record<TemplateId, Template> = {
   story: {
     id: 'story',
     name: 'The story',
-    description: 'Testimonial-forward pull-quote in the hero. Best when you have a strong personal story.',
+    description:
+      'Testimonial-forward pull-quote in the hero. Best when you have a strong personal story.',
     thumbnail: '/assets/page-templates/affiliate-story.webp',
     seoSchemaType: 'WebPage',
     category: 'affiliate',
@@ -645,7 +646,8 @@ export const TEMPLATES: Record<TemplateId, Template> = {
   method: {
     id: 'method',
     name: 'The method',
-    description: 'Benefits-list hero, no above-the-fold photo. Best for analytical / educational audiences.',
+    description:
+      'Benefits-list hero, no above-the-fold photo. Best for analytical / educational audiences.',
     thumbnail: '/assets/page-templates/affiliate-method.webp',
     seoSchemaType: 'WebPage',
     category: 'affiliate',
@@ -720,8 +722,7 @@ export function scaffoldAffiliateTemplate(args: {
   }
   const overrides = args.overrides ?? {};
   return cloned.map((b) => {
-    const remappedParent =
-      b.parent_id === null ? null : (remap.get(b.parent_id) ?? null);
+    const remappedParent = b.parent_id === null ? null : (remap.get(b.parent_id) ?? null);
     return {
       ...b,
       id: remap.get(b.id)!,

@@ -65,42 +65,40 @@ import {
 type LucideIcon = typeof Sparkles;
 
 const STEP_TYPE_ICONS: Record<StepType, LucideIcon> = {
-  welcome:       Sparkles,
-  intro_card:    Image,
-  medication:    PillIcon,
-  goals:         Target,
-  body_stats:    Scale,
-  consent:       FileCheck,
+  welcome: Sparkles,
+  intro_card: Image,
+  medication: PillIcon,
+  goals: Target,
+  body_stats: Scale,
+  consent: FileCheck,
   doctor_invite: Stethoscope,
-  tour:          Map,
+  tour: Map,
 };
 
 const STEP_TYPE_LABELS: Record<StepType, string> = {
-  welcome:       'Welcome',
-  intro_card:    'Intro card',
-  medication:    'Medication',
-  goals:         'Goals',
-  body_stats:    'Body stats',
-  consent:       'Consent',
+  welcome: 'Welcome',
+  intro_card: 'Intro card',
+  medication: 'Medication',
+  goals: 'Goals',
+  body_stats: 'Body stats',
+  consent: 'Consent',
   doctor_invite: 'Doctor invite',
-  tour:          'Tour',
+  tour: 'Tour',
 };
 
 const STEP_TYPE_DESCRIPTIONS: Record<StepType, string> = {
-  welcome:       'Personal greeting from your clinic.',
-  intro_card:    'A custom card with optional image.',
-  medication:    'Medication logging setup (required).',
-  goals:         'Help patients set their health goals.',
-  body_stats:    'Collect initial weight and body stats.',
-  consent:       'Patient data consent agreement (required).',
-  doctor_invite: 'Invite the patient\'s doctor.',
-  tour:          'Quick walkthrough of the app.',
+  welcome: 'Personal greeting from your clinic.',
+  intro_card: 'A custom card with optional image.',
+  medication: 'Medication logging setup (required).',
+  goals: 'Help patients set their health goals.',
+  body_stats: 'Collect initial weight and body stats.',
+  consent: 'Patient data consent agreement (required).',
+  doctor_invite: "Invite the patient's doctor.",
+  tour: 'Quick walkthrough of the app.',
 };
 
 const MANDATORY_TYPES = new Set<StepType>(MANDATORY_STEP_TYPES);
-const SKIPPABLE_TYPES = new Set<StepType>(
-  STEP_TYPES.filter((t) => !MANDATORY_TYPES.has(t)),
-);
+const SKIPPABLE_TYPES = new Set<StepType>(STEP_TYPES.filter((t) => !MANDATORY_TYPES.has(t)));
 const EDITABLE_TYPES = new Set<StepType>(EDITABLE_STEP_TYPES);
 
 // Steps that appear in the "Add step" palette (medication + consent NEVER added via palette)
@@ -190,14 +188,19 @@ function ReadOnlyView({ orgId }: { orgId: string }) {
       }
       if (!cancelled) setLoading(false);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [orgId]);
 
   if (loading) {
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-11 bg-[var(--color-surface-elevated)] rounded-xl animate-pulse" />
+          <div
+            key={i}
+            className="h-11 bg-[var(--color-surface-elevated)] rounded-xl animate-pulse"
+          />
         ))}
       </div>
     );
@@ -223,7 +226,9 @@ function ReadOnlyView({ orgId }: { orgId: string }) {
                 {STEP_TYPE_LABELS[step.type]}
               </span>
               {MANDATORY_TYPES.has(step.type) && (
-                <Badge tone="neutral" className="text-[10px]">Required</Badge>
+                <Badge tone="neutral" className="text-[10px]">
+                  Required
+                </Badge>
               )}
             </li>
           );
@@ -248,10 +253,7 @@ function PatientPreviewPane({ steps }: { steps: OnboardingStepNode[] }) {
 
   return (
     <Card variant="elevated" className="md:sticky md:top-24">
-      <div
-        role="img"
-        aria-label="Preview of patient onboarding flow"
-      >
+      <div role="img" aria-label="Preview of patient onboarding flow">
         <p className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">
           Patient view
         </p>
@@ -355,10 +357,9 @@ function StepEditorModal({ step, onClose, onApply, orgId }: StepEditorModalProps
     }
     setUploadingImage(true);
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'branding-asset-upload-url',
-        { body: { p_org_id: orgId, p_kind: 'intro_card' } },
-      );
+      const { data, error } = await supabase.functions.invoke('branding-asset-upload-url', {
+        body: { p_org_id: orgId, p_kind: 'intro_card' },
+      });
       if (error || !data?.upload_url) {
         toast('Image upload failed. Please try again.', 'error');
         return;
@@ -415,11 +416,7 @@ function StepEditorModal({ step, onClose, onApply, orgId }: StepEditorModalProps
                   alt="Card preview"
                   className="w-16 h-16 rounded-xl object-cover border border-[var(--color-border)]"
                 />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setImageUrl(null)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setImageUrl(null)}>
                   Remove
                 </Button>
               </div>
@@ -674,14 +671,9 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
       }
       // Refetch version history to find the new version number
       const updated = await fetchVersionHistory();
-      const newRow = updated?.find(
-        (v) => v.id === (newFlowId as string),
-      );
+      const newRow = updated?.find((v) => v.id === (newFlowId as string));
       const versionN = newRow?.version ?? '?';
-      toast(
-        `Saved version ${versionN} — new patients will see this flow.`,
-        'success',
-      );
+      toast(`Saved version ${versionN} — new patients will see this flow.`, 'success');
       setActiveFlowId(newFlowId as string);
       if (updated && updated.length > 0) {
         setSelectedVersionId(updated[0].id);
@@ -794,9 +786,7 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
   // Add-step palette
   // ---------------------------------------------------------------------------
 
-  const availablePaletteSteps = PALETTE_ORDER.filter(
-    (t) => !steps.some((s) => s.type === t),
-  );
+  const availablePaletteSteps = PALETTE_ORDER.filter((t) => !steps.some((s) => s.type === t));
 
   // ---------------------------------------------------------------------------
   // Relative date formatting
@@ -819,16 +809,16 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
   // Validation for Save button
   // ---------------------------------------------------------------------------
   const saveDisabled = saving || validateSteps(steps) !== null;
-  const canRestore =
-    selectedVersionId &&
-    selectedVersionId !== activeFlowId &&
-    !restoring;
+  const canRestore = selectedVersionId && selectedVersionId !== activeFlowId && !restoring;
 
   if (loading) {
     return (
       <div className="space-y-3">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-11 bg-[var(--color-surface-elevated)] rounded-xl animate-pulse" />
+          <div
+            key={i}
+            className="h-11 bg-[var(--color-surface-elevated)] rounded-xl animate-pulse"
+          />
         ))}
       </div>
     );
@@ -870,7 +860,10 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
       {/* Version history */}
       {versions.length > 0 && (
         <div className="flex items-center gap-3 flex-wrap">
-          <label htmlFor="version-history-select" className="text-[13px] font-semibold text-[var(--color-text)]">
+          <label
+            htmlFor="version-history-select"
+            className="text-[13px] font-semibold text-[var(--color-text)]"
+          >
             Version history
           </label>
           <Select
@@ -956,7 +949,11 @@ function OnboardingTabOwner({ orgId }: { orgId: string }) {
                       onClick={() => handleAddStep(type)}
                       className="flex items-start gap-2 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                     >
-                      <Icon size={16} className="text-[var(--color-text-secondary)] mt-0.5 shrink-0" aria-hidden />
+                      <Icon
+                        size={16}
+                        className="text-[var(--color-text-secondary)] mt-0.5 shrink-0"
+                        aria-hidden
+                      />
                       <span>
                         <p className="text-[12px] font-semibold text-[var(--color-text)]">
                           {STEP_TYPE_LABELS[type]}

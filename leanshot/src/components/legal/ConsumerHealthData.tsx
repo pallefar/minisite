@@ -226,9 +226,9 @@ export function ConsumerHealthData() {
             which you can cancel via the HMAC-signed link in the confirmation email (or via the
             in-app banner). After 7 days, the per-user encryption key for your data is destroyed,
             every row of your consumer health data is cascade-deleted, and your photos are
-            permanently erased — that operation is irreversible by design. If you sign up again
-            with the same email during the 7-day window, that is treated as a brand-new account;
-            your prior data remains pending shred and is not restored.
+            permanently erased — that operation is irreversible by design. If you sign up again with
+            the same email during the 7-day window, that is treated as a brand-new account; your
+            prior data remains pending shred and is not restored.
           </li>
           <li className="leading-relaxed">
             <strong>Appeal.</strong> If you believe we have not honored a rights request, email{' '}

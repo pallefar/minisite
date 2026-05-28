@@ -44,8 +44,8 @@ interface SubRoute {
 }
 
 const SUB_ROUTES: readonly SubRoute[] = [
-  { key: 'list',   label: 'Protocols', path: 'list',   Component: ProtocolsListPage },
-  { key: 'editor', label: 'Editor',    path: 'editor', Component: ProtocolEditorPage },
+  { key: 'list', label: 'Protocols', path: 'list', Component: ProtocolsListPage },
+  { key: 'editor', label: 'Editor', path: 'editor', Component: ProtocolEditorPage },
 ] as const;
 
 const DEFAULT_KEY = 'list';
@@ -62,9 +62,7 @@ function resolveActive(pathname: string): SubRoute {
 export default function ProtocolsLayout() {
   // Track pathname imperatively (no router) so back/forward updates the view.
   const [pathname, setPathname] = useState<string>(
-    typeof window !== 'undefined'
-      ? window.location.pathname
-      : `/admin/protocols/${DEFAULT_KEY}`,
+    typeof window !== 'undefined' ? window.location.pathname : `/admin/protocols/${DEFAULT_KEY}`,
   );
 
   useEffect(() => {
@@ -79,10 +77,7 @@ export default function ProtocolsLayout() {
   return (
     <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
       {/* Left sub-nav */}
-      <nav
-        aria-label="Protocols sections"
-        className="lg:sticky lg:top-4 lg:self-start"
-      >
+      <nav aria-label="Protocols sections" className="lg:sticky lg:top-4 lg:self-start">
         <ul className="flex flex-wrap lg:flex-col gap-1">
           {SUB_ROUTES.map((r) => {
             const isActive = active.key === r.key;

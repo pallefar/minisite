@@ -27,7 +27,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 describe('KBArticleView', () => {
   beforeEach(() => {
     singleMock.mockReset();

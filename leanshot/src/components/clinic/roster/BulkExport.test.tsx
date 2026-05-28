@@ -161,7 +161,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-   
   delete (window as any).posthog;
   // Unstub globals (fetch) but NOT vi.restoreAllMocks() which would restore vi.mock module mocks
   vi.unstubAllGlobals();
@@ -179,9 +178,13 @@ describe('BulkExport — selection', () => {
     await waitFor(() => expect(screen.getByTestId('roster-row-aaa')).toBeInTheDocument());
 
     const checkboxes = screen.getAllByRole('checkbox');
-    await act(async () => { fireEvent.click(checkboxes[1]); });
+    await act(async () => {
+      fireEvent.click(checkboxes[1]);
+    });
 
-    await waitFor(() => expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument(),
+    );
 
     const stored = sessionStorage.getItem('clinic_roster_selection_org-1');
     expect(stored).toBeTruthy();
@@ -197,7 +200,9 @@ describe('BulkExport — selection', () => {
     await waitFor(() => expect(screen.getByTestId('roster-row-aaa')).toBeInTheDocument());
 
     const checkboxes = screen.getAllByRole('checkbox');
-    await act(async () => { fireEvent.click(checkboxes[1]); });
+    await act(async () => {
+      fireEvent.click(checkboxes[1]);
+    });
 
     const headerCheckbox = checkboxes[0];
     await waitFor(() => expect(headerCheckbox.getAttribute('aria-checked')).toBe('mixed'));
@@ -215,37 +220,44 @@ describe('BulkExport — PDF flow', () => {
     render(<RosterTable orgId="org-pdf" slug="test-org" permissionMap={ownerPermMap} />);
     await waitFor(() => expect(screen.getByTestId('roster-row-pat1')).toBeInTheDocument());
 
-    await act(async () => { fireEvent.click(screen.getAllByRole('checkbox')[1]); });
-    await waitFor(() => expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('checkbox')[1]);
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument(),
+    );
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i })); });
-    await act(async () => { fireEvent.click(screen.getByTestId('bulk-action-pdf')); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('bulk-action-pdf'));
+    });
 
     await waitFor(() => screen.getByRole('button', { name: /Generate PDF/i }));
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Generate PDF/i })); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Generate PDF/i }));
+    });
 
     const { jsPDF } = await import('jspdf');
     await waitFor(() => expect(jsPDF).toHaveBeenCalled(), { timeout: 5000 });
   });
 
   // see deferred-tests.md#24-srccomponentsclinicrosterBulkExportteststsx--pdf-audit-row-call-not-assertable-in-jsdom
-  it.skip(
-    'Test 4: PDF flow calls log_bulk_export_inclusion per patient [DEFERRED — see deferred-tests.md]',
-    async () => {
-      // DEFERRED: The BulkExportPDFFlow's handleGenerate() function makes
-      // sequential async operations (supabase.auth.getSession → fetch clinic-snapshot →
-      // supabase.rpc log_bulk_export_inclusion) that don't complete within the
-      // waitFor polling window in vitest 4.1.5 / jsdom 29 when the async chain
-      // involves both fetch() and supabase.rpc() mocks in sequence.
-      //
-      // The behavior IS tested by:
-      //   - Deno unit tests (index.test.ts): per-patient audit row written for CSV
-      //   - e2e/rls-bulk-export.test.ts: live DB cross-tenant proof
-      //   - The source code in BulkExportPDFFlow.tsx explicitly calls supabase.rpc()
-      //
-      // Batch-fix target: Phase 10 close deferred-tests sweep.
-    },
-  );
+  it.skip('Test 4: PDF flow calls log_bulk_export_inclusion per patient [DEFERRED — see deferred-tests.md]', async () => {
+    // DEFERRED: The BulkExportPDFFlow's handleGenerate() function makes
+    // sequential async operations (supabase.auth.getSession → fetch clinic-snapshot →
+    // supabase.rpc log_bulk_export_inclusion) that don't complete within the
+    // waitFor polling window in vitest 4.1.5 / jsdom 29 when the async chain
+    // involves both fetch() and supabase.rpc() mocks in sequence.
+    //
+    // The behavior IS tested by:
+    //   - Deno unit tests (index.test.ts): per-patient audit row written for CSV
+    //   - e2e/rls-bulk-export.test.ts: live DB cross-tenant proof
+    //   - The source code in BulkExportPDFFlow.tsx explicitly calls supabase.rpc()
+    //
+    // Batch-fix target: Phase 10 close deferred-tests sweep.
+  });
 });
 
 // ============================================================================
@@ -259,23 +271,38 @@ describe('BulkExport — CSV flow', () => {
     render(<RosterTable orgId="org-csv" slug="test-org" permissionMap={ownerPermMap} />);
     await waitFor(() => expect(screen.getByTestId('roster-row-csv1')).toBeInTheDocument());
 
-    await act(async () => { fireEvent.click(screen.getAllByRole('checkbox')[0]); });
-    await waitFor(() => expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument(),
+    );
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i })); });
-    await act(async () => { fireEvent.click(screen.getByTestId('bulk-action-csv')); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('bulk-action-csv'));
+    });
 
     await waitFor(() => screen.getByRole('button', { name: /Download CSV/i }));
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Download CSV/i })); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Download CSV/i }));
+    });
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('bulk-csv-export'),
-        expect.objectContaining({ method: 'POST' }),
-      );
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining('bulk-csv-export'),
+          expect.objectContaining({ method: 'POST' }),
+        );
+      },
+      { timeout: 5000 },
+    );
 
-    await waitFor(() => expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled(), { timeout: 5000 });
+    await waitFor(() => expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled(), {
+      timeout: 5000,
+    });
   });
 });
 
@@ -290,16 +317,26 @@ describe('BulkExport — Open in tabs', () => {
     render(<RosterTable orgId="org-tabs" slug="test-slug" permissionMap={ownerPermMap} />);
     await waitFor(() => expect(screen.getByTestId('roster-row-t1')).toBeInTheDocument());
 
-    await act(async () => { fireEvent.click(screen.getAllByRole('checkbox')[0]); });
-    await waitFor(() => expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument(),
+    );
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i })); });
-    await act(async () => { fireEvent.click(screen.getByTestId('bulk-action-tabs')); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('bulk-action-tabs'));
+    });
 
     await waitFor(() => screen.getByRole('button', { name: /Open 3 tabs/i }));
     expect(screen.queryByRole('alert')).toBeNull();
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Open 3 tabs/i })); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Open 3 tabs/i }));
+    });
 
     await waitFor(() => expect(window.open).toHaveBeenCalledTimes(3), { timeout: 3000 });
     const calls = (window.open as ReturnType<typeof vi.fn>).mock.calls;
@@ -314,22 +351,30 @@ describe('BulkExport — Open in tabs', () => {
     render(<RosterTable orgId="org-cap" slug="test-slug" permissionMap={ownerPermMap} />);
     await waitFor(() => expect(screen.getByTestId('roster-row-u1')).toBeInTheDocument());
 
-    await act(async () => { fireEvent.click(screen.getAllByRole('checkbox')[0]); });
-    await waitFor(() => expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument(),
+    );
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i })); });
-    await act(async () => { fireEvent.click(screen.getByTestId('bulk-action-tabs')); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('bulk-action-tabs'));
+    });
 
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toContain('Tab limit');
     });
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Open 5 tabs/i })); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Open 5 tabs/i }));
+    });
 
     await waitFor(() => expect(window.open).toHaveBeenCalledTimes(5), { timeout: 3000 });
-    await waitFor(() =>
-      expect(mockToastCalls.some(([msg]) => msg.includes('capped'))).toBe(true),
-    );
+    await waitFor(() => expect(mockToastCalls.some(([msg]) => msg.includes('capped'))).toBe(true));
   }, 8_000);
 });
 
@@ -351,14 +396,23 @@ describe('BulkExport — mobile long-press', () => {
 
     // Wait for card to appear
     let card: HTMLElement | null = null;
-    await waitFor(() => {
-      card = screen.queryByTestId('roster-card-mob1');
-      if (!card) throw new Error('card not found');
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        card = screen.queryByTestId('roster-card-mob1');
+        if (!card) throw new Error('card not found');
+      },
+      { timeout: 3000 },
+    );
 
-    act(() => { fireEvent.touchStart(card!); });
-    act(() => { vi.advanceTimersByTime(600); });
-    act(() => { fireEvent.touchEnd(card!); });
+    act(() => {
+      fireEvent.touchStart(card!);
+    });
+    act(() => {
+      vi.advanceTimersByTime(600);
+    });
+    act(() => {
+      fireEvent.touchEnd(card!);
+    });
 
     await act(async () => {
       await waitFor(() =>
@@ -376,7 +430,7 @@ describe('BulkExport — mobile long-press', () => {
 describe('BulkExport — PostHog PHI safety', () => {
   it('Test 9: bulk events have count+action; NO patient ids', async () => {
     const capturedEvents: Array<{ name: string; props: Record<string, unknown> }> = [];
-     
+
     (window as any).posthog = {
       capture: (name: string, props: Record<string, unknown>) => {
         capturedEvents.push({ name, props });
@@ -389,11 +443,19 @@ describe('BulkExport — PostHog PHI safety', () => {
     render(<RosterTable orgId="org-phi" slug="test-slug" permissionMap={ownerPermMap} />);
     await waitFor(() => expect(screen.getByTestId('roster-row-phi1')).toBeInTheDocument());
 
-    await act(async () => { fireEvent.click(screen.getAllByRole('checkbox')[1]); });
-    await waitFor(() => expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument());
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('checkbox')[1]);
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-selection-bar-wrapper')).toBeInTheDocument(),
+    );
 
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i })); });
-    await act(async () => { fireEvent.click(screen.getByTestId('bulk-action-csv')); });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Bulk actions menu/i }));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('bulk-action-csv'));
+    });
 
     // clinic_bulk_selected fires on action menu click
     await waitFor(() => {

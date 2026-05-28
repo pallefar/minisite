@@ -129,9 +129,7 @@ export function TaxDashboard() {
         const rev = revenueByState.get(t.state);
         const revenueCents = rev?.revenue_cents ?? 0;
         const proximityPercent =
-          t.threshold_amount_cents > 0
-            ? (revenueCents / t.threshold_amount_cents) * 100
-            : 0;
+          t.threshold_amount_cents > 0 ? (revenueCents / t.threshold_amount_cents) * 100 : 0;
         return {
           state: t.state,
           state_name: t.state_name,
@@ -200,9 +198,7 @@ export function TaxDashboard() {
 
       {error ? (
         <Card className="p-6 flex flex-col gap-3">
-          <p className="text-[13px] font-normal text-[var(--color-text)]">
-            {error}
-          </p>
+          <p className="text-[13px] font-normal text-[var(--color-text)]">{error}</p>
           <div>
             <Button
               variant="tonal"

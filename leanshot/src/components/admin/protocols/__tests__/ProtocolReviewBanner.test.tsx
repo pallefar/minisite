@@ -60,13 +60,7 @@ describe('ProtocolReviewBanner', () => {
   });
 
   it('T4 — reviewer view without onPublish: no Publish Protocol button', () => {
-    render(
-      <ProtocolReviewBanner
-        isAuthor={false}
-        reviewerName="Dr. Smith"
-        publishing={false}
-      />,
-    );
+    render(<ProtocolReviewBanner isAuthor={false} reviewerName="Dr. Smith" publishing={false} />);
 
     // onPublish not provided — no button rendered
     expect(screen.queryByText('Publish Protocol')).toBeNull();

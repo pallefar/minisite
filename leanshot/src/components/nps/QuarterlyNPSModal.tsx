@@ -39,12 +39,7 @@ export interface QuarterlyNPSModalProps {
 
 const STAR_VALUES = [1, 2, 3, 4, 5] as const;
 
-export function QuarterlyNPSModal({
-  open,
-  onClose,
-  nonce,
-  quarter,
-}: QuarterlyNPSModalProps) {
+export function QuarterlyNPSModal({ open, onClose, nonce, quarter }: QuarterlyNPSModalProps) {
   // `quarter` is part of the API for documentation symmetry with the
   // eligibility RPC response shape — the actual quarter is derived server-side
   // via the nonce owner inside submit_quarterly_nps_in_app(). Reference it so
@@ -134,7 +129,13 @@ export function QuarterlyNPSModal({
   }, [submitRpc, onClose]);
 
   return (
-    <Modal open={open} onClose={onClose} title="Quick quarterly check-in" size="md" mobileFullscreen>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Quick quarterly check-in"
+      size="md"
+      mobileFullscreen
+    >
       <div className="flex flex-col gap-5">
         <p className="text-[14px] text-[var(--color-text-secondary)]">
           How likely are you to recommend LeanShot?

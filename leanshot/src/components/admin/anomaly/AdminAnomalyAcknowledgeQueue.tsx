@@ -150,10 +150,7 @@ export function AdminAnomalyAcknowledgeQueue() {
           <p className="text-sm text-[var(--color-text-secondary)] mb-4">
             You don&apos;t have access to the anomaly queue.
           </p>
-          <a
-            href="/"
-            className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-          >
+          <a href="/" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">
             Back to home →
           </a>
         </Card>
@@ -218,25 +215,46 @@ export function AdminAnomalyAcknowledgeQueue() {
           <table className="w-full text-sm" data-testid="anomaly-alerts-table">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Funnel
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Observed (24h)
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Expected (μ ± σ)
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   z-score
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Status
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Fired
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>

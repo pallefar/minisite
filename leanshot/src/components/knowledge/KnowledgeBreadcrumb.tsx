@@ -67,26 +67,31 @@ export function KnowledgeBreadcrumb({ topic, chunkTitle }: KnowledgeBreadcrumbPr
             const isLast = i === items.length - 1;
             return (
               <li key={i} className="flex items-center gap-1">
-                {i > 0 && <span aria-hidden="true" className="text-text-tertiary">›</span>}
+                {i > 0 && (
+                  <span aria-hidden="true" className="text-text-tertiary">
+                    ›
+                  </span>
+                )}
                 {isLast || !item.href ? (
-                  <span aria-current={isLast ? 'page' : undefined} className={isLast ? 'text-text font-normal truncate max-w-[200px]' : ''}>
+                  <span
+                    aria-current={isLast ? 'page' : undefined}
+                    className={isLast ? 'text-text font-normal truncate max-w-[200px]' : ''}
+                  >
                     {item.name}
                   </span>
-                ) : (
-                  /* For links within /knowledge, use react-router Link.
+                ) : /* For links within /knowledge, use react-router Link.
                      For the Home link (external), use a plain anchor. */
-                  item.href.startsWith(CANONICAL_BASE + '/knowledge') ? (
-                    <Link
-                      to={item.href.replace(CANONICAL_BASE + '/knowledge', '') || '/'}
-                      className="hover:underline hover:text-text"
-                    >
-                      {item.name}
-                    </Link>
-                  ) : (
-                    <a href={item.href} className="hover:underline hover:text-text">
-                      {item.name}
-                    </a>
-                  )
+                item.href.startsWith(CANONICAL_BASE + '/knowledge') ? (
+                  <Link
+                    to={item.href.replace(CANONICAL_BASE + '/knowledge', '') || '/'}
+                    className="hover:underline hover:text-text"
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <a href={item.href} className="hover:underline hover:text-text">
+                    {item.name}
+                  </a>
                 )}
               </li>
             );

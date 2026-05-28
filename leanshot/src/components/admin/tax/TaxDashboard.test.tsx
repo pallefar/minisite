@@ -93,7 +93,14 @@ describe('TaxDashboard', () => {
 
   it('case 3: Refresh button invokes nexus-monitor Fn', async () => {
     setupQueries(
-      [{ state: 'CA', state_name: 'California', threshold_amount_cents: 50000000, transaction_count_threshold: 200 }],
+      [
+        {
+          state: 'CA',
+          state_name: 'California',
+          threshold_amount_cents: 50000000,
+          transaction_count_threshold: 200,
+        },
+      ],
       [],
     );
     mockInvoke.mockResolvedValueOnce({ data: { refreshed: true }, error: null });
@@ -110,9 +117,24 @@ describe('TaxDashboard', () => {
   it('case 4: renders one row per threshold state', async () => {
     setupQueries(
       [
-        { state: 'CA', state_name: 'California', threshold_amount_cents: 50000000, transaction_count_threshold: 200 },
-        { state: 'TX', state_name: 'Texas', threshold_amount_cents: 50000000, transaction_count_threshold: 200 },
-        { state: 'NY', state_name: 'New York', threshold_amount_cents: 50000000, transaction_count_threshold: 200 },
+        {
+          state: 'CA',
+          state_name: 'California',
+          threshold_amount_cents: 50000000,
+          transaction_count_threshold: 200,
+        },
+        {
+          state: 'TX',
+          state_name: 'Texas',
+          threshold_amount_cents: 50000000,
+          transaction_count_threshold: 200,
+        },
+        {
+          state: 'NY',
+          state_name: 'New York',
+          threshold_amount_cents: 50000000,
+          transaction_count_threshold: 200,
+        },
       ],
       [],
     );
@@ -126,7 +148,14 @@ describe('TaxDashboard', () => {
 
   it('case 5: formats revenue + threshold as USD', async () => {
     setupQueries(
-      [{ state: 'CA', state_name: 'California', threshold_amount_cents: 50000000, transaction_count_threshold: 200 }],
+      [
+        {
+          state: 'CA',
+          state_name: 'California',
+          threshold_amount_cents: 50000000,
+          transaction_count_threshold: 200,
+        },
+      ],
       [{ state: 'CA', revenue_cents: 25000000, last_transaction_at: null }],
     );
     await renderDashboard();
@@ -140,10 +169,30 @@ describe('TaxDashboard', () => {
   it('case 6: status tier badges classify <60 / 60-79 / 80-99 / ≥100', async () => {
     setupQueries(
       [
-        { state: 'CA', state_name: 'California', threshold_amount_cents: 100000000, transaction_count_threshold: 200 }, // 50% → safe
-        { state: 'TX', state_name: 'Texas', threshold_amount_cents: 100000000, transaction_count_threshold: 200 }, // 70% → monitoring
-        { state: 'NY', state_name: 'New York', threshold_amount_cents: 100000000, transaction_count_threshold: 200 }, // 90% → at_risk
-        { state: 'FL', state_name: 'Florida', threshold_amount_cents: 100000000, transaction_count_threshold: 200 }, // 110% → nexus_established
+        {
+          state: 'CA',
+          state_name: 'California',
+          threshold_amount_cents: 100000000,
+          transaction_count_threshold: 200,
+        }, // 50% → safe
+        {
+          state: 'TX',
+          state_name: 'Texas',
+          threshold_amount_cents: 100000000,
+          transaction_count_threshold: 200,
+        }, // 70% → monitoring
+        {
+          state: 'NY',
+          state_name: 'New York',
+          threshold_amount_cents: 100000000,
+          transaction_count_threshold: 200,
+        }, // 90% → at_risk
+        {
+          state: 'FL',
+          state_name: 'Florida',
+          threshold_amount_cents: 100000000,
+          transaction_count_threshold: 200,
+        }, // 110% → nexus_established
       ],
       [
         { state: 'CA', revenue_cents: 50000000, last_transaction_at: null },
@@ -166,7 +215,14 @@ describe('TaxDashboard', () => {
 
   it('case 7: proximity bar width clamps to 100% when revenue exceeds threshold', async () => {
     setupQueries(
-      [{ state: 'FL', state_name: 'Florida', threshold_amount_cents: 100000000, transaction_count_threshold: 200 }],
+      [
+        {
+          state: 'FL',
+          state_name: 'Florida',
+          threshold_amount_cents: 100000000,
+          transaction_count_threshold: 200,
+        },
+      ],
       [{ state: 'FL', revenue_cents: 200000000, last_transaction_at: null }],
     );
     await renderDashboard();

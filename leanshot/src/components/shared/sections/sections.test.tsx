@@ -25,25 +25,78 @@ import { WeightsSection } from './WeightsSection';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const sampleInjections = [
-  { log_id: 'inj-1', timestamp: '2024-01-01T10:00:00Z', medication: 'semaglutide', dose: 0.5, unit: 'mg', site: 'abdomen', id: 'inj-1', dose_mg: 0.5, created_at: '2024-01-01T10:00:00Z' },
-  { log_id: 'inj-2', timestamp: '2024-01-08T10:00:00Z', medication: 'semaglutide', dose: 1.0, unit: 'mg', site: 'thigh', id: 'inj-2', dose_mg: 1.0, created_at: '2024-01-08T10:00:00Z' },
+  {
+    log_id: 'inj-1',
+    timestamp: '2024-01-01T10:00:00Z',
+    medication: 'semaglutide',
+    dose: 0.5,
+    unit: 'mg',
+    site: 'abdomen',
+    id: 'inj-1',
+    dose_mg: 0.5,
+    created_at: '2024-01-01T10:00:00Z',
+  },
+  {
+    log_id: 'inj-2',
+    timestamp: '2024-01-08T10:00:00Z',
+    medication: 'semaglutide',
+    dose: 1.0,
+    unit: 'mg',
+    site: 'thigh',
+    id: 'inj-2',
+    dose_mg: 1.0,
+    created_at: '2024-01-08T10:00:00Z',
+  },
 ];
 
 const sampleWeights = [
-  { id: 'w-1', weight_kg: 85.5, timestamp: '2024-01-01T08:00:00Z', recorded_at: '2024-01-01T08:00:00Z' },
-  { id: 'w-2', weight_kg: 84.8, timestamp: '2024-01-08T08:00:00Z', recorded_at: '2024-01-08T08:00:00Z' },
+  {
+    id: 'w-1',
+    weight_kg: 85.5,
+    timestamp: '2024-01-01T08:00:00Z',
+    recorded_at: '2024-01-01T08:00:00Z',
+  },
+  {
+    id: 'w-2',
+    weight_kg: 84.8,
+    timestamp: '2024-01-08T08:00:00Z',
+    recorded_at: '2024-01-08T08:00:00Z',
+  },
 ];
 
 const sampleSymptoms = [
-  { id: 's-1', name: 'nausea', symptom: 'nausea', severity: 3, timestamp: '2024-01-01T12:00:00Z', recorded_at: '2024-01-01T12:00:00Z' },
-  { id: 's-2', name: 'fatigue', symptom: 'fatigue', severity: 2, timestamp: '2024-01-02T12:00:00Z', recorded_at: '2024-01-02T12:00:00Z' },
+  {
+    id: 's-1',
+    name: 'nausea',
+    symptom: 'nausea',
+    severity: 3,
+    timestamp: '2024-01-01T12:00:00Z',
+    recorded_at: '2024-01-01T12:00:00Z',
+  },
+  {
+    id: 's-2',
+    name: 'fatigue',
+    symptom: 'fatigue',
+    severity: 2,
+    timestamp: '2024-01-02T12:00:00Z',
+    recorded_at: '2024-01-02T12:00:00Z',
+  },
 ];
 
 const samplePhotos = [
-  { id: 'p-1', storage_path: 'org/user/p-1.jpg', signed_url: 'https://example.com/p-1.jpg', timestamp: '2024-01-01T09:00:00Z', taken_at: '2024-01-01T09:00:00Z' },
+  {
+    id: 'p-1',
+    storage_path: 'org/user/p-1.jpg',
+    signed_url: 'https://example.com/p-1.jpg',
+    timestamp: '2024-01-01T09:00:00Z',
+    taken_at: '2024-01-01T09:00:00Z',
+  },
 ];
 
-const sampleDoctorReport = { generated_at: '2024-01-01T10:00:00Z', markdown: '# Report\nAll looks good.' };
+const sampleDoctorReport = {
+  generated_at: '2024-01-01T10:00:00Z',
+  markdown: '# Report\nAll looks good.',
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // InjectionsSection
@@ -71,7 +124,9 @@ describe('InjectionsSection', () => {
 
   it('Test 3b: does not call onMount twice on re-render', async () => {
     const onMount = vi.fn();
-    const { rerender } = render(<InjectionsSection data={sampleInjections} viewerMode="clinic" onMount={onMount} />);
+    const { rerender } = render(
+      <InjectionsSection data={sampleInjections} viewerMode="clinic" onMount={onMount} />,
+    );
     await act(async () => {});
     rerender(<InjectionsSection data={sampleInjections} viewerMode="clinic" onMount={onMount} />);
     await act(async () => {});
@@ -144,7 +199,9 @@ describe('PhotosSection', () => {
 
   it('Test 3: calls onMount once with section name', async () => {
     const onMount = vi.fn();
-    render(<PhotosSection data={samplePhotos} viewerMode="clinic" orgId="org-1" onMount={onMount} />);
+    render(
+      <PhotosSection data={samplePhotos} viewerMode="clinic" orgId="org-1" onMount={onMount} />,
+    );
     await act(async () => {});
     expect(onMount).toHaveBeenCalledTimes(1);
     expect(onMount).toHaveBeenCalledWith('photos');
@@ -184,7 +241,7 @@ describe('ChartSection', () => {
     const { container } = render(
       <Suspense fallback={<div>loading</div>}>
         <ChartSection data={sampleInjections} viewerMode="share" />
-      </Suspense>
+      </Suspense>,
     );
     // The heading should be in the document
     await act(async () => {});
@@ -195,7 +252,7 @@ describe('ChartSection', () => {
     render(
       <Suspense fallback={<div>loading</div>}>
         <ChartSection data={[]} viewerMode="share" />
-      </Suspense>
+      </Suspense>,
     );
     expect(screen.getByRole('heading', { name: /Drug-level estimate/i })).toBeInTheDocument();
   });
@@ -205,7 +262,7 @@ describe('ChartSection', () => {
     render(
       <Suspense fallback={<div>loading</div>}>
         <ChartSection data={sampleInjections} viewerMode="clinic" onMount={onMount} />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
     expect(onMount).toHaveBeenCalledTimes(1);

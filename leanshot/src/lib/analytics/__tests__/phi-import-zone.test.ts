@@ -12,11 +12,11 @@ import { describe, it, expect } from 'vitest';
 // Path to the repo root (leanshot/) — eslint.config.js lives here
 const REPO_ROOT = resolve(
   import.meta.url.replace('file://', ''),
-  '..',   // __tests__
-  '..',   // analytics
-  '..',   // lib
-  '..',   // src
-  '..',   // leanshot
+  '..', // __tests__
+  '..', // analytics
+  '..', // lib
+  '..', // src
+  '..', // leanshot
 );
 
 describe('PHI import zone restriction', () => {
@@ -52,15 +52,13 @@ describe('PHI import zone restriction', () => {
       { filePath: join(REPO_ROOT, 'src', 'components', 'BadComponent.ts') },
     );
 
-    const allMessages = results.flatMap(r => r.messages);
-    const phiZoneErrors = allMessages.filter(
-      m => m.ruleId === 'import-x/no-restricted-paths',
-    );
+    const allMessages = results.flatMap((r) => r.messages);
+    const phiZoneErrors = allMessages.filter((m) => m.ruleId === 'import-x/no-restricted-paths');
 
     expect(
       phiZoneErrors.length,
       `Expected import-x/no-restricted-paths error for PHI import in client zone.\n` +
-      `All rule IDs: ${JSON.stringify(allMessages.map(m => ({ ruleId: m.ruleId, msg: m.message.slice(0, 80) })))}`,
+        `All rule IDs: ${JSON.stringify(allMessages.map((m) => ({ ruleId: m.ruleId, msg: m.message.slice(0, 80) })))}`,
     ).toBeGreaterThan(0);
   });
 });

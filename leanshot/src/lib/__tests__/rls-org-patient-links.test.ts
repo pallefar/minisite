@@ -45,25 +45,41 @@ describeIfLive('P28 RLS — org_patient_links cross-tenant isolation + patient-s
 
     // Seed a consent grant for the patient in Org Y (needed for link FK).
     const validScope = {
-      injections: true, weights: true, photos: false, symptoms: true, meals: true,
-      workouts: true, supplements: true, mood: true, sleep: true, doctor_report: true,
+      injections: true,
+      weights: true,
+      photos: false,
+      symptoms: true,
+      meals: true,
+      workouts: true,
+      supplements: true,
+      mood: true,
+      sleep: true,
+      doctor_report: true,
     };
-    const { data: grantData, error: grantErr } = await admin.from('org_consent_grants').insert({
-      org_id: fixture.orgY,
-      patient_user_id: patientUserId,
-      scope: validScope,
-      granted_via: 'manual',
-    }).select('id').single();
+    const { data: grantData, error: grantErr } = await admin
+      .from('org_consent_grants')
+      .insert({
+        org_id: fixture.orgY,
+        patient_user_id: patientUserId,
+        scope: validScope,
+        granted_via: 'manual',
+      })
+      .select('id')
+      .single();
     if (grantErr) throw new Error(`consent grant insert failed: ${grantErr.message}`);
     const consentGrantId = grantData?.id;
 
     // Seed an org_patient_link row in Org Y.
-    const { data: linkData, error: linkErr } = await admin.from('org_patient_links').insert({
-      org_id: fixture.orgY,
-      patient_user_id: patientUserId,
-      linked_by: fixture.userB,
-      consent_grant_id: consentGrantId,
-    }).select('id').single();
+    const { data: linkData, error: linkErr } = await admin
+      .from('org_patient_links')
+      .insert({
+        org_id: fixture.orgY,
+        patient_user_id: patientUserId,
+        linked_by: fixture.userB,
+        consent_grant_id: consentGrantId,
+      })
+      .select('id')
+      .single();
     if (linkErr) throw new Error(`patient link insert failed: ${linkErr.message}`);
     orgYLinkId = linkData?.id ?? null;
   }, 60_000);
@@ -73,7 +89,9 @@ describeIfLive('P28 RLS — org_patient_links cross-tenant isolation + patient-s
     const admin = getAdmin();
     try {
       await admin.auth.admin.deleteUser(patientUserId);
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
     await cleanupByPrefix(TEST_SLUG_PREFIX);
   });
 
@@ -103,7 +121,11 @@ describeIfLive('P28 RLS — org_patient_links cross-tenant isolation + patient-s
     await sessA.client.from('org_patient_links').delete().eq('id', orgYLinkId);
     // Row must still exist.
     const admin = getAdmin();
-    const { data } = await admin.from('org_patient_links').select('id').eq('id', orgYLinkId).single();
+    const { data } = await admin
+      .from('org_patient_links')
+      .select('id')
+      .eq('id', orgYLinkId)
+      .single();
     expect(data?.id).toBe(orgYLinkId);
   }, 30_000);
 

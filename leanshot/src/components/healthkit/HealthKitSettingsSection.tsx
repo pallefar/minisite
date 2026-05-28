@@ -20,12 +20,7 @@ import { ConfirmModal } from '@/components/ui/Confirm';
 import { Pill } from '@/components/ui/Pill';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useToast } from '@/hooks/useToast';
-import {
-  isEnabled,
-  purgeImportedData,
-  revokeAccess,
-  syncNow,
-} from '@/lib/native/health';
+import { isEnabled, purgeImportedData, revokeAccess, syncNow } from '@/lib/native/health';
 import { detectPlatform } from '@/lib/native/platform';
 import { HealthKitConsentModal } from './HealthKitConsentModal';
 
@@ -174,10 +169,7 @@ export function HealthKitSettingsSection() {
       <Card variant="default">
         {/* Card header row: icon + title + status badge */}
         <div className="flex items-center gap-2.5 mb-3">
-          <Heart
-            className="size-4 text-[var(--color-primary)] shrink-0"
-            aria-hidden
-          />
+          <Heart className="size-4 text-[var(--color-primary)] shrink-0" aria-hidden />
           <span className="text-[13px] font-semibold text-[var(--color-text)] flex-1">
             Apple Health
           </span>
@@ -290,8 +282,8 @@ export function HealthKitSettingsSection() {
                     Remove imported data
                   </p>
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
-                    This permanently deletes all data LeanShot imported from Apple Health.
-                    Manually logged data is not affected.
+                    This permanently deletes all data LeanShot imported from Apple Health. Manually
+                    logged data is not affected.
                   </p>
                 </div>
                 <Button

@@ -15,10 +15,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/hooks/useToast';
-import {
-  AdminStripeError,
-  cancelSubscription,
-} from '@/lib/admin/admin-stripe-actions';
+import { AdminStripeError, cancelSubscription } from '@/lib/admin/admin-stripe-actions';
 
 export interface CancelSubModalProps {
   isOpen: boolean;

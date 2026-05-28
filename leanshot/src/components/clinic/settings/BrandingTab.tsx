@@ -19,15 +19,7 @@
  * UI-SPEC §Surface 1 verbatim copy contract (section "Copywriting Contract /
  * BrandingTab") — tab label "Branding", heading "Clinic branding", etc.
  */
-import {
-  AlertCircle,
-  Check,
-  Eye,
-  EyeOff,
-  Palette,
-  Upload,
-  X,
-} from 'lucide-react';
+import { AlertCircle, Check, Eye, EyeOff, Palette, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -61,13 +53,7 @@ interface BrandingForm {
   support_email: string;
 }
 
-const FONT_OPTIONS = [
-  'Inter',
-  'Fraunces',
-  'JetBrains Mono',
-  'Lora',
-  'IBM Plex Sans',
-] as const;
+const FONT_OPTIONS = ['Inter', 'Fraunces', 'JetBrains Mono', 'Lora', 'IBM Plex Sans'] as const;
 
 const RADIUS_OPTIONS: readonly { value: BrandingForm['radius_scale']; label: string }[] = [
   { value: 'sm', label: 'Small' },
@@ -118,9 +104,7 @@ function NoPermission() {
     <Card variant="flat">
       <div className="py-6 px-4 text-center">
         <Palette className="size-8 text-[var(--color-text-tertiary)] mx-auto mb-2" aria-hidden />
-        <p className="text-[14px] font-semibold text-[var(--color-text)]">
-          Access restricted
-        </p>
+        <p className="text-[14px] font-semibold text-[var(--color-text)]">Access restricted</p>
         <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
           You don&apos;t have permission to edit clinic branding.
         </p>
@@ -200,11 +184,7 @@ function PreviewPane({
           }}
         >
           {tokens.logo_url ? (
-            <img
-              src={tokens.logo_url}
-              alt="Clinic logo"
-              className="w-5 h-5 object-contain"
-            />
+            <img src={tokens.logo_url} alt="Clinic logo" className="w-5 h-5 object-contain" />
           ) : (
             <span
               className="text-[10px] font-bold"
@@ -388,17 +368,17 @@ function BrandingTabInner({
   const textBgPassing = textBgContrast !== null && textBgContrast >= 4.5;
   const primaryBgPassing = primaryBgContrast !== null && primaryBgContrast >= 3.0;
 
-  const anyInvalidOklch = ['text_color', 'bg_color', 'primary_color', 'accent_color'].some(
-    (k) => {
-      const val = form[k as keyof BrandingForm] as string;
-      return val.trim().length > 0 && parseOklch(val) === null;
-    },
-  );
+  const anyInvalidOklch = ['text_color', 'bg_color', 'primary_color', 'accent_color'].some((k) => {
+    const val = form[k as keyof BrandingForm] as string;
+    return val.trim().length > 0 && parseOklch(val) === null;
+  });
 
   const saveDisabled =
     anyInvalidOklch ||
     (form.text_color.trim().length > 0 && form.bg_color.trim().length > 0 && !textBgPassing) ||
-    (form.primary_color.trim().length > 0 && form.bg_color.trim().length > 0 && !primaryBgPassing) ||
+    (form.primary_color.trim().length > 0 &&
+      form.bg_color.trim().length > 0 &&
+      !primaryBgPassing) ||
     submitting;
 
   // ---------------------------------------------------------------------------
@@ -419,8 +399,7 @@ function BrandingTabInner({
     if (value.trim().length > 0 && parseOklch(value) === null) {
       setColorErrors((prev) => ({
         ...prev,
-        [field]:
-          'Enter a valid oklch() color (e.g., oklch(0.65 0.18 240)).',
+        [field]: 'Enter a valid oklch() color (e.g., oklch(0.65 0.18 240)).',
       }));
     } else {
       setColorErrors((prev) => ({ ...prev, [field]: null }));
@@ -450,10 +429,9 @@ function BrandingTabInner({
 
     setUploading((prev) => ({ ...prev, [kind]: true }));
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'branding-asset-upload-url',
-        { body: { p_org_id: orgId, p_kind: kind } },
-      );
+      const { data, error } = await supabase.functions.invoke('branding-asset-upload-url', {
+        body: { p_org_id: orgId, p_kind: kind },
+      });
       if (error || !data?.upload_url) {
         toast('Upload failed. Please try again.', 'error');
         return;
@@ -543,7 +521,7 @@ function BrandingTabInner({
         }
         return;
       }
-      toast("Branding saved — patients will see this on their next visit.", 'success');
+      toast('Branding saved — patients will see this on their next visit.', 'success');
     } finally {
       setSubmitting(false);
     }
@@ -658,7 +636,8 @@ function BrandingTabInner({
           <div className="space-y-3">
             <p className="text-[13px] font-semibold text-[var(--color-text)]">Colors</p>
             <p className="text-[12px] text-[var(--color-text-secondary)]">
-              Enter colors in oklch() format, e.g. <code className="font-mono">oklch(0.65 0.18 240)</code>
+              Enter colors in oklch() format, e.g.{' '}
+              <code className="font-mono">oklch(0.65 0.18 240)</code>
             </p>
             {(
               [
@@ -670,9 +649,7 @@ function BrandingTabInner({
             ).map(({ key, label }) => {
               const val = form[key];
               const parsed = parseOklch(val);
-              const swatchBg = parsed
-                ? val
-                : undefined;
+              const swatchBg = parsed ? val : undefined;
 
               return (
                 <div key={key} className="flex items-start gap-3">
@@ -726,11 +703,7 @@ function BrandingTabInner({
               {/* Row 1: Text on background */}
               <div className="flex items-center gap-2">
                 {textBgContrast !== null && textBgPassing ? (
-                  <Check
-                    size={14}
-                    className="text-[var(--color-success)] shrink-0"
-                    aria-hidden
-                  />
+                  <Check size={14} className="text-[var(--color-success)] shrink-0" aria-hidden />
                 ) : textBgContrast !== null ? (
                   <AlertCircle
                     size={14}
@@ -767,11 +740,7 @@ function BrandingTabInner({
               {/* Row 2: Primary on background */}
               <div className="flex items-center gap-2">
                 {primaryBgContrast !== null && primaryBgPassing ? (
-                  <Check
-                    size={14}
-                    className="text-[var(--color-success)] shrink-0"
-                    aria-hidden
-                  />
+                  <Check size={14} className="text-[var(--color-success)] shrink-0" aria-hidden />
                 ) : primaryBgContrast !== null ? (
                   <AlertCircle
                     size={14}
@@ -813,9 +782,7 @@ function BrandingTabInner({
             <Select
               label="Heading font"
               value={form.heading_font}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, heading_font: e.target.value }))
-              }
+              onChange={(e) => setForm((prev) => ({ ...prev, heading_font: e.target.value }))}
               aria-label="Heading font"
             >
               {FONT_OPTIONS.map((f) => (
@@ -827,9 +794,7 @@ function BrandingTabInner({
             <Select
               label="Body font"
               value={form.body_font}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, body_font: e.target.value }))
-              }
+              onChange={(e) => setForm((prev) => ({ ...prev, body_font: e.target.value }))}
               aria-label="Body font"
             >
               {FONT_OPTIONS.map((f) => (
@@ -842,18 +807,14 @@ function BrandingTabInner({
 
           {/* Radius scale */}
           <div>
-            <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">
-              Corner radius
-            </p>
+            <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">Corner radius</p>
             <PillGroup segmented>
               {RADIUS_OPTIONS.map(({ value, label }) => (
                 <Pill
                   key={value}
                   active={form.radius_scale === value}
                   size="sm"
-                  onClick={() =>
-                    setForm((prev) => ({ ...prev, radius_scale: value }))
-                  }
+                  onClick={() => setForm((prev) => ({ ...prev, radius_scale: value }))}
                   aria-label={`Corner radius: ${label}`}
                 >
                   {label}
@@ -868,9 +829,7 @@ function BrandingTabInner({
             type="email"
             placeholder="support@yourclinic.com"
             value={form.support_email}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, support_email: e.target.value }))
-            }
+            onChange={(e) => setForm((prev) => ({ ...prev, support_email: e.target.value }))}
             onBlur={(e) => {
               if (
                 e.target.value.trim().length > 0 &&
@@ -910,7 +869,9 @@ function BrandingTabInner({
               size="sm"
               onClick={() => setPreviewDefaults((v) => !v)}
               aria-label={
-                previewDefaults ? 'Show clinic theme in preview' : 'Show LeanShot defaults in preview'
+                previewDefaults
+                  ? 'Show clinic theme in preview'
+                  : 'Show LeanShot defaults in preview'
               }
             >
               {previewDefaults ? (

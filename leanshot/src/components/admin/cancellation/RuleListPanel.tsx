@@ -164,11 +164,7 @@ export function RuleListPanel({
 
   return (
     <div className="flex flex-col gap-2">
-      <div
-        role="list"
-        aria-label="Save-offer rules"
-        className="space-y-1"
-      >
+      <div role="list" aria-label="Save-offer rules" className="space-y-1">
         {rules.map((rule, index) => {
           const isSelected = rule.id === selectedRuleId;
           const cohortName = rule.cohort_definitions?.name ?? null;
@@ -180,7 +176,10 @@ export function RuleListPanel({
               tabIndex={0}
               draggable={canWrite}
               onDragStart={() => setDragIndex(index)}
-              onDragOver={(e) => { e.preventDefault(); dragOverRef.current = index; }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                dragOverRef.current = index;
+              }}
               onDragEnd={() => void handleDragEnd()}
               className={[
                 'group flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors',
@@ -190,15 +189,17 @@ export function RuleListPanel({
                 canWrite ? 'cursor-grab' : '',
               ].join(' ')}
               onClick={() => onSelectRule(rule)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectRule(rule); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectRule(rule);
+                }
+              }}
               aria-label={`Select rule: ${rule.title}`}
             >
               {/* Drag handle */}
               {canWrite && (
-                <span
-                  className="text-[var(--color-text-tertiary)] shrink-0"
-                  aria-hidden="true"
-                >
+                <span className="text-[var(--color-text-tertiary)] shrink-0" aria-hidden="true">
                   <GripVertical size={16} />
                 </span>
               )}

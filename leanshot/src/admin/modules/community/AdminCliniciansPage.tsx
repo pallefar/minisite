@@ -78,9 +78,7 @@ export function AdminCliniciansPage() {
 
       // Optimistic local update.
       setRows((prev) =>
-        prev.map((r) =>
-          r.id === row.id ? { ...r, is_clinician_verified: nextValue } : r,
-        ),
+        prev.map((r) => (r.id === row.id ? { ...r, is_clinician_verified: nextValue } : r)),
       );
 
       const { error } = await supabase.rpc('admin_set_clinician_verified', {
@@ -92,17 +90,13 @@ export function AdminCliniciansPage() {
         // Revert.
         setRows((prev) =>
           prev.map((r) =>
-            r.id === row.id
-              ? { ...r, is_clinician_verified: row.is_clinician_verified }
-              : r,
+            r.id === row.id ? { ...r, is_clinician_verified: row.is_clinician_verified } : r,
           ),
         );
         toast(`Failed to update verified status: ${error.message}`, 'error');
       } else {
         toast(
-          nextValue
-            ? 'Clinician verified badge granted.'
-            : 'Clinician verified badge revoked.',
+          nextValue ? 'Clinician verified badge granted.' : 'Clinician verified badge revoked.',
           'success',
         );
       }
@@ -117,8 +111,8 @@ export function AdminCliniciansPage() {
         <div>
           <h2 className="text-base font-semibold">Clinician verification</h2>
           <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-            Grant or revoke the verified-clinician badge. Verified clinicians
-            bypass DM rate limits and surface a badge on their public profile.
+            Grant or revoke the verified-clinician badge. Verified clinicians bypass DM rate limits
+            and surface a badge on their public profile.
           </p>
         </div>
         <input
@@ -131,9 +125,7 @@ export function AdminCliniciansPage() {
         />
       </div>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading profiles…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading profiles…</p>}
 
       {!loading && rows.length === 0 && (
         <p className="text-sm text-[var(--color-text-secondary)]">
@@ -166,9 +158,7 @@ export function AdminCliniciansPage() {
                   key={row.id}
                   className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)]"
                 >
-                  <td className="py-2 font-mono text-xs">
-                    {row.handle ? `@${row.handle}` : '—'}
-                  </td>
+                  <td className="py-2 font-mono text-xs">{row.handle ? `@${row.handle}` : '—'}</td>
                   <td className="py-2">{row.display_name ?? '—'}</td>
                   <td className="py-2">
                     <span

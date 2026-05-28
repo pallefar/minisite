@@ -16,7 +16,13 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
-import { isAppleEnabled, setPasswordOnPromoted, signIn, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
+import {
+  isAppleEnabled,
+  setPasswordOnPromoted,
+  signIn,
+  signInWithMagicLink,
+  signInWithOAuthProvider,
+} from '@/lib/auth';
 
 const PASSWORD_REGEX = /^(?=.*\d).{8,}$/;
 

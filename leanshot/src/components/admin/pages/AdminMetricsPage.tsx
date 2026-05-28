@@ -23,7 +23,11 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pill, PillGroup } from '@/components/ui/Pill';
-import { fetchMetrics, type AdminMetrics, type AdminMetricsPeriod } from '@/lib/admin/admin-metrics';
+import {
+  fetchMetrics,
+  type AdminMetrics,
+  type AdminMetricsPeriod,
+} from '@/lib/admin/admin-metrics';
 import { supabase } from '@/lib/supabase';
 
 const PERIOD_OPTIONS: { key: AdminMetricsPeriod; label: string }[] = [
@@ -48,10 +52,7 @@ function NotAuthorizedCard() {
         <p className="text-sm text-[var(--color-text-secondary)] mb-4">
           You don&apos;t have access to the admin console.
         </p>
-        <a
-          href="/"
-          className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-        >
+        <a href="/" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">
           Back to home →
         </a>
       </Card>
@@ -171,10 +172,7 @@ export function AdminMetricsPage() {
 
       {metrics && isEmpty && (
         <Card variant="flat" padding="lg" className="max-w-md mx-auto mt-12">
-          <EmptyState
-            title="No revenue data yet"
-            body="Connect Stripe to see MRR and ARR here."
-          />
+          <EmptyState title="No revenue data yet" body="Connect Stripe to see MRR and ARR here." />
         </Card>
       )}
 

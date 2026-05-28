@@ -41,7 +41,9 @@ const {
     dismissalResponse: { current: { data: [] as unknown[], error: null as unknown } },
     settingsResponse: { current: { data: [] as unknown[], error: null as unknown } },
     upsertMock: vi.fn().mockResolvedValue({ error: null }),
-    updateMock: vi.fn().mockReturnValue({ eq: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    updateMock: vi
+      .fn()
+      .mockReturnValue({ eq: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
     channelMock: vi.fn(() => ({
       on: () => ({ subscribe: () => ({ unsubscribe: () => 'ok' }) }),
     })),
@@ -143,8 +145,7 @@ function makeQBPromiseLike(table: string) {
     const profileChain: Record<string, unknown> = {
       select: () => profileChain,
       eq: () => profileChain,
-      maybeSingle: () =>
-        Promise.resolve({ data: { timezone: 'Europe/Oslo' }, error: null }),
+      maybeSingle: () => Promise.resolve({ data: { timezone: 'Europe/Oslo' }, error: null }),
     };
     return profileChain;
   }
@@ -355,8 +356,12 @@ describe('NotificationsSubtab (Plan 42-08 POLISH-05/06)', () => {
     render(<NotificationsSubtab />);
     await screen.findByLabelText('Notification preferences');
     const section = screen.getByTestId('email-digests-section');
-    expect(within(section).getByRole('switch', { name: /Daily community digest email/i })).toBeInTheDocument();
-    expect(within(section).getByRole('switch', { name: /Weekly community digest email/i })).toBeInTheDocument();
+    expect(
+      within(section).getByRole('switch', { name: /Daily community digest email/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(section).getByRole('switch', { name: /Weekly community digest email/i }),
+    ).toBeInTheDocument();
   });
 
   it('toggling a digest off calls supabase upsert with enabled:false', async () => {

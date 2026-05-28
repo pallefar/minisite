@@ -69,13 +69,14 @@ describeIfLive('P28 RLS — org_branding cross-tenant isolation', () => {
 
   it('T5: User A cannot UPDATE org_branding of Org Y', async () => {
     const { orgY, sessA } = fixture;
-    await sessA.client
-      .from('org_branding')
-      .update({ primary_color: '#00FF00' })
-      .eq('org_id', orgY);
+    await sessA.client.from('org_branding').update({ primary_color: '#00FF00' }).eq('org_id', orgY);
     // Verify Org Y branding unchanged via admin.
     const admin = getAdmin();
-    const { data } = await admin.from('org_branding').select('primary_color').eq('org_id', orgY).single();
+    const { data } = await admin
+      .from('org_branding')
+      .select('primary_color')
+      .eq('org_id', orgY)
+      .single();
     expect(data?.primary_color).toBe('#FF0000'); // unchanged
   }, 30_000);
 
@@ -105,8 +106,7 @@ describeIfLive('P28 RLS — org_branding cross-tenant isolation', () => {
 describeIfLive('P31 RLS — save_org_branding SECDEF + Storage path-prefix isolation', () => {
   let fixture: TwoOrgsTwoUsers;
 
-  const SUPABASE_URL =
-    process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? '';
+  const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? '';
 
   beforeAll(async () => {
     // Re-create the fixture using the same slug prefix so cleanup remains single-source.

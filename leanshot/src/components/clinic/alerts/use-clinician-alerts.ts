@@ -11,7 +11,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
-export type AlertStatus = 'pending' | 'snoozed' | 'acknowledged' | 'auto_resolved' | 'delivery_failed';
+export type AlertStatus =
+  | 'pending'
+  | 'snoozed'
+  | 'acknowledged'
+  | 'auto_resolved'
+  | 'delivery_failed';
 export type AlertType = 'dose_adherence' | 'dose_variance';
 
 export interface ClinicianAlert {
@@ -65,7 +70,9 @@ export function useClinicianAlerts({ orgId }: { orgId: string }): UseClinicianAl
       // 1. Fetch alerts
       const { data: alertRows, error: alertErr } = await supabase
         .from('clinician_alerts')
-        .select('id, org_id, patient_user_id, alert_type, status, threshold_snapshot, created_at, snooze_until, ack_at, ack_by')
+        .select(
+          'id, org_id, patient_user_id, alert_type, status, threshold_snapshot, created_at, snooze_until, ack_at, ack_by',
+        )
         .eq('org_id', orgId)
         .in('status', ['pending', 'snoozed', 'acknowledged', 'auto_resolved', 'delivery_failed'])
         .gte('created_at', since)
@@ -94,7 +101,10 @@ export function useClinicianAlerts({ orgId }: { orgId: string }): UseClinicianAl
 
         if (!cancelled && profiles) {
           displayNameMap = Object.fromEntries(
-            profiles.map((p: { id: string; display_name: string | null }) => [p.id, p.display_name ?? '']),
+            profiles.map((p: { id: string; display_name: string | null }) => [
+              p.id,
+              p.display_name ?? '',
+            ]),
           );
         }
       }
@@ -125,8 +135,11 @@ export function groupByStatus(alerts: ClinicianAlert[]) {
   return {
     pending: alerts.filter((a) => a.status === 'pending'),
     snoozed: alerts.filter((a) => a.status === 'snoozed'),
-    resolved: alerts.filter((a) =>
-      a.status === 'acknowledged' || a.status === 'auto_resolved' || a.status === 'delivery_failed',
+    resolved: alerts.filter(
+      (a) =>
+        a.status === 'acknowledged' ||
+        a.status === 'auto_resolved' ||
+        a.status === 'delivery_failed',
     ),
   };
 }

@@ -26,10 +26,7 @@ export function PlatformAdSlot({ placementId }: PlatformAdSlotProps) {
   useEffect(() => {
     if (!isNative) return;
 
-    const adUnitId =
-      platform === 'ios'
-        ? (ADMOB_BANNER_IOS ?? '')
-        : (ADMOB_BANNER_ANDROID ?? '');
+    const adUnitId = platform === 'ios' ? (ADMOB_BANNER_IOS ?? '') : (ADMOB_BANNER_ANDROID ?? '');
 
     if (!adUnitId) return;
 

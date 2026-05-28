@@ -124,7 +124,6 @@ function setPath(p: string): void {
 
 // ── Imports after mocks ───────────────────────────────────────────────────────
 
-
 // ── Setup helpers ─────────────────────────────────────────────────────────────
 
 async function setupSupabaseMock(): Promise<void> {
@@ -194,7 +193,9 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
 
     render(<AuditTab orgId="org-1" />);
     // Wait for list_org_members RPC to load members
-    await waitFor(() => expect(rpcMock).toHaveBeenCalledWith('list_org_members', { p_org_id: 'org-1' }));
+    await waitFor(() =>
+      expect(rpcMock).toHaveBeenCalledWith('list_org_members', { p_org_id: 'org-1' }),
+    );
 
     const { supabase } = await import('@/lib/supabase');
     // Open the member dropdown and select Alice
@@ -301,9 +302,7 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
   it('Test 6 — custom range modal validates from > to and shows error', () => {
     const onApply = vi.fn();
     const onClose = vi.fn();
-    render(
-      <AuditCustomRangeModal open initial={null} onApply={onApply} onClose={onClose} />,
-    );
+    render(<AuditCustomRangeModal open initial={null} onApply={onApply} onClose={onClose} />);
 
     const fromInput = screen.getByLabelText('Start date');
     const toInput = screen.getByLabelText('End date');
@@ -311,15 +310,15 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
     fireEvent.change(toInput, { target: { value: '2026-04-01' } });
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Start date must be on or before end date.');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Start date must be on or before end date.',
+    );
     expect(onApply).not.toHaveBeenCalled();
   });
 
   it('Test 6b — custom range modal validates range > 13 months', () => {
     const onApply = vi.fn();
-    render(
-      <AuditCustomRangeModal open initial={null} onApply={onApply} onClose={vi.fn()} />,
-    );
+    render(<AuditCustomRangeModal open initial={null} onApply={onApply} onClose={vi.fn()} />);
 
     const fromInput = screen.getByLabelText('Start date');
     const toInput = screen.getByLabelText('End date');
@@ -334,9 +333,7 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
   it('Test 6c — custom range modal: valid range calls onApply', () => {
     const onApply = vi.fn();
     const onClose = vi.fn();
-    render(
-      <AuditCustomRangeModal open initial={null} onApply={onApply} onClose={onClose} />,
-    );
+    render(<AuditCustomRangeModal open initial={null} onApply={onApply} onClose={onClose} />);
 
     const fromInput = screen.getByLabelText('Start date');
     const toInput = screen.getByLabelText('End date');
@@ -375,7 +372,9 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
     await waitFor(() => expect(screen.getByText(/Invited a patient/)).toBeInTheDocument());
 
     // Row is initially collapsed — find the AuditRow expand button by aria-controls attribute
-    const expandBtn = document.querySelector<HTMLButtonElement>('button[aria-expanded][aria-controls]');
+    const expandBtn = document.querySelector<HTMLButtonElement>(
+      'button[aria-expanded][aria-controls]',
+    );
     expect(expandBtn).not.toBeNull();
     expect(expandBtn!.getAttribute('aria-expanded')).toBe('false');
 
@@ -428,7 +427,9 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
     await waitFor(() => expect(screen.getByText(/Revoked patient access/)).toBeInTheDocument());
 
     // Get all AuditRow expand buttons by aria-controls attribute
-    const expandBtns = document.querySelectorAll<HTMLButtonElement>('button[aria-expanded][aria-controls]');
+    const expandBtns = document.querySelectorAll<HTMLButtonElement>(
+      'button[aria-expanded][aria-controls]',
+    );
     expect(expandBtns.length).toBeGreaterThanOrEqual(2);
 
     fireEvent.click(expandBtns[0]);
@@ -502,9 +503,9 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
       const els = screen.queryAllByText('No events match your filters');
       expect(els.length).toBeGreaterThanOrEqual(1);
     });
-    expect(
-      screen.getAllByRole('button', { name: /Clear filters/ }).length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole('button', { name: /Clear filters/ }).length).toBeGreaterThanOrEqual(
+      1,
+    );
   });
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -518,9 +519,7 @@ describe('AuditTab — Phase 10 Plan 10-08', () => {
     render(<AuditTab orgId="org-1" />);
 
     // Wait for the pagination count line
-    await waitFor(() =>
-      expect(screen.getByText('Showing 1–50 of 100 events')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText('Showing 1–50 of 100 events')).toBeInTheDocument());
 
     const fromCallsBefore = (supabase.from as ReturnType<typeof vi.fn>).mock.calls.filter(
       (c: unknown[]) => c[0] === 'audit_logs',

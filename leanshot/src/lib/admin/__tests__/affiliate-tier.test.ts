@@ -27,7 +27,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 const rpcMock = supabase.rpc as unknown as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {

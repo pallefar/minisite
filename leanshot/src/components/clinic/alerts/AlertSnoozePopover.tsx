@@ -53,7 +53,12 @@ function useIsMobile(): boolean {
   return isMobile;
 }
 
-export function AlertSnoozePopover({ alertId, triggerRef, open, onClose }: AlertSnoozePopoverProps) {
+export function AlertSnoozePopover({
+  alertId,
+  triggerRef,
+  open,
+  onClose,
+}: AlertSnoozePopoverProps) {
   const toast = useToast();
   const isMobile = useIsMobile();
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -128,16 +133,8 @@ export function AlertSnoozePopover({ alertId, triggerRef, open, onClose }: Alert
   if (!open) return null;
 
   const content = (
-    <div
-      ref={popoverRef}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={HEADING_ID}
-    >
-      <h2
-        id={HEADING_ID}
-        className="text-[16px] font-semibold text-[var(--color-text)] mb-4"
-      >
+    <div ref={popoverRef} role="dialog" aria-modal="true" aria-labelledby={HEADING_ID}>
+      <h2 id={HEADING_ID} className="text-[16px] font-semibold text-[var(--color-text)] mb-4">
         Snooze alert
       </h2>
       <div className="grid grid-cols-2 gap-2">
@@ -171,7 +168,9 @@ export function AlertSnoozePopover({ alertId, triggerRef, open, onClose }: Alert
       <Sheet open={open} onClose={onClose} title="Snooze alert">
         {/* Render body without the redundant h2 since Sheet has title */}
         <div ref={popoverRef} role="dialog" aria-modal="true" aria-labelledby={HEADING_ID}>
-          <h2 id={HEADING_ID} className="sr-only">Snooze alert</h2>
+          <h2 id={HEADING_ID} className="sr-only">
+            Snooze alert
+          </h2>
           <div className="grid grid-cols-2 gap-2">
             {PRESETS.map(({ label, duration }) => (
               <Button
@@ -201,7 +200,13 @@ export function AlertSnoozePopover({ alertId, triggerRef, open, onClose }: Alert
         width: 200,
         zIndex: 60,
       }
-    : { position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 60 };
+    : {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 60,
+      };
 
   return (
     <div

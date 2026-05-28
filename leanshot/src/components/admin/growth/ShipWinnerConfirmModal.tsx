@@ -44,8 +44,7 @@ export function ShipWinnerConfirmModal({
   const [submitting, setSubmitting] = useState(false);
   const bodyId = useId();
 
-  const enabled =
-    typedValue === 'ship-below-95' && reason.trim().length > 0 && !submitting;
+  const enabled = typedValue === 'ship-below-95' && reason.trim().length > 0 && !submitting;
 
   async function handleConfirm(): Promise<void> {
     if (!enabled) return;
@@ -69,8 +68,8 @@ export function ShipWinnerConfirmModal({
     >
       <div className="flex flex-col gap-4">
         <p id={bodyId} className="text-base text-[var(--color-text)]">
-          This variant&rsquo;s Bayesian posterior is {pct}%. Shipping below 95%
-          requires a logged reason.
+          This variant&rsquo;s Bayesian posterior is {pct}%. Shipping below 95% requires a logged
+          reason.
         </p>
 
         <Input

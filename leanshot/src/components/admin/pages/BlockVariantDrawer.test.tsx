@@ -32,12 +32,7 @@ function makeBlock(overrides: Partial<BlockNode> = {}): BlockNode {
 describe('BlockVariantDrawer', () => {
   it('renders the Sheet primitive when open (role=dialog + aria-modal)', () => {
     render(
-      <BlockVariantDrawer
-        open
-        onClose={() => {}}
-        block={makeBlock()}
-        onSave={async () => {}}
-      />,
+      <BlockVariantDrawer open onClose={() => {}} block={makeBlock()} onSave={async () => {}} />,
     );
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
@@ -58,22 +53,14 @@ describe('BlockVariantDrawer', () => {
 
   it('shows the empty-state message when no variants are passed in', () => {
     render(
-      <BlockVariantDrawer
-        open
-        onClose={() => {}}
-        block={makeBlock()}
-        onSave={async () => {}}
-      />,
+      <BlockVariantDrawer open onClose={() => {}} block={makeBlock()} onSave={async () => {}} />,
     );
     expect(screen.getByTestId('variant-list-empty')).toBeInTheDocument();
   });
 
   it('lists existing variants when block.variant_set_id is set + variants prop populated', () => {
     const block = makeBlock({ variant_set_id: 'vs-1' });
-    const variants: BlockNode[] = [
-      makeBlock({ id: 'h1-v1' }),
-      makeBlock({ id: 'h1-v2' }),
-    ];
+    const variants: BlockNode[] = [makeBlock({ id: 'h1-v1' }), makeBlock({ id: 'h1-v2' })];
     render(
       <BlockVariantDrawer
         open
@@ -90,12 +77,7 @@ describe('BlockVariantDrawer', () => {
 
   it('renders the "Add variant" CTA at the bottom', () => {
     render(
-      <BlockVariantDrawer
-        open
-        onClose={() => {}}
-        block={makeBlock()}
-        onSave={async () => {}}
-      />,
+      <BlockVariantDrawer open onClose={() => {}} block={makeBlock()} onSave={async () => {}} />,
     );
     expect(screen.getByTestId('drawer-add-variant')).toHaveTextContent('Add variant');
   });
@@ -104,13 +86,7 @@ describe('BlockVariantDrawer', () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const block = makeBlock({ id: 'h1' });
     render(
-      <BlockVariantDrawer
-        open
-        onClose={() => {}}
-        block={block}
-        variants={[]}
-        onSave={onSave}
-      />,
+      <BlockVariantDrawer open onClose={() => {}} block={block} variants={[]} onSave={onSave} />,
     );
     const user = userEvent.setup();
     await user.click(screen.getByTestId('drawer-add-variant'));

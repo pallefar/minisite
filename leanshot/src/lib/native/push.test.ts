@@ -34,7 +34,9 @@ vi.mock('@capacitor/push-notifications', () => {
 
   const PushNotifications = {
     checkPermissions: vi.fn(async () => ({ receive: 'prompt' as 'prompt' | 'granted' | 'denied' })),
-    requestPermissions: vi.fn(async () => ({ receive: 'granted' as 'prompt' | 'granted' | 'denied' })),
+    requestPermissions: vi.fn(async () => ({
+      receive: 'granted' as 'prompt' | 'granted' | 'denied',
+    })),
     register: vi.fn(async () => undefined),
     addListener: vi.fn((event: string, cb: (...args: unknown[]) => void) => {
       if (!listeners[event]) listeners[event] = [];
@@ -128,7 +130,7 @@ describe('push.ts — native push registration (Wave-0 RED scaffold)', () => {
       // Simulate APNs token delivery (fired after registration)
       (PushNotifications as unknown as { __emit: (e: string, d: unknown) => void }).__emit(
         'registration',
-        { value: 'apns-device-token-ios-123' }
+        { value: 'apns-device-token-ios-123' },
       );
     });
 
@@ -163,7 +165,7 @@ describe('push.ts — native push registration (Wave-0 RED scaffold)', () => {
     PushNotifications.register.mockImplementationOnce(async () => {
       (PushNotifications as unknown as { __emit: (e: string, d: unknown) => void }).__emit(
         'registration',
-        { value: 'fcm-device-token-android-456' }
+        { value: 'fcm-device-token-android-456' },
       );
     });
 

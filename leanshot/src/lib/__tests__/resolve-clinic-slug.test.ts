@@ -163,7 +163,9 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
 
     const [r3, r4] = await Promise.all([
       sessA.client.rpc('resolve_clinic_slug', { p_slug: orgZSlug as string }),
-      sessA.client.rpc('resolve_clinic_slug', { p_slug: 'totally-fake-slug-that-cannot-exist-xyz123' }),
+      sessA.client.rpc('resolve_clinic_slug', {
+        p_slug: 'totally-fake-slug-that-cannot-exist-xyz123',
+      }),
     ]);
 
     expect(r3.error).toBeNull();
@@ -209,18 +211,15 @@ describeIfLive('P28-06 — resolve_clinic_slug RPC', () => {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
 
     // Use a raw fetch without Authorization header (pure anon).
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/rpc/resolve_clinic_slug`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: SUPABASE_ANON_KEY,
-          // No Authorization header → anon role.
-        },
-        body: JSON.stringify({ p_slug: 'any-slug' }),
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/resolve_clinic_slug`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        // No Authorization header → anon role.
       },
-    );
+      body: JSON.stringify({ p_slug: 'any-slug' }),
+    });
     // Anon should get 401 or 403 (no execute privilege).
     expect(res.status).toBeGreaterThanOrEqual(400);
   }, 30_000);

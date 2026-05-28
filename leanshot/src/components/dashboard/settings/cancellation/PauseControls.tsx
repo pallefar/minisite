@@ -35,7 +35,9 @@ export function PauseControls({ value, onChange, resumesAt }: PauseControlsProps
   const { t } = useTranslation('settings');
   return (
     <div className="space-y-2">
-      <p className="text-[13px] font-semibold text-[var(--color-text)]">{t('settings:cancellation.pause.duration_label')}</p>
+      <p className="text-[13px] font-semibold text-[var(--color-text)]">
+        {t('settings:cancellation.pause.duration_label')}
+      </p>
       <div
         role="group"
         aria-label={t('settings:cancellation.pause.duration_label')}

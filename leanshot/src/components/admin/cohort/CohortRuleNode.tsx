@@ -53,24 +53,12 @@ export interface CohortRuleNodeProps {
   onRemove?: () => void;
 }
 
-export function CohortRuleNode({
-  node,
-  depth,
-  onChange,
-  onRemove,
-}: CohortRuleNodeProps) {
+export function CohortRuleNode({ node, depth, onChange, onRemove }: CohortRuleNodeProps) {
   if (isLeaf(node)) {
     return <LeafEditor leaf={node} onChange={onChange} onRemove={onRemove} />;
   }
   if (isBranch(node)) {
-    return (
-      <BranchEditor
-        branch={node}
-        depth={depth}
-        onChange={onChange}
-        onRemove={onRemove}
-      />
-    );
+    return <BranchEditor branch={node} depth={depth} onChange={onChange} onRemove={onRemove} />;
   }
   return null;
 }
@@ -88,10 +76,8 @@ function BranchEditor({
   onChange: (next: RuleNode) => void;
   onRemove?: () => void;
 }) {
-  const setChildren = (next: readonly RuleNode[]) =>
-    onChange({ op: branch.op, children: next });
-  const setOp = (next: 'and' | 'or') =>
-    onChange({ op: next, children: branch.children });
+  const setChildren = (next: readonly RuleNode[]) => onChange({ op: branch.op, children: next });
+  const setOp = (next: 'and' | 'or') => onChange({ op: next, children: branch.children });
 
   const updateChild = (i: number, next: RuleNode) => {
     const copy = [...branch.children];
@@ -104,10 +90,7 @@ function BranchEditor({
   };
   const addCondition = () => setChildren([...branch.children, { ...DEFAULT_LEAF }]);
   const addGroup = () =>
-    setChildren([
-      ...branch.children,
-      { op: 'and', children: [{ ...DEFAULT_LEAF }] },
-    ]);
+    setChildren([...branch.children, { op: 'and', children: [{ ...DEFAULT_LEAF }] }]);
 
   return (
     <div
@@ -277,8 +260,7 @@ function ValueInput({
             .map((s) => s.trim())
             .filter((s) => s.length > 0);
           // Coerce based on field kind.
-          const coerced =
-            kind === 'number' ? items.map((s) => Number(s)) : items;
+          const coerced = kind === 'number' ? items.map((s) => Number(s)) : items;
           onChange(coerced);
         }}
         placeholder="free, pro"

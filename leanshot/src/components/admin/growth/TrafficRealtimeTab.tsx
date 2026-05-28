@@ -51,9 +51,7 @@ export const TrafficRealtimeTab: React.FC = () => {
   // Defensive read mirroring TrafficDashboardPage shell — Phase 51 Plan 05
   // SUMMARY deviation 4 pinned this shape (s.user.role/org is fictional).
   const role = useStore(
-    (s) =>
-      (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ??
-      null,
+    (s) => (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ?? null,
   );
   // REVIEW CR-03 + WR-04: forward the clinic_owner's org_id so the SECDEF
   // RPC's `(p_org_id is not null and _is_org_clinician(p_org_id))` branch can
@@ -123,9 +121,7 @@ export const TrafficRealtimeTab: React.FC = () => {
   };
 
   const totalVisits = rows?.reduce((acc, r) => acc + r.visits, 0) ?? 0;
-  const topChannels = rows
-    ? [...rows].sort((a, b) => b.visits - a.visits).slice(0, 5)
-    : [];
+  const topChannels = rows ? [...rows].sort((a, b) => b.visits - a.visits).slice(0, 5) : [];
 
   const pipColor =
     freshness === 'fresh'
@@ -139,9 +135,7 @@ export const TrafficRealtimeTab: React.FC = () => {
       : freshness === 'warn'
         ? 'stale (5-10min)'
         : 'very stale (>10min)';
-  const lastRefreshLabel = lastSuccessAt
-    ? new Date(lastSuccessAt).toLocaleTimeString()
-    : '—';
+  const lastRefreshLabel = lastSuccessAt ? new Date(lastSuccessAt).toLocaleTimeString() : '—';
 
   // Hidden role marker so a future role-aware filter can re-introduce
   // per-org scoping. Today it only documents the role we read.
@@ -174,10 +168,7 @@ export const TrafficRealtimeTab: React.FC = () => {
         </div>
       </div>
 
-      <p
-        className="text-[11px] text-[var(--color-text-secondary)] mb-3"
-        aria-live="polite"
-      >
+      <p className="text-[11px] text-[var(--color-text-secondary)] mb-3" aria-live="polite">
         Auto-refreshes every 5 minutes
       </p>
 
@@ -223,9 +214,15 @@ export const TrafficRealtimeTab: React.FC = () => {
               <thead>
                 <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-left">
                   <th scope="col">Channel</th>
-                  <th scope="col" className="text-right">Visits</th>
-                  <th scope="col" className="text-right">Signups</th>
-                  <th scope="col" className="text-right">Activations</th>
+                  <th scope="col" className="text-right">
+                    Visits
+                  </th>
+                  <th scope="col" className="text-right">
+                    Signups
+                  </th>
+                  <th scope="col" className="text-right">
+                    Activations
+                  </th>
                 </tr>
               </thead>
               <tbody>

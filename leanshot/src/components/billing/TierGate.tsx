@@ -79,10 +79,7 @@ export function TierGate({ mode: modeProp, feature, children }: TierGateProps) {
           {/* Blurred children — hidden from assistive tech (aria-hidden) since
               the content is visually garbled. Screen readers see the PaywallUpsell
               overlay's accessible button instead. */}
-          <div
-            className={`${blurClass} pointer-events-none select-none`}
-            aria-hidden="true"
-          >
+          <div className={`${blurClass} pointer-events-none select-none`} aria-hidden="true">
             {children}
           </div>
           {/* Upsell overlay centered on top of blurred content */}

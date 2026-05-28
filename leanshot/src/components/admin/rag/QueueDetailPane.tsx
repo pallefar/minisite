@@ -21,7 +21,22 @@ import { TierBadge } from './TierBadge';
 
 // ─── DOMPurify allowlist per UI-SPEC §1 + T-60-08-XSS-1 ────────────────────
 const SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ['p', 'a', 'ul', 'ol', 'li', 'code', 'pre', 'strong', 'em', 'blockquote', 'mark', 'h2', 'h3', 'h4'],
+  ALLOWED_TAGS: [
+    'p',
+    'a',
+    'ul',
+    'ol',
+    'li',
+    'code',
+    'pre',
+    'strong',
+    'em',
+    'blockquote',
+    'mark',
+    'h2',
+    'h3',
+    'h4',
+  ],
   ALLOWED_ATTR: ['href', 'target', 'rel'],
   FORBID_TAGS: ['img', 'script', 'iframe', 'style', 'svg', 'math', 'form', 'input'],
   FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick', 'onmouseover', 'onfocus'],
@@ -92,13 +107,10 @@ export function QueueDetailPane({
   // Ensure the afterSanitizeAttributes hook is registered before sanitizing.
   // Cast to string: DOMPurify.sanitize returns TrustedHTML in strict TS contexts,
   // but it is always a string value at runtime.
-  const sanitizedMarkdown = useMemo(
-    () => {
-      ensureAdminHook();
-      return String(DOMPurify.sanitize(chunk.source_markdown, SANITIZE_CONFIG));
-    },
-    [chunk.source_markdown],
-  );
+  const sanitizedMarkdown = useMemo(() => {
+    ensureAdminHook();
+    return String(DOMPurify.sanitize(chunk.source_markdown, SANITIZE_CONFIG));
+  }, [chunk.source_markdown]);
 
   const handleApprove = async () => {
     if (isSelfCreated) return;
@@ -198,9 +210,7 @@ export function QueueDetailPane({
             SOURCE TEXT
           </p>
           <div className="prose prose-sm max-w-none text-[13px]">
-            <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-              {sanitizedMarkdown}
-            </ReactMarkdown>
+            <ReactMarkdown rehypePlugins={[rehypeRaw]}>{sanitizedMarkdown}</ReactMarkdown>
           </div>
         </div>
 
@@ -211,8 +221,7 @@ export function QueueDetailPane({
           </p>
           <div className="space-y-3">
             {chunk.quote_blocks.map((qb, i) => {
-              const isDanger =
-                qb.kind === 'contraindication' || qb.kind === 'adverse-event';
+              const isDanger = qb.kind === 'contraindication' || qb.kind === 'adverse-event';
               return (
                 <div key={i} className="space-y-1">
                   <p className="text-[13px] text-[var(--color-text)]">{qb.text}</p>
@@ -235,9 +244,7 @@ export function QueueDetailPane({
       <p className="text-[13px] text-[var(--color-text-secondary)]">{chunk.summary}</p>
 
       {/* 2-person rule warning badge */}
-      {isSelfCreated && (
-        <Badge tone="warning">You created this — needs a different reviewer</Badge>
-      )}
+      {isSelfCreated && <Badge tone="warning">You created this — needs a different reviewer</Badge>}
 
       {/* Sticky action row */}
       <div className="sticky bottom-0 bg-[var(--color-surface)] border-t border-[var(--color-border)] p-3 flex items-center gap-2 justify-between">
@@ -265,12 +272,7 @@ export function QueueDetailPane({
               Retract chunk
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onReject}
-            aria-label="Reject chunk"
-          >
+          <Button size="sm" variant="secondary" onClick={onReject} aria-label="Reject chunk">
             Reject chunk
           </Button>
           <Button size="sm" variant="ghost" onClick={onEdit}>

@@ -14,14 +14,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
 import { defineCohort, CohortApiError } from '@/lib/cohort/api';
-import {
-  FIELD_ALLOWLIST,
-  type RuleField,
-} from '@/lib/cohort/field-allowlist';
-import {
-  ruleTreeSchema,
-  type RuleNode,
-} from '@/lib/cohort/rule-tree-schema';
+import { FIELD_ALLOWLIST, type RuleField } from '@/lib/cohort/field-allowlist';
+import { ruleTreeSchema, type RuleNode } from '@/lib/cohort/rule-tree-schema';
 import { CohortRuleNode } from './CohortRuleNode';
 
 const DEFAULT_FIELD: RuleField = FIELD_ALLOWLIST[0];
@@ -46,7 +40,7 @@ export function AdminCohortBuilder({ onSaved }: AdminCohortBuilderProps) {
   const validation = useMemo(() => ruleTreeSchema.safeParse(tree), [tree]);
   const treeError = validation.success
     ? null
-    : validation.error.issues[0]?.message ?? 'Invalid rule tree';
+    : (validation.error.issues[0]?.message ?? 'Invalid rule tree');
 
   const canSave = !submitting && name.trim().length > 0 && validation.success;
 
@@ -107,11 +101,7 @@ export function AdminCohortBuilder({ onSaved }: AdminCohortBuilderProps) {
 
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Conditions</span>
-        <CohortRuleNode
-          node={tree}
-          depth={1}
-          onChange={(next) => setTree(next)}
-        />
+        <CohortRuleNode node={tree} depth={1} onChange={(next) => setTree(next)} />
         {treeError && (
           <p role="alert" className="text-xs text-[var(--color-danger)]">
             {treeError}
@@ -120,12 +110,7 @@ export function AdminCohortBuilder({ onSaved }: AdminCohortBuilderProps) {
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button
-          variant="primary"
-          onClick={handleSave}
-          disabled={!canSave}
-          loading={submitting}
-        >
+        <Button variant="primary" onClick={handleSave} disabled={!canSave} loading={submitting}>
           Save as draft
         </Button>
       </div>

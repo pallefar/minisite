@@ -37,11 +37,7 @@ type Step = 1 | 2 | 3;
  */
 function StepIndicator({ step }: { step: Step }) {
   return (
-    <div
-      role="group"
-      aria-label="Step {step} of 3"
-      className="flex items-center gap-2 mb-4"
-    >
+    <div role="group" aria-label="Step {step} of 3" className="flex items-center gap-2 mb-4">
       {([1, 2, 3] as const).map((s) => {
         const isActive = s === step;
         const isCompleted = s < step;
@@ -51,11 +47,8 @@ function StepIndicator({ step }: { step: Step }) {
             aria-current={isActive ? 'step' : undefined}
             className={cn(
               'size-2 rounded-full transition-all',
-              isActive || isCompleted
-                ? 'bg-[var(--color-primary)]'
-                : 'bg-[var(--color-border)]',
-              isCompleted &&
-                'shadow-[0_0_0_2px_var(--color-primary-soft)] size-3',
+              isActive || isCompleted ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]',
+              isCompleted && 'shadow-[0_0_0_2px_var(--color-primary-soft)] size-3',
             )}
           />
         );
@@ -90,10 +83,7 @@ export function CancellationModal({ onClose }: CancellationModalProps) {
     onClose();
   };
 
-  const handleReasonSubmit = (
-    selectedReason: CancellationReason,
-    otherText?: string,
-  ): void => {
+  const handleReasonSubmit = (selectedReason: CancellationReason, otherText?: string): void => {
     setReason(selectedReason);
     setReasonOtherText(otherText);
     setStep(2);
@@ -162,17 +152,9 @@ export function CancellationModal({ onClose }: CancellationModalProps) {
         )}
 
         {/* Step content — instant transitions when reduced motion is enabled */}
-        <div
-          className={cn(
-            'min-h-[200px]',
-            !reducedMotion && 'transition-all duration-200',
-          )}
-        >
+        <div className={cn('min-h-[200px]', !reducedMotion && 'transition-all duration-200')}>
           {step === 1 && (
-            <ReasonPicklistStep
-              onSubmit={handleReasonSubmit}
-              onKeep={handleKeepFromStep1}
-            />
+            <ReasonPicklistStep onSubmit={handleReasonSubmit} onKeep={handleKeepFromStep1} />
           )}
 
           {step === 2 && reason !== null && (
@@ -184,11 +166,7 @@ export function CancellationModal({ onClose }: CancellationModalProps) {
           )}
 
           {step === 3 && reason !== null && (
-            <LossSummaryStep
-              reason={reason}
-              onKeep={handleKeepFromStep3}
-              onClose={onClose}
-            />
+            <LossSummaryStep reason={reason} onKeep={handleKeepFromStep3} onClose={onClose} />
           )}
         </div>
       </div>

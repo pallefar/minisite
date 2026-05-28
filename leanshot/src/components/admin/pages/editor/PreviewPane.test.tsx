@@ -50,10 +50,16 @@ describe('PreviewPane', () => {
     const tablet = screen.getByRole('button', { name: /tablet/i });
     await user.click(tablet);
     expect(tablet.getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: /desktop/i }).getAttribute('aria-pressed')).toBe('false');
-    expect(screen.getByRole('button', { name: /mobile/i }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('button', { name: /desktop/i }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+    expect(screen.getByRole('button', { name: /mobile/i }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
     // The iframe wrapper carries inline style with width=768px (or maxWidth).
-    const wrapper = container.querySelector('[data-testid="preview-iframe-wrapper"]') as HTMLElement | null;
+    const wrapper = container.querySelector(
+      '[data-testid="preview-iframe-wrapper"]',
+    ) as HTMLElement | null;
     expect(wrapper).toBeTruthy();
     const cssWidth = wrapper!.style.width || wrapper!.style.maxWidth;
     expect(cssWidth).toBe('768px');

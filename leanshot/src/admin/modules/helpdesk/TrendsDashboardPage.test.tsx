@@ -99,9 +99,7 @@ describe('TrendsDashboardPage', () => {
   });
 
   it('T3: range picker change refetches with new gte', async () => {
-    mockRows = [
-      { tag_name: 'billing', bucket_day: '2026-05-15', ticket_count: 1 },
-    ];
+    mockRows = [{ tag_name: 'billing', bucket_day: '2026-05-15', ticket_count: 1 }];
     const { default: TrendsDashboardPage } = await import('./TrendsDashboardPage');
     render(<TrendsDashboardPage />);
     await waitFor(() => screen.getByTestId('chart-canvas'));

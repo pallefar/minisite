@@ -50,10 +50,7 @@ const { mockCaptureException, mockCreateFakeClient } = vi.hoisted(() => {
     builder['filter'] = (..._args: unknown[]) => builder;
     builder['order'] = (..._args: unknown[]) => builder;
     builder['limit'] = (..._args: unknown[]) => builder;
-    builder['then'] = (
-      resolve?: (v: unknown) => unknown,
-      _reject?: (e: unknown) => unknown,
-    ) => {
+    builder['then'] = (resolve?: (v: unknown) => unknown, _reject?: (e: unknown) => unknown) => {
       const result = { data: [], error: null };
       return Promise.resolve(result).then(resolve);
     };
@@ -98,11 +95,11 @@ vi.mock('../../../../supabase/functions/_shared/supabase-server.ts', () => ({
 // Import modules under test AFTER mocks are registered
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line import-x/order
+ 
 
 // Import the mocked supabase-server for the compile-time test (Test 1).
 // @ts-expect-error is used below to prove .from is typed `never` on Unscoped client.
-// eslint-disable-next-line import-x/order
+ 
 
 // ---------------------------------------------------------------------------
 // Test constants
@@ -267,9 +264,9 @@ describe('with-org-scope (D-28)', () => {
   it('OrgScopeBypassError raised for each ORG_SCOPED_TABLE when org_id filter missing', async () => {
     for (const table of ORG_SCOPED_TABLES) {
       mockCaptureException.mockClear();
-      await expect(
-        withOrgScope(ORG_ID, async (c) => c.from(table).select('*')),
-      ).rejects.toThrow(OrgScopeBypassError);
+      await expect(withOrgScope(ORG_ID, async (c) => c.from(table).select('*'))).rejects.toThrow(
+        OrgScopeBypassError,
+      );
     }
   });
 });

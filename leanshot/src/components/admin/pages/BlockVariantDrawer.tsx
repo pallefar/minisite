@@ -106,8 +106,8 @@ export function BlockVariantDrawer({
     <Sheet open={open} onClose={onClose} title="Block variants">
       <div className="flex flex-col gap-4" data-testid="block-variant-drawer">
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          Author A/B variants for this <strong>{block.type}</strong> block.
-          Variants are resolved per-visitor at render time.
+          Author A/B variants for this <strong>{block.type}</strong> block. Variants are resolved
+          per-visitor at render time.
         </p>
         {variants.length === 0 ? (
           <p
@@ -124,7 +124,8 @@ export function BlockVariantDrawer({
                 className="px-3 py-2 rounded-md bg-[var(--color-surface)] text-[13px]"
                 data-testid={`variant-row-${idx}`}
               >
-                Variant {idx + 1} <span className="text-[var(--color-text-secondary)]">— {v.id}</span>
+                Variant {idx + 1}{' '}
+                <span className="text-[var(--color-text-secondary)]">— {v.id}</span>
               </li>
             ))}
           </ul>
@@ -139,12 +140,7 @@ export function BlockVariantDrawer({
         >
           Add variant
         </Button>
-        <Button
-          variant="ghost"
-          size="md"
-          onClick={onClose}
-          data-testid="drawer-close"
-        >
+        <Button variant="ghost" size="md" onClick={onClose} data-testid="drawer-close">
           Close
         </Button>
       </div>

@@ -79,11 +79,7 @@ function makeBuilder(table: string): Record<string, unknown> {
         eq: () => Promise.resolve({ data: null, error: null }),
       };
     }),
-    eq: vi.fn(function (
-      this: { _filters: Array<[string, unknown]> },
-      col: string,
-      val: unknown,
-    ) {
+    eq: vi.fn(function (this: { _filters: Array<[string, unknown]> }, col: string, val: unknown) {
       this._filters.push([col, val]);
       return this;
     }),
@@ -122,8 +118,7 @@ vi.mock('@/lib/supabase', () => ({
     from: (table: string) => makeBuilder(table),
     rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
     auth: {
-      getUser: () =>
-        Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
     },
   },
 }));
@@ -152,9 +147,7 @@ describe('MacroEditorPage', () => {
   it('T2: create new macro inserts row', async () => {
     const { default: MacroEditorPage } = await import('./MacroEditorPage');
     render(<MacroEditorPage />);
-    await waitFor(() =>
-      screen.getByRole('button', { name: /new macro/i }),
-    );
+    await waitFor(() => screen.getByRole('button', { name: /new macro/i }));
     fireEvent.click(screen.getByRole('button', { name: /new macro/i }));
     fireEvent.change(screen.getByLabelText(/name/i), {
       target: { value: 'New macro' },
@@ -167,9 +160,7 @@ describe('MacroEditorPage', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
     await waitFor(() => {
-      const ins = opCalls.find(
-        (c) => c.op === 'insert' && c.table === 'agent_macros',
-      );
+      const ins = opCalls.find((c) => c.op === 'insert' && c.table === 'agent_macros');
       expect(ins).toBeTruthy();
       const payload = ins?.payload as Record<string, unknown>;
       expect(payload.name).toBe('New macro');
@@ -189,9 +180,7 @@ describe('MacroEditorPage', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
     await waitFor(() => {
-      const upd = opCalls.find(
-        (c) => c.op === 'update' && c.table === 'agent_macros',
-      );
+      const upd = opCalls.find((c) => c.op === 'update' && c.table === 'agent_macros');
       expect(upd).toBeTruthy();
       const payload = upd?.payload as Record<string, unknown>;
       expect(payload.name).toBe('Updated');
@@ -206,15 +195,11 @@ describe('MacroEditorPage', () => {
     await waitFor(() => screen.getByText('Bye-bye'));
     fireEvent.click(screen.getByRole('button', { name: /delete bye-bye/i }));
     // Should reveal an inline "Confirm" button rather than call window.confirm
-    await waitFor(() =>
-      screen.getByRole('button', { name: /confirm delete/i }),
-    );
+    await waitFor(() => screen.getByRole('button', { name: /confirm delete/i }));
     expect(confirmSpy).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: /confirm delete/i }));
     await waitFor(() => {
-      const del = opCalls.find(
-        (c) => c.op === 'delete' && c.table === 'agent_macros',
-      );
+      const del = opCalls.find((c) => c.op === 'delete' && c.table === 'agent_macros');
       expect(del).toBeTruthy();
     });
     confirmSpy.mockRestore();
@@ -224,9 +209,7 @@ describe('MacroEditorPage', () => {
     mockRole = 'support_agent';
     const { default: MacroEditorPage } = await import('./MacroEditorPage');
     render(<MacroEditorPage />);
-    await waitFor(() =>
-      screen.getByRole('button', { name: /new macro/i }),
-    );
+    await waitFor(() => screen.getByRole('button', { name: /new macro/i }));
     const btn = screen.getByRole('button', {
       name: /new macro/i,
     }) as HTMLButtonElement;

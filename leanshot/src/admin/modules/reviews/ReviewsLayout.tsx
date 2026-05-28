@@ -14,14 +14,7 @@
  *
  * No react-router — pathname-based routing (CLAUDE.md constraint).
  */
-import {
-  Suspense,
-  lazy,
-  useEffect,
-  useMemo,
-  useState,
-  type ComponentType,
-} from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from 'react';
 
 const RulesListPage = lazy(() => import('./RulesListPage'));
 const FunnelDashboardPage = lazy(() => import('./FunnelDashboardPage'));
@@ -83,9 +76,7 @@ export default function ReviewsLayout(): React.JSX.Element {
       </nav>
 
       <Suspense
-        fallback={
-          <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
-        }
+        fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
       >
         <active.Component />
       </Suspense>

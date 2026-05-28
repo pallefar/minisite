@@ -46,9 +46,7 @@ function formatSince(iso: string): string {
 export function RoleMfaRequirementTable() {
   const [rows, setRows] = useState<RoleMfaRequirement[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSuperadmin, setIsSuperadmin] = useState<boolean | undefined>(
-    undefined,
-  );
+  const [isSuperadmin, setIsSuperadmin] = useState<boolean | undefined>(undefined);
   const [pendingRole, setPendingRole] = useState<string | null>(null);
 
   // Probe current admin role for the Pattern S1 UX gate. RPC re-checks
@@ -87,9 +85,7 @@ export function RoleMfaRequirementTable() {
         if (!cancelled) setRows(r);
       } catch (e) {
         if (!cancelled) {
-          setError(
-            e instanceof Error ? e.message : 'Failed to load role requirements',
-          );
+          setError(e instanceof Error ? e.message : 'Failed to load role requirements');
           setRows([]);
         }
       }
@@ -105,9 +101,7 @@ export function RoleMfaRequirementTable() {
       // Optimistic update.
       const prev = rows;
       const optimistic = rows.map((r) =>
-        r.role === role
-          ? { ...r, required: next, since: new Date().toISOString() }
-          : r,
+        r.role === role ? { ...r, required: next, since: new Date().toISOString() } : r,
       );
       setRows(optimistic);
       setPendingRole(role);
@@ -117,11 +111,7 @@ export function RoleMfaRequirementTable() {
       } catch (e) {
         // Rollback.
         setRows(prev);
-        setError(
-          e instanceof Error
-            ? e.message
-            : 'Failed to update MFA requirement',
-        );
+        setError(e instanceof Error ? e.message : 'Failed to update MFA requirement');
       } finally {
         setPendingRole(null);
       }
@@ -137,15 +127,12 @@ export function RoleMfaRequirementTable() {
       aria-labelledby="role-mfa-requirements-heading"
     >
       <header className="mb-6">
-        <h1
-          id="role-mfa-requirements-heading"
-          className="text-[18px] font-semibold tracking-tight"
-        >
+        <h1 id="role-mfa-requirements-heading" className="text-[18px] font-semibold tracking-tight">
           Role MFA requirements
         </h1>
         <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
-          Toggle which roles must enable multi-factor authentication. Only
-          superadmins can mutate; the RPC re-checks server-side.
+          Toggle which roles must enable multi-factor authentication. Only superadmins can mutate;
+          the RPC re-checks server-side.
         </p>
       </header>
 
@@ -160,9 +147,7 @@ export function RoleMfaRequirementTable() {
 
       <Card variant="flat" padding="none">
         {rows === null ? (
-          <div className="p-6 text-[13px] text-[var(--color-text-secondary)]">
-            Loading…
-          </div>
+          <div className="p-6 text-[13px] text-[var(--color-text-secondary)]">Loading…</div>
         ) : rows.length === 0 ? (
           <EmptyState
             title="No role requirements configured"
@@ -202,9 +187,7 @@ export function RoleMfaRequirementTable() {
                       key={r.role}
                       className="border-b border-[var(--color-border)] last:border-0"
                     >
-                      <td className="px-4 py-3 text-[13px] font-semibold">
-                        {r.role}
-                      </td>
+                      <td className="px-4 py-3 text-[13px] font-semibold">{r.role}</td>
                       <td className="px-4 py-3">
                         <label
                           htmlFor={checkboxId}
@@ -246,8 +229,7 @@ export function RoleMfaRequirementTable() {
 
       {isSuperadmin === false && (
         <p className="mt-4 text-[11px] text-[var(--color-text-tertiary)]">
-          You are viewing this read-only. Toggling MFA requirements requires
-          superadmin role.
+          You are viewing this read-only. Toggling MFA requirements requires superadmin role.
         </p>
       )}
     </main>

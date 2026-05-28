@@ -59,20 +59,19 @@ export function installMissingKeyHandler(i18n: I18n): void {
         try {
           // Cast to bypass the union narrowing — eventName is the canonical
           // string registered in the EVENTS map at module-load time.
-          (capture as (n: string, p: { lng: string; ns: string; key: string }) => void)(
-            eventName,
-            { lng, ns: namespace, key },
-          );
+          (capture as (n: string, p: { lng: string; ns: string; key: string }) => void)(eventName, {
+            lng,
+            ns: namespace,
+            key,
+          });
         } catch {
           if (import.meta.env.DEV) {
-
             console.warn('[i18n] missingKey capture failed', { lng, ns: namespace, key });
           }
         }
       })
       .catch(() => {
         if (import.meta.env.DEV) {
-
           console.warn('[i18n] missingKey analytics module load failed', {
             lng,
             ns: namespace,

@@ -158,7 +158,9 @@ export default function ConsentAcceptScreen() {
 
       // Generic failure — reset to idle + surface message.
       setAcceptState({ phase: 'idle' });
-      setEmailError('Could not accept invite. The link may have expired. Please request a new one.');
+      setEmailError(
+        'Could not accept invite. The link may have expired. Please request a new one.',
+      );
     } catch {
       setAcceptState({ phase: 'idle' });
       setEmailError('Network error. Please check your connection and try again.');
@@ -190,7 +192,12 @@ export default function ConsentAcceptScreen() {
             body="This invite is invalid or has expired. Please ask your clinic to send a new invite."
           />
           <div className="mt-6 flex justify-center">
-            <Button variant="secondary" onClick={() => { window.location.href = '/'; }}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                window.location.href = '/';
+              }}
+            >
               Go to LeanShot
             </Button>
           </div>
@@ -207,7 +214,12 @@ export default function ConsentAcceptScreen() {
             title="Connection error"
             body="Could not load invite details. Please check your connection and try again."
             cta={
-              <Button variant="primary" onClick={() => { window.location.reload(); }}>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  window.location.reload();
+                }}
+              >
                 Try again
               </Button>
             }
@@ -223,16 +235,16 @@ export default function ConsentAcceptScreen() {
       <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center px-4">
         <Card variant="elevated" className="w-full max-w-md p-8">
           <div className="space-y-4 text-center">
-            <h1 className="text-[20px] font-bold text-[var(--color-text)]">
-              Invite accepted!
-            </h1>
+            <h1 className="text-[20px] font-bold text-[var(--color-text)]">Invite accepted!</h1>
             <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-              Your invite was accepted, but we could not send a sign-in link automatically.
-              Please use the link below to log in or reset your password.
+              Your invite was accepted, but we could not send a sign-in link automatically. Please
+              use the link below to log in or reset your password.
             </p>
             <Button
               variant="primary"
-              onClick={() => { window.location.href = acceptState.redirectUrl; }}
+              onClick={() => {
+                window.location.href = acceptState.redirectUrl;
+              }}
             >
               Sign in
             </Button>
@@ -284,7 +296,9 @@ export default function ConsentAcceptScreen() {
             <ul className="space-y-1.5 list-none">
               {scopeItems.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-[13px] text-[var(--color-text)]">
-                  <span className="mt-0.5 text-[var(--color-success)] shrink-0" aria-hidden>✓</span>
+                  <span className="mt-0.5 text-[var(--color-success)] shrink-0" aria-hidden>
+                    ✓
+                  </span>
                   {item}
                 </li>
               ))}
@@ -329,7 +343,9 @@ export default function ConsentAcceptScreen() {
             loading={isSubmitting}
             disabled={isSubmitting || isSuccess}
             aria-busy={isSubmitting}
-            onClick={() => { void handleAccept(); }}
+            onClick={() => {
+              void handleAccept();
+            }}
             data-testid="consent-accept-button"
           >
             Accept invite
@@ -338,15 +354,17 @@ export default function ConsentAcceptScreen() {
             variant="secondary"
             block
             disabled={isSubmitting || isSuccess}
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => {
+              window.location.href = '/';
+            }}
           >
             Decline
           </Button>
         </div>
 
         <p className="mt-4 text-[11px] text-[var(--color-text-tertiary)] text-center leading-snug">
-          By accepting, you consent to this clinic accessing your LeanShot data as listed above.
-          You can revoke this access at any time from your account settings.
+          By accepting, you consent to this clinic accessing your LeanShot data as listed above. You
+          can revoke this access at any time from your account settings.
         </p>
       </Card>
     </div>

@@ -36,7 +36,9 @@ vi.mock('@/lib/supabase', () => ({
                 leaderboard_enabled: true,
                 cohort_membership: [{ user_id: 'u-1' }],
                 // User is already opted-in → handle picker renders on load
-                leaderboard_optin: [{ user_id: 'u-1', handle: 'ExistingHandle-1234', active: true }],
+                leaderboard_optin: [
+                  { user_id: 'u-1', handle: 'ExistingHandle-1234', active: true },
+                ],
               },
             ],
           }),
@@ -124,9 +126,7 @@ beforeEach(() => {
 describe('LeaderboardsSubtab (GAME-04)', () => {
   it('lists leaderboard-enabled cohorts the user belongs to', async () => {
     render(<LeaderboardsSubtab />);
-    await waitFor(() =>
-      expect(screen.getByText(/GLP-1 Veterans 6mo\+/)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/GLP-1 Veterans 6mo\+/)).toBeInTheDocument());
   });
 
   it('suggest button populates handle input from RPC', async () => {
@@ -160,8 +160,6 @@ describe('LeaderboardsSubtab (GAME-04)', () => {
     fireEvent.change(input, { target: { value: 'John Smith' } });
 
     // Inline validation error should appear
-    await waitFor(() =>
-      expect(screen.getByText(/6.24 alphanumeric/)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/6.24 alphanumeric/)).toBeInTheDocument());
   });
 });

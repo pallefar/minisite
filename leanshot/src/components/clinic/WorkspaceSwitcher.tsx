@@ -76,11 +76,7 @@ export function useWorkspaceJwtPropagation(
       const { data } = await supabase.auth.getSession();
       const session = data?.session;
       const orgIds =
-        (
-          session?.user.app_metadata as
-            | { org_ids?: string[] }
-            | undefined
-        )?.org_ids ?? [];
+        (session?.user.app_metadata as { org_ids?: string[] } | undefined)?.org_ids ?? [];
 
       if (orgIds.includes(targetOrgId)) {
         if (!cancelled) setPropagated(true);
@@ -119,7 +115,6 @@ export function useWorkspaceJwtPropagation(
     return () => {
       cancelled = true;
     };
-   
   }, [targetOrgId, retryKey]);
 
   const retry = useCallback(() => {
@@ -128,7 +123,11 @@ export function useWorkspaceJwtPropagation(
     setRetryKey((k) => k + 1);
   }, []);
 
-  return { propagated, needsRetry, ...(needsRetry ? { _retry: retry } : {}) } as WorkspaceJwtPropagationResult & { _retry?: () => void };
+  return {
+    propagated,
+    needsRetry,
+    ...(needsRetry ? { _retry: retry } : {}),
+  } as WorkspaceJwtPropagationResult & { _retry?: () => void };
 }
 
 // ---------------------------------------------------------------------------

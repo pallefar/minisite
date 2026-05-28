@@ -74,9 +74,7 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
       // Fetch events + space join (column allowlist excludes join_url/zoom_meeting_id).
       const { data: rows, error: evErr } = await supabase
         .from('events')
-        .select(
-          'id, title, start_at, end_at, capacity, space_id, space:community_spaces(name)',
-        )
+        .select('id, title, start_at, end_at, capacity, space_id, space:community_spaces(name)')
         .order('start_at', { ascending: false })
         .limit(200);
 
@@ -113,7 +111,7 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
           space_id: string;
           space: { name: string } | { name: string }[] | null;
         };
-        const space = Array.isArray(row.space) ? row.space[0] ?? null : row.space;
+        const space = Array.isArray(row.space) ? (row.space[0] ?? null) : row.space;
         return {
           id: row.id,
           title: row.title,
@@ -144,9 +142,7 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
         </button>
       </div>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading events…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading events…</p>}
 
       {error && (
         <p role="alert" className="text-sm text-[var(--color-danger)]">
@@ -204,9 +200,7 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
                     <td className="py-2 text-[var(--color-text-secondary)]">
                       {e.capacity === 0 ? '∞' : e.capacity}
                     </td>
-                    <td className="py-2 text-[var(--color-text-secondary)]">
-                      {e.going_count}
-                    </td>
+                    <td className="py-2 text-[var(--color-text-secondary)]">{e.going_count}</td>
                     <td className="py-2">
                       <span
                         className={
@@ -228,18 +222,14 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
                         </button>
                         <button
                           type="button"
-                          onClick={() =>
-                            onNavigate(`/admin/events/${e.id}/attendees`)
-                          }
+                          onClick={() => onNavigate(`/admin/events/${e.id}/attendees`)}
                           className="text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded"
                         >
                           Attendees
                         </button>
                         <button
                           type="button"
-                          onClick={() =>
-                            onNavigate(`/admin/events/${e.id}/recording`)
-                          }
+                          onClick={() => onNavigate(`/admin/events/${e.id}/recording`)}
                           className="text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded"
                         >
                           Recording

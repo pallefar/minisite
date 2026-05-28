@@ -36,13 +36,7 @@ import { supabase } from '@/lib/supabase';
 import { AdminAffiliatesAnomalyTab } from './AdminAffiliatesAnomalyTab';
 import { AdminAffiliatesTierTab } from './AdminAffiliatesTierTab';
 
-type ConversionStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'flagged'
-  | 'rejected'
-  | 'paid'
-  | 'on_hold';
+type ConversionStatus = 'pending' | 'confirmed' | 'flagged' | 'rejected' | 'paid' | 'on_hold';
 type StatusFilter = 'all' | ConversionStatus;
 
 interface ConversionRow {
@@ -164,10 +158,7 @@ export function AdminAffiliatesReviewQueue() {
           <p className="text-sm text-[var(--color-text-secondary)] mb-4">
             You don&apos;t have access to the affiliate review queue.
           </p>
-          <a
-            href="/"
-            className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-          >
+          <a href="/" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">
             Back to home →
           </a>
         </Card>
@@ -292,10 +283,7 @@ function ApplicationReviewBody() {
   }, [rows, filter]);
 
   // Action handlers ────────────────────────────────────────────────────────
-  const runAction = async (
-    rowId: string,
-    op: 'approve' | 'hold' | 'reject',
-  ): Promise<void> => {
+  const runAction = async (rowId: string, op: 'approve' | 'hold' | 'reject'): Promise<void> => {
     if (busyRowId) return;
     setBusyRowId(rowId);
     try {
@@ -420,25 +408,46 @@ function ApplicationReviewBody() {
           <table className="w-full text-sm" data-testid="affiliate-conversions-table">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Affiliate
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Invoice
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Commission
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Status
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Fraud signals
                 </th>
-                <th scope="col" className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-start text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   Eligible
                 </th>
-                <th scope="col" className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3">
+                <th
+                  scope="col"
+                  className="text-end text-xs font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] px-4 py-3"
+                >
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -496,7 +505,9 @@ function ApplicationReviewBody() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            disabled={isPaidOrRejected || busyRowId === r.id || r.status === 'confirmed'}
+                            disabled={
+                              isPaidOrRejected || busyRowId === r.id || r.status === 'confirmed'
+                            }
                             loading={busyRowId === r.id}
                             onClick={() => {
                               void runAction(r.id, 'approve');
@@ -507,7 +518,9 @@ function ApplicationReviewBody() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            disabled={isPaidOrRejected || busyRowId === r.id || r.status === 'on_hold'}
+                            disabled={
+                              isPaidOrRejected || busyRowId === r.id || r.status === 'on_hold'
+                            }
                             onClick={() => {
                               void runAction(r.id, 'hold');
                             }}
@@ -565,7 +578,9 @@ function ApplicationReviewBody() {
                                 Payout history
                               </h3>
                               {payouts === null ? (
-                                <p className="text-xs text-[var(--color-text-tertiary)]">Loading…</p>
+                                <p className="text-xs text-[var(--color-text-tertiary)]">
+                                  Loading…
+                                </p>
                               ) : payouts.length === 0 ? (
                                 <p className="text-xs text-[var(--color-text-tertiary)]">
                                   No prior payouts.
@@ -586,7 +601,9 @@ function ApplicationReviewBody() {
                                 Audit log
                               </h3>
                               {audit === null ? (
-                                <p className="text-xs text-[var(--color-text-tertiary)]">Loading…</p>
+                                <p className="text-xs text-[var(--color-text-tertiary)]">
+                                  Loading…
+                                </p>
                               ) : audit.length === 0 ? (
                                 <p className="text-xs text-[var(--color-text-tertiary)]">
                                   No audit entries yet.

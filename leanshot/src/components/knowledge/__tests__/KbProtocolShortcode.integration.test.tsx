@@ -48,7 +48,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const CHUNK_WITH_SHORTCODE = {
@@ -165,9 +164,7 @@ describe('KB article with [protocol:<uuid>] shortcode (integration)', () => {
     });
 
     // CRITICAL ASSERTION 1: raw shortcode token MUST NOT appear in the rendered DOM
-    expect(
-      screen.queryByText(new RegExp(`\\[protocol:${PROTOCOL_UUID}\\]`)),
-    ).toBeNull();
+    expect(screen.queryByText(new RegExp(`\\[protocol:${PROTOCOL_UUID}\\]`))).toBeNull();
 
     // CRITICAL ASSERTION 2: ProtocolSummaryCard renders (via "View full protocol →" link)
     await waitFor(() => {

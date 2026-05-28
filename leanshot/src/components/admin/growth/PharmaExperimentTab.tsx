@@ -28,13 +28,8 @@ import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/Confirm';
 import { Sheet } from '@/components/ui/Sheet';
 import type { PharmaExperimentRow } from './experiment-types';
-import {
-  PharmaVariantMetricsCard,
-} from './PharmaVariantMetricsCard';
-import {
-  PharmaVersionList,
-  type PharmaContentVersion,
-} from './PharmaVersionList';
+import { PharmaVariantMetricsCard } from './PharmaVariantMetricsCard';
+import { PharmaVersionList, type PharmaContentVersion } from './PharmaVersionList';
 
 /**
  * Convenience shape used by the parent dashboard — extends the SECDEF row
@@ -77,9 +72,7 @@ function latestSignoffStatus(
   versions: PharmaContentVersion[] | undefined,
 ): 'reviewed' | 'pending' | 'none' {
   if (!versions || versions.length === 0) return 'none';
-  const sorted = [...versions].sort(
-    (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
-  );
+  const sorted = [...versions].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
   const latest = sorted[0];
   if (latest.clinical_signoff_at && latest.clinical_signoff_name) return 'reviewed';
   return 'pending';
@@ -117,9 +110,7 @@ export function PharmaExperimentTab({
                 <div className="flex flex-col gap-1">
                   <h3 className="text-base font-bold">{row.variant_name}</h3>
                   {row.cohort_label && (
-                    <p className="text-sm text-[var(--color-text-secondary)]">
-                      {row.cohort_label}
-                    </p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{row.cohort_label}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -127,9 +118,7 @@ export function PharmaExperimentTab({
                   {signoff === 'reviewed' && (
                     <Badge tone="success">Clinical review: approved</Badge>
                   )}
-                  {signoff === 'pending' && (
-                    <Badge tone="warning">Clinical review: pending</Badge>
-                  )}
+                  {signoff === 'pending' && <Badge tone="warning">Clinical review: pending</Badge>}
                 </div>
               </div>
 
@@ -141,9 +130,7 @@ export function PharmaExperimentTab({
                 {row.nps_delta !== null && (
                   <span>
                     <span className="text-[var(--color-text-secondary)]">NPS Δ: </span>
-                    <span className="font-bold tabular-nums">
-                      {row.nps_delta.toFixed(1)}
-                    </span>
+                    <span className="font-bold tabular-nums">{row.nps_delta.toFixed(1)}</span>
                   </span>
                 )}
                 {row.one_star_rate_ratio !== null && (
@@ -224,10 +211,7 @@ export function PharmaExperimentTab({
           onClose={() => setDrawer(null)}
           title={`${drawer.variantName} — content versions`}
         >
-          <PharmaVersionList
-            contentId={drawer.contentId}
-            versions={drawer.versions}
-          />
+          <PharmaVersionList contentId={drawer.contentId} versions={drawer.versions} />
         </Sheet>
       )}
     </div>

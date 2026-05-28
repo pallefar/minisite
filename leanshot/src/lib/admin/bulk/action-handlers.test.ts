@@ -112,7 +112,10 @@ describe('executeBulkAction (Phase 27 ADMIN-04)', () => {
       data: { mode: 'async', affected: 0, undo_token: null, job_id: 'job-xyz' },
       error: null,
     });
-    const result = await executeBulkAction('ban', Array.from({ length: 150 }, (_, i) => `u${i}`));
+    const result = await executeBulkAction(
+      'ban',
+      Array.from({ length: 150 }, (_, i) => `u${i}`),
+    );
     expect(result).toEqual({
       mode: 'async',
       affected: 0,
@@ -136,7 +139,10 @@ describe('executeBulkAction (Phase 27 ADMIN-04)', () => {
       error: { code: '22023', message: 'too_many_rows: 20000' },
     });
     await expect(
-      executeBulkAction('ban', Array.from({ length: 20000 }, (_, i) => `u${i}`)),
+      executeBulkAction(
+        'ban',
+        Array.from({ length: 20000 }, (_, i) => `u${i}`),
+      ),
     ).rejects.toMatchObject({ code: 'too_many_rows' });
   });
 

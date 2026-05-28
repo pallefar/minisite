@@ -181,10 +181,7 @@ export function sendProgressBeacon(opts: SendProgressBeaconOpts): boolean {
   // Endpoint path matches supabase/functions/lesson-progress-beacon/index.ts
   // (Plan 46-06). text/plain content-type is the sendBeacon default for
   // string bodies — the Fn uses req.text() + JSON.parse() per Pitfall 3.
-  return navigator.sendBeacon(
-    `${supabaseUrl}/functions/v1/lesson-progress-beacon`,
-    body,
-  );
+  return navigator.sendBeacon(`${supabaseUrl}/functions/v1/lesson-progress-beacon`, body);
 }
 
 // ─── isLessonComplete ─────────────────────────────────────────────────────────
@@ -209,10 +206,7 @@ export function sendProgressBeacon(opts: SendProgressBeaconOpts): boolean {
  * is acceptable for the bypass-mode case (the server will simply mark
  * complete unconditionally).
  */
-export function isLessonComplete(
-  progress: LessonProgress | null,
-  lesson: CourseLesson,
-): boolean {
+export function isLessonComplete(progress: LessonProgress | null, lesson: CourseLesson): boolean {
   if (!progress) return false;
   const duration = lesson.duration_seconds;
   if (duration === null || duration <= 0) return false;

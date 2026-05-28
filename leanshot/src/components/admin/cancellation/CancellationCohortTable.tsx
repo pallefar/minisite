@@ -7,12 +7,7 @@
  *   - "Best offer" column: Badge tone=info with offer type name
  *   - Sticky first column on mobile horizontal scroll
  */
-import {
-  ArrowDownToLine,
-  BadgePercent,
-  CalendarPlus,
-  PauseCircle,
-} from 'lucide-react';
+import { ArrowDownToLine, BadgePercent, CalendarPlus, PauseCircle } from 'lucide-react';
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/helpers';

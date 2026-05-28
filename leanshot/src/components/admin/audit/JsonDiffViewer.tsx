@@ -48,8 +48,7 @@ const STATUS_CLASSES: Record<DiffEntry['status'], string> = {
     'bg-[color-mix(in_srgb,var(--color-success,#16a34a)_10%,transparent)] border-s-2 border-[var(--color-success,#16a34a)]',
   removed:
     'bg-[color-mix(in_srgb,var(--color-danger,#dc2626)_10%,transparent)] border-s-2 border-[var(--color-danger,#dc2626)]',
-  changed:
-    'bg-[color-mix(in_srgb,#ca8a04_10%,transparent)] border-s-2 border-[#ca8a04]',
+  changed: 'bg-[color-mix(in_srgb,#ca8a04_10%,transparent)] border-s-2 border-[#ca8a04]',
   unchanged: '',
 };
 

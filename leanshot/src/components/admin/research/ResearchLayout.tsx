@@ -53,9 +53,14 @@ interface SubRoute {
 }
 
 const SUB_ROUTES: readonly SubRoute[] = [
-  { key: 'cohort',       label: 'Cohort Builder', path: 'cohort',       Component: CohortBuilderPage },
-  { key: 'publications', label: 'Publications',   path: 'publications', Component: PublicationsListPage },
-  { key: 'review',       label: 'Review Queue',   path: 'review',       Component: PublicationsListPage },
+  { key: 'cohort', label: 'Cohort Builder', path: 'cohort', Component: CohortBuilderPage },
+  {
+    key: 'publications',
+    label: 'Publications',
+    path: 'publications',
+    Component: PublicationsListPage,
+  },
+  { key: 'review', label: 'Review Queue', path: 'review', Component: PublicationsListPage },
 ] as const;
 
 type SubRouteKey = 'cohort' | 'publications' | 'review';
@@ -73,9 +78,7 @@ function resolveActive(pathname: string): SubRoute {
 export function ResearchLayout() {
   // Track pathname imperatively (no router) so back/forward updates the view.
   const [pathname, setPathname] = useState<string>(
-    typeof window !== 'undefined'
-      ? window.location.pathname
-      : `/admin/research/${DEFAULT_KEY}`,
+    typeof window !== 'undefined' ? window.location.pathname : `/admin/research/${DEFAULT_KEY}`,
   );
 
   useEffect(() => {
@@ -90,10 +93,7 @@ export function ResearchLayout() {
   return (
     <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
       {/* Left sub-nav */}
-      <nav
-        aria-label="Research sections"
-        className="lg:sticky lg:top-4 lg:self-start"
-      >
+      <nav aria-label="Research sections" className="lg:sticky lg:top-4 lg:self-start">
         <ul className="flex flex-wrap lg:flex-col gap-1">
           {SUB_ROUTES.map((r) => {
             const isActive = active.key === r.key;

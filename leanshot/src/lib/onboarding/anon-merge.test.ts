@@ -30,11 +30,12 @@ let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  fetchMock = vi.fn(async () =>
-    new Response(JSON.stringify({ merged: true, draft_entries: [{ type: 'injection' }] }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }),
+  fetchMock = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ merged: true, draft_entries: [{ type: 'injection' }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
   );
   vi.stubGlobal('fetch', fetchMock);
   vi.stubGlobal('import.meta', {
@@ -48,7 +49,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-
 
 // ──────────────────────────────────────────────────────────────────────────
 // Tests
@@ -64,7 +64,10 @@ describe('mergeAnonSession', () => {
 
   it('B2: cookie present → POSTs to /functions/v1/merge-anon-session with correct body', async () => {
     readAnonCookieMock.mockReturnValue('cookie-uuid-123');
-    const result = await mergeAnonSession({ accessToken: 'user-access-token', distinctId: 'posthog-id' });
+    const result = await mergeAnonSession({
+      accessToken: 'user-access-token',
+      distinctId: 'posthog-id',
+    });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -74,7 +77,9 @@ describe('mergeAnonSession', () => {
     expect(body.anon_distinct_id).toBe('posthog-id');
     // Must use the accessToken passed in, not a user id.
     expect(String(init.headers)).not.toContain('userId');
-    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer user-access-token');
+    expect((init.headers as Record<string, string>)['Authorization']).toBe(
+      'Bearer user-access-token',
+    );
     expect(result.merged).toBe(true);
     expect(result.draft_entries).toHaveLength(1);
   });

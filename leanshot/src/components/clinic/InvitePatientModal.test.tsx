@@ -79,21 +79,14 @@ describe('InvitePatientModal — D-02 anti-enumeration + W-1 invite_id shape', (
     });
 
     render(
-      <InvitePatientModal
-        open
-        orgId="org-1"
-        onClose={() => {}}
-        onInviteSent={onInviteSent}
-      />,
+      <InvitePatientModal open orgId="org-1" onClose={() => {}} onInviteSent={onInviteSent} />,
     );
     await userEvent.type(screen.getByLabelText(/Patient email/i), 'karsten@example.com');
     await userEvent.click(screen.getByRole('button', { name: /send invitation/i }));
 
     // Universal post-send copy (D-02 invariant — must not branch on email existence)
     expect(await screen.findByText('Invitation sent')).toBeInTheDocument();
-    expect(
-      screen.getByText(/We sent an invitation to karsten@example\.com/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/We sent an invitation to karsten@example\.com/i)).toBeInTheDocument();
     // W-1: invite_id is captured by parent regardless
     expect(onInviteSent).toHaveBeenCalledWith('inv-uuid-123');
     // Sanity: sendInvite was called with lowercased + trimmed email

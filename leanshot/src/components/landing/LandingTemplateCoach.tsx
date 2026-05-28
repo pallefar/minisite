@@ -80,10 +80,7 @@ export function LandingTemplateCoach({
       : null;
 
   return (
-    <main
-      data-template="coach"
-      className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16"
-    >
+    <main data-template="coach" className="max-w-[1200px] mx-auto px-4 md:px-8 py-12 md:py-16">
       {/* Hero — split layout (single column on <md) */}
       <section className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
         <div className="flex justify-center md:justify-start">

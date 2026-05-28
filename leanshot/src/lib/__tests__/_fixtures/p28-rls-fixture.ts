@@ -79,7 +79,8 @@ export async function sessionFor(email: string): Promise<Session> {
     type: 'magiclink',
     email,
   });
-  if (linkErr || !linkData) throw new Error(`generateLink failed for ${email}: ${linkErr?.message}`);
+  if (linkErr || !linkData)
+    throw new Error(`generateLink failed for ${email}: ${linkErr?.message}`);
 
   const tokenHash = linkData.properties?.hashed_token;
   if (!tokenHash) throw new Error(`no hashed_token in generateLink response for ${email}`);
@@ -109,8 +110,8 @@ export async function sessionFor(email: string): Promise<Session> {
 }
 
 export interface TwoOrgsTwoUsers {
-  orgX: string;  // org_id for Org X (User A's org)
-  orgY: string;  // org_id for Org Y (User B's org)
+  orgX: string; // org_id for Org X (User A's org)
+  orgY: string; // org_id for Org Y (User B's org)
   userA: string; // user_id for User A (admin of Org X)
   userB: string; // user_id for User B (admin of Org Y)
   sessA: Session;

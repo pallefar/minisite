@@ -94,11 +94,7 @@ export function RagSourcesPage() {
         if (!topicMap.has(c.source_id)) topicMap.set(c.source_id, new Set());
         topicMap.get(c.source_id)!.add(c.topic_id);
       }
-      if (
-        c.status === 'rejected' &&
-        c.reviewed_at &&
-        new Date(c.reviewed_at).getTime() >= cutoff
-      ) {
+      if (c.status === 'rejected' && c.reviewed_at && new Date(c.reviewed_at).getTime() >= cutoff) {
         rejectMap.set(c.source_id, (rejectMap.get(c.source_id) ?? 0) + 1);
       }
     }
@@ -118,7 +114,7 @@ export function RagSourcesPage() {
   async function handlePause(id: string): Promise<void> {
     const reason =
       typeof window !== 'undefined'
-        ? window.prompt('Pause reason (visible in audit log)') ?? ''
+        ? (window.prompt('Pause reason (visible in audit log)') ?? '')
         : '';
     if (!reason.trim()) return;
     setBusyRowId(id);
@@ -148,12 +144,10 @@ export function RagSourcesPage() {
     <section className="p-6 lg:p-8 space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Sources ({rows?.length ?? 0})
-          </h1>
+          <h1 className="text-xl font-semibold tracking-tight">Sources ({rows?.length ?? 0})</h1>
           <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-            Allowlisted domains the scrape pipeline is permitted to fetch. Tier
-            determines default freshness window and trust weighting in retrieval.
+            Allowlisted domains the scrape pipeline is permitted to fetch. Tier determines default
+            freshness window and trust weighting in retrieval.
           </p>
         </div>
         <Button variant="primary" onClick={() => setSheetOpen(true)}>

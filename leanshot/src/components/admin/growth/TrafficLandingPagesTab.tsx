@@ -104,9 +104,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
 
   const { startDate, endDate } = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    const sevenAgo = new Date(Date.now() - 7 * 86400000)
-      .toISOString()
-      .slice(0, 10);
+    const sevenAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
     return { startDate: sevenAgo, endDate: today };
   }, []);
 
@@ -121,16 +119,13 @@ export const TrafficLandingPagesTab: React.FC = () => {
     // by visits were silently invisible (filter found "0" matches for data
     // that exists). The order-by-visits-desc + slice in `tableRows` preserves
     // the same default presentation.
-    const { data, error: rpcErr } = await supabase.rpc(
-      'get_traffic_landing_page_rollup',
-      {
-        p_org_id: orgFilter,
-        p_start_date: startDate,
-        p_end_date: endDate,
-        p_audience: audience === 'all' ? null : audience,
-        p_top_n: 500,
-      },
-    );
+    const { data, error: rpcErr } = await supabase.rpc('get_traffic_landing_page_rollup', {
+      p_org_id: orgFilter,
+      p_start_date: startDate,
+      p_end_date: endDate,
+      p_audience: audience === 'all' ? null : audience,
+      p_top_n: 500,
+    });
     if (rpcErr) {
       if (rpcErr.code === '42501') {
         setError('Permission denied — admin role required');
@@ -173,9 +168,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
       bounce: r.visits > 0 ? Math.max(0, 1 - r.signups / r.visits) : 0,
     }));
     const lc = filter.toLowerCase();
-    const filtered = filter
-      ? list.filter((r) => r.landing_path.toLowerCase().includes(lc))
-      : list;
+    const filtered = filter ? list.filter((r) => r.landing_path.toLowerCase().includes(lc)) : list;
     filtered.sort((a, b) => {
       const va = a[sortKey];
       const vb = b[sortKey];
@@ -199,8 +192,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
   const ariaSortFor = (key: SortKey): 'ascending' | 'descending' | 'none' =>
     sortKey === key ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
 
-  const sortArrow = (key: SortKey) =>
-    sortKey === key ? (sortDir === 'desc' ? '↓' : '↑') : '';
+  const sortArrow = (key: SortKey) => (sortKey === key ? (sortDir === 'desc' ? '↓' : '↑') : '');
 
   return (
     <section aria-label="Top landing pages">
@@ -217,11 +209,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
             className="w-48"
           />
           <PillGroup aria-label="Audience" segmented>
-            <Pill
-              size="sm"
-              active={audience === 'all'}
-              onClick={() => setAudience('all')}
-            >
+            <Pill size="sm" active={audience === 'all'} onClick={() => setAudience('all')}>
               All
             </Pill>
             <Pill
@@ -327,8 +315,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
                   aria-sort={ariaSortFor('signup_rate')}
                   onClick={() => handleSort('signup_rate')}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ')
-                      handleSort('signup_rate');
+                    if (e.key === 'Enter' || e.key === ' ') handleSort('signup_rate');
                   }}
                 >
                   Signup Rate {sortArrow('signup_rate')}
@@ -340,8 +327,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
                   aria-sort={ariaSortFor('paid_conv')}
                   onClick={() => handleSort('paid_conv')}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ')
-                      handleSort('paid_conv');
+                    if (e.key === 'Enter' || e.key === ' ') handleSort('paid_conv');
                   }}
                 >
                   Paid Conv {sortArrow('paid_conv')}

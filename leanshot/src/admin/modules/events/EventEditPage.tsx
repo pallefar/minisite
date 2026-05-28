@@ -61,7 +61,7 @@ interface FormState {
   title: string;
   description: string;
   start_at: string; // datetime-local string
-  end_at: string;   // datetime-local string
+  end_at: string; // datetime-local string
   capacity: number;
   space_id: string;
   cover_url: string;
@@ -136,7 +136,7 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
         .from('community_spaces')
         .select('id, name')
         .order('name', { ascending: true });
-      setSpaces(((data ?? []) as SpaceOption[]));
+      setSpaces((data ?? []) as SpaceOption[]);
     })();
   }, []);
 
@@ -153,7 +153,7 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
           title: string;
           course: { title: string } | { title: string }[] | null;
         };
-        const course = Array.isArray(row.course) ? row.course[0] ?? null : row.course;
+        const course = Array.isArray(row.course) ? (row.course[0] ?? null) : row.course;
         const courseTitle = course?.title ?? 'Untitled course';
         return { id: row.id, label: `${courseTitle} › ${row.title}` };
       });
@@ -222,15 +222,14 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
   const endError = !form.end_at
     ? 'End time is required.'
     : form.start_at && form.end_at && fromLocalInput(form.end_at)! <= fromLocalInput(form.start_at)!
-    ? 'End time must be after start time.'
-    : '';
+      ? 'End time must be after start time.'
+      : '';
   const pasteError =
     form.zoom_mode === 'paste' && form.zoom_paste_url.trim().length === 0 && isNew
       ? 'Paste a Zoom meeting URL or switch to “Generate”.'
       : '';
 
-  const isValid =
-    !titleError && !spaceError && !startError && !endError && !pasteError;
+  const isValid = !titleError && !spaceError && !startError && !endError && !pasteError;
 
   // ── Cover upload ──────────────────────────────────────────────────────────
 
@@ -323,16 +322,12 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
       // Generate Zoom meeting via Edge Fn (Phase 47 Plan 47-06).
       if (form.zoom_mode === 'generate') {
         setGeneratingZoom(true);
-        const { error: fnErr } = await supabase.functions.invoke(
-          'zoom-create-meeting',
-          { body: { event_id: newId } },
-        );
+        const { error: fnErr } = await supabase.functions.invoke('zoom-create-meeting', {
+          body: { event_id: newId },
+        });
         setGeneratingZoom(false);
         if (fnErr) {
-          toast(
-            `Event created but Zoom meeting creation failed: ${fnErr.message}`,
-            'error',
-          );
+          toast(`Event created but Zoom meeting creation failed: ${fnErr.message}`, 'error');
           // Don't abort — the event row exists; operator can re-run from edit screen.
         } else {
           toast('Event created and Zoom meeting generated.', 'success');
@@ -361,21 +356,20 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
   // ── Render ────────────────────────────────────────────────────────────────
 
   if (loading) {
-    return (
-      <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading event…</div>
-    );
+    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading event…</div>;
   }
 
   return (
     <div className="space-y-5 p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] max-w-2xl">
-      <h3 className="text-base font-semibold">
-        {isNew ? 'New event' : 'Edit event'}
-      </h3>
+      <h3 className="text-base font-semibold">{isNew ? 'New event' : 'Edit event'}</h3>
 
       {/* Title */}
       <div>
         <label htmlFor="event-title" className="block text-sm font-medium mb-1">
-          Title <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+          Title{' '}
+          <span aria-hidden="true" className="text-[var(--color-danger)]">
+            *
+          </span>
         </label>
         <Input
           id="event-title"
@@ -414,7 +408,10 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label htmlFor="event-start" className="block text-sm font-medium mb-1">
-            Start <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+            Start{' '}
+            <span aria-hidden="true" className="text-[var(--color-danger)]">
+              *
+            </span>
           </label>
           <input
             id="event-start"
@@ -434,7 +431,10 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
         </div>
         <div>
           <label htmlFor="event-end" className="block text-sm font-medium mb-1">
-            End <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+            End{' '}
+            <span aria-hidden="true" className="text-[var(--color-danger)]">
+              *
+            </span>
           </label>
           <input
             id="event-end"
@@ -478,7 +478,10 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
       {/* Space */}
       <div>
         <label htmlFor="event-space" className="block text-sm font-medium mb-1">
-          Community space <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+          Community space{' '}
+          <span aria-hidden="true" className="text-[var(--color-danger)]">
+            *
+          </span>
         </label>
         <select
           id="event-space"
@@ -490,12 +493,12 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
         >
           <option value="">— Select a space —</option>
           {spaces.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
           ))}
         </select>
-        {spaceError && (
-          <p className="mt-1 text-xs text-[var(--color-danger)]">{spaceError}</p>
-        )}
+        {spaceError && <p className="mt-1 text-xs text-[var(--color-danger)]">{spaceError}</p>}
       </div>
 
       {/* Zoom radio (D-06) */}
@@ -529,9 +532,7 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
               placeholder="https://zoom.us/j/…"
             />
           )}
-          {pasteError && (
-            <p className="text-xs text-[var(--color-danger)]">{pasteError}</p>
-          )}
+          {pasteError && <p className="text-xs text-[var(--color-danger)]">{pasteError}</p>}
 
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- radio is wrapped by label; descriptive text in nested <span>; a11y intact */}
           <label className="flex items-start gap-2 text-sm">
@@ -548,24 +549,22 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
               <span className="font-medium">Generate Zoom meeting</span>
               <span className="block text-xs text-[var(--color-text-secondary)]">
                 Calls the <code className="font-mono text-[10px]">zoom-create-meeting</code> Edge
-                Function after Save. Requires the Zoom OAuth integration to be
-                configured server-side. The generated join URL and meeting ID
-                are stored server-side and only revealed to attendees via{' '}
-                <code className="font-mono text-[10px]">event_get_join_url</code>{' '}
-                15 minutes before start.
+                Function after Save. Requires the Zoom OAuth integration to be configured
+                server-side. The generated join URL and meeting ID are stored server-side and only
+                revealed to attendees via{' '}
+                <code className="font-mono text-[10px]">event_get_join_url</code> 15 minutes before
+                start.
               </span>
             </span>
           </label>
           {!isNew && form.zoom_managed && (
             <p className="text-xs text-[var(--color-text-secondary)]">
-              This event already has a managed Zoom meeting. Re-generation is not
-              supported from this form.
+              This event already has a managed Zoom meeting. Re-generation is not supported from
+              this form.
             </p>
           )}
           {generatingZoom && (
-            <p className="text-xs text-[var(--color-text-secondary)]">
-              Generating Zoom meeting…
-            </p>
+            <p className="text-xs text-[var(--color-text-secondary)]">Generating Zoom meeting…</p>
           )}
         </div>
       </fieldset>
@@ -584,7 +583,9 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
         >
           <option value="">— Standalone recording —</option>
           {modules.map((m) => (
-            <option key={m.id} value={m.id}>{m.label}</option>
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
           ))}
         </select>
         <p className="mt-1 text-xs text-[var(--color-text-secondary)]">

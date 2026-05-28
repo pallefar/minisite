@@ -60,8 +60,7 @@ export function KnowledgeTopicIndexPage() {
 
   // Extract + validate URL params
   const rawTier = searchParams.get('tier');
-  const tier: TierFilter =
-    rawTier === 'A' || rawTier === 'B' || rawTier === 'C' ? rawTier : 'all';
+  const tier: TierFilter = rawTier === 'A' || rawTier === 'B' || rawTier === 'C' ? rawTier : 'all';
   const rawQ = searchParams.get('q') ?? '';
 
   const [chunks, setChunks] = useState<RagChunkRow[]>([]);
@@ -73,14 +72,20 @@ export function KnowledgeTopicIndexPage() {
     let cancelled = false;
     setLoading(true);
     listPublishedChunksByTopic({ topic, tier: tier === 'all' ? undefined : tier })
-      .then((data) => { if (!cancelled) setChunks(data); })
+      .then((data) => {
+        if (!cancelled) setChunks(data);
+      })
       .catch((err: unknown) => {
         if (!cancelled && !(err instanceof KnowledgeApiError)) {
           setChunks([]);
         }
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [topic, tier, isUnknownTopic]);
 
   // Fuse.js search over loaded chunks
@@ -138,11 +143,7 @@ export function KnowledgeTopicIndexPage() {
           <nav aria-label="Breadcrumb" className="text-xs text-text-secondary mb-3">
             <ol className="flex items-center gap-1 list-none p-0">
               <li>
-                <button
-                  type="button"
-                  onClick={() => navigate('/')}
-                  className="hover:underline"
-                >
+                <button type="button" onClick={() => navigate('/')} className="hover:underline">
                   Knowledge
                 </button>
               </li>
@@ -170,11 +171,7 @@ export function KnowledgeTopicIndexPage() {
           />
           <div role="group" aria-label="Filter by tier" className="flex gap-2 flex-wrap">
             {(['all', 'A', 'B', 'C'] as TierFilter[]).map((tf) => (
-              <Pill
-                key={tf}
-                active={tier === tf}
-                onClick={() => setTierFilter(tf)}
-              >
+              <Pill key={tf} active={tier === tf} onClick={() => setTierFilter(tf)}>
                 {tf === 'all' ? 'All Tiers' : `Tier ${tf}`}
               </Pill>
             ))}
@@ -229,9 +226,7 @@ export function KnowledgeTopicIndexPage() {
 
         {/* ── FDA/DSHEA disclaimer footer ──────────────────────────── */}
         <footer className="border-t border-border pt-6">
-          <p className="text-xs text-text-tertiary leading-relaxed">
-            {t('fda_off_label_full')}
-          </p>
+          <p className="text-xs text-text-tertiary leading-relaxed">{t('fda_off_label_full')}</p>
         </footer>
       </main>
     </>
@@ -262,20 +257,16 @@ function ArticleCard({ chunk, reducedMotion, onNavigate }: ArticleCardProps) {
       <div className="p-4 space-y-2 h-full flex flex-col">
         <div className="flex items-center justify-between gap-2">
           <Pill className="text-xs">{chunk.topic_tag}</Pill>
-          <KnowledgeTierBadge
-            tier={chunk.source_tier}
-            sourceType={sourceObj?.source_type}
-          />
+          <KnowledgeTierBadge tier={chunk.source_tier} sourceType={sourceObj?.source_type} />
         </div>
         <h2 className="text-lg font-semibold text-text leading-snug line-clamp-2 flex-1">
           {title}
         </h2>
-        <p className="text-xs text-text-secondary line-clamp-2">
-          {chunk.summary}
-        </p>
+        <p className="text-xs text-text-secondary line-clamp-2">{chunk.summary}</p>
         <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-border">
           <span className="text-xs text-text-tertiary truncate">
-            {sourceObj?.name ?? 'Unknown'}{date ? ` · As of ${date}` : ''}
+            {sourceObj?.name ?? 'Unknown'}
+            {date ? ` · As of ${date}` : ''}
           </span>
           {chunk.canonical_url && (
             <a

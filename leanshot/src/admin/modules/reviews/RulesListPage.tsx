@@ -91,8 +91,7 @@ export default function RulesListPage(): React.JSX.Element {
         <div>
           <h1 className="text-xl font-semibold">Review Prompt Rules</h1>
           <p className="text-sm text-[var(--color-text-secondary)]">
-            Single-condition rules that fire the NPS prompt. Cooldown enforced
-            server-side.
+            Single-condition rules that fire the NPS prompt. Cooldown enforced server-side.
           </p>
         </div>
         {rules && rules.length > 0 && (
@@ -147,9 +146,7 @@ export default function RulesListPage(): React.JSX.Element {
                       aria-label="Rule actions"
                       aria-haspopup="menu"
                       aria-expanded={openMenuId === rule.id}
-                      onClick={() =>
-                        setOpenMenuId((id) => (id === rule.id ? null : rule.id))
-                      }
+                      onClick={() => setOpenMenuId((id) => (id === rule.id ? null : rule.id))}
                       className="p-1 rounded-md hover:bg-[var(--color-surface-elevated)]"
                     >
                       <MoreVertical size={16} />

@@ -91,11 +91,7 @@ export function ReadOnlyPatientView({
   return (
     <div className="space-y-8">
       {isVisible('chart', viewerMode, permissionMap) && (
-        <ChartSection
-          data={snapshot.injections}
-          viewerMode={viewerMode}
-          onMount={onSectionMount}
-        />
+        <ChartSection data={snapshot.injections} viewerMode={viewerMode} onMount={onSectionMount} />
       )}
       {isVisible('injections', viewerMode, permissionMap) && (
         <InjectionsSection
@@ -105,11 +101,7 @@ export function ReadOnlyPatientView({
         />
       )}
       {isVisible('weights', viewerMode, permissionMap) && (
-        <WeightsSection
-          data={snapshot.weights}
-          viewerMode={viewerMode}
-          onMount={onSectionMount}
-        />
+        <WeightsSection data={snapshot.weights} viewerMode={viewerMode} onMount={onSectionMount} />
       )}
       {isVisible('symptoms', viewerMode, permissionMap) && (
         <SymptomsSection

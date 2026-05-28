@@ -55,12 +55,16 @@ describeIfLive('P28 RLS — org_consent_grants cross-tenant isolation + scope va
     patientUserId = pData.user.id;
 
     // Seed a consent grant in Org Y via admin (bypasses RLS).
-    const { data: grantData, error: grantErr } = await admin.from('org_consent_grants').insert({
-      org_id: fixture.orgY,
-      patient_user_id: patientUserId,
-      scope: VALID_SCOPE,
-      granted_via: 'manual',
-    }).select('id').single();
+    const { data: grantData, error: grantErr } = await admin
+      .from('org_consent_grants')
+      .insert({
+        org_id: fixture.orgY,
+        patient_user_id: patientUserId,
+        scope: VALID_SCOPE,
+        granted_via: 'manual',
+      })
+      .select('id')
+      .single();
     if (grantErr) throw new Error(`consent grant insert failed: ${grantErr.message}`);
     orgYGrantId = grantData?.id ?? null;
   }, 60_000);
@@ -69,7 +73,9 @@ describeIfLive('P28 RLS — org_consent_grants cross-tenant isolation + scope va
     const admin = getAdmin();
     try {
       await admin.auth.admin.deleteUser(patientUserId);
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
     await cleanupByPrefix(TEST_SLUG_PREFIX);
   });
 
@@ -103,7 +109,11 @@ describeIfLive('P28 RLS — org_consent_grants cross-tenant isolation + scope va
       .eq('id', orgYGrantId);
     // Row must be unchanged.
     const admin = getAdmin();
-    const { data } = await admin.from('org_consent_grants').select('revoked_at').eq('id', orgYGrantId).single();
+    const { data } = await admin
+      .from('org_consent_grants')
+      .select('revoked_at')
+      .eq('id', orgYGrantId)
+      .single();
     expect(data?.revoked_at).toBeNull(); // unchanged
   }, 30_000);
 

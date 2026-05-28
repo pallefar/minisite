@@ -53,7 +53,11 @@ export default function SentimentQueuePage(): React.JSX.Element {
   }, []);
 
   if (loading) {
-    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading sentiment alerts…</div>;
+    return (
+      <div className="p-6 text-sm text-[var(--color-text-secondary)]">
+        Loading sentiment alerts…
+      </div>
+    );
   }
   if (error) {
     return <div className="p-6 text-sm text-[var(--color-danger)]">{error}</div>;
@@ -88,13 +92,9 @@ export default function SentimentQueuePage(): React.JSX.Element {
               <div className="text-xs text-[var(--color-text-secondary)] mt-1 flex gap-3">
                 <span>
                   Sentiment:{' '}
-                  {r.sentiment_min_score !== null
-                    ? r.sentiment_min_score.toFixed(2)
-                    : '—'}
+                  {r.sentiment_min_score !== null ? r.sentiment_min_score.toFixed(2) : '—'}
                 </span>
-                <span>
-                  Alerted: {new Date(r.sentiment_alert_fired_at).toLocaleString()}
-                </span>
+                <span>Alerted: {new Date(r.sentiment_alert_fired_at).toLocaleString()}</span>
                 <span>Status: {r.status}</span>
               </div>
             </button>
@@ -103,10 +103,7 @@ export default function SentimentQueuePage(): React.JSX.Element {
       </ul>
 
       {openTicketId ? (
-        <TicketDetailPage
-          ticketId={openTicketId}
-          onClose={() => setOpenTicketId(null)}
-        />
+        <TicketDetailPage ticketId={openTicketId} onClose={() => setOpenTicketId(null)} />
       ) : null}
     </div>
   );

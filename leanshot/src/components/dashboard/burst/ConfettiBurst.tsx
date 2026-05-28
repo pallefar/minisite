@@ -23,7 +23,7 @@ export function ConfettiBurst({ trigger, level, rewardKind }: ConfettiBurstProps
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    if (reduced) return;   // defense-in-depth #1: React-level gate (T-35-06-02)
+    if (reduced) return; // defense-in-depth #1: React-level gate (T-35-06-02)
     if (!trigger) return;
     if (trigger === 'level-up') {
       fireLevelUpBurst(level ?? 1);

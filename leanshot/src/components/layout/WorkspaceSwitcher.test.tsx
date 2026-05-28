@@ -89,7 +89,9 @@ afterEach(() => {
 
 describe('WorkspaceSwitcher — defer-mount (Pitfall #9)', () => {
   it('Test 1: renders a skeleton trigger while auth.getSession() is pending', async () => {
-    let resolveSession: ((v: { data: { session: { user: { id: string } } | null } }) => void) | null = null;
+    let resolveSession:
+      | ((v: { data: { session: { user: { id: string } } | null } }) => void)
+      | null = null;
     mockGetSession.mockReturnValue(
       new Promise((res) => {
         resolveSession = res;

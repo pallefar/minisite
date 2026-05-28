@@ -23,7 +23,6 @@ vi.mock('@/lib/nps/decide-client', () => ({
   submitNpsFeedback: (text: string) => mockSubmit(text),
 }));
 
-
 describe('<DetractorFeedbackModal /> — Plan 36-03 Task 2', () => {
   beforeEach(() => {
     mockSubmit.mockReset();
@@ -51,10 +50,7 @@ describe('<DetractorFeedbackModal /> — Plan 36-03 Task 2', () => {
     await user.type(screen.getByPlaceholderText(/Tell us what's/i), 'short');
     expect(submit).toBeDisabled();
     // Now type past 10 chars
-    await user.type(
-      screen.getByPlaceholderText(/Tell us what's/i),
-      ' more text to pass the bar',
-    );
+    await user.type(screen.getByPlaceholderText(/Tell us what's/i), ' more text to pass the bar');
     expect(submit).toBeEnabled();
     expect(screen.queryByText(/At least a sentence helps/i)).toBeNull();
   });
@@ -98,9 +94,7 @@ describe('<DetractorFeedbackModal /> — Plan 36-03 Task 2', () => {
     await waitFor(() =>
       expect(screen.getByText(/Thanks — we'll be in touch/i)).toBeInTheDocument(),
     );
-    expect(
-      screen.getByText(/created a support ticket/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/created a support ticket/i)).toBeInTheDocument();
     // Auto-dismiss at 3000ms.
     await act(async () => {
       vi.advanceTimersByTime(3000);
@@ -117,9 +111,7 @@ describe('<DetractorFeedbackModal /> — Plan 36-03 Task 2', () => {
       'Detailed feedback exceeds ten chars',
     );
     await user.click(screen.getByRole('button', { name: /Send feedback/i }));
-    await waitFor(() =>
-      expect(screen.getByText(/Couldn't send/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Couldn't send/i)).toBeInTheDocument());
   });
 
   it('Skip → onDismiss invoked', async () => {

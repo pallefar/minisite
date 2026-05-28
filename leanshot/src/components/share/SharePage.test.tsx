@@ -19,7 +19,6 @@ vi.mock('./share-client', () => ({
   redeemShare: vi.fn(),
 }));
 
-
 const mockedFetchSnapshot = vi.mocked(client.fetchSnapshot);
 
 function buildSnapshot(overrides: Partial<SnapshotResponse['snapshot']> = {}): SnapshotResponse {
@@ -47,9 +46,7 @@ describe('SharePage — Plan 08-04', () => {
   it('shows code-entry screen on 401 requires-code', async () => {
     mockedFetchSnapshot.mockResolvedValue({ ok: false, error: 'requires-code' });
     render(<SharePage token="abc" />);
-    await waitFor(() =>
-      expect(screen.getByText(/Enter the 6-digit code/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Enter the 6-digit code/i)).toBeInTheDocument());
   });
 
   it('shows revoked screen on 401 revoked', async () => {
@@ -63,25 +60,19 @@ describe('SharePage — Plan 08-04', () => {
   it('shows expired screen on 401 expired', async () => {
     mockedFetchSnapshot.mockResolvedValue({ ok: false, error: 'expired' });
     render(<SharePage token="abc" />);
-    await waitFor(() =>
-      expect(screen.getByText(/This share has expired/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/This share has expired/i)).toBeInTheDocument());
   });
 
   it('shows generic load-error screen on not-found', async () => {
     mockedFetchSnapshot.mockResolvedValue({ ok: false, error: 'not-found' });
     render(<SharePage token="abc" />);
-    await waitFor(() =>
-      expect(screen.getByText(/Couldn't open this share/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Couldn't open this share/i)).toBeInTheDocument());
   });
 
-  it("SC#3 — snapshot DOM contains zero AI-history substrings", async () => {
+  it('SC#3 — snapshot DOM contains zero AI-history substrings', async () => {
     mockedFetchSnapshot.mockResolvedValue({ ok: true, data: buildSnapshot() });
     const { container } = render(<SharePage token="abc" />);
-    await waitFor(() =>
-      expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument());
     const html = container.innerHTML.toLowerCase();
     // Three SC#3 substrings — none of which should ever appear in the share
     // route's rendered DOM. The snapshot type contract (src/types/share.ts)
@@ -91,21 +82,19 @@ describe('SharePage — Plan 08-04', () => {
     expect(html).not.toMatch(/aichat/);
   });
 
-  it("renders ReadOnlyPatientView wrapper in snapshot-rendered state (Phase 10 Plan 10-05 refactor)", async () => {
+  it('renders ReadOnlyPatientView wrapper in snapshot-rendered state (Phase 10 Plan 10-05 refactor)', async () => {
     // Phase 10 Plan 10-05: section rendering moved to ReadOnlyPatientView.
     // This test verifies the share-mode chrome (header, patient name, print button).
     // Section rendering assertions live in ReadOnlyPatientView.test.tsx.
     mockedFetchSnapshot.mockResolvedValue({ ok: true, data: buildSnapshot() });
     render(<SharePage token="abc" />);
-    await waitFor(() =>
-      expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument());
     // Share-mode chrome elements still present
     expect(screen.getByText(/Recipient verified/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Print this share/i })).toBeInTheDocument();
   });
 
-  it("print button calls window.print()", async () => {
+  it('print button calls window.print()', async () => {
     mockedFetchSnapshot.mockResolvedValue({ ok: true, data: buildSnapshot() });
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
     render(<SharePage token="abc" />);
@@ -115,7 +104,7 @@ describe('SharePage — Plan 08-04', () => {
     printSpy.mockRestore();
   });
 
-  it("transitions to ShareRevokedScreen within 6s of revoke (5s poll per HI-4)", async () => {
+  it('transitions to ShareRevokedScreen within 6s of revoke (5s poll per HI-4)', async () => {
     // First call returns a valid snapshot; subsequent polls return revoked.
     mockedFetchSnapshot
       .mockResolvedValueOnce({ ok: true, data: buildSnapshot() })
@@ -124,9 +113,7 @@ describe('SharePage — Plan 08-04', () => {
     try {
       render(<SharePage token="abc" />);
       // Wait for initial render — use real-time-ish polling under fake timers
-      await waitFor(() =>
-        expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument(),
-      );
+      await waitFor(() => expect(screen.getByText(/Alice's LeanShot record/i)).toBeInTheDocument());
       // Advance 5s+ to trigger the polling cycle and its async dispatch
       await vi.advanceTimersByTimeAsync(6_000);
       await waitFor(() =>
@@ -137,7 +124,7 @@ describe('SharePage — Plan 08-04', () => {
     }
   });
 
-  it("captures share_id from /snapshot response into local state (BL-1)", async () => {
+  it('captures share_id from /snapshot response into local state (BL-1)', async () => {
     // Verifies that the rendered DOM is anchored to the snapshot data the
     // mock returned. share_id capture is structural — Plan 08-06's print
     // footer reads it from SharePage's local state.

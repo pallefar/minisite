@@ -55,9 +55,7 @@ describe('rule-tree-schema (Phase 27 Plan 27-02)', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(
-        result.error.issues.some((i) =>
-          i.message.includes(`exceeds MAX_DEPTH ${MAX_DEPTH}`),
-        ),
+        result.error.issues.some((i) => i.message.includes(`exceeds MAX_DEPTH ${MAX_DEPTH}`)),
       ).toBe(true);
     }
   });

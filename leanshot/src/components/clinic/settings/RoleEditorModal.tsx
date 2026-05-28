@@ -39,10 +39,7 @@ import type { OrgRole } from '@/types/org';
  * Keys MUST match PERMISSION_KEYS exactly (compile-time enforced by the
  * Record type below).
  */
-export const PERMISSION_LABELS: Record<
-  PermissionKey,
-  { label: string; description: string }
-> = {
+export const PERMISSION_LABELS: Record<PermissionKey, { label: string; description: string }> = {
   'org.read': {
     label: 'View workspace',
     description: 'See workspace name, members, and patient roster',
@@ -73,8 +70,7 @@ export const PERMISSION_LABELS: Record<
   },
   'patient_data.read': {
     label: 'View patient data',
-    description:
-      'Read injections, weight, symptoms, and other tracked data (excluding photos)',
+    description: 'Read injections, weight, symptoms, and other tracked data (excluding photos)',
   },
   'patient_photos.read': {
     label: 'View patient photos',
@@ -111,25 +107,43 @@ const ORG_MATRIX_PERMISSION_KEYS: readonly string[] = [
 
 /** Human labels for the 12-key matrix rows. */
 const ORG_MATRIX_LABELS: Record<string, { label: string; description: string }> = {
-  'members.invite':           { label: 'Invite members',          description: 'Send invitations to new team members' },
-  'members.revoke':           { label: 'Revoke members',           description: 'Remove a member from the workspace' },
-  'members.list':             { label: 'View members',             description: 'See the member list and pending invites' },
-  'members.role.edit':        { label: 'Change member roles',      description: 'Reassign Owner, Clinician, or Staff roles' },
-  'settings.edit':            { label: 'Edit settings',            description: 'Change workspace name, URL, and general settings' },
-  'branding.edit':            { label: 'Edit branding',            description: 'Customize clinic logo, colors, and fonts' },
-  'onboarding.edit':          { label: 'Edit onboarding',          description: 'Build and publish the patient onboarding flow' },
-  'roster.view':              { label: 'View patient roster',      description: 'See the list of enrolled patients' },
-  'roster.thresholds.edit':   { label: 'Edit alert thresholds',    description: 'Set per-patient dose and metric alert thresholds' },
-  'alerts.ack':               { label: 'Acknowledge alerts',       description: 'Dismiss active clinician alerts' },
-  'alerts.snooze':            { label: 'Snooze alerts',            description: 'Temporarily suppress an alert' },
-  'billing.view':             { label: 'View billing',             description: 'See subscription and invoice details' },
+  'members.invite': {
+    label: 'Invite members',
+    description: 'Send invitations to new team members',
+  },
+  'members.revoke': { label: 'Revoke members', description: 'Remove a member from the workspace' },
+  'members.list': { label: 'View members', description: 'See the member list and pending invites' },
+  'members.role.edit': {
+    label: 'Change member roles',
+    description: 'Reassign Owner, Clinician, or Staff roles',
+  },
+  'settings.edit': {
+    label: 'Edit settings',
+    description: 'Change workspace name, URL, and general settings',
+  },
+  'branding.edit': {
+    label: 'Edit branding',
+    description: 'Customize clinic logo, colors, and fonts',
+  },
+  'onboarding.edit': {
+    label: 'Edit onboarding',
+    description: 'Build and publish the patient onboarding flow',
+  },
+  'roster.view': { label: 'View patient roster', description: 'See the list of enrolled patients' },
+  'roster.thresholds.edit': {
+    label: 'Edit alert thresholds',
+    description: 'Set per-patient dose and metric alert thresholds',
+  },
+  'alerts.ack': { label: 'Acknowledge alerts', description: 'Dismiss active clinician alerts' },
+  'alerts.snooze': { label: 'Snooze alerts', description: 'Temporarily suppress an alert' },
+  'billing.view': { label: 'View billing', description: 'See subscription and invoice details' },
 };
 
 const ORG_ROLES: readonly OrgRole[] = ['owner', 'clinician', 'staff'];
 const ORG_ROLE_LABELS: Record<OrgRole, string> = {
-  owner:     'Owner',
+  owner: 'Owner',
   clinician: 'Clinician',
-  staff:     'Staff',
+  staff: 'Staff',
 };
 
 // ---------------------------------------------------------------------------
@@ -217,7 +231,7 @@ export function RoleEditorModal({
           .eq('org_id', orgId)
           .eq('role', 'owner');
         if (!error) {
-          setOwnerCount(data === null ? 0 : (data as unknown as { count: number }).count ?? 0);
+          setOwnerCount(data === null ? 0 : ((data as unknown as { count: number }).count ?? 0));
         }
       })();
       // Separately fetch count using count mode
@@ -283,10 +297,7 @@ export function RoleEditorModal({
           p_permission_keys: permissionKeys,
         });
         if (error) {
-          toast(
-            "Couldn't save the role. Check your connection and try again.",
-            'error',
-          );
+          toast("Couldn't save the role. Check your connection and try again.", 'error');
           return;
         }
         const row = Array.isArray(data) ? data[0] : data;
@@ -301,10 +312,7 @@ export function RoleEditorModal({
         onClose();
       } else {
         if (!role) {
-          toast(
-            "Couldn't save the role. Check your connection and try again.",
-            'error',
-          );
+          toast("Couldn't save the role. Check your connection and try again.", 'error');
           return;
         }
         const { error } = await supabase.rpc('update_role', {
@@ -314,10 +322,7 @@ export function RoleEditorModal({
           p_permission_keys: permissionKeys,
         });
         if (error) {
-          toast(
-            "Couldn't save the role. Check your connection and try again.",
-            'error',
-          );
+          toast("Couldn't save the role. Check your connection and try again.", 'error');
           return;
         }
         toast(`Role "${name.trim()}" updated.`, 'success');
@@ -338,10 +343,7 @@ export function RoleEditorModal({
    * Server SECDEF is the floor (T-31-05-01); this is UX sugar.
    */
   const isLastOwnerDemote =
-    mode === 'assign' &&
-    currentRole === 'owner' &&
-    selectedRole !== 'owner' &&
-    ownerCount <= 1;
+    mode === 'assign' && currentRole === 'owner' && selectedRole !== 'owner' && ownerCount <= 1;
 
   const handleAssignSubmit = async (): Promise<void> => {
     if (!userId) return;
@@ -389,9 +391,7 @@ export function RoleEditorModal({
         <div className="space-y-5">
           {/* Role selector */}
           <div>
-            <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">
-              New role
-            </p>
+            <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">New role</p>
             <div className="flex gap-2">
               {ORG_ROLES.map((r) => (
                 <button
@@ -463,9 +463,7 @@ export function RoleEditorModal({
                               key={r}
                               className={[
                                 'px-3 py-2 text-center',
-                                selectedRole === r
-                                  ? 'bg-[var(--color-primary-soft)]'
-                                  : '',
+                                selectedRole === r ? 'bg-[var(--color-primary-soft)]' : '',
                               ].join(' ')}
                             >
                               {granted ? (
@@ -481,9 +479,7 @@ export function RoleEditorModal({
                                   className="inline text-[var(--color-text-tertiary)]"
                                 />
                               )}
-                              <span className="sr-only">
-                                {granted ? 'Granted' : 'Not granted'}
-                              </span>
+                              <span className="sr-only">{granted ? 'Granted' : 'Not granted'}</span>
                             </td>
                           );
                         })}
@@ -502,12 +498,7 @@ export function RoleEditorModal({
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              disabled={submitting}
-            >
+            <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>
               Cancel
             </Button>
             {isLastOwnerDemote ? (
@@ -515,12 +506,7 @@ export function RoleEditorModal({
                 title="An organization must have at least one owner."
                 aria-label="An organization must have at least one owner."
               >
-                <Button
-                  type="button"
-                  variant="primary"
-                  disabled
-                  aria-busy={false}
-                >
+                <Button type="button" variant="primary" disabled aria-busy={false}>
                   Change to {selectedRoleLabel}
                 </Button>
               </span>
@@ -622,12 +608,7 @@ export function RoleEditorModal({
         </fieldset>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onClose}
-            disabled={submitting}
-          >
+          <Button type="button" variant="ghost" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
           <Button type="submit" loading={submitting} disabled={submitting}>

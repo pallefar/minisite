@@ -51,10 +51,7 @@ export interface KBArticleViewProps {
  * deferred to v1.4. The renderer doesn't read `data-id` in v1.3 — only
  * `data-url` is consumed by the per-provider Block component's content shape.
  */
-function buildBlockFromEmbedAttrs(
-  type: string,
-  dataUrl: string | undefined,
-): BlockNode {
+function buildBlockFromEmbedAttrs(type: string, dataUrl: string | undefined): BlockNode {
   // Map type → the per-provider URL field name. Each block already has its
   // own content shape (calendlyUrl / videoId / tallyFormUrl / embedUrl).
   let content: Record<string, unknown> = {};
@@ -99,10 +96,7 @@ function extractYouTubeId(url: string): string {
   return '';
 }
 
-export default function KBArticleView({
-  articleId,
-  onBack,
-}: KBArticleViewProps): JSX.Element {
+export default function KBArticleView({ articleId, onBack }: KBArticleViewProps): JSX.Element {
   const [article, setArticle] = useState<Article | null>(null);
   const [locale, setLocale] = useState<'en' | 'es'>('en');
 
@@ -136,8 +130,7 @@ export default function KBArticleView({
     ADD_ATTR: ['type', 'data-url', 'data-id', 'data-allow'],
   });
 
-  const hasSpanish =
-    Array.isArray(article.locale_set) && article.locale_set.includes('es');
+  const hasSpanish = Array.isArray(article.locale_set) && article.locale_set.includes('es');
 
   // ReactMarkdown components mapper — resolves the lowercase custom tag
   // `embed-block` to the matching React block component by `type` attribute.

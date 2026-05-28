@@ -22,20 +22,28 @@ export function useSpaceRealtime(spaceId: string, onUpdate: () => void): void {
       .channel(`community:${spaceId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `space_id=eq.${spaceId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'community_posts',
+          filter: `space_id=eq.${spaceId}`,
+        },
         () => onUpdate(),
       )
       .on(
         'postgres_changes',
         // community_comments.space_id is denormalized per Pitfall 5 (44-01)
         // DON'T use a post_id join filter here — space_id is the direct column.
-        { event: 'INSERT', schema: 'public', table: 'community_comments', filter: `space_id=eq.${spaceId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'community_comments',
+          filter: `space_id=eq.${spaceId}`,
+        },
         () => onUpdate(),
       )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'community_reactions' },
-        () => onUpdate(),
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_reactions' }, () =>
+        onUpdate(),
       )
       .subscribe((status: string) => {
         if (status === 'CHANNEL_ERROR') {

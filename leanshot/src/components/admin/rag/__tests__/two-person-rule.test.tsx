@@ -84,9 +84,7 @@ describe('2-person rule UI layer', () => {
   it('Test B: self-created row renders inline Badge with verbatim copy "You created this — needs a different reviewer"', async () => {
     render(<RagQueuePage />);
     await waitFor(() => {
-      expect(
-        screen.getByText('You created this — needs a different reviewer'),
-      ).toBeTruthy();
+      expect(screen.getByText('You created this — needs a different reviewer')).toBeTruthy();
     });
   });
 

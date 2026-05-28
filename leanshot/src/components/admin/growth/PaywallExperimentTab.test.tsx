@@ -52,7 +52,10 @@ describe('PaywallExperimentTab', () => {
   });
 
   it('(a) renders one row per ExperimentRow with variant_name + cohort + composite + BayesianBadge + refund_rate_7d', () => {
-    const rows = [makeRow({ variant_id: 'v1', variant_name: 'Lean Copy' }), makeRow({ variant_id: 'v2', variant_name: 'Transformation Copy', cohort_label: 'past-due' })];
+    const rows = [
+      makeRow({ variant_id: 'v1', variant_name: 'Lean Copy' }),
+      makeRow({ variant_id: 'v2', variant_name: 'Transformation Copy', cohort_label: 'past-due' }),
+    ];
     render(<PaywallExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
 
     expect(screen.getByText('Lean Copy')).toBeInTheDocument();
@@ -82,9 +85,7 @@ describe('PaywallExperimentTab', () => {
     const shipBtn = container.querySelector('[data-action="ship-winner"]') as HTMLButtonElement;
     fireEvent.click(shipBtn);
     expect(onShip).toHaveBeenCalledWith('v-high');
-    expect(
-      screen.queryByText('Ship variant below 95% confidence?'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Ship variant below 95% confidence?')).not.toBeInTheDocument();
   });
 
   it('(d) Ship-Winner click with posterior < 0.95 opens ShipWinnerConfirmModal', () => {
@@ -94,9 +95,7 @@ describe('PaywallExperimentTab', () => {
     );
     const shipBtn = container.querySelector('[data-action="ship-winner"]') as HTMLButtonElement;
     fireEvent.click(shipBtn);
-    expect(
-      screen.getByText('Ship variant below 95% confidence?'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Ship variant below 95% confidence?')).toBeInTheDocument();
     // onShip NOT yet called — waits for modal confirm
     expect(onShip).not.toHaveBeenCalled();
   });
@@ -111,18 +110,14 @@ describe('PaywallExperimentTab', () => {
       }),
     ];
     render(<PaywallExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
-    expect(
-      screen.getByText(/Refund rate exceeded 2× control baseline/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Refund rate exceeded 2× control baseline/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Re-enable variant' })).toBeInTheDocument();
   });
 
   it('(f) composite score callout shows "Composite: paid_rate × 30d_retention = N"', () => {
     const rows = [makeRow({ composite_score: 0.048 })];
     render(<PaywallExperimentTab rows={rows} onShip={onShip} busyKey={null} />);
-    expect(
-      screen.getByText(/Composite:.*paid_rate.*30d_retention.*=/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Composite:.*paid_rate.*30d_retention.*=/)).toBeInTheDocument();
   });
 
   it('renders empty when rows=[]', () => {

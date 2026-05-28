@@ -180,11 +180,10 @@ export default function RagQueuePage() {
   const handleRetract = useCallback(
     async (reason: string) => {
       if (!activeChunk) return;
-      const { error: retractError } = await ragRetractChunk(
-        activeChunk.id,
-        reason,
-        { sourceTier: activeChunk.source_tier, queueAgeHours: activeChunk.queue_age_hours },
-      );
+      const { error: retractError } = await ragRetractChunk(activeChunk.id, reason, {
+        sourceTier: activeChunk.source_tier,
+        queueAgeHours: activeChunk.queue_age_hours,
+      });
       if (!retractError) showToast('Retracted', 'success');
       else showToast('Retract failed', 'error');
     },
@@ -216,7 +215,11 @@ export default function RagQueuePage() {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       // Guard: check if target is an element that supports matches()
-      if (typeof target.matches === 'function' && target.matches('input, textarea, [contenteditable="true"]')) return;
+      if (
+        typeof target.matches === 'function' &&
+        target.matches('input, textarea, [contenteditable="true"]')
+      )
+        return;
       if (!activeChunk) return;
 
       switch (e.key) {
@@ -296,9 +299,7 @@ export default function RagQueuePage() {
           </div>
         )}
 
-        {!loading && error && (
-          <p className="text-[13px] text-[var(--color-danger)]">{error}</p>
-        )}
+        {!loading && error && <p className="text-[13px] text-[var(--color-danger)]">{error}</p>}
 
         {!loading && !error && rows.length === 0 && (
           <EmptyState
@@ -446,10 +447,7 @@ export default function RagQueuePage() {
         }}
       />
 
-      <QueueKeyboardHelpModal
-        open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-      />
+      <QueueKeyboardHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

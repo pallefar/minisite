@@ -52,9 +52,7 @@ export function resolveView(pathname: string): View {
     return { type: 'list' };
   }
 
-  const m = trimmed.match(
-    /^\/admin\/courses\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/,
-  );
+  const m = trimmed.match(/^\/admin\/courses\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/);
   if (!m) return { type: 'list' };
   const [, seg1, seg2, seg3] = m;
   if (!seg1) return { type: 'list' };
@@ -96,9 +94,7 @@ export default function CoursesAdminLayout() {
   return (
     <div className="courses-admin-module space-y-6">
       <Suspense
-        fallback={
-          <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
-        }
+        fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
       >
         {view.type === 'list' && <CoursesListAdmin onNavigate={navigate} />}
 

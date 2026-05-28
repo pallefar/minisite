@@ -157,13 +157,16 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
       });
 
       const joined: ListedMember[] = ((rpcRows ?? []) as unknown[])
-        .map((r) => r as {
-          user_id: string;
-          email: string;
-          role_id: string;
-          joined_at: string;
-          revoked_at: string | null;
-        })
+        .map(
+          (r) =>
+            r as {
+              user_id: string;
+              email: string;
+              role_id: string;
+              joined_at: string;
+              revoked_at: string | null;
+            },
+        )
         .filter((r) => r.revoked_at === null)
         .map((r) => ({
           ...r,
@@ -213,10 +216,7 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
     };
   }, [orgId, fetchAll]);
 
-  const handleRoleChange = async (
-    m: ListedMember,
-    newRoleId: string,
-  ): Promise<void> => {
+  const handleRoleChange = async (m: ListedMember, newRoleId: string): Promise<void> => {
     const prev = m.role_id;
     setMembers((cur) =>
       cur ? cur.map((x) => (x.user_id === m.user_id ? { ...x, role_id: newRoleId } : x)) : cur,
@@ -228,9 +228,7 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
     if (error) {
       // Revert.
       setMembers((cur) =>
-        cur
-          ? cur.map((x) => (x.user_id === m.user_id ? { ...x, role_id: prev } : x))
-          : cur,
+        cur ? cur.map((x) => (x.user_id === m.user_id ? { ...x, role_id: prev } : x)) : cur,
       );
       toast("Couldn't update role. Check your connection and try again.", 'error');
       return;
@@ -268,10 +266,7 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
         p_invite_id: cancelTarget.id,
       });
       if (error) {
-        toast(
-          "Couldn't cancel the invitation. Check your connection and try again.",
-          'error',
-        );
+        toast("Couldn't cancel the invitation. Check your connection and try again.", 'error');
         return;
       }
       toast('Invitation canceled.', 'success');
@@ -297,9 +292,7 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
     // this tree, dispatch a window event the parent (or a future plan) can
     // wire to a global modal host. This keeps the CTA testable and
     // accessible — the affordance is real, the destination is deferred.
-    window.dispatchEvent(
-      new CustomEvent('clinic:open-invite', { detail: { orgId } }),
-    );
+    window.dispatchEvent(new CustomEvent('clinic:open-invite', { detail: { orgId } }));
   };
 
   return (
@@ -455,8 +448,8 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
         {revokeTarget && (
           <div className="space-y-4">
             <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-              Their data will become invisible to your workspace within
-              seconds. You can re-invite them later if you change your mind.
+              Their data will become invisible to your workspace within seconds. You can re-invite
+              them later if you change your mind.
             </p>
             <Input
               label={`Type ${firstNameFrom(revokeTarget.email)} to revoke`}
@@ -480,9 +473,7 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
               <Button
                 variant="destructive"
                 loading={revokeBusy}
-                disabled={
-                  revokeTyped !== firstNameFrom(revokeTarget.email) || revokeBusy
-                }
+                disabled={revokeTyped !== firstNameFrom(revokeTarget.email) || revokeBusy}
                 onClick={() => {
                   void handleRevoke();
                 }}
@@ -507,15 +498,11 @@ export function MembersTab({ orgId, roles }: MembersTabProps) {
         {cancelTarget && (
           <div className="space-y-4">
             <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-              The patient won&apos;t be able to use this invitation link. You
-              can send a new one later.
+              The patient won&apos;t be able to use this invitation link. You can send a new one
+              later.
             </p>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setCancelTarget(null)}
-                disabled={cancelBusy}
-              >
+              <Button variant="ghost" onClick={() => setCancelTarget(null)} disabled={cancelBusy}>
                 Keep invitation
               </Button>
               <Button

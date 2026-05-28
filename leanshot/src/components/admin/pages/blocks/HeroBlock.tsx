@@ -49,9 +49,7 @@ export function HeroBlock({ block }: HeroBlockProps) {
         >
           {content.heading ?? 'Hero heading'}
         </h1>
-        {content.subheading && (
-          <p className="mt-4 text-[16px] opacity-80">{content.subheading}</p>
-        )}
+        {content.subheading && <p className="mt-4 text-[16px] opacity-80">{content.subheading}</p>}
         {content.ctaLabel && (
           <a
             href={safeHref(content.ctaHref)}

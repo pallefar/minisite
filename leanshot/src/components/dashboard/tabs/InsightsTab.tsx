@@ -77,7 +77,10 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
       <Card span={6}>
-        <CardHeader title={t('patient:tab.insights.report_title')} icon={<FileText className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.insights.report_title')}
+          icon={<FileText className="size-4" />}
+        />
         <p className="text-[13px] text-[var(--color-text-secondary)] mb-4">
           {t('patient:tab.insights.report_body')}
         </p>
@@ -87,7 +90,10 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.insights.share_title')} icon={<Sparkles className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.insights.share_title')}
+          icon={<Sparkles className="size-4" />}
+        />
         <p className="text-[13px] text-[var(--color-text-secondary)] mb-4">
           {t('patient:tab.insights.share_body')}
         </p>
@@ -97,7 +103,10 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.insights.nsv_title')} icon={<Trophy className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.insights.nsv_title')}
+          icon={<Trophy className="size-4" />}
+        />
         <p className="text-[12px] text-[var(--color-text-secondary)] mb-3">
           {t('patient:tab.insights.nsv_body')}
         </p>
@@ -123,7 +132,10 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.insights.wins_title')} icon={<Star className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.insights.wins_title')}
+          icon={<Star className="size-4" />}
+        />
         {nsvs.length === 0 ? (
           <EmptyStateInline
             inline
@@ -209,7 +221,10 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.insights.weekly_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.insights.weekly_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           <Tile
             label={t('patient:tab.insights.weekly_weight')}
@@ -235,7 +250,9 @@ export function InsightsTab({ onOpenReport }: InsightsTabProps) {
             <BookOpen className="size-7" strokeWidth={1.6} />
           </span>
           <div className="flex-1 min-w-[220px]">
-            <h3 className="text-[18px] font-bold tracking-tight mb-1">{t('patient:tab.insights.guide_title')}</h3>
+            <h3 className="text-[18px] font-bold tracking-tight mb-1">
+              {t('patient:tab.insights.guide_title')}
+            </h3>
             <p className="text-[13px] opacity-85 leading-snug">
               {t('patient:tab.insights.guide_body')}
             </p>

@@ -48,9 +48,11 @@ export default function SLATargetsPage(): React.JSX.Element {
     }
     return init;
   });
-  const [draftRecipient, setDraftRecipient] = useState<Record<Tier, string>>(
-    () => ({ p1: '', p2: '', p3: '' }),
-  );
+  const [draftRecipient, setDraftRecipient] = useState<Record<Tier, string>>(() => ({
+    p1: '',
+    p2: '',
+    p3: '',
+  }));
   const [role, setRole] = useState<string | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -106,15 +108,12 @@ export default function SLATargetsPage(): React.JSX.Element {
     void fetchRole();
   }, [fetchTargets, fetchRole]);
 
-  const updateRow = useCallback(
-    (tier: Tier, patch: Partial<SlaTarget>): void => {
-      setRowsByTier((prev) => ({
-        ...prev,
-        [tier]: { ...prev[tier], ...patch },
-      }));
-    },
-    [],
-  );
+  const updateRow = useCallback((tier: Tier, patch: Partial<SlaTarget>): void => {
+    setRowsByTier((prev) => ({
+      ...prev,
+      [tier]: { ...prev[tier], ...patch },
+    }));
+  }, []);
 
   const addRecipient = useCallback(
     (tier: Tier): void => {
@@ -229,19 +228,14 @@ export default function SLATargetsPage(): React.JSX.Element {
         {TIERS.map((t) => {
           const r = rowsByTier[t];
           return (
-            <div
-              key={t}
-              className="grid grid-cols-[60px_1fr_1fr_2fr] gap-2 items-start"
-            >
+            <div key={t} className="grid grid-cols-[60px_1fr_1fr_2fr] gap-2 items-start">
               <span className="text-sm font-mono uppercase pt-1">{t}</span>
               <input
                 aria-label={`${t} first response minutes`}
                 type="number"
                 min={1}
                 value={r.first_response_minutes}
-                onChange={(e) =>
-                  updateRow(t, { first_response_minutes: Number(e.target.value) })
-                }
+                onChange={(e) => updateRow(t, { first_response_minutes: Number(e.target.value) })}
                 disabled={!canMutate}
                 className="px-2 py-1 text-sm border border-[var(--color-border)] rounded disabled:opacity-50"
               />
@@ -250,9 +244,7 @@ export default function SLATargetsPage(): React.JSX.Element {
                 type="number"
                 min={1}
                 value={r.resolution_minutes}
-                onChange={(e) =>
-                  updateRow(t, { resolution_minutes: Number(e.target.value) })
-                }
+                onChange={(e) => updateRow(t, { resolution_minutes: Number(e.target.value) })}
                 disabled={!canMutate}
                 className="px-2 py-1 text-sm border border-[var(--color-border)] rounded disabled:opacity-50"
               />
@@ -280,9 +272,7 @@ export default function SLATargetsPage(): React.JSX.Element {
                   aria-label={`${t} add recipient`}
                   type="email"
                   value={draftRecipient[t]}
-                  onChange={(e) =>
-                    setDraftRecipient((p) => ({ ...p, [t]: e.target.value }))
-                  }
+                  onChange={(e) => setDraftRecipient((p) => ({ ...p, [t]: e.target.value }))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ',') {
                       e.preventDefault();

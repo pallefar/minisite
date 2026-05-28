@@ -28,16 +28,12 @@ describe('ShipWinnerConfirmModal (D-12)', () => {
 
   it('renders when open=true', () => {
     render(<ShipWinnerConfirmModal {...baseProps} />);
-    expect(
-      screen.getByText('Ship variant below 95% confidence?'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Ship variant below 95% confidence?')).toBeInTheDocument();
   });
 
   it('does not render when open=false', () => {
     render(<ShipWinnerConfirmModal {...baseProps} open={false} />);
-    expect(
-      screen.queryByText('Ship variant below 95% confidence?'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Ship variant below 95% confidence?')).not.toBeInTheDocument();
   });
 
   it('Confirm button disabled initially', () => {

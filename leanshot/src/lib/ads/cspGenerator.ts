@@ -19,10 +19,7 @@ export interface CspAllowRow {
  * T-56-11 (Repudiation): block-listed GLP-1 hosts are structurally excluded
  * BEFORE any CSP append — they cannot survive into the final header.
  */
-export function filterBlocklisted(
-  allow: CspAllowRow[],
-  block: string[],
-): CspAllowRow[] {
+export function filterBlocklisted(allow: CspAllowRow[], block: string[]): CspAllowRow[] {
   const blockSet = new Set(block.map((h) => h.toLowerCase()));
   return allow.filter((row) => !blockSet.has(row.hostname.toLowerCase()));
 }

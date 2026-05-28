@@ -47,7 +47,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 // Typed mock accessors — cast after import so TypeScript is happy
 const mockGetSession = vi.mocked(supabase.auth.getSession);
 const mockEnroll = vi.mocked(supabase.auth.mfa.enroll);
@@ -67,7 +66,10 @@ function fakeSession(aal?: string) {
   // supabase.auth.mfa.getAuthenticatorAssuranceLevel() (post-merge fix).
   if (aal !== undefined) {
     // @ts-expect-error — test fixture; only currentLevel matters
-    mockGetAal.mockResolvedValue({ data: { currentLevel: aal, nextLevel: aal, currentAuthenticationMethods: [] }, error: null });
+    mockGetAal.mockResolvedValue({
+      data: { currentLevel: aal, nextLevel: aal, currentAuthenticationMethods: [] },
+      error: null,
+    });
   }
   return {
     data: {
@@ -95,7 +97,10 @@ describe('getClinicianAal', () => {
   it('case 2: returns aal1 when session present but aal undefined', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { aal: undefined } }, error: null });
     // @ts-expect-error — test fixture
-    mockGetAal.mockResolvedValue({ data: { currentLevel: 'aal1', nextLevel: 'aal2', currentAuthenticationMethods: [] }, error: null });
+    mockGetAal.mockResolvedValue({
+      data: { currentLevel: 'aal1', nextLevel: 'aal2', currentAuthenticationMethods: [] },
+      error: null,
+    });
     const result = await getClinicianAal();
     expect(result).toBe('aal1');
   });
@@ -148,7 +153,10 @@ describe('challengeClinicianTotp', () => {
 
   it('case 6: bad code → aal1 + error=invalid_code', async () => {
     mockChallenge.mockResolvedValue({ data: { id: 'ch-1' }, error: null });
-    mockVerify.mockResolvedValue({ data: null, error: { name: 'VerifyError', message: 'bad code' } });
+    mockVerify.mockResolvedValue({
+      data: null,
+      error: { name: 'VerifyError', message: 'bad code' },
+    });
 
     const result = await challengeClinicianTotp('factor-1', '000000');
     expect(result.aal).toBe('aal1');
@@ -156,7 +164,10 @@ describe('challengeClinicianTotp', () => {
   });
 
   it('case 7: challenge step fails → aal1 + error=challenge_failed', async () => {
-    mockChallenge.mockResolvedValue({ data: null, error: { name: 'ChallengeError', message: 'fail' } });
+    mockChallenge.mockResolvedValue({
+      data: null,
+      error: { name: 'ChallengeError', message: 'fail' },
+    });
 
     const result = await challengeClinicianTotp('factor-1', '123456');
     expect(result.aal).toBe('aal1');

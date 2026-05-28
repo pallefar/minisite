@@ -144,9 +144,11 @@ export async function unpublishOverride(id: string): Promise<OverrideRow> {
  * row. Override-backend listens for `event: 'override_published'` and re-runs
  * the (lng, ns) fetch.
  */
-export async function broadcastPublish(
-  scope: { lng: 'en' | 'es'; ns: string; orgId: string | null },
-): Promise<void> {
+export async function broadcastPublish(scope: {
+  lng: 'en' | 'es';
+  ns: string;
+  orgId: string | null;
+}): Promise<void> {
   const channelName = `locale_overrides:${scope.orgId ?? 'global'}`;
   const channel = supabase.channel(channelName);
   try {

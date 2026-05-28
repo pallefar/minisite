@@ -22,7 +22,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
- 
 let api: typeof ApiModule;
 
 beforeEach(async () => {

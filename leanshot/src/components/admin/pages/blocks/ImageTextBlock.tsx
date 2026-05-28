@@ -47,18 +47,14 @@ export function ImageTextBlock({ block }: ImageTextBlockProps) {
           {content.heading}
         </h2>
       )}
-      {content.body && (
-        <p className="text-[16px] leading-[1.55] opacity-80">{content.body}</p>
-      )}
+      {content.body && <p className="text-[16px] leading-[1.55] opacity-80">{content.body}</p>}
     </div>
   );
 
   return (
     <section
       className={
-        backgroundToneClass(tone) +
-        ' w-full px-6 ' +
-        (hideOnMobile ? 'hidden md:block ' : '')
+        backgroundToneClass(tone) + ' w-full px-6 ' + (hideOnMobile ? 'hidden md:block ' : '')
       }
       style={{ paddingTop: paddingForDensity(density), paddingBottom: paddingForDensity(density) }}
     >

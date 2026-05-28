@@ -174,7 +174,9 @@ export function CohortHeatmap({
               continue;
             }
             const suppressed = cell.active_users < kAnonymityThreshold;
-            const densityPct = suppressed ? 0 : Math.max(0, Math.min(100, Math.round(cell.retention_pct)));
+            const densityPct = suppressed
+              ? 0
+              : Math.max(0, Math.min(100, Math.round(cell.retention_pct)));
             const tooltipInputs: CellTooltipInputs = {
               cohort_week: cell.cohort_week,
               day_offset: cell.day_offset,

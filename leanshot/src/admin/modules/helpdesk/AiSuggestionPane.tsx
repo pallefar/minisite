@@ -46,10 +46,7 @@ function sentimentColor(score: number | null): string {
 function parseTags(raw: unknown): TagEntry[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .filter(
-      (t): t is { tag: unknown; confidence: unknown } =>
-        typeof t === 'object' && t !== null,
-    )
+    .filter((t): t is { tag: unknown; confidence: unknown } => typeof t === 'object' && t !== null)
     .map((t) => ({
       tag: typeof t.tag === 'string' ? t.tag : 'unknown',
       confidence: typeof t.confidence === 'number' ? t.confidence : 0,
@@ -112,9 +109,7 @@ export default function AiSuggestionPane({
         aria-live="polite"
         className="p-3 rounded border border-[var(--color-border)] bg-[var(--color-surface)]"
       >
-        <span className="text-xs text-[var(--color-text-secondary)]">
-          Loading AI suggestion…
-        </span>
+        <span className="text-xs text-[var(--color-text-secondary)]">Loading AI suggestion…</span>
       </div>
     );
   }
@@ -134,8 +129,7 @@ export default function AiSuggestionPane({
 
   const tags = parseTags(row.suggested_tags);
   const draft = row.draft_reply ?? '';
-  const displayDraft =
-    draft.length > 400 && !showFull ? `${draft.slice(0, 400)}…` : draft;
+  const displayDraft = draft.length > 400 && !showFull ? `${draft.slice(0, 400)}…` : draft;
 
   return (
     <section
@@ -167,7 +161,8 @@ export default function AiSuggestionPane({
 
       {row.suggested_route_user_id ? (
         <div className="text-xs text-[var(--color-text-secondary)]">
-          Suggested route: agent <code className="font-mono">{row.suggested_route_user_id.slice(0, 8)}</code>
+          Suggested route: agent{' '}
+          <code className="font-mono">{row.suggested_route_user_id.slice(0, 8)}</code>
           {row.suggested_route_confidence !== null ? (
             <span className="opacity-70">
               {' '}

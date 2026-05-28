@@ -220,9 +220,17 @@ export function RosterMobileCard({
               {row.weight_trend_arrow === 'up' ? (
                 <ArrowUp size={14} className="text-[var(--color-sage)]" aria-label="Trending up" />
               ) : row.weight_trend_arrow === 'down' ? (
-                <ArrowDown size={14} className="text-[var(--color-warning)]" aria-label="Trending down" />
+                <ArrowDown
+                  size={14}
+                  className="text-[var(--color-warning)]"
+                  aria-label="Trending down"
+                />
               ) : (
-                <Minus size={14} className="text-[var(--color-text-tertiary)]" aria-label="No trend" />
+                <Minus
+                  size={14}
+                  className="text-[var(--color-text-tertiary)]"
+                  aria-label="No trend"
+                />
               )}
             </span>
           </div>
@@ -249,7 +257,9 @@ export function RosterMobileCard({
                   {daysSince}
                 </span>
               ) : (
-                <span className="text-[var(--color-text-secondary)] numerals-tabular">{daysSince}</span>
+                <span className="text-[var(--color-text-secondary)] numerals-tabular">
+                  {daysSince}
+                </span>
               )}
             </span>
           </div>

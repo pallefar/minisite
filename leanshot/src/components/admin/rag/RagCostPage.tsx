@@ -114,12 +114,7 @@ function VendorCard({ config, rollup, cap }: VendorCardProps) {
   const resetDays = daysToEndOfMonth();
 
   return (
-    <Card
-      variant="default"
-      padding="md"
-      span={4}
-      aria-labelledby={`vendor-label-${config.key}`}
-    >
+    <Card variant="default" padding="md" span={4} aria-labelledby={`vendor-label-${config.key}`}>
       {/* Eyebrow row */}
       <p
         id={`vendor-label-${config.key}`}
@@ -224,44 +219,41 @@ export default function RagCostPage() {
     };
   }, []);
 
-  const loadData = useCallback(
-    async (days: RangeDays) => {
-      setLoading(true);
-      setLoadError(null);
-      try {
-        const [rollupData, capData] = await Promise.all([
-          fetchCostRollup({
-            rangeDays: days,
-            vendors: [
-              'firecrawl',
-              'openai_embed',
-              'anthropic_summary',
-              'cohere_rerank',
-              'jina_rerank',
-              'federated_fetch',
-            ],
-            traceRollups: ['coach_synthesis', 'tip_of_day', 'newsletter'],
-          }),
-          fetchBudgetCaps(),
-        ]);
-        if (!mountedRef.current) return;
-        setRollups(rollupData);
-        setCaps(capData);
-      } catch (err) {
-        if (!mountedRef.current) return;
-        const msg =
-          err instanceof CostApiError
-            ? err.kind === 'forbidden'
-              ? 'Access denied. Staff role required.'
-              : "Couldn't load cost data. Refresh to try again."
-            : "Couldn't load cost data. Refresh to try again.";
-        setLoadError(msg);
-      } finally {
-        if (mountedRef.current) setLoading(false);
-      }
-    },
-    [],
-  );
+  const loadData = useCallback(async (days: RangeDays) => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [rollupData, capData] = await Promise.all([
+        fetchCostRollup({
+          rangeDays: days,
+          vendors: [
+            'firecrawl',
+            'openai_embed',
+            'anthropic_summary',
+            'cohere_rerank',
+            'jina_rerank',
+            'federated_fetch',
+          ],
+          traceRollups: ['coach_synthesis', 'tip_of_day', 'newsletter'],
+        }),
+        fetchBudgetCaps(),
+      ]);
+      if (!mountedRef.current) return;
+      setRollups(rollupData);
+      setCaps(capData);
+    } catch (err) {
+      if (!mountedRef.current) return;
+      const msg =
+        err instanceof CostApiError
+          ? err.kind === 'forbidden'
+            ? 'Access denied. Staff role required.'
+            : "Couldn't load cost data. Refresh to try again."
+          : "Couldn't load cost data. Refresh to try again.";
+      setLoadError(msg);
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, []);
 
   // Initial load + focus-refetch
   useEffect(() => {
@@ -295,9 +287,7 @@ export default function RagCostPage() {
   };
 
   // Determine which vendor (if any) is auto-paused
-  const pausedVendor = caps?.find(
-    (c) => c.mtd_spend_usd >= c.cap_usd && c.source_pause_state,
-  );
+  const pausedVendor = caps?.find((c) => c.mtd_spend_usd >= c.cap_usd && c.source_pause_state);
 
   // Helpers to look up rollup/cap by vendor key
   const getRollup = (key: string) => rollups?.find((r) => r.vendor === key);
@@ -348,11 +338,7 @@ export default function RagCostPage() {
           aria-live="assertive"
           className="bg-[var(--color-danger-soft)] border-l-2 border-[var(--color-danger)] p-4 mb-2 flex items-center gap-3 rounded-r-md"
         >
-          <AlertOctagon
-            size={18}
-            aria-hidden
-            className="shrink-0 text-[var(--color-danger)]"
-          />
+          <AlertOctagon size={18} aria-hidden className="shrink-0 text-[var(--color-danger)]" />
           <p className="text-sm text-[var(--color-text)] flex-1">
             Scrapers auto-paused — {pausedVendor.vendor} budget exhausted. Acknowledge to resume.
           </p>
@@ -440,4 +426,3 @@ export default function RagCostPage() {
     </section>
   );
 }
-

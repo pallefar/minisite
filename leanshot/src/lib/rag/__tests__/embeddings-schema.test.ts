@@ -112,10 +112,7 @@ describeIfLive('Phase 50 Plan 50-01 — external_kb_embeddings schema', () => {
     // column raises 42703 (undefined_column). We use that as the negative proof.
     const phiColumns = ['user_id', 'patient_id', 'chat_history', 'conversation_id'];
     for (const col of phiColumns) {
-      const { error } = await admin
-        .from('external_kb_embeddings')
-        .select(col)
-        .limit(1);
+      const { error } = await admin.from('external_kb_embeddings').select(col).limit(1);
       expect(error, `column ${col} should NOT exist on external_kb_embeddings`).not.toBeNull();
       expect(error?.message ?? '').toMatch(/column|does not exist|undefined/i);
     }
@@ -168,10 +165,7 @@ describeIfLive('Phase 50 Plan 50-01 — external_kb_embeddings schema', () => {
     // pg_indexes inspection requires direct SQL; instead exercise the index path
     // by ordering by `<=>` cosine distance, which the planner will use only if
     // the vector_cosine_ops operator class is bound. Failure to compile = no index.
-    const { error } = await admin
-      .from('external_kb_embeddings')
-      .select('id')
-      .limit(1);
+    const { error } = await admin.from('external_kb_embeddings').select('id').limit(1);
     // Smoke: PostgREST query that READS the table; followed by RPC-less ANN proxy.
     // True HNSW proof lives in `supabase db query --linked "SELECT indexname FROM
     // pg_indexes WHERE indexname='external_kb_embeddings_hnsw'"` which the

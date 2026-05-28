@@ -56,9 +56,7 @@ function syntheticDefault(userId: string): NewsletterSubscription {
  * Returns a synthetic default (opted_in=false) when no row exists yet.
  * Never returns the server-managed rotation token — server-only column.
  */
-export async function getNewsletterSubscription(
-  userId: string,
-): Promise<NewsletterSubscription> {
+export async function getNewsletterSubscription(userId: string): Promise<NewsletterSubscription> {
   const { data, error } = await supabase
     .from('newsletter_subscribers')
     .select(COLUMNS)

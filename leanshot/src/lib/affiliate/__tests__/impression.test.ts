@@ -8,10 +8,7 @@
  *   T4: recordImpression() does NOT call fetch when DNT is set (privacy gate)
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  recordImpression,
-  shouldRecordImpression,
-} from '@/lib/affiliate/impression';
+import { recordImpression, shouldRecordImpression } from '@/lib/affiliate/impression';
 
 // jsdom does not expose `navigator.doNotTrack` as writable by default;
 // we redefine the property per-test so the DNT gate is testable.
@@ -85,9 +82,7 @@ describe('recordImpression — fire-and-forget ping', () => {
   it('silently swallows fetch rejection (non-blocking)', async () => {
     fetchSpy.mockRejectedValueOnce(new Error('network down'));
     // MUST resolve without throwing — landing render is non-blocking.
-    await expect(
-      recordImpression('cccccccc-cccc-cccc-cccc-cccccccccccc'),
-    ).resolves.toBeUndefined();
+    await expect(recordImpression('cccccccc-cccc-cccc-cccc-cccccccccccc')).resolves.toBeUndefined();
   });
 
   it('does NOT call fetch when affiliateId is empty', async () => {

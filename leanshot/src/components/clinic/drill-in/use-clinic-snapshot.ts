@@ -70,7 +70,8 @@ export function useClinicSnapshot(opts: {
       }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-      const baseUrl = supabaseUrl && supabaseUrl.length > 0 ? supabaseUrl : 'https://placeholder.invalid';
+      const baseUrl =
+        supabaseUrl && supabaseUrl.length > 0 ? supabaseUrl : 'https://placeholder.invalid';
 
       const url = `${baseUrl}/functions/v1/clinic-snapshot?org_id=${encodeURIComponent(orgId)}&patient_id=${encodeURIComponent(patientId)}`;
       const response = await fetch(url, {
@@ -128,7 +129,7 @@ export function useClinicSnapshot(opts: {
   }, [orgId, patientId]);
 
   // Re-run on mount and every time refresh() is called (fetchTick changes).
-   
+
   useEffect(() => {
     void fetchSnapshot();
     return () => {

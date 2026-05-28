@@ -440,9 +440,12 @@ export const EVENTS = {
     description: 'User snoozed a category from /settings/notifications.',
     payload: z.object({
       category: z.enum(['dose-reminders', 'ai-insights', 'clinic-alerts', 'billing', 'marketing']),
-      duration_days: z.number().int().refine((n) => [1, 7, 30].includes(n), {
-        message: 'duration_days must be 1, 7, or 30 (D-06)',
-      }),
+      duration_days: z
+        .number()
+        .int()
+        .refine((n) => [1, 7, 30].includes(n), {
+          message: 'duration_days must be 1, 7, or 30 (D-06)',
+        }),
     }),
   },
   notification_permission_granted: {
@@ -450,7 +453,8 @@ export const EVENTS = {
     version: 1,
     phi: false,
     owner: 'product',
-    description: 'User granted Notification.requestPermission inside the user-gesture flow (Pitfall 3).',
+    description:
+      'User granted Notification.requestPermission inside the user-gesture flow (Pitfall 3).',
     payload: z.object({
       had_prior_subscription: z.boolean().optional(),
     }),

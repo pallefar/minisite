@@ -107,7 +107,9 @@ describeIfLive('Phase 50 Plan 50-02 — topic CRUD via SECDEF RPCs', () => {
     expect(error).toBeNull();
     expect(Array.isArray(data)).toBe(true);
     // Ensure ordering is descending by created_at
-    const dates = (data ?? []).map((r) => new Date((r as { created_at: string }).created_at).getTime());
+    const dates = (data ?? []).map((r) =>
+      new Date((r as { created_at: string }).created_at).getTime(),
+    );
     for (let i = 1; i < dates.length; i++) {
       expect(dates[i - 1]).toBeGreaterThanOrEqual(dates[i]!);
     }

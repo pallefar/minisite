@@ -32,10 +32,11 @@ export function NewsletterOptInStep({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-heading font-semibold tracking-tight">
-          {t('rag:newsletter.header')}
-        </h1>
-        <p id="newsletter-opt-in-desc" className="text-[11px] text-[var(--color-text-tertiary)] mt-1">
+        <h1 className="text-heading font-semibold tracking-tight">{t('rag:newsletter.header')}</h1>
+        <p
+          id="newsletter-opt-in-desc"
+          className="text-[11px] text-[var(--color-text-tertiary)] mt-1"
+        >
           {t('rag:newsletter.toggle_sublabel')}
         </p>
       </div>
@@ -53,9 +54,7 @@ export function NewsletterOptInStep({
           aria-describedby="newsletter-opt-in-desc"
           className="mt-0.5 w-4 h-4 accent-[var(--color-primary)] cursor-pointer"
         />
-        <span className="text-sm leading-relaxed">
-          {t('rag:newsletter.onboarding_label')}
-        </span>
+        <span className="text-sm leading-relaxed">{t('rag:newsletter.onboarding_label')}</span>
       </label>
 
       <div className="flex gap-2 mt-7">

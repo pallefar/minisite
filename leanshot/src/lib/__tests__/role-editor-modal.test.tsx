@@ -100,9 +100,7 @@ const DEFAULT_PROPS = {
 describe('RoleEditorModal in assign mode', () => {
   // (a) 12 rows × 3 column matrix renders
   it('(a) renders 12 permission rows in the matrix table', async () => {
-    render(
-      <RoleEditorModal {...DEFAULT_PROPS} />,
-    );
+    render(<RoleEditorModal {...DEFAULT_PROPS} />);
 
     // Wait for the component to settle (owner count query)
     await waitFor(() => {
@@ -158,12 +156,7 @@ describe('RoleEditorModal in assign mode', () => {
     // Owner count = 1 (last owner)
     mockOwnerCount(1);
 
-    render(
-      <RoleEditorModal
-        {...DEFAULT_PROPS}
-        currentRole="owner"
-      />,
-    );
+    render(<RoleEditorModal {...DEFAULT_PROPS} currentRole="owner" />);
 
     // Confirm button starts on 'owner' — wait for owner count to load
     // then select 'clinician' to trigger last-owner guard
@@ -182,8 +175,7 @@ describe('RoleEditorModal in assign mode', () => {
     });
 
     // Tooltip wrapper should have the last-owner message
-    const tooltipSpan = screen
-      .getByTitle('An organization must have at least one owner.');
+    const tooltipSpan = screen.getByTitle('An organization must have at least one owner.');
     expect(tooltipSpan).toBeInTheDocument();
   });
 
@@ -192,12 +184,7 @@ describe('RoleEditorModal in assign mode', () => {
     // Owner count = 2
     mockOwnerCount(2);
 
-    render(
-      <RoleEditorModal
-        {...DEFAULT_PROPS}
-        currentRole="owner"
-      />,
-    );
+    render(<RoleEditorModal {...DEFAULT_PROPS} currentRole="owner" />);
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
@@ -218,12 +205,7 @@ describe('RoleEditorModal in assign mode', () => {
     mockRpc.mockResolvedValue({ data: null, error: null });
     mockOwnerCount(2);
 
-    render(
-      <RoleEditorModal
-        {...DEFAULT_PROPS}
-        currentRole="clinician"
-      />,
-    );
+    render(<RoleEditorModal {...DEFAULT_PROPS} currentRole="clinician" />);
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();
@@ -255,12 +237,7 @@ describe('RoleEditorModal in assign mode', () => {
     // ownerCount=2 to bypass client guard (server floor test)
     mockOwnerCount(2);
 
-    render(
-      <RoleEditorModal
-        {...DEFAULT_PROPS}
-        currentRole="owner"
-      />,
-    );
+    render(<RoleEditorModal {...DEFAULT_PROPS} currentRole="owner" />);
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument();

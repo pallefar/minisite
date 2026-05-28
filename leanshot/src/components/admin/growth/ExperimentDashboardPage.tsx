@@ -39,17 +39,10 @@ import { Pill } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/hooks/useToast';
 import { supabase } from '@/lib/supabase';
-import type {
-  ExperimentRow,
-  ExperimentSurface,
-  InvokeError,
-} from './experiment-types';
+import type { ExperimentRow, ExperimentSurface, InvokeError } from './experiment-types';
 import { PageExperimentTab } from './PageExperimentTab';
 import { PaywallExperimentTab } from './PaywallExperimentTab';
-import {
-  PharmaExperimentTab,
-  type PharmaExperimentRowWithVersions,
-} from './PharmaExperimentTab';
+import { PharmaExperimentTab, type PharmaExperimentRowWithVersions } from './PharmaExperimentTab';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -286,10 +279,7 @@ export function ExperimentDashboardPage(): React.JSX.Element {
           <div className="grid grid-cols-12 gap-4">
             {[0, 1, 2].map((i) => (
               <div key={i} className="col-span-12">
-                <Skeleton
-                  data-testid="experiment-skeleton"
-                  className="h-16 rounded-card w-full"
-                />
+                <Skeleton data-testid="experiment-skeleton" className="h-16 rounded-card w-full" />
               </div>
             ))}
           </div>
@@ -331,7 +321,6 @@ export function ExperimentDashboardPage(): React.JSX.Element {
           />
         )}
       </section>
-
     </main>
   );
 }

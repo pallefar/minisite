@@ -54,9 +54,7 @@ export function Topbar({
   // session, so the dot is silent on the marketing/onboarding views.
   const { hasUnread, entries } = useChangelog();
   const unreadCount = entries.length;
-  const whatsNewAriaLabel = hasUnread
-    ? `What's new — ${unreadCount} unread updates`
-    : "What's new";
+  const whatsNewAriaLabel = hasUnread ? `What's new — ${unreadCount} unread updates` : "What's new";
 
   const handleSearch = (q: string): void => {
     setSearch(q);

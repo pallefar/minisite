@@ -106,12 +106,18 @@ export function SymptomsTab() {
       </Card>
 
       <Card span={5}>
-        <CardHeader title={t('patient:tab.symptoms.freq_chart_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.symptoms.freq_chart_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <SymptomChart />
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.symptoms.recent_title')} icon={<ListChecks className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.symptoms.recent_title')}
+          icon={<ListChecks className="size-4" />}
+        />
         {symptoms.length === 0 ? (
           <EmptyState
             inline
@@ -124,10 +130,18 @@ export function SymptomsTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.symptoms.col_date')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.symptoms.col_symptom')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.symptoms.col_severity')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.symptoms.col_notes')}</th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.symptoms.col_date')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.symptoms.col_symptom')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.symptoms.col_severity')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.symptoms.col_notes')}
+                  </th>
                 </tr>
               </thead>
               <tbody>

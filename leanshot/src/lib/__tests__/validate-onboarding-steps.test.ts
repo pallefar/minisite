@@ -46,7 +46,7 @@ describeIfLive('_validate_onboarding_steps', () => {
 
   async function validate(steps: unknown): Promise<{ data: unknown; error: unknown }> {
     // Cast as any — function not in generated types (internal SECDEF)
-     
+
     return admin.rpc('_validate_onboarding_steps', { p_steps: steps as any } as any);
   }
 
@@ -76,20 +76,14 @@ describeIfLive('_validate_onboarding_steps', () => {
   }, 15_000);
 
   it('Test 5: medication step with custom field raises INVALID_CUSTOM_ON_LOCKED_STEP', async () => {
-    const steps = [
-      makeStep('medication', { custom: { title: 'foo' } }),
-      makeStep('consent'),
-    ];
+    const steps = [makeStep('medication', { custom: { title: 'foo' } }), makeStep('consent')];
     const { error } = await validate(steps);
     expect(error).not.toBeNull();
     expect((error as { message: string }).message).toMatch(/INVALID_CUSTOM_ON_LOCKED_STEP/);
   }, 15_000);
 
   it('Test 6: consent step with custom field raises INVALID_CUSTOM_ON_LOCKED_STEP', async () => {
-    const steps = [
-      makeStep('medication'),
-      makeStep('consent', { custom: { body: 'bar' } }),
-    ];
+    const steps = [makeStep('medication'), makeStep('consent', { custom: { body: 'bar' } })];
     const { error } = await validate(steps);
     expect(error).not.toBeNull();
     expect((error as { message: string }).message).toMatch(/INVALID_CUSTOM_ON_LOCKED_STEP/);

@@ -62,8 +62,7 @@ function decodeJwtPayload(jwt: string): JwtPayload | null {
  *   5. Both absent → return false.
  */
 export async function isAal2Fresh(): Promise<boolean> {
-  const { data: aalData, error: aalErr } =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  const { data: aalData, error: aalErr } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aalErr || aalData?.currentLevel !== 'aal2') return false;
 
   const { data: sessData } = await supabase.auth.getSession();

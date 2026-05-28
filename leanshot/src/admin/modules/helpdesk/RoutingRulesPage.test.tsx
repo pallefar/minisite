@@ -67,11 +67,7 @@ function makeBuilder(table: string): Record<string, unknown> {
         eq: () => Promise.resolve({ data: null, error: null }),
       };
     }),
-    eq: vi.fn(function (
-      this: { _filters: Array<[string, unknown]> },
-      col: string,
-      val: unknown,
-    ) {
+    eq: vi.fn(function (this: { _filters: Array<[string, unknown]> }, col: string, val: unknown) {
       this._filters.push([col, val]);
       return this;
     }),
@@ -113,8 +109,7 @@ vi.mock('@/lib/supabase', () => ({
       return Promise.resolve({ data: null, error: null });
     }),
     auth: {
-      getUser: () =>
-        Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
     },
   },
 }));
@@ -175,9 +170,7 @@ describe('RoutingRulesPage', () => {
     const { default: RoutingRulesPage } = await import('./RoutingRulesPage');
     render(<RoutingRulesPage />);
     await waitFor(() => screen.getByText('Second'));
-    fireEvent.click(
-      screen.getByRole('button', { name: /move second up/i }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: /move second up/i }));
     await waitFor(() => {
       const call = rpcCalls.find((c) => c.fn === 'reorder_routing_rule');
       expect(call).toBeTruthy();

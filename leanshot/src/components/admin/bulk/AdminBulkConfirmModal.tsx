@@ -24,12 +24,19 @@ import { BulkApiError, type BulkActionResult, type BulkActionType } from '@/lib/
 // The sync flow ('confirm' → 'running' → 'done' | 'error') is preserved unchanged.
 type FlowState = 'confirm' | 'running' | 'running-async' | 'done' | 'error';
 
-const ACTION_LABELS: Record<BulkActionType, { verb: string; titleVerb: string; reversible: boolean }> = {
-  csv_export:           { verb: 'export',         titleVerb: 'Export',         reversible: false },
-  tag:                  { verb: 'tag',            titleVerb: 'Tag',            reversible: true  },
-  comp_plan:            { verb: 'grant Pro to',   titleVerb: 'Grant Pro to',   reversible: true  },
-  ban:                  { verb: 'ban',            titleVerb: 'Ban',            reversible: true  },
-  force_password_reset: { verb: 'reset password for', titleVerb: 'Reset password for', reversible: false },
+const ACTION_LABELS: Record<
+  BulkActionType,
+  { verb: string; titleVerb: string; reversible: boolean }
+> = {
+  csv_export: { verb: 'export', titleVerb: 'Export', reversible: false },
+  tag: { verb: 'tag', titleVerb: 'Tag', reversible: true },
+  comp_plan: { verb: 'grant Pro to', titleVerb: 'Grant Pro to', reversible: true },
+  ban: { verb: 'ban', titleVerb: 'Ban', reversible: true },
+  force_password_reset: {
+    verb: 'reset password for',
+    titleVerb: 'Reset password for',
+    reversible: false,
+  },
 };
 
 export interface AdminBulkConfirmModalProps {
@@ -60,7 +67,10 @@ export function AdminBulkConfirmModal({
   const [errorMsg, setErrorMsg] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [daysInput, setDaysInput] = useState('30');
-  const [resultSummary, setResultSummary] = useState<{ affected: number; undoToken: string | null } | null>(null);
+  const [resultSummary, setResultSummary] = useState<{
+    affected: number;
+    undoToken: string | null;
+  } | null>(null);
   // Plan 27-06: jobId captured from the async-branch RPC response; drives <BulkJobProgress>.
   const [asyncJobId, setAsyncJobId] = useState<string | null>(null);
   const toast = useToast();
@@ -134,11 +144,15 @@ export function AdminBulkConfirmModal({
       setState('error');
       if (err instanceof BulkApiError) {
         setErrorMsg(
-          err.code === 'too_many_rows' ? 'Selection too large (>10,000 rows).' :
-          err.code === 'not_staff'     ? 'You are not authorized to perform this action.' :
-          err.code === 'invalid_action' ? 'Invalid action parameters.' :
-          err.code === 'network'       ? 'Network error. Please retry.' :
-          'Unexpected error.',
+          err.code === 'too_many_rows'
+            ? 'Selection too large (>10,000 rows).'
+            : err.code === 'not_staff'
+              ? 'You are not authorized to perform this action.'
+              : err.code === 'invalid_action'
+                ? 'Invalid action parameters.'
+                : err.code === 'network'
+                  ? 'Network error. Please retry.'
+                  : 'Unexpected error.',
         );
       } else {
         setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
@@ -186,7 +200,9 @@ export function AdminBulkConfirmModal({
           )}
 
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" size="sm" onClick={onClose}>Cancel</Button>
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              Cancel
+            </Button>
             <Button
               variant={actionType === 'ban' ? 'destructive' : 'primary'}
               size="sm"
@@ -233,7 +249,9 @@ export function AdminBulkConfirmModal({
               : ''}
           </p>
           <div className="flex justify-end">
-            <Button variant="primary" size="sm" onClick={onClose}>Done</Button>
+            <Button variant="primary" size="sm" onClick={onClose}>
+              Done
+            </Button>
           </div>
         </div>
       )}
@@ -242,8 +260,12 @@ export function AdminBulkConfirmModal({
         <div className="space-y-4">
           <p className="text-[14px] text-[var(--color-error)]">{errorMsg}</p>
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" size="sm" onClick={onClose}>Close</Button>
-            <Button variant="primary" size="sm" onClick={() => void handleConfirm()}>Retry</Button>
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              Close
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => void handleConfirm()}>
+              Retry
+            </Button>
           </div>
         </div>
       )}

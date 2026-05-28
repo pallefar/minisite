@@ -62,9 +62,7 @@ export function AdminAffiliatesAnomalyTab() {
   const reload = async (): Promise<void> => {
     const { data, error } = await supabase
       .from('affiliate_conversions')
-      .select(
-        'id, affiliate_id, anomaly_z_score, created_at, affiliates(referral_code)',
-      )
+      .select('id, affiliate_id, anomaly_z_score, created_at, affiliates(referral_code)')
       .eq('anomaly_flagged', true)
       .is('anomaly_review_decision', null)
       .order('created_at', { ascending: true })
@@ -152,9 +150,7 @@ export function AdminAffiliatesAnomalyTab() {
               <code className="text-sm font-mono">
                 {r.referral_code ?? r.affiliate_id.slice(0, 8)}
               </code>
-              <Badge tone="warning">
-                z = {(r.anomaly_z_score ?? 0).toFixed(2)}
-              </Badge>
+              <Badge tone="warning">z = {(r.anomaly_z_score ?? 0).toFixed(2)}</Badge>
               <span className="text-xs text-[var(--color-text-secondary)]">
                 {new Date(r.created_at).toLocaleDateString()}
               </span>

@@ -98,9 +98,7 @@ describe('OnboardingFunnelTab (Plan 34-09 ONBOARD-09)', () => {
     vi.useFakeTimers();
     mockInvoke.mockResolvedValue({
       data: {
-        steps: [
-          { step_id: 'a', views: 1, completions: 1, drop_off_pct: 0, avg_time_ms: 0 },
-        ],
+        steps: [{ step_id: 'a', views: 1, completions: 1, drop_off_pct: 0, avg_time_ms: 0 }],
       },
       error: null,
     });

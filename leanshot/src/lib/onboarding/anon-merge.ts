@@ -28,9 +28,7 @@ import { clearAnonCookie, readAnonCookie } from '@/lib/anonymous/cookie';
 // ──────────────────────────────────────────────────────────────────────────
 
 function getSupabaseUrl(): string {
-  return (
-    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? 'https://placeholder.invalid'
-  );
+  return (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? 'https://placeholder.invalid';
 }
 function getAnonKey(): string {
   return (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? 'placeholder';

@@ -71,7 +71,9 @@ function ChallengeClinicianTotp({ onComplete }: ChallengeProps) {
         setPhase('error');
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleVerify() {
@@ -85,9 +87,10 @@ function ChallengeClinicianTotp({ onComplete }: ChallengeProps) {
       return;
     }
 
-    const msg = result.error === 'challenge_failed'
-      ? 'Challenge failed. Please try again.'
-      : 'Invalid code. Please check your authenticator app and try again.';
+    const msg =
+      result.error === 'challenge_failed'
+        ? 'Challenge failed. Please try again.'
+        : 'Invalid code. Please check your authenticator app and try again.';
     setErrorMsg(msg);
     setPhase('awaiting-code');
     setOtpCode('');
@@ -136,7 +139,10 @@ function ChallengeClinicianTotp({ onComplete }: ChallengeProps) {
         )}
 
         <form
-          onSubmit={(e) => { e.preventDefault(); void handleVerify(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleVerify();
+          }}
           className="flex flex-col gap-4"
         >
           <div>
@@ -220,8 +226,9 @@ export function ClinicianMfaGuard({ children }: ClinicianMfaGuardProps) {
     runGate(signal).catch(() => {
       if (!signal.cancelled) setState('enroll');
     });
-    return () => { signal.cancelled = true; };
-     
+    return () => {
+      signal.cancelled = true;
+    };
   }, []);
 
   if (state === 'loading') return null;

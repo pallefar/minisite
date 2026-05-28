@@ -23,10 +23,7 @@ const sessionCounts = new Map<string, number>();
  * @param sessionCeiling Maximum impressions allowed per session for this placement.
  * @returns              true if the impression is allowed; false if cap is hit.
  */
-export function canShowNextImpression(
-  placementId: string,
-  sessionCeiling: number,
-): boolean {
+export function canShowNextImpression(placementId: string, sessionCeiling: number): boolean {
   const current = sessionCounts.get(placementId) ?? 0;
   if (current >= sessionCeiling) return false;
   sessionCounts.set(placementId, current + 1);

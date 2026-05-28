@@ -127,7 +127,9 @@ function buildSnapshot(overrides: Partial<SnapshotData> = {}): SnapshotData {
   return {
     patient_user_id: 'patient-user-1',
     display_name: 'Alice Baker',
-    injections: [{ id: 'inj-1', dose_mg: 0.5, site: 'abdomen', created_at: '2024-01-01T10:00:00Z' }],
+    injections: [
+      { id: 'inj-1', dose_mg: 0.5, site: 'abdomen', created_at: '2024-01-01T10:00:00Z' },
+    ],
     weights: [{ id: 'w-1', weight_kg: 85, recorded_at: '2024-01-01T08:00:00Z' }],
     symptoms: [{ id: 's-1', name: 'nausea', severity: 2, recorded_at: '2024-01-01T12:00:00Z' }],
     photos: [{ id: 'p-1', storage_path: 'org/user/p-1.jpg', taken_at: '2024-01-01T09:00:00Z' }],
@@ -218,7 +220,7 @@ beforeEach(() => {
   setupFetchMock({});
   mockRpc.mockResolvedValue({ data: null, error: null });
   pushStateSpy = vi.spyOn(window.history, 'pushState').mockImplementation(() => undefined);
-   
+
   delete (window as any).posthog;
 });
 
@@ -232,7 +234,7 @@ function renderDrillIn() {
   return render(
     <Suspense fallback={<div>loading</div>}>
       <ClinicDrillInPage />
-    </Suspense>
+    </Suspense>,
   );
 }
 
@@ -242,9 +244,12 @@ function renderDrillIn() {
 describe('Test 1 — snapshot fetch and render', () => {
   it('calls clinic-snapshot Edge Function on mount and renders drill-in page', async () => {
     renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/functions/v1/clinic-snapshot'),
@@ -261,9 +266,12 @@ describe('Test 1 — snapshot fetch and render', () => {
 describe('Test 2 — render with full permissions', () => {
   it('renders ClinicContextBar + sub-bar + ReadOnlyPatientView with all 6 sections', async () => {
     renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
     expect(screen.getByTestId('clinic-context-bar')).toBeInTheDocument();
     expect(screen.getByTestId('drill-in-sub-bar')).toBeInTheDocument();
@@ -288,9 +296,12 @@ describe('Test 3 — permission gating (canViewPhotos=false)', () => {
     setupFetchMock({ body: noPhotosSnapshot });
 
     renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
     expect(screen.queryByTestId('section-photos')).not.toBeInTheDocument();
     expect(screen.getByTestId('section-injections')).toBeInTheDocument();
@@ -306,24 +317,34 @@ describe('Test 3 — permission gating (canViewPhotos=false)', () => {
 describe('Test 4 — log_clinic_view fires ONCE per section on first mount', () => {
   it('supabase.rpc(log_clinic_view) called once per visible section with PostHog', async () => {
     const mockCapture = vi.fn();
-     
+
     (window as any).posthog = { capture: mockCapture };
 
     renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
     // Should have been called 6 times (once per section)
-    await waitFor(() => {
-      const logViewCalls = mockRpc.mock.calls.filter(
-        ([name]: [string]) => name === 'log_clinic_view'
-      );
-      expect(logViewCalls.length).toBe(6);
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        const logViewCalls = mockRpc.mock.calls.filter(
+          ([name]: [string]) => name === 'log_clinic_view',
+        );
+        expect(logViewCalls.length).toBe(6);
+      },
+      { timeout: 8000 },
+    );
 
-    const logViewCalls = mockRpc.mock.calls.filter(([name]: [string]) => name === 'log_clinic_view');
-    const sectionNames = logViewCalls.map(([, args]: [string, { p_section_name: string }]) => args.p_section_name);
+    const logViewCalls = mockRpc.mock.calls.filter(
+      ([name]: [string]) => name === 'log_clinic_view',
+    );
+    const sectionNames = logViewCalls.map(
+      ([, args]: [string, { p_section_name: string }]) => args.p_section_name,
+    );
     expect(sectionNames).toContain('chart');
     expect(sectionNames).toContain('injections');
     expect(sectionNames).toContain('weights');
@@ -332,12 +353,15 @@ describe('Test 4 — log_clinic_view fires ONCE per section on first mount', () 
     expect(sectionNames).toContain('doctor_report');
 
     // PostHog event fires for each section
-    await waitFor(() => {
-      const drillCalls = mockCapture.mock.calls.filter(
-        ([event]: [string]) => event === 'clinic_drill_section_expanded'
-      );
-      expect(drillCalls.length).toBe(6);
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        const drillCalls = mockCapture.mock.calls.filter(
+          ([event]: [string]) => event === 'clinic_drill_section_expanded',
+        );
+        expect(drillCalls.length).toBe(6);
+      },
+      { timeout: 8000 },
+    );
   });
 });
 
@@ -347,25 +371,35 @@ describe('Test 4 — log_clinic_view fires ONCE per section on first mount', () 
 describe('Test 5 — no duplicate log_clinic_view fires on re-render', () => {
   it('re-rendering ClinicDrillInPage does NOT re-fire log_clinic_view for already-mounted sections', async () => {
     const { rerender } = renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
-    await waitFor(() => {
-      const calls = mockRpc.mock.calls.filter(([name]: [string]) => name === 'log_clinic_view');
-      expect(calls.length).toBe(6);
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        const calls = mockRpc.mock.calls.filter(([name]: [string]) => name === 'log_clinic_view');
+        expect(calls.length).toBe(6);
+      },
+      { timeout: 8000 },
+    );
 
-    const callsBefore = mockRpc.mock.calls.filter(([name]: [string]) => name === 'log_clinic_view').length;
+    const callsBefore = mockRpc.mock.calls.filter(
+      ([name]: [string]) => name === 'log_clinic_view',
+    ).length;
 
     rerender(
       <Suspense fallback={<div>loading</div>}>
         <ClinicDrillInPage />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
 
-    const callsAfter = mockRpc.mock.calls.filter(([name]: [string]) => name === 'log_clinic_view').length;
+    const callsAfter = mockRpc.mock.calls.filter(
+      ([name]: [string]) => name === 'log_clinic_view',
+    ).length;
     expect(callsAfter).toBe(callsBefore);
   });
 });
@@ -386,15 +420,18 @@ describe('Test 6 — 401 handling', () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    await waitFor(() => {
-      const revokedCalls = sharedToastFn.mock.calls.filter(
-        ([msg]: [string]) =>
-          typeof msg === 'string' &&
-          msg.includes('revoked access') &&
-          msg.includes('Returning to roster')
-      );
-      expect(revokedCalls.length).toBeGreaterThan(0);
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        const revokedCalls = sharedToastFn.mock.calls.filter(
+          ([msg]: [string]) =>
+            typeof msg === 'string' &&
+            msg.includes('revoked access') &&
+            msg.includes('Returning to roster'),
+        );
+        expect(revokedCalls.length).toBeGreaterThan(0);
+      },
+      { timeout: 8000 },
+    );
 
     // Advance timer to fire the 1s navigation
     await act(async () => {
@@ -420,13 +457,15 @@ describe('Test 7 — 403 handling', () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    await waitFor(() => {
-      const updatedCalls = sharedToastFn.mock.calls.filter(
-        ([msg]: [string]) =>
-          typeof msg === 'string' && msg.includes('updated what they share')
-      );
-      expect(updatedCalls.length).toBeGreaterThan(0);
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        const updatedCalls = sharedToastFn.mock.calls.filter(
+          ([msg]: [string]) => typeof msg === 'string' && msg.includes('updated what they share'),
+        );
+        expect(updatedCalls.length).toBeGreaterThan(0);
+      },
+      { timeout: 8000 },
+    );
   });
 });
 
@@ -436,9 +475,12 @@ describe('Test 7 — 403 handling', () => {
 describe('Test 8 — back button navigation', () => {
   it('clicking Back to roster button navigates to /clinic/{slug}', async () => {
     renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-sub-bar')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-sub-bar')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
     const backButton = screen.getByTestId('drill-in-back-button');
     await act(async () => {
@@ -455,9 +497,12 @@ describe('Test 8 — back button navigation', () => {
 describe('Test 9 — refresh re-fires snapshot fetch', () => {
   it('clicking Refresh button calls clinic-snapshot Edge Function again', async () => {
     renderDrillIn();
-    await waitFor(() => {
-      expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('drill-in-page')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
 
     const fetchCallsBefore = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
 
@@ -466,9 +511,12 @@ describe('Test 9 — refresh re-fires snapshot fetch', () => {
       fireEvent.click(refreshButton);
     });
 
-    await waitFor(() => {
-      const fetchCallsAfter = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
-      expect(fetchCallsAfter).toBeGreaterThan(fetchCallsBefore);
-    }, { timeout: 8000 });
+    await waitFor(
+      () => {
+        const fetchCallsAfter = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
+        expect(fetchCallsAfter).toBeGreaterThan(fetchCallsBefore);
+      },
+      { timeout: 8000 },
+    );
   });
 });

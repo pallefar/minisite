@@ -35,9 +35,7 @@ export class KnowledgeApiError extends Error {
 /**
  * Tier filter: A, B, or C — anything else is rejected at the boundary.
  */
-export const tierSchema = z
-  .enum(['A', 'B', 'C'])
-  .optional();
+export const tierSchema = z.enum(['A', 'B', 'C']).optional();
 
 /**
  * Topic slug: lowercase alphanumeric + hyphens only, 1-64 chars.

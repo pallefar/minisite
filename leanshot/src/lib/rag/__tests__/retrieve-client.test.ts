@@ -108,7 +108,11 @@ describe('ragRetrieve', () => {
       error: null,
     });
 
-    const result = await ragRetrieve({ query: 'ozempic dosing', k: 5, filters: { source_tier: ['A'] } });
+    const result = await ragRetrieve({
+      query: 'ozempic dosing',
+      k: 5,
+      filters: { source_tier: ['A'] },
+    });
 
     expect(mockInvoke).toHaveBeenCalledWith('rag-retrieve', {
       body: { mode: 'query', query: 'ozempic dosing', k: 5, filters: { source_tier: ['A'] } },
@@ -149,7 +153,9 @@ describe('captureRagEventBrowser', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Should not throw
-    await expect(captureRagEventBrowser('rag_sources_footer_expanded', { count: 3 })).resolves.toBeUndefined();
+    await expect(
+      captureRagEventBrowser('rag_sources_footer_expanded', { count: 3 }),
+    ).resolves.toBeUndefined();
 
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();

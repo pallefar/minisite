@@ -107,11 +107,7 @@ function FilterBar({
   onCohortChange,
 }: FilterBarProps) {
   return (
-    <div
-      role="group"
-      aria-label="Filter responses"
-      className="flex flex-wrap gap-3 items-center"
-    >
+    <div role="group" aria-label="Filter responses" className="flex flex-wrap gap-3 items-center">
       <label className="flex flex-col gap-1 text-[12px]">
         <span className="font-semibold text-[var(--color-text-secondary)]">Tenure</span>
         <select
@@ -172,18 +168,15 @@ export function QuarterlyNPSDashboard() {
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data: result, error: rpcError } = await supabase.rpc(
-      'get_quarterly_nps_dashboard',
-      {
-        p_quarter: null,
-        p_tenure_bucket: tenure === 'all' ? null : tenure,
-        p_plan_tier: plan === 'all' ? null : plan,
-        p_cohort: cohort === 'all' ? null : cohort,
-        p_score_min: null,
-        p_score_max: null,
-        p_page: page,
-      },
-    );
+    const { data: result, error: rpcError } = await supabase.rpc('get_quarterly_nps_dashboard', {
+      p_quarter: null,
+      p_tenure_bucket: tenure === 'all' ? null : tenure,
+      p_plan_tier: plan === 'all' ? null : plan,
+      p_cohort: cohort === 'all' ? null : cohort,
+      p_score_min: null,
+      p_score_max: null,
+      p_page: page,
+    });
     if (rpcError) {
       setError(rpcError.message);
       setLoading(false);
@@ -236,8 +229,7 @@ export function QuarterlyNPSDashboard() {
     };
   }, [data]);
 
-  const verbatimEmpty =
-    data && (data.verbatim_total === 0 || data.verbatim.length === 0);
+  const verbatimEmpty = data && (data.verbatim_total === 0 || data.verbatim.length === 0);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.verbatim_total / data.page_size)) : 1;
 

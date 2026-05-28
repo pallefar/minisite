@@ -21,10 +21,7 @@ export const ROLE_ORDER: Record<AdminRole, number> = {
  * Returns true if `actual` meets or exceeds `required` in the role hierarchy.
  * Null/undefined actual always returns false (no role = no access).
  */
-export function hasMinRole(
-  actual: AdminRole | null | undefined,
-  required: AdminRole,
-): boolean {
+export function hasMinRole(actual: AdminRole | null | undefined, required: AdminRole): boolean {
   if (!actual) return false;
   return ROLE_ORDER[actual] >= ROLE_ORDER[required];
 }

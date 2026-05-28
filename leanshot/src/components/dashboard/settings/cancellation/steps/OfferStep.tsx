@@ -119,7 +119,11 @@ export function OfferStep({ reason, reason_other_text, onAdvance }: OfferStepPro
 
   if (fetchState.status === 'loading') {
     return (
-      <div aria-busy="true" aria-label={t('settings:cancellation.offer.loading_label')} className="space-y-4">
+      <div
+        aria-busy="true"
+        aria-label={t('settings:cancellation.offer.loading_label')}
+        className="space-y-4"
+      >
         <div className="h-6 w-3/4 bg-[var(--color-surface-elevated)] rounded-md animate-pulse" />
         <div className="h-4 w-full bg-[var(--color-surface-elevated)] rounded-md animate-pulse" />
         <div className="h-48 w-full bg-[var(--color-surface-elevated)] rounded-xl animate-pulse" />

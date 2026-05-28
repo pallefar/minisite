@@ -19,10 +19,10 @@ import { supabase } from '@/lib/supabase';
 // ─── Discriminated error ────────────────────────────────────────────────────
 
 export type AdminApiErrorCode =
-  | 'not_staff'        // 42501 — is_staff gate refused
+  | 'not_staff' // 42501 — is_staff gate refused
   | 'not_authenticated' // 28000 — anonymous caller
-  | 'invalid'          // 22023 — invalid param (size/page/tier)
-  | 'network'          // fetch / connection error
+  | 'invalid' // 22023 — invalid param (size/page/tier)
+  | 'network' // fetch / connection error
   | 'unknown';
 
 export class AdminApiError extends Error {
@@ -110,9 +110,7 @@ export interface SetFeatureFlagOverrideInput {
   expiresAt: string;
 }
 
-export async function setFeatureFlagOverride(
-  input: SetFeatureFlagOverrideInput,
-): Promise<void> {
+export async function setFeatureFlagOverride(input: SetFeatureFlagOverrideInput): Promise<void> {
   try {
     const { error } = await supabase.rpc('admin_set_feature_flag_override', {
       p_user_id: input.userId,

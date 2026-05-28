@@ -153,11 +153,7 @@ describe('60-13 API Test 1: listTopics()', () => {
   it('returns TopicSummary[] for topics with published+visible chunks', async () => {
     mockFrom.mockReturnValue(
       buildChainMock({
-        data: [
-          { topic_tag: 'glp-1' },
-          { topic_tag: 'glp-1' },
-          { topic_tag: 'tirzepatide' },
-        ],
+        data: [{ topic_tag: 'glp-1' }, { topic_tag: 'glp-1' }, { topic_tag: 'tirzepatide' }],
         error: null,
       }),
     );
@@ -174,10 +170,7 @@ describe('60-13 API Test 1: listTopics()', () => {
   it('filters out unknown topic_tags not in TOPIC_DISPLAY_NAMES', async () => {
     mockFrom.mockReturnValue(
       buildChainMock({
-        data: [
-          { topic_tag: 'unknown-topic-xyz' },
-          { topic_tag: 'semaglutide' },
-        ],
+        data: [{ topic_tag: 'unknown-topic-xyz' }, { topic_tag: 'semaglutide' }],
         error: null,
       }),
     );

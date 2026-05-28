@@ -44,11 +44,11 @@ import { supabase, assertAal2 } from '@/lib/supabase';
 
 /** Possible states for the combined probe (staff + role + has_totp + aal2). */
 type ProbeStatus =
-  | 'resolving'   // still loading
-  | 'not-staff'   // no admin access
-  | 'needs-totp-setup'  // has_totp = false → SetupTotpPage
-  | 'needs-step-up'     // aal = 'aal1' → StepUpTotpPage
-  | 'ready';      // all gates passed → render AdminShell / content
+  | 'resolving' // still loading
+  | 'not-staff' // no admin access
+  | 'needs-totp-setup' // has_totp = false → SetupTotpPage
+  | 'needs-step-up' // aal = 'aal1' → StepUpTotpPage
+  | 'ready'; // all gates passed → render AdminShell / content
 
 interface AdminProbeState {
   status: ProbeStatus;
@@ -133,7 +133,9 @@ export function AdminLayout({ heading, headerAction, children }: AdminLayoutProp
     runProbe(signal).catch(() => {
       if (!signal.cancelled) setProbe({ status: 'not-staff', adminRole: null });
     });
-    return () => { signal.cancelled = true; };
+    return () => {
+      signal.cancelled = true;
+    };
   }, [runProbe]);
 
   // ── Gate rendering ──────────────────────────────────────────────────────────

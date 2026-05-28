@@ -83,10 +83,7 @@ export default function HitlQueuePage() {
     return rows.filter((r) => r.type === filter);
   }, [rows, filter]);
 
-  const pendingCount = useMemo(
-    () => rows.filter((r) => r.status === 'pending').length,
-    [rows],
-  );
+  const pendingCount = useMemo(() => rows.filter((r) => r.status === 'pending').length, [rows]);
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -158,10 +155,7 @@ export default function HitlQueuePage() {
     setEditingRow(row);
   }
 
-  function onModalSubmit(payload: {
-    decision: 'edited';
-    edited_payload: Record<string, unknown>;
-  }) {
+  function onModalSubmit(payload: { decision: 'edited'; edited_payload: Record<string, unknown> }) {
     if (!editingRow) return;
     void decide([editingRow], payload.decision, {
       edited_payload: payload.edited_payload,
@@ -170,9 +164,7 @@ export default function HitlQueuePage() {
   }
 
   async function onBulkApprove() {
-    const selectedRows = rows.filter(
-      (r) => selected.has(r.id) && r.status === 'pending',
-    );
+    const selectedRows = rows.filter((r) => selected.has(r.id) && r.status === 'pending');
     if (selectedRows.length === 0) return;
     await decide(selectedRows, 'approved');
   }
@@ -209,9 +201,7 @@ export default function HitlQueuePage() {
 
       {selected.size > 0 && (
         <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-primary-soft,#dbeafe)] border border-[var(--color-primary)]">
-          <span className="text-[13px] font-semibold">
-            {selected.size} selected
-          </span>
+          <span className="text-[13px] font-semibold">{selected.size} selected</span>
           <button
             type="button"
             onClick={() => void onBulkApprove()}
@@ -231,9 +221,7 @@ export default function HitlQueuePage() {
         </p>
       )}
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>}
 
       {!loading && visibleRows.length === 0 && !error && (
         <p className="text-sm text-[var(--color-text-secondary)] p-6 text-center">

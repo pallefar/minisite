@@ -26,7 +26,9 @@ export function WeightChart({ days = 365, height = 280 }: { days?: number; heigh
     return {
       type: 'line' as const,
       data: {
-        labels: data.length ? data.map((w) => shortLabel(w.date)) : [t('patient:chart.weight.start_label')],
+        labels: data.length
+          ? data.map((w) => shortLabel(w.date))
+          : [t('patient:chart.weight.start_label')],
         datasets: [
           {
             label: t('patient:chart.weight.legend'),

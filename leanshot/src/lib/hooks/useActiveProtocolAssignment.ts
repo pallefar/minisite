@@ -81,8 +81,7 @@ export function useActiveProtocolAssignment(patientId: string | null): {
 
       // 4. Compute current week (1-based) from started_at to now
       const startedMs = new Date(assignment.started_at).getTime();
-      const weeksElapsed =
-        Math.floor((Date.now() - startedMs) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      const weeksElapsed = Math.floor((Date.now() - startedMs) / (7 * 24 * 60 * 60 * 1000)) + 1;
 
       // Find exact match for current week, or fall back to the last step <= currentWeek
       const allSteps = steps as ProtocolStep[];
@@ -90,8 +89,7 @@ export function useActiveProtocolAssignment(patientId: string | null): {
       const currentStep =
         exactStep ??
         allSteps.reduce<ProtocolStep | null>(
-          (best, s) =>
-            s.week <= weeksElapsed && (!best || s.week > best.week) ? s : best,
+          (best, s) => (s.week <= weeksElapsed && (!best || s.week > best.week) ? s : best),
           null,
         );
 

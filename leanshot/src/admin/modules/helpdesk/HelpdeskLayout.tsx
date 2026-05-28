@@ -20,14 +20,7 @@
  * Unknown sub-segments fall through to inbox (default) — see resolveActive().
  * This prevents 404 drift per [[admin-module-manifest-vs-router-branch-drift]].
  */
-import {
-  Suspense,
-  lazy,
-  useEffect,
-  useMemo,
-  useState,
-  type ComponentType,
-} from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState, type ComponentType } from 'react';
 // Note: ComponentType retained — used in SubRoute interface below.
 
 const HelpdeskInboxPage = lazy(() => import('./HelpdeskInboxPage'));
@@ -109,9 +102,7 @@ export default function HelpdeskLayout(): React.JSX.Element {
       </nav>
       <main className="max-w-screen-xl">
         <Suspense
-          fallback={
-            <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
-          }
+          fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
         >
           <Active />
         </Suspense>

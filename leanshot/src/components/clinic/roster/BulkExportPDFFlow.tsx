@@ -94,8 +94,7 @@ export function BulkExportPDFFlow({
         // Write patient page into PDF
         let y = 40;
         const displayName =
-          (snapshotData as { display_name?: string } | null)?.display_name ??
-          `Patient ${i + 1}`;
+          (snapshotData as { display_name?: string } | null)?.display_name ?? `Patient ${i + 1}`;
 
         // Patient header
         doc.setFontSize(18);
@@ -199,9 +198,8 @@ export function BulkExportPDFFlow({
           <p className="text-[14px] text-[var(--color-text-secondary)]">
             Generate a PDF report for{' '}
             <span className="font-semibold text-[var(--color-text)]">{selectedIds.length}</span>{' '}
-            patient{selectedIds.length !== 1 ? 's' : ''}. Each patient gets their own section
-            with recent clinical data. Sections the patient has not consented to share will be
-            omitted.
+            patient{selectedIds.length !== 1 ? 's' : ''}. Each patient gets their own section with
+            recent clinical data. Sections the patient has not consented to share will be omitted.
           </p>
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" size="sm" onClick={onClose}>
@@ -236,9 +234,7 @@ export function BulkExportPDFFlow({
 
       {state === 'done' && isLargeGroup && (
         <div className="space-y-4 text-center">
-          <h2
-            className="font-[Fraunces] text-[22px] font-semibold text-[var(--color-text)]"
-          >
+          <h2 className="font-[Fraunces] text-[22px] font-semibold text-[var(--color-text)]">
             Bulk report ready
           </h2>
           <p className="text-[14px] text-[var(--color-text-secondary)]">

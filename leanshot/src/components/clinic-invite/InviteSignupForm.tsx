@@ -79,7 +79,9 @@ export function InviteSignupForm({
       setSent(true);
       onSignupSent?.(email);
     } catch (err) {
-      setErrToast(err instanceof Error ? err.message : t('clinic:invite.signup.err_create_account'));
+      setErrToast(
+        err instanceof Error ? err.message : t('clinic:invite.signup.err_create_account'),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -103,7 +105,9 @@ export function InviteSignupForm({
   if (sent) {
     return (
       <div className="flex flex-col gap-3">
-        <h1 className="text-[24px] font-bold tracking-tight">{t('clinic:invite.signup.confirm_title', { email })}</h1>
+        <h1 className="text-[24px] font-bold tracking-tight">
+          {t('clinic:invite.signup.confirm_title', { email })}
+        </h1>
         <p className="text-[14px] text-[var(--color-text-secondary)]">
           {t('clinic:invite.signup.confirm_body', { email })}
         </p>

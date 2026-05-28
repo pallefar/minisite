@@ -34,7 +34,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pill } from '@/components/ui/Pill';
 import { readAnonCookie } from '@/lib/anonymous/cookie';
-import { getSession, isAppleEnabled, signInWithMagicLink, signInWithOAuthProvider } from '@/lib/auth';
+import {
+  getSession,
+  isAppleEnabled,
+  signInWithMagicLink,
+  signInWithOAuthProvider,
+} from '@/lib/auth';
 import { primaryGoalLabel } from '@/lib/i18n/onboarding-labels';
 import { mergeAnonSession } from '@/lib/onboarding/anon-merge';
 import type { ConsumerOnboardingFlow } from '@/lib/onboarding-builder/use-consumer-onboarding-flow';
@@ -81,9 +86,7 @@ interface ConsumerDraft {
 // ──────────────────────────────────────────────────────────────────────────
 
 function getSupabaseUrl(): string {
-  return (
-    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? 'https://placeholder.invalid'
-  );
+  return (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? 'https://placeholder.invalid';
 }
 function getAnonKey(): string {
   return (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? 'placeholder';
@@ -121,10 +124,7 @@ export interface ConsumerOnboardingRendererProps {
   onComplete?: () => void;
 }
 
-export function ConsumerOnboardingRenderer({
-  flow,
-  onComplete,
-}: ConsumerOnboardingRendererProps) {
+export function ConsumerOnboardingRenderer({ flow, onComplete }: ConsumerOnboardingRendererProps) {
   const { t } = useTranslation(['onboarding', 'common']);
   const signedInUserId = useStore((s) => s.signedIn?.user?.id ?? null);
   const [step, setStep] = useState(0);
@@ -158,7 +158,7 @@ export function ConsumerOnboardingRenderer({
       // PostHog not ready or initialisation threw — safe control fallback.
     }
     return DEFAULT_STEPS;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const next = (): void => setStep((s) => Math.min(steps.length - 1, s + 1));
@@ -272,10 +272,14 @@ export function ConsumerOnboardingRenderer({
           {stepId === 'social' && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-[var(--color-text)]">
-                {t('onboarding:consumer.social.title', { defaultValue: 'Join thousands on their journey' })}
+                {t('onboarding:consumer.social.title', {
+                  defaultValue: 'Join thousands on their journey',
+                })}
               </h2>
               <p className="text-[var(--color-text-muted)] text-sm">
-                {t('onboarding:consumer.social.subtitle', { defaultValue: 'See how LeanShot helps people like you stay on track.' })}
+                {t('onboarding:consumer.social.subtitle', {
+                  defaultValue: 'See how LeanShot helps people like you stay on track.',
+                })}
               </p>
               <LiveSignupCounter />
               <Button onClick={next} className="min-h-[44px] w-full">
@@ -292,7 +296,11 @@ export function ConsumerOnboardingRenderer({
               <p className="text-[var(--color-text-muted)] text-sm">
                 {t('onboarding:consumer.goal.subtitle')}
               </p>
-              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('onboarding:consumer.goal.aria_label')}>
+              <div
+                className="grid grid-cols-2 gap-2"
+                role="radiogroup"
+                aria-label={t('onboarding:consumer.goal.aria_label')}
+              >
                 {GOAL_OPTIONS.map((g) => (
                   <Pill
                     key={g.id}
@@ -306,11 +314,7 @@ export function ConsumerOnboardingRenderer({
                   </Pill>
                 ))}
               </div>
-              <Button
-                onClick={next}
-                disabled={!draft.primary_goal}
-                className="min-h-[44px] w-full"
-              >
+              <Button onClick={next} disabled={!draft.primary_goal} className="min-h-[44px] w-full">
                 {t('common:action.continue')}
               </Button>
             </div>

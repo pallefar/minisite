@@ -57,9 +57,7 @@ describe('InviteSignupForm — Plan 09-04', () => {
     const password = screen.getByLabelText(/Password/i);
     await user.type(password, 'short');
     await user.click(screen.getByRole('button', { name: /Create account and continue/i }));
-    await waitFor(() =>
-      expect(screen.getByText(/At least 8 characters\./)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/At least 8 characters\./)).toBeInTheDocument());
     expect(mockedSignUp).not.toHaveBeenCalled();
   });
 

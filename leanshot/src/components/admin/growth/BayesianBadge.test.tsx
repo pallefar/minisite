@@ -26,7 +26,7 @@ describe('BayesianBadge (PAGEAB-07 / D-12)', () => {
   });
 
   it('posterior 0.80 → warning, "Trending (80%)"', () => {
-    render(<BayesianBadge posterior={0.80} />);
+    render(<BayesianBadge posterior={0.8} />);
     const badge = screen.getByText('Trending (80%)');
     expect(badge).toBeInTheDocument();
     expect(badge.className).toContain('bg-[var(--color-warning-soft)]');

@@ -167,9 +167,7 @@ export function ClinicRankingWeightsForm({
       <div className="space-y-4">
         {/* Header */}
         <div>
-          <h2 className="text-[16px] font-semibold text-[var(--color-text)]">
-            Ranking weights
-          </h2>
+          <h2 className="text-[16px] font-semibold text-[var(--color-text)]">Ranking weights</h2>
           <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
             Adjust how patient signals are weighted when ordering the roster. Weights must sum to
             100%.
@@ -218,14 +216,10 @@ export function ClinicRankingWeightsForm({
           aria-live="polite"
           className={[
             'text-[13px] font-medium',
-            isValid
-              ? 'text-[var(--color-success)]'
-              : 'text-[var(--color-danger)]',
+            isValid ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]',
           ].join(' ')}
         >
-          {isValid
-            ? `Total: 100% — ready to save`
-            : `Total: ${sum}% — must equal 100%`}
+          {isValid ? `Total: 100% — ready to save` : `Total: ${sum}% — must equal 100%`}
         </div>
 
         {/* Save button */}

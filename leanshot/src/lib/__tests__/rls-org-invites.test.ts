@@ -29,13 +29,17 @@ describeIfLive('P28 RLS — org_invites cross-tenant isolation + W-1 invariant',
     fixture = await createTwoOrgsTwoUsers(TEST_SLUG_PREFIX);
     // Seed an invite in Org Y via admin direct insert.
     const admin = getAdmin();
-    const { data: inviteData } = await admin.from('org_invites').insert({
-      org_id: fixture.orgY,
-      email: `invite-${TEST_SLUG_PREFIX}@leanshot.test`,
-      invited_role: 'clinician',
-      invite_token_hash: `hash-${crypto.randomUUID()}`,
-      created_by: fixture.userB,
-    }).select('id').single();
+    const { data: inviteData } = await admin
+      .from('org_invites')
+      .insert({
+        org_id: fixture.orgY,
+        email: `invite-${TEST_SLUG_PREFIX}@leanshot.test`,
+        invited_role: 'clinician',
+        invite_token_hash: `hash-${crypto.randomUUID()}`,
+        created_by: fixture.userB,
+      })
+      .select('id')
+      .single();
     orgYInviteId = inviteData?.id ?? null;
   }, 60_000);
 
@@ -45,10 +49,7 @@ describeIfLive('P28 RLS — org_invites cross-tenant isolation + W-1 invariant',
 
   it('T3: User A cannot SELECT org_invites of Org Y', async () => {
     const { orgY, sessA } = fixture;
-    const { data, error } = await sessA.client
-      .from('org_invites')
-      .select('id')
-      .eq('org_id', orgY);
+    const { data, error } = await sessA.client.from('org_invites').select('id').eq('org_id', orgY);
     expect(error).toBeNull();
     expect(data ?? []).toHaveLength(0);
   }, 30_000);

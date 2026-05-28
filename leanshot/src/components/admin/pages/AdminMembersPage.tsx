@@ -26,12 +26,7 @@ import {
 import { MembersTable } from '@/components/admin/members/MembersTable';
 import { Button } from '@/components/ui/Button';
 import { Card, StatTile } from '@/components/ui/Card';
-import {
-  AdminApiError,
-  listMembers,
-  type Member,
-  type MemberTier,
-} from '@/lib/admin/admin-api';
+import { AdminApiError, listMembers, type Member, type MemberTier } from '@/lib/admin/admin-api';
 
 const POLL_INTERVAL_MS = 30_000;
 const ALLOWED_PAGE_SIZES = [25, 50, 100] as const;
@@ -194,7 +189,11 @@ function MembersPageContent() {
       />
 
       {/* Pagination footer */}
-      <Card variant="flat" padding="md" className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <Card
+        variant="flat"
+        padding="md"
+        className="mt-4 flex flex-wrap items-center justify-between gap-3"
+      >
         <div className="text-xs text-[var(--color-text-secondary)]">
           {rows && rows.length > 0
             ? `Showing ${(page - 1) * size + 1}–${(page - 1) * size + rows.length} on page ${page}`

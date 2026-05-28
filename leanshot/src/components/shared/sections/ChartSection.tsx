@@ -51,7 +51,7 @@ export function ChartSection({ data, viewerMode: _viewerMode, onMount }: ChartSe
       firedRef.current = true;
       onMount('chart');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -17,7 +17,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 const mockFrom = supabase.from as unknown as ReturnType<typeof vi.fn>;
 const mockRpc = supabase.rpc as unknown as ReturnType<typeof vi.fn>;
 const mockGetUser = supabase.auth.getUser as unknown as ReturnType<typeof vi.fn>;
@@ -115,7 +114,10 @@ describe('RoleMfaRequirementTable', () => {
     setupQueries(seeded, 'superadmin');
     mockRpc.mockResolvedValueOnce({
       data: null,
-      error: { code: '42501', message: 'forbidden: only superadmin can change MFA role requirements' },
+      error: {
+        code: '42501',
+        message: 'forbidden: only superadmin can change MFA role requirements',
+      },
     });
     await renderTable();
     const cb = (await screen.findByLabelText('MFA required for staff')) as HTMLInputElement;

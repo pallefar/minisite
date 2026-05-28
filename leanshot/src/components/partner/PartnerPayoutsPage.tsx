@@ -152,10 +152,7 @@ export function PartnerPayoutsPage(): ReactNode {
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="border-b border-[var(--color-border)] last:border-b-0"
-                  >
+                  <tr key={r.id} className="border-b border-[var(--color-border)] last:border-b-0">
                     <td className="py-2 pe-4 text-[var(--color-text)]">
                       {new Date(r.created_at).toLocaleDateString()}
                     </td>

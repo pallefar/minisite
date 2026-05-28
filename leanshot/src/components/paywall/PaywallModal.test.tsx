@@ -30,7 +30,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-
 describe('PaywallModal', () => {
   beforeEach(() => {
     trackingConsentMock.mockReset();

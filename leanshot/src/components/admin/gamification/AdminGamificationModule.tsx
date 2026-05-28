@@ -38,7 +38,10 @@ export default function AdminGamificationModule() {
   useEffect(() => {
     let cancelled = false;
     void supabase.auth.getUser().then(({ data: authData }) => {
-      if (!authData.user || cancelled) { setRoleLoading(false); return; }
+      if (!authData.user || cancelled) {
+        setRoleLoading(false);
+        return;
+      }
       void supabase
         .from('profiles')
         .select('admin_role')
@@ -46,18 +49,20 @@ export default function AdminGamificationModule() {
         .single()
         .then(({ data: prof }) => {
           if (!cancelled) {
-            setAdminRole(((prof as { admin_role?: string } | null)?.admin_role as AdminRole) ?? null);
+            setAdminRole(
+              ((prof as { admin_role?: string } | null)?.admin_role as AdminRole) ?? null,
+            );
             setRoleLoading(false);
           }
         });
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (roleLoading) {
-    return (
-      <div className="p-6 text-sm text-[var(--color-text-secondary)]">Checking access…</div>
-    );
+    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Checking access…</div>;
   }
 
   // Surface gate: admin.gamification.read — minimum 'admin' role
@@ -118,21 +123,17 @@ export default function AdminGamificationModule() {
       </nav>
 
       {/* Section content */}
-      <Suspense fallback={<div className="p-4 text-sm text-[var(--color-text-secondary)]">Loading…</div>}>
+      <Suspense
+        fallback={<div className="p-4 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
+      >
         {section === 'challenges' && (
           <div className="space-y-4">
-            {showForm && (
-              <ChallengeForm onSaved={() => setShowForm(false)} />
-            )}
+            {showForm && <ChallengeForm onSaved={() => setShowForm(false)} />}
             <ChallengeList />
           </div>
         )}
-        {section === 'freeze-tokens' && hasMinRole(adminRole, 'admin') && (
-          <FreezeTokenGrant />
-        )}
-        {section === 'leaderboards' && hasMinRole(adminRole, 'superadmin') && (
-          <LeaderboardEnable />
-        )}
+        {section === 'freeze-tokens' && hasMinRole(adminRole, 'admin') && <FreezeTokenGrant />}
+        {section === 'leaderboards' && hasMinRole(adminRole, 'superadmin') && <LeaderboardEnable />}
       </Suspense>
     </div>
   );

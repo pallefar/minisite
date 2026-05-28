@@ -198,13 +198,11 @@ describe('affiliate/api', () => {
     expect(typeof cur.filters['gte:created_at']).toBe('string');
     expect(typeof prev.filters['gte:created_at']).toBe('string');
     // The prev's gte must be earlier than cur's gte.
-    expect(
-      new Date(prev.filters['gte:created_at'] as string).getTime(),
-    ).toBeLessThan(new Date(cur.filters['gte:created_at'] as string).getTime());
-    // Pending-payout call should use .in('status', ['pending','confirmed'])
-    const pendingCall = mock.calls.find(
-      (c) => c.table === 'affiliate_conversions' && c.inArgs,
+    expect(new Date(prev.filters['gte:created_at'] as string).getTime()).toBeLessThan(
+      new Date(cur.filters['gte:created_at'] as string).getTime(),
     );
+    // Pending-payout call should use .in('status', ['pending','confirmed'])
+    const pendingCall = mock.calls.find((c) => c.table === 'affiliate_conversions' && c.inArgs);
     expect(pendingCall?.inArgs).toEqual(['status', ['pending', 'confirmed']]);
   });
 
@@ -236,10 +234,7 @@ describe('affiliate/api', () => {
     const mock = makeSupabaseMock();
     // Two clicks both on the same day (today, UTC = 2026-05-15)
     mock.setNextResult('affiliate_clicks', false, {
-      data: [
-        { created_at: '2026-05-15T10:00:00Z' },
-        { created_at: '2026-05-15T11:00:00Z' },
-      ],
+      data: [{ created_at: '2026-05-15T10:00:00Z' }, { created_at: '2026-05-15T11:00:00Z' }],
       error: null,
     });
     // One conversion 10 days ago (2026-05-05)

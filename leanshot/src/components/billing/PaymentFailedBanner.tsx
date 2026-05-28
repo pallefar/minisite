@@ -30,12 +30,9 @@ import { supabase } from '@/lib/supabase';
 import type { DunningState } from '@/types';
 
 const COPY: Record<Exclude<DunningState, null | 'none' | 'cancelled_for_payment'>, string> = {
-  first_failed:
-    "We couldn't process your last payment. Please update your payment method.",
-  second_failed:
-    'Second payment attempt failed. Update your payment method to keep your access.',
-  final_warning:
-    "Your subscription will be cancelled if payment isn't updated within 24 hours.",
+  first_failed: "We couldn't process your last payment. Please update your payment method.",
+  second_failed: 'Second payment attempt failed. Update your payment method to keep your access.',
+  final_warning: "Your subscription will be cancelled if payment isn't updated within 24 hours.",
 };
 
 export function PaymentFailedBanner() {
@@ -53,18 +50,16 @@ export function PaymentFailedBanner() {
   if (!(state in COPY)) {
     return null;
   }
-  const headline =
-    COPY[state as Exclude<DunningState, null | 'none' | 'cancelled_for_payment'>];
+  const headline = COPY[state as Exclude<DunningState, null | 'none' | 'cancelled_for_payment'>];
 
   const handleUpdate = async (): Promise<void> => {
     if (loading) return;
     setLoading(true);
     setError(null);
     try {
-      const { data, error: invokeErr } = await supabase.functions.invoke(
-        'stripe-checkout/portal',
-        { body: {} },
-      );
+      const { data, error: invokeErr } = await supabase.functions.invoke('stripe-checkout/portal', {
+        body: {},
+      });
       if (invokeErr || !data?.url) {
         throw new Error('no-url');
       }
@@ -88,10 +83,7 @@ export function PaymentFailedBanner() {
       )}
     >
       <div className="flex items-center gap-3 min-w-0">
-        <AlertTriangle
-          className="size-4 shrink-0 text-[var(--color-danger)]"
-          aria-hidden="true"
-        />
+        <AlertTriangle className="size-4 shrink-0 text-[var(--color-danger)]" aria-hidden="true" />
         <div className="flex flex-col gap-1 min-w-0">
           <span className="text-[13px] font-semibold">{headline}</span>
           {error && (

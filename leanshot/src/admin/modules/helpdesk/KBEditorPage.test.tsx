@@ -92,18 +92,13 @@ function makeBuilder(table: string): Record<string, unknown> {
         mockArticles.push(article);
         return {
           select: () => ({
-            single: () =>
-              Promise.resolve({ data: article, error: null }),
+            single: () => Promise.resolve({ data: article, error: null }),
           }),
         };
       }
       return this;
     }),
-    eq: vi.fn(function (
-      this: { _filters: Array<[string, unknown]> },
-      col: string,
-      val: unknown,
-    ) {
+    eq: vi.fn(function (this: { _filters: Array<[string, unknown]> }, col: string, val: unknown) {
       this._filters.push([col, val]);
       return this;
     }),
@@ -113,15 +108,10 @@ function makeBuilder(table: string): Record<string, unknown> {
     limit: vi.fn(function (this: unknown) {
       return this;
     }),
-    single: vi.fn(function (this: {
-      _table: string;
-      _filters: Array<[string, unknown]>;
-    }) {
+    single: vi.fn(function (this: { _table: string; _filters: Array<[string, unknown]> }) {
       if (this._table === 'kb_articles') {
         const idFilter = this._filters.find((f) => f[0] === 'id');
-        const found = idFilter
-          ? mockArticles.find((a) => a.id === idFilter[1])
-          : mockArticles[0];
+        const found = idFilter ? mockArticles.find((a) => a.id === idFilter[1]) : mockArticles[0];
         return Promise.resolve({ data: found ?? null, error: null });
       }
       if (this._table === 'org_members') {
@@ -159,8 +149,7 @@ vi.mock('@/lib/supabase', () => ({
       return Promise.resolve({ data: null, error: null });
     }),
     auth: {
-      getUser: () =>
-        Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
     },
   },
 }));
@@ -169,9 +158,7 @@ vi.mock('@/lib/supabase', () => ({
 // the raw text so locale assertions can look at the rendered preview.
 vi.mock('react-markdown', () => ({
   __esModule: true,
-  default: ({ children }: { children: string }) => (
-    <div data-testid="md-preview">{children}</div>
-  ),
+  default: ({ children }: { children: string }) => <div data-testid="md-preview">{children}</div>,
 }));
 vi.mock('remark-gfm', () => ({ __esModule: true, default: () => null }));
 vi.mock('rehype-raw', () => ({ __esModule: true, default: () => null }));
@@ -204,9 +191,7 @@ describe('KBEditorPage', () => {
   });
 
   it('T2: selecting an article loads it into editor', async () => {
-    mockArticles = [
-      mkArticle({ id: 'kb-1', title: 'Intro to dosing', body: '# Dose body' }),
-    ];
+    mockArticles = [mkArticle({ id: 'kb-1', title: 'Intro to dosing', body: '# Dose body' })];
     const { default: KBEditorPage } = await import('./KBEditorPage');
     render(<KBEditorPage />);
     await waitFor(() => screen.getByText('Intro to dosing'));
@@ -220,9 +205,7 @@ describe('KBEditorPage', () => {
   });
 
   it('T3: Publish calls publish_kb_article RPC with edited fields', async () => {
-    mockArticles = [
-      mkArticle({ id: 'kb-pub', title: 'Old title', body: 'old body' }),
-    ];
+    mockArticles = [mkArticle({ id: 'kb-pub', title: 'Old title', body: 'old body' })];
     const { default: KBEditorPage } = await import('./KBEditorPage');
     render(<KBEditorPage />);
     await waitFor(() => screen.getByText('Old title'));

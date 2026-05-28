@@ -36,7 +36,6 @@ vi.mock('@/lib/store', () => ({
   },
 }));
 
-
 const ORG_ID = 'org-test-123';
 
 describe('ClinicRankingWeightsForm', () => {
@@ -132,10 +131,7 @@ describe('ClinicRankingWeightsForm', () => {
     await user.click(saveBtn);
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith(
-        'Save failed — please try again.',
-        'error',
-      );
+      expect(mockToast).toHaveBeenCalledWith('Save failed — please try again.', 'error');
     });
   });
 

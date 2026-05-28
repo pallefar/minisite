@@ -82,10 +82,7 @@ function mapRpcError(err: SupabaseRpcError | null | undefined): AnomalyConfigApi
   }
 }
 
-type ConfigRpcName =
-  | 'anomaly_funnel_define'
-  | 'anomaly_funnel_update'
-  | 'anomaly_funnel_delete';
+type ConfigRpcName = 'anomaly_funnel_define' | 'anomaly_funnel_update' | 'anomaly_funnel_delete';
 
 async function callConfigRpc<T = unknown>(
   rpcName: ConfigRpcName,
@@ -178,9 +175,8 @@ export async function listTrackedFunnels(): Promise<TrackedFunnel[]> {
       isEnabled: r.is_enabled,
       lookbackDays: r.baseline_lookback_days,
       // Postgres numeric round-trips as a string via PostgREST.
-      sigmaThreshold: typeof r.sigma_threshold === 'string'
-        ? Number(r.sigma_threshold)
-        : r.sigma_threshold,
+      sigmaThreshold:
+        typeof r.sigma_threshold === 'string' ? Number(r.sigma_threshold) : r.sigma_threshold,
       createdBy: r.created_by,
       createdAt: r.created_at,
     }));

@@ -24,13 +24,7 @@
  * every sub-route into this component automatically — no switch edit needed
  * (per project memory `feedback_admin_module_manifest_vs_router_branch_drift`).
  */
-import {
-  Activity,
-  Filter,
-  LayoutList,
-  Map as MapIcon,
-  Settings2,
-} from 'lucide-react';
+import { Activity, Filter, LayoutList, Map as MapIcon, Settings2 } from 'lucide-react';
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Pill, PillGroup } from '@/components/ui/Pill';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -70,12 +64,7 @@ const TrafficTaxonomyPage = lazy(() =>
 
 // ─── Tab routing ─────────────────────────────────────────────────────────────
 
-export type TrafficTabKey =
-  | 'channels'
-  | 'funnels'
-  | 'landing'
-  | 'realtime'
-  | 'taxonomy';
+export type TrafficTabKey = 'channels' | 'funnels' | 'landing' | 'realtime' | 'taxonomy';
 
 const TAB_FROM_PATH: Record<string, TrafficTabKey> = {
   '/admin/growth/traffic/channels': 'channels',
@@ -118,14 +107,10 @@ export const TrafficDashboardPage: React.FC = () => {
   // on auth.users app_metadata via the SignedInSlice; reading defensively so
   // unauthenticated/loading states render the admin-default subtitle.
   const role = useStore(
-    (s) =>
-      (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ??
-      null,
+    (s) => (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ?? null,
   );
   const orgName = useStore(
-    (s) =>
-      (s.signedIn?.user?.app_metadata as { org_name?: string } | undefined)
-        ?.org_name ?? null,
+    (s) => (s.signedIn?.user?.app_metadata as { org_name?: string } | undefined)?.org_name ?? null,
   );
 
   const subtitle =
@@ -143,9 +128,7 @@ export const TrafficDashboardPage: React.FC = () => {
           </span>
           <div>
             <h1 className="text-[18px] font-bold">Traffic &amp; Conversion</h1>
-            <p className="text-[11px] text-[var(--color-text-secondary)]">
-              {subtitle}
-            </p>
+            <p className="text-[11px] text-[var(--color-text-secondary)]">{subtitle}</p>
           </div>
         </div>
       </div>
@@ -197,12 +180,7 @@ export const TrafficDashboardPage: React.FC = () => {
       {/* ── Tab content slot ─────────────────────────────────────────── */}
       <div className="pt-8" role="tabpanel" aria-label={`${activeTab} content`}>
         <Suspense
-          fallback={
-            <Skeleton
-              className="h-64 w-full"
-              data-testid="traffic-tab-skeleton"
-            />
-          }
+          fallback={<Skeleton className="h-64 w-full" data-testid="traffic-tab-skeleton" />}
         >
           {/* TRAFFIC-CHANNEL-ROLLUP slot — Plan 51-06 */}
           {activeTab === 'channels' && <TrafficChannelsTab />}

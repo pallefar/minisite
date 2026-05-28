@@ -26,9 +26,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 
-const SpaceEditor = lazy(() =>
-  import('./SpaceEditor').then((m) => ({ default: m.SpaceEditor })),
-);
+const SpaceEditor = lazy(() => import('./SpaceEditor').then((m) => ({ default: m.SpaceEditor })));
 const AdminCliniciansPage = lazy(() =>
   import('./AdminCliniciansPage').then((m) => ({ default: m.AdminCliniciansPage })),
 );
@@ -50,13 +48,7 @@ interface SpaceRow {
 
 // ─── Space list subpage ───────────────────────────────────────────────────────
 
-function SpacesListPage({
-  onNew,
-  onEdit,
-}: {
-  onNew: () => void;
-  onEdit: (id: string) => void;
-}) {
+function SpacesListPage({ onNew, onEdit }: { onNew: () => void; onEdit: (id: string) => void }) {
   const [spaces, setSpaces] = useState<SpaceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -84,9 +76,7 @@ function SpacesListPage({
         </button>
       </div>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading spaces…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading spaces…</p>}
 
       {!loading && spaces.length === 0 && (
         <p className="text-sm text-[var(--color-text-secondary)]">No community spaces yet.</p>
@@ -96,15 +86,22 @@ function SpacesListPage({
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Name</th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Tier</th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Name
+              </th>
+              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                Tier
+              </th>
               <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Org</th>
               <th className="py-2"></th>
             </tr>
           </thead>
           <tbody>
             {spaces.map((s) => (
-              <tr key={s.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)]">
+              <tr
+                key={s.id}
+                className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)]"
+              >
                 <td className="py-2 font-medium">{s.name}</td>
                 <td className="py-2 capitalize text-[var(--color-text-secondary)]">{s.min_tier}</td>
                 <td className="py-2 text-[var(--color-text-secondary)] font-mono text-xs">
@@ -139,10 +136,8 @@ type View =
 export function resolveView(pathname: string): View {
   // P45-08 — match /admin/community/profiles + /admin/community/reports BEFORE
   // generic :id segment so they don't fall through to { type: 'edit' }.
-  if (pathname.startsWith('/admin/community/profiles'))
-    return { type: 'clinicians' };
-  if (pathname.startsWith('/admin/community/reports'))
-    return { type: 'reports-digest' };
+  if (pathname.startsWith('/admin/community/profiles')) return { type: 'clinicians' };
+  if (pathname.startsWith('/admin/community/reports')) return { type: 'reports-digest' };
 
   const m = pathname.match(/^\/admin\/community\/?([^/]+)?(?:\/([^/]+))?/);
   const seg1 = m?.[1];
@@ -228,9 +223,7 @@ export default function CommunityAdminLayout() {
       </nav>
 
       <Suspense
-        fallback={
-          <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>
-        }
+        fallback={<div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading…</div>}
       >
         {view.type === 'list' && (
           <SpacesListPage
@@ -260,12 +253,8 @@ export default function CommunityAdminLayout() {
             <SpaceEditor spaceId={view.spaceId} onSaved={handleSaved} />
           </div>
         )}
-        {view.type === 'clinicians' && (
-          <AdminCliniciansPage />
-        )}
-        {view.type === 'reports-digest' && (
-          <AdminReportsDigestPage />
-        )}
+        {view.type === 'clinicians' && <AdminCliniciansPage />}
+        {view.type === 'reports-digest' && <AdminReportsDigestPage />}
       </Suspense>
     </div>
   );

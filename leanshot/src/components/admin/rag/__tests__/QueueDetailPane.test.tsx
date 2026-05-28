@@ -60,9 +60,9 @@ describe('QueueDetailPane', () => {
     render(<QueueDetailPane {...defaultProps} />);
     expect(screen.getByText('PubMed Central')).toBeTruthy();
     expect(screen.getByText('Tier B')).toBeTruthy();
-    const link = screen.getAllByRole('link').find(
-      (l) => l.getAttribute('href') === 'https://pubmed.example.com/123',
-    );
+    const link = screen
+      .getAllByRole('link')
+      .find((l) => l.getAttribute('href') === 'https://pubmed.example.com/123');
     expect(link).toBeTruthy();
   });
 
@@ -84,9 +84,7 @@ describe('QueueDetailPane', () => {
       ...CHUNK,
       source_markdown: '<script>alert(1)</script><img src="x" onerror="alert(2)"><p>safe</p>',
     };
-    const { container } = render(
-      <QueueDetailPane {...defaultProps} chunk={maliciousChunk} />,
-    );
+    const { container } = render(<QueueDetailPane {...defaultProps} chunk={maliciousChunk} />);
     expect(container.querySelector('script')).toBeNull();
     expect(container.querySelector('img')).toBeNull();
     expect(container.textContent).toContain('safe');
@@ -103,9 +101,7 @@ describe('QueueDetailPane', () => {
   it('Test 6: adverse-event / contraindication kind badge has danger tone', () => {
     const chunkWithContra: ReviewQueueRow = {
       ...CHUNK,
-      quote_blocks: [
-        { text: 'Contraindicated in renal impairment', kind: 'contraindication' },
-      ],
+      quote_blocks: [{ text: 'Contraindicated in renal impairment', kind: 'contraindication' }],
     };
     const { container } = render(<QueueDetailPane {...defaultProps} chunk={chunkWithContra} />);
     const badgeEl = Array.from(container.querySelectorAll('span')).find(
@@ -142,10 +138,12 @@ describe('QueueDetailPane', () => {
     expect(saveBtn).toBeTruthy();
     fireEvent.click(saveBtn);
     await waitFor(() => {
-      expect(onQueueWithEdits).toHaveBeenCalledWith(expect.objectContaining({
-        tier: CHUNK.source_tier,
-        topicTag: CHUNK.topic_tag,
-      }));
+      expect(onQueueWithEdits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tier: CHUNK.source_tier,
+          topicTag: CHUNK.topic_tag,
+        }),
+      );
     });
   });
 

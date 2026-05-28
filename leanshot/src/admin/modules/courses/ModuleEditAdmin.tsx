@@ -74,9 +74,7 @@ export function ModuleEditAdmin({ courseId, onNavigate }: ModuleEditAdminProps) 
       id: r.id,
       title: r.title,
       order_index: r.order_index,
-      lessons: [...(r.course_lessons ?? [])].sort(
-        (a, b) => a.order_index - b.order_index,
-      ),
+      lessons: [...(r.course_lessons ?? [])].sort((a, b) => a.order_index - b.order_index),
     }));
     setModules(next);
     setLoading(false);
@@ -109,9 +107,7 @@ export function ModuleEditAdmin({ courseId, onNavigate }: ModuleEditAdminProps) 
 
   // ── Lesson reorder within a module ─────────────────────────────────────────
   const handleLessonsReorder = async (moduleId: string, nextLessons: LessonRow[]) => {
-    setModules((prev) =>
-      prev.map((m) => (m.id === moduleId ? { ...m, lessons: nextLessons } : m)),
-    );
+    setModules((prev) => prev.map((m) => (m.id === moduleId ? { ...m, lessons: nextLessons } : m)));
     setBusy(true);
     for (let i = 0; i < nextLessons.length; i++) {
       const l = nextLessons[i]!;
@@ -202,21 +198,14 @@ export function ModuleEditAdmin({ courseId, onNavigate }: ModuleEditAdminProps) 
 
   // ── Render ─────────────────────────────────────────────────────────────────
   if (loading) {
-    return (
-      <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading modules…</div>
-    );
+    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading modules…</div>;
   }
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold">Modules &amp; lessons</h2>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => void handleAddModule()}
-          disabled={busy}
-        >
+        <Button variant="primary" size="sm" onClick={() => void handleAddModule()} disabled={busy}>
           + Add module
         </Button>
       </div>
@@ -271,11 +260,7 @@ export function ModuleEditAdmin({ courseId, onNavigate }: ModuleEditAdminProps) 
                     <div className="flex flex-1 items-center justify-between gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-2">
                       <button
                         type="button"
-                        onClick={() =>
-                          onNavigate(
-                            `/admin/courses/${courseId}/lesson/${lesson.id}`,
-                          )
-                        }
+                        onClick={() => onNavigate(`/admin/courses/${courseId}/lesson/${lesson.id}`)}
                         className="text-sm text-left font-medium text-[var(--color-text)] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded"
                       >
                         {lesson.title}

@@ -86,8 +86,8 @@ export function LessonResourceList({ lesson, currentTier }: LessonResourceListPr
       <ul className="space-y-2">
         {resources.map((resource) => {
           const allowed =
-            !resource.requires_pro
-              || isResourceAllowed(currentTier, mimeToResourceType(resource.mime));
+            !resource.requires_pro ||
+            isResourceAllowed(currentTier, mimeToResourceType(resource.mime));
           const state = rowState[resource.path] ?? { downloading: false, error: null };
           return (
             <li key={resource.path}>

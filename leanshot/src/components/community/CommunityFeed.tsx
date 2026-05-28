@@ -151,10 +151,7 @@ export function CommunityFeed({
 
   if (error) {
     return (
-      <div
-        role="alert"
-        className="text-sm text-[var(--color-destructive)] py-4 text-center"
-      >
+      <div role="alert" className="text-sm text-[var(--color-destructive)] py-4 text-center">
         Failed to load posts: {error}
       </div>
     );
@@ -169,16 +166,9 @@ export function CommunityFeed({
       ) : (
         <>
           {posts.length === 0 ? (
-            <EmptyState
-              title="No posts yet"
-              body="Be the first to post in this space."
-              inline
-            />
+            <EmptyState title="No posts yet" body="Be the first to post in this space." inline />
           ) : (
-            <ul
-              aria-label="Posts in this space"
-              className="flex flex-col gap-4"
-            >
+            <ul aria-label="Posts in this space" className="flex flex-col gap-4">
               {posts.map((post) => (
                 <li key={post.id}>
                   <CommunityPost

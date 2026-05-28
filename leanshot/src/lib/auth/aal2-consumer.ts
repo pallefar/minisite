@@ -43,15 +43,8 @@
  *   - `listEnrolledFactors()`   from `@/lib/auth/totp-shared`
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-import {
-  AAL2_FRESHNESS_MS,
-  AAL2_LS_KEY,
-  isAal2Fresh,
-} from '@/lib/admin/palette/aal2-step-up';
-import {
-  listEnrolledFactors,
-  verifyTotpChallenge,
-} from '@/lib/auth/totp-shared';
+import { AAL2_FRESHNESS_MS, AAL2_LS_KEY, isAal2Fresh } from '@/lib/admin/palette/aal2-step-up';
+import { listEnrolledFactors, verifyTotpChallenge } from '@/lib/auth/totp-shared';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -110,10 +103,7 @@ function readFreshnessTs(): number | null {
  * `opts.freshWindowMs`. The default path delegates to
  * `isAal2Fresh()` (which checks JWT auth_time first + falls back to LS).
  */
-async function isFreshWithinWindow(
-  client: SupabaseClient,
-  windowMs: number,
-): Promise<boolean> {
+async function isFreshWithinWindow(client: SupabaseClient, windowMs: number): Promise<boolean> {
   // Cheap path — if the helper already considers us fresh on the default
   // 15min window AND our window is >= default, accept it without
   // re-deriving. (We only fall back to LS-only for shorter windows.)
@@ -207,10 +197,7 @@ export async function requireAal2ForConsumerAction(
   //    later, the modal can be enhanced to let the user pick — for now,
   //    factors[0] is the canonical TOTP factor.)
   const factor = factors[0]!;
-  const result = await verifyTotpChallenge(
-    { factorId: factor.id, code: outcome.code },
-    client,
-  );
+  const result = await verifyTotpChallenge({ factorId: factor.id, code: outcome.code }, client);
 
   if (!result.ok) {
     return { ok: false, reason: 'invalid_code' };

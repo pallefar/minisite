@@ -41,11 +41,7 @@ export function AdminReportsDigestPage() {
       }
 
       const [profileRes, countRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('admin_digest_opt_in')
-          .eq('id', userData.user.id)
-          .single(),
+        supabase.from('profiles').select('admin_digest_opt_in').eq('id', userData.user.id).single(),
         supabase
           .from('community_reports')
           .select('*', { count: 'exact', head: true })
@@ -110,9 +106,8 @@ export function AdminReportsDigestPage() {
       <div>
         <h2 className="text-base font-semibold">Report digest</h2>
         <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-          Aggregate-only view. The full moderation queue ships in Phase 48 — for
-          now, opt in to the daily email digest to receive a summary of new
-          reports grouped by target type.
+          Aggregate-only view. The full moderation queue ships in Phase 48 — for now, opt in to the
+          daily email digest to receive a summary of new reports grouped by target type.
         </p>
       </div>
 
@@ -120,8 +115,7 @@ export function AdminReportsDigestPage() {
         <div>
           <p className="text-sm font-medium">Receive daily report digest email</p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
-            Sent once per day if at least one new report was filed in the last
-            24 hours.
+            Sent once per day if at least one new report was filed in the last 24 hours.
           </p>
         </div>
         <button
@@ -131,9 +125,7 @@ export function AdminReportsDigestPage() {
           aria-pressed={optedIn === true}
           aria-busy={busy}
           aria-label={
-            optedIn
-              ? 'Disable daily report digest email'
-              : 'Enable daily report digest email'
+            optedIn ? 'Disable daily report digest email' : 'Enable daily report digest email'
           }
           className={
             'inline-flex h-7 items-center rounded-full px-4 text-xs font-medium transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ' +
@@ -154,8 +146,7 @@ export function AdminReportsDigestPage() {
           {openCount === null ? '—' : openCount}
         </p>
         <p className="mt-2 text-xs text-[var(--color-text-secondary)]">
-          Total community_reports with status=&apos;open&apos; visible to your
-          staff scope.
+          Total community_reports with status=&apos;open&apos; visible to your staff scope.
         </p>
       </div>
     </div>

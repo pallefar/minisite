@@ -20,7 +20,16 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OverrideRow, OverrideUpsertInput } from './locale-overrides-client';
 
-const NAMESPACES = ['common', 'nav', 'admin', 'clinic', 'kb', 'onboarding', 'patient', 'settings'] as const;
+const NAMESPACES = [
+  'common',
+  'nav',
+  'admin',
+  'clinic',
+  'kb',
+  'onboarding',
+  'patient',
+  'settings',
+] as const;
 
 interface OverrideEditorProps {
   override?: OverrideRow;
@@ -68,7 +77,10 @@ export function OverrideEditor({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 p-4 bg-[var(--color-surface-elevated)] rounded-lg">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-3 p-4 bg-[var(--color-surface-elevated)] rounded-lg"
+    >
       <div className="grid grid-cols-2 gap-3">
         <label className="text-sm">
           <span className="block mb-1 text-xs font-semibold text-[var(--color-text-secondary)]">
@@ -95,7 +107,9 @@ export function OverrideEditor({
             aria-label={t('i18n_overrides.ns_label', 'Namespace')}
           >
             {NAMESPACES.map((n) => (
-              <option key={n} value={n}>{n}</option>
+              <option key={n} value={n}>
+                {n}
+              </option>
             ))}
           </select>
         </label>
@@ -140,7 +154,9 @@ export function OverrideEditor({
         >
           <option value="">{t('i18n_overrides.global_scope', 'Global (all orgs)')}</option>
           {availableOrgs.map((o) => (
-            <option key={o.id} value={o.id}>{o.name}</option>
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
           ))}
         </select>
       </label>
@@ -155,7 +171,9 @@ export function OverrideEditor({
       </label>
 
       {error && (
-        <p role="alert" className="text-xs text-[var(--color-error,red)]">{error}</p>
+        <p role="alert" className="text-xs text-[var(--color-error,red)]">
+          {error}
+        </p>
       )}
 
       <div className="flex items-center gap-2">
@@ -165,9 +183,7 @@ export function OverrideEditor({
           aria-busy={saving}
           className="px-3 py-1.5 rounded bg-[var(--color-primary)] text-[var(--color-primary-foreground)] text-sm font-semibold disabled:opacity-50"
         >
-          {saving
-            ? t('i18n_overrides.saving', 'Saving…')
-            : t('i18n_overrides.save_button', 'Save')}
+          {saving ? t('i18n_overrides.saving', 'Saving…') : t('i18n_overrides.save_button', 'Save')}
         </button>
         <button
           type="button"

@@ -62,7 +62,9 @@ export function RagTopicsPage() {
       .select('id, query, tag, posture, cadence, last_scraped_at, deleted_at, created_at')
       .order('created_at', { ascending: false });
     const { data, error } =
-      viewFilter === 'active' ? await q.is('deleted_at', null) : await q.not('deleted_at', 'is', null);
+      viewFilter === 'active'
+        ? await q.is('deleted_at', null)
+        : await q.not('deleted_at', 'is', null);
     if (error) {
       setErr(error.message);
       return;
@@ -108,12 +110,10 @@ export function RagTopicsPage() {
     <section className="p-6 lg:p-8 space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Topics ({rows?.length ?? 0})
-          </h1>
+          <h1 className="text-xl font-semibold tracking-tight">Topics ({rows?.length ?? 0})</h1>
           <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-            Admin-curated research topics. Each topic drives scraping cadence and
-            powers the Research hub.
+            Admin-curated research topics. Each topic drives scraping cadence and powers the
+            Research hub.
           </p>
         </div>
         <Button variant="primary" onClick={() => setSheetOpen(true)}>
@@ -135,10 +135,7 @@ export function RagTopicsPage() {
         <Pill active={postureFilter === 'curated'} onClick={() => setPostureFilter('curated')}>
           Curated
         </Pill>
-        <Pill
-          active={postureFilter === 'open-web'}
-          onClick={() => setPostureFilter('open-web')}
-        >
+        <Pill active={postureFilter === 'open-web'} onClick={() => setPostureFilter('open-web')}>
           Open-web
         </Pill>
       </PillGroup>
@@ -197,9 +194,7 @@ export function RagTopicsPage() {
                     <Badge tone="neutral">{r.tag}</Badge>
                   </td>
                   <td className="md:px-4 md:py-3">
-                    <Badge tone={r.posture === 'curated' ? 'info' : 'neutral'}>
-                      {r.posture}
-                    </Badge>
+                    <Badge tone={r.posture === 'curated' ? 'info' : 'neutral'}>{r.posture}</Badge>
                   </td>
                   <td className="md:px-4 md:py-3 capitalize">{r.cadence}</td>
                   <td className="md:px-4 md:py-3 md:text-end font-mono tabular-nums text-[var(--color-text-secondary)]">

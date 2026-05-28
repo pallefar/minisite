@@ -99,11 +99,9 @@ function ShareRow({ share, onRevoke }: ShareRowProps) {
         <p className="text-[12px] text-[var(--color-text-secondary)] numerals-tabular">
           Expires {relTime(share.expires_at)} · Viewed{' '}
           <span className="numerals-tabular font-semibold">{share.view_count}</span>{' '}
-          {share.view_count === 1 ? 'time' : 'times'} · Last viewed{' '}
-          {relTime(share.last_viewed_at)}
+          {share.view_count === 1 ? 'time' : 'times'} · Last viewed {relTime(share.last_viewed_at)}
         </p>
-        {(share.recipient_ua_families.length > 0 ||
-          share.recipient_ip_families.length > 0) && (
+        {(share.recipient_ua_families.length > 0 || share.recipient_ip_families.length > 0) && (
           <p className="text-[11px] text-[var(--color-text-tertiary)]">
             {share.recipient_ua_families.join(', ') || '—'}
             {share.recipient_ip_families.length > 0
@@ -155,8 +153,8 @@ function RevokeConfirmModal({ share, onClose, onConfirm }: RevokeConfirmModalPro
     <Modal open={Boolean(share)} onClose={close} title="Revoke this share?" size="md">
       <div className="space-y-4">
         <p className="text-[14px] text-[var(--color-text-secondary)] leading-relaxed">
-          The doctor&apos;s open page will return an error within seconds and the share link
-          will stop working. This cannot be undone, but you can always create a new share.
+          The doctor&apos;s open page will return an error within seconds and the share link will
+          stop working. This cannot be undone, but you can always create a new share.
         </p>
         <Input
           label={`Type ${share.label} to revoke`}
@@ -253,9 +251,9 @@ export function ActiveSharesSection(): React.ReactElement | null {
         <div className="space-y-1">
           <h2 className="text-[18px] font-bold tracking-tight">Active shares</h2>
           <p className="text-[13px] text-[var(--color-text-secondary)] max-w-[60ch] leading-snug">
-            Generate a time-bound link plus a 6-digit code so a doctor can review your data
-            in their browser. AI coach conversations are never included. Revoke any time —
-            the doctor&apos;s open page becomes unusable within seconds.
+            Generate a time-bound link plus a 6-digit code so a doctor can review your data in their
+            browser. AI coach conversations are never included. Revoke any time — the doctor&apos;s
+            open page becomes unusable within seconds.
           </p>
         </div>
         {!empty && (

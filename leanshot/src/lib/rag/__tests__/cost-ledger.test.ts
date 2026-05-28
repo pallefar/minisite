@@ -18,14 +18,12 @@ import {
 } from '../scrape/cost-ledger';
 
 interface RpcStubResult {
-  data:
-    | Array<{
-        vendor: string;
-        mtd_usd: number;
-        monthly_cap_usd: number;
-        pct_used: number;
-      }>
-    | null;
+  data: Array<{
+    vendor: string;
+    mtd_usd: number;
+    monthly_cap_usd: number;
+    pct_used: number;
+  }> | null;
   error: { message: string } | null;
 }
 
@@ -38,7 +36,7 @@ interface FromStubResult {
  * `rag_mtd_spend_by_vendor` returns; `insertResult` and `selectResult`
  * control the from(...).insert / .select chain.
  */
- 
+
 function makeClient(opts: {
   rpcResult?: RpcStubResult;
   insertResult?: FromStubResult;
@@ -49,17 +47,12 @@ function makeClient(opts: {
     opts.recordInsert?.('rag_cost_ledger', payload);
     return Promise.resolve(opts.insertResult ?? { error: null });
   });
-  const selectSpy = vi.fn(() =>
-    Promise.resolve(opts.selectResult ?? { error: null }),
-  );
+  const selectSpy = vi.fn(() => Promise.resolve(opts.selectResult ?? { error: null }));
   return {
-    rpc: vi.fn(() =>
-      Promise.resolve(opts.rpcResult ?? { data: [], error: null }),
-    ),
+    rpc: vi.fn(() => Promise.resolve(opts.rpcResult ?? { data: [], error: null })),
     from: vi.fn((table: string) => ({
       insert: insertSpy,
-      select: (_cols: string, _opts: { count: string; head: boolean }) =>
-        selectSpy(),
+      select: (_cols: string, _opts: { count: string; head: boolean }) => selectSpy(),
       __table: table,
     })),
     __spies: { insert: insertSpy, select: selectSpy },
@@ -133,9 +126,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('returns ok when pct_used < 80', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 50, monthly_cap_usd: 200, pct_used: 25 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 50, monthly_cap_usd: 200, pct_used: 25 }],
           error: null,
         },
       });
@@ -149,9 +140,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('returns warn when 80 <= pct_used < 100', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 160, monthly_cap_usd: 200, pct_used: 80 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 160, monthly_cap_usd: 200, pct_used: 80 }],
           error: null,
         },
       });
@@ -162,9 +151,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('returns warn at exactly 80 (boundary)', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 160, monthly_cap_usd: 200, pct_used: 80.0 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 160, monthly_cap_usd: 200, pct_used: 80.0 }],
           error: null,
         },
       });
@@ -175,9 +162,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('returns capped when pct_used >= 100', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 200, monthly_cap_usd: 200, pct_used: 100 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 200, monthly_cap_usd: 200, pct_used: 100 }],
           error: null,
         },
       });
@@ -188,9 +173,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('returns capped when pct_used > 100', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 250, monthly_cap_usd: 200, pct_used: 125 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 250, monthly_cap_usd: 200, pct_used: 125 }],
           error: null,
         },
       });
@@ -208,9 +191,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('throws when no row for vendor', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'openai_embed', mtd_usd: 10, monthly_cap_usd: 50, pct_used: 20 },
-          ],
+          data: [{ vendor: 'openai_embed', mtd_usd: 10, monthly_cap_usd: 50, pct_used: 20 }],
           error: null,
         },
       });
@@ -222,9 +203,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('does NOT throw when status === ok', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 0, monthly_cap_usd: 200, pct_used: 0 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 0, monthly_cap_usd: 200, pct_used: 0 }],
           error: null,
         },
       });
@@ -234,9 +213,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('does NOT throw when status === warn', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 170, monthly_cap_usd: 200, pct_used: 85 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 170, monthly_cap_usd: 200, pct_used: 85 }],
           error: null,
         },
       });
@@ -246,23 +223,17 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
     it('throws CostCapExceededError when status === capped', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 200, monthly_cap_usd: 200, pct_used: 100 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 200, monthly_cap_usd: 200, pct_used: 100 }],
           error: null,
         },
       });
-      await expect(gateOrThrow(client, 'firecrawl')).rejects.toBeInstanceOf(
-        CostCapExceededError,
-      );
+      await expect(gateOrThrow(client, 'firecrawl')).rejects.toBeInstanceOf(CostCapExceededError);
     });
 
     it('CostCapExceededError carries vendor + mtd + cap', async () => {
       const client = makeClient({
         rpcResult: {
-          data: [
-            { vendor: 'firecrawl', mtd_usd: 220, monthly_cap_usd: 200, pct_used: 110 },
-          ],
+          data: [{ vendor: 'firecrawl', mtd_usd: 220, monthly_cap_usd: 200, pct_used: 110 }],
           error: null,
         },
       });
@@ -306,9 +277,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
           error: { code: '42P01', message: 'relation does not exist' },
         },
       });
-      await expect(
-        sendEightyPctEmail(client, 'firecrawl', 170, 200),
-      ).resolves.toBeUndefined();
+      await expect(sendEightyPctEmail(client, 'firecrawl', 170, 200)).resolves.toBeUndefined();
     });
 
     it('no-ops on other unexpected error (logs error, returns)', async () => {
@@ -319,9 +288,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
         },
       });
       await sendEightyPctEmail(client, 'firecrawl', 170, 200);
-      expect(errSpy).toHaveBeenCalledWith(
-        expect.stringContaining('probe failed'),
-      );
+      expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('probe failed'));
     });
 
     it('reaches placeholder log path when table exists (Plan 50-09 stub)', async () => {
@@ -330,9 +297,7 @@ describe('Phase 50 Plan 50-04 — cost-ledger', () => {
         selectResult: { error: null },
       });
       await sendEightyPctEmail(client, 'firecrawl', 170, 200);
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Plan 50-09 placeholder'),
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Plan 50-09 placeholder'));
     });
 
     it('is idempotent: same vendor + month should not double-send (placeholder)', async () => {

@@ -97,11 +97,7 @@ export function AdminMetricsMrrChart({ series }: AdminMetricsMrrChartProps) {
       <h2 className="text-[14px] font-semibold text-[var(--color-text)] mb-4">
         Subscribers + churn
       </h2>
-      <BaseChart
-        config={config}
-        ariaLabel="Subscribers and churn rate over time"
-        height={300}
-      />
+      <BaseChart config={config} ariaLabel="Subscribers and churn rate over time" height={300} />
     </Card>
   );
 }

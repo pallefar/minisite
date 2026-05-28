@@ -106,7 +106,7 @@ describe('biometric.ts', () => {
       await expect(authenticateWithBiometric('Unlock LeanShot')).resolves.toBe(false);
     });
 
-    it("web → short-circuits to false without calling NativeBiometric", async () => {
+    it('web → short-circuits to false without calling NativeBiometric', async () => {
       const { Capacitor } = await import('@capacitor/core');
       Capacitor.getPlatform.mockReturnValue('web');
       Capacitor.isNativePlatform.mockReturnValue(false);

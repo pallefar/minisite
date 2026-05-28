@@ -30,11 +30,11 @@ interface FilterPill {
 }
 
 const FILTER_PILLS: FilterPill[] = [
-  { key: 'all',       label: 'All' },
+  { key: 'all', label: 'All' },
   { key: 'published', label: 'Published' },
   { key: 'in_review', label: 'In Review' },
-  { key: 'draft',     label: 'Draft' },
-  { key: 'archived',  label: 'Archived' },
+  { key: 'draft', label: 'Draft' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -70,7 +70,9 @@ export function ProtocolsListPage() {
 
     void supabase
       .from('protocols')
-      .select('id, version, name, compound, audience, slug, base_slug, review_state, created_by, updated_at, published_at')
+      .select(
+        'id, version, name, compound, audience, slug, base_slug, review_state, created_by, updated_at, published_at',
+      )
       .order('updated_at', { ascending: false })
       .then(({ data, error: fetchError }) => {
         if (cancelled) return;
@@ -81,8 +83,8 @@ export function ProtocolsListPage() {
         }
 
         // Dedupe to one row per id (highest version) for the list view
-         
-        const rows = ((data as unknown) as Protocol[]) ?? [];
+
+        const rows = (data as unknown as Protocol[]) ?? [];
         const byId = new Map<string, Protocol>();
         for (const row of rows) {
           const existing = byId.get(row.id);
@@ -146,7 +148,11 @@ export function ProtocolsListPage() {
 
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (typeof target.matches === 'function' && target.matches('input, textarea, [contenteditable="true"]')) return;
+      if (
+        typeof target.matches === 'function' &&
+        target.matches('input, textarea, [contenteditable="true"]')
+      )
+        return;
 
       switch (e.key) {
         case 'n':
@@ -221,9 +227,7 @@ export function ProtocolsListPage() {
         </div>
       )}
 
-      {!loading && error && (
-        <p className="text-[13px] text-[var(--color-danger)]">{error}</p>
-      )}
+      {!loading && error && <p className="text-[13px] text-[var(--color-danger)]">{error}</p>}
 
       {!loading && !error && filteredProtocols.length === 0 && (
         <EmptyState
@@ -243,12 +247,16 @@ export function ProtocolsListPage() {
           <table className="w-full text-[13px]">
             <thead className="text-[11px] uppercase tracking-[0.06em] text-[var(--color-text-secondary)]">
               <tr>
-                <th className="text-start py-2 pe-4" aria-sort="none">Name</th>
+                <th className="text-start py-2 pe-4" aria-sort="none">
+                  Name
+                </th>
                 <th className="text-start py-2 pe-4">Compound</th>
                 <th className="text-start py-2 pe-4">Audience</th>
                 <th className="text-start py-2 pe-4">Version</th>
                 <th className="text-start py-2 pe-4">Status</th>
-                <th className="text-start py-2 pe-4" aria-sort="descending">Last Updated</th>
+                <th className="text-start py-2 pe-4" aria-sort="descending">
+                  Last Updated
+                </th>
                 <th className="text-start py-2">Actions</th>
               </tr>
             </thead>
@@ -259,7 +267,9 @@ export function ProtocolsListPage() {
                   <tr
                     key={`${row.id}-${row.version}`}
                     className={`border-t border-[var(--color-border)] transition-colors ${
-                      isActive ? 'bg-[var(--color-surface-elevated)]' : 'hover:bg-[var(--color-surface-elevated)]'
+                      isActive
+                        ? 'bg-[var(--color-surface-elevated)]'
+                        : 'hover:bg-[var(--color-surface-elevated)]'
                     }`}
                     onClick={() => setActiveIdx(idx)}
                   >
@@ -321,10 +331,7 @@ export function ProtocolsListPage() {
         </div>
       )}
 
-      <ProtocolKeyboardHelpModal
-        open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-      />
+      <ProtocolKeyboardHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

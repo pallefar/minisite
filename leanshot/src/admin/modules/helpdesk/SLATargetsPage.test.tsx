@@ -31,11 +31,7 @@ function makeBuilder(table: string): Record<string, unknown> {
     select: vi.fn(function (this: unknown) {
       return this;
     }),
-    upsert: vi.fn(function (
-      this: { _table: string },
-      rows: unknown,
-      options: unknown,
-    ) {
+    upsert: vi.fn(function (this: { _table: string }, rows: unknown, options: unknown) {
       opCalls.push({
         op: 'upsert',
         payload: { rows, options },
@@ -43,11 +39,7 @@ function makeBuilder(table: string): Record<string, unknown> {
       });
       return Promise.resolve({ data: null, error: null });
     }),
-    eq: vi.fn(function (
-      this: { _filters: Array<[string, unknown]> },
-      col: string,
-      val: unknown,
-    ) {
+    eq: vi.fn(function (this: { _filters: Array<[string, unknown]> }, col: string, val: unknown) {
       this._filters.push([col, val]);
       return this;
     }),
@@ -86,8 +78,7 @@ vi.mock('@/lib/supabase', () => ({
     from: (table: string) => makeBuilder(table),
     rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
     auth: {
-      getUser: () =>
-        Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: { id: 'user-1' } }, error: null }),
     },
   },
 }));
@@ -138,13 +129,10 @@ describe('SLATargetsPage', () => {
   it('T2: Save calls upsert with edited fields', async () => {
     const { default: SLATargetsPage } = await import('./SLATargetsPage');
     render(<SLATargetsPage />);
-    await waitFor(() =>
-      screen.getByLabelText(/p1 first response minutes/i),
-    );
-    fireEvent.change(
-      screen.getByLabelText(/p1 first response minutes/i),
-      { target: { value: '20' } },
-    );
+    await waitFor(() => screen.getByLabelText(/p1 first response minutes/i));
+    fireEvent.change(screen.getByLabelText(/p1 first response minutes/i), {
+      target: { value: '20' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /^save all$/i }));
     await waitFor(() => {
       const up = opCalls.find((c) => c.op === 'upsert');

@@ -211,9 +211,7 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
 
   // ── Render ─────────────────────────────────────────────────────────────────
   if (loading) {
-    return (
-      <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading lesson…</div>
-    );
+    return <div className="p-6 text-sm text-[var(--color-text-secondary)]">Loading lesson…</div>;
   }
 
   const showUploader =
@@ -230,7 +228,10 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
         {/* Title */}
         <div>
           <label htmlFor="lesson-title" className="block text-sm font-medium mb-1">
-            Title <span aria-hidden="true" className="text-[var(--color-danger)]">*</span>
+            Title{' '}
+            <span aria-hidden="true" className="text-[var(--color-danger)]">
+              *
+            </span>
           </label>
           <Input
             id="lesson-title"
@@ -241,9 +242,7 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
             aria-invalid={!!titleError}
             placeholder="e.g. Why injection-site rotation matters"
           />
-          {titleError && (
-            <p className="mt-1 text-xs text-[var(--color-danger)]">{titleError}</p>
-          )}
+          {titleError && <p className="mt-1 text-xs text-[var(--color-danger)]">{titleError}</p>}
         </div>
 
         {/* Markdown content */}
@@ -278,9 +277,7 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
             <input
               type="checkbox"
               checked={state.is_free_preview}
-              onChange={(e) =>
-                setState((p) => ({ ...p, is_free_preview: e.target.checked }))
-              }
+              onChange={(e) => setState((p) => ({ ...p, is_free_preview: e.target.checked }))}
               disabled={saving}
               className="h-4 w-4 rounded border-[var(--color-border)]"
             />
@@ -290,9 +287,7 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
             <input
               type="checkbox"
               checked={state.captions_enabled}
-              onChange={(e) =>
-                setState((p) => ({ ...p, captions_enabled: e.target.checked }))
-              }
+              onChange={(e) => setState((p) => ({ ...p, captions_enabled: e.target.checked }))}
               disabled={saving}
               className="h-4 w-4 rounded border-[var(--color-border)]"
             />
@@ -346,11 +341,7 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
                 playback_id: {state.mux_playback_id}
               </p>
             )}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowReupload(true)}
-            >
+            <Button variant="secondary" size="sm" onClick={() => setShowReupload(true)}>
               Replace video
             </Button>
           </div>
@@ -404,9 +395,7 @@ export function LessonEditAdmin({ courseId, lessonId, onNavigate }: LessonEditAd
                   <p className="font-medium truncate">{r.name}</p>
                   <p className="text-xs text-[var(--color-text-secondary)] font-mono truncate">
                     {r.mime}
-                    {typeof r.size === 'number' && (
-                      <> · {(r.size / (1024 * 1024)).toFixed(2)} MB</>
-                    )}
+                    {typeof r.size === 'number' && <> · {(r.size / (1024 * 1024)).toFixed(2)} MB</>}
                     {r.requires_pro ? ' · Pro+' : ' · all tiers'}
                   </p>
                 </div>

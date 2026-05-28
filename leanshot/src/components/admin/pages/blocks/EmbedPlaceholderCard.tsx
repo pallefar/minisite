@@ -38,7 +38,10 @@ const PROVIDER_HEADING: Record<EmbedProvider, string> = {
   custom_iframe: 'Enable marketing cookies to view this embed',
 };
 
-const PROVIDER_ICON: Record<EmbedProvider, (props: { size: number; color: string; 'aria-hidden': boolean }) => JSX.Element> = {
+const PROVIDER_ICON: Record<
+  EmbedProvider,
+  (props: { size: number; color: string; 'aria-hidden': boolean }) => JSX.Element
+> = {
   calendly: (p) => <Calendar {...p} />,
   youtube: (p) => <Video {...p} />,
   tally: (p) => <FileText {...p} />,

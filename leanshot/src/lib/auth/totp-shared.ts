@@ -83,10 +83,7 @@ export interface EnrollTotpOpts {
  *
  * Phase 24 D-07: factorType is always 'totp'.
  */
-export async function enrollTotp(
-  opts: EnrollTotpOpts,
-  client: SupabaseClient = supabase,
-) {
+export async function enrollTotp(opts: EnrollTotpOpts, client: SupabaseClient = supabase) {
   return client.auth.mfa.enroll({
     factorType: 'totp',
     issuer: opts.issuer,
@@ -107,10 +104,7 @@ export interface VerifyTotpOpts {
  *
  * On success, Supabase upgrades the session's `aal` claim to 'aal2'.
  */
-export async function verifyTotp(
-  opts: VerifyTotpOpts,
-  client: SupabaseClient = supabase,
-) {
+export async function verifyTotp(opts: VerifyTotpOpts, client: SupabaseClient = supabase) {
   const ch = await client.auth.mfa.challenge({ factorId: opts.factorId });
   if (ch.error) return { data: null, error: ch.error };
   return client.auth.mfa.verify({
@@ -162,9 +156,7 @@ export interface MfaFactor {
  * all (per Phase 66 D-02, the gate is skipped if no verified factor
  * exists — TOTP is optional for consumers).
  */
-export async function listEnrolledFactors(
-  client: SupabaseClient = supabase,
-): Promise<MfaFactor[]> {
+export async function listEnrolledFactors(client: SupabaseClient = supabase): Promise<MfaFactor[]> {
   const { data, error } = await client.auth.mfa.listFactors();
   if (error || !data) return [];
   const totp = (data.totp ?? []) as MfaFactor[];

@@ -214,7 +214,11 @@ export function DMThreadView({ threadId, currentUserId }: DMThreadViewProps): JS
             data={messages}
             initialTopMostItemIndex={Math.max(0, messages.length - 1)}
             itemContent={(_idx, m) => (
-              <MessageRow message={m} isMine={m.sender_user_id === currentUserId} signedUrlCache={signedUrlCache.current} />
+              <MessageRow
+                message={m}
+                isMine={m.sender_user_id === currentUserId}
+                signedUrlCache={signedUrlCache.current}
+              />
             )}
             // followOutput keeps the view pinned to the latest message when
             // new INSERTs arrive (matches the inbox-realtime nonce bump above).
@@ -288,7 +292,7 @@ function MessageRow({ message, isMine, signedUrlCache }: MessageRowProps): JSX.E
           className="prose prose-sm max-w-none break-words"
           // T-45-05: sanitizeCommunityMarkdown is the XSS chokepoint — the body
           // arrives here ALREADY sanitized via renderPostBodyHtml above.
-           
+
           dangerouslySetInnerHTML={{ __html: sanitizedBody }}
         />
         {message.attachment_path ? (

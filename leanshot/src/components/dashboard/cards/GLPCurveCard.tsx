@@ -79,13 +79,7 @@ export function GLPCurveCard() {
 
   // Static key selects for i18next-parser extraction
   const peakOrTroughKey: 'peak_now' | 'mid_cycle' | 'trough' | 'no_data' =
-    hSince === null
-      ? 'no_data'
-      : hSince < 48
-        ? 'peak_now'
-        : hSince < 120
-          ? 'mid_cycle'
-          : 'trough';
+    hSince === null ? 'no_data' : hSince < 48 ? 'peak_now' : hSince < 120 ? 'mid_cycle' : 'trough';
 
   // Exhaustive switch — all cases are static literals that i18next-parser extracts
   let peakLabel: string;
@@ -141,7 +135,9 @@ export function GLPCurveCard() {
             {currentLevel}
           </span>
           <span className="text-[18px] opacity-70 font-bold">%</span>
-          <span className="ms-1 text-[12px] text-[var(--color-text-tertiary)]">{t('patient:card.glp_curve.estimated')}</span>
+          <span className="ms-1 text-[12px] text-[var(--color-text-tertiary)]">
+            {t('patient:card.glp_curve.estimated')}
+          </span>
         </div>
         {lastInj && (
           <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-[var(--color-text-secondary)]">

@@ -95,7 +95,11 @@ export function formatRelativeTs(isoString: string): string {
 
 const KIND_META: Record<
   ActivityKind,
-  { label: string; icon: React.ReactElement; tone: 'info' | 'success' | 'warning' | 'danger' | 'neutral' }
+  {
+    label: string;
+    icon: React.ReactElement;
+    tone: 'info' | 'success' | 'warning' | 'danger' | 'neutral';
+  }
 > = {
   injection: {
     label: 'Injection',
@@ -179,51 +183,45 @@ interface ServerPhotoRow {
 }
 
 async function fetchActivityEntries(patientId: string): Promise<ActivityEntry[]> {
-  const [
-    injectionsRes,
-    weightsRes,
-    mealsRes,
-    workoutsRes,
-    symptomsRes,
-    photosRes,
-  ] = await Promise.all([
-    supabase
-      .from('injections')
-      .select('log_id, dose, unit, medication, site, logged_at')
-      .eq('user_id', patientId)
-      .order('logged_at', { ascending: false })
-      .limit(100),
-    supabase
-      .from('weights')
-      .select('weight_id, weight, date, body_fat, ts')
-      .eq('user_id', patientId)
-      .order('ts', { ascending: false })
-      .limit(100),
-    supabase
-      .from('meals')
-      .select('meal_id, name, calories, date, ts')
-      .eq('user_id', patientId)
-      .order('ts', { ascending: false })
-      .limit(100),
-    supabase
-      .from('workouts')
-      .select('workout_id, name, type, minutes, date, ts')
-      .eq('user_id', patientId)
-      .order('ts', { ascending: false })
-      .limit(100),
-    supabase
-      .from('symptoms')
-      .select('symptom_id, symptom, severity, date, created_at')
-      .eq('user_id', patientId)
-      .order('created_at', { ascending: false })
-      .limit(100),
-    supabase
-      .from('photos')
-      .select('photo_id, storage_path, date')
-      .eq('user_id', patientId)
-      .order('date', { ascending: false })
-      .limit(100),
-  ]);
+  const [injectionsRes, weightsRes, mealsRes, workoutsRes, symptomsRes, photosRes] =
+    await Promise.all([
+      supabase
+        .from('injections')
+        .select('log_id, dose, unit, medication, site, logged_at')
+        .eq('user_id', patientId)
+        .order('logged_at', { ascending: false })
+        .limit(100),
+      supabase
+        .from('weights')
+        .select('weight_id, weight, date, body_fat, ts')
+        .eq('user_id', patientId)
+        .order('ts', { ascending: false })
+        .limit(100),
+      supabase
+        .from('meals')
+        .select('meal_id, name, calories, date, ts')
+        .eq('user_id', patientId)
+        .order('ts', { ascending: false })
+        .limit(100),
+      supabase
+        .from('workouts')
+        .select('workout_id, name, type, minutes, date, ts')
+        .eq('user_id', patientId)
+        .order('ts', { ascending: false })
+        .limit(100),
+      supabase
+        .from('symptoms')
+        .select('symptom_id, symptom, severity, date, created_at')
+        .eq('user_id', patientId)
+        .order('created_at', { ascending: false })
+        .limit(100),
+      supabase
+        .from('photos')
+        .select('photo_id, storage_path, date')
+        .eq('user_id', patientId)
+        .order('date', { ascending: false })
+        .limit(100),
+    ]);
 
   const entries: ActivityEntry[] = [];
 

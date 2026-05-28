@@ -51,9 +51,7 @@ describe('CalendlyPreviewPopup', () => {
 
   it('Test 1 — D1 unauthenticated: initial render shows "Connect Calendly" CTA', () => {
     render(<CalendlyPreviewPopup />);
-    expect(
-      screen.getByRole('button', { name: /connect calendly/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /connect calendly/i })).toBeInTheDocument();
     // D1 secondary copy per UI-SPEC §Surface D State D1
     expect(
       screen.getByText(/connect your calendly account to preview availability/i),
@@ -157,15 +155,11 @@ describe('CalendlyPreviewPopup', () => {
     const removeSpy = vi.spyOn(window, 'removeEventListener');
     const { unmount } = render(<CalendlyPreviewPopup />);
     // The component registers a message listener on mount.
-    const registeredMessageListener = addSpy.mock.calls.some(
-      ([type]) => type === 'message',
-    );
+    const registeredMessageListener = addSpy.mock.calls.some(([type]) => type === 'message');
     expect(registeredMessageListener).toBe(true);
 
     unmount();
-    const cleanedUpMessageListener = removeSpy.mock.calls.some(
-      ([type]) => type === 'message',
-    );
+    const cleanedUpMessageListener = removeSpy.mock.calls.some(([type]) => type === 'message');
     expect(cleanedUpMessageListener).toBe(true);
   });
 
@@ -184,9 +178,7 @@ describe('CalendlyPreviewPopup', () => {
     // D3 → click Disconnect
     fireEvent.click(screen.getByRole('button', { name: /disconnect/i }));
     // Back to D1
-    expect(
-      screen.getByRole('button', { name: /connect calendly/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /connect calendly/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /disconnect/i })).not.toBeInTheDocument();
   });
 });

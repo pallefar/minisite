@@ -34,7 +34,6 @@ function makeFetchSpy(
       status,
       headers: { 'Content-Type': 'application/json' },
     });
-     
   }) as any as typeof fetch;
   return { fetch, calls };
 }

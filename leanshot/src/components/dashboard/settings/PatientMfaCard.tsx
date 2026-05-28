@@ -20,9 +20,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
-import {
-  challengeClinicianTotp,
-} from '@/lib/mfa/clinician-mfa';
+import { challengeClinicianTotp } from '@/lib/mfa/clinician-mfa';
 import {
   isPatientTotpEnrolled,
   enrollPatientTotp,
@@ -75,7 +73,9 @@ export function PatientMfaCard() {
         if (!cancelled) setCardState('idle-not-enrolled');
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -108,9 +108,10 @@ export function PatientMfaCard() {
       setCardState('idle-enrolled');
       return;
     }
-    const msg = result.error === 'challenge_failed'
-      ? 'Challenge failed. Please try again.'
-      : 'Invalid code. Please check your authenticator app.';
+    const msg =
+      result.error === 'challenge_failed'
+        ? 'Challenge failed. Please try again.'
+        : 'Invalid code. Please check your authenticator app.';
     setErrorMsg(msg);
     setCardState('awaiting-verify');
     setOtpCode('');
@@ -151,8 +152,8 @@ export function PatientMfaCard() {
         />
         <p className="text-sm text-[var(--color-text-secondary)] mb-4">
           Add an extra layer of security to your account. Linking an authenticator app means
-          you&apos;ll need a 6-digit code in addition to your password when signing in from a
-          new device. <span className="font-medium">This is optional.</span>
+          you&apos;ll need a 6-digit code in addition to your password when signing in from a new
+          device. <span className="font-medium">This is optional.</span>
         </p>
         <Button variant="secondary" onClick={() => void handleStartEnroll()}>
           Set up authenticator app
@@ -208,7 +209,10 @@ export function PatientMfaCard() {
         )}
 
         <form
-          onSubmit={(e) => { e.preventDefault(); void handleVerify(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleVerify();
+          }}
           className="flex flex-col gap-3"
         >
           <div>
@@ -265,20 +269,14 @@ export function PatientMfaCard() {
           icon={<ShieldOff className="size-4 text-[var(--color-error,red)]" aria-hidden />}
         />
         <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-          This will remove the authenticator app from your account. Sensitive actions (like
-          account deletion) will fall back to email verification.
+          This will remove the authenticator app from your account. Sensitive actions (like account
+          deletion) will fall back to email verification.
         </p>
         <div className="flex gap-2">
-          <Button
-            variant="destructive"
-            onClick={() => void handleDisable()}
-          >
+          <Button variant="destructive" onClick={() => void handleDisable()}>
             Remove
           </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setCardState('idle-enrolled')}
-          >
+          <Button variant="ghost" onClick={() => setCardState('idle-enrolled')}>
             Keep authenticator
           </Button>
         </div>
@@ -300,8 +298,8 @@ export function PatientMfaCard() {
         </span>
       </div>
       <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-        Your account is protected with an authenticator app. Sensitive actions also require
-        this code.
+        Your account is protected with an authenticator app. Sensitive actions also require this
+        code.
       </p>
       <Button
         variant="ghost"

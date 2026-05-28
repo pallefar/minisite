@@ -66,9 +66,10 @@ export function buildYouTubeSrc(content: YouTubeContent): string | null {
   params.set('rel', '0');
 
   // startSeconds: coerce non-finite → 0, negative → 0, fractional → floor.
-  const rawStart = typeof startSeconds === 'number' && Number.isFinite(startSeconds)
-    ? Math.max(0, Math.floor(startSeconds))
-    : 0;
+  const rawStart =
+    typeof startSeconds === 'number' && Number.isFinite(startSeconds)
+      ? Math.max(0, Math.floor(startSeconds))
+      : 0;
   if (rawStart > 0) params.set('start', String(rawStart));
 
   if (autoplay === true) params.set('autoplay', '1');
@@ -166,11 +167,7 @@ function escapeHtmlAttr(value: string): string {
 // of raw `content` values into the HTML.
 
 function commonIframeAttrs(title: string): string {
-  return (
-    `title="${escapeHtmlAttr(title)}"` +
-    ` loading="lazy"` +
-    ` referrerpolicy="no-referrer"`
-  );
+  return `title="${escapeHtmlAttr(title)}"` + ` loading="lazy"` + ` referrerpolicy="no-referrer"`;
 }
 
 export function buildYouTubeIframeHtml(content: YouTubeContent): string {

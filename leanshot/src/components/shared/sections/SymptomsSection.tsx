@@ -24,7 +24,7 @@ export function SymptomsSection({ data, viewerMode: _viewerMode, onMount }: Symp
       firedRef.current = true;
       onMount('symptoms');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

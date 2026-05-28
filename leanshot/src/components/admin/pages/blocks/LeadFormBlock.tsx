@@ -57,9 +57,7 @@ export function LeadFormBlock({ block }: LeadFormBlockProps) {
         >
           {heading}
         </h2>
-        {description && (
-          <p className="mt-2 text-[16px] opacity-80">{description}</p>
-        )}
+        {description && <p className="mt-2 text-[16px] opacity-80">{description}</p>}
         {/* Editor preview form — display only, no submit handler. */}
         <div className="mt-6 space-y-3 text-start">
           {collectName && (

@@ -250,10 +250,7 @@ export function AdRevenueDashboardPage() {
   if (error) {
     return (
       <div className="p-6">
-        <EmptyState
-          title="Error loading revenue data"
-          body={error}
-        />
+        <EmptyState title="Error loading revenue data" body={error} />
       </div>
     );
   }
@@ -271,12 +268,7 @@ export function AdRevenueDashboardPage() {
 
   return (
     <div className="p-6">
-      <AdRevenueKpiStrip
-        ecpm={kpis.ecpm}
-        rpm={kpis.rpm}
-        fillRate={kpis.fillRate}
-        ctr={kpis.ctr}
-      />
+      <AdRevenueKpiStrip ecpm={kpis.ecpm} rpm={kpis.rpm} fillRate={kpis.fillRate} ctr={kpis.ctr} />
 
       <Card span={12} padding="md" variant="default">
         <CardHeader title="By Network" />

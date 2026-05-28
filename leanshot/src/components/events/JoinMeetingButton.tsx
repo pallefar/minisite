@@ -51,10 +51,7 @@ export interface JoinMeetingButtonProps {
   rsvpAnchorRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function JoinMeetingButton({
-  eventId,
-  rsvpAnchorRef,
-}: JoinMeetingButtonProps): JSX.Element {
+export function JoinMeetingButton({ eventId, rsvpAnchorRef }: JoinMeetingButtonProps): JSX.Element {
   const toast = useToast();
   const reduced = useReducedMotion();
   const [ui, setUi] = useState<UiState>({ kind: 'idle' });

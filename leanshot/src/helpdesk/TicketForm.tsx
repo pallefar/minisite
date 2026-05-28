@@ -22,10 +22,7 @@ export interface TicketFormProps {
   onCancel: () => void;
 }
 
-export default function TicketForm({
-  onSubmitted,
-  onCancel,
-}: TicketFormProps): JSX.Element {
+export default function TicketForm({ onSubmitted, onCancel }: TicketFormProps): JSX.Element {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
@@ -45,14 +42,11 @@ export default function TicketForm({
     }
     setBusy(true);
     setError(null);
-    const { data, error: rpcError } = await supabase.rpc(
-      'create_ticket_with_first_message',
-      {
-        p_subject: trimmedSubject,
-        p_body: trimmedBody,
-        p_priority: 'p3',
-      },
-    );
+    const { data, error: rpcError } = await supabase.rpc('create_ticket_with_first_message', {
+      p_subject: trimmedSubject,
+      p_body: trimmedBody,
+      p_priority: 'p3',
+    });
     setBusy(false);
     if (rpcError || typeof data !== 'string') {
       setError(rpcError?.message ?? 'Could not create the ticket. Try again.');

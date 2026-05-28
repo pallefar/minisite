@@ -22,14 +22,15 @@ interface FetchCall {
   body: Record<string, unknown>;
 }
 
-function buildMockFetch(
-  responses: Array<{ status: number; body: unknown } | Error>,
-): { fetchImpl: typeof fetch; calls: FetchCall[] } {
+function buildMockFetch(responses: Array<{ status: number; body: unknown } | Error>): {
+  fetchImpl: typeof fetch;
+  calls: FetchCall[];
+} {
   const calls: FetchCall[] = [];
   let i = 0;
   const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = input.toString();
-    const parsed = init?.body ? JSON.parse(init.body as string) as Record<string, unknown> : {};
+    const parsed = init?.body ? (JSON.parse(init.body as string) as Record<string, unknown>) : {};
     calls.push({ url, body: parsed });
     const next = responses[i++];
     if (next instanceof Error) throw next;

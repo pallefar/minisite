@@ -21,9 +21,7 @@ import type { SearchResult } from '@/lib/search/types';
  */
 function sanitizeSnippet(html: string): string {
   // Replace every tag-like token with empty, then restore the b allow-list.
-  return html
-    .replace(/<\/?(?!b\b)[^>]+>/gi, '')
-    .replace(/<b[^>]*>/gi, '<b>'); // normalize attributes off `<b>`.
+  return html.replace(/<\/?(?!b\b)[^>]+>/gi, '').replace(/<b[^>]*>/gi, '<b>'); // normalize attributes off `<b>`.
 }
 
 interface Props {

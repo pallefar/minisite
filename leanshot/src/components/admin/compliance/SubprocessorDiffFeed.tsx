@@ -59,7 +59,9 @@ export function SubprocessorDiffFeed() {
     }
 
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -68,9 +70,7 @@ export function SubprocessorDiffFeed() {
         Subprocessor Change Log
       </h2>
 
-      {loading && (
-        <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>
-      )}
+      {loading && <p className="text-sm text-[var(--color-text-secondary)]">Loading…</p>}
 
       {error && (
         <p role="alert" className="text-sm text-red-600">

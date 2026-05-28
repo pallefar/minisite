@@ -88,10 +88,7 @@ export function AdRenderer({ surface, placement }: AdRendererProps) {
   switch (placement.mode) {
     case 'embed-code':
       return (
-        <EmbedAdSlot
-          embedHtml={placement.embed_html ?? ''}
-          placementId={placement.placement_id}
-        />
+        <EmbedAdSlot embedHtml={placement.embed_html ?? ''} placementId={placement.placement_id} />
       );
 
     case 'ad-platform':
@@ -101,10 +98,7 @@ export function AdRenderer({ surface, placement }: AdRendererProps) {
 
     case 'house-ads':
       return (
-        <HouseAdSlot
-          slug={placement.house_ad_slug ?? ''}
-          placementId={placement.placement_id}
-        />
+        <HouseAdSlot slug={placement.house_ad_slug ?? ''} placementId={placement.placement_id} />
       );
 
     default:

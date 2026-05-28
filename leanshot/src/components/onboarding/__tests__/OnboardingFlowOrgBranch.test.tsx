@@ -34,7 +34,6 @@ vi.mock('@/lib/analytics', () => ({
   track: vi.fn(),
 }));
 
-
 const mockUseOrgOnboardingFlow = useOrgOnboardingFlow as ReturnType<typeof vi.fn>;
 
 describe('OnboardingFlow — org render branch', () => {

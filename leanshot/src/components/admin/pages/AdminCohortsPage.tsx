@@ -26,10 +26,7 @@ function NotAuthorizedCard() {
         <p className="text-sm text-[var(--color-text-secondary)] mb-4">
           You don&apos;t have access to the admin console.
         </p>
-        <a
-          href="/"
-          className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-        >
+        <a href="/" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">
           Back to home →
         </a>
       </Card>

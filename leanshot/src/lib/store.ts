@@ -732,8 +732,10 @@ export const useStore = create<Store>()(
       currentOrgRole: null,
       currentOrgLoading: false,
 
-      setCurrentOrg: (org, role) => set({ currentOrg: org, currentOrgRole: role, currentOrgLoading: false }),
-      clearCurrentOrg: () => set({ currentOrg: null, currentOrgRole: null, currentOrgLoading: false }),
+      setCurrentOrg: (org, role) =>
+        set({ currentOrg: org, currentOrgRole: role, currentOrgLoading: false }),
+      clearCurrentOrg: () =>
+        set({ currentOrg: null, currentOrgRole: null, currentOrgLoading: false }),
       setCurrentOrgLoading: (loading) => set({ currentOrgLoading: loading }),
 
       // Phase 34 Plan 34-07 — activation guard + draft-entry sink actions.
@@ -750,7 +752,7 @@ export const useStore = create<Store>()(
         // Plan 34-06's ConsumerOnboardingRenderer already logs a warn when
         // the action is missing; on the success path we log a single
         // info-level line so the count is observable in dev tools.
-         
+
         console.info(`[store] replayDraftEntries: queued ${entries.length} entries`);
       },
 
@@ -820,12 +822,8 @@ export const useStore = create<Store>()(
             return;
           }
           set({
-            userModerationStatus: (data?.status as
-              | 'active'
-              | 'muted'
-              | 'banned'
-              | 'temp_suspended'
-              | null) ?? 'active',
+            userModerationStatus:
+              (data?.status as 'active' | 'muted' | 'banned' | 'temp_suspended' | null) ?? 'active',
             userModerationExpiresAt: data?.expires_at ?? null,
             userModerationReason: data?.reason ?? null,
           });

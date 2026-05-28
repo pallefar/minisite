@@ -65,9 +65,7 @@ describe('PaymentFailedBanner', () => {
     const alert = screen.getByRole('alert');
     expect(alert).toBeDefined();
     expect(alert.getAttribute('aria-live')).toBe('polite');
-    expect(
-      screen.getByText(/We couldn't process your last payment/i),
-    ).toBeDefined();
+    expect(screen.getByText(/We couldn't process your last payment/i)).toBeDefined();
   });
 
   it("case 4: renders second_failed copy when dunning_state='second_failed'", async () => {
@@ -80,7 +78,9 @@ describe('PaymentFailedBanner', () => {
     setSubscription('final_warning');
     await renderBanner();
     expect(
-      screen.getByText(/Your subscription will be cancelled if payment isn't updated within 24 hours/i),
+      screen.getByText(
+        /Your subscription will be cancelled if payment isn't updated within 24 hours/i,
+      ),
     ).toBeDefined();
   });
 

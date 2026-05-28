@@ -426,7 +426,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
         <div className="flex-1 min-w-0 space-y-3">
           {section === 'account' && (
-            <Section title={t('settings:section.account.title')} body={t('settings:section.account.body')}>
+            <Section
+              title={t('settings:section.account.title')}
+              body={t('settings:section.account.body')}
+            >
               {!isPermanent ? (
                 <div className="space-y-3">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
@@ -446,7 +449,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-[13px]">
                     <Mail className="size-4 text-[var(--color-text-tertiary)]" aria-hidden />
-                    <span className="text-[var(--color-text-secondary)]">{t('settings:section.account.email_label')}</span>
+                    <span className="text-[var(--color-text-secondary)]">
+                      {t('settings:section.account.email_label')}
+                    </span>
                     <span className="font-semibold">{signedIn?.user?.email ?? '—'}</span>
                     {!signedIn?.verified && (
                       <span className="text-[11px] text-[var(--color-warning,#a36a00)] font-semibold uppercase tracking-wider">
@@ -476,7 +481,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
             </Section>
           )}
           {section === 'profile' && (
-            <Section title={t('settings:section.profile.title')} body={t('settings:section.profile.body')}>
+            <Section
+              title={t('settings:section.profile.title')}
+              body={t('settings:section.profile.body')}
+            >
               <Input
                 label={t('settings:section.profile.name_label')}
                 value={draft.name}
@@ -484,7 +492,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               />
               <p className="text-[12px] text-[var(--color-text-tertiary)]">
                 {t('settings:section.profile.units_hint', {
-                  units: u.units === 'metric' ? t('settings:section.profile.units_metric') : t('settings:section.profile.units_imperial'),
+                  units:
+                    u.units === 'metric'
+                      ? t('settings:section.profile.units_metric')
+                      : t('settings:section.profile.units_imperial'),
                 })}
               </p>
               <Button onClick={save}>{t('settings:section.profile.save')}</Button>
@@ -492,9 +503,14 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
 
           {section === 'goals' && (
-            <Section title={t('settings:section.goals.title')} body={t('settings:section.goals.body')}>
+            <Section
+              title={t('settings:section.goals.title')}
+              body={t('settings:section.goals.body')}
+            >
               <Input
-                label={t('settings:section.goals.weight_goal', { unit: u.units === 'metric' ? 'kg' : 'lb' })}
+                label={t('settings:section.goals.weight_goal', {
+                  unit: u.units === 'metric' ? 'kg' : 'lb',
+                })}
                 type="number"
                 step="0.1"
                 inputMode="decimal"
@@ -588,10 +604,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                     // they remain consistent with the unchanged DB row.
                     await i18n.changeLanguage(prev);
                     setUserLocale(prev);
-                    toast(
-                      t('settings:section.language.save_error'),
-                      'error',
-                    );
+                    toast(t('settings:section.language.save_error'), 'error');
                   }
                 }}
               />
@@ -615,7 +628,13 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               title={t('settings:section.notifications.title', 'Research newsletter')}
               body=""
             >
-              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
+              <Suspense
+                fallback={
+                  <div className="text-[13px] text-[var(--color-text-secondary)]">
+                    {t('settings:loading')}
+                  </div>
+                }
+              >
                 <NewsletterSettings />
               </Suspense>
             </Section>
@@ -623,11 +642,14 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
 
           {/* Phase 62 Plan 62-07 (INSIGHTS-05): research participation consent toggle + revoke modal. */}
           {section === 'research-consent' && (
-            <Section
-              title="Research Participation"
-              body=""
-            >
-              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
+            <Section title="Research Participation" body="">
+              <Suspense
+                fallback={
+                  <div className="text-[13px] text-[var(--color-text-secondary)]">
+                    {t('settings:loading')}
+                  </div>
+                }
+              >
                 <ResearchConsentSection />
               </Suspense>
             </Section>
@@ -639,14 +661,23 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
               title={t('settings:section.leaderboards.title')}
               body={t('settings:section.leaderboards.body')}
             >
-              <Suspense fallback={<div className="text-[13px] text-[var(--color-text-secondary)]">{t('settings:loading')}</div>}>
+              <Suspense
+                fallback={
+                  <div className="text-[13px] text-[var(--color-text-secondary)]">
+                    {t('settings:loading')}
+                  </div>
+                }
+              >
                 <LeaderboardsSubtab />
               </Suspense>
             </Section>
           )}
 
           {section === 'privacy' && (
-            <Section title={t('settings:section.privacy.title')} body={t('settings:section.privacy.body')}>
+            <Section
+              title={t('settings:section.privacy.title')}
+              body={t('settings:section.privacy.body')}
+            >
               <Card variant="flat">
                 <ul className="space-y-2 text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
                   <li>{t('settings:section.privacy.local_only')}</li>
@@ -661,7 +692,9 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                * non-anon auth.users.last_sign_in_at timestamp. */}
               {isPermanent && (
                 <div className="pt-3 border-t border-[var(--color-border)]">
-                  <h3 className="text-[14px] font-semibold mb-1">{t('settings:section.privacy.delete_account_title')}</h3>
+                  <h3 className="text-[14px] font-semibold mb-1">
+                    {t('settings:section.privacy.delete_account_title')}
+                  </h3>
                   <p className="text-[12px] text-[var(--color-text-secondary)] mb-2">
                     {t('settings:section.privacy.delete_account_body')}
                   </p>
@@ -734,7 +767,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           {section === 'organizations' && <ActiveOrganizationsSection />}
 
           {section === 'recovery' && (
-            <Section title={t('settings:section.recovery.title')} body={t('settings:section.recovery.body')}>
+            <Section
+              title={t('settings:section.recovery.title')}
+              body={t('settings:section.recovery.body')}
+            >
               {backupCorrupted ? (
                 <Card variant="flat">
                   <p className="text-[13px] text-[var(--color-text-secondary)]">
@@ -837,7 +873,10 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
 
           {section === 'data' && (
-            <Section title={t('settings:section.data.title')} body={t('settings:section.data.body')}>
+            <Section
+              title={t('settings:section.data.title')}
+              body={t('settings:section.data.body')}
+            >
               <Button
                 variant="ghost"
                 leadingIcon={<Download className="size-4" />}
@@ -882,10 +921,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
           )}
 
           {section === 'dev' && import.meta.env.DEV && (
-            <Section
-              title={t('settings:section.dev.title')}
-              body={t('settings:section.dev.body')}
-            >
+            <Section title={t('settings:section.dev.title')} body={t('settings:section.dev.body')}>
               <Button
                 variant="destructive"
                 size="sm"
@@ -964,10 +1000,7 @@ export function SettingsPage({ open, onClose }: { open: boolean; onClose: () => 
                   // T-07-10-03: signOut AFTER setState — forces a clean
                   // Supabase session re-sync on next sign-in. See RESEARCH §6.
                   await signOut();
-                  toast(
-                    t('settings:section.recovery.restored_toast'),
-                    'success',
-                  );
+                  toast(t('settings:section.recovery.restored_toast'), 'success');
                   setRestoreOpen(false);
                   onClose();
                 } catch {

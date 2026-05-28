@@ -59,8 +59,7 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
   const [otherText, setOtherText] = useState('');
 
   const isOtherSelected = selected === 'other';
-  const otherValid =
-    !isOtherSelected || otherText.trim().length >= MIN_OTHER_LENGTH;
+  const otherValid = !isOtherSelected || otherText.trim().length >= MIN_OTHER_LENGTH;
 
   const canContinue = selected !== null && otherValid;
 
@@ -81,16 +80,17 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
         >
           {t('settings:cancellation.step1.title')}
         </h2>
-        <p
-          id="cancel-step-body"
-          className="text-[13px] text-[var(--color-text-secondary)] mt-1"
-        >
+        <p id="cancel-step-body" className="text-[13px] text-[var(--color-text-secondary)] mt-1">
           {t('settings:cancellation.step1.body')}
         </p>
       </div>
 
       {/* Reason pills */}
-      <div role="radiogroup" aria-label={t('settings:cancellation.step1.radiogroup_label')} className="space-y-2">
+      <div
+        role="radiogroup"
+        aria-label={t('settings:cancellation.step1.radiogroup_label')}
+        className="space-y-2"
+      >
         {REASON_VALUES.map((value, index) => {
           const isSelected = selected === value;
           const isFirst = index === 0;
@@ -125,7 +125,9 @@ export function ReasonPicklistStep({ onSubmit, onKeep }: ReasonPicklistStepProps
                 ) : (
                   <span className="size-4 shrink-0" aria-hidden />
                 )}
-                <span className="font-semibold text-[var(--color-text)]">{reasonLabel(t, value)}</span>
+                <span className="font-semibold text-[var(--color-text)]">
+                  {reasonLabel(t, value)}
+                </span>
               </button>
 
               {/* "Other" textarea expansion */}

@@ -54,9 +54,7 @@ export default function LeaderboardEnable() {
         ),
       );
       toast(
-        !current
-          ? 'Leaderboard enabled for this cohort'
-          : 'Leaderboard disabled for this cohort',
+        !current ? 'Leaderboard enabled for this cohort' : 'Leaderboard disabled for this cohort',
         'success',
       );
     } catch (err) {
@@ -73,12 +71,16 @@ export default function LeaderboardEnable() {
   return (
     <div className="space-y-4">
       {/* D-11 ethical advisory */}
-      <Card variant="flat" padding="lg" className="border-l-4 border-[var(--color-warning)] bg-[var(--color-surface-elevated)]">
+      <Card
+        variant="flat"
+        padding="lg"
+        className="border-l-4 border-[var(--color-warning)] bg-[var(--color-surface-elevated)]"
+      >
         <p className="text-sm font-semibold mb-1">Ethical responsibility — admin-curated only</p>
         <p className="text-sm text-[var(--color-text-secondary)]">
-          Only enable leaderboards for cohorts with strong psychological fit
-          (e.g., GLP-1 Veterans 6mo+). Do NOT enable for newly-diagnosed or
-          vulnerable cohorts where competitive framing could cause harm.
+          Only enable leaderboards for cohorts with strong psychological fit (e.g., GLP-1 Veterans
+          6mo+). Do NOT enable for newly-diagnosed or vulnerable cohorts where competitive framing
+          could cause harm.
         </p>
         <a
           href="/runbooks/leaderboard-cohort-criteria.md"

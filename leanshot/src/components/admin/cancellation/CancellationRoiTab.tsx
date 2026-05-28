@@ -97,9 +97,7 @@ async function downloadRoiCsv(from: string, to: string, offerTypes: string[]): P
 
 export default function CancellationRoiTab() {
   const [rangeKey, setRangeKey] = useState<DateRangeKey>('30d');
-  const [selectedOfferTypes, setSelectedOfferTypes] = useState<string[]>([
-    ...OFFER_TYPES_ALL,
-  ]);
+  const [selectedOfferTypes, setSelectedOfferTypes] = useState<string[]>([...OFFER_TYPES_ALL]);
   const [exporting, setExporting] = useState(false);
 
   const dateRange = useMemo(() => computeDateRange(rangeKey), [rangeKey]);

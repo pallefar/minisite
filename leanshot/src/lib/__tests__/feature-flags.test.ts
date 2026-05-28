@@ -18,7 +18,10 @@ import {
 
 // Minimal supabase-js shape we exercise: client.from('feature_flags').select(...)
 // resolves with { data, error }.
-function buildFakeClient(rows: Array<{ key: string; enabled: boolean }> | null, error: { message: string } | null = null) {
+function buildFakeClient(
+  rows: Array<{ key: string; enabled: boolean }> | null,
+  error: { message: string } | null = null,
+) {
   return {
     from: (_table: string) => ({
       select: (_cols: string) => Promise.resolve({ data: rows, error }),

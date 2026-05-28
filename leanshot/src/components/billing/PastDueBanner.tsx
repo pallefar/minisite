@@ -35,10 +35,9 @@ export function PastDueBanner() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: invokeErr } = await supabase.functions.invoke(
-        'stripe-checkout/portal',
-        { body: {} },
-      );
+      const { data, error: invokeErr } = await supabase.functions.invoke('stripe-checkout/portal', {
+        body: {},
+      });
       if (invokeErr || !data?.url) {
         throw new Error('no-url');
       }

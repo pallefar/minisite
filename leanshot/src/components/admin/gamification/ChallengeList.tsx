@@ -13,7 +13,11 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/useToast';
 import { shipWinnerChallengeVariant, ChallengeApiError } from '@/lib/gamification/admin-api';
-import type { WeeklyChallenge, ChallengeStatus, ChallengeVariantKey } from '@/lib/gamification/challenges';
+import type {
+  WeeklyChallenge,
+  ChallengeStatus,
+  ChallengeVariantKey,
+} from '@/lib/gamification/challenges';
 import { supabase } from '@/lib/supabase';
 
 interface ChallengeWithVariantCount extends WeeklyChallenge {
@@ -50,19 +54,23 @@ export default function ChallengeList() {
     setLoading(true);
     const { data, error } = await supabase
       .from('weekly_challenges')
-      .select(`
+      .select(
+        `
         *,
         challenge_variants(count)
-      `)
+      `,
+      )
       .order('created_at', { ascending: false });
 
     if (error) {
       toast('Could not load challenges', 'error');
     } else {
-      const rows = (data ?? []).map((row: WeeklyChallenge & { challenge_variants: Array<{ count: number }> }) => ({
-        ...row,
-        variant_count: row.challenge_variants?.[0]?.count ?? 0,
-      }));
+      const rows = (data ?? []).map(
+        (row: WeeklyChallenge & { challenge_variants: Array<{ count: number }> }) => ({
+          ...row,
+          variant_count: row.challenge_variants?.[0]?.count ?? 0,
+        }),
+      );
       setChallenges(rows as ChallengeWithVariantCount[]);
     }
     setLoading(false);
@@ -74,11 +82,7 @@ export default function ChallengeList() {
   ) {
     setShippingId(challenge.id);
     try {
-      await shipWinnerChallengeVariant(
-        challenge.id,
-        winningVariant,
-        challenge.posthog_flag_id,
-      );
+      await shipWinnerChallengeVariant(challenge.id, winningVariant, challenge.posthog_flag_id);
       toast(`Shipped winner: Variant ${winningVariant} for "${challenge.title}"`, 'success');
       await loadChallenges();
     } catch (err) {
@@ -98,9 +102,10 @@ export default function ChallengeList() {
     }
   }
 
-  const filtered = statusFilter === 'all'
-    ? challenges
-    : challenges.filter((c: ChallengeWithVariantCount) => c.status === statusFilter);
+  const filtered =
+    statusFilter === 'all'
+      ? challenges
+      : challenges.filter((c: ChallengeWithVariantCount) => c.status === statusFilter);
 
   return (
     <div className="space-y-4">
@@ -128,9 +133,7 @@ export default function ChallengeList() {
         <p className="text-sm text-[var(--color-text-secondary)]">Loading challenges…</p>
       ) : filtered.length === 0 ? (
         <Card variant="flat" padding="lg">
-          <p className="text-sm text-[var(--color-text-secondary)]">
-            No challenges found.
-          </p>
+          <p className="text-sm text-[var(--color-text-secondary)]">No challenges found.</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -169,7 +172,9 @@ export default function ChallengeList() {
                 {/* Ship Winner button — only for active challenges with 2 variants */}
                 {challenge.status === 'active' && challenge.variant_count >= 2 && (
                   <div className="flex flex-col gap-1 flex-shrink-0">
-                    <p className="text-xs text-[var(--color-text-secondary)] font-medium">Ship winner</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] font-medium">
+                      Ship winner
+                    </p>
                     <div className="flex gap-1">
                       <Button
                         type="button"

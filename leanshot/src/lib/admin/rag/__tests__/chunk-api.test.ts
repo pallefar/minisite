@@ -71,9 +71,12 @@ describe('ragListReviewQueue', () => {
   it('Test 2: forwards p_tier=B when tier filter is set', async () => {
     mockRpc.mockResolvedValueOnce({ data: [], error: null });
     await ragListReviewQueue({ tier: 'B' });
-    expect(mockRpc).toHaveBeenCalledWith('list_rag_review_queue', expect.objectContaining({
-      p_tier: 'B',
-    }));
+    expect(mockRpc).toHaveBeenCalledWith(
+      'list_rag_review_queue',
+      expect.objectContaining({
+        p_tier: 'B',
+      }),
+    );
   });
 });
 
@@ -157,9 +160,12 @@ describe('ragQueueChunk', () => {
       { summary: 'x', quoteBlocks, tier: 'B', topicTag: 'glp-1' },
       { sourceTier: 'B', queueAgeHours: 12 },
     );
-    expect(mockCapture).toHaveBeenCalledWith('rag_chunk_reviewed', expect.objectContaining({
-      action: 'edit',
-    }));
+    expect(mockCapture).toHaveBeenCalledWith(
+      'rag_chunk_reviewed',
+      expect.objectContaining({
+        action: 'edit',
+      }),
+    );
   });
 });
 

@@ -58,9 +58,7 @@ export default function RuleFormPanel({
   const toast = useToast();
   const eligible = useMemo(() => getEligibleEvents(), []);
   const [name, setName] = useState(rule?.name ?? '');
-  const [triggerEvent, setTriggerEvent] = useState(
-    rule?.trigger_event ?? eligible[0]?.name ?? '',
-  );
+  const [triggerEvent, setTriggerEvent] = useState(rule?.trigger_event ?? eligible[0]?.name ?? '');
   const [cohortId, setCohortId] = useState<string | null>(rule?.cohort_id ?? null);
   const [active, setActive] = useState<boolean>(rule?.active ?? true);
   const [busy, setBusy] = useState(false);
@@ -132,17 +130,13 @@ export default function RuleFormPanel({
             aria-live="polite"
             className="rounded-md border border-[var(--color-warning,#a67b00)] bg-[var(--color-surface-elevated)] p-3 text-sm"
           >
-            No trigger-eligible events registered. See <code>events.ts</code> —
-            mark an event with <code>nps_trigger_eligible: true</code> first.
+            No trigger-eligible events registered. See <code>events.ts</code> — mark an event with{' '}
+            <code>nps_trigger_eligible: true</code> first.
           </p>
         )}
 
         <div>
-          <CohortPicker
-            value={cohortId}
-            onChange={setCohortId}
-            placeholder="All users"
-          />
+          <CohortPicker value={cohortId} onChange={setCohortId} placeholder="All users" />
         </div>
 
         <label className="flex items-center gap-2 text-sm select-none">

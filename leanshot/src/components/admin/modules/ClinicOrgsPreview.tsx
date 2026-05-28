@@ -98,8 +98,8 @@ export default function ClinicOrgsPreview() {
         </div>
       </div>
       <p className="text-xs text-[var(--color-text-secondary)]">
-        Showing orgs and members visible to your admin account (RLS-gated).
-        Full Members &amp; Invites UI ships in Phase 31.
+        Showing orgs and members visible to your admin account (RLS-gated). Full Members &amp;
+        Invites UI ships in Phase 31.
       </p>
     </div>
   );

@@ -28,9 +28,7 @@ export default function FreezeTokenGrant() {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const canSubmit =
-    !submitting &&
-    form.email.trim().includes('@') &&
-    form.reason_note.trim().length >= 3;
+    !submitting && form.email.trim().includes('@') && form.reason_note.trim().length >= 3;
 
   async function resolveUserIdByEmail(email: string): Promise<string | null> {
     const { data, error } = await supabase
@@ -86,13 +84,17 @@ export default function FreezeTokenGrant() {
   return (
     <div className="space-y-4">
       {/* D-10 ethical advisory */}
-      <Card variant="flat" padding="lg" className="border-l-4 border-[var(--color-warning)] bg-[var(--color-surface-elevated)]">
+      <Card
+        variant="flat"
+        padding="lg"
+        className="border-l-4 border-[var(--color-warning)] bg-[var(--color-surface-elevated)]"
+      >
         <p className="text-sm font-semibold mb-1">Ethical mechanic — not for sale</p>
         <p className="text-sm text-[var(--color-text-secondary)]">
-          Freeze tokens are a free ethical mechanic to protect user streaks.
-          Admin grants are only for legitimate support cases (e.g., app outage, verified
-          technical issue). Tokens are never sold, never incentivized, never used
-          as a retention lever. Every grant is audit-logged with your account ID.
+          Freeze tokens are a free ethical mechanic to protect user streaks. Admin grants are only
+          for legitimate support cases (e.g., app outage, verified technical issue). Tokens are
+          never sold, never incentivized, never used as a retention lever. Every grant is
+          audit-logged with your account ID.
         </p>
       </Card>
 
@@ -129,7 +131,9 @@ export default function FreezeTokenGrant() {
             <select
               id="freeze-delta"
               value={form.delta}
-              onChange={(e) => setForm((f: FormState) => ({ ...f, delta: Number(e.target.value) as 1 | 2 }))}
+              onChange={(e) =>
+                setForm((f: FormState) => ({ ...f, delta: Number(e.target.value) as 1 | 2 }))
+              }
               className="px-3 py-2 rounded border border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-text)] text-sm"
             >
               <option value={1}>1 token</option>

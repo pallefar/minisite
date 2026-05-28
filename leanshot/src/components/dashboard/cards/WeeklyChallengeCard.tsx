@@ -12,10 +12,7 @@ import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader } from '@/components/ui/Card';
-import {
-  fetchActiveChallenges,
-  type WeeklyChallenge,
-} from '@/lib/gamification/challenges';
+import { fetchActiveChallenges, type WeeklyChallenge } from '@/lib/gamification/challenges';
 
 export function WeeklyChallengeCard() {
   const { t } = useTranslation('patient');
@@ -33,7 +30,10 @@ export function WeeklyChallengeCard() {
 
   return (
     <Card span={12} variant="elevated">
-      <CardHeader title={t('patient:card.weekly_challenge.title')} icon={<Target className="size-4" aria-hidden />} />
+      <CardHeader
+        title={t('patient:card.weekly_challenge.title')}
+        icon={<Target className="size-4" aria-hidden />}
+      />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {challenges.map((c) => {
           // D-20 variant resolution: posthog.getFeatureFlagPayload returns { variant_key, framing }
@@ -47,7 +47,9 @@ export function WeeklyChallengeCard() {
           const rewardParts = [
             c.reward_xp ? `+${c.reward_xp.toLocaleString()} XP` : null,
             c.reward_badge_id ? t('patient:card.weekly_challenge.reward_badge') : null,
-            c.reward_freeze_tokens ? `+${c.reward_freeze_tokens} ${t('patient:card.weekly_challenge.reward_freeze')}` : null,
+            c.reward_freeze_tokens
+              ? `+${c.reward_freeze_tokens} ${t('patient:card.weekly_challenge.reward_freeze')}`
+              : null,
           ].filter(Boolean);
 
           return (

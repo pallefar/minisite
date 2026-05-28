@@ -48,9 +48,7 @@ export function PharmaVariantMetricsCard({
   trend_series,
 }: PharmaVariantMetricsCardProps): React.JSX.Element {
   const danger =
-    one_star_rate_ratio !== null &&
-    !Number.isNaN(one_star_rate_ratio) &&
-    one_star_rate_ratio > 2;
+    one_star_rate_ratio !== null && !Number.isNaN(one_star_rate_ratio) && one_star_rate_ratio > 2;
   const tone: 'danger' | 'neutral' = danger ? 'danger' : 'neutral';
 
   return (
@@ -58,30 +56,18 @@ export function PharmaVariantMetricsCard({
       variant="flat"
       padding="sm"
       data-tone={tone}
-      className={
-        danger
-          ? 'border-[var(--color-danger)] bg-[var(--color-danger-soft)]'
-          : ''
-      }
+      className={danger ? 'border-[var(--color-danger)] bg-[var(--color-danger-soft)]' : ''}
     >
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <p className="text-sm tabular-nums">
           <span className="text-[var(--color-text-secondary)]">Conversion uplift: </span>
           <span className="font-bold">{formatPct(conversion_uplift_pct)}</span>
           <span className="text-[var(--color-text-secondary)]"> · NPS Δ: </span>
-          <span
-            className={
-              danger ? 'font-bold text-[var(--color-danger)]' : 'font-bold'
-            }
-          >
+          <span className={danger ? 'font-bold text-[var(--color-danger)]' : 'font-bold'}>
             {formatNps(nps_delta)}
           </span>
           <span className="text-[var(--color-text-secondary)]"> · 1★ rate: </span>
-          <span
-            className={
-              danger ? 'font-bold text-[var(--color-danger)]' : 'font-bold'
-            }
-          >
+          <span className={danger ? 'font-bold text-[var(--color-danger)]' : 'font-bold'}>
             {formatRatio(one_star_rate_ratio)}
           </span>
           <span className="text-[var(--color-text-secondary)]"> baseline</span>
@@ -92,11 +78,7 @@ export function PharmaVariantMetricsCard({
             width={80}
             height={24}
             label="NPS trend"
-            color={
-              danger
-                ? 'var(--color-danger)'
-                : 'var(--color-primary)'
-            }
+            color={danger ? 'var(--color-danger)' : 'var(--color-primary)'}
           />
         )}
       </div>

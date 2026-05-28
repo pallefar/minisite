@@ -16,10 +16,7 @@
  */
 import { useState, useEffect } from 'react';
 import { Card, CardHeader } from '@/components/ui/Card';
-import {
-  enrollClinicianTotp,
-  challengeClinicianTotp,
-} from '@/lib/mfa/clinician-mfa';
+import { enrollClinicianTotp, challengeClinicianTotp } from '@/lib/mfa/clinician-mfa';
 
 type Phase = 'enrolling' | 'awaiting-code' | 'verifying' | 'error';
 
@@ -57,8 +54,9 @@ export default function SetupClinicianTotp({ onComplete }: SetupClinicianTotpPro
         }
       }
     })();
-    return () => { cancelled = true; };
-     
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -75,9 +73,10 @@ export default function SetupClinicianTotp({ onComplete }: SetupClinicianTotpPro
       return;
     }
 
-    const msg = result.error === 'challenge_failed'
-      ? 'Challenge failed. Please try again.'
-      : 'Invalid code. Please check your authenticator app and try again.';
+    const msg =
+      result.error === 'challenge_failed'
+        ? 'Challenge failed. Please try again.'
+        : 'Invalid code. Please check your authenticator app and try again.';
     setErrorMsg(msg);
     setPhase('awaiting-code');
     setOtpCode('');
@@ -106,7 +105,10 @@ export default function SetupClinicianTotp({ onComplete }: SetupClinicianTotpPro
           <button
             type="button"
             className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-            onClick={() => { setPhase('enrolling'); setErrorMsg(''); }}
+            onClick={() => {
+              setPhase('enrolling');
+              setErrorMsg('');
+            }}
           >
             Try again
           </button>
@@ -162,7 +164,10 @@ export default function SetupClinicianTotp({ onComplete }: SetupClinicianTotpPro
         )}
 
         <form
-          onSubmit={(e) => { e.preventDefault(); void handleVerify(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleVerify();
+          }}
           className="flex flex-col gap-4"
         >
           <div>

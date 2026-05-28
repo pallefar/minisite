@@ -44,9 +44,7 @@ export interface FireActivationResult {
 // ──────────────────────────────────────────────────────────────────────────
 
 function getSupabaseUrl(): string {
-  return (
-    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
-  );
+  return (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? '';
 }
 
 // ──────────────────────────────────────────────────────────────────────────

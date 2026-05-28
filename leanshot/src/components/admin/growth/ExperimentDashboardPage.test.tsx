@@ -130,9 +130,7 @@ describe('ExperimentDashboardPage', () => {
     // Skeleton rows use the Skeleton primitive which renders a div with role=status
     // or with data-testid='experiment-skeleton' (we set the latter to keep the
     // contract explicit). Default Skeleton inserts an animate-pulse div.
-    expect(
-      container.querySelector('[data-testid="experiment-skeleton"]'),
-    ).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="experiment-skeleton"]')).toBeInTheDocument();
 
     // Clean up
     resolveRpc({ data: [], error: null });
@@ -164,9 +162,7 @@ describe('ExperimentDashboardPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(
-          'Slack alerts pause until #growth-experiments webhook is configured.',
-        ),
+        screen.getByText('Slack alerts pause until #growth-experiments webhook is configured.'),
       ).toBeInTheDocument();
     });
   });
@@ -188,9 +184,7 @@ describe('ExperimentDashboardPage', () => {
 
     // Confirm setInterval was registered with 30_000ms
     expect(setIntervalSpy).toHaveBeenCalled();
-    const intervalCalls = setIntervalSpy.mock.calls.filter(
-      (c) => c[1] === 30_000,
-    );
+    const intervalCalls = setIntervalSpy.mock.calls.filter((c) => c[1] === 30_000);
     expect(intervalCalls.length).toBeGreaterThan(0);
 
     setIntervalSpy.mockRestore();

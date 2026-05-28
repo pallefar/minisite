@@ -145,9 +145,7 @@ export function ResearchConsentSection() {
   return (
     <div className="space-y-4">
       {/* Section heading — UI-SPEC §Surface 6: 18px/600 */}
-      <h3 className="text-[18px] font-semibold text-[var(--color-text)]">
-        Research Participation
-      </h3>
+      <h3 className="text-[18px] font-semibold text-[var(--color-text)]">Research Participation</h3>
 
       {/* Description — UI-SPEC verbatim copy: 13px/400 text-secondary */}
       <p className="text-[13px] text-[var(--color-text-secondary)]">

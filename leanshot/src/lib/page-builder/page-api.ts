@@ -54,9 +54,7 @@ export interface PageLoad {
   seo: PageSeoFields;
 }
 
-export type Result<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: string };
+export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 // ---------------------------------------------------------------------------
 // savePage / publishPage — Edge Function wrappers
@@ -121,9 +119,7 @@ export interface PublishPageResult {
   slug: string;
 }
 
-export async function publishPage(
-  args: PublishPageArgs,
-): Promise<Result<PublishPageResult>> {
+export async function publishPage(args: PublishPageArgs): Promise<Result<PublishPageResult>> {
   try {
     const { data, error } = await supabase.functions.invoke('page-publish', {
       body: args,
@@ -184,9 +180,7 @@ export async function getPage(pageId: string): Promise<Result<PageLoad>> {
       .limit(1)
       .maybeSingle();
 
-    const blocks = Array.isArray(revRow?.blocks)
-      ? (revRow!.blocks as BlockNode[])
-      : [];
+    const blocks = Array.isArray(revRow?.blocks) ? (revRow!.blocks as BlockNode[]) : [];
     return {
       ok: true,
       value: {
@@ -194,8 +188,7 @@ export async function getPage(pageId: string): Promise<Result<PageLoad>> {
         slug: pageRow.slug as string,
         title: pageRow.title as string,
         is_published: !!pageRow.is_published,
-        published_revision_id:
-          (pageRow.published_revision_id as string | null) ?? null,
+        published_revision_id: (pageRow.published_revision_id as string | null) ?? null,
         blocks,
         latestRevisionId: (revRow?.id as string | undefined) ?? null,
         seo: {
@@ -203,8 +196,7 @@ export async function getPage(pageId: string): Promise<Result<PageLoad>> {
           seo_description: (pageRow.seo_description as string | null) ?? '',
           seo_og_image: (pageRow.seo_og_image as string | null) ?? '',
           seo_canonical: (pageRow.seo_canonical as string | null) ?? '',
-          seo_schema_type:
-            (pageRow.seo_schema_type as string | null) ?? 'WebPage',
+          seo_schema_type: (pageRow.seo_schema_type as string | null) ?? 'WebPage',
         },
       },
     };
@@ -224,9 +216,7 @@ export interface RevisionListRow {
  * List all revisions for a page, newest first. Reads `landing_page_revisions`
  * directly (RLS-gated: staff-only SELECT). Returns up to 50 most recent.
  */
-export async function listRevisions(
-  pageId: string,
-): Promise<Result<RevisionListRow[]>> {
+export async function listRevisions(pageId: string): Promise<Result<RevisionListRow[]>> {
   try {
     const { data, error } = await supabase
       .from('landing_page_revisions')
@@ -239,8 +229,7 @@ export async function listRevisions(
       id: r.id as string,
       created_at: r.created_at as string,
       // We don't join auth.users (RLS-protected). Best-effort label.
-      created_by_email:
-        (r.created_by as string | null) ?? 'unknown',
+      created_by_email: (r.created_by as string | null) ?? 'unknown',
     }));
     return { ok: true, value: rows };
   } catch (err) {
@@ -259,11 +248,7 @@ export async function listRevisions(
  * 0..n. Returns a new array; never mutates the input. Root-level only for
  * Slice 1 (nesting lands in 15-05+).
  */
-export function reorderBlocks(
-  blocks: BlockNode[],
-  activeId: string,
-  overId: string,
-): BlockNode[] {
+export function reorderBlocks(blocks: BlockNode[], activeId: string, overId: string): BlockNode[] {
   if (activeId === overId) {
     return renumber(blocks);
   }

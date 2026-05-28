@@ -37,17 +37,13 @@ export function PropertyPanel({ selectedBlockId, blocks, onChange }: PropertyPan
 
   const updateContent = (patch: Record<string, unknown>): void => {
     onChange(
-      blocks.map((b) =>
-        b.id === selected.id ? { ...b, content: { ...b.content, ...patch } } : b,
-      ),
+      blocks.map((b) => (b.id === selected.id ? { ...b, content: { ...b.content, ...patch } } : b)),
     );
   };
 
   const updateStyle = (patch: Partial<BlockStyle>): void => {
     onChange(
-      blocks.map((b) =>
-        b.id === selected.id ? { ...b, style: { ...b.style, ...patch } } : b,
-      ),
+      blocks.map((b) => (b.id === selected.id ? { ...b, style: { ...b.style, ...patch } } : b)),
     );
   };
 
@@ -263,13 +259,17 @@ function GenericContentFields({ block, fields, updateContent }: GenericContentFi
                 <Input
                   label={f.label + ' URL'}
                   hint={f.hint}
-                  value={typeof content['imageUrl'] === 'string' ? (content['imageUrl'] as string) : ''}
+                  value={
+                    typeof content['imageUrl'] === 'string' ? (content['imageUrl'] as string) : ''
+                  }
                   onChange={(e) => updateContent({ imageUrl: e.target.value })}
                 />
                 <Input
                   label="Image alt text"
                   hint="Required — describes the image for screen readers."
-                  value={typeof content['imageAlt'] === 'string' ? (content['imageAlt'] as string) : ''}
+                  value={
+                    typeof content['imageAlt'] === 'string' ? (content['imageAlt'] as string) : ''
+                  }
                   onChange={(e) => updateContent({ imageAlt: e.target.value })}
                 />
               </div>
@@ -348,10 +348,7 @@ function GenericContentFields({ block, fields, updateContent }: GenericContentFi
             );
           case 'boolean':
             return (
-              <label
-                key={f.key}
-                className="flex items-center gap-2 text-[13px]"
-              >
+              <label key={f.key} className="flex items-center gap-2 text-[13px]">
                 <input
                   type="checkbox"
                   checked={content[f.key] === true}

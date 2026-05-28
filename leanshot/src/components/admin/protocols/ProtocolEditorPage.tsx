@@ -39,13 +39,7 @@ import { ProtocolStepRow } from './ProtocolStepRow';
 
 // ─── Compound options ─────────────────────────────────────────────────────────
 
-const COMPOUND_OPTIONS = [
-  'tirzepatide',
-  'retatrutide',
-  'ghrp-2',
-  'semaglutide',
-  'other',
-] as const;
+const COMPOUND_OPTIONS = ['tirzepatide', 'retatrutide', 'ghrp-2', 'semaglutide', 'other'] as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -59,7 +53,9 @@ function parseProtocolIdFromPathname(): string | null {
 
 export function ProtocolEditorPage() {
   const showToast = useToast();
-  const currentUserId = useStore((s) => (s as { signedIn?: { user: { id: string } } | null }).signedIn?.user?.id ?? null);
+  const currentUserId = useStore(
+    (s) => (s as { signedIn?: { user: { id: string } } | null }).signedIn?.user?.id ?? null,
+  );
 
   const [protocolId] = useState<string | null>(() => parseProtocolIdFromPathname());
   const [protocol, setProtocol] = useState<Protocol | null>(null);
@@ -146,7 +142,11 @@ export function ProtocolEditorPage() {
 
   // ─── Derived state ────────────────────────────────────────────────────────
 
-  const isSelfCreated = !!(currentUserId && protocol?.created_by && currentUserId === protocol.created_by);
+  const isSelfCreated = !!(
+    currentUserId &&
+    protocol?.created_by &&
+    currentUserId === protocol.created_by
+  );
 
   // ─── Handlers ────────────────────────────────────────────────────────────
 
@@ -159,10 +159,7 @@ export function ProtocolEditorPage() {
         p_version: protocol.version,
       });
       if (rpcErr) {
-        if (
-          rpcErr.message?.includes('SELF_REVIEW_REJECTED') ||
-          rpcErr.code === '42501'
-        ) {
+        if (rpcErr.message?.includes('SELF_REVIEW_REJECTED') || rpcErr.code === '42501') {
           showToast('Another admin must review this protocol before publish.', 'error');
           return;
         }
@@ -223,19 +220,17 @@ export function ProtocolEditorPage() {
       } else if (protocol.review_state === 'published') {
         // Insert a new version row
         const newVersion = protocol.version + 1;
-        const { error: insertErr } = await supabase
-          .from('protocols')
-          .insert({
-            id: protocol.id,
-            version: newVersion,
-            name: protocol.name,
-            compound: protocol.compound,
-            audience: protocol.audience,
-            base_slug: protocol.base_slug,
-            slug: `${protocol.base_slug}-v${newVersion}`,
-            review_state: 'draft',
-            created_by: currentUserId,
-          });
+        const { error: insertErr } = await supabase.from('protocols').insert({
+          id: protocol.id,
+          version: newVersion,
+          name: protocol.name,
+          compound: protocol.compound,
+          audience: protocol.audience,
+          base_slug: protocol.base_slug,
+          slug: `${protocol.base_slug}-v${newVersion}`,
+          review_state: 'draft',
+          created_by: currentUserId,
+        });
 
         if (insertErr) throw insertErr;
 
@@ -250,9 +245,7 @@ export function ProtocolEditorPage() {
             cron_string: s.cron_string,
             monitoring: s.monitoring,
           }));
-          const { error: stepsErr } = await supabase
-            .from('protocol_steps')
-            .insert(newSteps);
+          const { error: stepsErr } = await supabase.from('protocol_steps').insert(newSteps);
           if (stepsErr) throw stepsErr;
         }
 
@@ -321,10 +314,7 @@ export function ProtocolEditorPage() {
 
   if (!protocolId) {
     return (
-      <EmptyState
-        title="No protocol selected"
-        body="Select a protocol from the list to edit it."
-      />
+      <EmptyState title="No protocol selected" body="Select a protocol from the list to edit it." />
     );
   }
 
@@ -339,9 +329,7 @@ export function ProtocolEditorPage() {
 
   if (error || !protocol) {
     return (
-      <p className="text-[13px] text-[var(--color-danger)] p-6">
-        {error ?? 'Protocol not found'}
-      </p>
+      <p className="text-[13px] text-[var(--color-danger)] p-6">{error ?? 'Protocol not found'}</p>
     );
   }
 
@@ -375,7 +363,7 @@ export function ProtocolEditorPage() {
           <input
             type="text"
             value={protocol.name}
-            onChange={(e) => setProtocol((p) => p ? { ...p, name: e.target.value } : p)}
+            onChange={(e) => setProtocol((p) => (p ? { ...p, name: e.target.value } : p))}
             onBlur={() => void handleSaveDraft()}
             aria-label="Protocol name"
             className="w-full text-[18px] font-semibold bg-transparent border-0 border-b border-[var(--color-border)] focus:outline-none focus:border-[var(--color-primary)] pb-1"
@@ -384,18 +372,23 @@ export function ProtocolEditorPage() {
           {/* Compound + audience */}
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <label htmlFor="protocol-compound" className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">
+              <label
+                htmlFor="protocol-compound"
+                className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]"
+              >
                 Compound
               </label>
               <select
                 id="protocol-compound"
                 value={protocol.compound}
-                onChange={(e) => setProtocol((p) => p ? { ...p, compound: e.target.value } : p)}
+                onChange={(e) => setProtocol((p) => (p ? { ...p, compound: e.target.value } : p))}
                 aria-label="Compound"
                 className="h-8 px-2 text-[13px] border border-[var(--color-border)] rounded-pill bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
               >
                 {COMPOUND_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
@@ -416,7 +409,7 @@ export function ProtocolEditorPage() {
                         const next = active
                           ? protocol.audience.filter((a) => a !== aud)
                           : [...protocol.audience, aud];
-                        setProtocol((p) => p ? { ...p, audience: next } : p);
+                        setProtocol((p) => (p ? { ...p, audience: next } : p));
                       }}
                       className={`h-7 px-3 rounded-pill text-[11px] font-semibold border transition-colors ${
                         active
@@ -458,9 +451,7 @@ export function ProtocolEditorPage() {
                     evidenceCount={(evidence[step.id] ?? []).length}
                     onChange={(patch) => handleStepChange(step.id, patch)}
                     onRemove={() => handleRemoveStep(step.id)}
-                    onCiteEvidence={() =>
-                      setEvidenceSheet({ open: true, stepId: step.id })
-                    }
+                    onCiteEvidence={() => setEvidenceSheet({ open: true, stepId: step.id })}
                     onAiAssist={() =>
                       setAiAssistModal({
                         open: true,

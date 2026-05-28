@@ -45,9 +45,7 @@ function snapshotInjectionsToDashboard(
 }
 
 /** Map snapshot weights to dashboard WeightLog (ISO timestamp → YYYY-MM-DD). */
-function snapshotWeightsToDashboard(
-  weights: SnapshotResponse['snapshot']['weights'],
-): WeightLog[] {
+function snapshotWeightsToDashboard(weights: SnapshotResponse['snapshot']['weights']): WeightLog[] {
   return weights.map((w) => ({
     date: w.timestamp.slice(0, 10),
     weight: w.weight_kg,
@@ -234,7 +232,9 @@ export function MedLevelChart(props: MedLevelChartProps) {
           legend: {
             labels: {
               color: tok.tick,
-              filter: (item: { text: string }) => item.text === t('patient:chart.med_level.legend_past') || item.text === t('patient:chart.med_level.legend_projected'),
+              filter: (item: { text: string }) =>
+                item.text === t('patient:chart.med_level.legend_past') ||
+                item.text === t('patient:chart.med_level.legend_projected'),
             },
           },
           tooltip: {

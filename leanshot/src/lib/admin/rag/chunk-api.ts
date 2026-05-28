@@ -113,10 +113,7 @@ export async function ragListReviewQueue(opts: {
  * Approve a queued chunk. Enforces 2-person rule at DB layer (SECDEF RAISES
  * when auth.uid() === created_by). UI layer also disables the button.
  */
-export async function ragApproveChunk(
-  chunkId: string,
-  ctx: ActionCtx,
-): Promise<RpcResult<null>> {
+export async function ragApproveChunk(chunkId: string, ctx: ActionCtx): Promise<RpcResult<null>> {
   const result = await supabase.rpc('approve_rag_chunk', { p_chunk_id: chunkId });
   const error = result.error;
   if (!error) {

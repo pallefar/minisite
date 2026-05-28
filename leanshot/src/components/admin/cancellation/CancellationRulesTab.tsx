@@ -99,7 +99,10 @@ export default function CancellationRulesTab({ adminRole }: CancellationRulesTab
           rules={rules}
           selectedRuleId={selectedRule?.id ?? null}
           onRulesLoaded={handleRulesLoaded}
-          onSelectRule={(rule) => { setSelectedRule(rule); setIsCreating(false); }}
+          onSelectRule={(rule) => {
+            setSelectedRule(rule);
+            setIsCreating(false);
+          }}
           onAddRule={handleAddRule}
           onRuleUpdated={handleRuleUpdated}
           onRuleDeleted={handleRuleDeleted}

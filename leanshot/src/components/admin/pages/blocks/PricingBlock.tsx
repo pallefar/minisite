@@ -68,7 +68,7 @@ export function PricingBlock({ block }: PricingBlockProps) {
             const ariaLabel =
               plan.ctaLabel && plan.name
                 ? `${plan.ctaLabel} — ${plan.name}`
-                : plan.ctaLabel ?? `Get started — ${plan.name ?? 'plan'}`;
+                : (plan.ctaLabel ?? `Get started — ${plan.name ?? 'plan'}`);
             return (
               <div key={i} className={planClass}>
                 {plan.name && (

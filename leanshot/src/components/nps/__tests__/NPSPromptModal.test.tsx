@@ -43,7 +43,6 @@ vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: () => reducedMotionMock(),
 }));
 
-
 describe('<NPSPromptModal /> — Plan 36-03 Task 1', () => {
   beforeEach(() => {
     reducedMotionMock.mockReturnValue(false);

@@ -214,9 +214,16 @@ export function BodyTab() {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-5 stagger">
-      <StatTile label={t('patient:tab.body.stat_current_weight')} value={latest ? latest.weight.toFixed(1) : '—'} unit={wU} />
+      <StatTile
+        label={t('patient:tab.body.stat_current_weight')}
+        value={latest ? latest.weight.toFixed(1) : '—'}
+        unit={wU}
+      />
       <StatTile label={t('patient:tab.body.stat_total_lost')} value={lost.toFixed(1)} unit={wU} />
-      <StatTile label={t('patient:tab.body.stat_goal_progress')} value={`${Math.round(goalPct)}%`} />
+      <StatTile
+        label={t('patient:tab.body.stat_goal_progress')}
+        value={`${Math.round(goalPct)}%`}
+      />
       <StatTile
         label={t('patient:tab.body.stat_lean_mass')}
         value={lean ? lean.toFixed(1) : t('patient:tab.body.stat_lean_mass_log_hint')}
@@ -225,7 +232,10 @@ export function BodyTab() {
 
       {trial && weeks > 2 && (
         <Card span={12}>
-          <CardHeader title={t('patient:tab.body.trial_title')} icon={<Target className="size-4" />} />
+          <CardHeader
+            title={t('patient:tab.body.trial_title')}
+            icon={<Target className="size-4" />}
+          />
           <div className="grid grid-cols-2 gap-4 items-center">
             <div>
               <p className="text-[12px] text-[var(--color-text-secondary)]">
@@ -238,14 +248,14 @@ export function BodyTab() {
               </p>
             </div>
             <div>
-              <p className="text-[12px] text-[var(--color-text-secondary)]">{t('patient:tab.body.trial_average')}</p>
+              <p className="text-[12px] text-[var(--color-text-secondary)]">
+                {t('patient:tab.body.trial_average')}
+              </p>
               <p className="text-[28px] font-extrabold tracking-tight">{trialPct.toFixed(1)}%</p>
             </div>
           </div>
           <p className="text-[12px] text-[var(--color-text-secondary)] mt-3">
-            {ahead
-              ? t('patient:tab.body.trial_ahead')
-              : t('patient:tab.body.trial_behind')}{' '}
+            {ahead ? t('patient:tab.body.trial_ahead') : t('patient:tab.body.trial_behind')}{' '}
             <em>{t('patient:tab.body.trial_source')}</em>
           </p>
         </Card>
@@ -261,7 +271,8 @@ export function BodyTab() {
               {adherencePct ?? 0}%
             </p>
             <p className="text-[11px] text-[var(--color-text-secondary)]">
-              last {Math.min(activeAssignment.currentWeek, 4)} week{Math.min(activeAssignment.currentWeek, 4) !== 1 ? 's' : ''}
+              last {Math.min(activeAssignment.currentWeek, 4)} week
+              {Math.min(activeAssignment.currentWeek, 4) !== 1 ? 's' : ''}
             </p>
           </div>
         ) : (
@@ -270,7 +281,10 @@ export function BodyTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.body.log_weight_title')} icon={<Scale className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.body.log_weight_title')}
+          icon={<Scale className="size-4" />}
+        />
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -303,7 +317,10 @@ export function BodyTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.body.measurements_title')} icon={<Ruler className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.body.measurements_title')}
+          icon={<Ruler className="size-4" />}
+        />
         <div className="grid grid-cols-2 gap-3">
           {(['waist', 'hips', 'chest', 'neck', 'arms', 'thighs'] as const).map((k) => (
             <Input
@@ -323,7 +340,10 @@ export function BodyTab() {
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.body.trajectory_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.body.trajectory_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <WeightChart />
       </Card>
 
@@ -453,12 +473,18 @@ export function BodyTab() {
       </Card>
 
       <Card span={6}>
-        <CardHeader title={t('patient:tab.body.lean_vs_fat_title')} icon={<ChartLine className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.body.lean_vs_fat_title')}
+          icon={<ChartLine className="size-4" />}
+        />
         <CompositionChart />
       </Card>
 
       <Card span={12}>
-        <CardHeader title={t('patient:tab.body.history_title')} icon={<ListChecks className="size-4" />} />
+        <CardHeader
+          title={t('patient:tab.body.history_title')}
+          icon={<ListChecks className="size-4" />}
+        />
         {weights.length === 0 ? (
           <p className="text-[13px] text-[var(--color-text-tertiary)] text-center py-4">
             {t('patient:tab.body.history_empty')}
@@ -468,10 +494,18 @@ export function BodyTab() {
             <table className="w-full text-[13px]">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.08em] text-[var(--color-text-tertiary)]">
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_date')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_weight')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_bf')}</th>
-                  <th className="text-start font-semibold py-2 px-1">{t('patient:tab.body.col_delta')}</th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.body.col_date')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.body.col_weight')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.body.col_bf')}
+                  </th>
+                  <th className="text-start font-semibold py-2 px-1">
+                    {t('patient:tab.body.col_delta')}
+                  </th>
                   <th aria-hidden></th>
                 </tr>
               </thead>

@@ -54,14 +54,7 @@ export function EmptyInsights({ className }: EmptyInsightsProps) {
       <g transform="translate(130 90) rotate(20)">
         <circle cx="0" cy="0" r="22" fill="url(#ei-glow)" opacity="0.35" />
         <circle cx="0" cy="0" r="22" fill="none" stroke="var(--color-teal-700)" strokeWidth="3" />
-        <circle
-          cx="0"
-          cy="0"
-          r="18"
-          fill="none"
-          stroke="rgba(255,255,255,0.5)"
-          strokeWidth="0.8"
-        />
+        <circle cx="0" cy="0" r="18" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
         <line
           x1="16"
           y1="16"

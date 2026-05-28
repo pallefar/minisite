@@ -23,7 +23,8 @@ export const PHI_EVENTS = {
     version: 1,
     phi: true,
     owner: 'product',
-    description: 'User logged a medication dose. PHI: user_id + drug_id + dose amount. Edge-Fn only.',
+    description:
+      'User logged a medication dose. PHI: user_id + drug_id + dose amount. Edge-Fn only.',
     payload: z.object({
       user_id: z.string().uuid(),
       drug_id: z.string(),

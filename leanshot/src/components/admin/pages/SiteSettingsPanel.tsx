@@ -123,12 +123,8 @@ export function SiteSettingsPanel() {
     try {
       // Upsert against the singleton. If a row already exists, update it by
       // id; otherwise insert. RLS gates both paths via is_staff().
-      const payload: SiteSettingsRow & { id?: string } = rowId
-        ? { ...row, id: rowId }
-        : { ...row };
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert(payload, { onConflict: 'id' });
+      const payload: SiteSettingsRow & { id?: string } = rowId ? { ...row, id: rowId } : { ...row };
+      const { error } = await supabase.from('site_settings').upsert(payload, { onConflict: 'id' });
       if (error) {
         setSaveState('error');
         return;
@@ -160,8 +156,8 @@ export function SiteSettingsPanel() {
       <header>
         <h1 className="text-[20px] font-semibold tracking-tight">Site settings</h1>
         <p className="text-[13px] text-[var(--color-text-secondary)]">
-          These defaults flow into every published landing page. Per-page SEO
-          fields override them when set.
+          These defaults flow into every published landing page. Per-page SEO fields override them
+          when set.
         </p>
       </header>
 
@@ -248,8 +244,7 @@ export function SiteSettingsPanel() {
           >
             {saveState === 'saving' && 'Saving...'}
             {saveState === 'saved' && 'Saved'}
-            {saveState === 'error' &&
-              "Couldn't save changes. Check your connection and try again."}
+            {saveState === 'error' && "Couldn't save changes. Check your connection and try again."}
           </div>
         </div>
       </Card>

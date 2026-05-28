@@ -83,7 +83,6 @@ export function useRankRoster({
       abortRef.current = true;
     };
     // revision is intentionally included so refresh() triggers a new fetch
-     
   }, [fetchData, revision]);
 
   const refresh = useCallback(() => {

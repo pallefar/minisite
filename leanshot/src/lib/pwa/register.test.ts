@@ -101,9 +101,8 @@ describe('install-prompt state machine (D-16 / Pitfall 2)', () => {
   });
 
   it('Test 4a: maybeLater() sets snoozed-until = now + 30d', async () => {
-    const { initializeInstallPromptModule, getInstallPromptState, maybeLater } = await import(
-      './install-prompt'
-    );
+    const { initializeInstallPromptModule, getInstallPromptState, maybeLater } =
+      await import('./install-prompt');
     initializeInstallPromptModule();
     const before = Date.now();
     maybeLater();
@@ -117,9 +116,8 @@ describe('install-prompt state machine (D-16 / Pitfall 2)', () => {
   });
 
   it('Test 4b: appinstalled event sets installed=true; cannot transition installed → snoozed', async () => {
-    const { initializeInstallPromptModule, getInstallPromptState, maybeLater } = await import(
-      './install-prompt'
-    );
+    const { initializeInstallPromptModule, getInstallPromptState, maybeLater } =
+      await import('./install-prompt');
     initializeInstallPromptModule();
     window.dispatchEvent(new Event('appinstalled'));
     expect(getInstallPromptState().state).toBe('installed');

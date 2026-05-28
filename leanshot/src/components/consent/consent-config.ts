@@ -39,9 +39,34 @@ import { upsertConsentRecord } from '@/lib/consent/consent-records';
  * Source: 22-RESEARCH §Specifics line 142.
  */
 const EU_COUNTRIES = new Set([
-  'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI',
-  'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT',
-  'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB',
+  'AT',
+  'BE',
+  'BG',
+  'CY',
+  'CZ',
+  'DE',
+  'DK',
+  'EE',
+  'ES',
+  'FI',
+  'FR',
+  'GR',
+  'HR',
+  'HU',
+  'IE',
+  'IT',
+  'LT',
+  'LU',
+  'LV',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SE',
+  'SI',
+  'SK',
+  'GB',
 ]);
 
 interface VercelGeoWindow extends Window {
@@ -94,7 +119,7 @@ function computeIsEU(country: string | undefined): boolean {
  * rest param is required by TypeScript so callers get a typed signature
  * even though we read from `arguments` at runtime.
  */
- 
+
 function gtag(..._args: unknown[]): void {
   const w = window as VercelGeoWindow;
   if (!w.dataLayer) w.dataLayer = [];
@@ -120,7 +145,9 @@ function updateGtagConsent(): void {
     ad_storage: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
     ad_user_data: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
     ad_personalization: CookieConsent.acceptedCategory('marketing') ? 'granted' : 'denied',
-    personalization_storage: CookieConsent.acceptedCategory('personalization') ? 'granted' : 'denied',
+    personalization_storage: CookieConsent.acceptedCategory('personalization')
+      ? 'granted'
+      : 'denied',
   });
 }
 
@@ -166,17 +193,17 @@ function emitConsentChange(): void {
 export function buildConsentModalDescription(isEU: boolean): string {
   if (isEU) {
     return (
-      "We use cookies to keep the app working, measure how it\u2019s used, and improve your experience." +
-      " You can accept all, reject all, or customize your choices. Essential cookies are always on." +
-      " <a href=\"/privacy\" target=\"_blank\">Privacy policy</a>"
+      'We use cookies to keep the app working, measure how it\u2019s used, and improve your experience.' +
+      ' You can accept all, reject all, or customize your choices. Essential cookies are always on.' +
+      ' <a href="/privacy" target="_blank">Privacy policy</a>'
     );
   }
   return (
-    "We use cookies to keep the app working, measure how it\u2019s used, and improve your experience." +
-    " Essential cookies are always on. You can opt out of analytics any time." +
-    " We also use sign-in rate-limiting to protect your account." +
-    " <a href=\"/privacy\" target=\"_blank\">Privacy policy</a>" +
-    " \u00b7 <a href=\"/privacy/do-not-sell\">Do Not Sell or Share My Personal Information</a>"
+    'We use cookies to keep the app working, measure how it\u2019s used, and improve your experience.' +
+    ' Essential cookies are always on. You can opt out of analytics any time.' +
+    ' We also use sign-in rate-limiting to protect your account.' +
+    ' <a href="/privacy" target="_blank">Privacy policy</a>' +
+    ' \u00b7 <a href="/privacy/do-not-sell">Do Not Sell or Share My Personal Information</a>'
   );
 }
 /**
@@ -209,7 +236,10 @@ export function initCookieConsent(): void {
   // is safe to bind 1:1).
   const isTestHarness = (() => {
     try {
-      return typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('force_geo');
+      return (
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).has('force_geo')
+      );
     } catch {
       return false;
     }
@@ -221,23 +251,23 @@ export function initCookieConsent(): void {
     hideFromBots: !isTestHarness,
     guiOptions: {
       consentModal: {
-        layout: 'box inline',          // UI-SPEC §banner: bottom slide-up
+        layout: 'box inline', // UI-SPEC §banner: bottom slide-up
         position: 'bottom right',
         equalWeightButtons: true,
       },
       preferencesModal: {
-        layout: 'box',                 // inline-expand customise per D-07
+        layout: 'box', // inline-expand customise per D-07
       },
     },
     cookie: { name: 'cc_cookie', expiresAfterDays: 182 },
     categories: {
       necessary: { enabled: true, readOnly: true },
       analytics: {
-        enabled: !isEU,                // CCPA opt-out (US ON; EU/unknown OFF)
+        enabled: !isEU, // CCPA opt-out (US ON; EU/unknown OFF)
         autoClear: {
           cookies: [
-            { name: /^ph_/ },         // PostHog
-            { name: /^_ga/ },         // Google Analytics
+            { name: /^ph_/ }, // PostHog
+            { name: /^_ga/ }, // Google Analytics
             { name: 'posthog_disabled' },
           ],
         },
@@ -253,10 +283,7 @@ export function initCookieConsent(): void {
       marketing: {
         enabled: false,
         autoClear: {
-          cookies: [
-            { name: '_fbp' },
-            { name: 'fr' },
-          ],
+          cookies: [{ name: '_fbp' }, { name: 'fr' }],
         },
         services: {
           // Forward-compat per D-07 + 22-RESEARCH Pattern 3 — Meta + AdSense
@@ -305,8 +332,7 @@ export function initCookieConsent(): void {
               },
               {
                 title: 'Personalization cookies',
-                description:
-                  'Used to remember in-app preferences across devices. Off by default.',
+                description: 'Used to remember in-app preferences across devices. Off by default.',
                 linkedCategory: 'personalization',
               },
               {

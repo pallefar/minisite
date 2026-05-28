@@ -103,9 +103,7 @@ describe('SoftDeleteCountdownBanner (Phase 22 Plan 22-05 DEL-01)', () => {
     const initiated = new Date(Date.now() - 2 * 86_400_000);
     fixture.pendingRow = { initiated_at: initiated.toISOString() };
     render(<SoftDeleteCountdownBanner />);
-    expect(
-      await screen.findByText('Account scheduled for deletion in 5 days.'),
-    ).toBeTruthy();
+    expect(await screen.findByText('Account scheduled for deletion in 5 days.')).toBeTruthy();
   });
 
   // B4 — Cancel CTA labeled "Cancel deletion"

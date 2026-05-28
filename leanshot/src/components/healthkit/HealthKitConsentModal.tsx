@@ -52,11 +52,7 @@ const DATA_TYPES = [
 // Component
 // ---------------------------------------------------------------------------
 
-export function HealthKitConsentModal({
-  open,
-  onClose,
-  onConnected,
-}: HealthKitConsentModalProps) {
+export function HealthKitConsentModal({ open, onClose, onConnected }: HealthKitConsentModalProps) {
   const toast = useToast();
   const [checked, setChecked] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -111,10 +107,7 @@ export function HealthKitConsentModal({
         <div className="space-y-5">
           {/* Hero icon + lead */}
           <div className="flex flex-col items-center gap-3 text-center">
-            <Heart
-              className="size-8 text-[var(--color-primary)]"
-              aria-hidden
-            />
+            <Heart className="size-8 text-[var(--color-primary)]" aria-hidden />
             <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed max-w-prose">
               LeanShot can read health data from Apple Health to automatically track your weight,
               steps, sleep, and heart rate alongside your GLP-1 journey.
@@ -146,10 +139,7 @@ export function HealthKitConsentModal({
             className="bg-[var(--color-primary-soft)] border-[var(--color-primary-soft)]"
           >
             <div className="flex gap-2 items-start">
-              <Shield
-                className="size-4 text-[var(--color-primary)] shrink-0 mt-0.5"
-                aria-hidden
-              />
+              <Shield className="size-4 text-[var(--color-primary)] shrink-0 mt-0.5" aria-hidden />
               <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
                 Your health data is used only to populate your personal dashboard. It is{' '}
                 <strong>never</strong> shared with ad networks, marketing systems, or any third

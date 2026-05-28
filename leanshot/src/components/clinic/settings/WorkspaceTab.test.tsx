@@ -20,15 +20,12 @@ vi.mock('@/lib/supabase', () => ({
 
 const showToastMock = vi.fn();
 vi.mock('@/lib/store', () => ({
-  useStore: Object.assign(
-    () => undefined,
-    {
-      getState: () => ({
-        showToast: (...args: unknown[]) => showToastMock(...args),
-        dismissToast: vi.fn(),
-      }),
-    },
-  ),
+  useStore: Object.assign(() => undefined, {
+    getState: () => ({
+      showToast: (...args: unknown[]) => showToastMock(...args),
+      dismissToast: vi.fn(),
+    }),
+  }),
 }));
 
 const hasPermissionMock = vi.fn();
@@ -58,12 +55,8 @@ describe('WorkspaceTab', () => {
 
   it('Test 4 — fresh load populates name + slug as read-only URL', () => {
     render(<WorkspaceTab org={SAMPLE_ORG} onOrgUpdated={() => {}} />);
-    expect((screen.getByLabelText('Workspace name') as HTMLInputElement).value).toBe(
-      'Demo Clinic',
-    );
-    const slugField = screen.getByLabelText(
-      'Workspace URL (read-only)',
-    ) as HTMLInputElement;
+    expect((screen.getByLabelText('Workspace name') as HTMLInputElement).value).toBe('Demo Clinic');
+    const slugField = screen.getByLabelText('Workspace URL (read-only)') as HTMLInputElement;
     expect(slugField.value).toBe('leanshot.app/clinic/demo-clinic');
     expect(slugField.disabled).toBe(true);
     expect(screen.getByText('Change URL? Contact support.')).toBeInTheDocument();
@@ -83,36 +76,28 @@ describe('WorkspaceTab', () => {
       }),
     );
     expect(showToastMock).toHaveBeenCalledWith('Workspace updated.', 'success');
-    expect(onOrgUpdated).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Renamed Clinic' }),
-    );
+    expect(onOrgUpdated).toHaveBeenCalledWith(expect.objectContaining({ name: 'Renamed Clinic' }));
   });
 
   it('Test 3 — non-Owner: Danger zone hidden', () => {
     hasPermissionMock.mockReturnValue(false);
     render(<WorkspaceTab org={SAMPLE_ORG} onOrgUpdated={() => {}} />);
     expect(screen.queryByText('Danger zone')).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Delete workspace' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete workspace' })).not.toBeInTheDocument();
   });
 
   it('Test 3b — Owner: Danger zone visible with Delete workspace CTA', () => {
     hasPermissionMock.mockReturnValue(true);
     render(<WorkspaceTab org={SAMPLE_ORG} onOrgUpdated={() => {}} />);
     expect(screen.getByText('Danger zone')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Delete workspace' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete workspace' })).toBeInTheDocument();
   });
 
   it('Test 5 — typed-confirm requires slug match to enable destructive CTA', () => {
     hasPermissionMock.mockReturnValue(true);
     render(<WorkspaceTab org={SAMPLE_ORG} onOrgUpdated={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: 'Delete workspace' }));
-    const typeInput = screen.getByLabelText(
-      'Type workspace slug to confirm deletion',
-    );
+    const typeInput = screen.getByLabelText('Type workspace slug to confirm deletion');
     // Destructive button has same label as the danger-zone CTA; pick the one
     // inside the modal (the destructive variant). We grep by being disabled.
     const buttons = screen.getAllByRole('button', { name: 'Delete workspace' });
@@ -138,10 +123,9 @@ describe('WorkspaceTab', () => {
     try {
       render(<WorkspaceTab org={SAMPLE_ORG} onOrgUpdated={() => {}} />);
       fireEvent.click(screen.getByRole('button', { name: 'Delete workspace' }));
-      fireEvent.change(
-        screen.getByLabelText('Type workspace slug to confirm deletion'),
-        { target: { value: 'demo-clinic' } },
-      );
+      fireEvent.change(screen.getByLabelText('Type workspace slug to confirm deletion'), {
+        target: { value: 'demo-clinic' },
+      });
       const buttons = screen.getAllByRole('button', { name: 'Delete workspace' });
       fireEvent.click(buttons[buttons.length - 1]);
       await waitFor(() =>

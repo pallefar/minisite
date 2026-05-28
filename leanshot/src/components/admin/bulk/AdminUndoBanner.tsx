@@ -34,10 +34,10 @@ export interface AdminUndoBannerProps {
 }
 
 const VERB_LABELS: Record<BulkActionType, string> = {
-  csv_export:           'Exported',
-  tag:                  'Tagged',
-  comp_plan:            'Granted Pro to',
-  ban:                  'Banned',
+  csv_export: 'Exported',
+  tag: 'Tagged',
+  comp_plan: 'Granted Pro to',
+  ban: 'Banned',
   force_password_reset: 'Password reset for',
 };
 
@@ -124,12 +124,7 @@ export function AdminUndoBanner({
         Undo
       </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        aria-label="Dismiss undo banner"
-        onClick={onDismiss}
-      >
+      <Button variant="ghost" size="sm" aria-label="Dismiss undo banner" onClick={onDismiss}>
         <X className="size-3.5" aria-hidden />
       </Button>
     </div>

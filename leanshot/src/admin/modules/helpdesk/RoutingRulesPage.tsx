@@ -174,10 +174,9 @@ export default function RoutingRulesPage(): React.JSX.Element {
     async (id: string) => {
       if (!canMutate) return;
       setBusy(true);
-      const { error } = (await supabase
-        .from('helpdesk_routing_rules')
-        .delete()
-        .eq('id', id)) as { error: { message: string } | null };
+      const { error } = (await supabase.from('helpdesk_routing_rules').delete().eq('id', id)) as {
+        error: { message: string } | null;
+      };
       setBusy(false);
       setPendingDelete(null);
       if (error) {
@@ -294,9 +293,7 @@ export default function RoutingRulesPage(): React.JSX.Element {
 
       <ul className="flex flex-col gap-2">
         {rules.length === 0 && !editingId ? (
-          <li className="text-xs text-[var(--color-text-secondary)]">
-            No routing rules yet
-          </li>
+          <li className="text-xs text-[var(--color-text-secondary)]">No routing rules yet</li>
         ) : (
           rules.map((r) => (
             <li
@@ -306,8 +303,7 @@ export default function RoutingRulesPage(): React.JSX.Element {
               <div className="flex flex-col min-w-0">
                 <span className="text-sm font-medium truncate">{r.name}</span>
                 <span className="text-[10px] text-[var(--color-text-secondary)] font-mono">
-                  {r.tag_name} → {r.assign_to_user_id.slice(0, 8)}… · prio{' '}
-                  {r.priority}
+                  {r.tag_name} → {r.assign_to_user_id.slice(0, 8)}… · prio {r.priority}
                   {!r.active ? ' · inactive' : ''}
                 </span>
               </div>

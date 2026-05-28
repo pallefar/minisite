@@ -41,7 +41,6 @@ vi.mock('@/lib/supabase', async (importOriginal) => {
   };
 });
 
-
 // ---------------------------------------------------------------------------
 // T1: generateBackupCodes(10) — format + uniqueness
 // ---------------------------------------------------------------------------
@@ -115,7 +114,11 @@ describe('enrollTotp', () => {
   it('T4: calls mfa.enroll with factorType:"totp" + issuer + friendlyName', async () => {
     const mockEnroll = vi.mocked(supabase.auth.mfa.enroll);
     mockEnroll.mockResolvedValueOnce({
-      data: { id: 'factor-1', type: 'totp' as const, totp: { qr_code: 'data:image/...', secret: 'SECRET', uri: 'otpauth://...' } },
+      data: {
+        id: 'factor-1',
+        type: 'totp' as const,
+        totp: { qr_code: 'data:image/...', secret: 'SECRET', uri: 'otpauth://...' },
+      },
       error: null,
     });
 
@@ -186,5 +189,7 @@ function parseJwtAalFromToken(token: string): string | null {
     if (!payload) return null;
     const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
     return typeof json.aal === 'string' ? json.aal : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }

@@ -71,9 +71,7 @@ export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
               <div className="text-sm text-[var(--color-text-secondary)] uppercase tracking-wide">
                 Level Up
               </div>
-              <div className="text-7xl font-bold text-[var(--color-primary)] mt-2">
-                {newLevel}
-              </div>
+              <div className="text-7xl font-bold text-[var(--color-primary)] mt-2">{newLevel}</div>
               {/* Share CTA — Plan 35-07 integration seam */}
               <button
                 type="button"
@@ -96,11 +94,7 @@ export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
 
       {/* LevelUpShareModal — mounts outside the overlay so it stacks correctly */}
       {newLevel !== null && (
-        <LevelUpShareModal
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-          level={newLevel}
-        />
+        <LevelUpShareModal open={shareOpen} onClose={() => setShareOpen(false)} level={newLevel} />
       )}
     </>
   );

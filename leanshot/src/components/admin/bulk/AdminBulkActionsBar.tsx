@@ -26,12 +26,17 @@ export interface AdminBulkActionsBarProps {
   onActionComplete?: (info: { result: BulkActionResult; actionType: BulkActionType }) => void;
 }
 
-const ACTIONS: { key: BulkActionType; label: string; icon: typeof Ban; variant: 'secondary' | 'destructive' }[] = [
-  { key: 'csv_export',           label: 'Export CSV',     icon: FileSpreadsheet, variant: 'secondary' },
-  { key: 'tag',                  label: 'Tag',            icon: Tag,             variant: 'secondary' },
-  { key: 'comp_plan',            label: 'Grant Pro',      icon: Sparkles,        variant: 'secondary' },
-  { key: 'force_password_reset', label: 'Reset password', icon: KeyRound,        variant: 'secondary' },
-  { key: 'ban',                  label: 'Ban',            icon: Ban,             variant: 'destructive' },
+const ACTIONS: {
+  key: BulkActionType;
+  label: string;
+  icon: typeof Ban;
+  variant: 'secondary' | 'destructive';
+}[] = [
+  { key: 'csv_export', label: 'Export CSV', icon: FileSpreadsheet, variant: 'secondary' },
+  { key: 'tag', label: 'Tag', icon: Tag, variant: 'secondary' },
+  { key: 'comp_plan', label: 'Grant Pro', icon: Sparkles, variant: 'secondary' },
+  { key: 'force_password_reset', label: 'Reset password', icon: KeyRound, variant: 'secondary' },
+  { key: 'ban', label: 'Ban', icon: Ban, variant: 'destructive' },
 ];
 
 export function AdminBulkActionsBar({

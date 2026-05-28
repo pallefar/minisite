@@ -127,7 +127,10 @@ export function useClinicMetrics(orgId: string | null): ClinicMetrics {
         .reduce((s, r) => s + (r.patient_count ?? 0), 0);
 
       // Refresh log: max(refreshed_at)
-      const refreshRows = (refreshResult.data ?? []) as { view_name: string; refreshed_at: string | null }[];
+      const refreshRows = (refreshResult.data ?? []) as {
+        view_name: string;
+        refreshed_at: string | null;
+      }[];
       const refreshTimes = refreshRows
         .map((r) => (r.refreshed_at ? new Date(r.refreshed_at) : null))
         .filter((d): d is Date => d !== null && !isNaN(d.getTime()));

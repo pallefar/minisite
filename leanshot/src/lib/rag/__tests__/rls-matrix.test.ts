@@ -49,7 +49,11 @@ function buildUserClient(accessToken: string, storageKey: string): SupabaseClien
 
 function buildAnonClient(): SupabaseClient {
   return createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
-    auth: { autoRefreshToken: false, persistSession: false, storageKey: `${TEST_SLUG_PREFIX}-anon` },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      storageKey: `${TEST_SLUG_PREFIX}-anon`,
+    },
   });
 }
 
@@ -80,21 +84,21 @@ describeIfLive('Phase 50 Plan 50-01 — RLS impersonation matrix', () => {
       return id;
     }
 
-    superId       = await createUser('super');
-    adminUserId   = await createUser('admin');
+    superId = await createUser('super');
+    adminUserId = await createUser('admin');
     regularUserId = await createUser('regular');
-    otherUserId   = await createUser('other');
+    otherUserId = await createUser('other');
 
     // Promote via service_role direct profiles update
-    await admin.from('profiles').upsert({ id: superId,     admin_role: 'superadmin' });
+    await admin.from('profiles').upsert({ id: superId, admin_role: 'superadmin' });
     await admin.from('profiles').upsert({ id: adminUserId, admin_role: 'admin' });
 
-    const superToken   = await getUserAccessToken(`${TEST_SLUG_PREFIX}-super@leanshot.test`);
-    const adminToken   = await getUserAccessToken(`${TEST_SLUG_PREFIX}-admin@leanshot.test`);
+    const superToken = await getUserAccessToken(`${TEST_SLUG_PREFIX}-super@leanshot.test`);
+    const adminToken = await getUserAccessToken(`${TEST_SLUG_PREFIX}-admin@leanshot.test`);
     const regularToken = await getUserAccessToken(`${TEST_SLUG_PREFIX}-regular@leanshot.test`);
 
-    superClient   = buildUserClient(superToken,   `${TEST_SLUG_PREFIX}-super`);
-    adminClient   = buildUserClient(adminToken,   `${TEST_SLUG_PREFIX}-admin`);
+    superClient = buildUserClient(superToken, `${TEST_SLUG_PREFIX}-super`);
+    adminClient = buildUserClient(adminToken, `${TEST_SLUG_PREFIX}-admin`);
     regularClient = buildUserClient(regularToken, `${TEST_SLUG_PREFIX}-regular`);
 
     // Seed a topic + chunk pair via service_role so rag_chunks anon-read assertion
@@ -269,7 +273,7 @@ describeIfLive('Phase 50 Plan 50-01 — RLS impersonation matrix', () => {
       .eq('user_id', otherUserId)
       .select();
     // Update either errors or affects 0 rows
-    expect((data?.length ?? 0)).toBe(0);
+    expect(data?.length ?? 0).toBe(0);
     // Don't assert error shape — some Postgrest versions return null + 0 rows
     void error;
   });
@@ -281,6 +285,6 @@ describeIfLive('Phase 50 Plan 50-01 — RLS impersonation matrix', () => {
       .eq('user_id', regularUserId)
       .select();
     expect(error).toBeNull();
-    expect((data?.length ?? 0)).toBeGreaterThanOrEqual(1);
+    expect(data?.length ?? 0).toBeGreaterThanOrEqual(1);
   });
 });

@@ -274,9 +274,7 @@ describe('iap.ts — RevenueCat bridge', () => {
     const { Capacitor } = await import('@capacitor/core');
     Capacitor.getPlatform.mockReturnValue('ios');
     Capacitor.isNativePlatform.mockReturnValue(true);
-    const { Purchases, INTRO_ELIGIBILITY_STATUS } = await import(
-      '@revenuecat/purchases-capacitor'
-    );
+    const { Purchases, INTRO_ELIGIBILITY_STATUS } = await import('@revenuecat/purchases-capacitor');
     Purchases.checkTrialOrIntroductoryPriceEligibility.mockResolvedValue({
       'app.leanshot.plus.monthly': {
         status: INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE,
@@ -294,9 +292,7 @@ describe('iap.ts — RevenueCat bridge', () => {
     const { Capacitor } = await import('@capacitor/core');
     Capacitor.getPlatform.mockReturnValue('ios');
     Capacitor.isNativePlatform.mockReturnValue(true);
-    const { Purchases, INTRO_ELIGIBILITY_STATUS } = await import(
-      '@revenuecat/purchases-capacitor'
-    );
+    const { Purchases, INTRO_ELIGIBILITY_STATUS } = await import('@revenuecat/purchases-capacitor');
     Purchases.checkTrialOrIntroductoryPriceEligibility.mockResolvedValue({
       'app.leanshot.plus.monthly': {
         status: INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE,
@@ -314,9 +310,7 @@ describe('iap.ts — RevenueCat bridge', () => {
     const { Capacitor } = await import('@capacitor/core');
     Capacitor.getPlatform.mockReturnValue('ios');
     Capacitor.isNativePlatform.mockReturnValue(true);
-    const { Purchases, INTRO_ELIGIBILITY_STATUS } = await import(
-      '@revenuecat/purchases-capacitor'
-    );
+    const { Purchases, INTRO_ELIGIBILITY_STATUS } = await import('@revenuecat/purchases-capacitor');
     Purchases.checkTrialOrIntroductoryPriceEligibility.mockResolvedValue({
       'app.leanshot.plus.monthly': {
         status: INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_UNKNOWN,

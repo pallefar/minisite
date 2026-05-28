@@ -28,19 +28,13 @@ function toHumanLabel(key: string): string {
     .join(' ');
 }
 
-export function ScoreBreakdownPopover({
-  score,
-  breakdown,
-  onClose,
-}: ScoreBreakdownPopoverProps) {
+export function ScoreBreakdownPopover({ score, breakdown, onClose }: ScoreBreakdownPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const titleId = 'breakdown-popover-heading';
 
   // Focus first focusable element on open
   useEffect(() => {
-    const el = popoverRef.current?.querySelector<HTMLElement>(
-      'button, [tabindex="0"]',
-    );
+    const el = popoverRef.current?.querySelector<HTMLElement>('button, [tabindex="0"]');
     el?.focus();
   }, []);
 
@@ -118,10 +112,7 @@ export function ScoreBreakdownPopover({
         </p>
         <dl className="space-y-2">
           {entries.map(([key, value]) => (
-            <div
-              key={key}
-              className="flex items-center justify-between text-[13px]"
-            >
+            <div key={key} className="flex items-center justify-between text-[13px]">
               <dt className="text-[var(--color-text)] font-mono">{toHumanLabel(key)}:</dt>
               <dd className="font-semibold font-mono numerals-tabular text-[var(--color-text)]">
                 {value}

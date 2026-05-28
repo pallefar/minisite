@@ -197,11 +197,8 @@ describe('Synthetic tab → route mapping', () => {
 // 4. DEFERRED Phase 28+ modal-flag case (documented but not yet exercised)
 // ---------------------------------------------------------------------------
 describe('Phase 28+ deferred — currentSensitiveModal flag', () => {
-  it.skip(
-    '[DEFERRED — see deferred-tests.md] When Zustand exposes currentSensitiveModal for share/doctor-report modals, calling applyDecision should transition to stop on non-null modal flag and back to start when modal closes',
-    () => {
-      // TODO Phase 28: wire Zustand currentSensitiveModal: "share" | "doctor-report" | null
-      // into isPhiRoute(currentTab, pathname, currentSensitiveModal) and add a test case here.
-    },
-  );
+  it.skip('[DEFERRED — see deferred-tests.md] When Zustand exposes currentSensitiveModal for share/doctor-report modals, calling applyDecision should transition to stop on non-null modal flag and back to start when modal closes', () => {
+    // TODO Phase 28: wire Zustand currentSensitiveModal: "share" | "doctor-report" | null
+    // into isPhiRoute(currentTab, pathname, currentSensitiveModal) and add a test case here.
+  });
 });

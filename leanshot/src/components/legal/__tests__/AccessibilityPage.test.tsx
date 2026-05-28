@@ -24,7 +24,9 @@ describe('AccessibilityPage', () => {
   it('Test 1: Renders LegalLayout with title "Accessibility Statement"', () => {
     renderAccessibilityPage();
     // The title is rendered as the H1 by LegalLayout
-    expect(screen.getByRole('heading', { level: 1, name: /accessibility statement/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: /accessibility statement/i }),
+    ).toBeInTheDocument();
   });
 
   it('Test 2: Page body mentions WCAG 2.2 AA + ADA Title III + accessibility@leanshot.app + 30-day SLA', () => {
@@ -40,6 +42,9 @@ describe('AccessibilityPage', () => {
     renderAccessibilityPage();
     const link = screen.getByRole('link', { name: /report an accessibility issue/i });
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', expect.stringContaining('mailto:accessibility@leanshot.app'));
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining('mailto:accessibility@leanshot.app'),
+    );
   });
 });

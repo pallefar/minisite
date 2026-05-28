@@ -38,7 +38,9 @@ import { RosterTable } from './roster/RosterTable';
 // Mount above the Roster on the workspace home so SC#5 (CLIN-05) + CLIN-08 surface population-level
 // metrics without a router change. Wired here per verifier orphan-fix 2026-05-18.
 const ClinicDashboardOverview = lazy(() =>
-  import('./dashboard/ClinicDashboardOverview').then((m) => ({ default: m.ClinicDashboardOverview })),
+  import('./dashboard/ClinicDashboardOverview').then((m) => ({
+    default: m.ClinicDashboardOverview,
+  })),
 );
 
 // Phase 61 Plan 61-06 — ClinicProtocolsPage lazy-loaded (keeps clinic chunk under ceiling).
@@ -115,7 +117,9 @@ export function ClinicWorkspace() {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, slug, name, description, website_url, logo_storage_path, created_by, created_at')
+        .select(
+          'id, slug, name, description, website_url, logo_storage_path, created_by, created_at',
+        )
         .eq('slug', slug)
         .maybeSingle();
       if (error) {
@@ -135,8 +139,11 @@ export function ClinicWorkspace() {
       }
       setLoad({ kind: 'hydrated', org: data as Org });
       try {
-        (window as unknown as { posthog?: { capture: (e: string, p: Record<string, unknown>) => void } })
-          .posthog?.capture(CLINIC_EVENTS.WORKSPACE_LOADED, { org_id: data.id });
+        (
+          window as unknown as {
+            posthog?: { capture: (e: string, p: Record<string, unknown>) => void };
+          }
+        ).posthog?.capture(CLINIC_EVENTS.WORKSPACE_LOADED, { org_id: data.id });
       } catch {
         /* PostHog optional — never block hydration */
       }
@@ -255,7 +262,14 @@ export function ClinicWorkspace() {
           </header>
 
           {/* P30 — Dashboard overview (CLIN-05 / CLIN-08). Lazy-loaded; falls back to a small Skeleton. */}
-          <Suspense fallback={<div className="h-32 rounded-card bg-[var(--color-surface-elevated)]" aria-hidden="true" />}>
+          <Suspense
+            fallback={
+              <div
+                className="h-32 rounded-card bg-[var(--color-surface-elevated)]"
+                aria-hidden="true"
+              />
+            }
+          >
             <ClinicDashboardOverview orgId={org.id} />
           </Suspense>
 
@@ -269,11 +283,7 @@ export function ClinicWorkspace() {
                 Invite patient
               </Button>
             </div>
-            <RosterTable
-              orgId={org.id}
-              slug={org.slug}
-              permissionMap={OWNER_PERMISSION_MAP}
-            />
+            <RosterTable orgId={org.id} slug={org.slug} permissionMap={OWNER_PERMISSION_MAP} />
           </section>
         </div>
 
@@ -293,11 +303,7 @@ export function ClinicWorkspace() {
         </div>
       </main>
 
-      <InvitePatientModal
-        open={inviteOpen}
-        orgId={org.id}
-        onClose={() => setInviteOpen(false)}
-      />
+      <InvitePatientModal open={inviteOpen} orgId={org.id} onClose={() => setInviteOpen(false)} />
     </div>
   );
 }

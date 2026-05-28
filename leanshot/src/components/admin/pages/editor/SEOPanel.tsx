@@ -75,8 +75,8 @@ export function SEOPanel({ value, onChange }: SEOPanelProps) {
       <header>
         <h2 className="text-[16px] font-semibold tracking-tight">SEO</h2>
         <p className="text-[12px] text-[var(--color-text-secondary)]">
-          Search engines and social cards use these fields. Leave blank to
-          inherit the site-wide defaults from /admin.
+          Search engines and social cards use these fields. Leave blank to inherit the site-wide
+          defaults from /admin.
         </p>
       </header>
 
@@ -89,10 +89,7 @@ export function SEOPanel({ value, onChange }: SEOPanelProps) {
           maxLength={TITLE_MAX}
           onChange={(e) => onChange('seo_title', e.target.value)}
         />
-        <p
-          className="text-[11px] text-[var(--color-text-tertiary)] text-end"
-          aria-live="polite"
-        >
+        <p className="text-[11px] text-[var(--color-text-tertiary)] text-end" aria-live="polite">
           {titleLen} / {TITLE_MAX}
         </p>
       </div>
@@ -107,10 +104,7 @@ export function SEOPanel({ value, onChange }: SEOPanelProps) {
           rows={3}
           onChange={(e) => onChange('seo_description', e.target.value)}
         />
-        <p
-          className="text-[11px] text-[var(--color-text-tertiary)] text-end"
-          aria-live="polite"
-        >
+        <p className="text-[11px] text-[var(--color-text-tertiary)] text-end" aria-live="polite">
           {descLen} / {DESCRIPTION_MAX}
         </p>
       </div>
@@ -123,8 +117,7 @@ export function SEOPanel({ value, onChange }: SEOPanelProps) {
           OG image
         </p>
         <p className="text-[12px] text-[var(--color-text-secondary)]">
-          1200×630 recommended. Used for social previews on Twitter / LinkedIn /
-          iMessage.
+          1200×630 recommended. Used for social previews on Twitter / LinkedIn / iMessage.
         </p>
         <div className="flex items-center gap-2">
           <Button

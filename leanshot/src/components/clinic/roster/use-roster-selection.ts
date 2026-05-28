@@ -87,10 +87,7 @@ export function useRosterSelection({ orgId }: { orgId: string }): UseRosterSelec
     setSelected(new Set());
   }, []);
 
-  const isSelected = useCallback(
-    (userId: string) => selected.has(userId),
-    [selected],
-  );
+  const isSelected = useCallback((userId: string) => selected.has(userId), [selected]);
 
   return { selected, toggle, toggleAll, clear, isSelected };
 }

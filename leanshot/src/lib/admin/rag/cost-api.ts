@@ -25,7 +25,7 @@ import { supabase } from '@/lib/supabase';
 export type Vendor =
   | 'firecrawl'
   | 'openai_embed'
-  | 'anthropic_summary'   // canonical rag_vendor enum (was 'anthropic_summarize' — typo)
+  | 'anthropic_summary' // canonical rag_vendor enum (was 'anthropic_summarize' — typo)
   | 'cohere_rerank'
   | 'jina_rerank'
   | 'federated_fetch';
@@ -54,11 +54,7 @@ export interface BudgetCapRow {
 }
 
 /** Discriminated error kind for contextual UI rendering */
-export type CostApiErrorKind =
-  | 'forbidden'
-  | 'invalid_vendor'
-  | 'upstream_rate_limited'
-  | 'unknown';
+export type CostApiErrorKind = 'forbidden' | 'invalid_vendor' | 'upstream_rate_limited' | 'unknown';
 
 /** Thrown by fetchCostRollup and acknowledgeBudgetCap on error */
 export class CostApiError extends Error {
@@ -128,12 +124,14 @@ export async function fetchCostRollup(args: {
 
   // T-60-14-PII-1: extract only the safe subset of fields from each result row
   const rawResults = (data as { results: Array<Record<string, unknown>> }).results ?? [];
-  return rawResults.map((row): CostRollupResponse => ({
-    vendor: row['vendor'] as string,
-    mtd_usd: row['mtd_usd'] as number,
-    sparkline_7d: row['sparkline_7d'] as number[],
-    last_day_with_data: (row['last_day_with_data'] as string | null) ?? null,
-  }));
+  return rawResults.map(
+    (row): CostRollupResponse => ({
+      vendor: row['vendor'] as string,
+      mtd_usd: row['mtd_usd'] as number,
+      sparkline_7d: row['sparkline_7d'] as number[],
+      last_day_with_data: (row['last_day_with_data'] as string | null) ?? null,
+    }),
+  );
 }
 
 // ---------------------------------------------------------------------------

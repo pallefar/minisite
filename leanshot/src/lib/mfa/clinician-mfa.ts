@@ -25,7 +25,9 @@ export type ClinicianAal = 'aal1' | 'aal2' | null;
  * Returns 'aal2' when TOTP step-up is complete.
  */
 export async function getClinicianAal(): Promise<ClinicianAal> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) return null;
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (error || !data) return 'aal1';
@@ -38,7 +40,12 @@ export async function getClinicianAal(): Promise<ClinicianAal> {
  */
 export async function isClinicianTotpEnrolled(): Promise<boolean> {
   const { data } = await supabase.auth.mfa.listFactors();
-  return data?.all?.some((f: { factor_type: string; status: string }) => f.factor_type === 'totp' && f.status === 'verified') ?? false;
+  return (
+    data?.all?.some(
+      (f: { factor_type: string; status: string }) =>
+        f.factor_type === 'totp' && f.status === 'verified',
+    ) ?? false
+  );
 }
 
 /**
@@ -51,7 +58,11 @@ export async function isClinicianTotpEnrolled(): Promise<boolean> {
  *
  * D-10: Called by SetupClinicianTotp.tsx which has NO "skip" button.
  */
-export async function enrollClinicianTotp(): Promise<{ factorId: string; qrCode: string; secret: string }> {
+export async function enrollClinicianTotp(): Promise<{
+  factorId: string;
+  qrCode: string;
+  secret: string;
+}> {
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: 'totp',
     issuer: 'LeanShot Clinic',

@@ -125,9 +125,7 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
   const pendingFigureClass = cn(
     'font-semibold leading-tight tabular-nums',
     'text-[20px]',
-    pendingThisWeek > 0
-      ? 'text-[var(--color-amber)]'
-      : 'text-[var(--color-success)]',
+    pendingThisWeek > 0 ? 'text-[var(--color-amber)]' : 'text-[var(--color-success)]',
   );
 
   // Ack rate color coding per UI-SPEC
@@ -145,9 +143,7 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
   // Below dosing range color: amber when > 0, tertiary when 0
   const belowDosingFigureClass = cn(
     'text-[16px] font-semibold leading-tight tabular-nums',
-    belowDosingRange > 0
-      ? 'text-[var(--color-amber)]'
-      : 'text-[var(--color-text-tertiary)]',
+    belowDosingRange > 0 ? 'text-[var(--color-amber)]' : 'text-[var(--color-text-tertiary)]',
   );
 
   const stalenessLabel = lastRefreshedAt
@@ -170,11 +166,7 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
       {/* Stat card grid: 3-col on md+, single-col on mobile */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Pending alerts — PRIMARY FOCAL POINT (shadow-md) */}
-        <Card
-          variant="elevated"
-          className="shadow-md"
-          data-testid="stat-card-pending-alerts"
-        >
+        <Card variant="elevated" className="shadow-md" data-testid="stat-card-pending-alerts">
           <CardHeader title="Pending alerts" />
           <p
             className={pendingFigureClass}
@@ -187,11 +179,7 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
         </Card>
 
         {/* Card 2: Ack rate (7 days) */}
-        <Card
-          variant="elevated"
-          className="shadow-sm"
-          data-testid="stat-card-ack-rate"
-        >
+        <Card variant="elevated" className="shadow-sm" data-testid="stat-card-ack-rate">
           <CardHeader title="Ack rate (7 days)" />
           <p
             className={ackRateFigureClass}
@@ -203,11 +191,7 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
         </Card>
 
         {/* Card 3: Below dosing range */}
-        <Card
-          variant="elevated"
-          className="shadow-sm"
-          data-testid="stat-card-below-dosing-range"
-        >
+        <Card variant="elevated" className="shadow-sm" data-testid="stat-card-below-dosing-range">
           <CardHeader title="Below dosing range" />
           <p
             className={belowDosingFigureClass}
@@ -220,16 +204,14 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
         </Card>
 
         {/* Card 4: Alert types breakdown */}
-        <Card
-          variant="elevated"
-          className="shadow-sm"
-          data-testid="stat-card-alert-types"
-        >
+        <Card variant="elevated" className="shadow-sm" data-testid="stat-card-alert-types">
           <CardHeader title="Alert types" />
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[15px]">
               <span className="text-[var(--color-text-secondary)]">Missed doses</span>
-              <span className="font-semibold tabular-nums">{alertTypeBreakdown.dose_adherence}</span>
+              <span className="font-semibold tabular-nums">
+                {alertTypeBreakdown.dose_adherence}
+              </span>
             </div>
             <div className="flex items-center justify-between text-[15px]">
               <span className="text-[var(--color-text-secondary)]">Dose variance</span>
@@ -240,10 +222,7 @@ export function ClinicDashboardOverview({ orgId, className }: ClinicDashboardOve
       </div>
 
       {/* Staleness caption — text-[13px] text-[var(--color-text-tertiary)] per UI-SPEC */}
-      <p
-        className="text-[13px] text-[var(--color-text-tertiary)]"
-        data-testid="staleness-caption"
-      >
+      <p className="text-[13px] text-[var(--color-text-tertiary)]" data-testid="staleness-caption">
         {stalenessLabel}
       </p>
     </section>

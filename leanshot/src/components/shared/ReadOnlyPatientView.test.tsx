@@ -25,15 +25,9 @@ function buildSnapshot(overrides: Partial<SnapshotData> = {}): SnapshotData {
     injections: [
       { id: 'inj-1', dose_mg: 0.5, site: 'abdomen', created_at: '2024-01-01T10:00:00Z' },
     ],
-    weights: [
-      { id: 'w-1', weight_kg: 85.5, recorded_at: '2024-01-01T08:00:00Z' },
-    ],
-    symptoms: [
-      { id: 's-1', name: 'nausea', severity: 3, recorded_at: '2024-01-01T12:00:00Z' },
-    ],
-    photos: [
-      { id: 'p-1', storage_path: 'org/user/p-1.jpg', taken_at: '2024-01-01T09:00:00Z' },
-    ],
+    weights: [{ id: 'w-1', weight_kg: 85.5, recorded_at: '2024-01-01T08:00:00Z' }],
+    symptoms: [{ id: 's-1', name: 'nausea', severity: 3, recorded_at: '2024-01-01T12:00:00Z' }],
+    photos: [{ id: 'p-1', storage_path: 'org/user/p-1.jpg', taken_at: '2024-01-01T09:00:00Z' }],
     doctor_report: { generated_at: '2024-01-01T10:00:00Z', markdown: '# Report' },
     viewer_context: 'share',
     ...overrides,
@@ -63,7 +57,7 @@ describe('ReadOnlyPatientView', () => {
     render(
       <Suspense fallback={<div>loading</div>}>
         <ReadOnlyPatientView snapshot={buildSnapshot()} viewerMode="share" />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
     expect(screen.getByRole('heading', { name: 'Drug-level estimate' })).toBeInTheDocument();
@@ -82,7 +76,7 @@ describe('ReadOnlyPatientView', () => {
           viewerMode="clinic"
           permissionMap={fullPermissionMap}
         />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
     expect(screen.getByRole('heading', { name: 'Drug-level estimate' })).toBeInTheDocument();
@@ -105,7 +99,7 @@ describe('ReadOnlyPatientView', () => {
           viewerMode="clinic"
           permissionMap={permMapNoPhotos}
         />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
     // Other sections present
@@ -123,7 +117,7 @@ describe('ReadOnlyPatientView', () => {
           viewerMode="share"
           onSectionMount={onSectionMount}
         />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
     // All 6 sections should have fired once each
@@ -144,7 +138,7 @@ describe('ReadOnlyPatientView', () => {
           viewerMode="share"
           onSectionMount={onSectionMount}
         />
-      </Suspense>
+      </Suspense>,
     );
     await act(async () => {});
     expect(onSectionMount).toHaveBeenCalledTimes(6);

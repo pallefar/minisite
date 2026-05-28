@@ -39,31 +39,23 @@ const MAX_FILE_SIZE_KB = 4 * 1024 * 1024;
 // Conceptually equivalent to passing `maxDuration={1800}` to the uploader.
 const MAX_DURATION_SECONDS = 1800;
 
-export function LessonVideoUploader({
-  lessonId,
-  courseId,
-  onUploaded,
-}: LessonVideoUploaderProps) {
+export function LessonVideoUploader({ lessonId, courseId, onUploaded }: LessonVideoUploaderProps) {
   const toast = useToast();
   const uploadIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function resolveUploadEndpoint(): Promise<string> {
-    const { data, error: fnError } = await supabase.functions.invoke(
-      'mux-create-upload',
-      {
-        body: {
-          kind: 'course-lesson',
-          lesson_id: lessonId,
-          course_id: courseId,
-        },
+    const { data, error: fnError } = await supabase.functions.invoke('mux-create-upload', {
+      body: {
+        kind: 'course-lesson',
+        lesson_id: lessonId,
+        course_id: courseId,
       },
-    );
+    });
 
     if (fnError) {
       // supabase.functions.invoke surfaces the HTTP error in fnError.context.
-      const status =
-        (fnError as { context?: { status?: number } }).context?.status ?? 0;
+      const status = (fnError as { context?: { status?: number } }).context?.status ?? 0;
       const msg =
         status === 403
           ? 'Only admins can upload course lessons.'
@@ -88,8 +80,8 @@ export function LessonVideoUploader({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-[var(--color-text-secondary)]">
-        Upload a lesson video (max 30 min). Mux will transcode and the lesson
-        will move to <strong>ready</strong> automatically.
+        Upload a lesson video (max 30 min). Mux will transcode and the lesson will move to{' '}
+        <strong>ready</strong> automatically.
       </p>
 
       {error && (

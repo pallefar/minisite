@@ -23,9 +23,7 @@ export function ResearchNotFound() {
         <title>Paper Not Found — LeanShot Research</title>
       </Helmet>
       <div className="max-w-screen-md mx-auto px-4 py-16 text-center">
-        <h1 className="text-[18px] font-semibold text-[var(--color-text)] mb-2">
-          Paper not found
-        </h1>
+        <h1 className="text-[18px] font-semibold text-[var(--color-text)] mb-2">Paper not found</h1>
         <p className="text-[13px] text-[var(--color-text-secondary)] mb-6">
           This publication is not available or has not been published.
         </p>

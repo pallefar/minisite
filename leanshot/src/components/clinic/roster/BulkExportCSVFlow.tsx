@@ -46,7 +46,9 @@ export function BulkExportCSVFlow({ orgId, selectedIds, onClose }: BulkExportCSV
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({ error: 'unknown' }));
-        throw new Error(`Export failed: ${(errBody as { error?: string }).error ?? response.status}`);
+        throw new Error(
+          `Export failed: ${(errBody as { error?: string }).error ?? response.status}`,
+        );
       }
 
       // Trigger browser download via blob URL
@@ -102,8 +104,8 @@ export function BulkExportCSVFlow({ orgId, selectedIds, onClose }: BulkExportCSV
           <p className="text-[14px] text-[var(--color-text-secondary)]">
             Export symptom logs (last 30 days) for{' '}
             <span className="font-semibold text-[var(--color-text)]">{selectedIds.length}</span>{' '}
-            patient{selectedIds.length !== 1 ? 's' : ''}. Only patients who have consented to
-            share symptom data will be included.
+            patient{selectedIds.length !== 1 ? 's' : ''}. Only patients who have consented to share
+            symptom data will be included.
           </p>
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" size="sm" onClick={onClose}>
@@ -118,9 +120,7 @@ export function BulkExportCSVFlow({ orgId, selectedIds, onClose }: BulkExportCSV
 
       {state === 'downloading' && (
         <div className="space-y-3">
-          <p className="text-[14px] text-[var(--color-text-secondary)]">
-            Preparing CSV export…
-          </p>
+          <p className="text-[14px] text-[var(--color-text-secondary)]">Preparing CSV export…</p>
         </div>
       )}
 
@@ -139,9 +139,7 @@ export function BulkExportCSVFlow({ orgId, selectedIds, onClose }: BulkExportCSV
 
       {state === 'error' && (
         <div className="space-y-4">
-          <p className="text-[14px] text-[var(--color-error)]">
-            Export failed: {errorMsg}
-          </p>
+          <p className="text-[14px] text-[var(--color-error)]">Export failed: {errorMsg}</p>
           <div className="flex gap-3 justify-end">
             <Button variant="secondary" size="sm" onClick={onClose}>
               Close

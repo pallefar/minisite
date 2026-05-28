@@ -24,7 +24,13 @@ import { useEffect, useState } from 'react';
 import { AuthFormShell } from './AuthFormShell';
 import { AuthHero } from './AuthHero';
 
-export type AuthSub = 'signup' | 'signin' | 'verify' | 'verify-sent' | 'forgot' | 'set-new-password';
+export type AuthSub =
+  | 'signup'
+  | 'signin'
+  | 'verify'
+  | 'verify-sent'
+  | 'forgot'
+  | 'set-new-password';
 
 function parseSub(hash: string): AuthSub {
   // Strip any query string `?...` so `#/auth/signin?promote=1` resolves to `signin`.

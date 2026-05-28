@@ -97,7 +97,10 @@ export function EffectivenessCard() {
       </div>
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--color-border)] text-[12px] text-[var(--color-text-tertiary)]">
         <span>
-          {t('patient:card.effectiveness.since_week', { date: formatShort(u.startDate), week: weeks })}
+          {t('patient:card.effectiveness.since_week', {
+            date: formatShort(u.startDate),
+            week: weeks,
+          })}
         </span>
         <button
           onClick={() => setTab('insights')}

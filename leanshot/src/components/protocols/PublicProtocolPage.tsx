@@ -127,18 +127,13 @@ export function PublicProtocolPage() {
         )}
 
         {!loading && notFound && (
-          <EmptyState
-            title="Protocol not found"
-            body="This protocol is not available."
-          />
+          <EmptyState title="Protocol not found" body="This protocol is not available." />
         )}
 
         {data && (
           <>
             {/* ── Header ─────────────────────────────────────────────── */}
-            <h1 className="text-[28px] font-semibold leading-snug mb-2">
-              {data.protocol.name}
-            </h1>
+            <h1 className="text-[28px] font-semibold leading-snug mb-2">{data.protocol.name}</h1>
             <div className="flex flex-wrap items-center gap-2 text-[13px] text-[var(--color-text-secondary)] mb-6">
               <span>{data.protocol.compound}</span>
               <span aria-hidden="true">•</span>
@@ -195,7 +190,9 @@ export function PublicProtocolPage() {
                 <ol className="space-y-2 list-none p-0">
                   {data.evidence.map((e, i) => (
                     <li key={e.id} className="text-[13px]">
-                      <sup className="text-[11px] text-[var(--color-text-secondary)]">[{i + 1}]</sup>{' '}
+                      <sup className="text-[11px] text-[var(--color-text-secondary)]">
+                        [{i + 1}]
+                      </sup>{' '}
                       {e.citation_text}
                     </li>
                   ))}

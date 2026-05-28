@@ -70,7 +70,12 @@ export async function decideNpsTrigger(eventName: string): Promise<DecideRespons
     throw new NpsClientError('invoke_error', error.message ?? 'nps-trigger-decide failed');
   }
   const payload = data as DecideResponse | { error?: string } | null;
-  if (payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string') {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'error' in payload &&
+    typeof payload.error === 'string'
+  ) {
     throw new NpsClientError(payload.error, `nps-trigger-decide returned error: ${payload.error}`);
   }
   if (!payload || typeof (payload as { fire?: unknown }).fire !== 'boolean') {
@@ -97,7 +102,12 @@ export async function submitNpsFeedback(text: string): Promise<FeedbackResponse>
     throw new NpsClientError('invoke_error', error.message ?? 'nps-feedback-submit failed');
   }
   const payload = data as FeedbackResponse | { error?: string } | null;
-  if (payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string') {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'error' in payload &&
+    typeof payload.error === 'string'
+  ) {
     throw new NpsClientError(payload.error, `nps-feedback-submit returned error: ${payload.error}`);
   }
   if (!payload || typeof (payload as { ticket_id?: unknown }).ticket_id !== 'string') {

@@ -31,22 +31,18 @@ function makeFromBuilder(result: { data: unknown[] | null; error: unknown }): Fr
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpcMock(...args),
-    from: (table: string) =>
-      makeFromBuilder(fromResults.get(table) ?? { data: [], error: null }),
+    from: (table: string) => makeFromBuilder(fromResults.get(table) ?? { data: [], error: null }),
   },
 }));
 
 const showToastMock = vi.fn();
 vi.mock('@/lib/store', () => ({
-  useStore: Object.assign(
-    () => undefined,
-    {
-      getState: () => ({
-        showToast: (...args: unknown[]) => showToastMock(...args),
-        dismissToast: vi.fn(),
-      }),
-    },
-  ),
+  useStore: Object.assign(() => undefined, {
+    getState: () => ({
+      showToast: (...args: unknown[]) => showToastMock(...args),
+      dismissToast: vi.fn(),
+    }),
+  }),
 }));
 
 const SYSTEM_ROLES = [
@@ -62,7 +58,8 @@ const SYSTEM_ROLES = [
     id: 'role-coach',
     org_id: 'org-1',
     name: 'Coach',
-    description: 'Reads patient data and photos. Cannot manage members, roles, or workspace settings.',
+    description:
+      'Reads patient data and photos. Cannot manage members, roles, or workspace settings.',
     is_system: true,
     created_at: '2026-01-01T00:00:01Z',
   },
@@ -101,9 +98,7 @@ describe('RolesTab', () => {
     // No "Delete role X" CTAs on system rows
     expect(screen.queryByRole('button', { name: 'Delete role Owner' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete role Coach' })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Delete role View-only' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete role View-only' })).not.toBeInTheDocument();
   });
 
   it('Test 13b — custom roles empty state copy', async () => {
@@ -259,9 +254,7 @@ describe('RolesTab', () => {
     };
     fromResults.set('roles', { data: [...SYSTEM_ROLES, customRole], error: null });
     fromResults.set('role_permissions', {
-      data: [
-        { role_id: 'role-triage', permission_key: 'patient_data.read' },
-      ],
+      data: [{ role_id: 'role-triage', permission_key: 'patient_data.read' }],
       error: null,
     });
     fromResults.set('memberships', { data: [], error: null });
@@ -278,8 +271,7 @@ describe('RolesTab', () => {
     // Modal pre-fills name
     expect((screen.getByLabelText('Role name') as HTMLInputElement).value).toBe('Triage');
     expect(
-      (screen.getByRole('checkbox', { name: 'View patient data' }) as HTMLInputElement)
-        .checked,
+      (screen.getByRole('checkbox', { name: 'View patient data' }) as HTMLInputElement).checked,
     ).toBe(true);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -304,9 +296,7 @@ describe('RolesTab', () => {
       expect(
         screen.queryByRole('button', { name: `Delete role ${r.name}` }),
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole('button', { name: `Edit role ${r.name}` }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: `Edit role ${r.name}` })).not.toBeInTheDocument();
     });
   });
 });

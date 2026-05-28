@@ -37,7 +37,11 @@ export async function isPatientTotpEnrolled(): Promise<boolean> {
  * Returns factorId, QR code data-URI, and base32 secret.
  * Caller must display QR and prompt the user for a verification code.
  */
-export async function enrollPatientTotp(): Promise<{ factorId: string; qrCode: string; secret: string }> {
+export async function enrollPatientTotp(): Promise<{
+  factorId: string;
+  qrCode: string;
+  secret: string;
+}> {
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: 'totp',
     issuer: 'LeanShot',
@@ -81,7 +85,9 @@ export async function requireStepUp(): Promise<{ ok: boolean; method?: 'totp' | 
   }
 
   // Email OTP fallback — send a magic-link / OTP to the user's email
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user?.email) return { ok: false };
 
   const { error } = await supabase.auth.signInWithOtp({ email: user.email });

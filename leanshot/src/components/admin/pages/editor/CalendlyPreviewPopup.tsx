@@ -192,11 +192,7 @@ export function CalendlyPreviewPopup(): React.ReactElement {
         padding="md"
         className="w-[320px] h-[180px] flex flex-col items-center justify-center gap-2 border-[var(--color-danger)]"
       >
-        <ShieldAlert
-          aria-hidden="true"
-          className="text-[var(--color-danger)]"
-          size={20}
-        />
+        <ShieldAlert aria-hidden="true" className="text-[var(--color-danger)]" size={20} />
         <p className="text-[var(--text-sm,13px)] text-center text-[var(--color-text)]">
           Popup blocked. Allow popups for this site to connect Calendly.
         </p>
@@ -244,11 +240,7 @@ export function CalendlyPreviewPopup(): React.ReactElement {
         padding="md"
         className="w-[320px] h-[180px] flex flex-col items-center justify-center gap-2"
       >
-        <Calendar
-          aria-hidden="true"
-          className="text-[var(--color-primary)]"
-          size={32}
-        />
+        <Calendar aria-hidden="true" className="text-[var(--color-primary)]" size={32} />
         <p className="font-mono text-[var(--text-sm,13px)] text-[var(--color-text)]">
           calendly.com (connected)
         </p>
@@ -270,11 +262,7 @@ export function CalendlyPreviewPopup(): React.ReactElement {
       padding="md"
       className="w-[320px] h-[180px] flex flex-col items-center justify-center gap-2"
     >
-      <Calendar
-        aria-hidden="true"
-        className="text-[var(--color-primary)]"
-        size={40}
-      />
+      <Calendar aria-hidden="true" className="text-[var(--color-primary)]" size={40} />
       <p className="text-[var(--text-sm,13px)] text-center text-[var(--color-text-secondary)]">
         Connect your Calendly account to preview availability.
       </p>

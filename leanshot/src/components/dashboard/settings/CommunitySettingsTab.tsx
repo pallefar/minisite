@@ -36,8 +36,7 @@ const BASE_TOGGLES = [
   {
     key: 'directory_opt_in',
     label: 'Show me in the member directory',
-    description:
-      'Other members in your tier/clinic can find your profile and send you messages.',
+    description: 'Other members in your tier/clinic can find your profile and send you messages.',
   },
   {
     key: 'dm_open',

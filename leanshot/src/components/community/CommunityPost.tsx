@@ -64,20 +64,13 @@ export function CommunityPost({
 
   // T-44-05: sanitize body before passing to ReactMarkdown.
   // If deleted_at is set, renderPostBodyHtml returns '<em>[deleted]</em>' (D-15).
-  const sanitizedBody = isDeleted
-    ? '<em>[deleted]</em>'
-    : sanitizeCommunityMarkdown(post.body);
+  const sanitizedBody = isDeleted ? '<em>[deleted]</em>' : sanitizeCommunityMarkdown(post.body);
 
   // Display name: author_id truncated as fallback until profile join is wired by 44-09.
-  const displayName = post.author_id
-    ? `User ${post.author_id.slice(0, 8)}`
-    : 'Unknown';
+  const displayName = post.author_id ? `User ${post.author_id.slice(0, 8)}` : 'Unknown';
 
   return (
-    <article
-      aria-label={`Post by ${displayName}`}
-      className="flex flex-col gap-3"
-    >
+    <article aria-label={`Post by ${displayName}`} className="flex flex-col gap-3">
       <Card variant="default" padding="md">
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between gap-2">
@@ -90,9 +83,7 @@ export function CommunityPost({
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-[var(--color-text)]">
-                {displayName}
-              </span>
+              <span className="text-sm font-medium text-[var(--color-text)]">{displayName}</span>
               <div className="flex items-center gap-1.5 text-xs text-[var(--color-fg-muted)]">
                 <time dateTime={post.created_at}>{relativeTime(post.created_at)}</time>
                 {post.edited_at && (

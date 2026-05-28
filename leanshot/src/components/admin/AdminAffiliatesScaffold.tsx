@@ -164,10 +164,7 @@ export function AdminAffiliatesScaffold() {
           <p className="text-sm text-[var(--color-text-secondary)] mb-4">
             You don&apos;t have access to affiliate applications.
           </p>
-          <a
-            href="/"
-            className="text-sm font-semibold text-[var(--color-primary)] hover:underline"
-          >
+          <a href="/" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">
             Back to home →
           </a>
         </Card>
@@ -272,9 +269,7 @@ export function AdminAffiliatesScaffold() {
                       // P22 ADMIN-06 will wire click handler; at P19 scaffold
                       // rows are non-interactive.
                       tabIndex={-1}
-                      className={cn(
-                        'border-b border-[var(--color-border)] last:border-b-0',
-                      )}
+                      className={cn('border-b border-[var(--color-border)] last:border-b-0')}
                       data-testid={`affiliate-row-${r.id}`}
                     >
                       <td className="px-4 py-3 align-middle">

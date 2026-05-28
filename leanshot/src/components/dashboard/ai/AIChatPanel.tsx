@@ -182,9 +182,13 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
               <div className="flex items-center gap-3 p-4 md:p-5 border-b border-[var(--color-border)]">
                 <AIAvatar size={42} thinking={busy} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-bold tracking-tight">{t('patient:ai.panel_title')}</p>
+                  <p className="text-[15px] font-bold tracking-tight">
+                    {t('patient:ai.panel_title')}
+                  </p>
                   <p className="text-[12px] text-[var(--color-text-secondary)] truncate">
-                    {busy ? t('patient:ai.thinking') : t('patient:ai.subtitle_journey', { weeks, medication: u.medication })}
+                    {busy
+                      ? t('patient:ai.thinking')
+                      : t('patient:ai.subtitle_journey', { weeks, medication: u.medication })}
                   </p>
                 </div>
                 {/* Phase 14 Plan 14-05 — CONTEXT D-07: model selector gated
@@ -220,7 +224,12 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
                 >
                   <Trash2 className="size-4" />
                 </IconButton>
-                <IconButton aria-label={t('common:action.close')} variant="ghost" size="sm" onClick={onClose}>
+                <IconButton
+                  aria-label={t('common:action.close')}
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                >
                   <X className="size-5" />
                 </IconButton>
               </div>
@@ -393,7 +402,11 @@ function Bubble({
             )}
             {segments.map((seg, idx) => {
               if (seg.type === 'text') {
-                return <span key={idx} className="whitespace-pre-wrap">{seg.text}</span>;
+                return (
+                  <span key={idx} className="whitespace-pre-wrap">
+                    {seg.text}
+                  </span>
+                );
               }
               return (
                 <CitationMarker

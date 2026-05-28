@@ -16,10 +16,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminAffiliatesReviewQueue } from '@/components/admin/AdminAffiliatesReviewQueue';
-import {
-  AffiliateReviewError,
-  rejectAffiliateConversion,
-} from '@/lib/admin/affiliate-review';
+import { AffiliateReviewError, rejectAffiliateConversion } from '@/lib/admin/affiliate-review';
 
 // ── Mock supabase ─────────────────────────────────────────────────────────────
 const mockAuthGetUser = vi.fn();
@@ -219,9 +216,7 @@ describe('AdminAffiliatesReviewQueue (Phase 22 ADMIN-06)', () => {
     );
     await userEvent.click(screen.getByTestId(`conversion-row-${FLAGGED_ROW.id}`));
     await waitFor(() =>
-      expect(
-        screen.getByTestId(`conversion-row-${FLAGGED_ROW.id}-expanded`),
-      ).toBeInTheDocument(),
+      expect(screen.getByTestId(`conversion-row-${FLAGGED_ROW.id}-expanded`)).toBeInTheDocument(),
     );
     const expanded = screen.getByTestId(`conversion-row-${FLAGGED_ROW.id}-expanded`);
     expect(within(expanded).getByText(/Fraud signals/i)).toBeInTheDocument();

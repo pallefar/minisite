@@ -134,16 +134,8 @@ export default function CertVerifyPage() {
 
         // Optimistically resolve user + course; failures still render verified.
         const [profileResp, courseResp] = await Promise.all([
-          supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', cert.user_id)
-            .maybeSingle(),
-          supabase
-            .from('courses')
-            .select('title')
-            .eq('id', cert.course_id)
-            .maybeSingle(),
+          supabase.from('profiles').select('full_name').eq('id', cert.user_id).maybeSingle(),
+          supabase.from('courses').select('title').eq('id', cert.course_id).maybeSingle(),
         ]);
 
         if (cancelled) return;
@@ -176,11 +168,7 @@ export default function CertVerifyPage() {
       <div className="w-full max-w-md">
         {status === 'loading' && (
           <Card variant="elevated" className="p-8 text-center">
-            <p
-              role="status"
-              aria-live="polite"
-              className="text-sm text-[var(--text-muted)]"
-            >
+            <p role="status" aria-live="polite" className="text-sm text-[var(--text-muted)]">
               Verifying certificate…
             </p>
           </Card>
@@ -205,16 +193,10 @@ export default function CertVerifyPage() {
             <div className="flex justify-center">
               <Badge tone="success">Verified by LeanShot</Badge>
             </div>
-            <h1 className="text-2xl font-semibold leading-tight">
-              {data.userName}
-            </h1>
-            <p className="text-sm text-[var(--text-muted)]">
-              completed
-            </p>
+            <h1 className="text-2xl font-semibold leading-tight">{data.userName}</h1>
+            <p className="text-sm text-[var(--text-muted)]">completed</p>
             <p className="text-lg font-medium">{data.courseTitle}</p>
-            <p className="text-xs text-[var(--text-muted)]">
-              on {data.completedAt}
-            </p>
+            <p className="text-xs text-[var(--text-muted)]">on {data.completedAt}</p>
             <p className="pt-4 text-xs text-[var(--text-muted)]">
               <a href="/" className="underline">
                 Return to LeanShot

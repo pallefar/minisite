@@ -101,9 +101,7 @@ export function RetentionChart({ data, epsilon }: RetentionChartProps) {
 
   return (
     <div>
-      <h2 className="text-[18px] font-semibold text-[var(--color-text)] mb-4">
-        Retention Curves
-      </h2>
+      <h2 className="text-[18px] font-semibold text-[var(--color-text)] mb-4">Retention Curves</h2>
       <BaseChart
         key={theme}
         config={config}

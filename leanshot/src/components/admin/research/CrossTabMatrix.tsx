@@ -29,9 +29,7 @@ export interface CrossTabMatrixProps {
 
 export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: CrossTabMatrixProps) {
   if (rows.length === 0 || columns.length === 0) {
-    return (
-      <p className="text-[13px] text-[var(--color-text-secondary)]">No cross-tab data</p>
-    );
+    return <p className="text-[13px] text-[var(--color-text-secondary)]">No cross-tab data</p>;
   }
 
   return (
@@ -75,11 +73,7 @@ export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: Cr
                   {row.label}
                 </td>
                 {row.values.map((v, i) => (
-                  <td
-                     
-                    key={i}
-                    className="text-[13px] text-right px-3 py-2"
-                  >
+                  <td key={i} className="text-[13px] text-right px-3 py-2">
                     {v !== null ? (
                       v.toFixed(1)
                     ) : (

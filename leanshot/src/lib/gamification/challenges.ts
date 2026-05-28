@@ -85,9 +85,7 @@ export async function fetchActiveChallenges(): Promise<WeeklyChallenge[]> {
  * Fetch active challenge variants visible to the current authenticated user.
  * Used by WeeklyChallengeCard to resolve PostHog A/B framing.
  */
-export async function fetchChallengeVariants(
-  challengeId: string,
-): Promise<ChallengeVariant[]> {
+export async function fetchChallengeVariants(challengeId: string): Promise<ChallengeVariant[]> {
   const { data, error } = await supabase
     .from('challenge_variants')
     .select('*')
@@ -118,9 +116,7 @@ export async function evaluateChallengeProgress(userId: string): Promise<void> {
  * Fetch progress rows for the current user's active challenges.
  * Used by WeeklyChallengeCard to render progress state.
  */
-export async function fetchChallengeProgressForUser(
-  userId: string,
-): Promise<ChallengeProgress[]> {
+export async function fetchChallengeProgressForUser(userId: string): Promise<ChallengeProgress[]> {
   const { data, error } = await supabase
     .from('challenge_progress')
     .select('*')

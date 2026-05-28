@@ -13,13 +13,7 @@ const UUID_A = 'a1b2c3d4-e5f6-7890-abcd-ef0123456789';
 describe('CitationMarker', () => {
   // Test 1: aria-label uses i18n key with refIndex
   it('Test 1: renders button with aria-label "Open citation 3" for refIndex=3', () => {
-    render(
-      <CitationMarker
-        refIndex={3}
-        chunkId={UUID_A}
-        onActivate={vi.fn()}
-      />,
-    );
+    render(<CitationMarker refIndex={3} chunkId={UUID_A} onActivate={vi.fn()} />);
 
     const btn = screen.getByRole('button');
     // The i18n key 'citation_marker.aria' interpolates to "Open citation {{n}}"
@@ -29,13 +23,7 @@ describe('CitationMarker', () => {
 
   // Test 2: renders text content [3]
   it('Test 2: renders visible badge text "[3]"', () => {
-    render(
-      <CitationMarker
-        refIndex={3}
-        chunkId={UUID_A}
-        onActivate={vi.fn()}
-      />,
-    );
+    render(<CitationMarker refIndex={3} chunkId={UUID_A} onActivate={vi.fn()} />);
 
     expect(screen.getByText('[3]')).toBeInTheDocument();
   });
@@ -43,13 +31,7 @@ describe('CitationMarker', () => {
   // Test 3: click invokes onActivate with chunkId and the button element
   it('Test 3: click invokes onActivate(chunkId, anchorEl)', () => {
     const onActivate = vi.fn();
-    render(
-      <CitationMarker
-        refIndex={1}
-        chunkId={UUID_A}
-        onActivate={onActivate}
-      />,
-    );
+    render(<CitationMarker refIndex={1} chunkId={UUID_A} onActivate={onActivate} />);
 
     const btn = screen.getByRole('button');
     fireEvent.click(btn);
@@ -63,13 +45,7 @@ describe('CitationMarker', () => {
   // We verify the structure: padding p-[5px] is present in className,
   // which gives 5+14+5 = 24px per UI-SPEC §3 invariant 10.
   it('Test 4: button has p-[5px] class for ≥24px tap target (UI-SPEC §3 invariant 10)', () => {
-    render(
-      <CitationMarker
-        refIndex={1}
-        chunkId={UUID_A}
-        onActivate={vi.fn()}
-      />,
-    );
+    render(<CitationMarker refIndex={1} chunkId={UUID_A} onActivate={vi.fn()} />);
 
     const btn = screen.getByRole('button');
     expect(btn.className).toContain('p-[5px]');
