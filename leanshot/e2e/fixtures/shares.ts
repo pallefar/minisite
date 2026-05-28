@@ -88,13 +88,20 @@ export interface TestShare {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 async function ensureTestUser(email: string): Promise<string> {
   const admin = getAdmin();
-  // listUsers() paginates by default at 50; for our 1-2 stable test accounts
-  // page 1 is enough. If the test corpus grows we can switch to a getByEmail
-  // pattern — Supabase doesn't expose admin.auth.admin.getUserByEmail yet.
-  const { data: existing, error: listErr } = await admin.auth.admin.listUsers();
-  if (listErr) throw new Error(`admin.listUsers failed: ${listErr.message}`);
-  const found = existing?.users.find((u) => u.email === email);
-  if (found) return found.id;
+  // Paginate auth.users until found or exhausted. Phase 70 70-07 fix: previous
+  // default listUsers() returned only page 1 (perPage=50). Live auth.users grew
+  // past 50 from cumulative CI runs; alice@test.com fell off page 1 → find
+  // returned undefined → createUser fired and failed with "already been
+  // registered". Pagination keeps lookup-or-create semantics regardless of
+  // corpus size.
+  const PER_PAGE = 1000;
+  for (let page = 1; page <= 100; page++) {
+    const { data, error: listErr } = await admin.auth.admin.listUsers({ page, perPage: PER_PAGE });
+    if (listErr) throw new Error(`admin.listUsers failed: ${listErr.message}`);
+    const found = data?.users.find((u) => u.email === email);
+    if (found) return found.id;
+    if (!data?.users || data.users.length < PER_PAGE) break;
+  }
 
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
