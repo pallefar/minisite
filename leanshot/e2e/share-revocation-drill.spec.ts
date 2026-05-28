@@ -45,11 +45,25 @@ import {
 } from './fixtures/shares';
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? '';
+const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY ?? '';
 const FN_BASE = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : '';
 
 // Match cors.ts allow-list. localhost:5173 is the SPA dev origin and is
 // always allowed (see supabase/functions/share/cors.ts).
 const SHARE_ORIGIN = 'http://localhost:5173';
+
+// share defaults to verify_jwt=true (no per-fn override in supabase/config.toml),
+// so the Supabase Edge gateway 401s every request without a Bearer JWT BEFORE
+// the function body runs. Anon key is sufficient — the fn performs its own
+// token/code validation on the body. See reference_supabase_edge_fn_jwt_gateway_healthz.
+function shareReqHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    Origin: SHARE_ORIGIN,
+    Authorization: `Bearer ${ANON_KEY}`,
+    apikey: ANON_KEY,
+    ...extra,
+  };
+}
 
 function extractRecipientCookie(setCookie: string | undefined): string {
   if (!setCookie) throw new Error('Set-Cookie header missing on /redeem 200');
@@ -103,9 +117,9 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
 
     // HI-4 — within 10s the SharePage poll picks up the 401 and flips to
     // ShareRevokedScreen kind='revoked' (heading: "This share has been revoked").
-    await expect(
-      page.getByRole('heading', { name: 'This share has been revoked' }),
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: 'This share has been revoked' })).toBeVisible({
+      timeout: 10_000,
+    });
 
     await ctx.close();
   });
@@ -124,7 +138,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
 
     // 200 path: first /redeem succeeds.
     const redeem1 = await request.post(`${FN_BASE}/share/redeem`, {
-      headers: { Origin: SHARE_ORIGIN },
+      headers: shareReqHeaders(),
       data: { token: share.raw_token, code: share.raw_code },
     });
     expect(redeem1.status()).toBe(200);
@@ -132,7 +146,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
 
     // 410 already-consumed path: second /redeem with the same code.
     const redeem2 = await request.post(`${FN_BASE}/share/redeem`, {
-      headers: { Origin: SHARE_ORIGIN },
+      headers: shareReqHeaders(),
       data: { token: share.raw_token, code: share.raw_code },
     });
     expect(redeem2.status()).toBe(410);
@@ -141,7 +155,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
     // 401 revoked path: revoke + /snapshot. handleSnapshot step 3 → 401.
     await revokeTestShare(share.share_id);
     const snap401 = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: { Origin: SHARE_ORIGIN },
+      headers: shareReqHeaders(),
     });
     expect(snap401.status()).toBe(401);
     expect(getCacheControl(snap401)).toBe('private, no-store');
@@ -161,7 +175,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
 
     // Redeem succeeds.
     const redeem = await request.post(`${FN_BASE}/share/redeem`, {
-      headers: { Origin: SHARE_ORIGIN },
+      headers: shareReqHeaders(),
       data: { token: share.raw_token, code: share.raw_code },
     });
     expect(redeem.status()).toBe(200);
@@ -169,7 +183,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
 
     // Snapshot succeeds before revoke.
     const snap1 = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: { Origin: SHARE_ORIGIN, Cookie: cookie },
+      headers: shareReqHeaders({ Cookie: cookie }),
     });
     expect(snap1.status()).toBe(200);
 
@@ -180,7 +194,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
     // NOT a JWT TTL check (which would be a no-op since expires_at is 24h
     // out and the wire artifact isn't even a JWT — see assertions below).
     const snap2 = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: { Origin: SHARE_ORIGIN, Cookie: cookie },
+      headers: shareReqHeaders({ Cookie: cookie }),
     });
     expect(snap2.status()).toBe(401);
     const body = await snap2.json();
@@ -245,14 +259,14 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
       expiresInHours: 1,
     });
     const redeem = await request.post(`${FN_BASE}/share/redeem`, {
-      headers: { Origin: SHARE_ORIGIN },
+      headers: shareReqHeaders(),
       data: { token: share.raw_token, code: share.raw_code },
     });
     expect(redeem.status()).toBe(200);
     const cookie = extractRecipientCookie(redeem.headers()['set-cookie']);
 
     const snap = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: { Origin: SHARE_ORIGIN, Cookie: cookie },
+      headers: shareReqHeaders({ Cookie: cookie }),
     });
     expect(snap.status()).toBe(200);
 
@@ -273,7 +287,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
       expiresInHours: 1,
     });
     const redeem = await request.post(`${FN_BASE}/share/redeem`, {
-      headers: { Origin: SHARE_ORIGIN },
+      headers: shareReqHeaders(),
       data: { token: share.raw_token, code: share.raw_code },
     });
     expect(redeem.status()).toBe(200);
