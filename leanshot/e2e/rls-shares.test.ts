@@ -42,6 +42,21 @@ const SHOULD_RUN = hasLiveSupabase();
 const describeIfLive = SHOULD_RUN ? describe : describe.skip;
 
 const FN_BASE = URL ? `${URL}/functions/v1` : '';
+
+// share defaults to verify_jwt=true (no per-fn override in supabase/config.toml),
+// so the Supabase Edge gateway 401s every request without a Bearer JWT BEFORE
+// the function body runs. Anon key is sufficient — the fn performs its own
+// token/code validation on the JSON body.
+// See reference_supabase_edge_fn_jwt_gateway_healthz.
+function shareHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${ANON!}`,
+    apikey: ANON!,
+    Origin: 'http://localhost:5173',
+    ...extra,
+  };
+}
 // Repo-relative path is fine — vitest runs from leanshot/ (project root).
 // resolvePath from cwd is robust across npm-scripts / Vitest worker.
 const SNAPSHOT_VIEW_SQL_PATH = resolvePath(
@@ -66,9 +81,7 @@ function readSnapshotViewSql(): string {
       // try next
     }
   }
-  throw new Error(
-    `share_snapshot_view migration not found at any of: ${candidates.join(', ')}`,
-  );
+  throw new Error(`share_snapshot_view migration not found at any of: ${candidates.join(', ')}`);
 }
 
 describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
@@ -122,7 +135,10 @@ describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
     expect(data).toEqual([]);
 
     // Defense in depth: confirm the row really exists via service-role.
-    const { data: adminData } = await getAdmin().from('shares').select('*').eq('id', alice.share_id);
+    const { data: adminData } = await getAdmin()
+      .from('shares')
+      .select('*')
+      .eq('id', alice.share_id);
     expect(adminData).toHaveLength(1);
     expect(adminData![0]!.user_id).toBe(alice.patient_user_id);
   }, 30_000);
@@ -138,7 +154,7 @@ describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
     });
     const redeem = await fetch(`${FN_BASE}/share/redeem`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      headers: shareHeaders(),
       body: JSON.stringify({ token: share.raw_token, code: share.raw_code }),
     });
     expect(redeem.status).toBe(200);
@@ -148,7 +164,7 @@ describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
     const cookie = match![0];
 
     const snap = await fetch(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: { Cookie: cookie, Origin: 'http://localhost:5173' },
+      headers: shareHeaders({ Cookie: cookie }),
     });
     expect(snap.status).toBe(200);
 
@@ -191,14 +207,14 @@ describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
     });
     const r1 = await fetch(`${FN_BASE}/share/redeem`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      headers: shareHeaders(),
       body: JSON.stringify({ token: share.raw_token, code: share.raw_code }),
     });
     expect(r1.status).toBe(200);
 
     const r2 = await fetch(`${FN_BASE}/share/redeem`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      headers: shareHeaders(),
       body: JSON.stringify({ token: share.raw_token, code: share.raw_code }),
     });
     expect(r2.status).toBe(410);
@@ -219,7 +235,7 @@ describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
     for (let i = 0; i < 5; i++) {
       const r = await fetch(`${FN_BASE}/share/redeem`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+        headers: shareHeaders(),
         body: JSON.stringify({ token: share.raw_token, code: '999999' }),
       });
       expect(r.status, `attempt ${i + 1} expected 401`).toBe(401);
@@ -227,7 +243,7 @@ describeIfLive('Phase 8 SHARE — extended RLS + structural proof', () => {
     // 6th attempt — counter ≥5 within 60s → 429 rate-limited.
     const r6 = await fetch(`${FN_BASE}/share/redeem`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5173' },
+      headers: shareHeaders(),
       body: JSON.stringify({ token: share.raw_token, code: '999999' }),
     });
     expect(r6.status).toBe(429);

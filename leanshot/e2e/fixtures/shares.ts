@@ -238,10 +238,18 @@ export async function impersonateAsRecipient(
   code: string,
 ): Promise<void> {
   if (!FN_BASE) throw new Error('SUPABASE_URL not set');
+  if (!ANON_KEY) throw new Error('SUPABASE_ANON_KEY not set');
   const resp = await fetch(`${FN_BASE}/share/redeem`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // share defaults to verify_jwt=true (no override in supabase/config.toml),
+      // so the Supabase Edge gateway 401s every request without a Bearer JWT
+      // BEFORE the function body runs. Anon key is sufficient here — the fn
+      // performs its own token/code validation on the JSON body.
+      // See reference_supabase_edge_fn_jwt_gateway_healthz.
+      Authorization: `Bearer ${ANON_KEY}`,
+      apikey: ANON_KEY,
       // Match the SPA dev origin — cors.ts allows localhost:5173 by default
       // and the CI env's `SHARE_ALLOWED_ORIGINS` includes it too.
       Origin: 'http://localhost:5173',
