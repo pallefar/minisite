@@ -448,7 +448,11 @@ jobs:
           test -f supabase/functions/import_map.json || (echo "FAIL: import_map.json missing" && exit 1)
           test -f supabase/functions/tests/ai-chat-refusal.test.ts || (echo "FAIL: deno test file missing" && exit 1)
       - name: Run Deno tests (shared/refusal corpus under Deno runtime)
-        run: deno test --allow-net=api.moonshot.ai --allow-read --allow-env --import-map=supabase/functions/import_map.json supabase/functions/tests/
+        # Phase 70 70-07 cascade fix — supabase/functions/tests/integration/ contains
+        # Vitest-style tests (import from 'vitest', not @std/assert) that were
+        # misplaced here; they fail Deno type-check. Exclude until they're either
+        # moved to a Vitest-collected location or refactored for Deno.
+        run: deno test --allow-net=api.moonshot.ai --allow-read --allow-env --import-map=supabase/functions/import_map.json --ignore=supabase/functions/tests/integration supabase/functions/tests/
       - name: Run Deno tests (share Edge Function — Plan 08-02)
         run: deno test --allow-all --import-map=supabase/functions/import_map.json supabase/functions/share/
       # ───────────────────────────────────────────────────────────────────────
