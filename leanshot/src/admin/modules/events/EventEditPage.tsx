@@ -608,7 +608,7 @@ export function EventEditPage({ eventId, onNavigate }: EventEditPageProps) {
             if (f) void handleCoverUpload(f);
           }}
           aria-label="Upload event cover image to event-covers bucket"
-          className="block w-full text-sm text-[var(--color-text-secondary)] file:mr-3 file:rounded-full file:border-0 file:bg-[var(--color-primary)] file:px-3 file:py-1 file:text-xs file:font-semibold file:text-[var(--color-primary-foreground)] file:hover:opacity-90 disabled:opacity-60"
+          className="block w-full text-sm text-[var(--color-text-secondary)] file:me-3 file:rounded-full file:border-0 file:bg-[var(--color-primary)] file:px-3 file:py-1 file:text-xs file:font-semibold file:text-[var(--color-primary-foreground)] file:hover:opacity-90 disabled:opacity-60"
         />
         {form.cover_url && (
           <div className="mt-2 flex items-center gap-3">

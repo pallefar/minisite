@@ -186,7 +186,7 @@ export function CommunityDirectoryView({
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search handles…"
             aria-label="Search directory by handle"
-            className="pl-9"
+            className="ps-9"
           />
         </div>
       </div>

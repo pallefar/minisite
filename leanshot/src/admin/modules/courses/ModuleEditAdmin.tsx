@@ -247,7 +247,7 @@ export function ModuleEditAdmin({ courseId, onNavigate }: ModuleEditAdminProps) 
               </div>
 
               {mod.lessons.length === 0 ? (
-                <p className="text-xs text-[var(--color-text-secondary)] italic pl-2">
+                <p className="text-xs text-[var(--color-text-secondary)] italic ps-2">
                   No lessons yet.
                 </p>
               ) : (
@@ -261,7 +261,7 @@ export function ModuleEditAdmin({ courseId, onNavigate }: ModuleEditAdminProps) 
                       <button
                         type="button"
                         onClick={() => onNavigate(`/admin/courses/${courseId}/lesson/${lesson.id}`)}
-                        className="text-sm text-left font-medium text-[var(--color-text)] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded"
+                        className="text-sm text-start font-medium text-[var(--color-text)] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded"
                       >
                         {lesson.title}
                       </button>

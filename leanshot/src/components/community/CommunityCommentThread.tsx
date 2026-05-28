@@ -138,14 +138,14 @@ function CommentRow({
       </div>
 
       {/* Body */}
-      <div className="prose prose-sm max-w-none pl-8">
+      <div className="prose prose-sm max-w-none ps-8">
         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
           {sanitizedBody}
         </ReactMarkdown>
       </div>
 
       {/* Reactions */}
-      <div className="pl-8">
+      <div className="ps-8">
         <ReactionBar
           targetType="comment"
           targetId={comment.id}

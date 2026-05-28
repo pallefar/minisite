@@ -162,10 +162,10 @@ export function PublicProtocolPage() {
               <table className="w-full text-[13px] mb-8" aria-label="Protocol steps">
                 <thead>
                   <tr className="text-[11px] text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
-                    <th className="text-left py-2 font-semibold">Week</th>
-                    <th className="text-left py-2 font-semibold">Dose</th>
-                    <th className="text-left py-2 font-semibold">Frequency</th>
-                    <th className="text-left py-2 font-semibold">Monitoring</th>
+                    <th className="text-start py-2 font-semibold">Week</th>
+                    <th className="text-start py-2 font-semibold">Dose</th>
+                    <th className="text-start py-2 font-semibold">Frequency</th>
+                    <th className="text-start py-2 font-semibold">Monitoring</th>
                   </tr>
                 </thead>
                 <tbody>

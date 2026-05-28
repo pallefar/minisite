@@ -77,7 +77,7 @@ export function CourseSidebar({
                       aria-current={active ? 'page' : undefined}
                       aria-label={`Open lesson ${lesson.title}${locked ? ' (locked — upgrade required)' : ''}`}
                       className={cn(
-                        'group w-full text-left rounded-lg px-3 py-2 inline-flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        'group w-full text-start rounded-lg px-3 py-2 inline-flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                         active
                           ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
                           : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text)]',

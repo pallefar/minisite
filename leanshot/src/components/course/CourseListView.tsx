@@ -117,7 +117,7 @@ export function CourseListView({
             <button
               type="button"
               onClick={() => setActiveCourse(course.id)}
-              className="w-full text-left rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+              className="w-full text-start rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
               aria-label={`Open course ${course.title}`}
             >
               <Card variant="interactive" padding="md">

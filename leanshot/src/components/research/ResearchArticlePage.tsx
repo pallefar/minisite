@@ -207,7 +207,7 @@ export function ResearchArticlePage({ slug }: ResearchArticlePageProps) {
 
         {/* ── Article body ───────────────────────────────────────── */}
         <article
-          className="prose prose-sm max-w-none text-[var(--color-text)] [&_a]:text-[var(--color-primary)] [&_a:hover]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-[var(--color-border)] [&_blockquote]:pl-4 [&_blockquote]:text-[var(--color-text-secondary)] [&_code]:text-[11px] [&_pre]:overflow-x-auto"
+          className="prose prose-sm max-w-none text-[var(--color-text)] [&_a]:text-[var(--color-primary)] [&_a:hover]:underline [&_blockquote]:border-s-2 [&_blockquote]:border-[var(--color-border)] [&_blockquote]:ps-4 [&_blockquote]:text-[var(--color-text-secondary)] [&_code]:text-[11px] [&_pre]:overflow-x-auto"
           aria-label="Research article body"
         >
           {sanitizedBody ? (

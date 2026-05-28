@@ -487,7 +487,7 @@ export function PublicationEditorPage() {
                 <button
                   type="button"
                   onClick={() => setArchiveModalOpen(true)}
-                  className="w-full text-[13px] text-[var(--color-danger)] hover:underline text-left py-1"
+                  className="w-full text-[13px] text-[var(--color-danger)] hover:underline text-start py-1"
                 >
                   Archive publication
                 </button>

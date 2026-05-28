@@ -134,7 +134,7 @@ export function ResearchIndexPage() {
                   key={pub.id}
                   href={`/research/${pub.slug}`}
                   className={[
-                    'block text-left rounded-xl border border-[var(--color-border)]',
+                    'block text-start rounded-xl border border-[var(--color-border)]',
                     'bg-[var(--color-surface)] p-4',
                     'hover:bg-[var(--color-admin-table-row-hover)]',
                     'focus-visible:outline-2 focus-visible:outline-[var(--color-primary)]',

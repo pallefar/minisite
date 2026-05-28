@@ -123,7 +123,7 @@ export default function MentionTypeahead({
             role="option"
             aria-selected="false"
             onClick={() => onSelect(u.handle, u.id)}
-            className="text-left w-full p-2 hover:bg-[var(--color-surface-elevated)] flex flex-col"
+            className="text-start w-full p-2 hover:bg-[var(--color-surface-elevated)] flex flex-col"
           >
             <span className="text-xs text-[var(--color-fg-muted)]">@{u.handle}</span>
             <span className="text-sm">{u.display_name ?? u.handle}</span>

@@ -415,7 +415,7 @@ export const TrafficFunnelsTab: React.FC = () => {
                 className="flex items-center justify-between gap-3"
               >
                 <button
-                  className="text-[13px] text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-sm"
+                  className="text-[13px] text-start hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-sm"
                   type="button"
                   onClick={() =>
                     setDrillStage({
@@ -471,24 +471,24 @@ export const TrafficFunnelsTab: React.FC = () => {
             ) : (
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-left border-b border-[var(--color-border)]">
+                  <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-start border-b border-[var(--color-border)]">
                     <th className="py-2 pe-3">Channel</th>
-                    <th className="py-2 pe-3 text-right">Entered</th>
-                    <th className="py-2 pe-3 text-right">Advanced</th>
-                    <th className="py-2 text-right">Rate</th>
+                    <th className="py-2 pe-3 text-end">Entered</th>
+                    <th className="py-2 pe-3 text-end">Advanced</th>
+                    <th className="py-2 text-end">Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {drillRows.map(([cg, vals]) => (
                     <tr key={cg} className="border-b border-[var(--color-border)]">
                       <td className="py-2 pe-3 font-medium">{cg}</td>
-                      <td className="py-2 pe-3 text-right numerals-tabular">
+                      <td className="py-2 pe-3 text-end numerals-tabular">
                         {vals.in.toLocaleString()}
                       </td>
-                      <td className="py-2 pe-3 text-right numerals-tabular">
+                      <td className="py-2 pe-3 text-end numerals-tabular">
                         {vals.out.toLocaleString()}
                       </td>
-                      <td className="py-2 text-right numerals-tabular">
+                      <td className="py-2 text-end numerals-tabular">
                         {vals.in > 0 ? `${((vals.out / vals.in) * 100).toFixed(1)}%` : '—'}
                       </td>
                     </tr>

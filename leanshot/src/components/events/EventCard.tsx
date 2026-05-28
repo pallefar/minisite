@@ -58,7 +58,7 @@ export function EventCard({
   return (
     <article
       className={[
-        'group relative w-full rounded-2xl overflow-hidden text-left',
+        'group relative w-full rounded-2xl overflow-hidden text-start',
         'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-xs)]',
         'hover:shadow-[var(--shadow)] hover:-translate-y-[2px] hover:border-[var(--color-primary-soft)]',
         'transition-[transform,box-shadow,border-color]',
@@ -70,7 +70,7 @@ export function EventCard({
         type="button"
         onClick={handleOpen}
         aria-label={`Open event: ${event.title}, ${startLabel}`}
-        className="block w-full text-left focus:outline-none"
+        className="block w-full text-start focus:outline-none"
       >
         <div className="aspect-[16/9] w-full bg-[var(--color-surface-elevated)] overflow-hidden">
           {event.cover_url ? (

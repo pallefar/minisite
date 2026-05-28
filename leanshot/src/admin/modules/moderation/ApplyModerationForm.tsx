@@ -119,7 +119,7 @@ export function ApplyModerationForm({ userId }: ApplyModerationFormProps) {
           maxLength={REASON_MAX}
           className="mt-1 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-sm"
         />
-        <span className="mt-1 text-right text-xs text-[var(--color-text-secondary)]">
+        <span className="mt-1 text-end text-xs text-[var(--color-text-secondary)]">
           {reason.length}/{REASON_MAX}
         </span>
       </label>

@@ -336,7 +336,7 @@ export default function RagCostPage() {
         <div
           role="alert"
           aria-live="assertive"
-          className="bg-[var(--color-danger-soft)] border-l-2 border-[var(--color-danger)] p-4 mb-2 flex items-center gap-3 rounded-r-md"
+          className="bg-[var(--color-danger-soft)] border-s-2 border-[var(--color-danger)] p-4 mb-2 flex items-center gap-3 rounded-r-md"
         >
           <AlertOctagon size={18} aria-hidden className="shrink-0 text-[var(--color-danger)]" />
           <p className="text-sm text-[var(--color-text)] flex-1">

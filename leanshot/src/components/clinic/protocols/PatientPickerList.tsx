@@ -105,7 +105,7 @@ export function PatientPickerList({ orgId, selectedId, onSelect }: PatientPicker
               type="button"
               role="option"
               aria-selected={isSelected}
-              className={`w-full text-left px-3 py-3 rounded-card text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
+              className={`w-full text-start px-3 py-3 rounded-card text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
                 isSelected
                   ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)] font-semibold'
                   : 'text-[var(--color-text)] hover:bg-[var(--color-surface-elevated)]'

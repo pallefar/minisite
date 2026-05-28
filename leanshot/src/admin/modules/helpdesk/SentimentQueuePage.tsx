@@ -79,7 +79,7 @@ export default function SentimentQueuePage(): React.JSX.Element {
             <button
               type="button"
               onClick={() => setOpenTicketId(r.id)}
-              className="w-full text-left px-4 py-3 hover:bg-[var(--color-surface-elevated)]"
+              className="w-full text-start px-4 py-3 hover:bg-[var(--color-surface-elevated)]"
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="font-medium truncate">{r.subject}</span>

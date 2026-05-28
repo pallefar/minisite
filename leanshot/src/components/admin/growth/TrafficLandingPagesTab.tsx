@@ -280,7 +280,7 @@ export const TrafficLandingPagesTab: React.FC = () => {
         <Card variant="flat" padding="md">
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-left border-b border-[var(--color-border)]">
+              <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-start border-b border-[var(--color-border)]">
                 <th className="py-2 pe-3 text-start">Path</th>
                 <th className="py-2 pe-3 text-start">Variant</th>
                 <th

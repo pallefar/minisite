@@ -434,7 +434,7 @@ export function ProtocolEditorPage() {
                     (h) => (
                       <th
                         key={h}
-                        className="py-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)] text-left"
+                        className="py-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)] text-start"
                       >
                         {h}
                       </th>
@@ -538,7 +538,7 @@ export function ProtocolEditorPage() {
                 <button
                   type="button"
                   onClick={() => void handleArchive()}
-                  className="w-full text-[13px] text-[var(--color-danger)] hover:underline text-left py-1"
+                  className="w-full text-[13px] text-[var(--color-danger)] hover:underline text-start py-1"
                 >
                   Archive protocol
                 </button>

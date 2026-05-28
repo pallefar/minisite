@@ -122,7 +122,7 @@ export function ReportsQueue({ mode }: ReportsQueueProps) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as ReportStatus | 'all')}
-            className="ml-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
+            className="ms-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s} value={s}>
@@ -136,7 +136,7 @@ export function ReportsQueue({ mode }: ReportsQueueProps) {
           <select
             value={targetFilter}
             onChange={(e) => setTargetFilter(e.target.value as ReportTargetType | 'all')}
-            className="ml-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
+            className="ms-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
           >
             {TARGET_FILTERS.map((t) => (
               <option key={t} value={t}>
@@ -163,16 +163,16 @@ export function ReportsQueue({ mode }: ReportsQueueProps) {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Created
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Target
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Source
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Status
               </th>
               <th className="py-2" />
@@ -212,7 +212,7 @@ export function ReportsQueue({ mode }: ReportsQueueProps) {
                       {r.status}
                     </span>
                   </td>
-                  <td className="py-2 text-right">
+                  <td className="py-2 text-end">
                     <div className="inline-flex gap-2">
                       {r.status === 'open' && (
                         <button

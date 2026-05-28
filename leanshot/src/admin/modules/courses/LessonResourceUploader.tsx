@@ -124,7 +124,7 @@ export function LessonResourceUploader({
             const f = e.target.files?.[0];
             if (f) void handleFile(f);
           }}
-          className="text-sm file:mr-3 file:rounded-full file:border-0 file:bg-[var(--color-primary)] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--color-primary-foreground)] disabled:opacity-60"
+          className="text-sm file:me-3 file:rounded-full file:border-0 file:bg-[var(--color-primary)] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-[var(--color-primary-foreground)] disabled:opacity-60"
         />
         <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
           <input

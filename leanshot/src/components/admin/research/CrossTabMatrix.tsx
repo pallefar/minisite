@@ -39,7 +39,7 @@ export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: Cr
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full text-[13px]">
-          <caption className="text-[11px] text-[var(--color-text-tertiary)] text-left pb-2">
+          <caption className="text-[11px] text-[var(--color-text-tertiary)] text-start pb-2">
             ε = {epsilon} (differential privacy noise applied)
             {suppressedBuckets > 0 &&
               ` — ${suppressedBuckets} sub-group${suppressedBuckets !== 1 ? 's' : ''} suppressed`}
@@ -48,7 +48,7 @@ export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: Cr
             <tr>
               <th
                 scope="col"
-                className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-[0.06em] text-left px-3 py-2"
+                className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-[0.06em] text-start px-3 py-2"
               >
                 Segment
               </th>
@@ -56,7 +56,7 @@ export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: Cr
                 <th
                   key={col}
                   scope="col"
-                  className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-[0.06em] text-right px-3 py-2"
+                  className="text-[11px] font-semibold text-[var(--color-text-tertiary)] uppercase tracking-[0.06em] text-end px-3 py-2"
                 >
                   {col}
                 </th>
@@ -73,7 +73,7 @@ export function CrossTabMatrix({ rows, columns, epsilon, suppressedBuckets }: Cr
                   {row.label}
                 </td>
                 {row.values.map((v, i) => (
-                  <td key={i} className="text-[13px] text-right px-3 py-2">
+                  <td key={i} className="text-[13px] text-end px-3 py-2">
                     {v !== null ? (
                       v.toFixed(1)
                     ) : (

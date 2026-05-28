@@ -137,13 +137,13 @@ export function AdminCliniciansPage() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Handle
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Name
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Verified
               </th>
               <th className="py-2"></th>
@@ -171,7 +171,7 @@ export function AdminCliniciansPage() {
                       {verified ? 'Verified' : 'Unverified'}
                     </span>
                   </td>
-                  <td className="py-2 text-right">
+                  <td className="py-2 text-end">
                     <button
                       type="button"
                       onClick={() => void handleToggle(row)}

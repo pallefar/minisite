@@ -31,9 +31,7 @@ export function ProtocolKeyboardHelpModal({ open, onClose }: ProtocolKeyboardHel
             <kbd className="inline-flex items-center justify-center min-w-[3rem] h-7 px-2 rounded text-[11px] font-mono bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text-secondary)]">
               {key}
             </kbd>
-            <dd className="text-[13px] text-[var(--color-text)] flex-1 text-right">
-              {description}
-            </dd>
+            <dd className="text-[13px] text-[var(--color-text)] flex-1 text-end">{description}</dd>
           </div>
         ))}
       </dl>

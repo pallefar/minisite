@@ -331,7 +331,7 @@ export function CommunityCommentComposer({
       </div>
 
       {/* Character counter */}
-      <div className={`text-xs text-right ${charCountClass}`} aria-live="polite">
+      <div className={`text-xs text-end ${charCountClass}`} aria-live="polite">
         {body.length} / {MAX_BODY_LEN}
         {isOverLimit && ' — too long'}
       </div>

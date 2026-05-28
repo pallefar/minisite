@@ -111,7 +111,7 @@ export function CancellationCohortTable({ rows, loading }: CancellationCohortTab
         <thead>
           <tr className="border-b border-[var(--color-border)]">
             <th
-              className="sticky left-0 z-10 bg-[var(--color-surface)] text-left text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.04em] px-3 py-2.5 min-w-[140px]"
+              className="sticky left-0 z-10 bg-[var(--color-surface)] text-start text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.04em] px-3 py-2.5 min-w-[140px]"
               scope="col"
             >
               Cohort
@@ -119,14 +119,14 @@ export function CancellationCohortTable({ rows, loading }: CancellationCohortTab
             {OFFER_TYPES.map((ot) => (
               <th
                 key={ot}
-                className="text-left text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.04em] px-3 py-2.5 min-w-[90px]"
+                className="text-start text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.04em] px-3 py-2.5 min-w-[90px]"
                 scope="col"
               >
                 {OFFER_LABELS[ot]}
               </th>
             ))}
             <th
-              className="text-left text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.04em] px-3 py-2.5 min-w-[120px]"
+              className="text-start text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.04em] px-3 py-2.5 min-w-[120px]"
               scope="col"
             >
               Best offer

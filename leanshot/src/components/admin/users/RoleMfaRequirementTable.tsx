@@ -155,7 +155,7 @@ export function RoleMfaRequirementTable() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left" aria-label="Role MFA requirements">
+            <table className="w-full text-start" aria-label="Role MFA requirements">
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
                   <th

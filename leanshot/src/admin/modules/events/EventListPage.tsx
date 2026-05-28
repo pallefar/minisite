@@ -161,22 +161,22 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                   Title
                 </th>
-                <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                   Space
                 </th>
-                <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                   Starts
                 </th>
-                <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                   Capacity
                 </th>
-                <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                   Going
                 </th>
-                <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+                <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                   Status
                 </th>
                 <th className="py-2"></th>
@@ -211,7 +211,7 @@ export function EventListPage({ onNavigate }: EventListPageProps) {
                         {STATUS_LABEL[status]}
                       </span>
                     </td>
-                    <td className="py-2 text-right">
+                    <td className="py-2 text-end">
                       <div className="flex items-center justify-end gap-3">
                         <button
                           type="button"

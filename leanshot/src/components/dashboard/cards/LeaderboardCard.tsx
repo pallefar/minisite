@@ -121,7 +121,7 @@ export function LeaderboardCard({
                 r.is_self ? 'font-semibold text-[var(--color-primary)]' : 'text-[var(--color-text)]'
               }
             >
-              <span className="inline-block w-8 text-right text-[var(--color-text-secondary)]">
+              <span className="inline-block w-8 text-end text-[var(--color-text-secondary)]">
                 {r.rank_in_cohort}.
               </span>{' '}
               <span>{r.handle}</span>{' '}

@@ -76,13 +76,13 @@ export function CoursesListAdmin({ onNavigate }: CoursesListAdminProps) {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Title
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Slug
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Updated
               </th>
               <th className="py-2"></th>
@@ -101,7 +101,7 @@ export function CoursesListAdmin({ onNavigate }: CoursesListAdminProps) {
                 <td className="py-2 text-[var(--color-text-secondary)] text-xs">
                   {new Date(c.updated_at).toLocaleDateString()}
                 </td>
-                <td className="py-2 text-right space-x-3">
+                <td className="py-2 text-end space-x-3">
                   <button
                     type="button"
                     onClick={() => onNavigate(`/admin/courses/${c.id}`)}

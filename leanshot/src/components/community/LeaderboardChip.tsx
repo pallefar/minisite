@@ -137,7 +137,7 @@ export function LeaderboardChip({
       <ol className="space-y-1 text-sm tabular-nums" aria-label="Top community members">
         {visibleRows.map((row) => (
           <li key={`${row.rank_in_space}-${row.handle}`} className="flex items-center gap-2">
-            <span className="text-[var(--color-text-secondary)] w-6 text-right">
+            <span className="text-[var(--color-text-secondary)] w-6 text-end">
               {row.rank_in_space}
             </span>
             <span className="text-[var(--color-text)] flex-1 truncate">@{row.handle}</span>

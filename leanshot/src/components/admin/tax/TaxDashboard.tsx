@@ -278,7 +278,7 @@ export function TaxDashboard() {
                         }}
                       />
                     </div>
-                    <span className="text-[11px] font-normal text-[var(--color-text-tertiary)] w-10 text-right">
+                    <span className="text-[11px] font-normal text-[var(--color-text-tertiary)] w-10 text-end">
                       {Math.round(r.proximity_percent)}%
                     </span>
                   </div>

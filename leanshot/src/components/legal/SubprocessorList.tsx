@@ -115,7 +115,7 @@ export function SubprocessorList() {
               {['Vendor', 'Purpose', 'BAA Status', 'Region'].map((col) => (
                 <th
                   key={col}
-                  className="px-4 py-2 text-left text-[13px] font-semibold border-b border-[var(--color-border)]"
+                  className="px-4 py-2 text-start text-[13px] font-semibold border-b border-[var(--color-border)]"
                 >
                   {col}
                 </th>

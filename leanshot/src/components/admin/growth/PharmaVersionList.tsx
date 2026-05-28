@@ -57,7 +57,7 @@ export function PharmaVersionList({ versions }: PharmaVersionListProps): React.J
             >
               <span role="columnheader">Author</span>
               <span role="columnheader">Clinical review</span>
-              <span role="columnheader" className="text-right">
+              <span role="columnheader" className="text-end">
                 Edited
               </span>
             </div>
@@ -80,7 +80,7 @@ export function PharmaVersionList({ versions }: PharmaVersionListProps): React.J
                 </span>
                 <span
                   role="cell"
-                  className="text-right tabular-nums text-[var(--color-text-secondary)]"
+                  className="text-end tabular-nums text-[var(--color-text-secondary)]"
                 >
                   {formatShort(v.created_at)}
                 </span>

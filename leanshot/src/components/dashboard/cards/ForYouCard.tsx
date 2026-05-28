@@ -185,7 +185,7 @@ export function ForYouCard({ span = 6 }: ForYouCardProps = {}): ReactElement {
                 type="button"
                 onClick={() => handleClick(rec)}
                 className={
-                  'group flex w-full items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-2.5 text-left hover:border-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]' +
+                  'group flex w-full items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-2.5 text-start hover:border-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]' +
                   (reducedMotion
                     ? ''
                     : ' transition-[transform,border-color] hover:-translate-y-[1px]')

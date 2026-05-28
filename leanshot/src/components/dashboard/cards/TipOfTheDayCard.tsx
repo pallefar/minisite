@@ -146,7 +146,7 @@ export function TipOfTheDayCard() {
           aria-label="Show another tip"
           aria-disabled="true"
           disabled
-          className="ml-auto opacity-40 cursor-not-allowed"
+          className="ms-auto opacity-40 cursor-not-allowed"
         >
           <RotateCcw className="w-4 h-4 text-[var(--color-text-tertiary)]" aria-hidden />
         </button>

@@ -149,7 +149,7 @@ export default function OnboardingFunnelTab({ flowId }: FunnelTabProps) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[var(--color-text-tertiary)]">
+            <tr className="text-start text-[var(--color-text-tertiary)]">
               <th className="py-2">Step</th>
               <th className="py-2">Views</th>
               <th className="py-2">Completions</th>

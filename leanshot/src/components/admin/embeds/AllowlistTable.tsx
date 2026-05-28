@@ -129,7 +129,7 @@ export function AllowlistTable({ rows, onRequestRemove, onOpenReferences }: Allo
 
   return (
     <div className="mt-6 overflow-x-auto rounded-lg border border-[var(--color-border)]">
-      <table className="w-full text-left text-[14px]">
+      <table className="w-full text-start text-[14px]">
         <thead className="bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]">
           <tr>
             <th scope="col" aria-sort={ariaSortFor('hostname')} className="px-4 py-3 font-semibold">

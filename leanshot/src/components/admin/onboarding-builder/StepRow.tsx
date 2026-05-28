@@ -29,7 +29,7 @@ export default function StepRow({ step, index, dragging, onClick }: StepRowProps
       type="button"
       onClick={onClick}
       className={
-        'w-full text-left px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] min-h-[56px] transition-colors hover:border-[var(--color-primary)] ' +
+        'w-full text-start px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] min-h-[56px] transition-colors hover:border-[var(--color-primary)] ' +
         (dragging ? 'opacity-50' : '')
       }
       aria-label={`Step ${index + 1}: ${typeLabel}${title ? ` — ${title}` : ''}`}

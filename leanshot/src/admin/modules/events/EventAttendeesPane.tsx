@@ -143,16 +143,16 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 User
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Status
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Waitlist #
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 RSVP&apos;d
               </th>
               <th className="py-2"></th>
@@ -167,7 +167,7 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
                 <td className="py-2 font-medium">
                   {r.display_name ?? r.handle ?? r.user_id.slice(0, 8) + '…'}
                   {r.handle && (
-                    <span className="ml-2 text-xs text-[var(--color-text-secondary)] font-mono">
+                    <span className="ms-2 text-xs text-[var(--color-text-secondary)] font-mono">
                       @{r.handle}
                     </span>
                   )}
@@ -190,7 +190,7 @@ export function EventAttendeesPane({ eventId }: EventAttendeesPaneProps) {
                 <td className="py-2 text-[var(--color-text-secondary)] font-mono text-xs">
                   {new Date(r.created_at).toLocaleString()}
                 </td>
-                <td className="py-2 text-right">
+                <td className="py-2 text-end">
                   <button
                     type="button"
                     onClick={() => void handleRemove(r.id)}

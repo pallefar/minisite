@@ -86,13 +86,15 @@ function SpacesListPage({ onNew, onEdit }: { onNew: () => void; onEdit: (id: str
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Name
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Tier
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">Org</th>
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
+                Org
+              </th>
               <th className="py-2"></th>
             </tr>
           </thead>
@@ -107,7 +109,7 @@ function SpacesListPage({ onNew, onEdit }: { onNew: () => void; onEdit: (id: str
                 <td className="py-2 text-[var(--color-text-secondary)] font-mono text-xs">
                   {s.org_id ? s.org_id.slice(0, 8) + '…' : 'global'}
                 </td>
-                <td className="py-2 text-right">
+                <td className="py-2 text-end">
                   <button
                     onClick={() => onEdit(s.id)}
                     className="text-xs font-medium text-[var(--color-primary)] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded"

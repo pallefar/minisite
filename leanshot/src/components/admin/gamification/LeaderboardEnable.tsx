@@ -74,7 +74,7 @@ export default function LeaderboardEnable() {
       <Card
         variant="flat"
         padding="lg"
-        className="border-l-4 border-[var(--color-warning)] bg-[var(--color-surface-elevated)]"
+        className="border-s-4 border-[var(--color-warning)] bg-[var(--color-surface-elevated)]"
       >
         <p className="text-sm font-semibold mb-1">Ethical responsibility — admin-curated only</p>
         <p className="text-sm text-[var(--color-text-secondary)]">

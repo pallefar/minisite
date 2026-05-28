@@ -175,7 +175,7 @@ export default function TicketDetailPage({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[var(--color-bg)] w-full max-w-3xl h-full overflow-y-auto shadow-xl border-l border-[var(--color-border)]">
+      <div className="bg-[var(--color-bg)] w-full max-w-3xl h-full overflow-y-auto shadow-xl border-s border-[var(--color-border)]">
         <header className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
           <div className="flex items-center gap-2 min-w-0">
             <button

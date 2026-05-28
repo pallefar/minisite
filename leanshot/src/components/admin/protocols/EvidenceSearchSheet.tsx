@@ -153,7 +153,7 @@ export function EvidenceSearchSheet({
               }}
               placeholder="Search RAG evidence…"
               aria-label="Search evidence query"
-              className="w-full h-10 pl-9 pr-4 text-[13px] border border-[var(--color-border)] rounded-pill bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] placeholder:text-[var(--color-text-tertiary)]"
+              className="w-full h-10 ps-9 pe-4 text-[13px] border border-[var(--color-border)] rounded-pill bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] placeholder:text-[var(--color-text-tertiary)]"
             />
           </div>
           <Button

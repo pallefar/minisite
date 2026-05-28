@@ -37,7 +37,7 @@ export function TrafficSplitSlider({
           className="flex-1 accent-[var(--color-primary)]"
           aria-label="Variant traffic share"
         />
-        <span className="text-sm font-bold tabular-nums w-12 text-right">{value}%</span>
+        <span className="text-sm font-bold tabular-nums w-12 text-end">{value}%</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {PRESETS.map((p) => (

@@ -76,7 +76,7 @@ export function LevelUpBurst({ newLevel, onDismiss }: LevelUpBurstProps) {
               <button
                 type="button"
                 onClick={() => setShareOpen(true)}
-                className="mt-4 mr-3 px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                className="mt-4 me-3 px-4 py-2 text-sm rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
               >
                 Share Level {newLevel}
               </button>

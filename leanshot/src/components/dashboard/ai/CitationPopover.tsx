@@ -270,7 +270,7 @@ export function CitationPopover({
 
         {/* Verbatim quote block (DOMPurify-sanitized — T-60-10-XSS-1) */}
         <div
-          className="text-[13px] border-l-2 border-[var(--color-primary)] bg-[var(--color-surface-elevated)] px-3 py-2 rounded-r-sm"
+          className="text-[13px] border-s-2 border-[var(--color-primary)] bg-[var(--color-surface-elevated)] px-3 py-2 rounded-r-sm"
           dangerouslySetInnerHTML={{ __html: sanitizedQuote }}
         />
         {truncated && (

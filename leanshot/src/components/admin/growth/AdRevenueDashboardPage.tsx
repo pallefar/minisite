@@ -276,28 +276,28 @@ export function AdRevenueDashboardPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--color-border)]">
-                <th className="py-2 px-3 text-left text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-start text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   Network
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   Impressions
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   Clicks
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   CTR
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   Fill Rate
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   eCPM
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   RPM
                 </th>
-                <th className="py-2 px-3 text-right text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
+                <th className="py-2 px-3 text-end text-[var(--color-text-tertiary)] font-semibold uppercase text-[10px] tracking-[0.1em]">
                   Revenue
                 </th>
               </tr>
@@ -311,25 +311,25 @@ export function AdRevenueDashboardPage() {
                   <td className="py-2.5 px-3 font-medium text-[var(--color-text-primary)]">
                     {group.network}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     {group.impressions.toLocaleString()}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     {group.clicks.toLocaleString()}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     {(group.ctr * 100).toFixed(2)}%
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     {(group.fillRate * 100).toFixed(1)}%
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     ${group.ecpm.toFixed(2)}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     ${group.rpm.toFixed(2)}
                   </td>
-                  <td className="py-2.5 px-3 text-right text-[var(--color-text-secondary)] numerals-tabular">
+                  <td className="py-2.5 px-3 text-end text-[var(--color-text-secondary)] numerals-tabular">
                     ${group.revenue.toFixed(2)}
                   </td>
                 </tr>

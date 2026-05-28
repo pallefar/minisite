@@ -221,13 +221,13 @@ export function BannedWordsEditor() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Word
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Severity
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Added
               </th>
               <th className="py-2" />
@@ -253,7 +253,7 @@ export function BannedWordsEditor() {
                 <td className="py-2 text-xs text-[var(--color-text-secondary)]">
                   {new Date(row.created_at).toLocaleDateString()}
                 </td>
-                <td className="py-2 text-right">
+                <td className="py-2 text-end">
                   <div className="inline-flex gap-2">
                     <button
                       type="button"

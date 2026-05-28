@@ -60,7 +60,7 @@ export default function TicketList({ onSelect }: TicketListProps): JSX.Element {
           <button
             type="button"
             onClick={() => onSelect(t.id)}
-            className="text-left w-full p-2 hover:bg-[var(--color-surface-elevated)] rounded-md"
+            className="text-start w-full p-2 hover:bg-[var(--color-surface-elevated)] rounded-md"
           >
             <div className="text-sm">{t.subject}</div>
             <div className="text-xs text-[var(--color-fg-muted)]">{t.status}</div>

@@ -234,7 +234,7 @@ export function DMInboxView({ currentUserId }: DMInboxViewProps): JSX.Element {
             <button
               type="button"
               onClick={() => setActiveDmThread(t.id)}
-              className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] rounded-xl"
+              className="w-full text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] rounded-xl"
               aria-label={`Open conversation with ${displayName}`}
             >
               <Card variant="interactive" padding="md">

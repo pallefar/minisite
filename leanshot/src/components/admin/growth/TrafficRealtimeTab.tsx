@@ -212,15 +212,15 @@ export const TrafficRealtimeTab: React.FC = () => {
             </h3>
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-left">
+                <tr className="text-[11px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-[0.06em] text-start">
                   <th scope="col">Channel</th>
-                  <th scope="col" className="text-right">
+                  <th scope="col" className="text-end">
                     Visits
                   </th>
-                  <th scope="col" className="text-right">
+                  <th scope="col" className="text-end">
                     Signups
                   </th>
-                  <th scope="col" className="text-right">
+                  <th scope="col" className="text-end">
                     Activations
                   </th>
                 </tr>
@@ -229,13 +229,9 @@ export const TrafficRealtimeTab: React.FC = () => {
                 {topChannels.map((r) => (
                   <tr key={`${r.channel_group}_${r.audience}`}>
                     <td className="py-2">{r.channel_group}</td>
-                    <td className="py-2 text-right numerals-tabular">
-                      {r.visits.toLocaleString()}
-                    </td>
-                    <td className="py-2 text-right numerals-tabular">
-                      {r.signups.toLocaleString()}
-                    </td>
-                    <td className="py-2 text-right numerals-tabular">
+                    <td className="py-2 text-end numerals-tabular">{r.visits.toLocaleString()}</td>
+                    <td className="py-2 text-end numerals-tabular">{r.signups.toLocaleString()}</td>
+                    <td className="py-2 text-end numerals-tabular">
                       {r.activations.toLocaleString()}
                     </td>
                   </tr>

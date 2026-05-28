@@ -35,7 +35,7 @@ export function AnonymousPreviewView() {
           </p>
         </header>
 
-        <ul className="mb-10 space-y-2 text-left text-[14px] text-[var(--color-text-muted)]">
+        <ul className="mb-10 space-y-2 text-start text-[14px] text-[var(--color-text-muted)]">
           <li className="flex items-start gap-2">
             <span
               aria-hidden

@@ -133,7 +133,7 @@ export function HitlQueueRow({
               stale
             </span>
           )}
-          <span className="ml-auto text-[11px] text-[var(--color-text-tertiary)]">
+          <span className="ms-auto text-[11px] text-[var(--color-text-tertiary)]">
             {relTime(row.created_at)}
           </span>
         </div>

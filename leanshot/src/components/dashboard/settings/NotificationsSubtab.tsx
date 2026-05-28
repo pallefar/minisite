@@ -444,7 +444,7 @@ export function NotificationsSubtab() {
           >
             <thead>
               <tr>
-                <th className="text-start font-semibold py-2 pr-4">Category</th>
+                <th className="text-start font-semibold py-2 pe-4">Category</th>
                 {CHANNELS.map((ch) => (
                   <th key={ch} className="text-center font-semibold py-2 px-2">
                     {CHANNEL_LABEL[ch]}
@@ -455,7 +455,7 @@ export function NotificationsSubtab() {
             <tbody>
               {MATRIX_CATEGORIES.map((cat) => (
                 <tr key={cat} className="border-t border-[var(--color-border)]">
-                  <th scope="row" className="text-start font-semibold py-3 pr-4">
+                  <th scope="row" className="text-start font-semibold py-3 pe-4">
                     {CATEGORY_LABEL[cat]}
                   </th>
                   {CHANNELS.map((ch) => {

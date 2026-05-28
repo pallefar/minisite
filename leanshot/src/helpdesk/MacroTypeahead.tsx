@@ -88,7 +88,7 @@ export default function MacroTypeahead({
             role="option"
             aria-selected="false"
             onClick={() => onSelect(m.body)}
-            className="text-left w-full p-2 hover:bg-[var(--color-surface-elevated)] flex flex-col"
+            className="text-start w-full p-2 hover:bg-[var(--color-surface-elevated)] flex flex-col"
           >
             <span className="text-xs text-[var(--color-fg-muted)]">/{m.shortcut}</span>
             <span className="text-sm">{m.name}</span>

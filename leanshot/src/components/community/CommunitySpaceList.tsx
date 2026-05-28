@@ -144,7 +144,7 @@ export function CommunitySpaceList({ currentTier, onSelectSpace }: CommunitySpac
           <button
             key={space.id}
             onClick={() => onSelectSpace(space.id)}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-left transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-start transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
             aria-label={`Open space: ${space.name}`}
           >
             <p className="text-sm font-semibold text-[var(--color-text)]">{space.name}</p>

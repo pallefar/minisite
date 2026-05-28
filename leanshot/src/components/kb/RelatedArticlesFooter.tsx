@@ -124,7 +124,7 @@ export function RelatedArticlesFooter({
               type="button"
               onClick={() => handleClick(rec)}
               className={
-                'block w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-left text-[13px] font-medium text-[var(--color-text)] hover:border-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]' +
+                'block w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-start text-[13px] font-medium text-[var(--color-text)] hover:border-[var(--color-primary-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]' +
                 (reducedMotion
                   ? ''
                   : ' transition-[transform,border-color] hover:-translate-y-[1px]')

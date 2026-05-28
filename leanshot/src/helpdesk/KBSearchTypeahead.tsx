@@ -105,7 +105,7 @@ export default function KBSearchTypeahead({
                 });
                 onSelectArticle(r.id);
               }}
-              className="text-left w-full p-2 hover:bg-[var(--color-surface-elevated)] rounded-md"
+              className="text-start w-full p-2 hover:bg-[var(--color-surface-elevated)] rounded-md"
             >
               {r.title}
             </button>

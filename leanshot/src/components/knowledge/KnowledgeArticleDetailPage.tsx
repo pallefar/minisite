@@ -249,7 +249,7 @@ export function KnowledgeArticleDetailPage() {
 
             {/* ── Article body ──────────────────────────────────────── */}
             <article
-              className="prose prose-sm max-w-none text-text [&_a]:text-primary [&_a:hover]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-text-secondary [&_code]:text-sm [&_pre]:overflow-x-auto"
+              className="prose prose-sm max-w-none text-text [&_a]:text-primary [&_a:hover]:underline [&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-4 [&_blockquote]:text-text-secondary [&_code]:text-sm [&_pre]:overflow-x-auto"
               aria-label="Article body"
             >
               {/* Phase 61 Plan 07 Task 4 — pre-parse [protocol:<uuid>] shortcodes BEFORE
@@ -294,7 +294,7 @@ export function KnowledgeArticleDetailPage() {
                         key={r.id}
                         type="button"
                         onClick={() => r.slug && navigate(`/${r.topic_tag}/${r.slug}`)}
-                        className="w-full text-left rounded-lg border border-border p-3 hover:border-border transition-colors group"
+                        className="w-full text-start rounded-lg border border-border p-3 hover:border-border transition-colors group"
                         aria-label={`Related: ${rTitle}`}
                       >
                         <div className="flex items-start gap-2">

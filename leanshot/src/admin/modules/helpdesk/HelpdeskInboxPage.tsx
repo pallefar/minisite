@@ -240,7 +240,7 @@ export default function HelpdeskInboxPage(): React.JSX.Element {
                 type="button"
                 onClick={() => setOpenTicketId(r.id)}
                 aria-label={r.subject}
-                className="w-full text-left px-4 py-3 hover:bg-[var(--color-surface-elevated)]"
+                className="w-full text-start px-4 py-3 hover:bg-[var(--color-surface-elevated)]"
               >
                 <div className="flex items-center gap-3">
                   <span

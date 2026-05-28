@@ -271,7 +271,7 @@ export default function KBEditorPage(): React.JSX.Element {
   return (
     <div className="grid gap-4 lg:grid-cols-[40%_60%] min-h-[600px]">
       {/* Article list ------------------------------------------------------ */}
-      <aside className="flex flex-col gap-2 border-r border-[var(--color-border)] pr-4">
+      <aside className="flex flex-col gap-2 border-e border-[var(--color-border)] pe-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Articles</h2>
           <button
@@ -320,8 +320,8 @@ export default function KBEditorPage(): React.JSX.Element {
                   onClick={() => setSelectedId(a.id)}
                   className={
                     selectedId === a.id
-                      ? 'w-full text-left px-2 py-1 text-xs rounded bg-[var(--color-surface-elevated)]'
-                      : 'w-full text-left px-2 py-1 text-xs rounded hover:bg-[var(--color-surface-elevated)]'
+                      ? 'w-full text-start px-2 py-1 text-xs rounded bg-[var(--color-surface-elevated)]'
+                      : 'w-full text-start px-2 py-1 text-xs rounded hover:bg-[var(--color-surface-elevated)]'
                   }
                 >
                   <span className="block font-medium">{a.title}</span>
@@ -370,7 +370,7 @@ export default function KBEditorPage(): React.JSX.Element {
               >
                 ES
               </button>
-              <span className="ml-auto text-[10px] text-[var(--color-text-secondary)]">
+              <span className="ms-auto text-[10px] text-[var(--color-text-secondary)]">
                 v{current.published_version} · {formatRelative(current.published_at)}
               </span>
             </div>

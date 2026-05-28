@@ -145,7 +145,7 @@ export function KnowledgeRootPage() {
                   type="button"
                   onClick={() => navigate(`/${topic.slug}`)}
                   className={[
-                    'text-left rounded-xl border border-border bg-surface p-4',
+                    'text-start rounded-xl border border-border bg-surface p-4',
                     'hover:border-border focus-visible:outline-2 focus-visible:outline-primary',
                     reducedMotion ? '' : 'transition-colors duration-150',
                   ].join(' ')}

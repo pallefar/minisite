@@ -269,7 +269,7 @@ export function GrandfatheredPricesPage() {
       {/* Rows table */}
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-[12px] font-bold border-b border-[var(--color-border)]">
+          <tr className="text-start text-[12px] font-bold border-b border-[var(--color-border)]">
             <th className="py-2 px-2">Cohort</th>
             <th className="py-2 px-2">Stripe Price ID</th>
             <th className="py-2 px-2">From</th>

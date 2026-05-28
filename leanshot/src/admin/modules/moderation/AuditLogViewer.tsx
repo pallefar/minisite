@@ -185,7 +185,7 @@ export function AuditLogViewer() {
           <select
             value={filters.action}
             onChange={(e) => setFilters((f) => ({ ...f, action: e.target.value }))}
-            className="ml-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
+            className="ms-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
           >
             {ACTION_OPTIONS.map((a) => (
               <option key={a} value={a}>
@@ -199,7 +199,7 @@ export function AuditLogViewer() {
           <select
             value={filters.target}
             onChange={(e) => setFilters((f) => ({ ...f, target: e.target.value }))}
-            className="ml-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
+            className="ms-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
           >
             {TARGET_OPTIONS.map((t) => (
               <option key={t} value={t}>
@@ -215,7 +215,7 @@ export function AuditLogViewer() {
             value={filters.actor}
             onChange={(e) => setFilters((f) => ({ ...f, actor: e.target.value }))}
             placeholder="optional"
-            className="ml-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 font-mono text-xs"
+            className="ms-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 font-mono text-xs"
           />
         </label>
         <label className="text-xs text-[var(--color-text-secondary)]">
@@ -224,7 +224,7 @@ export function AuditLogViewer() {
             type="date"
             value={filters.createdAfter}
             onChange={(e) => setFilters((f) => ({ ...f, createdAfter: e.target.value }))}
-            className="ml-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
+            className="ms-2 rounded border border-[var(--color-border)] bg-transparent px-2 py-1 text-xs"
           />
         </label>
       </div>
@@ -241,16 +241,16 @@ export function AuditLogViewer() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-[var(--color-border)]">
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 When
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Actor
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Action
               </th>
-              <th className="py-2 text-left font-medium text-[var(--color-text-secondary)]">
+              <th className="py-2 text-start font-medium text-[var(--color-text-secondary)]">
                 Target
               </th>
               <th className="py-2" />
@@ -277,7 +277,7 @@ export function AuditLogViewer() {
                         </div>
                       )}
                     </td>
-                    <td className="py-2 text-right">
+                    <td className="py-2 text-end">
                       <button
                         type="button"
                         onClick={() => setExpandedId(expanded ? null : row.id)}

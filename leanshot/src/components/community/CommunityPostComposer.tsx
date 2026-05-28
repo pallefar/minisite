@@ -336,7 +336,7 @@ export function CommunityPostComposer({
       )}
 
       {/* Character counter (aria-live for screen reader updates) */}
-      <div className={`text-xs text-right ${charCountClass}`} aria-live="polite">
+      <div className={`text-xs text-end ${charCountClass}`} aria-live="polite">
         {body.length} / {MAX_BODY_LEN}
         {isOverLimit && ' — too long'}
       </div>
