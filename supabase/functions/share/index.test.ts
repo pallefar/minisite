@@ -51,7 +51,9 @@ import { getSetCookies } from 'jsr:@std/http/cookie';
 //
 // The CORS helper and hash helpers ARE deterministic and DO get full coverage.
 
-import { __internals, BASE_RESPONSE_HEADERS, buildCorsHeaders } from './cors.ts';
+// cookie.ts and hash.ts don't read env at module-eval time, so static imports
+// are safe. cors.ts reads SHARE_ALLOWED_ORIGINS at module-eval and freezes the
+// resulting Set, so it MUST be dynamic-imported AFTER env seeding (below).
 import { setRecipientCookie, getRecipientCookie } from './cookie.ts';
 import { parseIpFamily, parseUaFamily, sha256Hex } from './hash.ts';
 
@@ -61,8 +63,11 @@ Deno.env.set('SUPABASE_URL', 'http://localhost:54321');
 Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key');
 Deno.env.set('SHARE_ALLOWED_ORIGINS', 'https://leanshot.example.com,https://staging.example.com');
 
-// Import the handler entry points AFTER env seeding so module evaluation
-// observes the seeded values.
+// Import cors.ts and the handler entry points AFTER env seeding so module
+// evaluation observes the seeded values. Static `import` is hoisted to parse
+// time (before the Deno.env.set calls above), which causes cors.ts to build an
+// empty ALLOWED_ORIGINS set and the allow-list tests to fail with `null` ACAO.
+const { __internals, BASE_RESPONSE_HEADERS, buildCorsHeaders } = await import('./cors.ts');
 const { handleRedeem, handleSnapshot } = await import('./index.ts');
 
 // ─────────────────────────────────────────────────────────────────────────
