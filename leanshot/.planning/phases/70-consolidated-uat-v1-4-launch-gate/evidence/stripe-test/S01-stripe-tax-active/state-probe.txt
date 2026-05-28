@@ -1,0 +1,52 @@
+S01 — Stripe Tax active (PROBE-ONLY; activation deferred to operator)
+========================================================================
+
+Probed: 2026-05-28
+Disposition: PROBE-ONLY (must flip to active before launch — operator action required)
+
+Probe result
+------------
+$ stripe get /v1/tax/settings
+{
+  "object": "tax.settings",
+  "defaults": {
+    "provider": "stripe",
+    "tax_behavior": null,
+    "tax_code": null
+  },
+  "head_office": null,
+  "livemode": false,
+  "status": "pending",
+  "status_details": {
+    "pending": {
+      "missing_fields": ["head_office"]
+    }
+  }
+}
+
+Status: `pending` — Stripe Tax NOT active.
+Blocker: `head_office` field missing.
+
+Path to activation (operator action)
+------------------------------------
+1. Sign in https://dashboard.stripe.com/test/tax/overview (TEST mode).
+2. Click "Configure" or "Activate" → fill in head office address (DK registered, but US tax nexus
+   requires US head_office for nexus monitoring — confirm with Phase 65 nexus_thresholds_log).
+3. Tax Registrations → register in CA + NY at minimum (recommended starting nexus per plan).
+4. Defaults → set `tax_behavior` (exclusive vs inclusive) and `tax_code` (per Phase 65 guidance).
+5. Re-probe: `stripe get /v1/tax/settings` → expect `"status": "active"`.
+
+LIVE-mode activation
+--------------------
+Repeat above against https://dashboard.stripe.com/tax/overview (no `/test`) when LIVE flip
+happens in Plan 70-08 final-signoff.
+
+Caveat — DK Stripe account selling to US
+----------------------------------------
+The Stripe account is DK-registered (country=DK). Stripe Tax for cross-border US sales has
+specific configuration. The Plan 65 nexus monitor cron + cross-state tax calc (S08) depend
+on this being correctly set up. If the activation path is unclear, escalate to Stripe support
+or a tax advisor before launch.
+
+Signal status: PROBE-ONLY (must flip to PASS before launch)
+signoff: karsten.haldan@gmail.com, 2026-05-28, probed pending status + missing head_office field; activation deferred to operator Dashboard work before Plan 70-08 ship rule

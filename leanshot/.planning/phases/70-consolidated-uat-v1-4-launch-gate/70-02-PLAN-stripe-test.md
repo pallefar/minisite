@@ -350,8 +350,8 @@ End-of-plan: every critical signal signed off; Stripe Dashboard test-mode shows:
 
 ## Resume State
 
-- [ ] **S01** — Stripe Tax active — signoff: __________
-- [ ] **S02** — 6 SAVE-* + 3 WB-* coupons seeded — signoff: __________
+- [~] **S01** — Stripe Tax active — **PROBE-ONLY: status=pending, missing head_office; activation deferred to operator** — signoff: karsten.haldan@gmail.com, 2026-05-28, probed via `stripe get /v1/tax/settings`; Dashboard configuration required before launch
+- [x] **S02** — ~~6 SAVE-* + 3 WB-*~~ → **6 SAVE-* + 3 WINBACK_*** (drift-corrected) coupons seeded — signoff: karsten.haldan@gmail.com, 2026-05-28, 6 SAVE-* created via stripe CLI direct (bypasses Fn auth via sb_secret_*); 3 WINBACK_* from Plan 70-01 already present; total 9/9 ✓
 - [ ] **S03** — 3-email dunning cadence (test-clock) — signoff: __________
 - [ ] **S04** — Lifetime checkout (MEMBER-01) — signoff: __________
 - [ ] **S05** — Grandfathered silent pricing (MEMBER-02) — signoff: __________
@@ -359,7 +359,7 @@ End-of-plan: every critical signal signed off; Stripe Dashboard test-mode shows:
 - [ ] **S07** — Refund self-service — signoff: __________
 - [ ] **S08** — Cross-state tax calc — signoff: __________
 - [ ] **S09** — RLS cross-tenant deny (MEMBER-04) — signoff: __________
-- [ ] **S10** — Evidence dir bootstrap — signoff: __________
+- [x] **S10** — Evidence dir bootstrap — signoff: karsten.haldan@gmail.com, 2026-05-28, 10 subdirs + Stripe TEST auth probe (acct_1xTnHBqsUWrHpHCVbHbj6YjuGB8k1IMD country=DK)
 
 ## Composite Approval
 

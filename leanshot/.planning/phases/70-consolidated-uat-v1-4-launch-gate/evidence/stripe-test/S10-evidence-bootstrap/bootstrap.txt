@@ -1,0 +1,19 @@
+S10 — Evidence directory bootstrap + Stripe TEST auth smoke
+==============================================================
+
+Created: 2026-05-28
+Disposition: PASS
+
+Stripe account state (TEST mode)
+--------------------------------
+account_id:       acct_1xTnHBqsUWrHpHCVbHbj6YjuGB8k1IMD
+country:          DK (Denmark)
+charges_enabled:  None  (Stripe onboarding incomplete in TEST mode; not a launch blocker for fixture work)
+payouts_enabled:  None
+business_type:    -
+
+Evidence subdirs created (10):
+  S01..S10 each anchored under evidence/stripe-test/
+
+Signal status: PASS
+signoff: karsten.haldan@gmail.com, 2026-05-28, evidence dir + Stripe TEST auth probe complete; account DK-registered; charges_enabled=None in TEST mode is expected (Stripe Connect onboarding not yet completed in TEST sandbox)

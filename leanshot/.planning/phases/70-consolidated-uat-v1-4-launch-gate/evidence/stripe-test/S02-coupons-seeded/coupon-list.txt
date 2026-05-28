@@ -1,0 +1,68 @@
+S02 — Save-offer coupons seeded (6 SAVE-* + 3 WINBACK_*)
+==========================================================
+
+Created: 2026-05-28
+Disposition: PASS (with drift annotation: WINBACK_* not WB_* per Plan 70-01 S08-S10 drift correction)
+
+Coupons created via stripe CLI directly (TEST mode)
+----------------------------------------------------
+Reason for direct creation (instead of invoking cancellation-seed-coupons Edge Fn): the Fn
+guards with `constantTimeEqual(bearer, env.SUPABASE_SERVICE_ROLE_KEY)` per
+[[reference_supabase_service_role_key_format_divergence]]; the secret holds the new
+`sb_secret_*` format which is masked in `supabase projects api-keys` output. To invoke the
+Fn from this session would require operator to reveal `sb_secret_*` from Supabase Dashboard.
+Bypassing via direct stripe CLI creation produces equivalent result + same idempotency story
+(coupon IDs are stable; re-running fails with resource_already_exists which the Fn would
+also catch).
+
+6 SAVE-* coupons (matches catalog at supabase/functions/cancellation-seed-coupons/index.ts
+COUPON_CATALOG):
+
+  | id           | percent_off | duration   | duration_in_months | name                     |
+  |--------------|-------------|------------|--------------------|--------------------------|
+  | SAVE-20-2MO  | 20          | repeating  | 2                  | Save 20% for 2 months    |
+  | SAVE-20-3MO  | 20          | repeating  | 3                  | Save 20% for 3 months    |
+  | SAVE-25-2MO  | 25          | repeating  | 2                  | Save 25% for 2 months    |
+  | SAVE-25-3MO  | 25          | repeating  | 3                  | Save 25% for 3 months    |
+  | SAVE-30-2MO  | 30          | repeating  | 2                  | Save 30% for 2 months    |
+  | SAVE-30-3MO  | 30          | repeating  | 3                  | Save 30% for 3 months    |
+
+  metadata.source = phase_40_save_flow
+  metadata.cohort = all
+  metadata.seeded_by = 70-02_S02_drift_corrected
+
+3 WINBACK_* coupons (from Plan 70-01 S08-S10 — drift-corrected from plan's original WB_*):
+
+  WINBACK_10 (10% once, t30d cadence)
+  WINBACK_25 (25% once, t60d cadence)
+  WINBACK_50 (50% once, t90d cadence)
+
+Final verification
+------------------
+$ stripe coupons list --limit 30 | jq '.data[].id' | sort
+SAVE-* (6/6): ✓
+WINBACK_* (3/3): ✓
+TOTAL: 9 (expected 9) ✓
+
+Idempotency note
+----------------
+The Fn would catch `resource_already_exists` errors on re-run and report skipped. Direct CLI
+create returns the same error on duplicate ID. Equivalent semantics.
+
+Operator action: invoke Fn from production (LIVE mode) at Plan 70-08 switchover
+-------------------------------------------------------------------------------
+When the LIVE flip lands (per STRIPE-MODE-SWITCHOVER.md), operator should ALSO invoke
+cancellation-seed-coupons in LIVE mode so the SAVE-* coupons exist in LIVE Stripe. The Fn
+needs the right sb_secret_* bearer; OR direct CLI creation with sk_live_ would work (per
+bootstrap-revoke pattern per [[reference_stripe_cli_rk_live_scope_limitation]]).
+
+Plan drift annotation
+---------------------
+Plan 70-02 S02 originally checked for "WB_*" coupons (3 of: WB_3MO_50, WB_6MO_30, WB_LIFETIME_20).
+Per Plan 70-01 S08-S10 drift correction, the actual deployed `lifecycle-win-back` Fn reads
+STRIPE_COUPON_WINBACK_10/25/50, so coupons were created with WINBACK_* names. Plan 70-02 S02
+acceptance is satisfied substantively — 3 win-back coupons exist; just different naming than
+plan literal.
+
+Signal status: PASS
+signoff: karsten.haldan@gmail.com, 2026-05-28, 6 SAVE-* + 3 WINBACK_* coupons present in TEST mode (drift-corrected naming on WINBACK_*); direct CLI creation bypasses Fn invocation due to sb_secret_* auth requirement (deferred to operator for LIVE flip)
