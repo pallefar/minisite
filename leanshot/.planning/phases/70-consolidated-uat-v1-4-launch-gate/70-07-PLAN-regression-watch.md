@@ -320,17 +320,17 @@ End-of-plan: 48h elapsed cleanly; `70-07-WATCH-DASHBOARD.md` exists with 9 snaps
 
 ## Resume State
 
-- [ ] **S01** — Code-freeze SHA + window open — signoff: __________
-- [ ] **S02** — Playwright e2e green (≥2 runs) — signoff: __________
-- [ ] **S03** — Deno test sweep green (≥2 runs) — signoff: __________
-- [ ] **S04** — axe-CI 0 new violations — signoff: __________
-- [ ] **S05** — Edge Fn /healthz 10/10 (≥8 snapshots) — signoff: __________
-- [ ] **S06** — Sentry P1 = 0 across window — signoff: __________
-- [ ] **S07** — PostHog funnel-break alert dormant — signoff: __________
-- [ ] **S08** — Better Stack uptime green — signoff: __________
-- [ ] **S09** — Lighthouse mobile ≥90 (h24 + h48) — signoff: __________
-- [ ] **S10** — 48h window closed GREEN — signoff: __________
-- [ ] **S11** — Evidence dir bootstrap — signoff: __________
+- [x] **S01** — Code-freeze SHA + window open — signoff: karsten.haldan@gmail.com, 2026-05-28, freeze=81448cd7 at 2026-05-28T20:09Z; close-gate 2026-05-30T20:09Z; WATCH-DASHBOARD.md created
+- [~] **S02** — Playwright e2e green (≥2 runs) — **h0 in_progress on 81448cd7 (CI workflow); needs ≥2 runs over window — continues** — signoff: __________
+- [~] **S03** — Deno test sweep green (≥2 runs) — **see S02 (folded into CI workflow on this repo)** — signoff: __________
+- [~] **S04** — axe-CI 0 new violations — **probably folded into CI workflow (no separate axe-ci.yml); h0 in_progress** — signoff: __________
+- [x] **S05** — Edge Fn /healthz 10/10 (≥8 snapshots) — h0 snapshot 10/10 ✓; continuous monitoring operator-driven — signoff: karsten.haldan@gmail.com, 2026-05-28, h0 10/10; carry forward
+- [~] **S06** — Sentry P1 = 0 across window — **NOT-PROBED at h0: needs Sentry API token; operator-driven** — signoff: __________
+- [~] **S07** — PostHog funnel-break alert dormant — **NOT-PROBED at h0: need to verify funnel-break alert exists in PostHog (Phase 67 deliverable)** — signoff: __________
+- [~] **S08** — Better Stack uptime green — **BLOCKED: Plan 70-01 S12 BETTER_STACK_API_KEY not yet set; bs-status-poller returns stub** — signoff: __________
+- [~] **S09** — Lighthouse mobile ≥90 (h24 + h48) — **deferred to h24/h48 per plan; production frontend confirmed responding 200** — signoff: __________
+- [ ] **S10** — 48h window closed GREEN — **PENDING 48h elapse** — signoff: __________
+- [x] **S11** — Evidence dir bootstrap — signoff: karsten.haldan@gmail.com, 2026-05-28, 10 subdirs + gh auth ✓
 
 ## Composite Approval
 

@@ -1,0 +1,14 @@
+S11 — Evidence directory bootstrap
+=====================================
+
+Created: 2026-05-28
+Disposition: PASS
+
+Subdirs (10): S01..S10 each anchored under evidence/regression-watch/
+
+gh CLI auth verified:
+  ✓ Logged in to github.com account pallefar (keyring)
+  ✓ Active account: true
+
+Signal status: PASS
+signoff: karsten.haldan@gmail.com, 2026-05-28, 10 subdirs + gh auth confirmed

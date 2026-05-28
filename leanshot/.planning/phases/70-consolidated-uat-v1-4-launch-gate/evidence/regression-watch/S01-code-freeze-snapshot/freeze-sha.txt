@@ -1,0 +1,27 @@
+S01 — Code freeze + watch window OPEN
+=======================================
+
+Opened: 2026-05-28T20:09:58Z
+Freeze SHA: 81448cd7  (https://github.com/pallefar/minisite/commit/81448cd7)
+Freeze commit: fix(70-07): regenerate package-lock.json (add markdown-it@14.x deps)
+Expected window end: 2026-05-30T20:09:58Z (freeze + 48h)
+
+Predecessor freeze attempt
+--------------------------
+Initial freeze attempt anchored on `3a29838b` (2026-05-27T09:23+02 "Phase 69 CODE-COMPLETE")
+failed to open the window cleanly:
+
+  - CI workflow RED at 3a29838b due to package-lock.json drift
+    (markdown-it@14.x deps missing from lockfile while present in package.json)
+  - Root cause: lockfile not regenerated when markdown-it added to package.json
+  - Resolution: `cd leanshot && npm install --ignore-scripts` + commit + push
+  - New freeze SHA = 81448cd7 (which is the lockfile-fix commit; also pushes
+    36 prior Phase 70 evidence-only commits to origin/main)
+
+Watch dashboard
+---------------
+See: leanshot/.planning/phases/70-consolidated-uat-v1-4-launch-gate/70-07-WATCH-DASHBOARD.md
+(operator paste snapshots there every ~6h)
+
+Signal status: PASS (window open; close pending 48h elapse)
+signoff: karsten.haldan@gmail.com, 2026-05-28, window opened at 81448cd7; close-gate at 2026-05-30T20:09Z

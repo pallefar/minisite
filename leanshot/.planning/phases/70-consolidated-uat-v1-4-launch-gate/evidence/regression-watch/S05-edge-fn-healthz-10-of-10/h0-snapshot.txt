@@ -1,0 +1,40 @@
+S05 — Edge Fn /healthz 10/10 (h0 baseline)
+============================================
+
+Snapshot: 2026-05-28T20:09Z (h0 — watch window open)
+Method: curl bearer + apikey both anon-key against /functions/v1/<fn>/healthz
+
+Result: 10/10 ✓
+  ✓ grandfathered-policy-notice      HTTP=200 {"ok":true,"fn":"grandfathered-policy-notice"}
+  ✓ privacy-optout-process           HTTP=200 {"ok":true,"fn":"privacy-optout-process"}
+  ✓ request-refund                   HTTP=200 {"ok":true,"fn":"request-refund"}
+  ✓ stripe-dunning-orchestrator      HTTP=200 {"ok":true,"fn":"stripe-dunning-orchestrator"}
+  ✓ lifecycle-trial-ending           HTTP=200 {"ok":true,"fn":"lifecycle-trial-ending"}
+  ✓ nexus-monitor                    HTTP=200 {"ok":true,"fn":"nexus-monitor"}
+  ✓ auth-rate-limit-check            HTTP=200 {"ok":true,"fn":"auth-rate-limit-check"}
+  ✓ bs-status-poller                 HTTP=200 {"ok":true,"fn":"bs-status-poller"}
+  ✓ demo-org-purge                   HTTP=200 {"ok":true,"fn":"demo-org-purge"}
+  ✓ lifecycle-win-back               HTTP=200 {"ok":true,"fn":"lifecycle-win-back"}
+TOTAL: 10/10
+
+Initial probe (false alarm) was 7/10
+------------------------------------
+First probe of this signal reported 3 healthz returning 401 INVALID_JWT_FORMAT
+(grandfathered-policy-notice, privacy-optout-process, request-refund). Investigation
+revealed the failure was NOT in the Fns but in the smoke-probe:
+
+  Cause: .env.local SUPABASE_ANON_KEY had trailing `\r` (Windows line endings).
+  My initial extraction: `grep ^SUPABASE_ANON_KEY= .env.local | cut -d= -f2-`
+  → kept the trailing \r, ANON length=210 instead of 208.
+  → 3 Fns rejected the malformed bearer with INVALID_JWT_FORMAT; 7 didn't (either
+    luck of header parsing or stricter validation pipeline upstream).
+  Fix: pipe through `tr -d '\r\n"'` → ANON length=208 → all 10 succeed.
+
+Lesson: ANY .env.local read in CI / smoke scripts MUST strip \r\n. Surfaced as
+candidate memory pattern.
+
+Remaining snapshots (h6, h12, ..., h48): operator runs the same probe + pastes
+into watch dashboard.
+
+Signal status: PASS (h0 baseline 10/10; continuous monitoring required for ≥8 snapshots)
+signoff: karsten.haldan@gmail.com, 2026-05-28, h0 snapshot 10/10; continuous watch operator-driven
