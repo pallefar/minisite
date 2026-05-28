@@ -42,9 +42,9 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:5173';
 // with valid JWT sessions from the live Supabase project.
 // See fixtures/clinic-fixtures.ts for the canonical seeding pattern.
 const ALICE_SESSION = process.env.E2E_ALICE_SESSION ?? null; // Pro-tier user session JSON
-const BOB_SESSION = process.env.E2E_BOB_SESSION ?? null;     // Pro-tier user session JSON
+const BOB_SESSION = process.env.E2E_BOB_SESSION ?? null; // Pro-tier user session JSON
 const CHARLIE_SESSION = process.env.E2E_CHARLIE_SESSION ?? null; // Free-tier user session JSON
-const TEST_SPACE_ID = process.env.E2E_COMMUNITY_SPACE_ID ?? null;    // Free-tier space id
+const TEST_SPACE_ID = process.env.E2E_COMMUNITY_SPACE_ID ?? null; // Free-tier space id
 const TEST_PRO_SPACE_ID = process.env.E2E_COMMUNITY_PRO_SPACE_ID ?? null; // Pro-only space id
 
 // ── Self-skip guard ────────────────────────────────────────────────────────────
@@ -81,7 +81,11 @@ async function seedSession(page: Page, sessionJson: string): Promise<void> {
 // ── Test 1: COMMUNITY-01/02 — Post + reaction toggle ─────────────────────────
 
 test('community — Test 1: post body renders + reaction toggle is idempotent', async ({ page }) => {
-  test.skip(SKIP, 'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_ALICE_SESSION + E2E_COMMUNITY_SPACE_ID required');
+  // see deferred-tests.md#community-feed-env-gated
+  test.skip(
+    SKIP,
+    'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_ALICE_SESSION + E2E_COMMUNITY_SPACE_ID required',
+  );
 
   await seedSession(page, ALICE_SESSION!);
   await page.goto(`${BASE_URL}/#community/${TEST_SPACE_ID}`);
@@ -110,7 +114,11 @@ test('community — Test 1: post body renders + reaction toggle is idempotent', 
 // ── Test 2: COMMUNITY-05 — Cross-tab realtime ─────────────────────────────────
 
 test('community — Test 2: Realtime test — post in tab A appears in tab B within 3s', async () => {
-  test.skip(SKIP, 'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_ALICE_SESSION + E2E_BOB_SESSION + E2E_COMMUNITY_SPACE_ID required');
+  // see deferred-tests.md#community-feed-env-gated
+  test.skip(
+    SKIP,
+    'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_ALICE_SESSION + E2E_BOB_SESSION + E2E_COMMUNITY_SPACE_ID required',
+  );
 
   // Open two independent browser contexts (alice, bob)
   const browser = await chromium.launch();
@@ -122,11 +130,15 @@ test('community — Test 2: Realtime test — post in tab A appears in tab B wit
   try {
     // Seed sessions via addInitScript BEFORE navigation
     await alicePage.addInitScript(
-      ({ key, value }: { key: string; value: string }) => { localStorage.setItem(key, value); },
+      ({ key, value }: { key: string; value: string }) => {
+        localStorage.setItem(key, value);
+      },
       { key: SB_AUTH_KEY, value: ALICE_SESSION! },
     );
     await bobPage.addInitScript(
-      ({ key, value }: { key: string; value: string }) => { localStorage.setItem(key, value); },
+      ({ key, value }: { key: string; value: string }) => {
+        localStorage.setItem(key, value);
+      },
       { key: SB_AUTH_KEY, value: BOB_SESSION! },
     );
 
@@ -154,8 +166,14 @@ test('community — Test 2: Realtime test — post in tab A appears in tab B wit
 
 // ── Test 3: COMMUNITY-06 — Tier-locked discovery card + upgrade CTA ───────────
 
-test('community — Test 3: /pricing — Free user sees locked card → Upgrade button navigates to /pricing', async ({ page }) => {
-  test.skip(SKIP, 'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_CHARLIE_SESSION + E2E_COMMUNITY_PRO_SPACE_ID required');
+test('community — Test 3: /pricing — Free user sees locked card → Upgrade button navigates to /pricing', async ({
+  page,
+}) => {
+  // see deferred-tests.md#community-feed-env-gated
+  test.skip(
+    SKIP,
+    'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_CHARLIE_SESSION + E2E_COMMUNITY_PRO_SPACE_ID required',
+  );
 
   await seedSession(page, CHARLIE_SESSION!);
   await page.goto(`${BASE_URL}/#community`);
@@ -178,8 +196,14 @@ test('community — Test 3: /pricing — Free user sees locked card → Upgrade 
 
 // ── Test 4: D-10 XSS defense — markdown injection stripped ───────────────────
 
-test('community — Test 4: window.__pwned — <script> in post body is sanitized, window.__pwned is undefined', async ({ page }) => {
-  test.skip(SKIP, 'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_ALICE_SESSION + E2E_COMMUNITY_SPACE_ID required');
+test('community — Test 4: window.__pwned — <script> in post body is sanitized, window.__pwned is undefined', async ({
+  page,
+}) => {
+  // see deferred-tests.md#community-feed-env-gated
+  test.skip(
+    SKIP,
+    'PLAYWRIGHT_RUN_COMMUNITY=1 + E2E_ALICE_SESSION + E2E_COMMUNITY_SPACE_ID required',
+  );
 
   await seedSession(page, ALICE_SESSION!);
   await page.goto(`${BASE_URL}/#community/${TEST_SPACE_ID}`);

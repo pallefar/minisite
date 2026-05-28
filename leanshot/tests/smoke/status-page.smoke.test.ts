@@ -41,6 +41,7 @@ const apiKey = process.env.BETTERSTACK_API_KEY ?? '';
 describe('POLISH-10 status page smoke', () => {
   // ── Group 1 — DNS smoke (D-05) ────────────────────────────────────────────
   if (!cnameLive) {
+    // see deferred-tests.md#better-stack-cname-pending
     it.skip('Group 1 (D-05): CNAME not yet configured — Better Stack DNS pending HUMAN-UAT', () => {
       // Intentionally skipped — Plan 41-06 Task 4 Signal 2 cname-live
     });
@@ -54,6 +55,7 @@ describe('POLISH-10 status page smoke', () => {
 
   // ── Group 2 — HTTP smoke ──────────────────────────────────────────────────
   if (!cnameLive) {
+    // see deferred-tests.md#better-stack-cname-pending
     it.skip('Group 2: HTTP smoke skipped — Group 1 (DNS) not live', () => {
       // Intentionally skipped — depends on Group 1
     });
@@ -68,12 +70,10 @@ describe('POLISH-10 status page smoke', () => {
 
   // ── Group 3 — B6 Better Stack API (POLISH-10 success criterion 1) ────────
   if (!apiKey) {
-    it.skip(
-      'Group 3 (B6): BETTERSTACK_API_KEY unset — POLISH-10 success criterion 1 deferred to milestone close per feedback_milestone_uat_deferral_consolidation',
-      () => {
-        // Intentionally skipped — see v1.3-uat-deferred.md.
-      },
-    );
+    // see deferred-tests.md#betterstack-api-key-pending
+    it.skip('Group 3 (B6): BETTERSTACK_API_KEY unset — POLISH-10 success criterion 1 deferred to milestone close per feedback_milestone_uat_deferral_consolidation', () => {
+      // Intentionally skipped — see v1.3-uat-deferred.md.
+    });
   } else {
     it('Group 3 (B6): Better Stack API surfaces status page + 7 components + 3 integrations', async () => {
       const headers = { Authorization: `Bearer ${apiKey}` };
@@ -100,7 +100,8 @@ describe('POLISH-10 status page smoke', () => {
         data: Array<{ attributes?: { resource_type?: string } }>;
       };
       const components = resourcesJson.data.filter(
-        (r) => r.attributes?.resource_type === 'component' || r.attributes?.resource_type === 'monitor',
+        (r) =>
+          r.attributes?.resource_type === 'component' || r.attributes?.resource_type === 'monitor',
       );
       expect(components.length).toBeGreaterThanOrEqual(7);
 

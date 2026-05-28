@@ -79,6 +79,7 @@ test.describe('@phase39 39-08 — Pharma admin tab renders active + archived row
       //      its dedicated get_pharma_experiments RPC)
 
       await page.goto('/admin/growth/experiments');
+      // see deferred-tests.md#phase-39-pharma-variant-live-orchestrator
       test.fixme(
         true,
         'Full live round-trip pends Phase 39 close-out: 3 SECDEF migration push + live admin role + 2-variant seed (tracked in 39-08-SUMMARY.md deferred-issues)',

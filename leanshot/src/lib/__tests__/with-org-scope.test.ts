@@ -95,11 +95,8 @@ vi.mock('../../../../supabase/functions/_shared/supabase-server.ts', () => ({
 // Import modules under test AFTER mocks are registered
 // ---------------------------------------------------------------------------
 
- 
-
 // Import the mocked supabase-server for the compile-time test (Test 1).
 // @ts-expect-error is used below to prove .from is typed `never` on Unscoped client.
- 
 
 // ---------------------------------------------------------------------------
 // Test constants

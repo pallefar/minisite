@@ -111,6 +111,7 @@ test.describe('@phase39 39-09 — page variant create (PAGEAB-01)', () => {
       // Sanity-call to avoid TS unused-var; the live assertions land in the
       // follow-up plan-10 wave when migration + Edge Fn deploy complete.
       await page.goto('/admin/pages/new');
+      // see deferred-tests.md#phase-39-pharma-variant-live-orchestrator
       test.fixme(
         true,
         'Full live round-trip pends Plan 39-10 close-out: SECDEF create_page_variant migration + admin INSERT policy + page-render deploy with variant_set_id mirror (tracked in 39-09-SUMMARY.md deferred-issues#1)',

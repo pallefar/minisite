@@ -103,6 +103,7 @@ test.describe('@phase39 39-08 — pharma variant 1-click disable (PHARMA-04)', (
       // milestone-close UAT.
 
       await page.goto('/admin/growth/experiments');
+      // see deferred-tests.md#phase-39-pharma-variant-live-orchestrator
       test.fixme(
         true,
         'Full live round-trip pends Phase 39 close-out: 3 SECDEF migration push + live admin role seeding (tracked in 39-08-SUMMARY.md deferred-issues)',

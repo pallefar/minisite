@@ -109,7 +109,10 @@ async function seedAuthSession(page: Page, accessToken: string, userId: string) 
 // ---------------------------------------------------------------------------
 
 test.describe('@phase25 Clinician MFA Hard-Cut', () => {
-  test.skip(!HAS_LIVE || !PLAYWRIGHT_RUN, 'Requires PLAYWRIGHT_RUN_CLINICIAN_MFA=1 + live Supabase env');
+  test.skip(
+    !HAS_LIVE || !PLAYWRIGHT_RUN,
+    'Requires PLAYWRIGHT_RUN_CLINICIAN_MFA=1 + live Supabase env',
+  );
 
   let admin: SupabaseClient;
   const createdUserIds: string[] = [];
@@ -120,7 +123,9 @@ test.describe('@phase25 Clinician MFA Hard-Cut', () => {
 
   test.afterAll(async () => {
     for (const id of createdUserIds) {
-      await admin.auth.admin.deleteUser(id).catch(() => { /* best-effort */ });
+      await admin.auth.admin.deleteUser(id).catch(() => {
+        /* best-effort */
+      });
     }
   });
 
@@ -136,7 +141,9 @@ test.describe('@phase25 Clinician MFA Hard-Cut', () => {
    * Targets: /#/clinic/__mfa_test__ (test-only route added by Plan 25-08).
    * If Phase 28 is shipped, this test should be migrated to a real /clinic/* route.
    */
-  test('T1: clinician without TOTP sees SetupClinicianTotp — QR + input present, no skip', async ({ page }) => {
+  test('T1: clinician without TOTP sees SetupClinicianTotp — QR + input present, no skip', async ({
+    page,
+  }) => {
     const { userId, accessToken } = await createClinicianUser(admin);
     createdUserIds.push(userId);
 
@@ -173,6 +180,7 @@ test.describe('@phase25 Clinician MFA Hard-Cut', () => {
    *
    * see deferred-tests.md#EG-40
    */
+  // see deferred-tests.md#EG-40
   test.skip('T2: full TOTP enrollment flow [DEFERRED — see .planning/deferred-tests.md#EG-40]', async () => {
     // DEFERRED: QR parse → secret extract → otplib.totp.generate(secret) → submit → AAL2
   });
@@ -181,7 +189,9 @@ test.describe('@phase25 Clinician MFA Hard-Cut', () => {
    * T3: Unauthenticated user navigating to /clinic/* → ClinicianMfaGuard renders nothing
    * (parent auth layer handles redirect to login). The guard itself doesn't render an error.
    */
-  test('T3: unauthenticated user — guard renders nothing (no clinical content, no error)', async ({ page }) => {
+  test('T3: unauthenticated user — guard renders nothing (no clinical content, no error)', async ({
+    page,
+  }) => {
     // No seedAuthSession — no session in localStorage
     await page.goto('/#/clinic/__mfa_test__');
     await page.waitForLoadState('networkidle');
@@ -206,6 +216,7 @@ test.describe('@phase25 Clinician MFA Hard-Cut', () => {
    *
    * see deferred-tests.md#EG-40 through EG-49
    */
+  // see deferred-tests.md#EG-40
   test.skip('T4-T10: Phase 28 surface tests [DEFERRED — see .planning/deferred-tests.md#EG-40]', async () => {
     // DEFERRED: real /clinic/* routes + TOTP code generation
   });

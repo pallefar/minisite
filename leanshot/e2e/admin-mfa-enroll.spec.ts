@@ -96,7 +96,10 @@ async function seedAuthSession(page: Page, accessToken: string, userId: string) 
 // ---------------------------------------------------------------------------
 
 test.describe('@phase24 Admin MFA Enrollment', () => {
-  test.skip(!HAS_LIVE || !PLAYWRIGHT_RUN, 'Requires PLAYWRIGHT_RUN_ADMIN_MFA=1 + live Supabase env');
+  test.skip(
+    !HAS_LIVE || !PLAYWRIGHT_RUN,
+    'Requires PLAYWRIGHT_RUN_ADMIN_MFA=1 + live Supabase env',
+  );
 
   let admin: SupabaseClient;
   const createdUserIds: string[] = [];
@@ -107,11 +110,15 @@ test.describe('@phase24 Admin MFA Enrollment', () => {
 
   test.afterAll(async () => {
     for (const id of createdUserIds) {
-      await admin.auth.admin.deleteUser(id).catch(() => { /* best-effort */ });
+      await admin.auth.admin.deleteUser(id).catch(() => {
+        /* best-effort */
+      });
     }
   });
 
-  test('T1: admin without TOTP sees SetupTotpPage — QR code + OTP input present', async ({ page }) => {
+  test('T1: admin without TOTP sees SetupTotpPage — QR code + OTP input present', async ({
+    page,
+  }) => {
     const { userId, accessToken } = await createAdminUser(admin);
     createdUserIds.push(userId);
 
@@ -142,6 +149,7 @@ test.describe('@phase24 Admin MFA Enrollment', () => {
    *
    * see deferred-tests.md#EG-31
    */
+  // see deferred-tests.md#EG-31
   test.skip('T2: full enrollment — DEFERRED — see .planning/deferred-tests.md#EG-31', async () => {
     // DEFERRED: compute TOTP code from QR URI + submit + assert backup codes + confirm
   });

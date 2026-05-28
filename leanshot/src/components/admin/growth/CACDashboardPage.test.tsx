@@ -24,6 +24,7 @@
 import { describe, expect, it } from 'vitest';
 
 describe('CACDashboardPage [DEFERRED — needs vitest+jsdom setup]', () => {
+  // see deferred-tests.md#cac-dashboard-vitest-jsdom-setup
   it.skip('renders "Credentials missing" badge when health row has credentials_present=false [DEFERRED — see deferred-tests.md]', () => {
     // TODO: render <CACDashboardPage /> with mocked supabase returning
     // healthRows: [{ network: 'meta', credentials_present: false, ... }]
@@ -31,6 +32,7 @@ describe('CACDashboardPage [DEFERRED — needs vitest+jsdom setup]', () => {
     expect(true).toBe(true);
   });
 
+  // see deferred-tests.md#cac-dashboard-vitest-jsdom-setup
   it.skip('renders CAC value when cacRows has data [DEFERRED — see deferred-tests.md]', () => {
     // TODO: render <CACDashboardPage /> with mocked supabase returning
     // cacRows: [{ network: 'meta', spend_usd_at_spend_date: 100, attributed_conversions: 10, ... }]
@@ -38,12 +40,14 @@ describe('CACDashboardPage [DEFERRED — needs vitest+jsdom setup]', () => {
     expect(true).toBe(true);
   });
 
+  // see deferred-tests.md#cac-dashboard-vitest-jsdom-setup
   it.skip('renders "No spend data" EmptyState when cacRows is empty [DEFERRED — see deferred-tests.md]', () => {
     // TODO: render <CACDashboardPage /> with mocked supabase returning cacRows: []
     // expect(screen.getByText('No spend data')).toBeInTheDocument();
     expect(true).toBe(true);
   });
 
+  // see deferred-tests.md#cac-dashboard-vitest-jsdom-setup
   it.skip('CSV export button click triggers download [DEFERRED — see deferred-tests.md]', () => {
     // TODO: render <CACDashboardPage /> with cacRows data, mock window.open,
     // click 'Export CSV' button, expect URL.createObjectURL to have been called.
