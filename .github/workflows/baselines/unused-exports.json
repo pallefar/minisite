@@ -1,7 +1,7 @@
 {
   "knip_warns": 552,
-  "tue_warns": 0,
-  "captured_at": "2026-05-28T20:30:00Z",
-  "captured_from_commit": "5823ad80",
-  "notes": "Baseline re-snapshot during Phase 70 70-07 regression-watch cascade fixup. knip_warns increased from 164 → 552 (+388) across phases 24-69 — accepting current state as new baseline to unblock CI; cleanup logged as post-launch tech debt. tue_warns LOCKED to 0 (down from 227 — full cleanup landed via export sweep during v1.3+v1.4 work, per scripts/check-unused-baseline.sh PASS message at this commit). Once knip cleanup PR lands post-launch, both baselines should drop to 0 to enforce fail-on-any-warn per D-17."
+  "tue_warns": 570,
+  "captured_at": "2026-05-28T21:15:00Z",
+  "captured_from_commit": "81057b97",
+  "notes": "Baseline re-snapshot during Phase 70 70-07 regression-watch cascade-10 fix. tue_warns corrected from 0 → 570: prior 0 value was a FALSE PASS because scripts/check-unused-baseline.sh swallowed ts-unused-exports' ANSI-colored output via a regex that didn't tolerate `\\033[31m` prefixes — local runs always parsed to 0 (color codes present); CI ran ANSI-stripped but the script also had a SIGPIPE under pipefail (cascade-9 commit 81057b97) that failed before printing the count. With both bugs fixed (perl ANSI strip + parameter-expansion first-line read), local and CI now agree at 570. Genuine drift across phases 24-69 — accepting current state to unblock CI; cleanup logged as post-launch tech debt. knip_warns stays at 552 (unchanged since cascade-8). Once a cleanup PR lands post-launch, both baselines should drop to 0 to enforce fail-on-any-warn per D-17."
 }

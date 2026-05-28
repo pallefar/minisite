@@ -69,6 +69,12 @@ TUE_OUTPUT=$(cd "$LEANSHOT_DIR" && npx --yes ts-unused-exports tsconfig.app.json
   --excludePathsFromReport=".planning;supabase;e2e;scripts;dist;dist-marketing;node_modules" \
   2>/dev/null || true)
 
+# Strip ANSI color escapes — ts-unused-exports emits color codes on TTY (local)
+# but not on non-TTY (CI). Without stripping, local sees "\033[31m\033[1m570…"
+# which fails the `^[0-9]+ modules` regex and silently reports 0. Strip so local
+# and CI agree on the count.
+TUE_OUTPUT="$(printf '%s' "$TUE_OUTPUT" | perl -pe 's/\e\[[0-9;]*m//g')"
+
 if [[ -z "$TUE_OUTPUT" ]]; then
   echo "WARNING: ts-unused-exports produced no output — treating as 0 warns"
   TUE_WARNS=0
