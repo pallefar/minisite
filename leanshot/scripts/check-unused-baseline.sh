@@ -73,10 +73,12 @@ if [[ -z "$TUE_OUTPUT" ]]; then
   echo "WARNING: ts-unused-exports produced no output — treating as 0 warns"
   TUE_WARNS=0
 else
-  # First line format: "N modules with unused exports"
-  FIRST_LINE=$(echo "$TUE_OUTPUT" | head -1)
-  if echo "$FIRST_LINE" | grep -qE '^[0-9]+ modules'; then
-    TUE_WARNS=$(echo "$FIRST_LINE" | grep -oE '^[0-9]+')
+  # First line format: "N modules with unused exports".
+  # Use parameter expansion instead of `echo | head -1` to avoid SIGPIPE
+  # under `set -euo pipefail` when echo's stdout pipe closes early (CI bash 5).
+  FIRST_LINE="${TUE_OUTPUT%%$'\n'*}"
+  if [[ "$FIRST_LINE" =~ ^([0-9]+)\ modules ]]; then
+    TUE_WARNS="${BASH_REMATCH[1]}"
   else
     # No unused exports at all — tool printed nothing or a success message
     TUE_WARNS=0
