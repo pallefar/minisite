@@ -18,7 +18,7 @@
 
 | Workflow | State | Notes |
 |----------|-------|-------|
-| CI | 🔴 RED at h0 | lockfile drift FIXED in `81448cd7`; **NEW blocker surfaced: `@sentry/capacitor` sibling-check fails on `@sentry/react ^10.52.0` per [[reference_sentry_capacitor_npm_install_blocker]]**. 6/8 CI jobs fail at npm ci (Lint, Format check, Unit tests, Deno tests, Share security drill, Unused exports check, Typecheck). Fix scope: pin @sentry/react down OR upgrade @sentry/capacitor OR add `--ignore-scripts` to CI npm ci. Out of regression-watch scope; logged as **launch-blocker carry-over** |
+| CI | 🔴 RED at h0 (post-Sentry-fix) | Two install-level blockers cleared (lockfile drift in `81448cd7`, sentry sibling-check in `146f5898` pinning @sentry/react to 10.43.0). npm ci now succeeds; Typecheck + Compliance grep pass. **6 deeper chronic failures surfaced**: Lint, Format check, Unused exports check, Share security drill (SC#3), Deno tests, Unit tests (73 fail / 1692 pass — mostly AI eval/refusal corpus `kanon-*` + `borderline-*`). All confirmed pre-existing (NOT caused by Sentry downgrade — local vitest reproduces same failures). Cascading-drift pattern per [[feedback_cascading_drift_discovery_pattern]] — Budget 3-5 cascades. Carry forward as **multi-issue launch-blocker stack** |
 | Sentry DSN check | ✅ GREEN | h0 success |
 | Design system check | ✅ GREEN | h0 success |
 | Mobile Privacy Manifest Audit | 🔴 RED | new failure at `81448cd7`; not investigated yet |
