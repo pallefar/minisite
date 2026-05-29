@@ -35,7 +35,11 @@ function buildFromChain(data: unknown, error: unknown = null) {
 
 describe('useBulkJobProgress (Phase 27 ADMIN-04 / Plan 27-06)', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    // shouldAdvanceTime auto-advances the clock so @testing-library/react's
+    // waitFor() internal poll timers actually fire under fake-timer mode.
+    // Without this, waitFor() hangs to its 1000ms timeout while the hook's
+    // setInterval also can't advance.
+    vi.useFakeTimers({ shouldAdvanceTime: true, advanceTimeDelta: 20 });
     mockSingle.mockReset();
     mockFrom.mockReset();
   });
