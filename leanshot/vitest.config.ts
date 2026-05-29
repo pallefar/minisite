@@ -36,6 +36,21 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    // Phase 70-07 cascade-15 — native bridge tests are owned by
+    // vitest-mobile.config.ts (which aliases @capacitor/* + @revenuecat/*
+    // to vi.fn() mocks under src/lib/native/__mocks__/). Without those
+    // aliases the real modules load and every test fails with
+    // `Capacitor.getPlatform.mockReturnValue is not a function`.
+    // Excluded here AND on the `src-lib-unit` / `src-ui-unit` projects
+    // below so the multi-project default run skips them too. See
+    // [[reference-multiple-vitest-configs-include-overlap]].
+    exclude: [
+      'e2e/**',
+      'node_modules/**',
+      'dist/**',
+      'src/lib/native/**',
+      'src/components/BiometricGate.test.tsx',
+    ],
     projects: [
       {
         // Phase 38 evaluation harness — AI-SPEC §5 dimension tests.
@@ -116,6 +131,8 @@ export default defineConfig({
           environment: 'node',
           globals: true,
           include: ['src/lib/**/__tests__/*.test.ts', 'src/lib/**/*.test.ts'],
+          // Phase 70-07 cascade-15 — see top-level exclude comment.
+          exclude: ['src/lib/native/**'],
         },
       },
       {
@@ -142,6 +159,8 @@ export default defineConfig({
             'src/components/**/*.test.tsx',
             'src/components/**/*.test.ts',
           ],
+          // Phase 70-07 cascade-15 — see top-level exclude comment.
+          exclude: ['src/components/BiometricGate.test.tsx'],
         },
       },
     ],

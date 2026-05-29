@@ -17,7 +17,7 @@
     "format": "prettier --write src",
     "format:check": "prettier --check src",
     "test": "vitest run && playwright test",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --project=src-lib-unit --project=src-ui-unit --project=functions-unit",
     "test:e2e": "playwright test",
     "test:mobile-unit": "vitest run --config vitest-mobile.config.ts",
     "test:mobile-e2e": "playwright test --project=mobile",
