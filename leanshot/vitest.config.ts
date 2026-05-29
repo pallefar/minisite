@@ -157,8 +157,15 @@ export default defineConfig({
         resolve: {
           alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
-            'markdown-it':
-              '/Users/karstenhaldan/minisite/leanshot/node_modules/markdown-it/index.mjs',
+            // Phase 70-07 cascade-37 — was a hardcoded dev-machine absolute path
+            // (/Users/karstenhaldan/…/node_modules/markdown-it/index.mjs) that does
+            // not exist on the CI runner (/home/runner/work/minisite/…), so
+            // research-renderer.ts's `import MarkdownIt from 'markdown-it'` failed
+            // to resolve and the test file failed collection. Resolve relative to
+            // this config so it works on any machine.
+            'markdown-it': fileURLToPath(
+              new URL('./node_modules/markdown-it/index.mjs', import.meta.url),
+            ),
             // vite-plugin-pwa virtual module — see top-level resolve.alias comment.
             'virtual:pwa-register': fileURLToPath(
               new URL('./src/lib/pwa/__mocks__/virtual-pwa-register.ts', import.meta.url),

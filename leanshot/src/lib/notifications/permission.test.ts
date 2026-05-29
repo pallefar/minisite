@@ -20,9 +20,16 @@ describe('requestPushPermission (Plan 42-08 Pitfall 3 enforcement)', () => {
   beforeEach(() => {
     getSessionMock.mockReset();
     globalThis.fetch = vi.fn() as unknown as typeof fetch;
-    // jsdom: stub the env literal — Vite handles inlining at build time, but
-    // at test time we rely on the module's static read of import.meta.env.
-    // The vite/vitest env injection makes VITE_VAPID_PUBLIC_KEY available.
+    // Phase 70-07 cascade-37 — requestPushPermission() reads
+    // import.meta.env.VITE_VAPID_PUBLIC_KEY (permission.ts:75) and returns
+    // { state: 'unsupported' } when it's absent. That var is only present via
+    // the dev machine's .env.local, NOT in CI — so this suite passed locally
+    // but failed in CI ('unsupported' !== 'granted'). Stub the env the function
+    // depends on so the test is deterministic regardless of ambient env.
+    vi.stubEnv(
+      'VITE_VAPID_PUBLIC_KEY',
+      'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8',
+    );
   });
 
   it('throws synchronously when called without fromUserGesture (Pitfall 3 guard)', async () => {
@@ -98,5 +105,6 @@ describe('requestPushPermission (Plan 42-08 Pitfall 3 enforcement)', () => {
 
   afterEach(() => {
     globalThis.fetch = origFetch;
+    vi.unstubAllEnvs();
   });
 });
