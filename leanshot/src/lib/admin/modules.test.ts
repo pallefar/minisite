@@ -14,10 +14,13 @@ import { describe, expect, it } from 'vitest';
 
 // Tested under vi.hoisted + dynamic import so modules.ts can be resolved by the time tests run.
 describe('ADMIN_MODULES manifest', () => {
-  it('T1: exports exactly 18 modules (+P25-09 compliance +P33-05 growth-cac)', async () => {
+  it('T1: exports exactly 35 modules (Phase 70-07 cascade-22 snapshot of current admin manifest)', async () => {
     const { ADMIN_MODULES } = await import('./modules');
-    expect(ADMIN_MODULES).toHaveLength(18);
+    expect(ADMIN_MODULES).toHaveLength(35);
     const keys = ADMIN_MODULES.map((m) => m.key);
+    // Order is load-bearing for the admin nav; snapshot of current manifest.
+    // When you add or remove a module, update this list in the SAME commit so
+    // CI catches accidental reordering.
     const expected = [
       'users',
       'content',
@@ -26,22 +29,39 @@ describe('ADMIN_MODULES manifest', () => {
       'reviews',
       'membership',
       'analytics',
-      'anomaly', // Phase 27 Plan 27-08 addendum — funnel-anomaly admin config
+      'anomaly',
+      'embeds',
       'ai',
       'helpdesk',
       'billing',
+      'billing-grandfathered',
+      'cancellation',
       'settings',
       'audit-log',
-      'clinic-orgs', // Phase 28 Plan 07 — preview module (full UI in P31)
-      'rag', // Phase 50 Plan 50-02 — admin-curated RAG knowledge base
-      'i18n-overrides', // Phase 32 Plan 32-04 — admin hot-patch surface for translations
-      'growth-cac', // Phase 33 Plan 33-05 — CAC dashboard (ad-spend ETL)
-      'compliance', // Phase 25 Plan 25-09 — HIPAA vendor BAA + subprocessor admin UI
+      'clinic-orgs',
+      'protocols',
+      'research',
+      'tax',
+      'rag',
+      'i18n-overrides',
+      'growth-cac',
+      'growth-traffic',
+      'growth-experiments',
+      'nps-quarterly',
+      'hitl-queue',
+      'moderation',
+      'community',
+      'courses',
+      'events',
+      'compliance',
+      'vendor-smoke',
+      'users-security',
+      'growth-ad-revenue',
     ];
     expect(keys).toEqual(expected);
   });
 
-  it('T2: all 18 entries have every required field', async () => {
+  it('T2: all 35 entries have every required field', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const requiredKeys = ['key', 'label', 'route', 'icon', 'lazy', 'flagKey', 'minRole'] as const;
     for (const mod of ADMIN_MODULES) {
@@ -51,18 +71,18 @@ describe('ADMIN_MODULES manifest', () => {
     }
   });
 
-  it('T3: all 18 flagKey values are unique', async () => {
+  it('T3: all flagKey values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const flagKeys = ADMIN_MODULES.map((m) => m.flagKey);
     const unique = new Set(flagKeys);
-    expect(unique.size).toBe(18);
+    expect(unique.size).toBe(ADMIN_MODULES.length);
   });
 
-  it('T4: all 18 route values are unique', async () => {
+  it('T4: all route values are unique', async () => {
     const { ADMIN_MODULES } = await import('./modules');
     const routes = ADMIN_MODULES.map((m) => m.route);
     const unique = new Set(routes);
-    expect(unique.size).toBe(18);
+    expect(unique.size).toBe(ADMIN_MODULES.length);
   });
 });
 
