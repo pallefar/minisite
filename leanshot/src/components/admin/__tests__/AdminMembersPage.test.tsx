@@ -14,14 +14,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminMembersPage } from '@/components/admin/pages/AdminMembersPage';
 
 const mockAuthGetUser = vi.fn();
+const mockAssertAal2 = vi.fn();
 const mockProfilesMaybeSingle = vi.fn();
 const mockRpc = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
+  // AdminLayout's runProbe gates child render on assertAal2(); seedStaff()
+  // helpers (and per-test mockAssertAal2.mockResolvedValue(true)) drive it.
+  assertAal2: () => mockAssertAal2(),
   supabase: {
     auth: {
       getUser: () => mockAuthGetUser(),
     },
+    // AdminShell anomaly realtime-channel calls supabase.channel().on().subscribe()
+    // at mount; without this stub the render throws an uncaught TypeError.
+    channel: () => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    }),
+    removeChannel: vi.fn(),
     from: (table: string) => {
       if (table === 'profiles') {
         return {
@@ -96,7 +107,8 @@ describe('<AdminMembersPage /> — Phase 22 Plan 22-06', () => {
 
   it('T3 — staff user → fetches admin_list_members + renders table rows', async () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true }, error: null });
+    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true, has_totp: true, admin_role: null }, error: null });
+    mockAssertAal2.mockResolvedValue(true);
     mockRpc.mockResolvedValue({ data: SAMPLE, error: null });
 
     render(<AdminMembersPage />);
@@ -119,7 +131,8 @@ describe('<AdminMembersPage /> — Phase 22 Plan 22-06', () => {
 
   it('T4 — clicking "Paid" filter re-invokes RPC with p_tier="paid"', async () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true }, error: null });
+    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true, has_totp: true, admin_role: null }, error: null });
+    mockAssertAal2.mockResolvedValue(true);
     mockRpc.mockResolvedValue({ data: SAMPLE, error: null });
 
     const user = userEvent.setup();
@@ -140,7 +153,8 @@ describe('<AdminMembersPage /> — Phase 22 Plan 22-06', () => {
 
   it('T5 — search input debounced re-invokes RPC with p_search', async () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true }, error: null });
+    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true, has_totp: true, admin_role: null }, error: null });
+    mockAssertAal2.mockResolvedValue(true);
     mockRpc.mockResolvedValue({ data: SAMPLE, error: null });
 
     const user = userEvent.setup();
