@@ -112,12 +112,41 @@ export default defineConfig({
         // Edge Function unit tests (Vitest, no Deno runtime).
         // handler.ts files use DI — no Deno.* imports — so they run cleanly here.
         // Run: npx vitest run --project=functions-unit
-        // Phase 61 protocol-ai-assist + Phase 62 research-publish handlers.
+        //
+        // Phase 70-07 cascade-36 — the previous `**/__tests__/*.test.ts` glob was
+        // TOO BROAD: it captured 31 Deno-runtime Edge Fn tests (those importing
+        // `Deno.*`, `npm:`, `jsr:`, or `std/…`) which fail under vitest/Node with
+        // `ReferenceError: Deno is not defined` / `Cannot find package 'npm:…'`.
+        // Those 31 were ~31 of the 53 "failed test files" in CI (0 of the 62 failed
+        // TESTS — they failed at collection, not assertion). They run GREEN under
+        // the Deno runtime; their per-function `__tests__/` dirs just aren't wired
+        // into the `deno-test` CI job yet (only `tests/`, `share/`, + 2 named files
+        // are). Tracked as deferred coverage — see
+        // .planning/deferred-tests.md#functions-unit-deno-coverage.
+        // Fix per [[feedback_vitest_project_include_too_broad]]: scope the include
+        // to the named vitest-compatible (import-from-'vitest') files only.
         test: {
           name: 'functions-unit',
           environment: 'node',
           globals: true,
-          include: ['../supabase/functions/**/__tests__/*.test.ts'],
+          include: [
+            '../supabase/functions/_shared/__tests__/federated-cache.test.ts',
+            '../supabase/functions/_shared/__tests__/federated-host-allowlist.test.ts',
+            '../supabase/functions/_shared/__tests__/federated-integration.test.ts',
+            '../supabase/functions/protocol-ai-assist/__tests__/handler.test.ts',
+            '../supabase/functions/research-publish/__tests__/handler.test.ts',
+            '../supabase/functions/rag-embed-approved/__tests__/embed-pipeline.test.ts',
+            '../supabase/functions/rag-embed-approved/__tests__/openai.test.ts',
+            '../supabase/functions/rag-federated-dailymed/__tests__/client.test.ts',
+            '../supabase/functions/rag-federated-dailymed/__tests__/index.test.ts',
+            '../supabase/functions/rag-federated-dailymed/__tests__/normalize.test.ts',
+            '../supabase/functions/rag-federated-fda/__tests__/client.test.ts',
+            '../supabase/functions/rag-federated-fda/__tests__/index.test.ts',
+            '../supabase/functions/rag-federated-fda/__tests__/normalize.test.ts',
+            '../supabase/functions/rag-federated-pubmed/__tests__/client.test.ts',
+            '../supabase/functions/rag-federated-pubmed/__tests__/index.test.ts',
+            '../supabase/functions/rag-federated-pubmed/__tests__/normalize.test.ts',
+          ],
         },
       },
       {
@@ -128,7 +157,8 @@ export default defineConfig({
         resolve: {
           alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
-            'markdown-it': '/Users/karstenhaldan/minisite/leanshot/node_modules/markdown-it/index.mjs',
+            'markdown-it':
+              '/Users/karstenhaldan/minisite/leanshot/node_modules/markdown-it/index.mjs',
             // vite-plugin-pwa virtual module — see top-level resolve.alias comment.
             'virtual:pwa-register': fileURLToPath(
               new URL('./src/lib/pwa/__mocks__/virtual-pwa-register.ts', import.meta.url),

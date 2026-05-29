@@ -386,3 +386,25 @@ and to satisfy the `audit-deferred-tests.mjs` anchor-check requirement.
 | P70-01 | `src/components/search/__tests__/SearchModal.test.tsx` (T5 groups results) | `it.skip` — cmdk filters items by value-match against the search query "frag"; test data items don't have "frag" in their values so cmdk hides them under cmdk-empty. Test was authored against a non-cmdk results layer that may have been refactored. Re-enable by passing each Command.Item an explicit `value` containing the test query, OR by restructuring the test to type a query that's substring of the result titles. | Phase 70-07 follow-up |
 | P70-02 | `src/lib/analytics/__tests__/phi-import-zone.test.ts` (Test 5) | `it.skip` — ESLint programmatic API doesn't fire `import-x/no-restricted-paths` against the synthetic file. Likely an ESLint 9 flat-config + `overrideConfig` interaction or import-x resolver scoping; not a regression in the actual zone rule (eslint.config.js block still enforces in `npm run lint`). Re-enable by either (a) finding the correct path-resolver scoping for the synthetic file, or (b) replacing with a fixture-based test that runs the real `npm run lint` on a committed fixture file. | Phase 70-07 follow-up |
 | P70-03 | `src/components/onboarding/OnboardingFlow.test.tsx` (8-step happy path) | `it.skip` — cascade-29 added `supabase.from()` chain mock which cleared the inner `[useConsumerOnboardingFlow] fail-open` TypeError, but the flow still doesn't reach Step 7's "Open dashboard" button. Likely an additional store-action or hook stub is needed; full investigation deferred. Component does render "Open dashboard" text via `t('onboarding:nav.open_dashboard')` so the text-rendering side is correct. | Phase 70-07 follow-up |
+| P70-04 | 31 Deno-runtime Edge Fn `__tests__/*.test.ts` files (see [functions-unit Deno coverage gap](#functions-unit-deno-coverage)) | Config-level exclusion (not an `it.skip`): cascade-36 narrowed the `functions-unit` vitest project include to the 16 vitest-compatible files. The other 31 import `Deno.*` / `npm:` / `jsr:` / `std/…` and only run under Deno. They pass individually under `deno test` but their per-function `__tests__/` dirs aren't wired into the `deno-test` CI job (which runs only `tests/`, `share/`, + 2 named files), and at least one (`privacy-optout-process/__tests__/handler.test.ts`) needs a `std/assert` import-map entry before a batch run is green. | Phase 70-07 follow-up — wire per-function `__tests__/` into `deno-test` job after import-map audit |
+
+## functions-unit Deno coverage
+
+**Anchor target for P70-04.** Cascade-36 (Phase 70-07) narrowed the `functions-unit`
+vitest project (`leanshot/vitest.config.ts`) from `../supabase/functions/**/__tests__/*.test.ts`
+to an explicit list of the 16 vitest-compatible test files (those that `import … from 'vitest'`
+and use dependency injection — no `Deno.*` globals). The over-broad glob had been capturing
+31 Deno-runtime tests that fail under vitest/Node at collection time with
+`ReferenceError: Deno is not defined` or `Cannot find package 'npm:@supabase/supabase-js@2'`.
+Those 31 accounted for ~31 of the 53 "failed test files" in the Unit-tests CI job (0 of the
+62 failed *tests* — they never reached assertion). Root cause + the named-file fix pattern:
+project memory `feedback_vitest_project_include_too_broad`.
+
+The excluded 31 files are NOT currently covered by any CI job: the `deno-test` job runs only
+`supabase/functions/tests/` (integration excluded), `supabase/functions/share/`, and two
+named `--no-check` files. Each excluded file passes when run individually under
+`deno test --no-check --import-map=supabase/functions/import_map.json <file>`, but a batch run
+trips on `privacy-optout-process/__tests__/handler.test.ts` importing `std/assert/assert_equals.ts`
+(absent from `import_map.json`). **Follow-up:** audit `import_map.json` for `std/`/`jsr:` gaps,
+then add the per-function `__tests__/` globs to the `deno-test` CI job (excluding the 4
+network-dependent `integration.test.ts` files, mirroring the existing `tests/integration` ignore).
