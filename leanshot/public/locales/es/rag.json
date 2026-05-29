@@ -35,5 +35,21 @@
     "out_of_corpus": "No tengo evidencia para eso en nuestra base de conocimientos. Consulte a su médico o pregunte sobre un tema relacionado del que sí tengo información.",
     "pharma_02": "Ese tema requiere orientación clínica — por favor consulte a su médico.",
     "citation_validation_failed": "No tengo confianza en la evidencia de apoyo — por favor reformule su pregunta."
+  },
+  "newsletter": {
+    "section_heading": "Boletín de investigación",
+    "toggle_label": "Enviarme el resumen semanal de investigación",
+    "toggle_sublabel": "Resúmenes seleccionados de fuentes de investigación aprobadas, enviados los domingos. Cancele la suscripción en cualquier momento.",
+    "save_cta": "Guardar preferencias",
+    "onboarding_label": "Enviarme el resumen semanal de investigación (opcional — cancele en cualquier momento)",
+    "subject_format": "Investigación LeanShot: Semana del {{date}}",
+    "header": "Resumen de Investigación LeanShot",
+    "intro_placeholder": "{{admin_intro}}",
+    "section_heading_topic": "Esta semana en {{topic}}",
+    "read_full_cta": "Leer en {{source_name}} ↗",
+    "footer_unsubscribe": "Cancelar suscripción · Administrar preferencias",
+    "footer_disclaimer": "No es consejo médico — consulte a su médico. LeanShot, [dirección según CAN-SPAM].",
+    "unsubscribe_success": "Te has dado de baja.",
+    "resubscribe_cta": "Volver a suscribirse"
   }
 }

@@ -39,9 +39,11 @@ describe('storageTransformUrl', () => {
     const url = storageTransformUrl('user with space/photos/file:name.jpg');
     // Each segment is encoded independently; `/` separators preserved.
     expect(url).toContain('user%20with%20space/photos/file%3Aname.jpg');
-    // The encoded path must NOT contain raw spaces or colons.
-    const pathPortion = url.split('?')[0]!;
-    expect(pathPortion).not.toMatch(/[ :]/);
+    // The encoded path (AFTER the host) must NOT contain raw spaces or colons.
+    // Strip scheme + host first so `https:` and `.supabase.co:443` style colons
+    // don't false-positive against the regex.
+    const parsed = new URL(url);
+    expect(parsed.pathname).not.toMatch(/[ :]/);
   });
 
   it('throws when path is empty', () => {
