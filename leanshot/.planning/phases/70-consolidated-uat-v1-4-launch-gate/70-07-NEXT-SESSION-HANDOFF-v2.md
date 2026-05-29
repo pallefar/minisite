@@ -32,6 +32,19 @@ CI jobs flipped this session (verified locally):
 - **R4 admin_backup_codes (2)** — service_role INSERT intentionally revoked;
   test should seed via SECDEF RPC (EG-29). Keep deferred; don't weaken grant.
 
+**CI validation — FINAL (run 26630189140 @ `109770b8`):**
+- Format ✅ · Unused exports ✅ · a11y ✅ · Lint ✅ · Typecheck ✅ · Deno ✅
+- **Share security drill ✅** — cascade-38 same-origin proxy fixed (a)+(d).
+- **Unit tests 🔴 (expected)** — but failed test FILES dropped 53 → **20** and failed
+  TESTS 62 → **61**; the 31 Deno collection files + research-renderer + notifications are
+  GONE (grep-confirmed zero). The remaining 20 files / 61 tests are 100% the un-pushed
+  DB-drift roots (R1-R6) — exactly the set in `70-07-UNIT-DRIFT-ROOTCAUSE.md`. Pushing
+  drafted migrations A+B+C + the R6 test update clears them to ~R5(7)+R4(2).
+
+So after this session every CI job is GREEN **except** Unit tests, which is blocked solely
+on the 3 drafted remote-DB migrations awaiting review/push (the org_members recursion is
+also a live prod bug — see [[project_org_members_rls_recursion_prod_bug]]).
+
 **Next-session actions:**
 1. Push the 6 commits (if not already) so CI validates cascades 33-37.
 2. Review `drafted-migrations/` → `git mv` into `supabase/migrations/` (re-stamp
