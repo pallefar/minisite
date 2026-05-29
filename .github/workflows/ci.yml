@@ -100,7 +100,7 @@ jobs:
       # keep default parallelism (no rate-limit pressure: tests self-skip
       # without SUPABASE_SERVICE_ROLE_KEY).
       # See: feedback_ci_rate_limit_parallel_fixtures.md
-      - run: npm run test:unit -- --maxWorkers=1 --minWorkers=1
+      - run: npm run test:unit -- --maxWorkers=1
         env:
           # Phase 5 SC#5 (cross-tenant RLS on injections) — when these secrets
           # are present the e2e/rls-*.test.ts suites run live against the
