@@ -102,7 +102,10 @@ describe('TrafficLandingPagesTab', () => {
     });
     const firstCall = mockRpcCalls[0];
     expect(firstCall.fn).toBe('get_traffic_landing_page_rollup');
-    expect(firstCall.args.p_top_n).toBe(25);
+    // Phase 70-07 cascade-28: component now fetches the FULL set (p_top_n=500)
+    // and applies search + topN slice client-side (see TrafficLandingPagesTab.tsx
+    // comment block at line ~116). Test expected the old in-RPC topN of 25.
+    expect(firstCall.args.p_top_n).toBe(500);
     expect(firstCall.args.p_audience).toBeNull(); // default audience='all' → null
 
     // All three landing paths visible in the rendered table.

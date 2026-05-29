@@ -42,8 +42,10 @@ describe('<MembersTable /> — Phase 22 Plan 22-06', () => {
     render(<MembersTable rows={SAMPLE} isLoading={false} />);
     const table = screen.getByTestId('members-table');
     const headers = within(table).getAllByRole('columnheader');
-    // 7 data columns + 1 actions column = 8 <th>; the last is the Actions sr-only.
-    expect(headers).toHaveLength(8);
+    // 1 select-all column + 7 data columns + 1 actions column = 9 <th>.
+    // Phase 70-07 cascade-28: select-all column was added since this test's
+    // baseline; 8 → 9 to match the current shape.
+    expect(headers).toHaveLength(9);
     expect(within(table).getByRole('button', { name: /^Email/i })).toBeInTheDocument();
     expect(within(table).getByRole('button', { name: /^Tier/i })).toBeInTheDocument();
     expect(within(table).getByRole('button', { name: /^Signed up/i })).toBeInTheDocument();
