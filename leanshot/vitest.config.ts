@@ -179,6 +179,33 @@ export default defineConfig({
           exclude: ['src/components/BiometricGate.test.tsx'],
         },
       },
+      {
+        // Phase 42 Plan 42-02 (POLISH-09) — WCAG 2.2 AA axe-core baseline gate.
+        // Run: npm run test:a11y (CI job "a11y baseline gate" in ci.yml).
+        // Phase 70-07 cascade-33 — this project MUST exist: the top-level
+        // `projects:` block masks the default `test.include`, so the bare
+        // `vitest run tests/a11y/axe-baseline.test.ts` filter matched no
+        // project and exited 1 ("No test files found"). The test renders the
+        // real SPA route tree into jsdom (renderRoute) and scans with axe, so
+        // it needs the same env as src-ui-unit: react() plugin for the JSX
+        // automatic runtime, jsdom, the @ alias, and ./src/test-setup.ts
+        // (matchMedia / ResizeObserver stubs). See
+        // [[reference-vitest-4-projects-config-masks-default]] +
+        // [[reference-multiple-vitest-configs-include-overlap]].
+        plugins: [react()],
+        resolve: {
+          alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+          },
+        },
+        test: {
+          name: 'a11y',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./src/test-setup.ts'],
+          include: ['tests/a11y/axe-baseline.test.ts'],
+        },
+      },
     ],
   },
 });
