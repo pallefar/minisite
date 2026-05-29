@@ -181,9 +181,11 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
     expect(redeem.status()).toBe(200);
     const cookie = extractRecipientCookie(redeem.headers()['set-cookie']);
 
-    // Snapshot succeeds before revoke.
+    // Snapshot succeeds before revoke. Don't pass Cookie manually — the
+    // APIRequestContext auto-jars Set-Cookie from redeem; manual Cookie
+    // header duplicates the value and triggers Edge Fn hash-mismatch 401.
     const snap1 = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: shareReqHeaders({ Cookie: cookie }),
+      headers: shareReqHeaders(),
     });
     expect(snap1.status()).toBe(200);
 
@@ -194,7 +196,7 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
     // NOT a JWT TTL check (which would be a no-op since expires_at is 24h
     // out and the wire artifact isn't even a JWT — see assertions below).
     const snap2 = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: shareReqHeaders({ Cookie: cookie }),
+      headers: shareReqHeaders(),
     });
     expect(snap2.status()).toBe(401);
     const body = await snap2.json();
@@ -263,10 +265,14 @@ test.describe('@phase08 SHARE-03 SC#3 — 4-failure-mode revocation drill', () =
       data: { token: share.raw_token, code: share.raw_code },
     });
     expect(redeem.status()).toBe(200);
-    const cookie = extractRecipientCookie(redeem.headers()['set-cookie']);
+    // Don't extract+pass Cookie manually — Playwright's APIRequestContext
+    // auto-jars the Set-Cookie from redeem and replays it on the subsequent
+    // GET. Passing a manual Cookie header in addition causes the Edge Fn's
+    // getCookies() to see two recipient_session values; hash check fails
+    // against share.recipient_session_hash → 401 'invalid-session'.
 
     const snap = await request.get(`${FN_BASE}/share/snapshot?token=${share.raw_token}`, {
-      headers: shareReqHeaders({ Cookie: cookie }),
+      headers: shareReqHeaders(),
     });
     expect(snap.status()).toBe(200);
 
