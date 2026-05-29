@@ -5,6 +5,17 @@ import { resolve } from 'node:path';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+// jsdom does not implement ResizeObserver — required by Radix Command (cmdk)
+// and any layout-aware primitive (framer-motion's useMeasure, etc.). Without
+// this stub, SearchModal / Command.Dialog mount throws.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+(globalThis as { ResizeObserver?: typeof ResizeObserver }).ResizeObserver =
+  ResizeObserverStub as unknown as typeof ResizeObserver;
+
 // jsdom does not implement window.matchMedia — required by useReducedMotion + framer-motion
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
