@@ -1,5 +1,4 @@
--- DRAFT — Plan 70-07 cascade-37 — NOT pushed. Review then git mv into
--- supabase/migrations/ and `supabase db push --linked`.
+-- Plan 70-07 cascade-39 — remote-DB reconciliation (R1).
 --
 -- Root cause R1 (see 70-07-UNIT-DRIFT-ROOTCAUSE.md):
 --   20270601600004_p31_06_fix_org_member_rls_recursion.sql created the SECDEF

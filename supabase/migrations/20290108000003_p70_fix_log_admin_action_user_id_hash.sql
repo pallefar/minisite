@@ -1,5 +1,4 @@
--- DRAFT — Plan 70-07 cascade-37 — NOT pushed. Review then git mv into
--- supabase/migrations/ and `supabase db push --linked`.
+-- Plan 70-07 cascade-39 — remote-DB reconciliation (R3).
 --
 -- Root cause R3 (see 70-07-UNIT-DRIFT-ROOTCAUSE.md):
 --   public.audit_logs.user_id_hash is `text not null` (since

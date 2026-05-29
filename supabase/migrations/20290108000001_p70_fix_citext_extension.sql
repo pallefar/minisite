@@ -1,5 +1,4 @@
--- DRAFT — Plan 70-07 cascade-37 — NOT pushed. Review then git mv into
--- supabase/migrations/ and `supabase db push --linked`.
+-- Plan 70-07 cascade-39 — remote-DB reconciliation (R2).
 --
 -- Root cause R2 (see 70-07-UNIT-DRIFT-ROOTCAUSE.md):
 --   20270601100011_resolve_clinic_slug_rpc.sql:87 compares
