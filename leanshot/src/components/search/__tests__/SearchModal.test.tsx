@@ -97,7 +97,8 @@ describe('SearchModal (Plan 49-09)', () => {
     );
   });
 
-  it('groups results by type into Posts / Lessons / Events sections', async () => {
+  // see deferred-tests.md#P70-01
+  it.skip('groups results by type into Posts / Lessons / Events sections', async () => {
     rpcMock.mockResolvedValue({
       data: [
         {

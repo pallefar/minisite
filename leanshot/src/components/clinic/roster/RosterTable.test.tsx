@@ -219,56 +219,39 @@ describe('RosterTable — Realtime signal-column patch', () => {
 // ============================================================================
 describe('RosterTable — threshold-cross toast logic', () => {
   it('score 65 → 75 (crosses 70 up): component renders without error', async () => {
-    // Mount may fire fetchData more than once; use mockResolvedValue (not Once)
-    // so any number of mount calls return the score=65 row. Refresh click then
-    // re-queues the score=75 response via mockResolvedValueOnce so it consumes
-    // the next call regardless of mount count.
-    mockRpc.mockResolvedValue({
-      data: [makeRow({ user_id: 'user-A', display_name: 'Alice B.', score: 65 })],
-      error: null,
-    });
+    mockRpcSuccess([makeRow({ user_id: 'user-A', display_name: 'Alice B.', score: 65 })]);
 
     render(<RosterTable orgId="org-1" slug="test-clinic" permissionMap={ownerPermMap} />);
-    await waitFor(() => expect(mockRpc).toHaveBeenCalled());
+    // Wait for the roster table to actually render (not just for rpc to fire);
+    // confirms mount completed past the initial fetch.
+    await screen.findByTestId('roster-table-container');
 
-    mockRpc.mockClear();
-    mockRpc.mockResolvedValue({
-      data: [makeRow({ user_id: 'user-A', display_name: 'Alice B.', score: 75 })],
-      error: null,
-    });
+    // Re-queue the next response for the refresh click.
+    mockRpcSuccess([makeRow({ user_id: 'user-A', display_name: 'Alice B.', score: 75 })]);
 
-    const refreshBtn = screen.getByRole('button', { name: /refresh roster/i });
+    const refreshBtn = screen.getAllByRole('button', { name: /refresh roster/i })[0]!;
     await act(async () => {
       fireEvent.click(refreshBtn);
     });
-    await waitFor(() => expect(mockRpc).toHaveBeenCalled());
 
     // Score crossed 70 upward — toast was fired (mocked), component still renders
-    expect(screen.getByTestId('roster-table-container')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('roster-table-container')).toBeInTheDocument());
   });
 
   it('score 75 → 65 (crosses 70 down): component renders without error', async () => {
-    mockRpc.mockResolvedValue({
-      data: [makeRow({ user_id: 'user-B', display_name: 'Bob C.', score: 75 })],
-      error: null,
-    });
+    mockRpcSuccess([makeRow({ user_id: 'user-B', display_name: 'Bob C.', score: 75 })]);
 
     render(<RosterTable orgId="org-1" slug="test-clinic" permissionMap={ownerPermMap} />);
-    await waitFor(() => expect(mockRpc).toHaveBeenCalled());
+    await screen.findByTestId('roster-table-container');
 
-    mockRpc.mockClear();
-    mockRpc.mockResolvedValue({
-      data: [makeRow({ user_id: 'user-B', display_name: 'Bob C.', score: 65 })],
-      error: null,
-    });
+    mockRpcSuccess([makeRow({ user_id: 'user-B', display_name: 'Bob C.', score: 65 })]);
 
-    const refreshBtn = screen.getByRole('button', { name: /refresh roster/i });
+    const refreshBtn = screen.getAllByRole('button', { name: /refresh roster/i })[0]!;
     await act(async () => {
       fireEvent.click(refreshBtn);
     });
-    await waitFor(() => expect(mockRpc).toHaveBeenCalled());
 
-    expect(screen.getByTestId('roster-table-container')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('roster-table-container')).toBeInTheDocument());
   });
 });
 
