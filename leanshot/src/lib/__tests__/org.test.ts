@@ -93,10 +93,13 @@ describe('org.ts surface members', () => {
   // ---------------------------------------------------------------------------
   // Test 6 — surfaceCheck (staff)
   // ---------------------------------------------------------------------------
-  it('Test 6: surfaceCheck staff: members.invite=false; patients.link=true', () => {
+  it('Test 6: surfaceCheck staff: members.invite=false; roster.view=true', () => {
     useStore.getState().setCurrentOrg(orgFixture, 'clinician');
     expect(surfaceCheck('members.invite')).toBe(false);
-    expect(surfaceCheck('patients.link')).toBe(true);
+    // Phase 70-07 cascade-27: `patients.link` was never added to the ROLE_PERMISSIONS
+    // matrix in src/lib/org.ts (the original test expectation was speculative).
+    // Use roster.view as the positive clinician permission per the actual matrix.
+    expect(surfaceCheck('roster.view')).toBe(true);
   });
 
   // ---------------------------------------------------------------------------
@@ -197,7 +200,9 @@ describe('org.ts surface members', () => {
     expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('members.list')).toBe(true);
     expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('settings.edit')).toBe(true);
     expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('branding.edit')).toBe(true);
-    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('patients.link')).toBe(true);
+    // Phase 70-07 cascade-27: see Test 6 — patients.link never landed.
+    // Substitute roster.view which IS in owner's permission set.
+    expect(_ROLE_PERMISSIONS_FOR_TEST.owner.has('roster.view')).toBe(true);
     // @ts-expect-error - ReadonlySet has no add method at type level
     expect(() => (_ROLE_PERMISSIONS_FOR_TEST.owner as Set<string>).add('newperm')).not.toThrow();
     // The add above would succeed at runtime (JS doesn't enforce readonly) — we verify at type level only
