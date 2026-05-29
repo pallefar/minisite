@@ -30,10 +30,13 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 const mockSetTier = vi.fn();
+const mockSetPauseState = vi.fn();
 vi.mock('@/lib/store', () => ({
   useStore: {
     getState: () => ({
       setTier: mockSetTier,
+      // billing-sync also writes pause state via useStore.getState().setPauseState().
+      setPauseState: mockSetPauseState,
     }),
   },
 }));
