@@ -128,8 +128,15 @@ export default defineConfig({
         },
         test: {
           name: 'src-lib-unit',
-          environment: 'node',
+          // Phase 70-07 cascade-16 — jsdom, not node. The original "pure
+          // logic" framing didn't match scope: src/lib/storage, store,
+          // migration, anonymous/cookie, ads/adsense, etc. all touch
+          // localStorage / document.cookie / navigator. Running under
+          // 'node' threw ReferenceError: localStorage is not defined
+          // across 100+ tests. jsdom is the right env for src/lib here.
+          environment: 'jsdom',
           globals: true,
+          setupFiles: ['./src/test-setup.ts'],
           include: ['src/lib/**/__tests__/*.test.ts', 'src/lib/**/*.test.ts'],
           // Phase 70-07 cascade-15 — see top-level exclude comment.
           exclude: ['src/lib/native/**'],
