@@ -28,6 +28,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // vite-plugin-pwa's virtual module — VitePWA plugin isn't loaded
+      // under vitest, so register.test.ts can't resolve the import otherwise.
+      'virtual:pwa-register': fileURLToPath(
+        new URL('./src/lib/pwa/__mocks__/virtual-pwa-register.ts', import.meta.url),
+      ),
     },
   },
   test: {
@@ -124,6 +129,10 @@ export default defineConfig({
           alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),
             'markdown-it': '/Users/karstenhaldan/minisite/leanshot/node_modules/markdown-it/index.mjs',
+            // vite-plugin-pwa virtual module — see top-level resolve.alias comment.
+            'virtual:pwa-register': fileURLToPath(
+              new URL('./src/lib/pwa/__mocks__/virtual-pwa-register.ts', import.meta.url),
+            ),
           },
         },
         test: {
