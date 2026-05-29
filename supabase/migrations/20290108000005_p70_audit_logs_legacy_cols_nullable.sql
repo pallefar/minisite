@@ -1,0 +1,39 @@
+-- Plan 70-07 cascade-41 — remote-DB reconciliation (R3c): relax legacy audit_logs
+-- NOT-NULL columns that the modern action_name-based audit path cannot satisfy.
+--
+-- Root (see 70-07-UNIT-DRIFT-ROOTCAUSE.md): public.audit_logs carries a DUAL schema.
+-- The original Phase-7 design (20260601000001) has:
+--   action     text NOT NULL  CHECK (action IN ('insert','update','delete',
+--                                    'membership_role_changed', ... fixed legacy list))
+--   table_name text NOT NULL
+-- Later phases bolted on a parallel modern column family for the admin/org/rag
+-- audit system — action_name, actor_user_id, row_pk, before_data, after_data,
+-- source, metadata, org_id, actor_type, target_user_id — and the write helpers
+-- (log_admin_action, log_org_action, rag_topic_* RPCs) populate THOSE, not the
+-- legacy `action`/`table_name`. Modern action_name values ('org_branding.update',
+-- 'org_member.role_changed', 'rag_topic_create', …) are NOT in the legacy `action`
+-- CHECK list, so the helpers cannot set `action` at all → every modern audit write
+-- fails with `23502 null value in column "action"` (or "table_name"). The modern
+-- admin/org/rag audit-write path has been DOA since it shipped (masked by the
+-- Phase 70-07 rate-limit cluster + the org_members RLS recursion until cascades
+-- 32/39 cleared those).
+--
+-- cascades 39+40 already fixed the third legacy NOT-NULL column (user_id_hash) on
+-- log_admin_action + log_org_action; this migration relaxes the remaining two.
+--
+-- Fix: make the legacy `action` and `table_name` columns nullable. The modern path
+-- carries the semantics in `action_name` (and `table_name` is set when the action is
+-- table-scoped). The legacy `audit_logs_action_check` CONSTRAINT is unchanged — it
+-- still validates any NON-null `action` value, so legacy writers (PHI trigger,
+-- share_view, org_create, …) that DO set a CHECK-valid `action` are unaffected; only
+-- the modern action_name-based rows are now permitted to leave `action` null.
+--
+-- Affected tests (live remote DB): rls-org-branding (T12/T14/T15/T16),
+-- rls-change-member-role (TC1/TC2/TC3/TC5/TC6), rls-org-invites (T6),
+-- rls-org-onboarding-flows (A4), audit-logs-rls, audit-trigger, and the rag
+-- topic-crud/topic-audit/soft-delete/rls-matrix audit writes.
+--
+-- Idempotent: DROP NOT NULL is a no-op if already dropped.
+
+alter table public.audit_logs alter column action drop not null;
+alter table public.audit_logs alter column table_name drop not null;
