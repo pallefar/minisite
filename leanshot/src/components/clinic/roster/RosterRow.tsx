@@ -124,7 +124,7 @@ export function RosterRow({
       )}
       onClick={handleDrillIn}
       onKeyDown={handleDrillIn}
-      data-testid="roster-row"
+      data-testid={`roster-row-${row.user_id}`}
       data-patient-id={row.user_id}
       aria-selected={onToggleSelect ? isSelected : undefined}
     >

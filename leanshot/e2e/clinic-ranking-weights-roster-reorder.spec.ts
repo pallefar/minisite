@@ -213,11 +213,11 @@ test.describe('@phase30 SC#1 — ranking weights save → roster reorder within 
     await pageB.waitForLoadState('networkidle');
 
     // Wait for roster rows to be present (retry-safe)
-    await pageB.waitForSelector('[data-testid="roster-row"]', { timeout: 30_000 });
+    await pageB.waitForSelector('[data-testid^="roster-row-"]', { timeout: 30_000 });
 
     // Capture initial row order in context B
     const initialOrder: string[] = await pageB
-      .locator('[data-testid="roster-row"]')
+      .locator('[data-testid^="roster-row-"]')
       .evaluateAll((els) => els.map((el) => el.getAttribute('data-patient-id') ?? ''));
 
     // Context A: navigate to settings → Clinical tab
@@ -264,7 +264,7 @@ test.describe('@phase30 SC#1 — ranking weights save → roster reorder within 
           const newOrder = rows.map((el) => el.getAttribute('data-patient-id') ?? '');
           return JSON.stringify(newOrder) !== JSON.stringify(args.prevOrder);
         },
-        { prevOrder: initialOrder, selector: '[data-testid="roster-row"]' },
+        { prevOrder: initialOrder, selector: '[data-testid^="roster-row-"]' },
         { timeout: 5000 },
       );
 
@@ -275,7 +275,7 @@ test.describe('@phase30 SC#1 — ranking weights save → roster reorder within 
       // Reorder didn't happen in time — check if it happened at all (possible
       // if only 1 patient or weights already match ordering)
       const finalOrder: string[] = await pageB
-        .locator('[data-testid="roster-row"]')
+        .locator('[data-testid^="roster-row-"]')
         .evaluateAll((els) => els.map((el) => el.getAttribute('data-patient-id') ?? ''));
 
       // If ≤1 patient row, reorder is vacuously true (nothing to reorder)
