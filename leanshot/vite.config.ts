@@ -469,7 +469,20 @@ export default defineConfig(({ mode }) => {
         // Dependency injection seam (fetchImpl + ragRetrieve) used for mocking.
         '../supabase/functions/protocol-ai-assist/__tests__/handler.test.ts',
       ],
-      exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
+      // Phase 70-07 cascade-14 — native bridge tests are owned by
+      // vitest-mobile.config.ts which aliases @capacitor/* and @revenuecat/*
+      // to vi.fn() mocks under src/lib/native/__mocks__/. Running them under
+      // the default config picks up the REAL modules → 77+ failures with
+      // `Capacitor.getPlatform.mockReturnValue is not a function`. Exclude
+      // here so `npm run test:unit` skips them; `npm run test:mobile-unit`
+      // continues to own that surface.
+      exclude: [
+        'e2e/**',
+        'node_modules/**',
+        'dist/**',
+        'src/lib/native/**',
+        'src/components/BiometricGate.test.tsx',
+      ],
       // Avoid React 19 StrictMode double-invoke flake (RESEARCH.md Pitfall 6)
       css: false,
     },
