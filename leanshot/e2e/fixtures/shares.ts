@@ -266,12 +266,20 @@ export async function impersonateAsRecipient(
     throw new Error(`impersonateAsRecipient: no recipient_session in Set-Cookie: ${setCookie}`);
   }
   const value = match[1]!;
-  const url = new URL(FN_BASE);
+  // Phase 70-07 cascade-38 — cookie domain must match the ORIGIN the SPA fetches
+  // the snapshot from, not the Edge Fn host. In CI the build sets
+  // VITE_SUPABASE_FUNCTIONS_URL='/functions/v1', so the SPA fetches same-origin
+  // (localhost:4173, proxied to the Fn) — the recipient_session cookie therefore
+  // has to live on `localhost` or the browser won't send it (it was previously
+  // scoped to the supabase.co host, so a cross-site SameSite=Strict request never
+  // carried it → drill (a)+(d) saw no record). Outside CI the SPA still uses the
+  // absolute functions URL, so keep the Fn host there.
+  const cookieDomain = process.env.CI ? 'localhost' : new URL(FN_BASE).hostname;
   await context.addCookies([
     {
       name: 'recipient_session',
       value,
-      domain: url.hostname,
+      domain: cookieDomain,
       path: '/',
       httpOnly: true,
       secure: true,

@@ -520,6 +520,13 @@ jobs:
           VITE_ANALYTICS_ENABLED: 'false'
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Phase 70-07 cascade-38 — bundle share-client FN_BASE as the RELATIVE
+          # same-origin path so the SPA's snapshot/redeem fetches hit the preview
+          # server (localhost:4173) and the vite preview proxy forwards them to the
+          # Edge Fn. Makes the request same-site so the SameSite=Strict
+          # recipient_session cookie travels (the cross-site Strict-cookie drop was
+          # why drill tests (a)+(d) saw no record). See vite.config.ts preview.proxy.
+          VITE_SUPABASE_FUNCTIONS_URL: '/functions/v1'
           VITE_E2E: 'true'
       - name: Run revocation drill (Playwright)
         run: npx playwright test e2e/share-revocation-drill.spec.ts
@@ -528,6 +535,13 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Phase 70-07 cascade-38 — the preview server (spawned by Playwright's
+          # webServer) reads these at runtime via loadEnv() to (a) resolve the
+          # /functions/v1 proxy target and (b) inject the anon Bearer/apikey so the
+          # verify_jwt=true Edge gateway lets the SPA's header-less share fetch
+          # through. Must use the VITE_-prefixed names loadEnv looks up.
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       - name: Run extended RLS proof (Vitest)
         run: npx vitest run --config vitest-e2e.config.ts e2e/rls-shares.test.ts
         env:

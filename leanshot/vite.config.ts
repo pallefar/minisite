@@ -28,8 +28,14 @@ export default defineConfig(({ mode }) => {
         buildStart: async () => {
           if (process.env['SKIP_RESEARCH_PREBUILD']) return;
           const { spawnSync } = await import('node:child_process');
-          spawnSync('node', ['scripts/build-research-rss.mjs'], { stdio: 'inherit', cwd: process.cwd() });
-          spawnSync('node', ['scripts/build-research-sitemap.mjs'], { stdio: 'inherit', cwd: process.cwd() });
+          spawnSync('node', ['scripts/build-research-rss.mjs'], {
+            stdio: 'inherit',
+            cwd: process.cwd(),
+          });
+          spawnSync('node', ['scripts/build-research-sitemap.mjs'], {
+            stdio: 'inherit',
+            cwd: process.cwd(),
+          });
         },
       },
       process.env.ANALYZE === 'true' &&
@@ -128,7 +134,7 @@ export default defineConfig(({ mode }) => {
         // Phase 60 Plan 60-07 — resolve 'zod' bare specifier for Edge Fn tests.
         // Edge Fn source files use 'zod' (resolves via deno.json in Deno, but Vite
         // needs an explicit path when test files live outside the leanshot/ root).
-        'zod': fileURLToPath(new URL('./node_modules/zod/v3/index.js', import.meta.url)),
+        zod: fileURLToPath(new URL('./node_modules/zod/v3/index.js', import.meta.url)),
       },
     },
     server: {
@@ -138,6 +144,49 @@ export default defineConfig(({ mode }) => {
       // directory (one level UP from leanshot/). Without this, vite's default
       // fs.allow only permits the project root, blocking `../shared/*.test.ts`.
       fs: { allow: ['..'] },
+    },
+    // Phase 70-07 cascade-38 — same-origin proxy for the doctor-share drill.
+    // The Playwright preview server runs on http://localhost:4173. When the
+    // share-revocation-drill build sets VITE_SUPABASE_FUNCTIONS_URL='/functions/v1'
+    // (see .github/workflows/ci.yml share-security-drill job), the SPA's
+    // share-client FN_BASE becomes that RELATIVE path, so fetchSnapshot()/redeem
+    // hit the preview origin instead of supabase.co. That makes the request
+    // SAME-SITE, so the recipient_session cookie (SameSite=Strict, injected on
+    // `localhost`) actually travels — the cross-site Strict-cookie drop was why
+    // drill tests (a) token-cache and (d) forwarded-link saw no "LeanShot record"
+    // heading. This proxy forwards those same-origin calls to the live Edge Fn.
+    //
+    // `share` has no [functions.share] block in supabase/config.toml → it defaults
+    // to verify_jwt=true, so the Edge gateway 401s before the function body unless
+    // a Bearer is present. The SPA's share-client deliberately sends no auth header
+    // (the cookie is the auth), so we inject the anon key here — mirroring the
+    // proven e2e/fixtures/shares.ts headers. See
+    // reference_supabase_edge_fn_jwt_gateway_healthz. Dormant when
+    // VITE_SUPABASE_URL is unset (e.g. the general test-e2e job, which fetches
+    // supabase.co directly and never routes through /functions/v1).
+    preview: {
+      port: 4173,
+      proxy: env.VITE_SUPABASE_URL
+        ? {
+            '/functions/v1': {
+              target: env.VITE_SUPABASE_URL,
+              changeOrigin: true,
+              secure: true,
+              configure: (proxy) => {
+                const anon = env.VITE_SUPABASE_ANON_KEY;
+                if (!anon) return;
+                proxy.on('proxyReq', (proxyReq) => {
+                  if (!proxyReq.getHeader('authorization')) {
+                    proxyReq.setHeader('authorization', `Bearer ${anon}`);
+                  }
+                  if (!proxyReq.getHeader('apikey')) {
+                    proxyReq.setHeader('apikey', anon);
+                  }
+                });
+              },
+            },
+          }
+        : undefined,
     },
     build: {
       // 'hidden' generates .map files but does NOT add the sourceMappingURL comment to .js.
@@ -190,11 +239,13 @@ export default defineConfig(({ mode }) => {
             if (
               id.includes('/src/helpdesk/KBArticleView') ||
               id.includes('/src/components/helpdesk/KBArticleView')
-            ) return 'helpdesk-article';
+            )
+              return 'helpdesk-article';
             if (
               id.includes('/src/helpdesk/MacroTypeahead') ||
               id.includes('/src/components/helpdesk/MacroTypeahead')
-            ) return 'helpdesk-macros';
+            )
+              return 'helpdesk-macros';
             if (
               id.includes('/src/helpdesk/TicketForm') ||
               id.includes('/src/helpdesk/TicketList') ||
@@ -202,14 +253,21 @@ export default defineConfig(({ mode }) => {
               id.includes('/src/helpdesk/ReplyComposer') ||
               id.includes('/src/helpdesk/TypingIndicator') ||
               id.includes('/src/helpdesk/hooks/')
-            ) return 'helpdesk-tickets';
+            )
+              return 'helpdesk-tickets';
             if (
               id.includes('/src/helpdesk/') ||
               id.includes('/src/components/helpdesk/') ||
               id.includes('/src/lib/helpdesk/')
-            ) return 'helpdesk-widget';
-            if (id.includes('/src/lib/i18n/') || id.includes('/src/components/i18n/')) return 'i18n-runtime';
-            if (id.includes('/src/lib/gamification/') || id.includes('/src/components/gamification/')) return 'gamification-burst';
+            )
+              return 'helpdesk-widget';
+            if (id.includes('/src/lib/i18n/') || id.includes('/src/components/i18n/'))
+              return 'i18n-runtime';
+            if (
+              id.includes('/src/lib/gamification/') ||
+              id.includes('/src/components/gamification/')
+            )
+              return 'gamification-burst';
             // Phase 44 Plan 09 — community sub-chunk rules.
             // ORDER MATTERS: more-specific rules must appear BEFORE the community/ catch-all.
             // community-media: Mux player (~170 kB gz) + Mux uploader (~16 kB gz) kept out of community-feed.
@@ -233,7 +291,8 @@ export default defineConfig(({ mode }) => {
               id.includes('/src/components/community/ProfileCard') ||
               id.includes('/src/components/community/LeaderboardChip') ||
               id.includes('/src/components/community/ReportButton')
-            ) return 'community-directory';
+            )
+              return 'community-directory';
             // community-dm groups every DM surface (45-07b) + its realtime hook
             // so DMInboxView + DMThreadView + DMComposer + DMAttachmentUploader
             // and use-dm-inbox-realtime stay together and load on demand from
@@ -241,7 +300,8 @@ export default defineConfig(({ mode }) => {
             if (
               id.includes('/src/components/community/dm/') ||
               id.includes('/src/components/community/use-dm-inbox-realtime')
-            ) return 'community-dm';
+            )
+              return 'community-dm';
             if (id.includes('/src/components/community/')) return 'community-feed';
             if (id.includes('/src/components/course/')) return 'course-player';
             // Phase 47 Plan 10 — events chunk (EVENT-01 / 02 / 03).
