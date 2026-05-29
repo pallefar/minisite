@@ -107,7 +107,10 @@ describe('<AdminMembersPage /> — Phase 22 Plan 22-06', () => {
 
   it('T3 — staff user → fetches admin_list_members + renders table rows', async () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true, has_totp: true, admin_role: null }, error: null });
+    mockProfilesMaybeSingle.mockResolvedValue({
+      data: { is_staff: true, has_totp: true, admin_role: null },
+      error: null,
+    });
     mockAssertAal2.mockResolvedValue(true);
     mockRpc.mockResolvedValue({ data: SAMPLE, error: null });
 
@@ -131,7 +134,10 @@ describe('<AdminMembersPage /> — Phase 22 Plan 22-06', () => {
 
   it('T4 — clicking "Paid" filter re-invokes RPC with p_tier="paid"', async () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true, has_totp: true, admin_role: null }, error: null });
+    mockProfilesMaybeSingle.mockResolvedValue({
+      data: { is_staff: true, has_totp: true, admin_role: null },
+      error: null,
+    });
     mockAssertAal2.mockResolvedValue(true);
     mockRpc.mockResolvedValue({ data: SAMPLE, error: null });
 
@@ -153,7 +159,10 @@ describe('<AdminMembersPage /> — Phase 22 Plan 22-06', () => {
 
   it('T5 — search input debounced re-invokes RPC with p_search', async () => {
     mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-    mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true, has_totp: true, admin_role: null }, error: null });
+    mockProfilesMaybeSingle.mockResolvedValue({
+      data: { is_staff: true, has_totp: true, admin_role: null },
+      error: null,
+    });
     mockAssertAal2.mockResolvedValue(true);
     mockRpc.mockResolvedValue({ data: SAMPLE, error: null });
 
