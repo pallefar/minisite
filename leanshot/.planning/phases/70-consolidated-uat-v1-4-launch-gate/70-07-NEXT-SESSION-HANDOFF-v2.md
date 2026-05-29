@@ -1,9 +1,9 @@
 # Plan 70-07 — NEXT-SESSION-HANDOFF v2 (cascades 8-31 complete)
 
-**Created:** 2026-05-29
-**HEAD at handoff:** `f1688014`
-**Cascades closed this session:** 24 (8 through 31)
-**Commits:** 24
+**Created:** 2026-05-29 (updated post-cascade-32)
+**HEAD at handoff:** `8e44a500`
+**Cascades closed this session:** 25 (8 through 32)
+**Commits:** 26 (24 cascade + 1 handoff + 1 cascade-32 flag-fix)
 
 ## TL;DR
 
@@ -20,24 +20,20 @@ Sessions B → F cleared **24 cascade layers** spanning Lint, Unused-exports, De
 | Unused exports check | RED (SIGPIPE + false-PASS 0/570) | GREEN | ✅ |
 | Deno tests | RED (share CORS env-seed race) | GREEN | ✅ |
 | **Share security drill** | RED (6 fails) | RED (2 fails) | 🟡 |
-| **Unit tests** | RED (501 fails) | RED (53 fails) | 🟡 |
+| **Unit tests** | RED (501 fails) | RED (62 fails) | 🟡 |
 | Mobile (iOS/Android/Manifest) | RED chronic | RED chronic | separate scope |
 | a11y baseline | newly RED | RED | not started |
 
-## Remaining 53 Unit-tests failures (commit `f1688014`)
+## Remaining 62 Unit-tests failures (commit `8e44a500`)
 
-**Cluster A — Supabase Auth verifyOtp rate-limit (~10 direct + cascading)**
+**Cluster A — Supabase Auth verifyOtp rate-limit: CLOSED ✅**
 
-- Cascade-31 retry-with-backoff cut rate-limit hits 16 → 10 (~38%).
-- Remaining hits suggest backoff window too short OR Supabase's per-IP rate counter doesn't reset within the 31s aggregate backoff.
-- Files affected: `src/lib/__tests__/rls-org-{members,invites,settings,branding,organizations,patient-links,consent-grants,onboarding-flows}.test.ts`, `rls-change-member-role.test.ts`, `audit-logs-rls.test.ts`, `audit-trigger.test.ts`, `backup-codes.test.ts`, `rag/__tests__/rls-matrix.test.ts`.
+- Cascade-31 (retry-backoff): 16 → 10 hits (~38%). Insufficient alone.
+- Cascade-32 (`--maxWorkers=1` in CI workflow): 10 → **0** hits. Serial file execution spreads the burst over ~10 min, rate limit never approached.
+- CI Unit-tests duration: ~50s → ~10min. Acceptable.
+- Heads-up: `--minWorkers=1` is NOT a valid vitest 4.x flag (CACError). Use just `--maxWorkers=1`.
 
-**Cluster A — escalation options (pick one):**
-
-1. **Increase backoff aggressively** — bump max attempts 5 → 10, base 1s → 3s, max delay 8s → 30s. Worst-case per-file slowdown: ~3 minutes. Try first.
-2. **Worker concurrency cap** — `--maxWorkers=1` (or `--no-file-parallelism`) for the rls-* directory. Trivial workflow change. ~4x slower overall but rate-limit-safe.
-3. **Pre-seed user pool at CI setup** — create N stable users ONCE in a `pretest` step, share via env. Fastest at runtime but ~30-60min of fixture refactor.
-4. **Bump Supabase Auth rate limit** — vendor side; needs ops/dashboard access.
+**Unmasking effect:** clearing the rate-limit cluster surfaced 62 underlying test failures previously masked by `beforeAll` throwing first. The 62 are NOW the real per-test triage backlog (was unknowable while rate-limit was masking).
 
 **Cluster B — non-rate-limit RLS / unit failures (~7-10)**
 
@@ -105,18 +101,19 @@ cd leanshot && node scripts/audit-deferred-tests.mjs
 
 ## Decision points for next session
 
-1. **Cluster A escalation:** retry-aggressive vs worker-cap vs pool-seed vs vendor-bump. Recommend (2) worker-cap first — it's a 1-line CI workflow change and immediately rules out the rate-limit as a moving variable.
+1. **Cluster A: CLOSED** — worker-cap (cascade-32) cleared all rate-limit hits. No further action needed unless re-parallelizing (try `--maxWorkers=2` if duration-sensitive).
 2. **Share-security-drill (a)+(d):** Vite proxy plan is laid out above; needs 3 file edits + a CI build-env addition.
-3. **Cluster B 7-10 misc fails:** per-test triage; each likely 5-15 min.
+3. **62 unmasked unit-test failures:** per-test triage. Most are likely backend-drift or jsdom-stub gaps (sample errors include `QuotaExceeded`, `indexedDB is not defined`, `Network failure` fail-open paths). Cluster by error-prefix before grinding.
 4. **a11y baseline:** brand-new RED job that surfaced when Lint cleared. Untouched.
 
 ## Session metrics
 
-- 24 cascade commits between `6eb7c301` and `f1688014`
-- 4 CI jobs flipped RED→GREEN (Lint, Unused-exports, Deno-tests, +Format)
+- 25 cascade commits between `6eb7c301` and `8e44a500`
+- 4 CI jobs flipped RED→GREEN (Lint, Unused-exports, Deno-tests, Format)
 - 1 CI job partially cleared (Share-security 6→2)
-- 1 CI job partially cleared (Unit-tests 501→53; local 0)
-- 15 new memory references/feedback files for future sessions
+- 1 CI job rate-limit cluster CLOSED (Unit-tests 501→62 with the underlying-tests unmasked; local 0)
+- 15+ new memory references/feedback files for future sessions
+- 1 verified cascade-pattern: parallel-test-fixture rate-limit needs worker-cap, not just retry-backoff
 
 ---
 
