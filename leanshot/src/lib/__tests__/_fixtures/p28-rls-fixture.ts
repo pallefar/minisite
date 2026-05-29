@@ -89,11 +89,29 @@ export async function sessionFor(email: string): Promise<Session> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { data: verifyData, error: verifyErr } = await userClient.auth.verifyOtp({
-    type: 'magiclink',
-    token_hash: tokenHash,
-  });
-  if (verifyErr || !verifyData.session) {
+  // Phase 70-07 cascade-31: ~11 RLS test files × 2-4 verifyOtp calls each
+  // × vitest parallelism (4 workers) trips Supabase's Auth OTP rate limit
+  // ("Request rate limit reached") in CI. Retry with exponential backoff
+  // (1s → 2s → 4s → 8s → 16s) — by the time the 3rd retry fires, the burst
+  // has spread across the rate-limit window and the call succeeds.
+  let verifyData: Awaited<ReturnType<typeof userClient.auth.verifyOtp>>['data'] | null = null;
+  let verifyErr: { message?: string } | null = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const result = await userClient.auth.verifyOtp({
+      type: 'magiclink',
+      token_hash: tokenHash,
+    });
+    verifyData = result.data;
+    verifyErr = result.error;
+    if (verifyData?.session) break;
+    if (verifyErr?.message && /rate limit/i.test(verifyErr.message) && attempt < 4) {
+      const delayMs = 1000 * 2 ** attempt; // 1s, 2s, 4s, 8s
+      await new Promise((r) => setTimeout(r, delayMs));
+      continue;
+    }
+    break; // non-rate-limit error or final attempt
+  }
+  if (verifyErr || !verifyData?.session) {
     throw new Error(`verifyOtp failed for ${email}: ${verifyErr?.message}`);
   }
 
