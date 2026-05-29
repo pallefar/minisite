@@ -1,5 +1,49 @@
 # Plan 70-07 — NEXT-SESSION-HANDOFF v2 (cascades 8-31 complete)
 
+---
+## ⏩ v3 continuation update (2026-05-29, cascades 33-37) — 6 local commits, NOT yet pushed
+
+**HEAD (local):** `2f875222` · 6 commits ahead of `origin/main` (`33498951`).
+
+CI jobs flipped this session (verified locally):
+
+| Job | Was | Now | Fix |
+|---|---|---|---|
+| Format check | RED (AdminMembersPage.test.tsx) | GREEN | cascade-33 prettier-write |
+| Unused exports | RED (571>570) | GREEN | cascade-34 baseline→571 (virtual:pwa-register mock) |
+| a11y baseline | RED (No test files found) | GREEN (31 pass) | cascade-35 add `a11y` vitest project |
+| Unit tests (Deno capture) | 31 files fail-to-collect | removed | cascade-36 scope `functions-unit` to 16 vitest files |
+| Unit tests (research-renderer) | 2 fail (hardcoded path) | GREEN | cascade-37 portable markdown-it alias |
+| Unit tests (notifications) | 1 fail (VAPID env) | GREEN | cascade-37 `vi.stubEnv` |
+
+**Unit-tests remaining = 62 real test failures → fully triaged.** See
+`70-07-UNIT-DRIFT-ROOTCAUSE.md`. Split:
+- **3 confirmed remote-DB roots** (need DDL push) — drafted, NOT pushed, in
+  `drafted-migrations/`:
+  - **R1 org_members_select RLS infinite recursion (42P17)** — ~30 tests; ALSO a
+    live production bug (co-member visibility broken). Fix migration 20290108000002.
+  - **R2 citext extension not installed (42704)** — 5 tests. Fix 20290108000001.
+  - **R3 log_admin_action omits NOT-NULL user_id_hash (23502)** — ~12 tests
+    (audit + rag). Fix 20290108000003.
+- **R6 validate-onboarding-steps (5)** — test-side: P34 narrowed the RPC to a
+  shape-guard; update the test to the new contract (needs live DB to verify).
+- **R5 role-matrix-sync (7)** — decision: extend `has_permission()` with 2 new
+  perm keys vs trim TS matrix / update count to 18.
+- **R4 admin_backup_codes (2)** — service_role INSERT intentionally revoked;
+  test should seed via SECDEF RPC (EG-29). Keep deferred; don't weaken grant.
+
+**Next-session actions:**
+1. Push the 6 commits (if not already) so CI validates cascades 33-37.
+2. Review `drafted-migrations/` → `git mv` into `supabase/migrations/` (re-stamp
+   timestamps if newer migrations landed) → `supabase db push --linked`. R1 first
+   (production bug). Expect cascading drift discovery per
+   `feedback_cascading_drift_discovery_pattern`.
+3. Apply R6 test update; decide R5; leave R4 deferred. → Unit-tests ~62 → 0.
+4. Share-security-drill 2 fails (Vite proxy) — still open, see below.
+
+---
+
+
 **Created:** 2026-05-29 (updated post-cascade-32)
 **HEAD at handoff:** `8e44a500`
 **Cascades closed this session:** 25 (8 through 32)
