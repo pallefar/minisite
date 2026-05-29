@@ -16,6 +16,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminMemberDetailPage } from '@/components/admin/pages/AdminMemberDetailPage';
 
 const mockAuthGetUser = vi.fn();
+const mockAssertAal2 = vi.fn();
 const mockProfilesMaybeSingle = vi.fn();
 const mockRpc = vi.fn();
 const mockAuditOrder = vi.fn();
@@ -25,10 +26,20 @@ const mockFeatureFlagsSelect = vi.fn();
 const mockOverridesEq = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
+  // AdminLayout's runProbe gates on assertAal2(); the seedStaffOk() helper
+  // re-seeds true after vi.clearAllMocks() in beforeEach.
+  assertAal2: () => mockAssertAal2(),
   supabase: {
     auth: {
       getUser: () => mockAuthGetUser(),
     },
+    // Anomaly realtime-channel (mounted from AdminShell sub-tree) calls
+    // supabase.channel().on(...).subscribe() at mount. Stub the chain.
+    channel: () => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    }),
+    removeChannel: vi.fn(),
     rpc: (name: string, params: unknown) => mockRpc(name, params),
     from: (table: string) => {
       if (table === 'profiles') {
@@ -85,7 +96,13 @@ const SAMPLE_MEMBER = {
 
 function seedStaffOk() {
   mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'staff-1' } } });
-  mockProfilesMaybeSingle.mockResolvedValue({ data: { is_staff: true }, error: null });
+  mockAssertAal2.mockResolvedValue(true);
+  // AdminLayout's probe also reads has_totp; must be true so the probe doesn't
+  // route to SetupTotpPage. admin_role unset is fine (defaults to null).
+  mockProfilesMaybeSingle.mockResolvedValue({
+    data: { is_staff: true, has_totp: true, admin_role: null },
+    error: null,
+  });
   mockRpc.mockResolvedValue({ data: [SAMPLE_MEMBER], error: null });
   // Tab data defaults — empty results so empty states fire.
   mockSubsMaybeSingle.mockResolvedValue({ data: null, error: null });
