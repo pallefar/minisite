@@ -92,7 +92,15 @@ jobs:
           cache: 'npm'
           cache-dependency-path: leanshot/package-lock.json
       - run: npm ci
-      - run: npm run test:unit
+      # Phase 70-07 cascade-32 — serialize test-file execution in CI to avoid
+      # Supabase Auth's per-IP verifyOtp rate limit (cascade-31 retry-backoff
+      # alone insufficient at default 4-worker parallelism). Tradeoff: ~3x
+      # slower than parallel, but eliminates the rate-limit cluster (~40 of
+      # the 49 prior CI failures) without per-fixture refactor. Local runs
+      # keep default parallelism (no rate-limit pressure: tests self-skip
+      # without SUPABASE_SERVICE_ROLE_KEY).
+      # See: feedback_ci_rate_limit_parallel_fixtures.md
+      - run: npm run test:unit -- --maxWorkers=1 --minWorkers=1
         env:
           # Phase 5 SC#5 (cross-tenant RLS on injections) — when these secrets
           # are present the e2e/rls-*.test.ts suites run live against the
