@@ -1,0 +1,27 @@
+-- Phase 70-07 cascade-13 — restore service_role access to auth.users.
+--
+-- Migration 20290106000002 (SEC-02/SEC-03 hardening) switched
+-- public.share_snapshot_view from security_definer → security_invoker
+-- without granting service_role direct SELECT on auth.users.
+--
+-- Under security_invoker the view runs with the CALLER's privileges. The
+-- Edge Fn `share` handler queries the view as service_role (via PostgREST),
+-- which previously inherited the view-owner's auth.users SELECT via SECDEF.
+-- After the refactor, every snapshot SELECT raises 42501 "permission denied
+-- for table users" → handleSnapshot returns 500 'internal' → 4 e2e tests
+-- in share-revocation-drill.spec.ts fail (a, c, d, audit-row).
+--
+-- The 20290106000002 author's intent was preserved (see its comment block
+-- "The auth.users join is preserved because both views' downstream consumers
+-- (Edge Fn share handler + admin cohort-retention RPC) call as service_role
+-- and need the user data") but the supporting GRANT was missing.
+--
+-- service_role is the trusted server-only role with bypass-RLS superpowers;
+-- granting SELECT on auth.users is non-novel access — anyone with a
+-- service_role key already has full DB read via direct SQL. This GRANT
+-- restores the view-through-service_role path that production already
+-- depended on for share recipients to load patient context (incl. email).
+--
+-- Forward-only, idempotent (GRANT is no-op if already present).
+
+grant select on auth.users to service_role;
