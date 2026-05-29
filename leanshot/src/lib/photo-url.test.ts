@@ -39,11 +39,14 @@ describe('storageTransformUrl', () => {
     const url = storageTransformUrl('user with space/photos/file:name.jpg');
     // Each segment is encoded independently; `/` separators preserved.
     expect(url).toContain('user%20with%20space/photos/file%3Aname.jpg');
-    // The encoded path (AFTER the host) must NOT contain raw spaces or colons.
-    // Strip scheme + host first so `https:` and `.supabase.co:443` style colons
-    // don't false-positive against the regex.
-    const parsed = new URL(url);
-    expect(parsed.pathname).not.toMatch(/[ :]/);
+    // The encoded path must NOT contain raw spaces or colons. We test the
+    // PATH portion only — peel off scheme+host (when present) or leading `/`
+    // (when VITE_SUPABASE_URL is unset and url is relative). Both shapes
+    // happen: local has VITE_SUPABASE_URL set, CI build sometimes doesn't.
+    const pathPortion = url.split('?')[0]!.replace(/^https?:\/\/[^/]+/, '');
+    // Now pathPortion is /storage/v1/render/.../<encoded-path>; assert no raw
+    // spaces or colons.
+    expect(pathPortion).not.toMatch(/[ :]/);
   });
 
   it('throws when path is empty', () => {
