@@ -186,7 +186,12 @@ describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
     const row = auditRows![0]!;
     expect(row.after_data).toBeTruthy();
     expect(row.before_data).toBeNull();
-    expect(row.row_pk).toBeTruthy(); // injection id or null from trigger
+    // Phase 70-07 cascade-46 — injections has a COMPOSITE PK (user_id, log_id) and no
+    // `id` column, so fn_audit_phi_trigger sets row_pk NULL by design (its own comment:
+    // "For composite PKs, row_pk is NULL — before_data/after_data capture the full row").
+    // The original `.toBeTruthy()` contradicted that (and the line's own "or null" note);
+    // the row content is asserted via after_data above.
+    expect(row.row_pk).toBeNull();
     expect(beforeCount.count).toBeLessThan(
       (
         await admin
@@ -229,7 +234,13 @@ describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
     expect(row.after_data).toBeNull();
   }, 30_000);
 
-  it('T5: app.suppress_audit GUC = on suppresses the PHI trigger (no new audit row)', async () => {
+  // Phase 70-07 cascade-46 — T5 is a placeholder: it calls
+  // `_test_suppress_audit_insert` + `_pg_proc_src` RPCs that don't exist (Plan 24-05)
+  // and chains `.catch()` on a PostgrestBuilder (not a Promise → "catch is not a
+  // function" TypeError once the test actually runs live). It never asserts the GUC
+  // suppression it claims to. Skip until the Plan 24-05 DB test helper ships (EG-28).
+  // see deferred-tests.md#P70-05
+  it.skip('T5: app.suppress_audit GUC = on suppresses the PHI trigger (no new audit row)', async () => {
     const logId = crypto.randomUUID(); // cascade-45: injections.log_id is uuid (see T3)
     createdInjectionLogIds.push(logId);
 
