@@ -599,6 +599,13 @@ jobs:
           # so it is dropped.
           RELEVANT=false
           while IFS= read -r f; do
+            # Test/spec changes do NOT affect the roster RENDER path — skip them
+            # so a test-only clinic edit doesn't trigger the expensive 50-patient
+            # seed (which is flaky on Supabase auth rate limits — see
+            # feedback_ci_rate_limit_parallel_fixtures).
+            case "$f" in
+              *.test.*|*.spec.*) continue ;;
+            esac
             case "$f" in
               leanshot/src/components/clinic/*) RELEVANT=true; break ;;
               supabase/migrations/*roster*.sql) RELEVANT=true; break ;;
