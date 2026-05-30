@@ -416,6 +416,20 @@ export default defineConfig(({ mode }) => {
               if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) {
                 return 'vendor-react';
               }
+              // Phase 70-07 cascade-56 — react-router family (added P60-13 for
+              // /knowledge + /research routes, lazy-loaded via KnowledgeRoute /
+              // ResearchRoute). Their package entry is `dist/index.js`, so with
+              // no manualChunks rule Rollup named the emitted chunk `index-*.js`
+              // — one of the spurious `index-*.js` chunks that tripped
+              // assert-vendor-react-size.sh. Pin them to a named vendor-router
+              // chunk (cache-stable; loads only with the knowledge/research
+              // routes). Anchored regex avoids matching unrelated `*router*`
+              // packages.
+              if (
+                /node_modules\/(react-router|react-router-dom|@remix-run\/router)(\/|$)/.test(id)
+              ) {
+                return 'vendor-router';
+              }
               if (/node_modules\/(framer-motion|motion-dom|motion-utils)(\/|$)/.test(id)) {
                 return 'vendor-motion';
               }

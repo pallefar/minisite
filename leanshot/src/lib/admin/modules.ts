@@ -156,7 +156,14 @@ export const ADMIN_MODULES = [
     label: 'Reviews',
     route: 'reviews',
     icon: StarIcon,
-    lazy: () => import('@/admin/modules/reviews'),
+    // Phase 70-07 cascade-56 — import the Layout file directly, NOT the
+    // `@/admin/modules/reviews` directory barrel. A bare directory import
+    // resolves to `reviews/index.ts`, so Rollup named the emitted chunk
+    // `index-*.js`; several such barrels collided into multiple `index-*.js`
+    // chunks and tripped assert-vendor-react-size.sh ("expected exactly one
+    // index-*.js chunk"). Pointing at ReviewsLayout names the chunk after the
+    // component. The barrel still exists for any non-lazy consumer.
+    lazy: () => import('@/admin/modules/reviews/ReviewsLayout'),
     flagKey: 'admin.reviews.enabled',
     minRole: 'admin' as AdminRole,
   },
@@ -233,10 +240,11 @@ export const ADMIN_MODULES = [
     label: 'Helpdesk',
     route: 'helpdesk',
     icon: LifeBuoyIcon,
-    lazy: () =>
-      import('@/admin/modules/helpdesk').then((m) => ({
-        default: m.HelpdeskLayout,
-      })),
+    // Phase 70-07 cascade-56 — import the Layout file directly (see reviews
+    // above): the `@/admin/modules/helpdesk` directory barrel resolved to
+    // `helpdesk/index.ts` → chunk named `index-*.js`. HelpdeskLayout's default
+    // export is the component, so no `.then` re-map is needed.
+    lazy: () => import('@/admin/modules/helpdesk/HelpdeskLayout'),
     flagKey: 'admin.helpdesk.enabled',
     minRole: 'staff' as AdminRole,
   },
