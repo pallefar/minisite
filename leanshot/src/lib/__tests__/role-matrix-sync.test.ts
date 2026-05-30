@@ -50,22 +50,16 @@ describeIfLive('role matrix DB↔TS sync (Phase 31 D-02)', () => {
 
   // ---------------------------------------------------------------------------
   // Sanity checks: verify TS matrix shape before running DB assertions.
-  // Phase 35 Plan 35-05 adds 4 admin.gamification.* keys to the owner set,
-  // increasing the distinct permission count from 12 to 16.
-  // NOTE: The DB has_permission() SECDEF (Plan 31-01) does NOT yet know about
-  // these 4 new keys — it will return false for them on all roles. The TS
-  // ROLE_PERMISSIONS matrix is ahead of the DB until a future plan extends
-  // public.has_permission() to include admin.gamification.* entries.
-  // This is intentional — the DB function is the security floor (it will deny);
-  // the TS keys are UX hints. Live DB sync test for these 4 keys will correctly
-  // assert false (DB) == false (clinician/staff in TS) for 8 of 12 new pairs,
-  // and fail for owner pairs (DB returns false, TS returns true). A follow-up
-  // plan must extend the DB function AND update this count back down.
+  // 18 distinct owner permission keys: 12 original + 4 admin.gamification.* (Phase 35
+  // Plan 35-05) + 2 onboarding.{ship_winner,edit_draft}.
+  // Phase 70-07 R5 — public.has_permission() was extended (migration
+  // 20290108000009) so the DB security floor now knows all 18 keys (owner=true),
+  // closing the documented "TS ahead of DB" drift. The owner-pair sync assertions
+  // below now pass; this count moves 16 → 18 to match the current TS matrix.
   // ---------------------------------------------------------------------------
   it('TS matrix shape sanity', () => {
     expect(ALL_ROLES.length).toBe(3);
-    // 12 original keys + 4 admin.gamification.* keys added in Phase 35 Plan 35-05
-    expect(ALL_PERMS.length).toBe(16);
+    expect(ALL_PERMS.length).toBe(18);
   });
 
   // ---------------------------------------------------------------------------
