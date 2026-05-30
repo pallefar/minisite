@@ -592,9 +592,20 @@ jobs:
         id: changed
         run: |
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD 2>/dev/null || echo "")
-          echo "files=$CHANGED" >> "$GITHUB_OUTPUT"
+          # NOTE: do NOT write the multi-line $CHANGED to $GITHUB_OUTPUT with a
+          # bare `key=value` — GHA parses each subsequent line as its own
+          # key=value and fails ("Invalid format '<path>'") on any multi-file
+          # PR. The `files` output was unused anyway (only `relevant` is read),
+          # so it is dropped.
           RELEVANT=false
           while IFS= read -r f; do
+            # Test/spec changes do NOT affect the roster RENDER path — skip them
+            # so a test-only clinic edit doesn't trigger the expensive 50-patient
+            # seed (which is flaky on Supabase auth rate limits — see
+            # feedback_ci_rate_limit_parallel_fixtures).
+            case "$f" in
+              *.test.*|*.spec.*) continue ;;
+            esac
             case "$f" in
               leanshot/src/components/clinic/*) RELEVANT=true; break ;;
               supabase/migrations/*roster*.sql) RELEVANT=true; break ;;

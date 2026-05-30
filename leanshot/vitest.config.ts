@@ -211,9 +211,35 @@ export default defineConfig({
             'src/components/**/__tests__/*.test.ts',
             'src/components/**/*.test.tsx',
             'src/components/**/*.test.ts',
+            // Phase 71 Plan 71-01 — admin module React tests live under
+            // src/admin/**/__tests__ (EntryEditorView), not src/components.
+            // Widen the src-ui-unit include so they're CI-gated alongside
+            // the rest of the UI unit suite.
+            'src/admin/**/__tests__/*.test.tsx',
           ],
           // Phase 70-07 cascade-15 — see top-level exclude comment.
           exclude: ['src/components/BiometricGate.test.tsx'],
+        },
+      },
+      {
+        // Phase 71 Plan 71-02 (PU-04) — store-notes sync transform tests.
+        // The top-level `projects:` block masks the default `test.include`
+        // (see [[reference-vitest-4-projects-config-masks-default]]), so this
+        // test has to live in its OWN project to be collected. These are pure,
+        // dependency-free Node ESM tests of markdownToPlainText / resolveTargets
+        // / pickEntry — node env, no DOM, no setup file.
+        // Run: npx vitest run --project=scripts-unit
+        //
+        // include is scoped to the NAMED file (NOT a broad
+        // `scripts/**/__tests__/*.test.mjs` glob) because the sibling
+        // `notion-mirror-hipaa-policies.test.mjs` uses `node:test`, not vitest,
+        // and would fail collection under this project. See
+        // [[feedback_vitest_project_include_too_broad]].
+        test: {
+          name: 'scripts-unit',
+          environment: 'node',
+          globals: true,
+          include: ['scripts/__tests__/sync-store-release-notes.test.mjs'],
         },
       },
       {

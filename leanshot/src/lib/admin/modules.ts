@@ -51,6 +51,8 @@ import {
   FlaskConical as FlaskConicalIcon,
   // Phase 65 Plan 65-09 (PAY-08) — Admin Tax Nexus module icon.
   Landmark as LandmarkIcon,
+  // Phase 71 Plan 71-01 (PU-01) — Admin "Push Updates" module icon.
+  Megaphone as MegaphoneIcon,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { AdminRole } from './roles';
@@ -681,6 +683,33 @@ export const ADMIN_MODULES = [
         default: m.AdRevenueDashboardPage,
       })),
     flagKey: 'admin.growth.ad_revenue.enabled',
+    minRole: 'admin' as AdminRole,
+  },
+  // Phase 71 Plan 71-01 (PU-01/02/03) — Admin "Push Updates" module.
+  // Authoring UI for changelog_entries (create/edit/publish/archive) that
+  // surface in the in-app What's New drawer AND the store release notes.
+  // Pathname-routed ProductUpdatesLayout (resolveView) covers
+  // /admin/product-updates, /new, and /:id — AdminShell URL-prefix routing
+  // (pathname.startsWith('/admin/product-updates/')) resolves sub-routes here
+  // automatically; no hardcoded switch branch required per
+  // feedback_admin_module_manifest_vs_router_branch_drift.
+  //
+  // cascade-56: the lazy import MUST be the explicit FILE path
+  // (@/admin/modules/product-updates/ProductUpdatesLayout), NOT the directory
+  // barrel — a bare directory import resolves to index.ts and Rollup names the
+  // chunk index-*.js, tripping assert-vendor-react-size.sh's "exactly one
+  // index-*.js chunk" guard.
+  //
+  // minRole 'admin' is the Pattern S1 UX layer; changelog_entries
+  // INSERT/UPDATE/DELETE RLS re-checks is_admin_at_least('admin') at the DB
+  // layer (Pattern S1 dual-layer).
+  {
+    key: 'product-updates',
+    label: 'Push Updates',
+    route: 'product-updates',
+    icon: MegaphoneIcon,
+    lazy: () => import('@/admin/modules/product-updates/ProductUpdatesLayout'),
+    flagKey: 'admin.product-updates.enabled',
     minRole: 'admin' as AdminRole,
   },
 ] as const satisfies readonly AdminModule[];

@@ -43,6 +43,8 @@ platform :ios do
     #
     # TODO(Phase 70): provisioning profiles live in pallefar/leanshot-fastlane-match.
     # Repo may not be initialised yet — this lane is inert until match repo is set up.
+    # Phase 71 PU-04 — refresh App Store "What's new" from newest published changelog entry
+    sh("node", "scripts/sync-store-release-notes.mjs")
     match(
       type: "appstore",
       readonly: true
@@ -90,6 +92,8 @@ platform :android do
     # CR-02: keystore is decoded by the CI workflow step before fastlane runs
     # (echo "$KEYSTORE_BASE64" | base64 --decode > apps/android/app/leanshot-release.jks).
     # The gradle() call here builds + signs the release AAB. supply() then uploads it.
+    # Phase 71 PU-04 — refresh Play "What's new" from newest published changelog entry
+    sh("node", "scripts/sync-store-release-notes.mjs")
     gradle(
       task: "bundle",
       build_type: "Release",

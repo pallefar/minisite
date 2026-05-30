@@ -50,6 +50,13 @@ vi.mock('@/lib/supabase', () => ({
     from: mockFrom,
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'tok' } } }),
+      // Test 9 renders the full ClinicDrillInPage, whose useMemberRole gate
+      // resolves the caller via supabase.auth.getUser(). Without this the call
+      // is undefined → fire-and-forget UNHANDLED REJECTION
+      // ("supabase.auth.getUser is not a function") that exits the vitest run
+      // non-zero. Return a user; the org_members membership lookup then yields
+      // no role → role null → dose-thresholds tab hidden (Test 9's assertion).
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } }, error: null }),
     },
   },
 }));
