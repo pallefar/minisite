@@ -45,7 +45,34 @@ So after this session every CI job is GREEN **except** Unit tests, which is bloc
 on the 3 drafted remote-DB migrations awaiting review/push (the org_members recursion is
 also a live prod bug — see [[project_org_members_rls_recursion_prod_bug]]).
 
+### ✅ DB cascade COMPLETE (cascades 39-44, 8 migrations applied to remote DB)
+
+User authorized pushing migrations + "keep going until DB-side is exhausted". The audit
+write-path was DOA across the whole admin/org/rag system; it took **8 cascading layers**:
+recursion (`42P17`) → citext (`42704`) → audit `user_id_hash` on log_admin_action +
+log_org_action → `action`/`table_name` NOT NULL (the dual-schema, see
+`reference_audit_logs_dual_schema`) → return-type `uuid`→`bigint` → org RPC
+`target_user_id` FK (`23503`) + send_org_invite arity (`42883`) → double-`message` RAISE
+(`42601`). Migrations `20290108000001`-`…0008`, all clean.
+
+**Unit-tests 62 → 23.** Also fixed a **live production bug** (org_members RLS recursion —
+co-member visibility for B2B/clinic users) + resurrected the entire modern audit-write path.
+
+**Residual 23 fails / 7 files — ALL NON-DB (no more migrations help):**
+- **Infra (~11):** `branding-asset-upload-url` Edge Fn not deployed (T15/T16 `404`) + storage
+  (T14 `fetch failed`). → deploy the Fn.
+- **Decision (~7):** role-matrix R5 — DB `has_permission()` lacks 2 newer TS perm keys
+  (`expected 18 to be 16`). → extend the fn or trim the TS matrix.
+- **Test bugs (~5):** change-member TC6 (`.eq('action', …)` should be `action_name`;
+  `.order('created_at')` should be `timestamp`); audit-trigger (non-uuid `log_id`);
+  validate-onboarding R6 (P34 shape-guard contract); T12 (asserts `after_data->org_id` but
+  RPC writes org_id to `metadata`).
+- **Deferred (2):** backup-codes R4 (service_role INSERT intentionally revoked — EG-29).
+- **Ambiguous (1):** rls-matrix `42501` super-admin INSERT rag_topics (RLS grant vs test setup).
+
 **Next-session actions:**
+0. Resolve the residual: deploy `branding-asset-upload-url`; decide R5; fix the in-repo test
+   bugs; check rls-matrix grant. None are DB-migration work.
 1. Push the 6 commits (if not already) so CI validates cascades 33-37.
 2. Review `drafted-migrations/` → `git mv` into `supabase/migrations/` (re-stamp
    timestamps if newer migrations landed) → `supabase db push --linked`. R1 first
