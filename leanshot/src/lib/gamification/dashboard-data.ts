@@ -45,6 +45,13 @@ export async function fetchGamificationDashboard(
       .maybeSingle(),
   ]);
 
+  // Surface a load failure instead of silently rendering zeros (which reads as
+  // "you lost all your XP/streak") when an RPC transiently fails. The caller
+  // (GamificationCard) already .catch()es and logs.
+  if (xpResult.error || freezeResult.error || streakResult.error) {
+    throw new Error('gamification_dashboard_load_failed');
+  }
+
   const xpTotal = Number(xpResult.data ?? 0);
   const freezeTokens = Number(freezeResult.data ?? 0);
   const streakRow = streakResult.data;

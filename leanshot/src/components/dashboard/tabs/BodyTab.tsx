@@ -79,6 +79,10 @@ export function BodyTab() {
     });
     if (recentInjections.length === 0) return 0;
     let onTarget = 0;
+    // Denominator must be the SAME population the numerator can score (mg dose
+    // that maps to a protocol step) — otherwise non-mg / off-protocol injections
+    // sit in the denominator only and understate adherence.
+    let scorable = 0;
     for (const inj of recentInjections) {
       // Only count mg injections against protocol steps
       if (inj.unit !== 'mg') continue;
@@ -92,10 +96,11 @@ export function BodyTab() {
         ) + 1;
       const step = activeAssignment.allSteps.find((s) => s.week === weekOffset);
       if (!step) continue;
+      scorable += 1;
       const deviation = Math.abs(step.dose_mg - loggedMg) / step.dose_mg;
       if (deviation <= 0.2) onTarget += 1;
     }
-    return Math.round((onTarget / recentInjections.length) * 100);
+    return scorable ? Math.round((onTarget / scorable) * 100) : 0;
   }, [activeAssignment, injections]);
 
   const [compareOpen, setCompareOpen] = useState(false);

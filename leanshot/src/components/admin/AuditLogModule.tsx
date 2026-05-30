@@ -59,9 +59,12 @@ async function fetchAuditRows(
     .order('id', { ascending: false })
     .limit(PAGE_SIZE);
 
-  // Cursor pagination
+  // Cursor pagination — composite keyset so rows sharing a created_at are not
+  // silently dropped across page boundaries (the sort is created_at DESC, id DESC).
   if (cursor) {
-    query = query.lt('created_at', cursor.created_at);
+    query = query.or(
+      `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`,
+    );
   }
 
   // 90-day hot window

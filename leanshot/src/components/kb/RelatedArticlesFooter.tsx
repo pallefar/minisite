@@ -93,21 +93,27 @@ export function RelatedArticlesFooter({
 
   const handleClick = (rec: RelatedArticle) => {
     if (!rec.recommendation_id.startsWith('fallback-')) {
-      void fetch(`${import.meta.env.VITE_SUPABASE_URL ?? ''}/functions/v1/track-rec-click`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${
-            (typeof window !== 'undefined' && window.localStorage.getItem('sb-leanshot-auth')) ?? ''
-          }`,
-        },
-        body: JSON.stringify({
-          recommendation_id: rec.recommendation_id,
-          surface: 'kb_footer',
-        }),
-      }).catch(() => {
-        /* swallow */
-      });
+      // Resolve the real access_token — the raw `sb-leanshot-auth` localStorage
+      // value is the full session JSON, not a bearer token (sending it 401s).
+      void (async () => {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session) return;
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL ?? ''}/functions/v1/track-rec-click`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            recommendation_id: rec.recommendation_id,
+            surface: 'kb_footer',
+          }),
+        }).catch(() => {
+          /* swallow */
+        });
+      })();
     }
     if (rec.deeplink) {
       window.location.href = rec.deeplink;
