@@ -222,6 +222,27 @@ export default defineConfig({
         },
       },
       {
+        // Phase 71 Plan 71-02 (PU-04) — store-notes sync transform tests.
+        // The top-level `projects:` block masks the default `test.include`
+        // (see [[reference-vitest-4-projects-config-masks-default]]), so this
+        // test has to live in its OWN project to be collected. These are pure,
+        // dependency-free Node ESM tests of markdownToPlainText / resolveTargets
+        // / pickEntry — node env, no DOM, no setup file.
+        // Run: npx vitest run --project=scripts-unit
+        //
+        // include is scoped to the NAMED file (NOT a broad
+        // `scripts/**/__tests__/*.test.mjs` glob) because the sibling
+        // `notion-mirror-hipaa-policies.test.mjs` uses `node:test`, not vitest,
+        // and would fail collection under this project. See
+        // [[feedback_vitest_project_include_too_broad]].
+        test: {
+          name: 'scripts-unit',
+          environment: 'node',
+          globals: true,
+          include: ['scripts/__tests__/sync-store-release-notes.test.mjs'],
+        },
+      },
+      {
         // Phase 42 Plan 42-02 (POLISH-09) — WCAG 2.2 AA axe-core baseline gate.
         // Run: npm run test:a11y (CI job "a11y baseline gate" in ci.yml).
         // Phase 70-07 cascade-33 — this project MUST exist: the top-level
