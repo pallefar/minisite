@@ -45,6 +45,25 @@ So after this session every CI job is GREEN **except** Unit tests, which is bloc
 on the 3 drafted remote-DB migrations awaiting review/push (the org_members recursion is
 also a live prod bug — see [[project_org_members_rls_recursion_prod_bug]]).
 
+### ✅✅ FINAL STATE (through cascade-48) — Unit-tests 62 → 6
+
+After R5/R6 (cascade-47) + test fixes (45/46/48): **Unit-tests 62 → 6 fails / 3 files.**
+The 6 remaining are NOT code bugs — all infra or intentional-security:
+- **rls-org-branding T14/T15/T16 (3)** — INFRA: deploy the `branding-asset-upload-url`
+  Edge Fn + storage (operator action; `vercel`/`supabase functions deploy`).
+- **backup-codes R4 (2)** — `admin_backup_codes` INSERT intentionally revoked from
+  service_role; test seeds via direct insert (42501). Deferred EG-29 (stub→RPC at Plan 24-05).
+- **rls-matrix (1)** — `rag_topics` INSERT revoked from `authenticated`; the
+  `rag_topics_super_insert` RLS policy allows the row but no role has the table GRANT, so
+  super-admins must write via the `rag_topic_create` SECDEF RPC (which is why topic-crud
+  passes). Same intentional-revoke pattern as R4 — DECISION: re-grant INSERT (gated by RLS)
+  vs. redesign the RLS-matrix test to use the RPC.
+
+Resolved this session: R1-R6 (8 DB migrations `20290108000001-9`) + 4 in-repo test-bug
+fixes + role-matrix count. Live org_members RLS prod bug fixed; modern audit-write path
+resurrected; org onboarding mandatory-step validation restored (consumer split out).
+Everything below is the earlier cascade detail.
+
 ### ✅ DB cascade COMPLETE (cascades 39-44, 8 migrations applied to remote DB)
 
 User authorized pushing migrations + "keep going until DB-side is exhausted". The audit
