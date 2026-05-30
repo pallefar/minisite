@@ -100,6 +100,9 @@ export async function upsertConsentRecord(snap: CookieConsentSnapshot): Promise<
       console.warn('[leanshot] consent_records insert failed', error.code ?? 'unknown');
     }
   } catch (e) {
-    console.warn('[leanshot] consent_records insert threw', e instanceof Error ? e.name : 'unknown');
+    console.warn(
+      '[leanshot] consent_records insert threw',
+      e instanceof Error ? e.name : 'unknown',
+    );
   }
 }

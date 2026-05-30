@@ -138,9 +138,7 @@ export function SignInForm() {
         )}
       </header>
 
-      {lockout && (
-        <SignInLockoutBanner lockedUntil={lockout.lockedUntil} reason={lockout.reason} />
-      )}
+      {lockout && <SignInLockoutBanner lockedUntil={lockout.lockedUntil} reason={lockout.reason} />}
 
       <Input
         label="Email"
