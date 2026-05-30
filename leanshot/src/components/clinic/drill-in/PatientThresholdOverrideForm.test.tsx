@@ -23,9 +23,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRpc = vi.fn().mockResolvedValue({ data: null, error: null });
 const mockMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-const mockEq = vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle });
-const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
+
+// Phase 70-07 cascade-55 — chainable + awaitable supabase query-builder mock.
+// The form's own lookup is .select().eq().maybeSingle() (→ maybeSingleFn), but
+// Test 9 renders the full ClinicDrillInPage whose child clinic hooks
+// (use-clinician-alerts) fire fire-and-forget .select().eq().in().gte().order()
+// queries (+ a profiles .select().in()). A chain missing .in()/.gte()/.order()
+// surfaced "supabase…eq(…).in is not a function" as an UNHANDLED REJECTION —
+// 0 failed assertions, but the vitest run still exits non-zero. Every builder
+// method returns the chain and the chain is awaitable (→ {data:[],error:null}).
+// Mirrors cascade-53 (ClinicDrillInPage) / cascade-54 (ClinicWorkspace).
+function makeChainableMock(maybeSingleFn: ReturnType<typeof vi.fn>) {
+  const chain: Record<string, unknown> = { maybeSingle: maybeSingleFn };
+  for (const m of ['select', 'eq', 'in', 'gte', 'lte', 'order', 'limit', 'neq']) {
+    chain[m] = vi.fn(() => chain);
+  }
+  chain.then = (resolve: (v: { data: unknown[]; error: null }) => unknown) =>
+    Promise.resolve({ data: [], error: null }).then(resolve);
+  return chain;
+}
+const mockFrom = vi.fn(() => makeChainableMock(mockMaybeSingle));
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -247,15 +264,15 @@ describe('PatientThresholdOverrideForm', () => {
 
 describe('ClinicDrillInPage — role gate for Dose thresholds tab', () => {
   it('Test 9: viewer role cannot see the Dose thresholds tab', async () => {
-    // Mock supabase.from — fully chainable: select().eq().eq().maybeSingle()
+    // Mock supabase.from — chainable + awaitable (cascade-55). ClinicDrillInPage
+    // mounts the clinician-alerts bell, so the chain must also tolerate the
+    // hook's fire-and-forget .eq().in().gte().order() without rejecting. The
+    // page's own .select().eq().eq().maybeSingle() resolves the org row.
     const maybeSingleFn = vi.fn().mockResolvedValue({
       data: { id: 'org-1', slug: 'test-org', name: 'Test Org' },
       error: null,
     });
-    const eqInner = vi.fn().mockReturnValue({ maybeSingle: maybeSingleFn });
-    const eqOuter = vi.fn().mockReturnValue({ eq: eqInner, maybeSingle: maybeSingleFn });
-    const selectFn = vi.fn().mockReturnValue({ eq: eqOuter, maybeSingle: maybeSingleFn });
-    mockFrom.mockReturnValue({ select: selectFn });
+    mockFrom.mockReturnValue(makeChainableMock(maybeSingleFn));
 
     // Simulate viewer role in org_members
     mockRpc.mockImplementation((fnName: string) => {
