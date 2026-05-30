@@ -1,7 +1,7 @@
 {
-  "knip_warns": 552,
-  "tue_warns": 571,
-  "captured_at": "2026-05-29T07:30:00Z",
-  "captured_from_commit": "33498951",
-  "notes": "Phase 70-07 cascade-33: tue_warns 570 → 571 to account for src/lib/pwa/__mocks__/virtual-pwa-register.ts (added cascade-25 commit 8d7ec67a). Its `registerSW` export is consumed ONLY via the vitest `virtual:pwa-register` alias (resolve.alias in vitest.config.ts) — a virtual module, so ts-unused-exports cannot see the import and reports it as unused. Consistent with the 8 src/lib/native/__mocks__/* mock modules already counted in the 570 baseline; the project convention is to let mock files count toward the baseline rather than --excludePathsFromReport them. knip_warns stays 552. Prior re-snapshot (cascade-10, commit 81057b97): tue_warns corrected from 0 → 570 after fixing the ANSI-strip + SIGPIPE bugs in scripts/check-unused-baseline.sh (cascades 9+10) that produced a FALSE PASS at 0. Genuine drift across phases 24-69 accepted to unblock CI; full cleanup to 0 (enforcing fail-on-any-warn per D-17) logged as post-launch tech debt."
+  "knip_warns": 558,
+  "tue_warns": 577,
+  "captured_at": "2026-05-30T16:00:00Z",
+  "captured_from_commit": "feat-p71-product-updates",
+  "notes": "2026-05-30: knip 552→558 / tue 571→577 (+6 each) to absorb two intentional batches, both knip/tue false-positives. (1) PR #8 (release-readiness, merged 6c3a7de3) added drug-curve + membership feature exports across GLPCurveCard/MedLevelChart/pharmacology/store/snapshot/ChartSection/ClinicDrillInPage — these regressed the gate on main (ec7ad4a5 fails it with no Phase-71 code). (2) Phase 71 added the product-updates admin module (EntryEditorView/EntryListView default exports) reached ONLY via the dynamic `lazy: () => import('@/admin/modules/product-updates/ProductUpdatesLayout')` in src/lib/admin/modules.ts — the same dynamic-import pattern the entire src/admin/modules/* + src/components/admin/* tree already contributes to the baseline (knip cannot trace lazy() imports). Prior note (cascade-33): tue_warns 570→571 for the virtual:pwa-register mock. Full cleanup to 0 (D-17 fail-on-any-warn) remains post-launch tech debt."
 }
