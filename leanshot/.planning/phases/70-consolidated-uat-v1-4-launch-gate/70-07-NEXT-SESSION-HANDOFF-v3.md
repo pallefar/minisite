@@ -13,14 +13,14 @@ A live production RLS bug was fixed and the modern audit-write path was resurrec
 | Job | Status |
 |---|---|
 | Format · Unused-exports · a11y · Share-security-drill · Lint · Typecheck · Deno · Compliance | ✅ green |
-| Unit tests | 🔴 **6 fails / 3 files** (was 62) |
+| Unit tests | 🔴 **4 fails / 3 files** (was 62; T15/T16 fixed by Fn deploy) |
 | E2E smoke · Lighthouse · Roster-perf | ⏭️ skipped (conditional) |
 
 ## The 6 remaining Unit-test failures — all out of code scope
 
 | File | N | Class | Resume action |
 |---|---|---|---|
-| `rls-org-branding.test.ts` (T14/T15/T16) | 3 | **infra** | Deploy `branding-asset-upload-url` Edge Fn + branding storage bucket. Operator action (`supabase functions deploy branding-asset-upload-url`; storage via dashboard/CLI). Tests then pass. |
+| `rls-org-branding.test.ts` (T14) | 1 | **infra (storage)** | ✅ T15/T16 FIXED 2026-05-30 — deployed `branding-asset-upload-url` Edge Fn (ACTIVE v1; verify_jwt default). T14 still fails: `StorageUnknownError: fetch failed` on the upload/public-GET. The `org-branding` bucket EXISTS (migration `20270601400004`), so this is an environment-level storage-connectivity issue in the CI runner (possibly flaky, or the anonymous public-GET). Investigate in CI env; not the Fn, not a missing bucket. |
 | `admin/__tests__/backup-codes.test.ts` (R4) | 2 | **deferred** | `admin_backup_codes` INSERT intentionally revoked from service_role; test seeds via direct insert → 42501. EG-29: swap to a SECDEF seeding RPC at Plan 24-05. Do NOT weaken the grant. |
 | `rag/__tests__/rls-matrix.test.ts` | 1 | **decision** | `rag_topics` INSERT revoked from `authenticated`; the `rag_topics_super_insert` RLS policy allows the row but no role has the table GRANT, so super-admins write via the `rag_topic_create` SECDEF RPC. Decision: (a) `grant insert on rag_topics to authenticated` (RLS still gates to supers), or (b) redesign the RLS-matrix test to exercise the RPC. |
 
