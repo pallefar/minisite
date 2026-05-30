@@ -89,11 +89,7 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
       {fetch.status === 'loading' && <LoadingRows />}
 
       {fetch.status === 'error' && (
-        <Card
-          variant="flat"
-          padding="lg"
-          style={{ backgroundColor: 'var(--color-danger-soft)' }}
-        >
+        <Card variant="flat" padding="lg" style={{ backgroundColor: 'var(--color-danger-soft)' }}>
           <div className="flex items-start gap-3">
             <WifiOff aria-hidden size={24} className="text-[var(--color-danger)] shrink-0 mt-0.5" />
             <div className="flex-1">
@@ -132,10 +128,7 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
             </thead>
             <tbody>
               {fetch.rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-[var(--color-border)] last:border-b-0"
-                >
+                <tr key={row.id} className="border-b border-[var(--color-border)] last:border-b-0">
                   <td className="px-4 py-3 font-medium text-[var(--color-text)]">{row.title}</td>
                   <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                     {row.version ?? '—'}

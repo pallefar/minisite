@@ -65,7 +65,14 @@ function makeClient(opts: {
     rpc: opts.rpc ?? vi.fn().mockResolvedValue({ data: 1, error: null }),
     auth: {
       getUser: vi.fn().mockResolvedValue({
-        data: { user: opts.userId === undefined ? { id: 'admin-1' } : opts.userId ? { id: opts.userId } : null },
+        data: {
+          user:
+            opts.userId === undefined
+              ? { id: 'admin-1' }
+              : opts.userId
+                ? { id: opts.userId }
+                : null,
+        },
         error: null,
       }),
     },
@@ -97,9 +104,9 @@ describe('createEntry', () => {
       published_at: '2026-05-30T00:00:00Z',
     };
     const insertSpy = vi.fn().mockReturnThis();
-    const from = vi.fn().mockReturnValue(
-      makeBuilder({ data: newRow, error: null }, { insert: insertSpy }),
-    );
+    const from = vi
+      .fn()
+      .mockReturnValue(makeBuilder({ data: newRow, error: null }, { insert: insertSpy }));
     const rpc = vi.fn().mockResolvedValue({ data: 99, error: null });
     const client = makeClient({ from, rpc, userId: 'admin-1' });
 
@@ -129,9 +136,11 @@ describe('createEntry', () => {
   });
 
   it('throws when the insert is denied by RLS (42501)', async () => {
-    const from = vi.fn().mockReturnValue(
-      makeBuilder({ data: null, error: { code: '42501', message: 'permission denied' } }),
-    );
+    const from = vi
+      .fn()
+      .mockReturnValue(
+        makeBuilder({ data: null, error: { code: '42501', message: 'permission denied' } }),
+      );
     const client = makeClient({ from, userId: 'admin-1' });
     await expect(
       createEntry(client, {
@@ -184,9 +193,9 @@ describe('publishEntry', () => {
       published_at: '2026-05-30T12:00:00Z',
     };
     const updateSpy = vi.fn().mockReturnThis();
-    const from = vi.fn().mockReturnValue(
-      makeBuilder({ data: updatedRow, error: null }, { update: updateSpy }),
-    );
+    const from = vi
+      .fn()
+      .mockReturnValue(makeBuilder({ data: updatedRow, error: null }, { update: updateSpy }));
     const rpc = vi.fn().mockResolvedValue({ data: 1, error: null });
     const client = makeClient({ from, rpc, userId: 'admin-1' });
 
@@ -245,9 +254,9 @@ describe('updateEntry + archiveEntry', () => {
       published_at: '2026-05-30T00:00:00Z',
     };
     const updateSpy = vi.fn().mockReturnThis();
-    const from = vi.fn().mockReturnValue(
-      makeBuilder({ data: archived, error: null }, { update: updateSpy }),
-    );
+    const from = vi
+      .fn()
+      .mockReturnValue(makeBuilder({ data: archived, error: null }, { update: updateSpy }));
     const rpc = vi.fn().mockResolvedValue({ data: 1, error: null });
     const client = makeClient({ from, rpc, userId: 'admin-1' });
 

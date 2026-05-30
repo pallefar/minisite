@@ -96,9 +96,7 @@ export function EntryEditorView({ entry, onSaved, onCancel }: EntryEditorViewPro
     };
     void withWrite(
       () =>
-        isEdit && entry
-          ? updateEntry(supabase, entry.id, payload)
-          : createEntry(supabase, payload),
+        isEdit && entry ? updateEntry(supabase, entry.id, payload) : createEntry(supabase, payload),
       isEdit ? 'Update saved' : 'Draft created',
     );
   }

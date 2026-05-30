@@ -155,7 +155,13 @@ export async function updateEntry(
     .single();
   if (error) throw error;
   const row = data as ProductUpdateEntry;
-  await audit(client, 'changelog.update', id, (beforeData as ProductUpdateEntry | null) ?? null, row);
+  await audit(
+    client,
+    'changelog.update',
+    id,
+    (beforeData as ProductUpdateEntry | null) ?? null,
+    row,
+  );
   return row;
 }
 
