@@ -20,6 +20,7 @@
  */
 
 import type { ConsentScope } from './clinic';
+import type { MedicationId } from './index';
 
 export type { ConsentScope, DataTypeKey, PermissionKey } from './clinic';
 
@@ -39,6 +40,13 @@ export interface SnapshotData {
   patient_user_id: string;
   /** First-name + last-initial; falls back to "Patient" per D-20. */
   display_name: string;
+  /**
+   * The patient's GLP-1 medication, used to drive the drug-level (PK) curve's
+   * half-life in read-share/clinic mode. Populated by the share / clinic-snapshot
+   * Edge Functions. When absent, the drug-level estimate must render as
+   * unavailable rather than fall back to the viewer's own medication.
+   */
+  medication?: MedicationId;
   injections: Array<{ id: string; dose_mg: number; site: string; created_at: string }>;
   weights: Array<{ id: string; weight_kg: number; recorded_at: string }>;
   symptoms: Array<{ id: string; name: string; severity: number; recorded_at: string }>;

@@ -88,10 +88,14 @@ export function MedLevelChart(props: MedLevelChartProps) {
   const propMedication = props.medication;
 
   const config = useMemo(() => {
-    // Resolve medication: prop wins; else store user's medication; else
-    // null (no chart can be rendered without a medication).
+    // Resolve medication: prop wins. In snapshot / read-share mode (injections
+    // passed as a prop) we must NEVER fall back to the viewer's own store
+    // medication — that renders someone else's patient curve with the WRONG
+    // drug half-life. Only the dashboard path (no injections prop) may read the
+    // logged-in user's medication from the store.
+    const inSnapshotMode = propInjections !== undefined;
     const medication: MedicationId | null =
-      propMedication ?? (storeUser ? storeUser.medication : null);
+      propMedication ?? (inSnapshotMode ? null : storeUser ? storeUser.medication : null);
     if (!medication) return null;
 
     const injections: Injection[] = propInjections
