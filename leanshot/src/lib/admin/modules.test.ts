@@ -14,9 +14,9 @@ import { describe, expect, it } from 'vitest';
 
 // Tested under vi.hoisted + dynamic import so modules.ts can be resolved by the time tests run.
 describe('ADMIN_MODULES manifest', () => {
-  it('T1: exports exactly 35 modules (Phase 70-07 cascade-22 snapshot of current admin manifest)', async () => {
+  it('T1: exports exactly 36 modules (Phase 71 snapshot of current admin manifest)', async () => {
     const { ADMIN_MODULES } = await import('./modules');
-    expect(ADMIN_MODULES).toHaveLength(35);
+    expect(ADMIN_MODULES).toHaveLength(36);
     const keys = ADMIN_MODULES.map((m) => m.key);
     // Order is load-bearing for the admin nav; snapshot of current manifest.
     // When you add or remove a module, update this list in the SAME commit so
@@ -57,6 +57,7 @@ describe('ADMIN_MODULES manifest', () => {
       'vendor-smoke',
       'users-security',
       'growth-ad-revenue',
+      'product-updates',
     ];
     expect(keys).toEqual(expected);
   });
