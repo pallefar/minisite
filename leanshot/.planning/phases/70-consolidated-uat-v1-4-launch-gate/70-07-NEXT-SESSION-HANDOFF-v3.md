@@ -24,7 +24,27 @@ A live production RLS bug was fixed and the modern audit-write path was resurrec
 | `admin/__tests__/backup-codes.test.ts` (R4) | 2 | **deferred** | `admin_backup_codes` INSERT intentionally revoked from service_role; test seeds via direct insert → 42501. EG-29: swap to a SECDEF seeding RPC at Plan 24-05. Do NOT weaken the grant. |
 | `rag/__tests__/rls-matrix.test.ts` | 1 | **decision** | `rag_topics` INSERT revoked from `authenticated`; the `rag_topics_super_insert` RLS policy allows the row but no role has the table GRANT, so super-admins write via the `rag_topic_create` SECDEF RPC. Decision: (a) `grant insert on rag_topics to authenticated` (RLS still gates to supers), or (b) redesign the RLS-matrix test to exercise the RPC. |
 
-## What was done this session (cascades 33-48)
+## ⚠️ Unit-tests job: 0 failed assertions, but STILL RED on unhandled rejections
+
+After cascade-53, **all 3337 tests pass / 0 failed**, but the job exits 1 on async
+**unhandled rejections/errors** that fire after tests complete (a green test summary ≠ a
+green job — grep CI log for "Unhandled Rejection" / "Unhandled Errors"). Remaining sources
+(each a small test-infra fix; cascade-53 already fixed `ClinicDrillInPage.test.tsx` the same way):
+
+1. **`ClinicianAlertsPanel.test.tsx`** — renders `use-clinician-alerts` which fires
+   `.select().eq().in().gte()`; its supabase mock's `eq()` lacks `.in()` →
+   `supabase…eq(…).in is not a function`. **Fix:** same chainable+awaitable builder as
+   cascade-53's `setupOrgMock` (every builder method returns the chain; `then` resolves to
+   `{data:[],error:null}`). Locally verifiable (jsdom/mocked, no DB).
+2. **`AdminShell.test.tsx`** — `EnvironmentTeardownError` ×2: lazy modules
+   (`ComplianceModule`, `MembersFilterBar`, via `src/lib/admin/modules.ts`) resolve their
+   dynamic `import()` **after the test env tore down**. **Fix:** await the lazy loads / flush
+   microtasks before the test ends (e.g. `await screen.findBy…` for the loaded module, or an
+   `unmount()` + `await vi.waitFor`), or mock the lazy modules so there's no late import.
+
+Doing both → Unit-tests job genuinely green (every other CI job already is).
+
+## What was done this session (cascades 33-53)
 
 **CI-config / test fixes (in-repo):** Lint→already green; Format (prettier AdminMembersPage);
 Unused-exports baseline 570→571 (pwa mock); a11y vitest project; functions-unit scoped to 16
