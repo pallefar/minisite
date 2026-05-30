@@ -20,11 +20,32 @@ const mockMaybeSingle = vi.fn();
 // memberships via from('memberships').select(...).eq(...).is(...). The chain
 // terminates with `.is()` returning a Promise rather than `.maybeSingle()`.
 // Add `is()` here so both consumers can share the chain in this test file.
+//
+// Phase 70-07 cascade-54 — ClinicContextBar also mounts the clinician-alerts
+// bell, whose use-clinician-alerts hook fires a fire-and-forget
+// .select().eq().in().gte().order() query (plus a profiles .select().in()).
+// The old chain had no .in()/.gte()/.order(), so .eq().in surfaced as an
+// UNHANDLED REJECTION (0 failed assertions, but the vitest run still exits
+// non-zero). Make every builder method return the chain and make the chain
+// awaitable (resolves to { data: [], error: null }) so those background
+// queries don't throw. The page's own .eq().eq().maybeSingle() and the
+// switcher's .eq().is() terminals are preserved. Mirrors cascade-53's
+// setupOrgMock fix in ClinicDrillInPage.test.tsx.
 const fromChain = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
+  in: vi.fn().mockReturnThis(),
+  gte: vi.fn().mockReturnThis(),
+  lte: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
   is: vi.fn().mockResolvedValue({ data: [], error: null }),
   maybeSingle: mockMaybeSingle,
+  // Awaitable: fire-and-forget queries that terminate on .order()/.in() await
+  // the chain itself.
+  then: (resolve: (v: { data: unknown[]; error: null }) => unknown) =>
+    Promise.resolve({ data: [], error: null }).then(resolve),
 };
 
 vi.mock('@/lib/supabase', () => {

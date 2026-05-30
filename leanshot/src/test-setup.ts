@@ -4,6 +4,30 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { afterAll } from 'vitest';
+
+// Phase 70-07 cascade-54 — flush in-flight dynamic imports before the jsdom
+// environment is torn down.
+//
+// Admin/clinic components lazy-load chunks via React.lazy()/`await import()`
+// (e.g. AdminShell → admin modules → AdminLayout → StepUpTotpPage,
+// ComplianceModule → SubprocessorDiffFeed, cohort/api → rule-tree-to-sql). A
+// test can complete and trigger RTL unmount while one of those imports is
+// still resolving. When the import lands AFTER Vitest tears down the file's
+// environment, the module runner throws an UNHANDLED
+// `EnvironmentTeardownError: Cannot load '…' after the environment was torn
+// down`. That fires no failed assertion but still exits the run non-zero —
+// and only manifests under full-suite load (CI runs `--maxWorkers=1`, so
+// files share one worker and the race is real), never when a file runs alone.
+//
+// Yielding to the macrotask queue a couple of times at file teardown lets any
+// near-complete import settle into a live environment first. afterAll (not
+// afterEach) keeps this to one flush per file — negligible cost, no per-test
+// latency.
+afterAll(async () => {
+  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 0));
+});
 
 // jsdom does not implement ResizeObserver — required by Radix Command (cmdk)
 // and any layout-aware primitive (framer-motion's useMeasure, etc.). Without

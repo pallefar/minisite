@@ -110,10 +110,22 @@ describe('AdminShell', () => {
   it('T5: ADMIN_MODULES lazy() returns a Promise', async () => {
     const { ADMIN_MODULES } = await import('@/lib/admin/modules');
     // Verify each lazy factory returns a Promise
+    const pending: Promise<unknown>[] = [];
     for (const mod of ADMIN_MODULES) {
       const result = mod.lazy();
       expect(result).toBeInstanceOf(Promise);
+      pending.push(result);
     }
+    // Phase 70-07 cascade-54 — AWAIT the dynamic imports we just kicked off.
+    // Each mod.lazy() starts loading a real chunk (CohortsPage → cohort/api →
+    // rule-tree-to-sql, ComplianceModule → SubprocessorDiffFeed, etc.). If left
+    // unawaited, those imports resolve AFTER this file's jsdom environment is
+    // torn down and the module runner throws an unhandled
+    // `EnvironmentTeardownError: Cannot load '…' after the environment was torn
+    // down` — 0 failed assertions, but the run still exits non-zero. Settling
+    // them here (errors swallowed; the assertion above is the contract) keeps
+    // teardown clean. See also the afterAll flush in src/test-setup.ts.
+    await Promise.allSettled(pending);
   });
 
   // Phase 39 Plan 39-06 — manifest entry growth-experiments resolves via
@@ -161,7 +173,11 @@ describe('AdminShell', () => {
     expect(entry!.flagKey).toBe('admin.growth.experiments.enabled');
     expect(entry!.minRole).toBe('admin');
     expect(typeof entry!.lazy).toBe('function');
-    expect(entry!.lazy()).toBeInstanceOf(Promise);
+    // Phase 70-07 cascade-54 — await the kicked-off import so it settles before
+    // teardown (see T5 comment) rather than orphaning it.
+    const lazyPromise = entry!.lazy();
+    expect(lazyPromise).toBeInstanceOf(Promise);
+    await Promise.allSettled([lazyPromise]);
   });
 });
 

@@ -53,10 +53,22 @@ interface MembershipRow {
 }
 
 function buildFromChain(rows: MembershipRow[], err: unknown = null) {
+  // Phase 70-07 cascade-54 — defense against a fire-and-forget
+  // use-clinician-alerts rejection (.select().eq().in().gte().order()) leaking
+  // into this file's run from a sibling clinic test. Every builder method
+  // returns the chain and the chain is awaitable so background queries that
+  // terminate on .in()/.order() resolve cleanly. The memberships query's
+  // .eq().is() terminal (→ rows) is preserved. Mirrors cascade-53.
   const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
     is: vi.fn().mockReturnValue(Promise.resolve({ data: rows, error: err })),
+    then: (resolve: (v: { data: unknown[]; error: null }) => unknown) =>
+      Promise.resolve({ data: [], error: null }).then(resolve),
   };
   return chain;
 }
