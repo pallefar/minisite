@@ -592,7 +592,11 @@ jobs:
         id: changed
         run: |
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD 2>/dev/null || echo "")
-          echo "files=$CHANGED" >> "$GITHUB_OUTPUT"
+          # NOTE: do NOT write the multi-line $CHANGED to $GITHUB_OUTPUT with a
+          # bare `key=value` — GHA parses each subsequent line as its own
+          # key=value and fails ("Invalid format '<path>'") on any multi-file
+          # PR. The `files` output was unused anyway (only `relevant` is read),
+          # so it is dropped.
           RELEVANT=false
           while IFS= read -r f; do
             case "$f" in
