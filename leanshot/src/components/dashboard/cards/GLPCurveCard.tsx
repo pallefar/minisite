@@ -24,19 +24,33 @@ export function GLPCurveCard() {
   const injections = useStore((s) => s.injections);
   const reduced = useReducedMotion();
 
+  // Most-recent injection by datetime — NOT injections[0]. The store prepends on
+  // add, so injections[0] is only newest in the pure local-append path; it breaks
+  // after a user backdates a shot or after any cloud/Realtime merge (which append
+  // without re-sorting). "Current level", "next shot due" and peak/trough all key
+  // off this, so it must be the true latest dose.
+  const lastInj = useMemo(
+    () =>
+      injections.length
+        ? injections.reduce((a, b) =>
+            new Date(b.datetime).getTime() > new Date(a.datetime).getTime() ? b : a,
+          )
+        : undefined,
+    [injections],
+  );
+
   // Build a 7-day curve with 4-hour resolution. Memo body short-circuits
   // when `u` is null so the deps-array references `u` (not `u.medication`).
   const curve = useMemo(() => {
     if (!u) return null;
     const halfLife = HALF_LIVES[u.medication] ?? 168;
-    const lastInj = injections[0];
     const W = 320;
     const H = 110;
     const totalHours = 7 * 24;
     const points: { x: number; y: number; level: number; tMs: number }[] = [];
     for (let h = 0; h <= totalHours; h += 2) {
       const tMs = Date.now() - (totalHours - h) * 3_600_000;
-      const lvl = lastInj ? calcMedLevel(tMs, halfLife, injections) : 0;
+      const lvl = injections.length ? calcMedLevel(tMs, halfLife, injections) : 0;
       points.push({ x: (h / totalHours) * W, y: 0, level: lvl, tMs });
     }
     const max = Math.max(0.01, ...points.map((p) => p.level));
@@ -74,7 +88,6 @@ export function GLPCurveCard() {
   if (!u || !curve) return null;
 
   const { halfLife, path, area, dotMarkers } = curve;
-  const lastInj = injections[0];
   const hSince = lastInj ? hoursSince(lastInj.datetime) : null;
 
   // Static key selects for i18next-parser extraction

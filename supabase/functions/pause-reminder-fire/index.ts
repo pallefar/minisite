@@ -85,12 +85,21 @@ interface ProfileRow {
 // ─── Helper: fetch email + first_name from profiles ───────────────────────────
 
 async function fetchProfile(userId: string): Promise<ProfileRow> {
-  const { data } = await admin
-    .from('profiles')
-    .select('email, first_name')
-    .eq('user_id', userId)
-    .maybeSingle();
-  return (data as ProfileRow | null) ?? { email: null, first_name: null };
+  // public.profiles has NO email column (email lives on auth.users), and there
+  // is no profiles.user_id/first_name to select — the old query returned a
+  // PostgREST error → null → every reminder + resume email was silently dropped.
+  // Resolve via the auth admin API, mirroring community-admin-report-digest.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (admin.auth as any).admin.getUserById(userId);
+  if (error) {
+    console.error('[pause-reminder-fire] getUserById error', error.message);
+    return { email: null, first_name: null };
+  }
+  const user = data?.user;
+  return {
+    email: (user?.email as string | null) ?? null,
+    first_name: (user?.user_metadata?.first_name as string | undefined) ?? null,
+  };
 }
 
 // ─── Mode: fire (T-7d reminder) ──────────────────────────────────────────────

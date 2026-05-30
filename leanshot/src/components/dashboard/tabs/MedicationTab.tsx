@@ -67,7 +67,13 @@ export function MedicationTab() {
 
   const halfLifeDays = ((HALF_LIVES[user.medication] ?? 168) / 24).toFixed(1);
   const totalRemaining = vials.reduce((s, v) => s + Math.max(0, v.dosesPerVial - v.dosesUsed), 0);
-  const lastInj = injections[0];
+  // Most-recent injection by datetime, not injections[0] (store prepends on add,
+  // so [0] is wrong after backdating a shot or any cloud/Realtime merge).
+  const lastInj = injections.length
+    ? injections.reduce((a, b) =>
+        new Date(b.datetime).getTime() > new Date(a.datetime).getTime() ? b : a,
+      )
+    : undefined;
   const lastInjDays = lastInj
     ? Math.floor((Date.now() - new Date(lastInj.datetime).getTime()) / 86_400_000)
     : null;

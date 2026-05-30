@@ -91,7 +91,12 @@ export function ReadOnlyPatientView({
   return (
     <div className="space-y-8">
       {isVisible('chart', viewerMode, permissionMap) && (
-        <ChartSection data={snapshot.injections} viewerMode={viewerMode} onMount={onSectionMount} />
+        <ChartSection
+          data={snapshot.injections}
+          medication={snapshot.medication}
+          viewerMode={viewerMode}
+          onMount={onSectionMount}
+        />
       )}
       {isVisible('injections', viewerMode, permissionMap) && (
         <InjectionsSection

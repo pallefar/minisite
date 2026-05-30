@@ -147,14 +147,26 @@ export function medLabelShort(m: MedicationId): string {
   )[m];
 }
 
-/** Half-life decay sum across all injections — port of v1 calcMedLevel (leanshot.html:2054). */
+/**
+ * Half-life decay sum across all injections — port of v1 calcMedLevel
+ * (leanshot.html:2054). Returns accumulated dose-units in **mg**.
+ *
+ * Dose unit awareness: the log form lets a user record a dose in mg, `units`,
+ * or `ml`. Those are not interchangeable amounts, so summing them into one
+ * superposition total distorts the curve (e.g. 2.5 mg + 50 units → 52.5). We
+ * therefore include only mg-denominated doses in the mg total; non-mg doses
+ * (compounded `units`/`ml` with no concentration on the log) are skipped rather
+ * than silently mis-added. Doses with no unit are treated as mg for backward
+ * compatibility with pre-unit logs.
+ */
 export function calcMedLevel(
   time: number,
   halfLifeHours: number,
-  injections: { datetime: string; dose: string }[],
+  injections: { datetime: string; dose: string; unit?: string | null }[],
 ): number {
   let total = 0;
   for (const inj of injections) {
+    if (inj.unit && inj.unit !== 'mg') continue;
     const t = new Date(inj.datetime).getTime();
     if (t > time) continue;
     const hours = (time - t) / 3600000;

@@ -420,7 +420,10 @@ async function handleDelete(req: Request): Promise<Response> {
   try {
     const prefixes = [
       { bucket: 'photos', prefix: `${targetUserId}/` },
-      { bucket: 'photos', prefix: `affiliate-photos/${targetUserId}/` },
+      // Affiliate profile photos live in their own bucket `affiliate-photos`
+      // at `<user_id>/profile.<ext>` (see PartnerCustomizeForm.tsx) — NOT under
+      // a path prefix inside the `photos` bucket. The old entry deleted nothing.
+      { bucket: 'affiliate-photos', prefix: `${targetUserId}/` },
     ];
     for (const { bucket, prefix } of prefixes) {
       try {

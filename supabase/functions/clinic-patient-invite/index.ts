@@ -363,6 +363,26 @@ async function handleAccept(req: Request): Promise<Response> {
   const tokenHash = await hashToken(rawToken);
   const admin = adminClient();
 
+  // SECURITY (defense-in-depth): this anonymous route must bind the org
+  // relationship + consent grants ONLY to the email the invite was issued to.
+  // Verify the caller-supplied email matches the invite's bound patient_email
+  // BEFORE resolving/creating any account — otherwise a holder of a valid token
+  // could claim the invite under an arbitrary email (and we would auto-create
+  // that account). The authoritative check also lives in the RPC (which is
+  // directly callable by `authenticated`); this closes the anonymous vector.
+  const { data: inviteRow } = await admin
+    .from('org_patient_invites')
+    .select('patient_email')
+    .eq('invite_token_hash', tokenHash)
+    .is('accepted_at', null)
+    .maybeSingle();
+  if (!inviteRow) {
+    return jsonError(404, 'invite_not_found');
+  }
+  if ((inviteRow.patient_email as string).trim().toLowerCase() !== patientEmail) {
+    return jsonError(403, 'email_mismatch');
+  }
+
   // Phase 0 (resolve patient): RPC signature is (text, uuid). The Edge Fn owns
   // user lookup/create since admin.auth.admin.* is an HTTP call (cannot live
   // inside the PL/pgSQL SECDEF). Use the Phase-9 listUsers({email}) pattern.

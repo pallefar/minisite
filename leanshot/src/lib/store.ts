@@ -1079,14 +1079,36 @@ export const useStore = create<Store>()(
 
       upsertWeight: (w) => {
         _assertNotPaused();
+        // Phase 6 SYNC parity: upsertWeight is the only UI weight-logging path,
+        // so it must stamp weight_id/updated_at and enqueue a cloud upsert just
+        // like addWeight/editWeight — otherwise logged weights never sync.
+        const wWithId = w as WeightLog & { weight_id?: string; updated_at?: string };
+        // Preserve the existing same-date row's weight_id so edits address the
+        // same cloud row; otherwise mint a new one.
+        const existing = useStore.getState().weights.find((x) => x.date === w.date) as
+          | (WeightLog & { weight_id?: string })
+          | undefined;
+        const weight_id = wWithId.weight_id ?? existing?.weight_id ?? crypto.randomUUID();
+        const stamped: WeightLog & { weight_id: string; updated_at?: string } = {
+          ...w,
+          weight_id,
+          updated_at: wWithId.updated_at ?? new Date().toISOString(),
+        };
         set((s) => {
           const idx = s.weights.findIndex((x) => x.date === w.date);
           const next = [...s.weights];
-          if (idx >= 0) next[idx] = w;
-          else next.push(w);
+          if (idx >= 0) next[idx] = stamped as never;
+          else next.push(stamped as never);
           next.sort((a, b) => a.date.localeCompare(b.date));
           return { weights: next };
         });
+        get().enqueueOp({
+          table: 'weights',
+          op: 'upsert',
+          key: weight_id,
+          enqueuedAt: new Date().toISOString(),
+        });
+        deferFlush();
       },
       removeWeight: (idx) => {
         const target = useStore.getState().weights[idx] as

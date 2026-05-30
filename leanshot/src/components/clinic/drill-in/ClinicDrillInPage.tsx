@@ -42,6 +42,7 @@ import { useToast } from '@/hooks/useToast';
 import { CLINIC_EVENTS } from '@/lib/clinic-events';
 import { supabase } from '@/lib/supabase';
 import type { Org } from '@/types/clinic';
+import type { OrgRole } from '@/types/org';
 import type { ReadOnlyPermissionMap } from '@/types/snapshot';
 import { ClinicDrillInSubBar } from './ClinicDrillInSubBar';
 import { useClinicSnapshot } from './use-clinic-snapshot';
@@ -179,7 +180,10 @@ function useOrgBySlug(slug: string | null): {
 // Returns null while loading, the role string when resolved.
 // ---------------------------------------------------------------------------
 
-type OrgMemberRole = 'admin' | 'staff' | 'viewer' | null;
+// org_members.role enum is OrgRole ('owner' | 'clinician' | 'staff'). The old
+// 'admin'/'staff'/'viewer' literals were renamed in migration p31_00
+// (admin→owner, staff→clinician, viewer→staff); this hook predated that rename.
+type OrgMemberRole = OrgRole | null;
 
 function useMemberRole(orgId: string | null): OrgMemberRole {
   const [role, setRole] = useState<OrgMemberRole>(null);
@@ -188,10 +192,20 @@ function useMemberRole(orgId: string | null): OrgMemberRole {
     if (!orgId) return;
     let cancelled = false;
     void (async () => {
+      // Scope to the CURRENT user's membership. Querying by org_id alone with
+      // .maybeSingle() throws (multiple rows) in any multi-member org, which
+      // silently collapsed the role to null and hid the tab for everyone.
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      if (!userId) {
+        if (!cancelled) setRole(null);
+        return;
+      }
       const { data } = await supabase
         .from('org_members')
         .select('role')
         .eq('org_id', orgId)
+        .eq('user_id', userId)
         .maybeSingle();
       if (!cancelled) {
         setRole((data as { role: OrgMemberRole } | null)?.role ?? null);
@@ -277,8 +291,10 @@ export function ClinicDrillInPage() {
   const memberRole = useMemberRole(orgId);
   const patientOverride = usePatientOverride(orgId, patientId);
 
-  // Dose thresholds tab visibility (W13 plan-checker fix): admin or staff only
-  const canSeeDoseThresholdsTab = memberRole === 'admin' || memberRole === 'staff';
+  // Dose thresholds tab visibility: owner or clinician (the post-p31-rename
+  // equivalents of the original 'admin'/'staff' intent; matches the
+  // reset_patient_dose_thresholds SECDEF role gate).
+  const canSeeDoseThresholdsTab = memberRole === 'owner' || memberRole === 'clinician';
 
   // Active drill-in tab: 'overview' (default) | 'dose-thresholds'
   const [drillTab, setDrillTab] = useState<'overview' | 'dose-thresholds'>('overview');

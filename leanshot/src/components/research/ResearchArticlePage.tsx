@@ -106,7 +106,10 @@ export function ResearchArticlePage({ slug }: ResearchArticlePageProps) {
       .then(([pub, md]) => {
         if (cancelled) return;
         setPublication(pub);
-        setMarkdownBody(md);
+        // Prefer the admin-authored inline markdown_body (DB) when present;
+        // fall back to the build-time static /research-content/<slug>.md file.
+        const inlineBody = pub?.markdown_body?.trim();
+        setMarkdownBody(inlineBody ? pub!.markdown_body! : md);
       })
       .catch(() => {
         if (!cancelled) setPublication(null);
