@@ -208,21 +208,27 @@ describeIfLive('P31-04 RLS — change_member_role SECDEF', () => {
     });
     expect(error).toBeNull();
 
-    // Verify audit log entry via service-role (most recent matching action)
+    // Verify audit log entry via service-role (most recent matching action).
+    // Phase 70-07 cascade-45 — the row is written by log_org_action: the action is
+    // in `action_name` (not the legacy `action` col), org_id + target_user_id are
+    // their own columns, the new role is in `after_data`, and `metadata` holds only
+    // actor_role. The original query read `action`/`metadata.{org_id,user_id,new_role}`
+    // and ordered by `created_at` (the col is `timestamp`) — none matched, so it
+    // found nothing. Query what log_org_action actually writes.
     const { data: logs, error: logErr } = await admin
       .from('audit_logs')
-      .select('action, metadata')
-      .eq('action', 'org_member.role_changed')
-      .order('created_at', { ascending: false })
+      .select('action_name, org_id, target_user_id, after_data')
+      .eq('action_name', 'org_member.role_changed')
+      .order('timestamp', { ascending: false })
       .limit(5);
 
     expect(logErr).toBeNull();
     const relevantLog = (logs ?? []).find(
-      (l: { metadata: { org_id?: string; user_id?: string; new_role?: string } }) =>
-        l.metadata?.org_id === fixture.orgX && l.metadata?.user_id === clinicianUserIdX,
+      (l: { org_id?: string; target_user_id?: string; after_data?: { new_role?: string } }) =>
+        l.org_id === fixture.orgX && l.target_user_id === clinicianUserIdX,
     );
     expect(relevantLog).not.toBeUndefined();
-    expect(relevantLog?.metadata?.new_role).toBe('staff');
+    expect(relevantLog?.after_data?.new_role).toBe('staff');
   }, 30_000);
 });
 

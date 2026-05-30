@@ -258,7 +258,10 @@ describeIfLive('P31 RLS — save_org_branding SECDEF + Storage path-prefix isola
       .from('audit_logs')
       .select('id, action_name')
       .eq('action_name', 'org_branding.update')
-      .filter('after_data->org_id', 'eq', orgY)
+      // Phase 70-07 cascade-45 — `->` returns jsonb; comparing it 'eq' a uuid string
+      // made PostgREST cast and throw 22P02. Use `->>` (text extraction) to match the
+      // org_id value save_org_branding writes into after_data.
+      .filter('after_data->>org_id', 'eq', orgY)
       .limit(5);
     expect(auditErr).toBeNull();
     expect((auditRows ?? []).length).toBeGreaterThanOrEqual(1);

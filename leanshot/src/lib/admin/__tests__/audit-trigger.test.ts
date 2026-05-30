@@ -155,7 +155,10 @@ function makeInjectionRow(logId: string) {
 
 describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
   it('T3: INSERT trigger writes Phase 24 audit row with source=trigger, action_name=INSERT, after_data populated', async () => {
-    const logId = `${TEST_SLUG_PREFIX}t3-${crypto.randomUUID()}`;
+    // Phase 70-07 cascade-45 — injections.log_id is `uuid not null`, so a slug-
+    // prefixed string ("phi-trig-…-t3-<uuid>") fails the INSERT with 22P02. Use a
+    // bare uuid; cleanup matches log_id exactly (not by prefix).
+    const logId = crypto.randomUUID();
     createdInjectionLogIds.push(logId);
 
     const beforeCount = await admin
@@ -197,7 +200,7 @@ describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
   }, 30_000);
 
   it('T4: DELETE trigger writes Phase 24 audit row with before_data populated, after_data null', async () => {
-    const logId = `${TEST_SLUG_PREFIX}t4-${crypto.randomUUID()}`;
+    const logId = crypto.randomUUID(); // cascade-45: injections.log_id is uuid (see T3)
 
     // Insert
     const { error: insErr } = await userClient.from('injections').insert(makeInjectionRow(logId));
@@ -227,7 +230,7 @@ describeIfLive('Phase 24 D-14 — fn_audit_phi_trigger on injections', () => {
   }, 30_000);
 
   it('T5: app.suppress_audit GUC = on suppresses the PHI trigger (no new audit row)', async () => {
-    const logId = `${TEST_SLUG_PREFIX}t5-${crypto.randomUUID()}`;
+    const logId = crypto.randomUUID(); // cascade-45: injections.log_id is uuid (see T3)
     createdInjectionLogIds.push(logId);
 
     // Count before
