@@ -19,10 +19,12 @@ import { useToast } from '@/hooks/useToast';
 import {
   isAppleEnabled,
   setPasswordOnPromoted,
-  signIn,
   signInWithMagicLink,
   signInWithOAuthProvider,
 } from '@/lib/auth';
+import { signInWithLockout } from '@/lib/auth/sign-in-with-lockout';
+import { supabase } from '@/lib/supabase';
+import { SignInLockoutBanner } from './SignInLockoutBanner';
 
 const PASSWORD_REGEX = /^(?=.*\d).{8,}$/;
 
@@ -40,6 +42,9 @@ export function SignInForm() {
   const [errEmail, setErrEmail] = useState<string | undefined>();
   const [errPassword, setErrPassword] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
+  const [lockout, setLockout] = useState<{ lockedUntil: Date; reason: 'email' | 'ip' } | null>(
+    null,
+  );
   const toast = useToast();
 
   // Re-evaluate on hashchange (e.g., the verify-landing redirect to ?promote=1).
@@ -71,6 +76,7 @@ export function SignInForm() {
     }
 
     setSubmitting(true);
+    setLockout(null);
     try {
       if (isPromote) {
         const { error } = await setPasswordOnPromoted(password);
@@ -80,9 +86,16 @@ export function SignInForm() {
         }
         toast('Welcome to LeanShot — your account is ready.', 'success');
       } else {
-        const { error } = await signIn(email.trim(), password);
-        if (error) {
-          setErrEmail('Invalid email or password.');
+        // AUTH-14/15: route the standard sign-in through the brute-force
+        // lockout wrapper (open-on-fail — falls through to Supabase if the
+        // rate-limit Fn is unreachable, so login never hard-depends on it).
+        const result = await signInWithLockout(supabase, email.trim(), password);
+        if (!result.ok) {
+          if (result.reason === 'locked') {
+            setLockout({ lockedUntil: result.lockedUntil, reason: result.lockoutReason });
+          } else {
+            setErrEmail('Invalid email or password.');
+          }
           return;
         }
       }
@@ -125,6 +138,10 @@ export function SignInForm() {
         )}
       </header>
 
+      {lockout && (
+        <SignInLockoutBanner lockedUntil={lockout.lockedUntil} reason={lockout.reason} />
+      )}
+
       <Input
         label="Email"
         type="email"
@@ -135,6 +152,7 @@ export function SignInForm() {
         onChange={(e) => {
           setEmail(e.target.value);
           if (errEmail) setErrEmail(undefined);
+          if (lockout) setLockout(null);
         }}
         error={errEmail}
         disabled={submitting || isPromote}

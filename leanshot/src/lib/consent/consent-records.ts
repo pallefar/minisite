@@ -96,9 +96,10 @@ export async function upsertConsentRecord(snap: CookieConsentSnapshot): Promise<
 
     const { error } = await supabase.from('consent_records').insert(payload);
     if (error) {
-      console.warn('[leanshot] consent_records insert failed', error.message);
+      // S3: never log error.message (may carry row/PII context) — code only.
+      console.warn('[leanshot] consent_records insert failed', error.code ?? 'unknown');
     }
   } catch (e) {
-    console.warn('[leanshot] consent_records insert threw', e);
+    console.warn('[leanshot] consent_records insert threw', e instanceof Error ? e.name : 'unknown');
   }
 }
