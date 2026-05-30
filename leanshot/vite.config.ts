@@ -220,6 +220,24 @@ export default defineConfig(({ mode }) => {
             // intentionally kept for page-builder backward-compat; Phase 24 admin
             // components are under src/components/admin/ but the admin-shell rule
             // fires first because it also checks src/lib/admin/.
+            //
+            // Phase 71 follow-up — keep the product-updates admin module
+            // (components under src/admin/modules/product-updates/ + its CRUD
+            // lib src/lib/admin/product-updates.ts) in ONE lazy chunk OUT of
+            // admin-shell. The lib otherwise falls into the /src/lib/admin/ →
+            // admin-shell rule below and pushed admin-shell 0.44 kB over its
+            // 137 kB ceiling. The ceiling gate (assert-bundle-budget.sh)
+            // mandates NEW admin code be lazy-split, not ceiling-raised — this
+            // module is already lazy-loaded via AdminShell, so co-locating its
+            // lib with its components honors that. MUST precede the admin-shell
+            // rule. Named chunk (not the `index-*.js` collision class — cf.
+            // cascade-56).
+            if (
+              id.includes('/src/admin/modules/product-updates/') ||
+              id.includes('/src/lib/admin/product-updates')
+            ) {
+              return 'admin-product-updates';
+            }
             if (id.includes('/src/lib/admin/')) return 'admin-shell';
             // Phase 37 Plan 06 — helpdesk chunk topology (D-16 / D-18 / T-37-06-06).
             //
@@ -429,6 +447,23 @@ export default defineConfig(({ mode }) => {
                 /node_modules\/(react-router|react-router-dom|@remix-run\/router)(\/|$)/.test(id)
               ) {
                 return 'vendor-router';
+              }
+              // Phase 71 follow-up — react-markdown + the full unified/remark/
+              // rehype/micromark/mdast/hast/parse5 closure (~100 kB gz). Consumed
+              // by events (EventDetailSheet), helpdesk (KBArticleView), research,
+              // changelog (WhatsNewDrawer SafeMarkdown), and the product-updates
+              // admin module. With no rule Rollup duplicated the whole stack into
+              // the `events` named chunk → 113 kB gz vs its 25 kB ceiling
+              // (assert-bundle-budget.sh, the residual E2E blocker). Pin the
+              // ecosystem to ONE shared vendor-markdown chunk: dedupes it across
+              // every consumer and drops `events` under budget. The markdown
+              // entries' unique transitive deps follow automatically.
+              if (
+                /node_modules\/(react-markdown|rehype-[^/]+|remark-[^/]+|unified|micromark[^/]*|mdast-[^/]+|hast-[^/]+|hastscript|unist-[^/]+|vfile[^/]*|property-information|parse5|space-separated-tokens|comma-separated-tokens|web-namespaces|html-void-elements|html-url-attributes|style-to-js|style-to-object|inline-style-parser|decode-named-character-reference|character-entities[^/]*|trim-lines|longest-streak|markdown-table|zwitch|@ungap\/structured-clone|estree-util-is-identifier-name)(\/|$)/.test(
+                  id,
+                )
+              ) {
+                return 'vendor-markdown';
               }
               if (/node_modules\/(framer-motion|motion-dom|motion-utils)(\/|$)/.test(id)) {
                 return 'vendor-motion';
