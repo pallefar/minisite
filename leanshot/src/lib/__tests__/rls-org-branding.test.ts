@@ -34,6 +34,26 @@ import {
 const TEST_SLUG_PREFIX = makeSlugPrefix(path.basename(__filename));
 const describeIfLive = SHOULD_RUN ? describe : describe.skip;
 
+// Phase 70-07 — T14's storage upload streams a body to the storage backend and the
+// CI runner→storage connection intermittently resets (ECONNRESET → StorageUnknownError
+// "fetch failed"). RLS + bucket config are correct (T13 proves the policy + bucket work;
+// it gets a clean 403, not a transport error). Retry ONLY transport-level failures; a
+// real error (e.g. RLS 403) returns immediately so we never mask a genuine denial.
+// See 70-07-NEXT-SESSION-HANDOFF-v3.md (T14).
+async function uploadWithTransportRetry<T extends { error: unknown }>(
+  doUpload: () => Promise<T>,
+  attempts = 4,
+): Promise<T> {
+  let result = await doUpload();
+  for (let i = 1; i < attempts; i++) {
+    const msg = (result.error as { message?: string } | null)?.message ?? '';
+    if (!result.error || !/fetch failed|ECONNRESET|network|socket hang up/i.test(msg)) break;
+    await new Promise((r) => setTimeout(r, 250 * i));
+    result = await doUpload();
+  }
+  return result;
+}
+
 describeIfLive('P28 RLS — org_branding cross-tenant isolation', () => {
   let fixture: TwoOrgsTwoUsers;
 
@@ -297,11 +317,13 @@ describeIfLive('P31 RLS — save_org_branding SECDEF + Storage path-prefix isola
     const { orgY, sessB } = fixture;
 
     const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    const { error: uploadErr } = await sessB.client.storage
-      .from('org-branding')
-      .upload(`${orgY}/logo-test.png`, new Blob([pngBytes], { type: 'image/png' }), {
-        upsert: true,
-      });
+    const { error: uploadErr } = await uploadWithTransportRetry(() =>
+      sessB.client.storage
+        .from('org-branding')
+        .upload(`${orgY}/logo-test.png`, new Blob([pngBytes], { type: 'image/png' }), {
+          upsert: true,
+        }),
+    );
     expect(uploadErr).toBeNull();
 
     // Anonymous GET against the public-read URL (T-31-02-07 accept).
