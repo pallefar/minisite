@@ -183,10 +183,23 @@ const FAKE_ORG = {
 // ---- Setup helpers -----------------------------------------------------------
 
 function setupOrgMock(orgData: typeof FAKE_ORG | null = FAKE_ORG) {
+  // Phase 70-07 cascade-53 — chainable, awaitable query-builder mock. The page's own
+  // lookup is .select().eq().eq().maybeSingle() (→ orgData), but child clinic hooks
+  // (use-clinician-alerts / use-clinic-metrics) fire fire-and-forget
+  // .select().eq().in().gte() queries. The old mock returned { maybeSingle } from eq(),
+  // so .in() was undefined → "supabase…eq(…).in is not a function" surfaced as an
+  // UNHANDLED REJECTION (passes 0 assertions but exits the vitest run non-zero). Make
+  // every builder method return the same chain and make the chain awaitable
+  // (resolves to { data: [], error: null }) so those background queries don't throw.
   const maybeSingleFn = vi.fn().mockResolvedValue({ data: orgData, error: null });
-  const eqFn = vi.fn().mockReturnValue({ maybeSingle: maybeSingleFn });
-  const selectFn = vi.fn().mockReturnValue({ eq: eqFn });
-  mockFrom.mockReturnValue({ select: selectFn });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chain: any = { maybeSingle: maybeSingleFn };
+  for (const m of ['select', 'eq', 'in', 'gte', 'lte', 'order', 'limit', 'neq']) {
+    chain[m] = vi.fn(() => chain);
+  }
+  chain.then = (resolve: (v: { data: unknown[]; error: null }) => unknown) =>
+    Promise.resolve({ data: [], error: null }).then(resolve);
+  mockFrom.mockReturnValue(chain);
 }
 
 function setupFetchMock(opts: {
