@@ -43,9 +43,16 @@ vi.mock('@/lib/supabase', () => {
     data: { session: { access_token: 'test-jwt' } },
   });
 
+  // useMemberRole (Dose-Thresholds gate) resolves the caller via auth.getUser()
+  // then scopes the org_members lookup to that user_id.
+  const getUserFn = vi.fn().mockResolvedValue({
+    data: { user: { id: 'op-1' } },
+    error: null,
+  });
+
   return {
     supabase: {
-      auth: { getSession: getSessionFn },
+      auth: { getSession: getSessionFn, getUser: getUserFn },
       from: fromFn,
       rpc: mockRpc,
     },
