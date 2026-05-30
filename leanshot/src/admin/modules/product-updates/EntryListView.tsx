@@ -116,14 +116,14 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
 
       {fetch.status === 'ready' && fetch.rows.length > 0 && (
         <Card variant="default" padding="none">
-          <table className="w-full text-left text-[14px]">
+          <table className="w-full text-start text-[14px]">
             <thead>
               <tr className="border-b border-[var(--color-border)] text-[12px] uppercase tracking-wide text-[var(--color-text-tertiary)]">
                 <th className="px-4 py-3 font-medium">Title</th>
                 <th className="px-4 py-3 font-medium">Version</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Published</th>
-                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                <th className="px-4 py-3 font-medium text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -146,7 +146,7 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
                   <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                     {formatDate(row.published_at)}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-end">
                     <Button variant="ghost" size="sm" onClick={() => onEdit(row)}>
                       Edit
                     </Button>
