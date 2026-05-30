@@ -233,9 +233,13 @@ export async function handler(req: Request): Promise<Response> {
     );
 
     // ── Out-of-corpus gate (fires BEFORE rerank — saves cost) ───────────────────
-    const maxFinal = reweighted.length > 0 ? Math.max(...reweighted.map((r) => r.final_score)) : 0;
-    if (shouldRefuseOutOfCorpus(maxFinal)) {
-      const refusal = await outOfCorpusRefusal(traceId, maxFinal, body.filters?.topic_tag);
+    // Gate on RAW cosine, not the tier-boosted final_score. A low-relevance chunk
+    // from a tier-A source gets a 1.2× boost that can lift final_score over the
+    // refusal floor, leaking irrelevant content past the out-of-corpus guard.
+    // The boosted final_score is only for ranking/sorting.
+    const maxCosine = reweighted.length > 0 ? Math.max(...reweighted.map((r) => r.raw_score)) : 0;
+    if (shouldRefuseOutOfCorpus(maxCosine)) {
+      const refusal = await outOfCorpusRefusal(traceId, maxCosine, body.filters?.topic_tag);
       return jsonResp(refusal, 200);
     }
 

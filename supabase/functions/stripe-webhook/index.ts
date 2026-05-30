@@ -305,6 +305,25 @@ export async function handleRequest(
         '[stripe-webhook] handler error',
         err instanceof Error ? err.message : 'unknown',
       );
+      // The idempotency row was inserted BEFORE dispatch. If we leave it on a
+      // handler failure, Stripe's retry hits the 23505 duplicate path above and
+      // SKIPS the handler — permanently dropping this event (e.g. a lost
+      // subscription grant). Roll the unprocessed row back so the retry re-runs
+      // the (idempotent) handler. Guard on processed_at IS NULL so we never
+      // delete a row a concurrent delivery already completed.
+      if (!testCtx) {
+        const { error: cleanupErr } = await admin
+          .from('subscription_events')
+          .delete()
+          .eq('event_id', event.id)
+          .is('processed_at', null);
+        if (cleanupErr) {
+          console.error(
+            '[stripe-webhook] failed to roll back idempotency row',
+            cleanupErr.message,
+          );
+        }
+      }
       return jsonResponse(500, { error: 'internal' });
     }
 
