@@ -44,7 +44,7 @@ interface WhatsNewDrawerProps {
  * every parent re-render (lists of ~3-20 entries × ReactMarkdown is cheap
  * but the dompurify pass is the most expensive thing per article).
  */
-function SafeMarkdown({ source }: { source: string }) {
+export function SafeMarkdown({ source }: { source: string }) {
   const sanitised = useMemo(() => {
     // We DOMPurify the RAW markdown so any inline HTML the admin pastes
     // into body_md gets stripped of script / on* / javascript: URIs BEFORE

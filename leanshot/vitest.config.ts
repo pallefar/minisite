@@ -211,6 +211,11 @@ export default defineConfig({
             'src/components/**/__tests__/*.test.ts',
             'src/components/**/*.test.tsx',
             'src/components/**/*.test.ts',
+            // Phase 71 Plan 71-01 — admin module React tests live under
+            // src/admin/**/__tests__ (EntryEditorView), not src/components.
+            // Widen the src-ui-unit include so they're CI-gated alongside
+            // the rest of the UI unit suite.
+            'src/admin/**/__tests__/*.test.tsx',
           ],
           // Phase 70-07 cascade-15 — see top-level exclude comment.
           exclude: ['src/components/BiometricGate.test.tsx'],

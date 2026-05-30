@@ -69,6 +69,10 @@ export function useChangelog(): UseChangelogResult {
         const entriesRes = (await supabase
           .from('changelog_entries')
           .select('id, slug, title, body_md, published_at')
+          // Phase 71 PU-03 defense-in-depth half 2: even an admin's drawer (the
+          // consumer surface) shows only published — drafts/archived never leak to
+          // the in-app What's New drawer. RLS is half 1; this query filter is half 2.
+          .eq('status', 'published')
           .order('published_at', { ascending: false })
           .limit(20)) as {
           data: ChangelogEntry[] | null;
