@@ -73,7 +73,7 @@ export default function PricingIOS(): ReactElement | null {
   // H3: unified entitlement check — reads tier_effective.has_active across ALL
   // providers (Stripe web + RevenueCat mobile + lifetime). Gates the paywall so an
   // existing subscriber can't double-buy the `plus` entitlement.
-  const { has_pro: alreadySubscribed } = useCurrentUserHasPro();
+  const { has_pro: alreadySubscribed, loading: proLoading } = useCurrentUserHasPro();
 
   const [offering, setOffering] = useState<Offering | null>(null);
   const [eligibility, setEligibility] = useState<TrialEligibility>({
@@ -329,7 +329,10 @@ export default function PricingIOS(): ReactElement | null {
       <Button
         variant="primary"
         onClick={handleSubscribe}
-        disabled={!sdkReady || purchasing || !selectedPkg}
+        // proLoading: keep Subscribe inert until the unified entitlement check
+        // resolves, so an existing subscriber can't act on the paywall during the
+        // brief load window (the alreadySubscribed guard then swaps in the manage state).
+        disabled={!sdkReady || purchasing || !selectedPkg || proLoading}
         aria-busy={purchasing}
       >
         Subscribe
