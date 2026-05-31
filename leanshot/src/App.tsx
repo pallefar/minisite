@@ -1191,6 +1191,11 @@ export function App() {
           // defaults until their own loadOverrides() resolves. Mirrors the
           // namespaced-localStorage wipe in spirit.
           clearOverrideCache();
+          // L1 (RC readiness): log RevenueCat out so the native SDK does not stay
+          // bound to the prior user on a shared device. Dynamic-import keeps iap.ts
+          // (+ the RC SDK) off App.tsx's static graph; logOutRC is native-gated
+          // (web no-op) and best-effort (fire-and-forget — must not block sign-out).
+          void import('@/lib/native/iap').then(({ logOutRC }) => logOutRC());
           // Phase 24 Plan 04 D-13: reset PostHog identity so the next anon
           // session is truly anonymous (distinct_id returns to a fresh anon id).
           // posthog.reset() must run AFTER sign-out so the current uid's event
