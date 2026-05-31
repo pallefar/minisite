@@ -28,7 +28,7 @@ export interface AuthResult {
  * SSR-safe fallback (no `window` in build context) targets production.
  */
 function authRedirectTo(hash: string): string {
-  if (typeof window === 'undefined') return `https://leanshot-app.vercel.app${hash}`;
+  if (typeof window === 'undefined') return `https://app.leanshot.app${hash}`;
   return `${window.location.origin}${hash}`;
 }
 
