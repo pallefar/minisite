@@ -1021,6 +1021,23 @@ export function App() {
     installDeepLinkHandler();
   }, []);
 
+  // Phase 56 + Phase 70 — AdMob boot-wiring. Initialise the ad SDK once at app
+  // start so PlatformAdSlot's banner calls hit a configured SDK. Native shells
+  // only: gating the dynamic import on platform keeps @capacitor-community/admob
+  // off the web boot path entirely (Phase 6 D-12 static-graph discipline; the
+  // web ad path is AdSense, handled inside PlatformAdSlot). initAdNetwork is
+  // itself a native + env-gated no-op until real app IDs land, so this is
+  // defence-in-depth. Fire-and-forget: an ad-init failure must never break boot.
+  useEffect(() => {
+    const platform = detectPlatform();
+    if (platform !== 'ios' && platform !== 'android') return;
+    void import('@/lib/native/ads')
+      .then(({ initAdNetwork }) => initAdNetwork())
+      .catch(() => {
+        /* ad init failure is non-fatal */
+      });
+  }, []);
+
   // Phase 49 Plan 09 — global cmd+k (mac) / ctrl+k (win/linux) listener.
   // Mirrors the AdminCommandPalette wiring at
   // src/components/admin/palette/AdminCommandPalette.tsx; toggles the
