@@ -75,8 +75,8 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-[20px] font-semibold tracking-tight">Push Updates</h2>
-          <p className="mt-1 text-[14px] text-[var(--color-text-secondary)]">
+          <h2 className="text-[18px] font-semibold tracking-tight">Push Updates</h2>
+          <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
             Author changelog entries that surface in the in-app What&rsquo;s New drawer and the
             store release notes.
           </p>
@@ -93,7 +93,7 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
           <div className="flex items-start gap-3">
             <WifiOff aria-hidden size={24} className="text-[var(--color-danger)] shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
                 We couldn&rsquo;t load the updates. Check your connection and try again.
               </p>
               <div className="mt-3">
@@ -116,27 +116,27 @@ export function EntryListView({ onNew, onEdit }: EntryListViewProps) {
 
       {fetch.status === 'ready' && fetch.rows.length > 0 && (
         <Card variant="default" padding="none">
-          <table className="w-full text-start text-[14px]">
+          <table className="w-full text-start text-[13px]">
             <thead>
-              <tr className="border-b border-[var(--color-border)] text-[12px] uppercase tracking-wide text-[var(--color-text-tertiary)]">
-                <th className="px-4 py-3 font-medium">Title</th>
-                <th className="px-4 py-3 font-medium">Version</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Published</th>
-                <th className="px-4 py-3 font-medium text-end">Actions</th>
+              <tr className="border-b border-[var(--color-border)] text-[13px] uppercase tracking-wide text-[var(--color-text-tertiary)]">
+                <th className="px-4 py-3 font-semibold">Title</th>
+                <th className="px-4 py-3 font-semibold">Version</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Published</th>
+                <th className="px-4 py-3 font-semibold text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {fetch.rows.map((row) => (
                 <tr key={row.id} className="border-b border-[var(--color-border)] last:border-b-0">
-                  <td className="px-4 py-3 font-medium text-[var(--color-text)]">{row.title}</td>
+                  <td className="px-4 py-3 font-semibold text-[var(--color-text)]">{row.title}</td>
                   <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                     {row.version ?? '—'}
                   </td>
                   <td className="px-4 py-3">
                     <span
                       className={
-                        'inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium ' +
+                        'inline-flex rounded-full px-2.5 py-0.5 text-[13px] font-semibold ' +
                         STATUS_BADGE[row.status]
                       }
                     >

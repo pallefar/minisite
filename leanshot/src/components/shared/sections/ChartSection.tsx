@@ -82,7 +82,7 @@ export function ChartSection({
             />
           </Suspense>
         ) : (
-          <p className="text-[14px] text-[var(--color-text-secondary)]">
+          <p className="text-[13px] text-[var(--color-text-secondary)]">
             Drug-level estimate unavailable for this share.
           </p>
         )}
