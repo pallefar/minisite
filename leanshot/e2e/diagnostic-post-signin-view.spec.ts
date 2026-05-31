@@ -166,7 +166,7 @@ test.describe('@phase07-diagnostic — capture post-signin view log', () => {
 
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
 
     // Wait for URL to leave auth (this is known to pass per CI evidence).
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });

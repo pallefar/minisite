@@ -70,7 +70,7 @@ test.describe('@phase05 SC#2: password reset', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(newPwd);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 8000 });
 
     // Sign out + try OLD password → must fail.
@@ -84,7 +84,7 @@ test.describe('@phase05 SC#2: password reset', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(oldPwd);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     // Inline error must surface.
     await expect(page.getByText(/invalid email or password/i)).toBeVisible({ timeout: 5000 });
   });

@@ -114,7 +114,7 @@ async function seedUserAndSignIn(page: Page, email: string, password: string): P
   await page.goto('/#/auth/signin');
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /^sign in$/i }).click();
+  await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
   // Land on dashboard (post-auth).
   // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI.
   // Switched the post-signin signal from `getByTestId('dashboard')` to

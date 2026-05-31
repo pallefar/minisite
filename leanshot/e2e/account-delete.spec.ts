@@ -240,7 +240,7 @@ test.describe('@phase07 account-delete COMPL-06: end-to-end happy path', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     // Use 30s budget — cold-start dyn imports + supabase auth round-trip can
     // take 8-12s locally (CI is slower per cross-device-sync precedent).
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });

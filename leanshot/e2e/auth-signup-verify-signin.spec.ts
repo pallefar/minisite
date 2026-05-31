@@ -155,7 +155,7 @@ test.describe('@phase05 SC#1: signup → verify → signin', () => {
       await page.goto('/#/auth/signin');
       await page.getByLabel(/email/i).fill(reloadEmail);
       await page.getByLabel(/password/i).fill(reloadPwd);
-      await page.getByRole('button', { name: /^sign in$/i }).click();
+      await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
       // Leave auth view after successful sign-in.
       await expect(page).not.toHaveURL(/#\/auth/, { timeout: 8000 });
 

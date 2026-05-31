@@ -184,7 +184,7 @@ test.describe('@phase15 pricing-checkout-flow', () => {
       await page.goto('/#/auth/signin');
       await page.getByLabel(/email/i).fill(buyerEmail);
       await page.getByLabel(/password/i).fill(buyerPassword);
-      await page.getByRole('button', { name: /^sign in$/i }).click();
+      await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
       await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 
       // Now visit the rendered /pricing page (still signed in via session).
