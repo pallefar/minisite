@@ -94,22 +94,24 @@ export function CommunitySettingsTab() {
           'directory_opt_in, dm_open, show_tier_badge, show_streak_badge, leaderboard_opt_in, admin_digest_opt_in, is_staff',
         )
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (cancelled) return;
-      if (error || !data) {
+      if (error) {
         toast('Could not load community settings', 'error');
         setLoading(false);
         return;
       }
+      // A missing profile row is valid (local-first user with no server row
+      // yet) — default to all-off prefs rather than erroring.
       setPrefs({
-        directory_opt_in: !!data.directory_opt_in,
-        dm_open: !!data.dm_open,
-        show_tier_badge: !!data.show_tier_badge,
-        show_streak_badge: !!data.show_streak_badge,
-        leaderboard_opt_in: !!data.leaderboard_opt_in,
-        admin_digest_opt_in: !!data.admin_digest_opt_in,
-        is_staff: !!data.is_staff,
+        directory_opt_in: !!data?.directory_opt_in,
+        dm_open: !!data?.dm_open,
+        show_tier_badge: !!data?.show_tier_badge,
+        show_streak_badge: !!data?.show_streak_badge,
+        leaderboard_opt_in: !!data?.leaderboard_opt_in,
+        admin_digest_opt_in: !!data?.admin_digest_opt_in,
+        is_staff: !!data?.is_staff,
       });
       setLoading(false);
     })();

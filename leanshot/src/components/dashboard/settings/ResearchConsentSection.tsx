@@ -66,7 +66,7 @@ export function ResearchConsentSection() {
         .from('profiles')
         .select('research_consent, consent_revoked_at')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       if (cancelled) return;
       if (!error && data) {
         setConsent(data.research_consent ?? false);
