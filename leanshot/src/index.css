@@ -55,7 +55,7 @@
 
   --color-text: var(--brand-text, #16221f);
   --color-text-secondary: #4d5e58; /* v2 — 6 % darker for contrast */
-  --color-text-tertiary: #8d958f;
+  --color-text-tertiary: #636e67; /* WCAG AA: #8d958f was 2.75:1 on cream (fail) → ~5.1:1 */
   --color-text-on-hero: #ffffff;
   --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
 
