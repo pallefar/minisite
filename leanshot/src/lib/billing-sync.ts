@@ -18,10 +18,9 @@
  * Selector convention (CLAUDE.md): writes via `useStore.getState().setTier(...)` —
  *   a one-shot write outside render, NOT a subscription. Same pattern as `useToast`.
  */
-import { getActiveTier } from '@/lib/billing';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-import type { SubscriptionProvider } from '@/types';
+import type { SubscriptionProvider, Tier } from '@/types';
 
 /**
  * Sync the current user's billing tier from the `subscriptions` table into the
@@ -38,51 +37,56 @@ import type { SubscriptionProvider } from '@/types';
  *                `email_confirmed_at && !is_anonymous` check before calling.
  */
 export async function syncBillingTier(userId: string): Promise<void> {
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .select('status, current_period_end, plan_id, provider, is_paused, paused_until')
+  // M1/M2: read the canonical `tier_effective` view (grouped per user → exactly ≤1
+  // row; unifies Stripe + RevenueCat + Lifetime via has_active). This replaces the
+  // prior direct `subscriptions.maybeSingle()` which:
+  //   M1 — errored (PGRST116) for a cross-provider user with >1 subscriptions row,
+  //        leaving the persisted store tier stale.
+  //   M2 — resolved a Lifetime purchaser (lifetime_purchases row, NO subscriptions
+  //        row) to 'free', wrongly blocking Pro features behind TierGate.
+  const { data: te, error: teError } = await supabase
+    .from('tier_effective')
+    .select('has_active, has_past_due, effective_period_end, winning_provider')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (error) {
-    console.error('[billing-sync] subscriptions query failed', error.message);
+  if (teError) {
+    console.error('[billing-sync] tier_effective query failed', teError.message);
     return; // Leave existing persisted tier untouched (best available guess).
   }
 
-  // Narrow the raw text column to the status union that getActiveTier expects.
-  // An unrecognized string falls through getActiveTier's default branch → 'free',
-  // which is the safest paywall default.
-  type StripeStatus =
-    | 'incomplete'
-    | 'incomplete_expired'
-    | 'trialing'
-    | 'active'
-    | 'past_due'
-    | 'canceled'
-    | 'unpaid'
-    | 'paused'
-    | null;
+  // Collapse to the 3-state UX tier. 'paid' (active access — includes trial +
+  // lifetime via has_active) wins over 'past_due'; a missing row (no sub, no
+  // lifetime) → 'free' (safest paywall default).
+  const tier: Tier = te?.has_active ? 'paid' : te?.has_past_due ? 'past_due' : 'free';
 
-  const status = (data?.status ?? null) as StripeStatus;
-
-  const tier = getActiveTier(status, data?.current_period_end ?? null, new Date());
+  // plan_id + pause state are subscription-specific and NOT exposed by the view —
+  // read them from the subscriptions row separately, tolerating >1 row (a
+  // cross-provider user) by taking the latest-ending one via order+limit(1) so
+  // this read can never trip PGRST116 (the M1 crash).
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('plan_id, is_paused, paused_until')
+    .eq('user_id', userId)
+    .order('current_period_end', { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
 
   useStore.getState().setTier({
     tier,
-    current_period_end: data?.current_period_end ?? null,
-    plan_id: data?.plan_id ?? null,
-    provider: (data?.provider as SubscriptionProvider) ?? null,
+    current_period_end: (te?.effective_period_end as string | null) ?? null,
+    plan_id: (sub?.plan_id as string | null) ?? null,
+    provider: (te?.winning_provider as SubscriptionProvider) ?? null,
   });
 
   // Phase 40 Plan 40-07 D-07 — pause state hydration.
-  // Defensive defaults: if columns are absent (staging env, pre-40-02 migration),
-  // default to is_paused=false so the banner never renders for un-paused users.
-  // Error path already returns above — if we reach here, data may still be null
-  // (no subscription row), which also maps to is_paused=false.
+  // Defensive defaults: if columns are absent (staging env, pre-40-02 migration) or
+  // there is no subscriptions row (lifetime-only / never-subscribed), default to
+  // is_paused=false so the pause banner never renders spuriously.
   useStore
     .getState()
     .setPauseState(
-      Boolean((data as { is_paused?: boolean } | null)?.is_paused ?? false),
-      ((data as { paused_until?: string | null } | null)?.paused_until as string | null) ?? null,
+      Boolean((sub as { is_paused?: boolean } | null)?.is_paused ?? false),
+      ((sub as { paused_until?: string | null } | null)?.paused_until as string | null) ?? null,
     );
 }
