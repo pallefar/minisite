@@ -216,6 +216,13 @@ export default defineConfig({
             // Widen the src-ui-unit include so they're CI-gated alongside
             // the rest of the UI unit suite.
             'src/admin/**/__tests__/*.test.tsx',
+            // Wire the previously-orphaned src/test/* suite into CI. When
+            // test.projects is set, the root test.include is masked, so these
+            // files (incl. PricingIOS.test — the RevenueCat paywall test) ran in
+            // NO project. Measured 2026-05-31: 4 pass / 3 env-gated-skip / 0 fail
+            // under this jsdom + ./src/test-setup.ts config.
+            'src/test/**/*.test.tsx',
+            'src/test/**/*.test.ts',
           ],
           // Phase 70-07 cascade-15 — see top-level exclude comment.
           exclude: ['src/components/BiometricGate.test.tsx'],
