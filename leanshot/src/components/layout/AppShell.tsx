@@ -100,7 +100,13 @@ export function AppShell({
           mb-[80px] on mobile clears the fixed bottom nav; on desktop the
           footer flows inline below <main>. The FAB below is `fixed` and so
           floats independently of document order. */}
-      <LegalFooter variant="app" />
+      {/* Sidebar offset must MATCH <main> (72px collapsed / 232px expanded) and track
+          the collapse state. The footer previously hardcoded md:ms-[80px] inside
+          LegalFooter — matching neither width, so on desktop it underlapped the
+          expanded 232px sidebar. Offset now lives here (where the state is), like main. */}
+      <div className={cn(sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[232px]')}>
+        <LegalFooter variant="app" />
+      </div>
       {/* Mobile-only floating quick-log FAB */}
       <button
         onClick={() => setSheetOpen(true)}
