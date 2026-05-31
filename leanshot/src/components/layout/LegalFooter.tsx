@@ -45,7 +45,7 @@ export function LegalFooter({ variant = 'marketing' }: LegalFooterProps) {
   if (variant === 'app') {
     return (
       <footer
-        className="md:ms-[80px] px-4 md:px-7 py-6 mt-12 mb-[80px] md:mb-0 border-t border-[var(--color-border)]"
+        className="px-4 md:px-7 py-6 mt-12 mb-[80px] md:mb-0 border-t border-[var(--color-border)]"
         aria-label="Legal"
       >
         <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-[var(--color-text-secondary)]">
