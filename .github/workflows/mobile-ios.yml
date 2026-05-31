@@ -50,6 +50,11 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Build web assets
+        # H1: inject the RevenueCat PUBLIC iOS SDK key at build time. Vite freezes
+        # import.meta.env.VITE_RC_API_KEY_IOS into the bundle here; without this the
+        # shipped app has an empty key → configureRC() throws → dead paywall.
+        env:
+          VITE_RC_API_KEY_IOS: ${{ secrets.VITE_RC_API_KEY_IOS }}
         run: npm run build
 
       - name: Sync Capacitor iOS
@@ -101,6 +106,10 @@ jobs:
 
       - name: Build web assets
         working-directory: leanshot
+        # H1: same RC key injection on the upload runner (separate runner from
+        # build-ios; artifacts are not transferred, so this job rebuilds the bundle).
+        env:
+          VITE_RC_API_KEY_IOS: ${{ secrets.VITE_RC_API_KEY_IOS }}
         run: npm run build
 
       - name: Sync Capacitor iOS
