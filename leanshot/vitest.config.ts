@@ -225,7 +225,12 @@ export default defineConfig({
             'src/test/**/*.test.ts',
           ],
           // Phase 70-07 cascade-15 — see top-level exclude comment.
-          exclude: ['src/components/BiometricGate.test.tsx'],
+          // src/test/rls-*.test.ts are LIVE-DB RLS-impersonation integration tests
+          // (SHOULD_RUN = env-gated on SUPABASE_*): they describe.skip locally with no
+          // env, but in CI (SUPABASE_* present) they RUN and their beforeAll hits the
+          // live DB — out of scope for the hermetic unit gate (they belong in a
+          // DB-enabled job). Exclude so the wired src/test/** stays unit-only.
+          exclude: ['src/components/BiometricGate.test.tsx', 'src/test/rls-*.test.ts'],
         },
       },
       {
