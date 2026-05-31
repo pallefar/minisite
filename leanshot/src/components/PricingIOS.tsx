@@ -166,9 +166,9 @@ export default function PricingIOS(): ReactElement | null {
         className="w-full px-6 py-16 text-start max-w-md mx-auto flex flex-col gap-4"
         aria-label="Subscription active"
       >
-        <h2 className="text-[22px] font-semibold tracking-tight">You're already subscribed</h2>
+        <h2 className="text-[22px] font-semibold tracking-tight">You’re already subscribed</h2>
         <p className="text-[16px] text-[var(--color-text-secondary)] leading-snug">
-          Your LeanShot Plus subscription is active. Manage or cancel it from your device's
+          Your LeanShot Plus subscription is active. Manage or cancel it from your device’s
           subscription settings, or in LeanShot account settings.
         </p>
       </section>
