@@ -108,10 +108,41 @@ C3. **[YOU/ME]** First **local** validation (no secrets):
 - Once B3+B4 secrets set → CI `upload_play` pushes the internal-testing AAB.
 - These satisfy the Phase-70 `70-04`/`70-05` iOS/Android device-UAT signals.
 
+## Phase E — In-App Purchases (RevenueCat) — [YOU] operator setup
+
+All RevenueCat **code** is shipped + audited (PR #12 fixed 12 readiness defects). The
+IAP business line stays inert until the operator provisions the dashboard / store
+products / secrets below. Full step-by-step + verification: see
+`REVENUECAT-GO-LIVE-RUNBOOK-2026-05-31.md` (same folder).
+
+E1. **[YOU]** RevenueCat dashboard: create project → add an iOS app (`app.leanshot.ios`)
+    + an Android app (`app.leanshot.android`).
+E2. **[YOU]** Copy each app's **public SDK key** → GitHub Actions repo secrets
+    `VITE_RC_API_KEY_IOS` + `VITE_RC_API_KEY_ANDROID`. The mobile workflows inject these
+    at build time; without them the shipped bundle has an empty key → dead paywall.
+E3. **[YOU]** RC dashboard: create entitlement **`plus`**; create an offering (mark it
+    **current**) with packages **`$rc_monthly`** + **`$rc_annual`**; attach products
+    `app.leanshot.plus.monthly` + `app.leanshot.plus.yearly` to the `plus` entitlement.
+E4. **[YOU]** App Store Connect: sign the **Paid Apps agreement** + banking/tax (longest
+    lead time — gates launch); create the two auto-renewable subscriptions (group `plus`,
+    7-day intro) with the matching product IDs.
+E5. **[YOU]** Google Play: merchant account + matching subscriptions / base plans.
+E6. **[YOU]** Supabase Function Secrets (server-only, NOT `VITE_`):
+    `supabase secrets set REVENUECAT_WEBHOOK_AUTH=<token>` (**REQUIRED** — 401s every
+    delivery if unset) + optional `REVENUECAT_WEBHOOK_SECRET=<hmac>`.
+E7. **[YOU]** RC dashboard → Integrations → Webhooks: register
+    `https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/revenuecat-webhook` with the
+    `Authorization: Bearer <token>` header. Deploy the fn:
+    `supabase functions deploy revenuecat-webhook` (config sets `verify_jwt=false`).
+E8. **[YOU]** UAT: sandbox purchase + restore on a real device; confirm a live RC test
+    event mirrors into the `subscriptions` table.
+
 ## Sequencing / dependencies
 - A1 (Team ID) gates A9 + A8; B5 (SHA) gates B6 — so do A1 and B1–B5 early.
 - C1 can be done now (no secrets needed for the unsigned job).
 - AdMob (`70-01` S18) + the VR-baseline/E2E work are SEPARATE tracks (see handoff).
+- Phase E (RevenueCat IAP) is its own track; **E4 (Apple Paid-Apps agreement)** has the
+  longest approval lead time — start it as early as A2.
 
 ## Immediate next actions (revised 2026-05-31)
 - ✅ A1 + A9 done. C1 + C2 were already done (Phase 53 / Phase 71). The in-repo CI/config
@@ -124,3 +155,5 @@ C3. **[YOU/ME]** First **local** validation (no secrets):
     first AAB → App Signing SHA-256, Data-safety form).
 - **[ME]** Only B6 left — substitute the Play SHA-256 into `assetlinks.json` once you
   hand me the value from B5.
+- **IAP (RevenueCat):** all code done + audited (PR #12); operator **Phase E1–E8**
+  pending — start E1–E3 (dashboard + SDK keys) and E4 (Paid-Apps agreement) early.
