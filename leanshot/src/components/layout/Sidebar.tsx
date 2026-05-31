@@ -11,7 +11,6 @@
  *      opacity fade — gated by useReducedMotion().
  *   4. `data-tour="nav"` MUST remain on the <aside> (GuidedTour reads it).
  */
-import { motion } from 'framer-motion';
 import {
   Home,
   Syringe,
@@ -178,10 +177,9 @@ export function Sidebar({
               )}
             >
               {active && (
-                <motion.span
-                  layoutId="sb-active"
+                <span
+                  aria-hidden
                   className="absolute inset-0 rounded-2xl bg-[var(--color-primary)] shadow-[0_4px_12px_rgba(27,72,66,0.25)]"
-                  transition={{ type: 'spring', damping: 22, stiffness: 320 }}
                 />
               )}
               <Icon className="size-5 relative z-10 shrink-0" strokeWidth={active ? 2.2 : 1.8} />
