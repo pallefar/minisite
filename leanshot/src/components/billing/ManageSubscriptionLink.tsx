@@ -1,11 +1,17 @@
 /**
  * Phase 14 Plan 14-06 — ManageSubscriptionLink component.
  *
- * Settings section row for paid and past_due users to access the Stripe
- * Customer Portal (change plan, update card, cancel).
+ * Settings section row for paid and past_due users to manage their subscription.
  *
- * Per D-08 / 14-CONTEXT: opens in SAME tab (not new tab) from Settings drawer
- * so the user returns naturally via Stripe's "Return to LeanShot" return_url.
+ * H2 (RC readiness): branch on the billing provider. Stripe (web) subscribers go to
+ * the Stripe Customer Portal; RevenueCat (App Store / Play) subscribers go to the
+ * platform's native subscription-management page. App Store / Play subscriptions are
+ * NOT manageable via the Stripe portal (the portal invoke would fail with no
+ * customer), and steering a mobile subscriber to a web payment provider is an App
+ * Store §3.1.1 anti-steering rejection risk.
+ *
+ * Per D-08 / 14-CONTEXT: the Stripe portal opens in the SAME tab so the user returns
+ * via Stripe's return_url. The native store pages open via @capacitor/browser.
  *
  * Patterns enforced:
  *   D — No hex literals; all colors via Phase 13 CSS token vars.
@@ -15,13 +21,27 @@ import { CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { detectPlatform } from '@/lib/native/platform';
+import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 
+// H2: native subscription-management deep links.
+const APPLE_MANAGE_URL = 'https://apps.apple.com/account/subscriptions';
+const PLAY_MANAGE_URL =
+  'https://play.google.com/store/account/subscriptions?package=app.leanshot.android';
+
 export function ManageSubscriptionLink() {
+  const provider = useStore((s) => s.provider);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleClick = async (): Promise<void> => {
+  // RevenueCat (App Store / Play) subscriptions are managed in the platform store,
+  // NOT the Stripe portal (H2).
+  const isRevenueCat = provider === 'revenuecat';
+  const platform = detectPlatform();
+  const storeLabel = platform === 'android' ? 'Google Play' : 'App Store';
+
+  const handleStripe = async (): Promise<void> => {
     if (loading) return;
     setLoading(true);
     setError(null);
@@ -42,6 +62,22 @@ export function ManageSubscriptionLink() {
     }
   };
 
+  const handlePlatformManage = async (): Promise<void> => {
+    setError(null);
+    const url = platform === 'android' ? PLAY_MANAGE_URL : APPLE_MANAGE_URL;
+    try {
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url });
+    } catch {
+      // Web / non-native fallback — open the store page in a new tab.
+      try {
+        window.open(url, '_blank', 'noopener');
+      } catch {
+        setError("Couldn't open the store. Try again.");
+      }
+    }
+  };
+
   return (
     <Card>
       <div className="flex items-center gap-3">
@@ -52,18 +88,20 @@ export function ManageSubscriptionLink() {
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-semibold text-[var(--color-text)]">Manage subscription</p>
           <p className="text-[12px] text-[var(--color-text-secondary)]">
-            Update card, change plan, or cancel.
+            {isRevenueCat
+              ? `Change plan or cancel in ${storeLabel}.`
+              : 'Update card, change plan, or cancel.'}
           </p>
         </div>
         <Button
           variant="primary"
           onClick={() => {
-            void handleClick();
+            void (isRevenueCat ? handlePlatformManage() : handleStripe());
           }}
-          aria-busy={loading}
-          disabled={loading}
+          aria-busy={isRevenueCat ? false : loading}
+          disabled={isRevenueCat ? false : loading}
         >
-          {loading ? 'Opening Stripe…' : 'Open Stripe'}
+          {isRevenueCat ? `Open ${storeLabel}` : loading ? 'Opening Stripe…' : 'Open Stripe'}
         </Button>
       </div>
       {error && (
