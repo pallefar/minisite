@@ -1453,6 +1453,19 @@ export function App() {
       // to the web stripe-checkout invoke — Apple review would fail.
       const platform = detectPlatform();
       if (platform === 'ios' || platform === 'android') {
+        // H3: don't start a purchase if the user already holds the `plus`
+        // entitlement (active Stripe web sub, prior mobile purchase, or lifetime).
+        // The store `tier` reflects tier_effective across all providers (billing-sync),
+        // so a second buy that would double-charge is blocked here too — the
+        // PricingIOS paywall has the same guard.
+        if (useStore.getState().tier !== 'free') {
+          try {
+            useStore.getState().showToast("You're already subscribed.", 'info');
+          } catch {
+            /* toast unavailable — noop */
+          }
+          return;
+        }
         const productId =
           plan === 'plus_monthly' ? 'app.leanshot.plus.monthly' : 'app.leanshot.plus.yearly';
         void (async (): Promise<void> => {

@@ -32,6 +32,7 @@
 import { Building2, Check, ExternalLink } from 'lucide-react';
 import { useEffect, useState, type ReactElement } from 'react';
 import { Button } from '@/components/ui/Button';
+import { invalidateProCache, useCurrentUserHasPro } from '@/lib/entitlement/current-user-has-pro';
 import {
   checkTrialEligibility,
   configureRC,
@@ -69,6 +70,10 @@ export default function PricingIOS(): ReactElement | null {
   const role = useStore(
     (s) => (s.signedIn?.user?.app_metadata as { role?: string } | undefined)?.role ?? null,
   );
+  // H3: unified entitlement check — reads tier_effective.has_active across ALL
+  // providers (Stripe web + RevenueCat mobile + lifetime). Gates the paywall so an
+  // existing subscriber can't double-buy the `plus` entitlement.
+  const { has_pro: alreadySubscribed } = useCurrentUserHasPro();
 
   const [offering, setOffering] = useState<Offering | null>(null);
   const [eligibility, setEligibility] = useState<TrialEligibility>({
@@ -151,6 +156,25 @@ export default function PricingIOS(): ReactElement | null {
     );
   }
 
+  // ─── Already-subscribed guard (H3) ────────────────────────────────────
+  // An existing subscriber (via Stripe web, a prior mobile purchase, or lifetime)
+  // must NOT see a purchasable paywall — a second buy would double-charge for the
+  // same `plus` entitlement. Mirrors the web UpgradeCTA guard.
+  if (alreadySubscribed) {
+    return (
+      <section
+        className="w-full px-6 py-16 text-start max-w-md mx-auto flex flex-col gap-4"
+        aria-label="Subscription active"
+      >
+        <h2 className="text-[22px] font-semibold tracking-tight">You're already subscribed</h2>
+        <p className="text-[16px] text-[var(--color-text-secondary)] leading-snug">
+          Your LeanShot Plus subscription is active. Manage or cancel it from your device's
+          subscription settings, or in LeanShot account settings.
+        </p>
+      </section>
+    );
+  }
+
   // ─── Non-clinic-owner paywall (D-13) ──────────────────────────────────
   const selectedPkg = selected === 'monthly' ? offering?.monthlyPackage : offering?.yearlyPackage;
   const selectedEligible =
@@ -179,9 +203,24 @@ export default function PricingIOS(): ReactElement | null {
   const handleRestore = async (): Promise<void> => {
     setRestoring(true);
     try {
-      await restorePurchases();
+      const info = await restorePurchases();
+      // M3: if restore re-granted the `plus` entitlement, resync the DB-backed
+      // store tier (optimistic flip + invalidate the pro cache + re-read). A
+      // reinstall or RC TRANSFER restore that the webhook no-ops would otherwise
+      // leave the user gated as free despite a "Purchases restored." toast.
+      const restoredPlus = Boolean(info?.entitlements.active['plus']);
+      if (restoredPlus && userId) {
+        invalidateProCache(userId);
+        useStore.getState().setTier({ tier: 'paid', provider: 'revenuecat' });
+        void import('@/lib/billing-sync').then(({ syncBillingTier }) => syncBillingTier(userId));
+      }
       try {
-        useStore.getState().showToast('Purchases restored.', 'success');
+        useStore
+          .getState()
+          .showToast(
+            restoredPlus ? 'Purchases restored.' : 'No purchases found to restore.',
+            restoredPlus ? 'success' : 'info',
+          );
       } catch {
         /* noop */
       }
