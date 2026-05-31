@@ -267,7 +267,8 @@ Deno.test('4.1 D-04: CANCELLATION → current_period_end ≈ now() (NOT 30d futu
   assertEquals(res.status, 200);
   assertEquals(captured !== undefined, true);
   assertEquals(captured!.ux_tier, 'free');
-  assertEquals(captured!.status, 'cancellation');
+  // L3: canonical Stripe vocabulary — 'canceled', not the raw RC 'cancellation'.
+  assertEquals(captured!.status, 'canceled');
   assertEquals(captured!.provider, 'revenuecat');
   // D-04 invariant: current_period_end is within 5s of NOW, NOT the future date.
   const cpeMs = new Date(captured!.current_period_end as string).getTime();

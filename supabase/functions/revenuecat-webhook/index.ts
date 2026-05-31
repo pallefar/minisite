@@ -178,7 +178,11 @@ async function dispatch(event: RcEvent, testCtx?: TestContext): Promise<void> {
       break;
     case 'CANCELLATION':
     case 'EXPIRATION':
-      status = event.type.toLowerCase();
+      // L3: write Stripe's canonical 'canceled' (NOT 'cancellation'/'expiration').
+      // getActiveTier, the tier_effective CASE, and the admin status badges all key
+      // off the Stripe status vocabulary; the raw RC type words have no canonical
+      // mapping and rendered as a neutral-tone literal in the admin members UI.
+      status = 'canceled';
       uxTier = 'free';
       break;
     case 'BILLING_ISSUE':
