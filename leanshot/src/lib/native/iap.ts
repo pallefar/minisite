@@ -320,6 +320,11 @@ export async function logOutRC(): Promise<void> {
     if (_configured) {
       await Purchases.logOut();
     }
+  } catch {
+    // Best-effort hygiene — a logOut rejection must NOT propagate to the
+    // fire-and-forget SIGNED_OUT caller (App.tsx) as an unhandled rejection.
+    // State is still reset in `finally`; in-app paid gating is DB-driven
+    // (not RC local cache), so a failed logOut leaks no paid features.
   } finally {
     _configured = false;
     _currentAppUserID = null;
