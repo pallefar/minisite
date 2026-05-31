@@ -67,9 +67,10 @@ Verify: `supabase secrets list --project-ref ytnsipxxmzgaebkqmokp`
 | `APNS_KEY_ID` | Apple (APNs) | [NEW] | On APNs key rotation | Phase 54 iOS push notifications fail | Founder | `supabase secrets set APNS_KEY_ID=<value> --project-ref ytnsipxxmzgaebkqmokp` |
 | `APNS_TEAM_ID` | Apple | [NEW] | Only if Apple Team changes | Phase 54 APNs JWT mint fails | Founder | `supabase secrets set APNS_TEAM_ID=<value> --project-ref ytnsipxxmzgaebkqmokp` |
 | `APNS_P8_KEY` | Apple | [NEW] | On APNs key rotation | Phase 54 APNs JWT signing fails | Founder | `supabase secrets set APNS_P8_KEY=<value> --project-ref ytnsipxxmzgaebkqmokp` |
-| `RC_API_KEY_IOS` | RevenueCat | [NEW] | Yearly or on breach | Phase 53 iOS subscription tracking breaks | Founder | `supabase secrets set RC_API_KEY_IOS=<value> --project-ref ytnsipxxmzgaebkqmokp` |
-| `RC_API_KEY_ANDROID` | RevenueCat | [NEW] | Yearly or on breach | Phase 53 Android subscription tracking breaks | Founder | `supabase secrets set RC_API_KEY_ANDROID=<value> --project-ref ytnsipxxmzgaebkqmokp` |
-| `REVENUECAT_WEBHOOK_SECRET` | RevenueCat | [NEW] | On webhook config change | revenuecat-webhook Fn rejects all subscription events | Founder | `supabase secrets set REVENUECAT_WEBHOOK_SECRET=<value> --project-ref ytnsipxxmzgaebkqmokp` |
+| `REVENUECAT_WEBHOOK_AUTH` | RevenueCat | [NEW — **REQUIRED**] | On webhook config change | revenuecat-webhook Fn returns 401 on EVERY delivery (Bearer gate) → total IAP-webhook outage | Founder | `supabase secrets set REVENUECAT_WEBHOOK_AUTH=<value> --project-ref ytnsipxxmzgaebkqmokp` |
+| `REVENUECAT_WEBHOOK_SECRET` | RevenueCat | [NEW — optional HMAC] | On webhook config change | HMAC verify disabled when unset (fail-soft); Bearer alone still gates | Founder | `supabase secrets set REVENUECAT_WEBHOOK_SECRET=<value> --project-ref ytnsipxxmzgaebkqmokp` |
+
+> **M4 note:** the RevenueCat **client SDK keys** (`VITE_RC_API_KEY_IOS` / `VITE_RC_API_KEY_ANDROID`) are NOT Supabase Function Secrets — they are build-time client vars read via `import.meta.env` and injected by the mobile CI workflows. See § "Mobile CI build-time secrets" below. The previous `RC_API_KEY_IOS` / `RC_API_KEY_ANDROID` Function-Secret rows were incorrect (no Edge Fn reads them) and have been removed.
 | `PLAY_PACKAGE_NAME` | Google Play | [NEW] | Only if package changes | Phase 53 Play Console API targeting wrong package | Founder | `supabase secrets set PLAY_PACKAGE_NAME=<value> --project-ref ytnsipxxmzgaebkqmokp` |
 | `VAPID_PRIVATE_KEY` | Web Push | [NEW] | On VAPID keypair rotation (requires new public key too) | Phase 54 web push subscription + delivery fails | Founder | `supabase secrets set VAPID_PRIVATE_KEY=<value> --project-ref ytnsipxxmzgaebkqmokp` |
 
@@ -91,6 +92,27 @@ These are baked into the frontend build at Vercel deploy time. They are public (
 | `APPLE_TEAM_ID` | `public` | Phase 53 Apple Team ID (Sign in with Apple + APNs) | `vercel env add APPLE_TEAM_ID production` |
 | `APPLE_BUNDLE_ID` | `public` | Phase 53 iOS bundle ID | `vercel env add APPLE_BUNDLE_ID production` |
 | `PLAY_PACKAGE_NAME` | `public` | Phase 53 Android package name | `vercel env add PLAY_PACKAGE_NAME production` |
+
+---
+
+## Mobile CI build-time secrets (GitHub Actions)
+
+These are **RevenueCat PUBLIC SDK keys** read by the client at build time via
+`import.meta.env.VITE_RC_API_KEY_*` (`leanshot/src/lib/native/iap.ts`). They are
+**NOT** Supabase Function Secrets and **NOT** Vercel env vars — the web build does
+not use RevenueCat. They are injected into the **mobile** workflow builds
+(`.github/workflows/mobile-{ios,android}.yml`, the `Build web assets` step of both
+the build and sign-and-upload jobs) from GitHub Actions repository secrets. Without
+them the shipped bundle has an empty key → `configureRC()` throws → dead paywall.
+
+| Secret (GitHub Actions) | Platform | Purpose |
+|-------------------------|----------|---------|
+| `VITE_RC_API_KEY_IOS` | iOS | RC public SDK key baked into the iOS bundle |
+| `VITE_RC_API_KEY_ANDROID` | Android | RC public SDK key baked into the Android bundle |
+
+Set via: repo **Settings → Secrets and variables → Actions → New repository secret**.
+(Replaces the previous incorrect `RC_API_KEY_IOS` / `RC_API_KEY_ANDROID` Supabase
+Function-Secret entries.)
 
 ---
 
@@ -154,13 +176,19 @@ QUARTERLY_NPS_SIGNING_KEY
 APNS_KEY_ID
 APNS_TEAM_ID
 APNS_P8_KEY
-RC_API_KEY_IOS
-RC_API_KEY_ANDROID
+REVENUECAT_WEBHOOK_AUTH
 REVENUECAT_WEBHOOK_SECRET
 PLAY_PACKAGE_NAME
 PLAY_SERVICE_ACCOUNT_JSON
 VAPID_PRIVATE_KEY
 ```
+
+> **M4/M5 (2026-05-31):** `RC_API_KEY_IOS` / `RC_API_KEY_ANDROID` removed from this
+> allowlist — they are CLIENT build-time Vite vars (`VITE_RC_API_KEY_*`, GitHub
+> Actions secrets for the mobile workflows), not Supabase Function Secrets. The
+> REQUIRED `REVENUECAT_WEBHOOK_AUTH` (Bearer; 401 on every delivery when unset) was
+> added — it had been omitted while only the OPTIONAL `REVENUECAT_WEBHOOK_SECRET`
+> (HMAC) was listed.
 
 Note: `FCM_SERVER_KEY` (legacy FCM HTTP v1 server key) has been removed from the allowlist.
 FCM authentication uses `PLAY_SERVICE_ACCOUNT_JSON` (OAuth2 service account) — the legacy server key
