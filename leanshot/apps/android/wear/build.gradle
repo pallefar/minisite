@@ -11,9 +11,9 @@ android {
     compileSdk = 35
     defaultConfig {
         applicationId "app.leanshot.wear"
-        // Override: androidx.wear.tiles minSdk requirement is 25.
-        // Main app stays at rootProject.ext.minSdkVersion (24) — unaffected.
-        minSdkVersion 25
+        // Override: androidx.wear.tiles:tiles:1.6.0 requires minSdk 26 (manifest merger
+        // rejects the wear module's minSdk below the tiles library's).
+        minSdkVersion 26
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
