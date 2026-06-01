@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
+// Kotlin 2.0+ ships the Compose compiler as a Gradle plugin; kotlinCompilerExtensionVersion
+// (composeOptions) was removed. Applied here so the :wear Compose module builds under KGP 2.2.x.
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 android {
     namespace = "app.leanshot.wear"
@@ -25,9 +28,6 @@ android {
     buildFeatures {
         compose true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.14'
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -51,5 +51,5 @@ dependencies {
     // Compose activity for WearMainActivity
     implementation "androidx.activity:activity-compose:1.9.3"
     // Kotlin stdlib
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.24"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.2.20"
 }
