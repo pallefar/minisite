@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { PastDueBanner } from '@/components/billing/PastDueBanner';
 import { PaymentFailedBanner } from '@/components/billing/PaymentFailedBanner';
@@ -31,6 +32,7 @@ export function AppShell({
   onOpenSettings,
   onOpenWhatsNew,
 }: AppShellProps) {
+  const { t } = useTranslation('common');
   const [sheetOpen, setSheetOpen] = useState(false);
   // Phase 13 DS-08 / D-12: sidebar collapsed state. Internal only — not exposed
   // on AppShellProps. Sidebar handles its own 72↔232 px instant snap; <main>
@@ -39,6 +41,15 @@ export function AppShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+      {/* a11y: skip-to-content link — first focusable element so keyboard /
+          screen-reader users can jump past the sidebar + topbar chrome
+          straight to <main id="main">. Visually hidden until focused. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:rounded-pill focus:bg-[var(--color-primary)] focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-[var(--color-primary-foreground)] focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+      >
+        {t('a11y.skip_to_content', 'Skip to content')}
+      </a>
       <Sidebar
         onOpenAI={onOpenAI}
         onOpenSettings={onOpenSettings}
@@ -53,7 +64,9 @@ export function AppShell({
           every viewport ≥ md. Offset stays a utility class — never a CSS
           transition (chat1.md landmines 1 + 3). */}
       <main
-        className={cn(sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[232px]')}
+        id="main"
+        tabIndex={-1}
+        className={cn(sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[232px]', 'focus:outline-none')}
         data-testid="dashboard"
       >
         <div className="pt-5 md:pt-7 pb-[140px] md:pb-12 px-4 md:px-7 max-w-[1280px] mx-auto">

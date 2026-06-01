@@ -235,7 +235,15 @@ export function AIChatPanel({ open, onClose }: AIChatPanelProps) {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 md:px-5 py-4 space-y-3">
+              {/* a11y: live region so streaming coach replies are announced to
+                  screen readers as text is appended (additions + text changes),
+                  without interrupting the user mid-utterance (polite). */}
+              <div
+                role="log"
+                aria-live="polite"
+                aria-relevant="additions text"
+                className="flex-1 overflow-y-auto px-4 md:px-5 py-4 space-y-3"
+              >
                 {history.length === 0 && (
                   <div className="rounded-2xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-4 py-3.5">
                     <p className="text-[13px] leading-relaxed text-[var(--color-text)]">

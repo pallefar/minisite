@@ -4,8 +4,10 @@
  * Lightweight standalone store (no Zustand dependency to keep this module
  * tree-shakeable away from the main store). Drives:
  *   - OfflineBanner.tsx — render when isOffline.
- *   - Logging surfaces — Wave 3 logging forms read disableLogging() to gate
- *     submit (D-13: "logging resumes when reconnected").
+ *
+ * Local-first invariant (CLAUDE.md): logging is NEVER gated on connectivity —
+ * offline writes land on-device and sync later. This store only surfaces the
+ * offline state for the banner; it does not disable any logging path.
  *
  * State source: `navigator.onLine` + 'online' / 'offline' window events.
  */
@@ -52,14 +54,6 @@ export function subscribeOffline(fn: Listener): () => void {
   return () => {
     listeners.delete(fn);
   };
-}
-
-/**
- * Gate function read by logging forms before allowing submit (D-13).
- * Returns `true` when logging is currently disabled (i.e. offline).
- */
-export function disableLogging(): boolean {
-  return state.isOffline;
 }
 
 /** Test-only reset (vitest). */

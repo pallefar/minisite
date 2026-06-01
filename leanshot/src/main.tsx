@@ -1,9 +1,11 @@
+import { MotionConfig } from 'framer-motion';
 import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { App } from './App';
 import './index.css';
 import { I18nSuspenseFallback } from './components/i18n/I18nSuspenseFallback';
+import { ErrorBoundary } from './components/system/ErrorBoundary';
 import { applyThemeToDOM } from './hooks/useTheme';
 import { initAnalytics } from './lib/analytics';
 import {
@@ -112,6 +114,25 @@ if (_platform === 'ios' || _platform === 'android') {
 } else {
   deferSentryInit(beforeSend);
 }
+
+// v1.5 crash resilience — recover from stale lazy-chunk preloads after a
+// deploy. When a code-split chunk 404s (the hashed file no longer exists
+// because the user's tab predates the latest deploy), Vite fires
+// `vite:preloadError`. Reload ONCE to fetch the fresh index + chunk manifest;
+// a sessionStorage flag prevents a reload loop if the failure persists (e.g.
+// the user is genuinely offline). The flag is cleared on a fully successful
+// load below so a later deploy can recover again.
+const PRELOAD_RELOAD_FLAG = 'lt_preload_reloaded';
+window.addEventListener('vite:preloadError', (event) => {
+  try {
+    if (sessionStorage.getItem(PRELOAD_RELOAD_FLAG)) return; // already retried once
+    sessionStorage.setItem(PRELOAD_RELOAD_FLAG, '1');
+    event.preventDefault(); // swallow the default unhandled-rejection surface
+    window.location.reload();
+  } catch {
+    /* sessionStorage unavailable (private mode) — skip the auto-reload */
+  }
+});
 
 // 1) Apply the saved/system theme to the DOM immediately so the first
 //    paint matches and we don't show a flash of the wrong palette.
@@ -237,15 +258,35 @@ void hydrate().then(async () => {
   // <Helmet> instances in /knowledge/* pages can set <head> meta.
   // Per react-helmet-async docs: single HelmetProvider at root is required;
   // multiple HelmetProvider instances conflict on head management.
+  // v1.5 crash resilience + a11y:
+  //   - ErrorBoundary at the root catches any render error in the tree and
+  //     shows a calm recoverable card (full-reload action) instead of a white
+  //     screen. Wraps <App> (which renders <AppShell> + the active tab tree).
+  //   - MotionConfig reducedMotion="user" makes EVERY framer-motion animation
+  //     respect the OS "reduce motion" setting in one place (complements the
+  //     per-component useReducedMotion() hook checks already in the codebase).
   root.render(
     <StrictMode>
       <HelmetProvider>
-        <Suspense fallback={<I18nSuspenseFallback />}>
-          <App />
-        </Suspense>
+        <MotionConfig reducedMotion="user">
+          <ErrorBoundary>
+            <Suspense fallback={<I18nSuspenseFallback />}>
+              <App />
+            </Suspense>
+          </ErrorBoundary>
+        </MotionConfig>
       </HelmetProvider>
     </StrictMode>,
   );
+
+  // v1.5 crash resilience — reaching a successful render means the chunk
+  // manifest is fresh, so clear the one-shot preload-reload guard; a future
+  // deploy's stale-chunk 404 can then trigger a recovery reload again.
+  try {
+    sessionStorage.removeItem(PRELOAD_RELOAD_FLAG);
+  } catch {
+    /* private mode — noop */
+  }
 
   // Phase 51 Plan 51-02 (TRAFFIC-01) — fire ONE server-side traffic touch
   // after first paint kicks off. Fire-and-forget; idempotent via module-
