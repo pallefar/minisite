@@ -70,12 +70,34 @@ jobs:
             -Pandroid.injected.signing.key.alias="" \
             -Pandroid.injected.signing.key.password=""
 
+  # Preflight gate. Neither `secrets` nor `env` is available in a job-level `if:`
+  # (only github/needs/vars/inputs are) — a job-level `if: env.* != ''` is an
+  # "Invalid workflow file" error that startup-fails the ENTIRE workflow (0 jobs
+  # run, including build-android). So expose secret-presence as a job output and
+  # gate the upload job via `needs`, which IS allowed in a job-level `if:`.
+  check-secrets:
+    name: Check Play signing secrets present
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        working-directory: ${{ github.workspace }}  # no checkout; override the leanshot default
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
   sign-and-upload-android:
     name: Sign and upload to Play Store (gated)
-    needs: build-android
+    needs: [build-android, check-secrets]
+    if: needs.check-secrets.outputs.enabled == 'true'
     runs-on: ubuntu-latest
-    # Gate: only run when Android signing + Play secrets are present.
-    # GitHub forbids secrets.* in `if:` — map secrets to env first, then gate on env.
     env:
       KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -85,7 +107,6 @@ jobs:
       # §6.1: the Gemfile lives at leanshot/fastlane/Gemfile (not leanshot/Gemfile);
       # point bundler at it (absolute → robust across step working-directories).
       BUNDLE_GEMFILE: ${{ github.workspace }}/leanshot/fastlane/Gemfile
-    if: env.KEYSTORE_BASE64 != '' && env.PLAY_SERVICE_ACCOUNT_JSON != ''
     steps:
       - uses: actions/checkout@v4
 

@@ -68,12 +68,34 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+  # Preflight gate. Neither `secrets` nor `env` is available in a job-level `if:`
+  # (only github/needs/vars/inputs are) — a job-level `if: env.* != ''` is an
+  # "Invalid workflow file" error that startup-fails the ENTIRE workflow (0 jobs
+  # run, including build-ios). So expose secret-presence as a job output and gate
+  # the upload job via `needs`, which IS allowed in a job-level `if:`.
+  check-secrets:
+    name: Check Apple signing secrets present
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        working-directory: ${{ github.workspace }}  # no checkout; override the leanshot default
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+        run: |
+          if [ -n "$APPLE_CERTIFICATE_BASE64" ] && [ -n "$FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
   sign-and-upload-ios:
     name: Sign and upload to TestFlight (gated)
-    needs: build-ios
+    needs: [build-ios, check-secrets]
+    if: needs.check-secrets.outputs.enabled == 'true'
     runs-on: macos-latest
-    # Gate: only run when Apple signing secrets are present.
-    # GitHub forbids secrets.* in `if:` — map secrets to env first, then gate on env.
     env:
       APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
       FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
@@ -86,7 +108,6 @@ jobs:
       # without this, ruby/setup-ruby's bundler-cache + `bundle exec` fail with
       # "Could not locate Gemfile" (mirrors the mobile-android.yml fix from #23).
       BUNDLE_GEMFILE: ${{ github.workspace }}/leanshot/fastlane/Gemfile
-    if: env.APPLE_CERTIFICATE_BASE64 != '' && env.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD != ''
     steps:
       - uses: actions/checkout@v4
 
