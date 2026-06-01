@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.app.leanshot.ios",
+        "appID": "XCZMRC727Z.app.leanshot.ios",
         "paths": [
           "/signin",
           "/signup",
@@ -21,6 +21,6 @@
     ]
   },
   "webcredentials": {
-    "apps": ["TEAMID.app.leanshot.ios"]
+    "apps": ["XCZMRC727Z.app.leanshot.ios"]
   }
 }
