@@ -47,7 +47,37 @@
  * Deploy: deferred to Plan 51-10 closeout (aggregated `supabase functions deploy`).
  */
 
-import { corsHeaders, jsonError, jsonResponse } from '../_shared/lifecycle-utils.ts';
+// ── Credentialed CORS (launch-readiness 2026-06-01) ──────────────────────────
+// The SPA fires this fire-and-forget with credentials:'include' (HttpOnly
+// lt_anon_id cookie auto-attached). A wildcard `Access-Control-Allow-Origin: *`
+// makes the browser DROP the response (the spec forbids `*` + credentials), so
+// the attribution write succeeds server-side but the SPA logs a CORS error and
+// the telemetry is treated as failed. Echo the allow-listed Origin +
+// Allow-Credentials:true instead (mirrors share/cors.ts). Scoped to THIS
+// function — the shared lifecycle `corsHeaders` (cron-invoked, non-credentialed)
+// intentionally stays wildcard and is no longer imported here.
+function buildCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('origin');
+  const acao = origin && isAllowedOrigin(origin) ? origin : 'null';
+  return {
+    'Access-Control-Allow-Origin': acao,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
+    'Access-Control-Allow-Credentials': 'true',
+    'Vary': 'Origin',
+  };
+}
+
+function corsResponse(req: Request, status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' },
+  });
+}
+
+function corsError(req: Request, status: number, code: string): Response {
+  return corsResponse(req, status, { error: code });
+}
 import { recordTouch as recordTouchImpl, type RecordTouchArgs, type RecordTouchResult } from '../_shared/traffic-attribution.ts';
 import { shutdownPostHog } from '../_shared/posthog-server.ts';
 
@@ -171,16 +201,16 @@ function recordTouch(args: RecordTouchArgs): Promise<RecordTouchResult> {
 
 export async function handleTrafficAttributionRecorder(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    return new Response(null, { status: 204, headers: buildCorsHeaders(req) });
   }
   if (req.method !== 'POST') {
-    return jsonError(405, 'method_not_allowed');
+    return corsError(req, 405, 'method_not_allowed');
   }
 
   // Origin gate — same-origin (SPA fires from app.leanshot.app).
   const origin = req.headers.get('origin');
   if (!isAllowedOrigin(origin)) {
-    return jsonError(403, 'origin_denied');
+    return corsError(req, 403, 'origin_denied');
   }
 
   try {
@@ -188,7 +218,7 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
     try {
       body = (await req.json()) as Record<string, unknown>;
     } catch {
-      return jsonError(400, 'invalid_body');
+      return corsError(req, 400, 'invalid_body');
     }
 
     // Resolve anonId: prefer body.anonId (test/non-HttpOnly path); fall back
@@ -197,7 +227,7 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
     const bodyAnon = typeof body.anonId === 'string' ? body.anonId : null;
     const cookieAnon = readLtAnonIdFromCookieHeader(req.headers.get('cookie'));
     const anonId = clamp(bodyAnon ?? cookieAnon, ANON_ID_MAX_BYTES);
-    if (!anonId) return jsonError(400, 'anon_id_required');
+    if (!anonId) return corsError(req, 400, 'anon_id_required');
 
     // Resolve orgId: prefer body.orgId; else read clinic-slug cookie. The
     // slug→org_id lookup itself happens in a future plan (51-10 wires
@@ -235,7 +265,7 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
     // the field is absent. Operators see the rejection in Fn logs.
     if (typeof body.audience === 'string' && !VALID_AUDIENCES.has(body.audience)) {
       console.warn('[traffic-recorder] rejected invalid audience:', body.audience);
-      return jsonError(400, 'invalid_audience');
+      return corsError(req, 400, 'invalid_audience');
     }
     const audience: 'consumer' | 'clinic-org' | 'affiliate' =
       typeof body.audience === 'string'
@@ -272,16 +302,16 @@ export async function handleTrafficAttributionRecorder(req: Request): Promise<Re
       console.warn('[traffic-recorder] recordTouch failed:', result.error);
       // 200 because the SPA fires this fire-and-forget; surfacing 5xx would
       // generate noise without helping (the middleware already returned).
-      return jsonResponse(200, { ok: false, error: result.error });
+      return corsResponse(req, 200, { ok: false, error: result.error });
     }
 
-    return jsonResponse(200, { ok: true, channel_group: result.channelGroup });
+    return corsResponse(req, 200, { ok: true, channel_group: result.channelGroup });
   } catch (err) {
     console.warn(
       '[traffic-recorder] handler exception:',
       err instanceof Error ? err.message : String(err),
     );
-    return jsonResponse(200, { ok: false, error: 'exception' });
+    return corsResponse(req, 200, { ok: false, error: 'exception' });
   } finally {
     // PITFALL 1: flush PostHog batch before isolate teardown.
     try {

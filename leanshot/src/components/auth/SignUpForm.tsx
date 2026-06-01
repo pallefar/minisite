@@ -22,6 +22,8 @@ import {
   attachEmailToAnon,
   getSession,
   isAppleEnabled,
+  isFacebookEnabled,
+  isGoogleEnabled,
   signInWithOAuthProvider,
   signUp,
 } from '@/lib/auth';
@@ -150,6 +152,20 @@ export function SignUpForm() {
     if (error) toast(error.message, 'error');
   };
 
+  const onGoogle = async (): Promise<void> => {
+    setSubmitting(true);
+    const { error } = await signInWithOAuthProvider('google');
+    setSubmitting(false);
+    if (error) toast(error.message, 'error');
+  };
+
+  const onFacebook = async (): Promise<void> => {
+    setSubmitting(true);
+    const { error } = await signInWithOAuthProvider('facebook');
+    setSubmitting(false);
+    if (error) toast(error.message, 'error');
+  };
+
   return (
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
       <header>
@@ -231,6 +247,32 @@ export function SignUpForm() {
           className="min-h-[44px]"
         >
           {t('onboarding:consumer.auth.sign_in_apple')}
+        </Button>
+      )}
+
+      {isGoogleEnabled() && !isAnon && (
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={submitting}
+          onClick={() => void onGoogle()}
+          className="min-h-[44px]"
+        >
+          {t('onboarding:consumer.auth.continue_google')}
+        </Button>
+      )}
+
+      {isFacebookEnabled() && !isAnon && (
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={submitting}
+          onClick={() => void onFacebook()}
+          className="min-h-[44px]"
+        >
+          {t('onboarding:consumer.auth.continue_facebook')}
         </Button>
       )}
 
