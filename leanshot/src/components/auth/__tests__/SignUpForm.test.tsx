@@ -35,6 +35,8 @@ const getSessionMock = vi.fn();
 const signInWithOAuthProviderMock = vi.fn(async () => ({ error: null }));
 
 let isAppleEnabledFlag = false;
+let isGoogleEnabledFlag = false;
+let isFacebookEnabledFlag = false;
 
 vi.mock('@/lib/auth', () => ({
   signUp: (...args: unknown[]) => signUpMock(...args),
@@ -42,6 +44,8 @@ vi.mock('@/lib/auth', () => ({
   getSession: (...args: unknown[]) => getSessionMock(...args),
   signInWithOAuthProvider: (...args: unknown[]) => signInWithOAuthProviderMock(...args),
   isAppleEnabled: () => isAppleEnabledFlag,
+  isGoogleEnabled: () => isGoogleEnabledFlag,
+  isFacebookEnabled: () => isFacebookEnabledFlag,
 }));
 
 vi.mock('@/hooks/useToast', () => ({
@@ -58,6 +62,8 @@ beforeEach(() => {
   getSessionMock.mockReset().mockResolvedValue({ session: null });
   signInWithOAuthProviderMock.mockReset().mockResolvedValue({ error: null });
   isAppleEnabledFlag = false;
+  isGoogleEnabledFlag = false;
+  isFacebookEnabledFlag = false;
   vi.mocked(useFeatureFlag).mockReturnValue(false);
   sessionStorage.clear();
   // Prevent hashchange side-effect from leaking between tests.
@@ -165,5 +171,29 @@ describe('SignUpForm — Apple-button gate (Plan 59-01 AUTH-08)', () => {
     // Wait for the getSession effect to resolve
     await screen.findByText(/save your data/i);
     expect(screen.queryByRole('button', { name: /sign in with apple/i })).toBeNull();
+  });
+});
+
+describe('SignUpForm — Google + Facebook button gates (launch-readiness 2026-06-01)', () => {
+  it('Google + Facebook buttons hidden by default', () => {
+    render(<SignUpForm />);
+    expect(screen.queryByRole('button', { name: /continue with google/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /continue with facebook/i })).toBeNull();
+  });
+
+  it('clicking Google button calls signInWithOAuthProvider("google")', async () => {
+    isGoogleEnabledFlag = true;
+    const user = userEvent.setup();
+    render(<SignUpForm />);
+    await user.click(screen.getByRole('button', { name: /continue with google/i }));
+    expect(signInWithOAuthProviderMock).toHaveBeenCalledWith('google');
+  });
+
+  it('clicking Facebook button calls signInWithOAuthProvider("facebook")', async () => {
+    isFacebookEnabledFlag = true;
+    const user = userEvent.setup();
+    render(<SignUpForm />);
+    await user.click(screen.getByRole('button', { name: /continue with facebook/i }));
+    expect(signInWithOAuthProviderMock).toHaveBeenCalledWith('facebook');
   });
 });
