@@ -180,7 +180,7 @@ export function EntryEditorView({ entry, onSaved, onCancel }: EntryEditorViewPro
               </span>
               <div
                 data-testid="markdown-preview"
-                className="min-h-[14rem] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 prose prose-sm max-w-none text-[14px] leading-relaxed text-[var(--color-text)] [&_h2]:text-[15px] [&_h2]:font-semibold [&_h2]:mt-3 [&_ul]:list-disc [&_ul]:ps-5 [&_a]:text-[var(--color-primary)] [&_a]:underline"
+                className="min-h-[14rem] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 prose prose-sm max-w-none text-[13px] leading-relaxed text-[var(--color-text)] [&_h2]:text-[13px] [&_h2]:font-semibold [&_h2]:mt-3 [&_ul]:list-disc [&_ul]:ps-5 [&_a]:text-[var(--color-primary)] [&_a]:underline"
               >
                 {bodyMd.trim() ? (
                   <SafeMarkdown source={bodyMd} />
