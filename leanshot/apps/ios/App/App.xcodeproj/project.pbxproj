@@ -437,7 +437,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = XCZMRC727Z;
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore app.leanshot.ios";
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -472,7 +475,10 @@
 		A157B00F0000000000000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = XCZMRC727Z;
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore app.leanshot.ios.watchkitapp";
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.leanshot.ios.watchkitapp;
@@ -506,7 +512,10 @@
 		A257B00D0000000000000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = XCZMRC727Z;
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore app.leanshot.ios.watchkitapp.widget";
 				CURRENT_PROJECT_VERSION = 1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.leanshot.ios.watchkitapp.widget;
