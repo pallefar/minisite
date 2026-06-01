@@ -80,16 +80,14 @@ end
 platform :android do
   desc "Build an unsigned AAB for CI smoke testing (always-runnable, no secrets required)"
   lane :build_android_unsigned do
+    # Scope to :app — the phone AAB is the deliverable and is independent of :wear
+    # (a deferred "SCAFFOLD ONLY" module that doesn't yet compile). No injected-signing
+    # props: the release buildType has no signingConfig, so :app:bundleRelease builds an
+    # UNSIGNED AAB; empty injected-signing props make AGP fail :app:validateSigningRelease.
     gradle(
-      task: "bundle",
+      task: ":app:bundle",
       build_type: "Release",
-      project_dir: "apps/android/",
-      properties: {
-        "android.injected.signing.store.file" => "",
-        "android.injected.signing.store.password" => "",
-        "android.injected.signing.key.alias" => "",
-        "android.injected.signing.key.password" => ""
-      }
+      project_dir: "apps/android/"
     )
   end
 
@@ -104,8 +102,9 @@ platform :android do
     # The gradle() call here builds + signs the release AAB. supply() then uploads it.
     # Phase 71 PU-04 — refresh Play "What's new" from newest published changelog entry
     sh("node", "scripts/sync-store-release-notes.mjs")
+    # Scope to :app — :wear is a deferred scaffold, not part of the phone AAB.
     gradle(
-      task: "bundle",
+      task: ":app:bundle",
       build_type: "Release",
       project_dir: "apps/android/",
       properties: {

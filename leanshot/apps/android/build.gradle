@@ -1,7 +1,16 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
+    // Single Kotlin Gradle Plugin version for the whole build.
+    // KGP 1.9.x maxes out at Gradle 8.1.1 and trips the
+    // "Could not isolate value ...statistics.BuildFlowService$Parameters" error under
+    // Gradle 8.14 (JetBrains KT-62131); KGP 2.2.x is the series that fully supports
+    // Gradle 8.14. AGP 8.13 forbids dropping Gradle below 8.13, so KGP must go up.
+    // @capacitor-community/admob + @capacitor/filesystem + the cap-generated modules
+    // read rootProject.ext.kotlin_version; @capgo/capacitor-health hardcodes an old KGP,
+    // so we also pin the shared build classpath + force it to keep one KGP build-wide.
+    ext.kotlin_version = '2.2.20'
+
     repositories {
         google()
         mavenCentral()
@@ -9,9 +18,18 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.google.gms:google-services:4.4.4'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+    }
+    configurations.classpath {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+            force "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$kotlin_version"
+            force "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
+        }
     }
 }
 
