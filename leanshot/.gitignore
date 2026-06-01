@@ -34,3 +34,10 @@ apps/android/app/build/
 # Phase 25 Plan 25-10 — Notion mirror state (maps policy filename → Notion page ID)
 # Gitignored so that page IDs do not pollute git history; state is regenerable.
 scripts/.notion-mirror-state.json
+
+# Phase 62 Plan 62-06 — /research/* hub build artifacts (regenerated at vite buildStart
+# by scripts/build-research-rss.mjs; rss.xml is always overwritten — even an empty feed
+# when the DB is unreachable). Source of truth is committed content/research/*.md +
+# the Supabase research_publications table, so these public copies stay out of git.
+public/research/
+public/research-content/
