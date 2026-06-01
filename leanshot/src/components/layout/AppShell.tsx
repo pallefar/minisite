@@ -46,7 +46,7 @@ export function AppShell({
           straight to <main id="main">. Visually hidden until focused. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:rounded-pill focus:bg-[var(--color-primary)] focus:px-4 focus:py-2 focus:text-[14px] focus:font-semibold focus:text-[var(--color-primary-foreground)] focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[100] focus:rounded-pill focus:bg-[var(--color-primary)] focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-[var(--color-primary-foreground)] focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
       >
         {t('a11y.skip_to_content', 'Skip to content')}
       </a>

@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { reportError } from '@/lib/telemetry-defer';
 
-export interface ErrorBoundaryProps {
+interface ErrorBoundaryProps {
   children: ReactNode;
   /** Human label for the boundary scope (e.g. "Home tab") — shown in the body. */
   label?: string;
@@ -74,11 +74,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <h2
               tabIndex={-1}
               ref={(el) => el?.focus()}
-              className="text-[18px] font-bold tracking-tight text-[var(--color-text)] outline-none"
+              className="text-[18px] font-semibold tracking-tight text-[var(--color-text)] outline-none"
             >
               Something went wrong
             </h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-[var(--color-text-secondary)]">
+            <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-text-secondary)]">
               Your data is safe on this device.
               {this.props.label ? ` (${this.props.label})` : ''}
             </p>
