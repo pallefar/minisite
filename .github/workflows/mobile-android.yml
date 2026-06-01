@@ -63,12 +63,11 @@ jobs:
 
       - name: Build unsigned AAB (bundleRelease)
         working-directory: leanshot/apps/android
-        run: |
-          ./gradlew bundleRelease \
-            -Pandroid.injected.signing.store.file="" \
-            -Pandroid.injected.signing.store.password="" \
-            -Pandroid.injected.signing.key.alias="" \
-            -Pandroid.injected.signing.key.password=""
+        # The app's release buildType has no signingConfig, so bundleRelease produces an
+        # UNSIGNED release AAB. Do NOT pass empty -Pandroid.injected.signing.* flags: AGP
+        # treats them as a (broken, empty) injected signing config and fails
+        # :app:validateSigningRelease. Omitting them skips signing validation entirely.
+        run: ./gradlew bundleRelease
 
   # Preflight gate. Neither `secrets` nor `env` is available in a job-level `if:`
   # (only github/needs/vars/inputs are) — a job-level `if: env.* != ''` is an
