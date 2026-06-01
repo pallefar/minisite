@@ -55,7 +55,7 @@
 
   --color-text: var(--brand-text, #16221f);
   --color-text-secondary: #4d5e58; /* v2 — 6 % darker for contrast */
-  --color-text-tertiary: #8d958f;
+  --color-text-tertiary: #636e67; /* WCAG AA: #8d958f was 2.75:1 on cream (fail) → ~5.1:1 */
   --color-text-on-hero: #ffffff;
   --color-text-on-hero-muted: rgba(255, 255, 255, 0.78);
 
@@ -366,17 +366,27 @@ body {
 [data-theme='dark'] body {
   background-image: none;
 }
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-button {
-  background: none;
-  border: none;
-  cursor: pointer;
+/* Form-control resets MUST live in @layer base so Tailwind's `utilities` layer
+   (ordered after `base`) can override them — exactly like the margin reset
+   above. Unlayered, `button { background: none }` beats every
+   `bg-[var(--color-*)]` utility, so ALL 38 colored buttons rendered transparent
+   (the "Log dose" CTA, the sidebar logo pill, Account menu, …) — reading as a
+   broken desktop layout + low contrast (white button-text on no background).
+   `color: inherit` likewise beat `text-[var(--color-*)]` on buttons/inputs.
+   Unlayered styles always win over layered ones in the cascade. */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
 }
 img,
 svg,

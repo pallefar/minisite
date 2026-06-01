@@ -99,8 +99,12 @@ export function AppShell({
           applied to the in-app homepage). Rendered AFTER MobileNav so the
           mb-[80px] on mobile clears the fixed bottom nav; on desktop the
           footer flows inline below <main>. The FAB below is `fixed` and so
-          floats independently of document order. */}
-      <LegalFooter variant="app" />
+          floats independently of document order. As a sibling of <main> it
+          must replicate the sidebar offset (AppShell sidebar-offset contract)
+          or its first link is clipped under the fixed sidebar on desktop. */}
+      <div className={cn(sidebarCollapsed ? 'md:ms-[72px]' : 'md:ms-[232px]')}>
+        <LegalFooter variant="app" />
+      </div>
       {/* Mobile-only floating quick-log FAB */}
       <button
         onClick={() => setSheetOpen(true)}

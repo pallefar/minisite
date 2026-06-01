@@ -115,7 +115,7 @@ export function StatTile({ label, value, unit, delta, span = 3 }: StatTileProps)
       <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-tertiary)]">
         {label}
       </div>
-      <div className="mt-1.5 text-[26px] font-bold leading-tight numerals-tabular tracking-tight">
+      <div className="mt-1.5 text-[26px] font-bold leading-tight numerals-tabular tracking-tight text-[var(--color-text)]">
         {value}
         {unit && (
           <span className="ms-1 text-[12px] font-medium text-[var(--color-text-secondary)]">

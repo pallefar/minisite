@@ -34,6 +34,13 @@ export function NutritionTab() {
   const calories = todayMeals.reduce((s, m) => s + (m.calories || 0), 0);
   const fiber = todayMeals.reduce((s, m) => s + (m.fiber || 0), 0);
   const waterToday = water[today] ?? 0;
+  // Water target is a cup count (onboarding default 8). Guard against legacy/seed
+  // values stored in ml (e.g. 3000) which would otherwise render thousands of toggles.
+  const MAX_WATER_CUPS = 12;
+  const waterCupCount = Math.min(
+    MAX_WATER_CUPS,
+    Math.max(8, Math.min(u?.waterTarget ?? 8, MAX_WATER_CUPS), Math.min(waterToday, MAX_WATER_CUPS)),
+  );
 
   const [meal, setMeal] = useState({ name: '', cal: '', pro: '', fib: '', hunger: '', sat: '' });
   const [aiBusy, setAIBusy] = useState(false);
@@ -214,7 +221,7 @@ export function NutritionTab() {
           {t('patient:tab.nutrition.water_label')}
         </p>
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {Array.from({ length: Math.max(u.waterTarget, waterToday) + 2 }, (_, i) => i + 1).map(
+          {Array.from({ length: waterCupCount }, (_, i) => i + 1).map(
             (n) => (
               <button
                 key={n}
