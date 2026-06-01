@@ -4,6 +4,9 @@ Character budgets are guardrails (validated by Task 2 automated verify),
 NOT part of the copy. NO emojis. Compliance disclaimer mandatory.
 Play allows slightly denser keyword phrasing than Apple but still avoid
 medical-advice claims.
+Do NOT use third-party brand drug names (Ozempic/Wegovy/Mounjaro/Zepbound/
+Saxenda/Victoza) — trademark + store-rejection risk. Use generic INN names
+only (semaglutide, tirzepatide, liraglutide), matching the iOS listing.
 -->
 
 ## Title
@@ -31,6 +34,6 @@ A rule-based coach plus an optional AI coach (your own Anthropic key) connect th
 
 Designed local-first: LeanShot works fully offline and your data lives on your device by default. Export or delete it anytime. A web version is available at leanshot.app for cross-device access.
 
-Built for the GLP-1 community: semaglutide (Ozempic, Wegovy), tirzepatide (Mounjaro, Zepbound), liraglutide (Saxenda, Victoza), and adjacent peptides. Track weight loss, side effects, titration schedules, and dose timing in one place.
+Built for the GLP-1 community: semaglutide, tirzepatide, liraglutide, and adjacent peptides. Track body metrics, side effects, titration schedules, and dose timing in one place.
 
 IMPORTANT: LeanShot is not a medical device and does not provide medical advice. Always discuss treatment changes with your prescriber.
