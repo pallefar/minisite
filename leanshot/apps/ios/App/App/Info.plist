@@ -61,5 +61,7 @@
 	<array>
 		<string>itms-apps</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
