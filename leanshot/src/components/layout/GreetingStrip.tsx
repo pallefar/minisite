@@ -48,12 +48,7 @@ export function GreetingStrip() {
           <p className="text-[13px] text-[var(--color-text-secondary)] leading-tight">
             {`${greetingTextValue},`}
           </p>
-          <p className="text-[18px] font-bold leading-tight tracking-tight truncate">
-            {name}
-            <span className="font-display italic font-normal text-[var(--color-primary)]">
-              {' ·'}
-            </span>
-          </p>
+          <p className="text-[18px] font-bold leading-tight tracking-tight truncate">{name}</p>
         </div>
       </div>
       <div className="hidden sm:flex items-center gap-2">

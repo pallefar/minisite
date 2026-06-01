@@ -8,6 +8,7 @@ import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBan
 import { AppShell, TabSwitcher } from '@/components/layout/AppShell';
 import { GreetingStrip } from '@/components/layout/GreetingStrip';
 import { SoftDeleteCountdownBanner } from '@/components/soft-delete/SoftDeleteCountdownBanner';
+import { ErrorBoundary } from '@/components/system/ErrorBoundary';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { track } from '@/lib/analytics';
@@ -984,6 +985,11 @@ export function App() {
     selectViewLogged('init', user, window.location.hash, signedInUser),
   );
   const [aiOpen, setAIOpen] = useState(false);
+  // v1.5 crash resilience — per-tab error-boundary reset nonce. Bumped by the
+  // tab boundary's onReset so the active tab subtree fully remounts (combined
+  // into the boundary key alongside currentTab); a stuck tab recovers without
+  // a full page reload.
+  const [tabResetNonce, setTabResetNonce] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
@@ -2212,33 +2218,44 @@ export function App() {
       >
         {currentTab === 'home' && <GreetingStrip />}
         <Suspense fallback={<TabLoader />}>
-          <TabSwitcher tabKey={currentTab}>
-            {currentTab === 'home' && <HomeTab onOpenAI={() => setAIOpen(true)} />}
-            {currentTab === 'medication' && <MedicationTab />}
-            {currentTab === 'symptoms' && <SymptomsTab />}
-            {currentTab === 'body' && <BodyTab />}
-            {currentTab === 'nutrition' && <NutritionTab />}
-            {currentTab === 'activity' && <ActivityTab />}
-            {currentTab === 'supplements' && <SupplementsTab />}
-            {currentTab === 'mood' && <MoodTab />}
-            {currentTab === 'insights' && <InsightsTab />}
-            {/* Phase 45 Plan 45-07b — sub-view dispatch (directory / dm / feed)
+          {/* v1.5 crash resilience — per-tab error boundary. Keyed on
+              currentTab + tabResetNonce so (a) switching tabs clears a stuck
+              error and (b) the Reload action remounts JUST this tab's subtree
+              (onReset bumps the nonce) instead of white-screening the whole app
+              or forcing a full page reload. */}
+          <ErrorBoundary
+            key={`${currentTab}:${tabResetNonce}`}
+            label="tab"
+            onReset={() => setTabResetNonce((n) => n + 1)}
+          >
+            <TabSwitcher tabKey={currentTab}>
+              {currentTab === 'home' && <HomeTab onOpenAI={() => setAIOpen(true)} />}
+              {currentTab === 'medication' && <MedicationTab />}
+              {currentTab === 'symptoms' && <SymptomsTab />}
+              {currentTab === 'body' && <BodyTab />}
+              {currentTab === 'nutrition' && <NutritionTab />}
+              {currentTab === 'activity' && <ActivityTab />}
+              {currentTab === 'supplements' && <SupplementsTab />}
+              {currentTab === 'mood' && <MoodTab />}
+              {currentTab === 'insights' && <InsightsTab />}
+              {/* Phase 45 Plan 45-07b — sub-view dispatch (directory / dm / feed)
                 is handled INSIDE CommunityTabShell by reading activeCommunityView
                 from the Zustand store. NO new TabId, NO <Route> per memory
                 reference_react_router_consumer_admin_split. */}
-            {currentTab === 'community' && <CommunityTabShell />}
-            {/* Phase 46 Plan 08 — Classroom surface. Two-level Zustand
+              {currentTab === 'community' && <CommunityTabShell />}
+              {/* Phase 46 Plan 08 — Classroom surface. Two-level Zustand
                 navigation (activeCourseId / activeLessonId) handled INSIDE
                 ClassroomTabShell. NO new <Route>; consumer stays router-free. */}
-            {currentTab === 'classroom' && <ClassroomTabShell />}
-            {/* Phase 47 Plan 10 — Events surface. List-vs-detail Zustand
+              {currentTab === 'classroom' && <ClassroomTabShell />}
+              {/* Phase 47 Plan 10 — Events surface. List-vs-detail Zustand
                 navigation (activeEventId) handled INSIDE EventsTab. NO new
                 <Route>; consumer stays router-free. EVENT-01 / 02 / 03.
                 Equivalent to a `case 'events':` arm in the App-tab switch
                 idiom; expressed as a ternary-render guard to match the
                 surrounding pattern. */}
-            {currentTab === 'events' && <EventsTab />}
-          </TabSwitcher>
+              {currentTab === 'events' && <EventsTab />}
+            </TabSwitcher>
+          </ErrorBoundary>
         </Suspense>
       </AppShell>
 

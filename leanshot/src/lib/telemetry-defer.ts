@@ -29,6 +29,10 @@ interface BufferedError {
 const buffer: BufferedError[] = [];
 let onErrorListener: ((e: ErrorEvent) => void) | null = null;
 let onRejectionListener: ((e: PromiseRejectionEvent) => void) | null = null;
+// True once the web Sentry dynamic import + init has resolved (the buffer is
+// drained at that point). Lets reportError() pick the live capture path vs.
+// the pre-init buffer without a second Sentry import elsewhere.
+let sentryInitialized = false;
 
 function installPreInitListeners(): void {
   onErrorListener = (e) => buffer.push({ kind: 'error', payload: e, timestamp: Date.now() });
@@ -79,6 +83,12 @@ export function deferSentryInit(beforeSend: typeof BeforeSendFn): void {
       init({
         dsn,
         environment: import.meta.env.MODE,
+        // Tie web events to the uploaded source maps so frames symbolicate.
+        // The @sentry/vite-plugin (vite.config.ts) uploads maps under the
+        // VERCEL_GIT_COMMIT_SHA release name; set VITE_SENTRY_RELEASE to the
+        // same value at build time so the two line up. Undefined is tolerated
+        // (Sentry falls back to no release association).
+        release: import.meta.env.VITE_SENTRY_RELEASE as string | undefined,
         enabled: true,
         integrations: [], // D-11: errors-only — no Replay, Tracing, Profiling
         beforeSend,
@@ -95,6 +105,7 @@ export function deferSentryInit(beforeSend: typeof BeforeSendFn): void {
       }
       buffer.length = 0;
       uninstallPreInitListeners();
+      sentryInitialized = true;
     });
   };
 
@@ -104,6 +115,35 @@ export function deferSentryInit(beforeSend: typeof BeforeSendFn): void {
     window.requestIdleCallback(initFn, { timeout: 2000 });
   } else {
     setTimeout(initFn, 100);
+  }
+}
+
+/**
+ * Report a caught error (e.g. from a React error boundary) through the SAME
+ * deferred capture path used for window `error` / `unhandledrejection` events —
+ * no second static `@sentry/react` import, so the boundary stays off the entry
+ * static graph.
+ *
+ * - If web Sentry has already initialized, dynamic-import `captureException`
+ *   (the import is already cached at that point) and send directly.
+ * - If init is still pending (or `deferSentryInit` was skipped because no DSN
+ *   is set), dispatch a synthetic `error` event so the pre-init listeners
+ *   buffer it; the drain on init replays it. When no DSN is configured this is
+ *   a silent no-op, matching the rest of the module's behavior.
+ */
+export function reportError(error: unknown): void {
+  if (sentryInitialized) {
+    void import('@sentry/react').then(({ captureException }) => {
+      captureException(error);
+    });
+    return;
+  }
+  // Pre-init (or no-DSN) path: route through the existing window-error buffer.
+  try {
+    const errObj = error instanceof Error ? error : new Error(String(error));
+    window.dispatchEvent(new ErrorEvent('error', { error: errObj, message: errObj.message }));
+  } catch {
+    /* environments without ErrorEvent ctor — best-effort, drop silently */
   }
 }
 

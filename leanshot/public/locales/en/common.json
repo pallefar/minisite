@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "skip_to_content": "Skip to content"
+  },
   "action": {
     "cancel": "Cancel",
     "close": "Close",
