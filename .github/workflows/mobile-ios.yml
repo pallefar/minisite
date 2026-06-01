@@ -82,6 +82,10 @@ jobs:
       # WR-01: FASTLANE_USER + FASTLANE_TEAM_ID required by match() and pilot()
       FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
       FASTLANE_TEAM_ID: ${{ secrets.FASTLANE_TEAM_ID }}
+      # §6.1: the Gemfile lives at leanshot/fastlane/Gemfile (there is no leanshot/Gemfile);
+      # without this, ruby/setup-ruby's bundler-cache + `bundle exec` fail with
+      # "Could not locate Gemfile" (mirrors the mobile-android.yml fix from #23).
+      BUNDLE_GEMFILE: ${{ github.workspace }}/leanshot/fastlane/Gemfile
     if: env.APPLE_CERTIFICATE_BASE64 != '' && env.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD != ''
     steps:
       - uses: actions/checkout@v4

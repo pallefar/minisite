@@ -45,9 +45,19 @@ platform :ios do
     # Repo may not be initialised yet — this lane is inert until match repo is set up.
     # Phase 71 PU-04 — refresh App Store "What's new" from newest published changelog entry
     sh("node", "scripts/sync-store-release-notes.mjs")
+    # The App archive embeds the Watch app + Watch widget, so match must provision
+    # App Store profiles for all three bundle ids — not just app.leanshot.ios (the
+    # single id in Appfile, which pilot uses). The operator's one-time seeding must
+    # likewise cover all three, e.g.:
+    #   fastlane match appstore -a app.leanshot.ios,app.leanshot.ios.watchkitapp,app.leanshot.ios.watchkitapp.widget
     match(
       type: "appstore",
-      readonly: true
+      readonly: true,
+      app_identifier: [
+        "app.leanshot.ios",
+        "app.leanshot.ios.watchkitapp",
+        "app.leanshot.ios.watchkitapp.widget"
+      ]
     )
     gym(
       workspace: "apps/ios/App/App.xcodeproj/project.xcworkspace",
