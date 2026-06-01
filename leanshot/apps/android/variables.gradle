@@ -1,5 +1,9 @@
 ext {
-    minSdkVersion = 24
+    // 26 (Android 8.0), raised from 24: @capgo/capacitor-health declares minSdk 26,
+    // and the manifest merger rejects an app minSdk below a library's. Health is a
+    // core feature so we raise the floor rather than drop the plugin. API 26 covers
+    // ~99% of active devices. (:wear keeps its own minSdkVersion 25 override.)
+    minSdkVersion = 26
     compileSdkVersion = 36
     targetSdkVersion = 36
     androidxActivityVersion = '1.11.0'
