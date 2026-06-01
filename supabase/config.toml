@@ -155,7 +155,7 @@ enabled = true
 # Previously the Supabase init default `http://127.0.0.1:3000` silently overrode every
 # email-link `redirect_to` not in the allowlist below, breaking real-user email verify
 # + password reset (SC#1 first leg + SC#2).
-site_url = "https://leanshot-app.vercel.app"
+site_url = "https://app.leanshot.app"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
@@ -163,10 +163,11 @@ site_url = "https://leanshot-app.vercel.app"
 # Glob suffix `/**` lets Supabase match any sub-path under the host (including hash routes
 # like `/#/auth/verify` and `/#/auth/set-new-password`).
 additional_redirect_urls = [
+  "https://app.leanshot.app/**",
+  "https://app.leanshot.app/auth/callback",
+  "https://*-karstens-projects-16afd0e4.vercel.app/**",
   "http://localhost:5173/**",
   "http://localhost:4173/**",
-  "https://leanshot-app.vercel.app/**",
-  "https://*-karstens-projects-16afd0e4.vercel.app/**",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
@@ -308,9 +309,14 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
+# Launch-readiness 2026-06-01: TOTP enroll/verify MUST be enabled — the admin
+# AAL2 step-up gate hard-requires it; if disabled, admins cannot enroll and
+# lock themselves out of the admin surface. Dashboard is authoritative for the
+# LIVE project; this aligns config.toml so a future `config push` doesn't
+# silently DISABLE it. Operator: confirm enabled live (Auth → Multi-Factor).
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]

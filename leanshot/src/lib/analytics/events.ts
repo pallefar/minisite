@@ -82,7 +82,7 @@ export const EVENTS = {
     aem_priority: 2,
     description: 'User successfully created an account and completed signup.',
     payload: z.object({
-      auth_provider: z.enum(['email', 'google', 'apple']),
+      auth_provider: z.enum(['email', 'google', 'apple', 'facebook']),
     }),
   },
   activation_first_log: {

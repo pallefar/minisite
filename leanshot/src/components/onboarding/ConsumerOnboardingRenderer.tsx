@@ -37,6 +37,7 @@ import { readAnonCookie } from '@/lib/anonymous/cookie';
 import {
   getSession,
   isAppleEnabled,
+  isFacebookEnabled,
   signInWithMagicLink,
   signInWithOAuthProvider,
 } from '@/lib/auth';
@@ -190,7 +191,7 @@ export function ConsumerOnboardingRenderer({ flow, onComplete }: ConsumerOnboard
     setAuthMessage(error ? error.message : t('onboarding:consumer.auth.check_inbox'));
   };
 
-  const onOAuth = async (provider: 'google' | 'apple'): Promise<void> => {
+  const onOAuth = async (provider: 'google' | 'apple' | 'facebook'): Promise<void> => {
     setSubmitting(true);
     setAuthMessage(null);
     const { error } = await signInWithOAuthProvider(provider);
@@ -351,6 +352,16 @@ export function ConsumerOnboardingRenderer({ flow, onComplete }: ConsumerOnboard
               >
                 {t('onboarding:consumer.auth.continue_google')}
               </Button>
+              {isFacebookEnabled() && (
+                <Button
+                  variant="ghost"
+                  onClick={() => void onOAuth('facebook')}
+                  disabled={submitting}
+                  className="min-h-[44px] w-full"
+                >
+                  {t('onboarding:consumer.auth.continue_facebook')}
+                </Button>
+              )}
               {isAppleEnabled() && (
                 <Button
                   variant="ghost"

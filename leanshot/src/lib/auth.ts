@@ -93,7 +93,64 @@ export function isAppleEnabled(): boolean {
 }
 
 /**
- * Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth wrapper for Google + Apple.
+ * Launch-readiness 2026-06-01 — Google OAuth button gate.
+ *
+ * Mirrors {@link isAppleEnabled}. Controls BUTTON VISIBILITY only — the
+ * `signInWithOAuthProvider('google')` path itself is permissive (web PKCE,
+ * no short-circuit; locked by auth.test.ts). Operator flips
+ * `VITE_AUTH_GOOGLE_ENABLED=true` (build) or the `leanshot_auth_google_enabled`
+ * localStorage override ONLY after enabling the Google provider in the Supabase
+ * dashboard — so a dead button never reaches GoTrue (would 400).
+ *
+ * Literal env key per memory `reference_vite_static_env_inlining` — NEVER a
+ * dynamic `import.meta.env[\`VITE_${x}\`]` (would not be replaced at build).
+ */
+export function isGoogleEnabled(): boolean {
+  try {
+    if (
+      typeof import.meta !== 'undefined' &&
+      (import.meta as unknown as { env?: Record<string, string | undefined> }).env
+        ?.VITE_AUTH_GOOGLE_ENABLED === 'true'
+    ) {
+      return true;
+    }
+  } catch {
+    /* noop — import.meta missing in some test contexts */
+  }
+  try {
+    return localStorage.getItem('leanshot_auth_google_enabled') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Launch-readiness 2026-06-01 — Facebook OAuth button gate. Same pattern as
+ * {@link isGoogleEnabled}; flip `VITE_AUTH_FACEBOOK_ENABLED=true` (or the
+ * `leanshot_auth_facebook_enabled` localStorage override) only after enabling
+ * the Facebook provider in the Supabase dashboard.
+ */
+export function isFacebookEnabled(): boolean {
+  try {
+    if (
+      typeof import.meta !== 'undefined' &&
+      (import.meta as unknown as { env?: Record<string, string | undefined> }).env
+        ?.VITE_AUTH_FACEBOOK_ENABLED === 'true'
+    ) {
+      return true;
+    }
+  } catch {
+    /* noop — import.meta missing in some test contexts */
+  }
+  try {
+    return localStorage.getItem('leanshot_auth_facebook_enabled') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Phase 34 Plan 34-04 (ONBOARD-02) — PKCE OAuth wrapper for Google, Facebook + Apple.
  *
  * PKCE is the supabase-js v2 default flow; `redirectTo` MUST be PATH-based
  * (`/auth/callback`) because OAuth providers cannot redirect to `#`
@@ -106,7 +163,7 @@ export function isAppleEnabled(): boolean {
  * registered (Plan 34-10 owns the human checkpoint for .p8 setup).
  */
 export async function signInWithOAuthProvider(
-  provider: 'google' | 'apple',
+  provider: 'google' | 'apple' | 'facebook',
 ): Promise<{ error: { message: string } | null }> {
   // Gate 1: Apple feature flag (env > localStorage > false by default).
   // Short-circuits BEFORE the platform check — an unconfigured Apple provider
@@ -118,7 +175,7 @@ export async function signInWithOAuthProvider(
   // Gate 2 (Phase 59-02 AUTH-07): Native iOS path — delegate to the
   // ASAuthorization dialog. App Store requires native dialog for iOS apps;
   // a webview OAuth flow would be rejected (59-RESEARCH Focus Q1).
-  // Google always falls through to the web PKCE path below.
+  // Google + Facebook always fall through to the web PKCE path below.
   if (provider === 'apple' && detectPlatform() === 'ios') {
     return signInWithAppleNative();
   }

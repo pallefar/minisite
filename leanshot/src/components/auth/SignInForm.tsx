@@ -18,6 +18,8 @@ import { Input } from '@/components/ui/Input';
 import { useToast } from '@/hooks/useToast';
 import {
   isAppleEnabled,
+  isFacebookEnabled,
+  isGoogleEnabled,
   setPasswordOnPromoted,
   signInWithMagicLink,
   signInWithOAuthProvider,
@@ -127,6 +129,20 @@ export function SignInForm() {
     if (error) toast(error.message, 'error');
   };
 
+  const onGoogle = async (): Promise<void> => {
+    setSubmitting(true);
+    const { error } = await signInWithOAuthProvider('google');
+    setSubmitting(false);
+    if (error) toast(error.message, 'error');
+  };
+
+  const onFacebook = async (): Promise<void> => {
+    setSubmitting(true);
+    const { error } = await signInWithOAuthProvider('facebook');
+    setSubmitting(false);
+    if (error) toast(error.message, 'error');
+  };
+
   return (
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
       <header>
@@ -187,6 +203,32 @@ export function SignInForm() {
           className="min-h-[44px]"
         >
           {t('onboarding:consumer.auth.sign_in_apple')}
+        </Button>
+      )}
+
+      {isGoogleEnabled() && !isPromote && (
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={submitting}
+          onClick={() => void onGoogle()}
+          className="min-h-[44px]"
+        >
+          {t('onboarding:consumer.auth.continue_google')}
+        </Button>
+      )}
+
+      {isFacebookEnabled() && !isPromote && (
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={submitting}
+          onClick={() => void onFacebook()}
+          className="min-h-[44px]"
+        >
+          {t('onboarding:consumer.auth.continue_facebook')}
         </Button>
       )}
 

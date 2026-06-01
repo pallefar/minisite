@@ -19,10 +19,13 @@ const getSessionMock = vi.fn(async () => ({
   error: null,
 }));
 let isAppleEnabledFlag = false;
+const isFacebookEnabledFlag = false;
 vi.mock('@/lib/auth', () => ({
   signInWithMagicLink: (email: string) => signInWithMagicLinkMock(email),
-  signInWithOAuthProvider: (provider: 'google' | 'apple') => signInWithOAuthProviderMock(provider),
+  signInWithOAuthProvider: (provider: 'google' | 'apple' | 'facebook') =>
+    signInWithOAuthProviderMock(provider),
   isAppleEnabled: () => isAppleEnabledFlag,
+  isFacebookEnabled: () => isFacebookEnabledFlag,
   // WR-03: ConsumerOnboardingRenderer now calls getSession() from @/lib/auth
   // instead of supabase.auth.getSession() directly (CLAUDE.md auth-wrapper rule).
   getSession: () => getSessionMock(),
