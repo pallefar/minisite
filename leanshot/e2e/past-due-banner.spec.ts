@@ -208,7 +208,7 @@ test.describe('@phase14 past-due-banner', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 
     const continueBtn = page.getByRole('button', { name: /continue to dashboard/i });
@@ -325,7 +325,7 @@ test.describe('@phase14 past-due-banner', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 
     const continueBtn = page.getByRole('button', { name: /continue to dashboard/i });

@@ -148,7 +148,7 @@ test.describe('@phase08 active-shares — patient happy path', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 
     // Migration modal may auto-dismiss; click "Continue to dashboard" if

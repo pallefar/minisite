@@ -110,7 +110,7 @@ async function seedAndSignIn(
   await page.goto('/#/auth/signin');
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /^sign in$/i }).click();
+  await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
   // CI-cold-signin-budget: raised 8s→30s for the full signIn chain on prod-build CI. See 07-RESEARCH.md §1 Family B.
   await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 }

@@ -175,7 +175,7 @@ test.describe('@phase14 checkout-trial-flow', () => {
     await page.goto('/#/auth/signin');
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(password);
-    await page.getByRole('button', { name: /^sign in$/i }).click();
+    await page.locator('form').getByRole('button', { name: /^sign in$/i }).click();
     await expect(page).not.toHaveURL(/#\/auth/, { timeout: 30_000 });
 
     // Dismiss migration modal if present.
