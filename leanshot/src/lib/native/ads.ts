@@ -8,24 +8,54 @@
 import type { BannerAdOptions } from '@capacitor-community/admob';
 import { AdMob, BannerAdSize, BannerAdPosition } from '@capacitor-community/admob';
 import { assertNoHealthData } from './healthAssert';
+import { detectPlatform } from './platform';
 
 export type AdPlacement = 'marketing-sidebar' | 'free-tier-banner' | 'interstitial';
 
+// Module-level idempotency guard. The boot-wiring (App.tsx mount effect) can
+// fire more than once under React StrictMode / fast-refresh; the AdMob SDK must
+// be initialised at most once. Mirrors iap.ts's `_configured` flag.
+let _adNetworkInitialized = false;
+
 /**
- * Initialise the AdMob SDK in test mode.
+ * Initialise the AdMob SDK once at app boot.
+ *
+ * Gating mirrors `configureRC` in ./iap (the RevenueCat key pattern):
+ *   - Native-only — web / capacitor-web are a silent no-op. The AdMob plugin is
+ *     an iOS/Android native binding; the web ad path is AdSense (PlatformAdSlot).
+ *   - Env-gated — only initialises when a real app ID is configured
+ *     (`VITE_ADMOB_APP_ID_IOS` / `_ANDROID`). Until those land (Phase 70 D-08)
+ *     this is a silent no-op rather than spinning up a test-mode SDK with no
+ *     inventory. Unlike configureRC it does NOT throw on a missing ID — ads are
+ *     non-critical, so absence is a benign skip.
+ *   - Idempotent — repeat calls after a successful init are no-ops.
  *
  * MUST call assertNoHealthData first (T-56-08 — no PHI in ad-init path).
  * Real app IDs and isTesting:false arrive in Phase 70 (D-08).
- * VITE_ADMOB_APP_ID_IOS / _ANDROID are set in .env.local; absent in test env.
  */
 export async function initAdNetwork(): Promise<void> {
   // Layer 2 firewall guard: no health-shaped fields may reach the SDK init.
   assertNoHealthData({}, 'initAdNetwork');
 
+  // Native-platform gate — mirror configureRC's ios|android short-circuit.
+  const platform = detectPlatform();
+  if (platform !== 'ios' && platform !== 'android') return;
+
+  // Idempotent — never re-initialise an already-configured SDK.
+  if (_adNetworkInitialized) return;
+
+  // Env-gated no-op until real app IDs land (Phase 70 D-08).
+  const appId =
+    platform === 'ios'
+      ? import.meta.env.VITE_ADMOB_APP_ID_IOS
+      : import.meta.env.VITE_ADMOB_APP_ID_ANDROID;
+  if (!appId) return;
+
   await AdMob.initialize({
     testingDevices: [],
     initializeForTesting: true,
   });
+  _adNetworkInitialized = true;
 }
 
 /**

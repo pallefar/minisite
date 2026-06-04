@@ -26,6 +26,9 @@ export default defineConfig({
       '@capgo/capacitor-native-biometric': fileURLToPath(
         new URL('./src/lib/native/__mocks__/capgo-native-biometric.ts', import.meta.url)
       ),
+      '@capacitor-community/admob': fileURLToPath(
+        new URL('./src/lib/native/__mocks__/capacitor-community-admob.ts', import.meta.url)
+      ),
     },
   },
   test: {
