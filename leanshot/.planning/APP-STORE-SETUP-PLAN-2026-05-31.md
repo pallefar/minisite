@@ -6,6 +6,17 @@ You have **both accounts** (Apple Developer + Play Console). This plan is a sequ
 runbook. Each step is tagged **[YOU]** (console/credential action only you can do) or
 **[ME]** (code/CI I can do in-repo, often after you hand me one value).
 
+> **STATUS UPDATE 2026-05-31 (correcting this plan):** The two CI items below
+> (C1, C2) turned out to be ALREADY DONE — this plan's original "What's MISSING"
+> was stale. `mobile-{ios,android}.yml` were shipped in **Phase 53** (`53-03`,
+> commits `4d80fbd8`/`d0a4d01d` + fixes `d9ba45ba`/`588e22b7`) and the Phase-71
+> release-notes sync is wired **inside the Fastfile** (`upload_testflight` +
+> `upload_play`), not the workflow YAML. **A1 done** (Team ID `XCZMRC727Z`).
+> **A9 done** — committed on branch `chore/app-store-config`. The only remaining
+> **[ME]** substitution is **B6** (Play SHA-256 → `assetlinks.json`), which is
+> blocked until a real AAB is built+processed on Play. Everything else is **[YOU]**
+> console/secrets work (Apple A2–A8, Play B1–B7) + AdMob.
+
 ## What already exists (don't rebuild)
 - Capacitor 8 native projects: `leanshot/apps/ios/` + `leanshot/apps/android/`.
 - Bundle IDs: **`app.leanshot.ios`** (iOS) / **`app.leanshot.android`** (Android) — set in `Appfile`.
@@ -16,16 +27,17 @@ runbook. Each step is tagged **[YOU]** (console/credential action only you can d
 - Phase-70 `70-01-PLAN-vendor-oauth-secrets.md` + `fastlane/README.md` §"Phase 70 Deferral Matrix" = the canonical secret/operator checklist.
 
 ## What's MISSING (gaps this plan closes)
-- `.github/workflows/mobile-ios.yml` + `.github/workflows/mobile-android.yml` — the CI workflows that invoke the fastlane lanes (lanes exist; workflow YAMLs were never committed). **[ME]**
-- Real values for placeholders: `TEAMID` in `public/.well-known/apple-app-site-association`; Play signing SHA-1/256 in `public/.well-known/assetlinks.json`. **[ME, once you give the values]**
+- ~~`.github/workflows/mobile-ios.yml` + `mobile-android.yml`~~ — **ALREADY EXIST** (Phase 53, git-root `.github/workflows/`): unsigned always-green job + gated upload job. ~~**[ME]**~~ ✅ DONE.
+- Placeholder substitutions:
+  - `TEAMID` in `public/.well-known/apple-app-site-association` → ✅ **DONE 2026-05-31** (real Team ID `XCZMRC727Z`, branch `chore/app-store-config`).
+  - Play signing SHA-256 in `public/.well-known/assetlinks.json` → ⏳ **[ME, once you give the value]** — still `REPLACE_WITH_PLAY_APP_SIGNING_SHA256_AT_PLAN_16_09`; needs B5.
 - All signing secrets in GitHub repo settings. **[YOU]**
 
 ---
 
 ## Phase A — Apple Developer + App Store Connect
 
-A1. **[YOU]** Confirm Apple Developer membership active. Capture **Team ID** (top of
-    https://developer.apple.com/account, format like `ABC1234DEF`). → hand me this value.
+A1. ✅ **DONE 2026-05-31** — Apple Developer membership active; **Team ID `XCZMRC727Z`**.
 A2. **[YOU]** Register the App ID: Certificates, Identifiers & Profiles → Identifiers →
     `+` → App IDs → App → description "LeanShot", Bundle ID **explicit** `app.leanshot.ios`.
     Enable capabilities you ship: **Sign in with Apple**, **Push Notifications** (+ Associated Domains for the universal-link `apple-app-site-association`).
@@ -50,8 +62,7 @@ A8. **[YOU]** Set GitHub repo secrets (Settings → Secrets and variables → Ac
     `MATCH_PASSWORD` (A7 passphrase),
     `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD` (A6),
     `APPLE_CERTIFICATE_BASE64` (if the Fastfile imports a cert directly — confirm vs match).
-A9. **[ME]** Replace `TEAMID` placeholder in `public/.well-known/apple-app-site-association`
-    with your real Team ID (A1).
+A9. ✅ **DONE 2026-05-31** — `TEAMID` → `XCZMRC727Z` in both AASA entries (appID + webcredentials.apps), JSON validity verified. Committed on branch `chore/app-store-config`.
 
 ## Phase B — Google Play Console
 
@@ -76,12 +87,18 @@ B7. **[YOU]** Fill the **Data safety** form using `apps/android/data-safety.md`;
 
 ## Phase C — CI wiring (mostly [ME])
 
-C1. **[ME]** Create `.github/workflows/mobile-ios.yml` + `mobile-android.yml`: an
-    always-green **unsigned build** job (no secrets) + a **gated sign-and-upload** job
-    (`if` secrets present) calling `upload_testflight` / `upload_play`. (Lanes already
-    exist; per `fastlane/README.md`, this is the documented missing piece.)
-C2. **[ME]** Verify the Phase-71 `sync-store-release-notes.mjs` step runs before the
-    upload lanes (wired in PR #9) and that `SUPABASE_*` env is available in those jobs.
+C1. ✅ **ALREADY DONE (Phase 53, `53-03`).** `.github/workflows/mobile-ios.yml` +
+    `mobile-android.yml` exist at the git root: each has an always-green **unsigned
+    build** job (no secrets) + a **gated sign-and-upload** job using the secret→env
+    `if:` trick, calling `upload_testflight` / `upload_play`. Lane names match the
+    Fastfile contract. Hardened by `d9ba45ba`/`588e22b7` (web-asset build, keystore
+    decode, FASTLANE env, job-level concurrency). **Nothing to author.**
+C2. ✅ **ALREADY DONE (Phase 71, `71-02`).** `sync-store-release-notes.mjs` runs
+    **inside the Fastfile** — `sh("node", "scripts/sync-store-release-notes.mjs")` in
+    both `upload_testflight` and `upload_play`, BEFORE the build/upload steps — not as
+    a workflow-YAML step. ⚠️ Open follow-up: the script needs `SUPABASE_URL` +
+    `SUPABASE_SERVICE_ROLE` in the upload-job env (Phase-71 go-live item) and the
+    `admin.product-updates.enabled` flag for published entries to exist.
 C3. **[YOU/ME]** First **local** validation (no secrets):
     `cd leanshot && npm ci && npm run build && npx cap sync ios && bundle exec fastlane ios build_ios_unsigned`
     (and the android equivalent) — confirms Xcode/Gradle wiring before secrets land.
@@ -91,11 +108,52 @@ C3. **[YOU/ME]** First **local** validation (no secrets):
 - Once B3+B4 secrets set → CI `upload_play` pushes the internal-testing AAB.
 - These satisfy the Phase-70 `70-04`/`70-05` iOS/Android device-UAT signals.
 
+## Phase E — In-App Purchases (RevenueCat) — [YOU] operator setup
+
+All RevenueCat **code** is shipped + audited (PR #12 fixed 12 readiness defects). The
+IAP business line stays inert until the operator provisions the dashboard / store
+products / secrets below. Full step-by-step + verification: see
+`REVENUECAT-GO-LIVE-RUNBOOK-2026-05-31.md` (same folder).
+
+E1. **[YOU]** RevenueCat dashboard: create project → add an iOS app (`app.leanshot.ios`)
+    + an Android app (`app.leanshot.android`).
+E2. **[YOU]** Copy each app's **public SDK key** → GitHub Actions repo secrets
+    `VITE_RC_API_KEY_IOS` + `VITE_RC_API_KEY_ANDROID`. The mobile workflows inject these
+    at build time; without them the shipped bundle has an empty key → dead paywall.
+E3. **[YOU]** RC dashboard: create entitlement **`plus`**; create an offering (mark it
+    **current**) with packages **`$rc_monthly`** + **`$rc_annual`**; attach products
+    `app.leanshot.plus.monthly` + `app.leanshot.plus.yearly` to the `plus` entitlement.
+E4. **[YOU]** App Store Connect: sign the **Paid Apps agreement** + banking/tax (longest
+    lead time — gates launch); create the two auto-renewable subscriptions (group `plus`,
+    7-day intro) with the matching product IDs.
+E5. **[YOU]** Google Play: merchant account + matching subscriptions / base plans.
+E6. **[YOU]** Supabase Function Secrets (server-only, NOT `VITE_`):
+    `supabase secrets set REVENUECAT_WEBHOOK_AUTH=<token>` (**REQUIRED** — 401s every
+    delivery if unset) + optional `REVENUECAT_WEBHOOK_SECRET=<hmac>`.
+E7. **[YOU]** RC dashboard → Integrations → Webhooks: register
+    `https://ytnsipxxmzgaebkqmokp.supabase.co/functions/v1/revenuecat-webhook` with the
+    `Authorization: Bearer <token>` header. Deploy the fn:
+    `supabase functions deploy revenuecat-webhook` (config sets `verify_jwt=false`).
+E8. **[YOU]** UAT: sandbox purchase + restore on a real device; confirm a live RC test
+    event mirrors into the `subscriptions` table.
+
 ## Sequencing / dependencies
 - A1 (Team ID) gates A9 + A8; B5 (SHA) gates B6 — so do A1 and B1–B5 early.
 - C1 can be done now (no secrets needed for the unsigned job).
 - AdMob (`70-01` S18) + the VR-baseline/E2E work are SEPARATE tracks (see handoff).
+- Phase E (RevenueCat IAP) is its own track; **E4 (Apple Paid-Apps agreement)** has the
+  longest approval lead time — start it as early as A2.
 
-## Immediate next actions
-- **[YOU]** Start Phase A (A1 Team ID) + Phase B (B1 create app). Hand me the Team ID + Play SHA when you have them.
-- **[ME, can start now]** C1 — author the two mobile CI workflow YAMLs (no secrets required), and A9/B6 placeholder substitutions once you provide the values.
+## Immediate next actions (revised 2026-05-31)
+- ✅ A1 + A9 done. C1 + C2 were already done (Phase 53 / Phase 71). The in-repo CI/config
+  path is essentially complete.
+- **[YOU]** The remaining path to first uploads is almost entirely console + secrets:
+  - Apple: A2–A8 (App ID, ASC app record, Sign in with Apple Services ID, APNs key,
+    app-specific password, `fastlane match` init, GitHub signing secrets incl.
+    `FASTLANE_TEAM_ID=XCZMRC727Z`).
+  - Play: B1–B7 (create app, internal track, upload keystore, service account,
+    first AAB → App Signing SHA-256, Data-safety form).
+- **[ME]** Only B6 left — substitute the Play SHA-256 into `assetlinks.json` once you
+  hand me the value from B5.
+- **IAP (RevenueCat):** all code done + audited (PR #12); operator **Phase E1–E8**
+  pending — start E1–E3 (dashboard + SDK keys) and E4 (Paid-Apps agreement) early.
