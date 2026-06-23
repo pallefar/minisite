@@ -50,6 +50,7 @@ const mockCheckTrialEligibility = vi.fn(async () => ({
 }));
 const mockDetectPlatform = vi.fn(() => 'ios' as 'ios' | 'android' | 'web' | 'capacitor-web');
 const mockBrowserOpen = vi.fn(async () => undefined);
+const mockHasPro = vi.fn(() => ({ has_pro: false, loading: false }));
 
 vi.mock('@/lib/native/iap', () => ({
   configureRC: (...args: unknown[]) => mockConfigureRC(...(args as [string])),
@@ -65,6 +66,13 @@ vi.mock('@/lib/native/platform', () => ({
 
 vi.mock('@capacitor/browser', () => ({
   Browser: { open: (args: unknown) => mockBrowserOpen(args as never) },
+}));
+
+// H3: gate the paywall on unified entitlement. Mock the hook so tests control
+// has_pro and don't pull the real supabase client into jsdom.
+vi.mock('@/lib/entitlement/current-user-has-pro', () => ({
+  useCurrentUserHasPro: () => mockHasPro(),
+  invalidateProCache: vi.fn(),
 }));
 
 // ─── Test helpers ───────────────────────────────────────────────────────────
@@ -115,6 +123,7 @@ beforeEach(() => {
   });
   mockDetectPlatform.mockReset().mockReturnValue('ios');
   mockBrowserOpen.mockReset().mockResolvedValue(undefined);
+  mockHasPro.mockReset().mockReturnValue({ has_pro: false, loading: false });
 });
 
 afterEach(() => {
@@ -190,6 +199,17 @@ describe('PricingIOS', () => {
     const html = container.innerHTML.toLowerCase();
     expect(html).not.toMatch(/stripe/);
     expect(html).not.toMatch(/leanshot\.app\/pricing/);
+  });
+
+  it('H3: already-subscribed user → renders manage state, no Subscribe paywall', async () => {
+    seedSignedIn(undefined);
+    mockHasPro.mockReturnValue({ has_pro: true, loading: false });
+    const { default: PricingIOS } = await import('@/components/PricingIOS');
+    render(<PricingIOS />);
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /already subscribed/i })).toBeTruthy();
+    });
+    expect(screen.queryByRole('button', { name: /^subscribe$/i })).toBeNull();
   });
 
   it('Subscribe click invokes purchaseSubscription with the selected (default yearly) productId', async () => {

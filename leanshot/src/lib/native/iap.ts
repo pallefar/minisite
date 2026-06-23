@@ -73,6 +73,10 @@ export class RcConfigError extends Error {
 
 let _configured = false;
 let _currentAppUserID: string | null = null;
+// L2: coalesce concurrent first-callers (paywall mount + ?upgrade= handler) onto a
+// single in-flight configure() so the SDK is never double-configured. Cleared on
+// failure (to allow retry) and by logOutRC() / __resetForTests().
+let _configurePromise: Promise<void> | null = null;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -124,15 +128,32 @@ export async function configureRC(appUserID: string): Promise<void> {
     }
     return;
   }
-  const apiKey = nativeApiKey();
-  if (!apiKey) {
-    throw new RcConfigError(
-      `RevenueCat SDK key missing for platform ${detectPlatform()} — set VITE_RC_API_KEY_IOS / VITE_RC_API_KEY_ANDROID in .env.local`,
-    );
+  // L2: memoize the first configure() so two near-simultaneous callers share one
+  // SDK init instead of racing (the `_configured` flag was previously written only
+  // AFTER the await, so both could pass the guard). The apiKey check throws
+  // synchronously BEFORE the promise is memoized so a missing key still rejects.
+  if (!_configurePromise) {
+    const apiKey = nativeApiKey();
+    if (!apiKey) {
+      throw new RcConfigError(
+        `RevenueCat SDK key missing for platform ${detectPlatform()} — set VITE_RC_API_KEY_IOS / VITE_RC_API_KEY_ANDROID in .env.local`,
+      );
+    }
+    _configurePromise = Purchases.configure({ apiKey, appUserID }).then(() => {
+      _configured = true;
+      _currentAppUserID = appUserID;
+    });
+    // On a transient configure failure, clear the memo so a later call can retry.
+    _configurePromise.catch(() => {
+      _configurePromise = null;
+    });
   }
-  await Purchases.configure({ apiKey, appUserID });
-  _configured = true;
-  _currentAppUserID = appUserID;
+  await _configurePromise;
+  // If a concurrent first-caller configured under a different appUserID, switch now.
+  if (_configured && _currentAppUserID !== appUserID) {
+    await Purchases.logIn({ appUserID });
+    _currentAppUserID = appUserID;
+  }
 }
 
 /**
@@ -144,29 +165,21 @@ export async function getOfferings(): Promise<Offering | null> {
     return null;
   }
   const result = await Purchases.getOfferings();
+  type RcPkg = {
+    identifier?: string;
+    product?: { identifier?: string; priceString?: string };
+  };
   const current = (result as { current?: unknown }).current as
     | {
         identifier?: string;
-        monthly?: {
-          identifier?: string;
-          product?: { identifier?: string; priceString?: string };
-        };
-        annual?: {
-          identifier?: string;
-          product?: { identifier?: string; priceString?: string };
-        };
+        monthly?: RcPkg;
+        annual?: RcPkg;
+        availablePackages?: RcPkg[];
       }
     | null
     | undefined;
   if (!current) return null;
-  const mapPackage = (
-    pkg:
-      | {
-          identifier?: string;
-          product?: { identifier?: string; priceString?: string };
-        }
-      | undefined,
-  ): Package | null => {
+  const mapPackage = (pkg: RcPkg | undefined): Package | null => {
     if (!pkg || !pkg.product) return null;
     return {
       identifier: pkg.identifier ?? '',
@@ -174,10 +187,19 @@ export async function getOfferings(): Promise<Offering | null> {
       priceString: pkg.product.priceString ?? '',
     };
   };
+  // L4: the built-in $rc_monthly / $rc_annual identifiers populate current.monthly /
+  // current.annual. A dashboard offering built with CUSTOM package identifiers leaves
+  // those null — fall back to scanning availablePackages by store product id so the
+  // paywall still resolves prices + a purchasable package (instead of a silent dead
+  // paywall: sdkReady=true, selectedPkg=null, prices show "—").
+  const byProduct = (productId: string): RcPkg | undefined =>
+    (current.availablePackages ?? []).find((p) => p.product?.identifier === productId);
+  const monthly = current.monthly ?? byProduct('app.leanshot.plus.monthly');
+  const annual = current.annual ?? byProduct('app.leanshot.plus.yearly');
   return {
     identifier: current.identifier ?? 'default',
-    monthlyPackage: mapPackage(current.monthly),
-    yearlyPackage: mapPackage(current.annual),
+    monthlyPackage: mapPackage(monthly),
+    yearlyPackage: mapPackage(annual),
   };
 }
 
@@ -208,10 +230,20 @@ export async function purchaseSubscription(productId: string): Promise<PurchaseR
   // Re-fetch the raw offering to retrieve it.
   const raw = await Purchases.getOfferings();
   const rawCurrent = (raw as { current?: unknown }).current as
-    | { monthly?: unknown; annual?: unknown }
+    | {
+        monthly?: unknown;
+        annual?: unknown;
+        availablePackages?: Array<{ product?: { identifier?: string } }>;
+      }
     | null
     | undefined;
-  const rawPkg = wantsMonthly ? rawCurrent?.monthly : rawCurrent?.annual;
+  // L4: mirror getOfferings' fallback so an offering with custom package ids still
+  // resolves the raw RC package the native SDK needs to complete the purchase.
+  const rawByProduct = (productId: string): unknown =>
+    (rawCurrent?.availablePackages ?? []).find((p) => p.product?.identifier === productId);
+  const rawPkg = wantsMonthly
+    ? (rawCurrent?.monthly ?? rawByProduct('app.leanshot.plus.monthly'))
+    : (rawCurrent?.annual ?? rawByProduct('app.leanshot.plus.yearly'));
   try {
     // RC SDK types narrow `aPackage` to `PurchasesPackage`; we re-fetch the
     // raw object precisely so it IS that shape at runtime. Cast is safe
@@ -237,11 +269,18 @@ export async function purchaseSubscription(productId: string): Promise<PurchaseR
  * Tell RC to look up any prior purchases for this device's Apple/Google ID
  * and re-grant the entitlement. Web no-op.
  */
-export async function restorePurchases(): Promise<void> {
+export async function restorePurchases(): Promise<PurchaseResult['customerInfo'] | null> {
   if (!isNativePlatform()) {
-    return;
+    return null;
   }
-  await Purchases.restorePurchases();
+  // M3: return customerInfo so the caller can inspect entitlements.active['plus']
+  // and resync the DB-backed store tier. A reinstall/TRANSFER restore that the
+  // webhook no-ops would otherwise leave the user gated as free despite a
+  // "Purchases restored." toast.
+  const result = (await Purchases.restorePurchases()) as
+    | { customerInfo?: PurchaseResult['customerInfo'] }
+    | undefined;
+  return result?.customerInfo ?? null;
 }
 
 /**
@@ -269,6 +308,31 @@ export async function checkTrialEligibility(): Promise<TrialEligibility> {
 }
 
 /**
+ * L1: log RevenueCat out on sign-out (shared-device hygiene + RC analytics /
+ * attribution correctness). Resets module idempotency so the next configureRC()
+ * cleanly re-binds the SDK to the new user. Web no-op.
+ */
+export async function logOutRC(): Promise<void> {
+  if (!isNativePlatform()) {
+    return;
+  }
+  try {
+    if (_configured) {
+      await Purchases.logOut();
+    }
+  } catch {
+    // Best-effort hygiene — a logOut rejection must NOT propagate to the
+    // fire-and-forget SIGNED_OUT caller (App.tsx) as an unhandled rejection.
+    // State is still reset in `finally`; in-app paid gating is DB-driven
+    // (not RC local cache), so a failed logOut leaks no paid features.
+  } finally {
+    _configured = false;
+    _currentAppUserID = null;
+    _configurePromise = null;
+  }
+}
+
+/**
  * Test-only hook — resets module-level idempotency state so tests can verify
  * the configure-once-then-logIn flow across `vi.resetModules()` boundaries.
  * NEVER call from production code.
@@ -276,4 +340,5 @@ export async function checkTrialEligibility(): Promise<TrialEligibility> {
 export function __resetForTests(): void {
   _configured = false;
   _currentAppUserID = null;
+  _configurePromise = null;
 }

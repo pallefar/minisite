@@ -1197,6 +1197,11 @@ export function App() {
           // defaults until their own loadOverrides() resolves. Mirrors the
           // namespaced-localStorage wipe in spirit.
           clearOverrideCache();
+          // L1 (RC readiness): log RevenueCat out so the native SDK does not stay
+          // bound to the prior user on a shared device. Dynamic-import keeps iap.ts
+          // (+ the RC SDK) off App.tsx's static graph; logOutRC is native-gated
+          // (web no-op) and best-effort (fire-and-forget — must not block sign-out).
+          void import('@/lib/native/iap').then(({ logOutRC }) => logOutRC());
           // Phase 24 Plan 04 D-13: reset PostHog identity so the next anon
           // session is truly anonymous (distinct_id returns to a fresh anon id).
           // posthog.reset() must run AFTER sign-out so the current uid's event
@@ -1454,6 +1459,19 @@ export function App() {
       // to the web stripe-checkout invoke — Apple review would fail.
       const platform = detectPlatform();
       if (platform === 'ios' || platform === 'android') {
+        // H3: don't start a purchase if the user already holds the `plus`
+        // entitlement (active Stripe web sub, prior mobile purchase, or lifetime).
+        // The store `tier` reflects tier_effective across all providers (billing-sync),
+        // so a second buy that would double-charge is blocked here too — the
+        // PricingIOS paywall has the same guard.
+        if (useStore.getState().tier !== 'free') {
+          try {
+            useStore.getState().showToast("You're already subscribed.", 'info');
+          } catch {
+            /* toast unavailable — noop */
+          }
+          return;
+        }
         const productId =
           plan === 'plus_monthly' ? 'app.leanshot.plus.monthly' : 'app.leanshot.plus.yearly';
         void (async (): Promise<void> => {

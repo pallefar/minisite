@@ -1,18 +1,22 @@
 /**
  * Phase 14 Plan 14-06 — ManageSubscriptionLink unit tests.
  *
- * 3 cases: portal invoke on click, same-tab redirect (window.location.href),
- * aria-busy loading state, and reduced-motion no-crash.
+ * Stripe (web) path: portal invoke on click, same-tab redirect, aria-busy state.
+ * H2 RevenueCat path: provider='revenuecat' routes to the platform store
+ * (App Store / Play) via @capacitor/browser — NOT the Stripe portal.
  *
  * vi.mock() calls hoisted by vitest.
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
+
+const mockDetectPlatform = vi.fn(() => 'web' as 'ios' | 'android' | 'web' | 'capacitor-web');
+const mockBrowserOpen = vi.fn(async () => undefined);
 
 vi.mock('@/lib/store', () => ({
   useStore: vi.fn(),
@@ -28,6 +32,14 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/hooks/useReducedMotion', () => ({
   useReducedMotion: vi.fn(),
+}));
+
+vi.mock('@/lib/native/platform', () => ({
+  detectPlatform: () => mockDetectPlatform(),
+}));
+
+vi.mock('@capacitor/browser', () => ({
+  Browser: { open: (args: unknown) => mockBrowserOpen(args as never) },
 }));
 
 // Mock Card and Button to avoid full design system in unit tests
@@ -70,6 +82,14 @@ const mockUseStore = useStore as unknown as ReturnType<typeof vi.fn>;
 const mockUseReducedMotion = useReducedMotion as unknown as ReturnType<typeof vi.fn>;
 const mockInvoke = supabase.functions.invoke as unknown as ReturnType<typeof vi.fn>;
 
+type StoreSlice = { tier: string; provider: string | null };
+
+function seedStore(provider: string | null): void {
+  mockUseStore.mockImplementation((selector: (s: StoreSlice) => unknown) =>
+    selector({ tier: 'paid', provider }),
+  );
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.clearAllMocks();
@@ -82,11 +102,10 @@ beforeEach(() => {
     writable: true,
   });
   mockUseReducedMotion.mockReturnValue(false);
-  // ManageSubscriptionLink doesn't read tier — but useStore may be called
-  // by child Card; mock with selector passthrough
-  mockUseStore.mockImplementation((selector: (s: { tier: 'paid' }) => unknown) =>
-    selector({ tier: 'paid' }),
-  );
+  mockDetectPlatform.mockReturnValue('web');
+  mockBrowserOpen.mockReset().mockResolvedValue(undefined);
+  // Default: Stripe (web) subscriber.
+  seedStore('stripe');
 });
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -97,7 +116,7 @@ describe('ManageSubscriptionLink', () => {
     return render(<ManageSubscriptionLink />);
   }
 
-  it('case 1: clicking Open Stripe button invokes stripe-checkout/portal AND redirects window.location.href', async () => {
+  it('case 1 (stripe): clicking Open Stripe invokes stripe-checkout/portal AND redirects window.location.href', async () => {
     const portalUrl = 'https://billing.stripe.com/portal/test456';
     mockInvoke.mockResolvedValueOnce({ data: { url: portalUrl }, error: null });
 
@@ -111,7 +130,7 @@ describe('ManageSubscriptionLink', () => {
     });
   });
 
-  it('case 2: button shows aria-busy=true while fetch is in-flight', async () => {
+  it('case 2 (stripe): button shows aria-busy=true while fetch is in-flight', async () => {
     // Never resolves during the test
     mockInvoke.mockReturnValue(new Promise(() => {}));
 
@@ -126,11 +145,43 @@ describe('ManageSubscriptionLink', () => {
     });
   });
 
-  it('case 3: renders without crashing when useReducedMotion toggles', async () => {
+  it('case 3 (stripe): renders without crashing when useReducedMotion toggles', async () => {
     mockUseReducedMotion.mockReturnValue(true);
     mockInvoke.mockResolvedValueOnce({ data: { url: 'https://example.com' }, error: null });
     await renderComponent();
-    // Just assert the component renders correctly with reduced-motion toggled
     expect(screen.getByRole('button', { name: /Open Stripe/i })).toBeDefined();
+  });
+
+  it('H2 (revenuecat/ios): renders "Open App Store" + opens App Store, NOT the Stripe portal', async () => {
+    seedStore('revenuecat');
+    mockDetectPlatform.mockReturnValue('ios');
+
+    await renderComponent();
+    const button = screen.getByRole('button', { name: /Open App Store/i });
+    expect(screen.queryByRole('button', { name: /Open Stripe/i })).toBeNull();
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockBrowserOpen).toHaveBeenCalled();
+    });
+    const call = mockBrowserOpen.mock.calls[0]?.[0] as { url?: string } | undefined;
+    expect(call?.url).toMatch(/apps\.apple\.com\/account\/subscriptions/);
+    expect(mockInvoke).not.toHaveBeenCalled();
+  });
+
+  it('H2 (revenuecat/android): renders "Open Google Play" + opens Play subscriptions', async () => {
+    seedStore('revenuecat');
+    mockDetectPlatform.mockReturnValue('android');
+
+    await renderComponent();
+    const button = screen.getByRole('button', { name: /Open Google Play/i });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockBrowserOpen).toHaveBeenCalled();
+    });
+    const call = mockBrowserOpen.mock.calls[0]?.[0] as { url?: string } | undefined;
+    expect(call?.url).toMatch(/play\.google\.com\/store\/account\/subscriptions/);
+    expect(mockInvoke).not.toHaveBeenCalled();
   });
 });

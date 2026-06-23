@@ -73,8 +73,13 @@ DEFERRED_ALLOWLIST=(
   APNS_KEY_ID
   APNS_TEAM_ID
   APNS_P8_KEY
-  RC_API_KEY_IOS
-  RC_API_KEY_ANDROID
+  # M4: RC_API_KEY_IOS/ANDROID removed — they are CLIENT build-time Vite vars
+  # (VITE_RC_API_KEY_*, baked into the mobile bundle), NOT Supabase Function
+  # Secrets. They are GitHub Actions secrets; see vendor-secrets.md
+  # § "Mobile CI build-time secrets".
+  # M5: REVENUECAT_WEBHOOK_AUTH is the REQUIRED Bearer secret for revenuecat-webhook
+  # (401 on every delivery when unset); deferred to Phase 70 provisioning.
+  REVENUECAT_WEBHOOK_AUTH
   REVENUECAT_WEBHOOK_SECRET
   PLAY_PACKAGE_NAME
   PLAY_SERVICE_ACCOUNT_JSON

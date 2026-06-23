@@ -13,6 +13,9 @@ export const Purchases = {
     customerInfo: { entitlements: { active: {} } },
     created: false,
   })),
+  logOut: vi.fn(async () => ({
+    customerInfo: { entitlements: { active: {} } },
+  })),
   checkTrialOrIntroductoryPriceEligibility: vi.fn(async () => ({})),
 };
 
@@ -38,6 +41,9 @@ export const __mock = {
     Purchases.logIn.mockReset().mockImplementation(async (_args: { appUserID: string }) => ({
       customerInfo: { entitlements: { active: {} } },
       created: false,
+    }));
+    Purchases.logOut.mockReset().mockImplementation(async () => ({
+      customerInfo: { entitlements: { active: {} } },
     }));
     Purchases.checkTrialOrIntroductoryPriceEligibility
       .mockReset()

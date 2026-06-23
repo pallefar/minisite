@@ -94,6 +94,17 @@ describe('iap.ts — RevenueCat bridge', () => {
     await expect(configureRC('u1')).rejects.toBeInstanceOf(RcConfigError);
   });
 
+  it('configureRC concurrent first-callers (same user) → Purchases.configure called once (L2 race guard)', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    Capacitor.getPlatform.mockReturnValue('ios');
+    Capacitor.isNativePlatform.mockReturnValue(true);
+    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+    const { configureRC } = await import('./iap');
+    // Both start before the first configure() resolves → must share one init.
+    await Promise.all([configureRC('u1'), configureRC('u1')]);
+    expect(Purchases.configure).toHaveBeenCalledTimes(1);
+  });
+
   // ─── getOfferings ───────────────────────────────────────────────────────────
 
   it('getOfferings on web → null', async () => {
@@ -146,6 +157,36 @@ describe('iap.ts — RevenueCat bridge', () => {
     Purchases.getOfferings.mockResolvedValue({ current: null });
     const { getOfferings } = await import('./iap');
     await expect(getOfferings()).resolves.toBeNull();
+  });
+
+  it('getOfferings falls back to availablePackages for custom package ids (L4)', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    Capacitor.getPlatform.mockReturnValue('ios');
+    Capacitor.isNativePlatform.mockReturnValue(true);
+    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+    // No built-in .monthly/.annual (custom-identifier offering) — must resolve
+    // from availablePackages by store product id.
+    Purchases.getOfferings.mockResolvedValue({
+      current: {
+        identifier: 'default',
+        monthly: null,
+        annual: null,
+        availablePackages: [
+          {
+            identifier: 'custom_m',
+            product: { identifier: 'app.leanshot.plus.monthly', priceString: '$12.99' },
+          },
+          {
+            identifier: 'custom_y',
+            product: { identifier: 'app.leanshot.plus.yearly', priceString: '$132.49' },
+          },
+        ],
+      },
+    });
+    const { getOfferings } = await import('./iap');
+    const offering = await getOfferings();
+    expect(offering?.monthlyPackage?.productIdentifier).toBe('app.leanshot.plus.monthly');
+    expect(offering?.yearlyPackage?.priceString).toBe('$132.49');
   });
 
   // ─── purchaseSubscription ───────────────────────────────────────────────────
@@ -257,6 +298,53 @@ describe('iap.ts — RevenueCat bridge', () => {
     const { restorePurchases } = await import('./iap');
     await restorePurchases();
     expect(Purchases.restorePurchases).toHaveBeenCalledTimes(1);
+  });
+
+  it('restorePurchases on ios → returns customerInfo entitlements (M3)', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    Capacitor.getPlatform.mockReturnValue('ios');
+    Capacitor.isNativePlatform.mockReturnValue(true);
+    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+    Purchases.restorePurchases.mockResolvedValue({
+      customerInfo: { entitlements: { active: { plus: { isActive: true } } } },
+    });
+    const { restorePurchases } = await import('./iap');
+    const info = await restorePurchases();
+    expect(info?.entitlements.active).toHaveProperty('plus');
+  });
+
+  it('restorePurchases on web → returns null', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    Capacitor.getPlatform.mockReturnValue('web');
+    Capacitor.isNativePlatform.mockReturnValue(false);
+    const { restorePurchases } = await import('./iap');
+    await expect(restorePurchases()).resolves.toBeNull();
+  });
+
+  // ─── logOutRC (L1) ────────────────────────────────────────────────────────────
+
+  it('logOutRC on ios after configure → Purchases.logOut called + state reset', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    Capacitor.getPlatform.mockReturnValue('ios');
+    Capacitor.isNativePlatform.mockReturnValue(true);
+    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+    const { configureRC, logOutRC } = await import('./iap');
+    await configureRC('u1');
+    await logOutRC();
+    expect(Purchases.logOut).toHaveBeenCalledTimes(1);
+    // State reset → next configure re-binds the SDK (configure called a 2nd time).
+    await configureRC('u2');
+    expect(Purchases.configure).toHaveBeenCalledTimes(2);
+  });
+
+  it('logOutRC on web → Purchases.logOut NOT called', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    Capacitor.getPlatform.mockReturnValue('web');
+    Capacitor.isNativePlatform.mockReturnValue(false);
+    const { Purchases } = await import('@revenuecat/purchases-capacitor');
+    const { logOutRC } = await import('./iap');
+    await logOutRC();
+    expect(Purchases.logOut).not.toHaveBeenCalled();
   });
 
   // ─── checkTrialEligibility ──────────────────────────────────────────────────
